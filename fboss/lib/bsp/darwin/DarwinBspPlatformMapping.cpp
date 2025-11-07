@@ -22,13 +22,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "1",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_1/xcvr1_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_1/xcvr_reset_1",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_1/xcvr1_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_1/xcvr_present_1",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -36,7 +36,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "1",
+            "controllerId": "2",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_1"
           },
@@ -57,13 +57,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "2",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_2/xcvr2_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_2/xcvr_reset_2",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_2/xcvr2_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_2/xcvr_present_2",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -92,13 +92,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "3",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_3/xcvr3_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_3/xcvr_reset_3",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_3/xcvr3_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_3/xcvr_present_3",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -106,7 +106,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "3",
+            "controllerId": "2",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_3"
           },
@@ -127,13 +127,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "4",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_4/xcvr4_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_4/xcvr_reset_4",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_4/xcvr4_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_4/xcvr_present_4",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -141,7 +141,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "4",
+            "controllerId": "2",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_4"
           },
@@ -162,13 +162,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "5",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_5/xcvr5_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_5/xcvr_reset_5",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_5/xcvr5_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_5/xcvr_present_5",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -176,7 +176,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "5",
+            "controllerId": "2",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_5"
           },
@@ -197,13 +197,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "6",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_6/xcvr6_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_6/xcvr_reset_6",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_6/xcvr6_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_6/xcvr_present_6",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -211,7 +211,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "6",
+            "controllerId": "2",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_6"
           },
@@ -232,13 +232,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "7",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_7/xcvr7_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_7/xcvr_reset_7",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_7/xcvr7_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_7/xcvr_present_7",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -246,7 +246,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "7",
+            "controllerId": "2",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_7"
           },
@@ -267,13 +267,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "8",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_8/xcvr8_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_8/xcvr_reset_8",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_8/xcvr8_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_8/xcvr_present_8",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -281,7 +281,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "8",
+            "controllerId": "2",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_8"
           },
@@ -302,13 +302,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "9",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_9/xcvr9_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_9/xcvr_reset_9",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_9/xcvr9_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_9/xcvr_present_9",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -316,7 +316,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "9",
+            "controllerId": "3",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_9"
           },
@@ -337,13 +337,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "10",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_10/xcvr10_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_10/xcvr_reset_10",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_10/xcvr10_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_10/xcvr_present_10",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -351,7 +351,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "10",
+            "controllerId": "3",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_10"
           },
@@ -372,13 +372,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "11",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_11/xcvr11_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_11/xcvr_reset_11",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_11/xcvr11_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_11/xcvr_present_11",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -386,7 +386,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "11",
+            "controllerId": "3",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_11"
           },
@@ -407,13 +407,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "12",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_12/xcvr12_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_12/xcvr_reset_12",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_12/xcvr12_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_12/xcvr_present_12",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -421,7 +421,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "12",
+            "controllerId": "3",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_12"
           },
@@ -442,13 +442,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "13",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_13/xcvr13_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_13/xcvr_reset_13",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_13/xcvr13_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_13/xcvr_present_13",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -456,7 +456,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "13",
+            "controllerId": "3",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_13"
           },
@@ -477,13 +477,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "14",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_14/xcvr14_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_14/xcvr_reset_14",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_14/xcvr14_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_14/xcvr_present_14",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -491,7 +491,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "14",
+            "controllerId": "3",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_14"
           },
@@ -512,13 +512,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "15",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_15/xcvr15_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_15/xcvr_reset_15",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_15/xcvr15_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_15/xcvr_present_15",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -526,7 +526,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "15",
+            "controllerId": "3",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_15"
           },
@@ -547,13 +547,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "16",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_16/xcvr16_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_16/xcvr_reset_16",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_16/xcvr16_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_16/xcvr_present_16",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -561,7 +561,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "16",
+            "controllerId": "3",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_16"
           },
@@ -582,13 +582,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "17",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_17/xcvr17_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_17/xcvr_reset_17",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_17/xcvr17_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_17/xcvr_present_17",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -596,7 +596,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "17",
+            "controllerId": "4",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_17"
           },
@@ -617,13 +617,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "18",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_18/xcvr18_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_18/xcvr_reset_18",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_18/xcvr18_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_18/xcvr_present_18",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -631,7 +631,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "18",
+            "controllerId": "4",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_18"
           },
@@ -652,13 +652,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "19",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_19/xcvr19_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_19/xcvr_reset_19",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_19/xcvr19_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_19/xcvr_present_19",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -666,7 +666,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "19",
+            "controllerId": "4",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_19"
           },
@@ -687,13 +687,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "20",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_20/xcvr20_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_20/xcvr_reset_20",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_20/xcvr20_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_20/xcvr_present_20",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -701,7 +701,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "20",
+            "controllerId": "4",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_20"
           },
@@ -722,13 +722,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "21",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_21/xcvr21_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_21/xcvr_reset_21",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_21/xcvr21_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_21/xcvr_present_21",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -736,7 +736,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "21",
+            "controllerId": "4",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_21"
           },
@@ -757,13 +757,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "22",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_22/xcvr22_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_22/xcvr_reset_22",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_22/xcvr22_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_22/xcvr_present_22",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -771,7 +771,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "22",
+            "controllerId": "4",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_22"
           },
@@ -792,13 +792,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "23",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_23/xcvr23_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_23/xcvr_reset_23",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_23/xcvr23_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_23/xcvr_present_23",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -806,7 +806,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "23",
+            "controllerId": "4",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_23"
           },
@@ -827,13 +827,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "24",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_24/xcvr24_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_24/xcvr_reset_24",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_24/xcvr24_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_24/xcvr_present_24",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -841,7 +841,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "24",
+            "controllerId": "4",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_24"
           },
@@ -862,13 +862,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "25",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_25/xcvr25_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_25/xcvr_reset_25",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_25/xcvr25_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_25/xcvr_present_25",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -876,7 +876,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "25",
+            "controllerId": "5",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_25"
           },
@@ -897,13 +897,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "26",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_26/xcvr26_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_26/xcvr_reset_26",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_26/xcvr26_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_26/xcvr_present_26",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -911,7 +911,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "26",
+            "controllerId": "5",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_26"
           },
@@ -932,13 +932,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "27",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_27/xcvr27_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_27/xcvr_reset_27",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_27/xcvr27_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_27/xcvr_present_27",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -946,7 +946,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "27",
+            "controllerId": "5",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_27"
           },
@@ -967,13 +967,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "28",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_28/xcvr28_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_28/xcvr_reset_28",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_28/xcvr28_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_28/xcvr_present_28",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -981,7 +981,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "28",
+            "controllerId": "5",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_28"
           },
@@ -1002,13 +1002,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "29",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_29/xcvr29_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_29/xcvr_reset_29",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_29/xcvr29_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_29/xcvr_present_29",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -1016,7 +1016,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "29",
+            "controllerId": "5",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_29"
           },
@@ -1037,13 +1037,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "30",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_30/xcvr30_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_30/xcvr_reset_30",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_30/xcvr30_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_30/xcvr_present_30",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -1051,7 +1051,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "30",
+            "controllerId": "5",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_30"
           },
@@ -1072,13 +1072,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "31",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_31/xcvr31_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_31/xcvr_reset_31",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_31/xcvr31_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_31/xcvr_present_31",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -1086,7 +1086,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "31",
+            "controllerId": "5",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_31"
           },
@@ -1107,13 +1107,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "32",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_32/xcvr32_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_32/xcvr_reset_32",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_32/xcvr32_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_32/xcvr_present_32",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -1121,7 +1121,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "32",
+            "controllerId": "5",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_32"
           },
@@ -1143,187 +1143,187 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
         "1": {
           "id": 1,
           "bluePath": "/sys/class/leds/port1_led1:green:status",
-          "yellowPath": "/sys/class/leds/port1_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port1_led1:yellow:status",
           "transceiverId": 1
         },
         "2": {
           "id": 2,
           "bluePath": "/sys/class/leds/port2_led1:green:status",
-          "yellowPath": "/sys/class/leds/port2_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port2_led1:yellow:status",
           "transceiverId": 2
         },
         "3": {
           "id": 3,
           "bluePath": "/sys/class/leds/port3_led1:green:status",
-          "yellowPath": "/sys/class/leds/port3_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port3_led1:yellow:status",
           "transceiverId": 3
         },
         "4": {
           "id": 4,
           "bluePath": "/sys/class/leds/port4_led1:green:status",
-          "yellowPath": "/sys/class/leds/port4_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port4_led1:yellow:status",
           "transceiverId": 4
         },
         "5": {
           "id": 5,
           "bluePath": "/sys/class/leds/port5_led1:green:status",
-          "yellowPath": "/sys/class/leds/port5_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port5_led1:yellow:status",
           "transceiverId": 5
         },
         "6": {
           "id": 6,
           "bluePath": "/sys/class/leds/port6_led1:green:status",
-          "yellowPath": "/sys/class/leds/port6_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port6_led1:yellow:status",
           "transceiverId": 6
         },
         "7": {
           "id": 7,
           "bluePath": "/sys/class/leds/port7_led1:green:status",
-          "yellowPath": "/sys/class/leds/port7_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port7_led1:yellow:status",
           "transceiverId": 7
         },
         "8": {
           "id": 8,
           "bluePath": "/sys/class/leds/port8_led1:green:status",
-          "yellowPath": "/sys/class/leds/port8_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port8_led1:yellow:status",
           "transceiverId": 8
         },
         "9": {
           "id": 9,
           "bluePath": "/sys/class/leds/port9_led1:green:status",
-          "yellowPath": "/sys/class/leds/port9_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port9_led1:yellow:status",
           "transceiverId": 9
         },
         "10": {
           "id": 10,
           "bluePath": "/sys/class/leds/port10_led1:green:status",
-          "yellowPath": "/sys/class/leds/port10_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port10_led1:yellow:status",
           "transceiverId": 10
         },
         "11": {
           "id": 11,
           "bluePath": "/sys/class/leds/port11_led1:green:status",
-          "yellowPath": "/sys/class/leds/port11_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port11_led1:yellow:status",
           "transceiverId": 11
         },
         "12": {
           "id": 12,
           "bluePath": "/sys/class/leds/port12_led1:green:status",
-          "yellowPath": "/sys/class/leds/port12_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port12_led1:yellow:status",
           "transceiverId": 12
         },
         "13": {
           "id": 13,
           "bluePath": "/sys/class/leds/port13_led1:green:status",
-          "yellowPath": "/sys/class/leds/port13_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port13_led1:yellow:status",
           "transceiverId": 13
         },
         "14": {
           "id": 14,
           "bluePath": "/sys/class/leds/port14_led1:green:status",
-          "yellowPath": "/sys/class/leds/port14_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port14_led1:yellow:status",
           "transceiverId": 14
         },
         "15": {
           "id": 15,
           "bluePath": "/sys/class/leds/port15_led1:green:status",
-          "yellowPath": "/sys/class/leds/port15_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port15_led1:yellow:status",
           "transceiverId": 15
         },
         "16": {
           "id": 16,
           "bluePath": "/sys/class/leds/port16_led1:green:status",
-          "yellowPath": "/sys/class/leds/port16_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port16_led1:yellow:status",
           "transceiverId": 16
         },
         "17": {
           "id": 17,
           "bluePath": "/sys/class/leds/port17_led1:green:status",
-          "yellowPath": "/sys/class/leds/port17_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port17_led1:yellow:status",
           "transceiverId": 17
         },
         "18": {
           "id": 18,
           "bluePath": "/sys/class/leds/port18_led1:green:status",
-          "yellowPath": "/sys/class/leds/port18_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port18_led1:yellow:status",
           "transceiverId": 18
         },
         "19": {
           "id": 19,
           "bluePath": "/sys/class/leds/port19_led1:green:status",
-          "yellowPath": "/sys/class/leds/port19_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port19_led1:yellow:status",
           "transceiverId": 19
         },
         "20": {
           "id": 20,
           "bluePath": "/sys/class/leds/port20_led1:green:status",
-          "yellowPath": "/sys/class/leds/port20_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port20_led1:yellow:status",
           "transceiverId": 20
         },
         "21": {
           "id": 21,
           "bluePath": "/sys/class/leds/port21_led1:green:status",
-          "yellowPath": "/sys/class/leds/port21_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port21_led1:yellow:status",
           "transceiverId": 21
         },
         "22": {
           "id": 22,
           "bluePath": "/sys/class/leds/port22_led1:green:status",
-          "yellowPath": "/sys/class/leds/port22_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port22_led1:yellow:status",
           "transceiverId": 22
         },
         "23": {
           "id": 23,
           "bluePath": "/sys/class/leds/port23_led1:green:status",
-          "yellowPath": "/sys/class/leds/port23_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port23_led1:yellow:status",
           "transceiverId": 23
         },
         "24": {
           "id": 24,
           "bluePath": "/sys/class/leds/port24_led1:green:status",
-          "yellowPath": "/sys/class/leds/port24_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port24_led1:yellow:status",
           "transceiverId": 24
         },
         "25": {
           "id": 25,
           "bluePath": "/sys/class/leds/port25_led1:green:status",
-          "yellowPath": "/sys/class/leds/port25_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port25_led1:yellow:status",
           "transceiverId": 25
         },
         "26": {
           "id": 26,
           "bluePath": "/sys/class/leds/port26_led1:green:status",
-          "yellowPath": "/sys/class/leds/port26_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port26_led1:yellow:status",
           "transceiverId": 26
         },
         "27": {
           "id": 27,
           "bluePath": "/sys/class/leds/port27_led1:green:status",
-          "yellowPath": "/sys/class/leds/port27_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port27_led1:yellow:status",
           "transceiverId": 27
         },
         "28": {
           "id": 28,
           "bluePath": "/sys/class/leds/port28_led1:green:status",
-          "yellowPath": "/sys/class/leds/port28_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port28_led1:yellow:status",
           "transceiverId": 28
         },
         "29": {
           "id": 29,
           "bluePath": "/sys/class/leds/port29_led1:green:status",
-          "yellowPath": "/sys/class/leds/port29_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port29_led1:yellow:status",
           "transceiverId": 29
         },
         "30": {
           "id": 30,
           "bluePath": "/sys/class/leds/port30_led1:green:status",
-          "yellowPath": "/sys/class/leds/port30_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port30_led1:yellow:status",
           "transceiverId": 30
         },
         "31": {
           "id": 31,
           "bluePath": "/sys/class/leds/port31_led1:green:status",
-          "yellowPath": "/sys/class/leds/port31_led1:yellow:status\r",
+          "yellowPath": "/sys/class/leds/port31_led1:yellow:status",
           "transceiverId": 31
         },
         "32": {
