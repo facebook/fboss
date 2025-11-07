@@ -119,9 +119,7 @@ set(
 
 add_fb_python_executable(
   psu-update-delta-orv3
-  BASE_DIR "${CMAKE_SOURCE_DIR}/fboss/platform/rackmon/psu_update"
-  NAMESPACE ""
-  MAIN_MODULE psu_update_delta_orv3:main
+  MAIN_MODULE fboss.platform.rackmon.psu_update.psu_update_delta_orv3:main
   SOURCES ${PSU_UPDATE_PY_SRCS}
   DEPENDS
     rackmon_py

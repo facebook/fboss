@@ -11,8 +11,8 @@ import traceback
 from binascii import hexlify
 from contextlib import ExitStack
 
-import hexfile
-from modbus_update_helper import (
+from fboss.platform.rackmon.psu_update import hexfile
+from fboss.platform.rackmon.psu_update.modbus_update_helper import (
     auto_int,
     bh,
     decode_modbus_address,
@@ -20,9 +20,9 @@ from modbus_update_helper import (
     print_perc,
     suppress_monitoring,
 )
-from pyrmd_thrift import ModbusException, RackmonInterface as rmd
+from fboss.platform.rackmon.psu_update.pyrmd_thrift import ModbusException, RackmonInterface as rmd
 
-import delta_key
+from fboss.platform.rackmon.psu_update import delta_key
 
 parser = get_parser()
 parser.add_argument("--key", type=auto_int, default=delta_key.key, help="Sec key")

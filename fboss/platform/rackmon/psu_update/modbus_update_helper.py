@@ -5,7 +5,7 @@ import time
 from binascii import hexlify
 from contextlib import contextmanager
 
-from pyrmd_thrift import RackmonInterface as rmd
+from fboss.platform.rackmon.psu_update.pyrmd_thrift import RackmonInterface as rmd
 
 
 def decode_modbus_address(addr, get_addr_bytes=True):
