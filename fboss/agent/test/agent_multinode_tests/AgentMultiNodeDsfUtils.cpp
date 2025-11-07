@@ -328,7 +328,8 @@ std::set<folly::IPAddress> getLoopbackIpsInDsfCluster(
   std::set<folly::IPAddress> loopbackIps;
   for (const auto& [switchId, dsfNode] : getSwitchIdToDsfNode(switchName)) {
     for (const auto& loopbackIp : *dsfNode.loopbackIps()) {
-      auto network = folly::IPAddress::createNetwork(loopbackIp);
+      auto network = folly::IPAddress::createNetwork(
+          loopbackIp, -1 /* defaultCidr */, false /* mask */);
       loopbackIps.insert(network.first);
     }
   }
