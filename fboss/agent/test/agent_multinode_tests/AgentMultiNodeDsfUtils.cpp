@@ -1104,15 +1104,25 @@ bool verifyDsfQsfpRestart(
 
   auto myHostname = topologyInfo->getMyHostname();
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
+  auto switchNameToSwitchIds = topologyInfo->getSwitchNameToSwitchIds();
+  auto baselineSwitchNameToQsfpAliveSinceEpoch =
+      getSwitchNameToQsfpAliveSinceEpoch(switchNameToSwitchIds);
 
   // For every device (RDSW, FDSW, SDSW) issue QSFP graceful restart
-  for (const auto& [switchName, _] : topologyInfo->getSwitchNameToSwitchIds()) {
+  for (const auto& [switchName, _] : switchNameToSwitchIds) {
     triggerGracefulRestart ? triggerGracefulQsfpRestart(switchName)
                            : triggerUngracefulQsfpRestart(switchName);
   }
 
+  // Wait for QSFP to restart
+  if (!verifyQsfpRestarted(
+          switchNameToSwitchIds, baselineSwitchNameToQsfpAliveSinceEpoch)) {
+    XLOG(DBG2) << "QSFP failed to restart on all switches";
+    return false;
+  }
+
   // Wait for QSFP service to come up
-  for (const auto& [switchName, _] : topologyInfo->getSwitchNameToSwitchIds()) {
+  for (const auto& [switchName, _] : switchNameToSwitchIds) {
     if (!verifyQsfpServiceRunState(switchName, QsfpServiceRunState::ACTIVE)) {
       XLOG(DBG2) << "QSFP failed to come up post warmboot: " << switchName;
       return false;
