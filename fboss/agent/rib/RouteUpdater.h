@@ -177,6 +177,7 @@ class RibRouteUpdater {
       const std::optional<LabelForwardingAction>& labelAction,
       bool* hasToCpu,
       bool* hasDrop,
+      const std::optional<bool>& disableTTLDecrement,
       const std::optional<NetworkTopologyInformation>& topologyInfo,
       RouteNextHopSet& fwd);
 

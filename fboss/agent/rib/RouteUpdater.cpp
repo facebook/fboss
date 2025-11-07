@@ -626,6 +626,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
     const std::optional<LabelForwardingAction>& labelAction,
     bool* hasToCpu,
     bool* hasDrop,
+    const std::optional<bool>& disableTTLDecrement,
     const std::optional<NetworkTopologyInformation>& topologyInfo,
     RouteNextHopSet& fwd) {
   auto it = routes->longestMatch(nh, nh.bitCount());
@@ -663,20 +664,23 @@ void RibRouteUpdater::getFwdInfoFromNhop(
             UCMP_DEFAULT_WEIGHT,
             LabelForwardingAction::combinePushLabelStack(
                 labelAction, rtNh.labelForwardingAction()),
-            rtNh.disableTTLDecrement(),
+            disableTTLDecrement.has_value() ? disableTTLDecrement
+                                            : rtNh.disableTTLDecrement(),
             topologyInfo));
       } else {
         std::for_each(
             nhops.begin(),
             nhops.end(),
-            [&fwd, labelAction, topologyInfo](const auto& nhop) {
+            [&fwd, labelAction, disableTTLDecrement, topologyInfo](
+                const auto& nhop) {
               fwd.insert(ResolvedNextHop(
                   nhop.addr(),
                   nhop.intf(),
                   nhop.weight(),
                   LabelForwardingAction::combinePushLabelStack(
                       labelAction, nhop.labelForwardingAction()),
-                  nhop.disableTTLDecrement(),
+                  disableTTLDecrement.has_value() ? disableTTLDecrement
+                                                  : nhop.disableTTLDecrement(),
                   topologyInfo));
             });
       }
@@ -750,6 +754,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.labelForwardingAction(),
               &hasToCpu,
               &hasDrop,
+              nh.disableTTLDecrement(),
               nh.topologyInfo(),
               nhToFwds[nh]);
         } else {
@@ -760,6 +765,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.labelForwardingAction(),
               &hasToCpu,
               &hasDrop,
+              nh.disableTTLDecrement(),
               nh.topologyInfo(),
               nhToFwds[nh]);
         }
