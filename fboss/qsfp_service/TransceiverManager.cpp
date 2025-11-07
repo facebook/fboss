@@ -2216,7 +2216,8 @@ void TransceiverManager::updateValidationCache(TransceiverID id, bool isValid) {
   }
 }
 
-void TransceiverManager::findAndTriggerPotentialFirmwareUpgradeEvents(
+std::unordered_set<TransceiverID>
+TransceiverManager::findPotentialTcvrsForFirmwareUpgrade(
     const std::vector<TransceiverID>& presentXcvrIds) {
   bool firstRefreshAfterColdboot = !canWarmBoot_ && !isFullyInitialized();
   std::unordered_set<TransceiverID> potentialTcvrsForFwUpgrade;
@@ -2253,6 +2254,14 @@ void TransceiverManager::findAndTriggerPotentialFirmwareUpgradeEvents(
       }
     }
   }
+
+  return potentialTcvrsForFwUpgrade;
+}
+
+void TransceiverManager::findAndTriggerPotentialFirmwareUpgradeEvents(
+    const std::vector<TransceiverID>& presentXcvrIds) {
+  const auto& potentialTcvrsForFwUpgrade =
+      findPotentialTcvrsForFirmwareUpgrade(presentXcvrIds);
   {
     auto tcvrsToUpgradeWLock = tcvrsForFwUpgrade.wlock();
     triggerFirmwareUpgradeEvents(*tcvrsToUpgradeWLock);

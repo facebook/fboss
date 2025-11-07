@@ -745,6 +745,9 @@ class TransceiverManager {
   // Return the list of transceivers that have programming events
   std::vector<TransceiverID> triggerProgrammingEvents();
 
+  std::unordered_set<TransceiverID> findPotentialTcvrsForFirmwareUpgrade(
+      const std::vector<TransceiverID>& presentXcvrIds);
+
   void findAndTriggerPotentialFirmwareUpgradeEvents(
       const std::vector<TransceiverID>& presentXcvrIds);
 
