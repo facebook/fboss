@@ -52,6 +52,16 @@ class TopologyInfo {
   virtual const std::map<std::string, cfg::SystemPortRanges>
   getSwitchNameToSystemPortRanges() const = 0;
 
+  // Each TopologyInfo subclass e.g. DsfTopologyInfo populates switches in that
+  // topology
+  virtual void populateAllSwitches() = 0;
+  const std::set<std::string>& getAllSwitches() const {
+    return allSwitches_;
+  }
+
+ protected:
+  std::set<std::string> allSwitches_;
+
  private:
   TopologyType topologyType_;
 

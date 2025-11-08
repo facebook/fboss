@@ -62,4 +62,10 @@ void DsfTopologyInfo::populateAllFdsws() {
   }
 }
 
+void DsfTopologyInfo::populateAllSwitches() {
+  allSwitches_.insert(allRdsws_.begin(), allRdsws_.end());
+  allSwitches_.insert(allFdsws_.begin(), allFdsws_.end());
+  allSwitches_.insert(sdsws_.begin(), sdsws_.end());
+}
+
 } // namespace facebook::fboss::utility
