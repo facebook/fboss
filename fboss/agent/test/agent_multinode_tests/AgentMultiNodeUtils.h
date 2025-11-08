@@ -170,10 +170,6 @@ bool verifyQsfpServiceRunState(
     const std::string& switchName,
     const QsfpServiceRunState& expectedQsfpRunState);
 
-bool verifyFsdbRestarted(
-    const std::map<std::string, std::set<SwitchID>>& switchNameToSwitchIds,
-    const std::map<std::string, int64_t>&
-        baselineSwitchNameToFsdbAliveSinceEpoch);
 bool verifyFsdbIsUp(const std::string& switchName);
 
 bool verifyNeighborsPresent(
