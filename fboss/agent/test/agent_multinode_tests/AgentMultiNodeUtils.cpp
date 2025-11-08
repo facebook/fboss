@@ -151,35 +151,6 @@ bool verifySwSwitchRunState(
       true /* retry on exception */);
 }
 
-bool verifyQsfpRestarted(
-    const std::map<std::string, std::set<SwitchID>>& switchNameToSwitchIds,
-    const std::map<std::string, int64_t>& baselinePeerToQsfpAliveSinceEpoch) {
-  auto allQsfpRestarted = [switchNameToSwitchIds,
-                           baselinePeerToQsfpAliveSinceEpoch] {
-    auto currentSwitchNameToQsfpAliveSinceEpoch =
-        getSwitchNameToQsfpAliveSinceEpoch(switchNameToSwitchIds);
-    // Verify all QSFPs restarted
-    return std::all_of(
-        currentSwitchNameToQsfpAliveSinceEpoch.begin(),
-        currentSwitchNameToQsfpAliveSinceEpoch.end(),
-        [&](const auto& pair) {
-          const auto& switchName = pair.first;
-          const auto& aliveSinceEpoch = pair.second;
-          auto baselineIt = baselinePeerToQsfpAliveSinceEpoch.find(switchName);
-          CHECK(baselineIt != baselinePeerToQsfpAliveSinceEpoch.end());
-          // If the QSFP has restarted, aliveSince will be greater i.e. later
-          // timestamp.
-          return baselineIt->second < aliveSinceEpoch;
-        });
-  };
-
-  return checkWithRetryErrorReturn(
-      allQsfpRestarted,
-      30 /* num retries */,
-      std::chrono::milliseconds(5000) /* sleep between retries */,
-      true /* retry on exception */);
-}
-
 bool verifyQsfpServiceRunState(
     const std::string& switchName,
     const QsfpServiceRunState& expectedQsfpRunState) {

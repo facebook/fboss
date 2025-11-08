@@ -169,9 +169,6 @@ bool verifySwSwitchRunState(
     const std::string& switchName,
     const SwitchRunState& expectedSwitchRunState);
 
-bool verifyQsfpRestarted(
-    const std::map<std::string, std::set<SwitchID>>& switchNameToSwitchIds,
-    const std::map<std::string, int64_t>& baselinePeerToQsfpAliveSinceEpoch);
 bool verifyQsfpServiceRunState(
     const std::string& switchName,
     const QsfpServiceRunState& expectedQsfpRunState);
