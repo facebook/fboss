@@ -49,6 +49,28 @@ void forEach(const Container& input, Callable&& func, Args&&... args) {
   }
 }
 
+// Invoke the provided func on every element of a given container
+// Return a map of func call result keyed by the element
+template <typename Container, typename Func, typename... Args>
+auto forEachWithRetVal(
+    const Container& container,
+    Func&& func,
+    Args&&... args) {
+  using KeyType = typename Container::value_type;
+  using MappedType = std::invoke_result_t<Func, KeyType, Args...>;
+  std::map<KeyType, MappedType> result;
+  auto argsTuple = std::make_tuple(std::forward<Args>(args)...);
+  for (const auto& elem : container) {
+    result[elem] = std::apply(
+        [&](auto&&... unpackedArgs) {
+          return func(
+              elem, std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
+        },
+        argsTuple);
+  }
+  return result;
+}
+
 std::vector<NdpEntryThrift> getNdpEntriesOfType(
     const std::string& rdsw,
     const std::set<std::string>& types);
