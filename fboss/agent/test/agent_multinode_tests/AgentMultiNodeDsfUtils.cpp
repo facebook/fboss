@@ -758,13 +758,16 @@ bool verifyDsfAgentRestartForRdsws(
       if (rdsw == myHostname) { // exclude self
         continue;
       }
-      // Trigger graceful or ungraceful Agent restart
-      triggerGracefulRestart ? triggerGracefulAgentRestart(rdsw)
-                             : triggerUngracefulAgentRestart(rdsw);
 
-      // Wait for the switch to come up
-      if (!verifySwSwitchRunState(rdsw, SwitchRunState::CONFIGURED)) {
-        XLOG(DBG2) << "Agent failed to come up post warmboot: " << rdsw;
+      // Trigger graceful or ungraceful Agent restart
+      if (!restartServiceForSwitches(
+              {rdsw},
+              triggerGracefulRestart ? triggerGracefulAgentRestart
+                                     : triggerUngracefulAgentRestart,
+              getAgentAliveSinceEpoch,
+              verifySwSwitchRunState,
+              SwitchRunState::CONFIGURED)) {
+        XLOG(ERR) << "Failed to restart Agent on RDSW: " << rdsw;
         return false;
       }
 
@@ -813,11 +816,16 @@ bool verifyDsfAgentRestartForFdsws(
     // Gracefully restart only one remote FDSW per cluster
     if (!fdsws.empty()) {
       auto fdsw = fdsws.front();
-      triggerGracefulRestart ? triggerGracefulAgentRestart(fdsw)
-                             : triggerUngracefulAgentRestart(fdsw);
-      // Wait for the switch to come up
-      if (!verifySwSwitchRunState(fdsw, SwitchRunState::CONFIGURED)) {
-        XLOG(DBG2) << "Agent failed to come up post warmboot: " << fdsw;
+
+      // Trigger graceful or ungraceful Agent restart
+      if (!restartServiceForSwitches(
+              {fdsw},
+              triggerGracefulRestart ? triggerGracefulAgentRestart
+                                     : triggerUngracefulAgentRestart,
+              getAgentAliveSinceEpoch,
+              verifySwSwitchRunState,
+              SwitchRunState::CONFIGURED)) {
+        XLOG(ERR) << "Failed to restart Agent on FDSW: " << fdsw;
         return false;
       }
     }
