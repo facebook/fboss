@@ -1157,25 +1157,14 @@ bool verifyDsfFSDBRestart(
         continue;
       }
 
-      std::map<std::string, std::set<SwitchID>> switchNameToSwitchIds = {
-          {rdsw, topologyInfo->getSwitchNameToSwitchIds().at(rdsw)}};
-      auto baselineSwitchNameToFsdbAliveSinceEpoch =
-          getSwitchNameToFsdbAliveSinceEpoch(switchNameToSwitchIds);
-
-      // Trigger graceful or ungraceful FSDB restart
-      triggerGracefulRestart ? triggerGracefulFsdbRestart(rdsw)
-                             : triggerUngracefulFsdbRestart(rdsw);
-
-      // Wait for FSDB to restart
-      if (!verifyFsdbRestarted(
-              switchNameToSwitchIds, baselineSwitchNameToFsdbAliveSinceEpoch)) {
-        XLOG(DBG2) << "FSDB failed to restart on: " << rdsw;
-        return false;
-      }
-
-      // Wait for FSDB to come up
-      if (!verifyFsdbIsUp(rdsw)) {
-        XLOG(DBG2) << "FSDB failed to come up post restart: " << rdsw;
+      if (!restartServiceForSwitches(
+              {rdsw},
+              triggerGracefulRestart ? triggerGracefulFsdbRestart
+                                     : triggerUngracefulFsdbRestart,
+              getFsdbAliveSinceEpoch,
+              verifyFsdbIsUp)) {
+        XLOG(ERR) << "Failed to restart FSDB on: "
+                  << folly::join(",", topologyInfo->getAllSwitches());
         return false;
       }
 
