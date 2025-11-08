@@ -9,7 +9,6 @@
  */
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
-#include "fboss/agent/platforms/common/MultiPimPlatformMapping.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/qsfp_service/PortManager.h"

@@ -5,7 +5,6 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/client/FsdbSubManager.h"
-#include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
