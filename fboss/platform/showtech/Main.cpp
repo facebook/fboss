@@ -86,6 +86,7 @@ int main(int argc, char** argv) {
            Comma-separated list of details to print.
            Use specific section details to avoid printing too much data.
            Use 'all' only if necessary. 'all' can take a long time to run.
+           Recommended usage with `all` is to redirect the output to a file.
          )"))
       ->delimiter(',')
       ->required()
