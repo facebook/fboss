@@ -99,6 +99,58 @@ bool checkForEachExcluding(
   return true;
 }
 
+// Use provided function to restart service on all switches.
+// Leverage getAliveSinceEpochFunc to determine service restart.
+// Leverage verifyServiceRunState to verify service run state.
+// Return true on success, false otherwise.
+template <typename VerifyServiceRunState, typename... Args>
+bool restartServiceForSwitches(
+    const std::set<std::string>& switches,
+    const std::function<void(const std::string&)>& restartServiceFunc,
+    const std::function<int64_t(const std::string&)>& getAliveSinceEpochFunc,
+    VerifyServiceRunState&& verifyServiceRunState,
+    Args&&... args) {
+  // Save baseline aliveSinceEpoch for all switches
+  std::map<std::string, int64_t> baselineSwitchToAliveSinceEpoch =
+      forEachWithRetVal(switches, getAliveSinceEpochFunc);
+
+  // Restart services on all switches
+  forEach(switches, restartServiceFunc);
+
+  auto allRestarted = [switches,
+                       getAliveSinceEpochFunc,
+                       baselineSwitchToAliveSinceEpoch] {
+    std::map<std::string, int64_t> currentSwitchToAliveSinceEpoch =
+        forEachWithRetVal(switches, getAliveSinceEpochFunc);
+
+    return std::all_of(
+        currentSwitchToAliveSinceEpoch.begin(),
+        currentSwitchToAliveSinceEpoch.end(),
+        [&](const auto& pair) {
+          const auto& switchName = pair.first;
+          const auto& aliveSinceEpoch = pair.second;
+          auto baselineIt = baselineSwitchToAliveSinceEpoch.find(switchName);
+          CHECK(baselineIt != baselineSwitchToAliveSinceEpoch.end());
+          // Clock is not guaranteed to be monitonic, thus check for inequality
+          // rather than aliveSinceEpoch greater than the baseline.
+          return baselineIt->second != aliveSinceEpoch;
+        });
+  };
+
+  // Verify service restarted on all switches
+  if (!checkWithRetryErrorReturn(
+          allRestarted,
+          30 /* num retries */,
+          std::chrono::milliseconds(5000) /* sleep between retries */,
+          true /* retry on exception */)) {
+    XLOG(ERR) << "Failed to restart service for switches: ";
+    return false;
+  }
+
+  // Verify service restarted on all switches
+  return checkForEachExcluding(
+      switches, {}, verifyServiceRunState, std::forward<Args>(args)...);
+}
 std::vector<NdpEntryThrift> getNdpEntriesOfType(
     const std::string& rdsw,
     const std::set<std::string>& types);
