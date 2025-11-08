@@ -29,6 +29,7 @@ getQsfpThriftClient(const std::string& switchName);
 std::unique_ptr<apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>
 getFsdbThriftClient(const std::string& switchName);
 
+int64_t getAgentAliveSinceEpoch(const std::string& switchName);
 int64_t getQsfpAliveSinceEpoch(const std::string& switchName);
 int64_t getFsdbAliveSinceEpoch(const std::string& switchName);
 
