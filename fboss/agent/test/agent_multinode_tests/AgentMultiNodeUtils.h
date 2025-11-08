@@ -158,10 +158,6 @@ std::vector<NdpEntryThrift> getNdpEntriesOfType(
 std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
     const std::string& switchName);
 
-std::map<std::string, int64_t> getSwitchNameToFsdbAliveSinceEpoch(
-    const std::map<std::string, std::set<facebook::fboss::SwitchID>>&
-        switchNameToSwitchIds);
-
 bool verifySwSwitchRunState(
     const std::string& switchName,
     const SwitchRunState& expectedSwitchRunState);

@@ -111,17 +111,6 @@ std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
   return upEthernetPortNameToPortInfo;
 }
 
-std::map<std::string, int64_t> getSwitchNameToFsdbAliveSinceEpoch(
-    const std::map<std::string, std::set<facebook::fboss::SwitchID>>&
-        switchNameToSwitchIds) {
-  std::map<std::string, int64_t> switchNameToFsdbAliveSinceEpoch;
-  for (const auto& [switchName, _] : switchNameToSwitchIds) {
-    switchNameToFsdbAliveSinceEpoch[switchName] =
-        getFsdbAliveSinceEpoch(switchName);
-  }
-  return switchNameToFsdbAliveSinceEpoch;
-}
-
 bool verifySwSwitchRunState(
     const std::string& switchName,
     const SwitchRunState& expectedSwitchRunState) {
