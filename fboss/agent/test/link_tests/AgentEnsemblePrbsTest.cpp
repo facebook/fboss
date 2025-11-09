@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include <chrono>
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -373,7 +374,15 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
           auto agentClient = utils::createWedgeAgentClient();
           // Agent currently doesn't have an API to get all prbs stats. So do it
           // one port at a time
-          agentClient->sync_getInterfacePrbsStats(
+          if (getSw()->isRunModeMonolithic()) {
+            agentClient->sync_getInterfacePrbsStats(
+                allPrbsStats.getStatsForComponent(
+                    testPort.component)[testPort.portName],
+                testPort.portName,
+                testPort.component);
+          }
+        } else {
+          getInterfacePrbsStatsMultiSwitch(
               allPrbsStats.getStatsForComponent(
                   testPort.component)[testPort.portName],
               testPort.portName,
@@ -519,6 +528,12 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
                  << apache::thrift::util::enumNameSafe(component);
       phy::PrbsStats stats;
       client->sync_getInterfacePrbsStats(stats, interfaceName, component);
+      if (getSw()->isRunModeMonolithic()) {
+        client->sync_getInterfacePrbsStats(stats, interfaceName, component);
+      } else {
+        getInterfacePrbsStatsMultiSwitch(stats, interfaceName, component);
+      }
+
       EXPECT_FALSE(stats.laneStats().value().empty())
           << PRBS_ERROR_MSG("Failed ", interfaceName, component);
       for (const auto& laneStat : stats.laneStats().value()) {
@@ -614,6 +629,48 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
                 << " failed with " << ex.what();
       return false;
     }
+  }
+
+  void getPortPrbsStatsMultiSwitch(
+      phy::PrbsStats& prbsStats,
+      int32_t portId,
+      phy::PortComponent component) {
+    if (component == phy::PortComponent::ASIC) {
+      auto switchId =
+          getSw()->getScopeResolver()->scope(PortID(portId)).switchId();
+      auto asicPrbsStats =
+          getSw()->getHwSwitchThriftClientTable()->getPortAsicPrbsStats(
+              switchId, PortID(portId));
+
+      prbsStats.portId() = portId;
+      prbsStats.component() = phy::PortComponent::ASIC;
+      for (const auto& lane : asicPrbsStats) {
+        prbsStats.laneStats()->push_back(lane);
+        auto timeCollected = lane.timeCollected().value();
+        // Store most recent timeCollected across all lane stats
+        if (timeCollected > prbsStats.timeCollected()) {
+          prbsStats.timeCollected() = timeCollected;
+        }
+      }
+    } else if (
+        component == phy::PortComponent::GB_SYSTEM ||
+        component == phy::PortComponent::GB_LINE) {
+      throw FbossError("Get gearbox prbs stats is not supported");
+    } else {
+      XLOG(DBG2) << "Unrecognized component to getPortPrbsStatsMultiSwitch: "
+                 << apache::thrift::util::enumNameSafe(component);
+    }
+  }
+
+  void getInterfacePrbsStatsMultiSwitch(
+      phy::PrbsStats& response,
+      const std::string& portName,
+      phy::PortComponent component) {
+    if (component != phy::PortComponent::ASIC) {
+      throw FbossError("Unsupported component");
+    }
+    auto portID = getSw()->getPlatformMapping()->getPortID(portName);
+    getPortPrbsStatsMultiSwitch(response, portID, component);
   }
 };
 
