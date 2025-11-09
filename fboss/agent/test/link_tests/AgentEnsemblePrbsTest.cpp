@@ -324,7 +324,11 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       prbs::InterfacePrbsState& expectedState) {
     try {
       prbs::InterfacePrbsState state;
-      client->sync_getInterfacePrbsState(state, interfaceName, component);
+      if (getSw()->isRunModeMonolithic()) {
+        client->sync_getInterfacePrbsState(state, interfaceName, component);
+      } else {
+        getInterfacePrbsStateMultiSwitch(state, interfaceName, component);
+      }
       if (expectedState.generatorEnabled().has_value() &&
           expectedState.generatorEnabled().value()) {
         // Check both enabled state and polynomial when expected state is
@@ -371,22 +375,22 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
               allPrbsStats.getStatsForComponent(testPort.component),
               testPort.component);
         } else if (testPort.component == phy::PortComponent::ASIC) {
-          auto agentClient = utils::createWedgeAgentClient();
           // Agent currently doesn't have an API to get all prbs stats. So do it
           // one port at a time
           if (getSw()->isRunModeMonolithic()) {
+            auto agentClient = utils::createWedgeAgentClient();
             agentClient->sync_getInterfacePrbsStats(
                 allPrbsStats.getStatsForComponent(
                     testPort.component)[testPort.portName],
                 testPort.portName,
                 testPort.component);
+          } else {
+            getInterfacePrbsStatsMultiSwitch(
+                allPrbsStats.getStatsForComponent(
+                    testPort.component)[testPort.portName],
+                testPort.portName,
+                testPort.component);
           }
-        } else {
-          getInterfacePrbsStatsMultiSwitch(
-              allPrbsStats.getStatsForComponent(
-                  testPort.component)[testPort.portName],
-              testPort.portName,
-              testPort.component);
         }
       }
 
@@ -527,7 +531,6 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
                  << ", component: "
                  << apache::thrift::util::enumNameSafe(component);
       phy::PrbsStats stats;
-      client->sync_getInterfacePrbsStats(stats, interfaceName, component);
       if (getSw()->isRunModeMonolithic()) {
         client->sync_getInterfacePrbsStats(stats, interfaceName, component);
       } else {
@@ -671,6 +674,19 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
     }
     auto portID = getSw()->getPlatformMapping()->getPortID(portName);
     getPortPrbsStatsMultiSwitch(response, portID, component);
+  }
+
+  void getInterfacePrbsStateMultiSwitch(
+      prbs::InterfacePrbsState& prbsState,
+      const std::string& portName,
+      phy::PortComponent component) {
+    if (component != phy::PortComponent::ASIC) {
+      throw FbossError("Unsupported component");
+    }
+    auto portID = getSw()->getPlatformMapping()->getPortID(portName);
+    auto switchId = getSw()->getScopeResolver()->scope(portID).switchId();
+    prbsState = getSw()->getHwSwitchThriftClientTable()->getPortPrbsState(
+        switchId, portID);
   }
 };
 
