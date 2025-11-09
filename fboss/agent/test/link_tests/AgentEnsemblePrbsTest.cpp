@@ -566,13 +566,29 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
     }
   }
 
+  void clearInterfacePrbsStatsMultiSwitch(
+      std::string& interfaceName,
+      phy::PortComponent component) {
+    if (component != phy::PortComponent::ASIC) {
+      throw FbossError("Unsupported component");
+    }
+    auto portID = getSw()->getPlatformMapping()->getPortID(interfaceName);
+    auto switchId = getSw()->getScopeResolver()->scope(portID).switchId();
+    getSw()->getHwSwitchThriftClientTable()->clearPortAsicPrbsStats(
+        switchId, portID);
+  }
+
   template <class Client>
   bool clearPrbsStatsOnInterface(
       Client* client,
       std::string& interfaceName,
       phy::PortComponent component) {
     try {
-      client->sync_clearInterfacePrbsStats(interfaceName, component);
+      if (getSw()->isRunModeMultiSwitch()) {
+        clearInterfacePrbsStatsMultiSwitch(interfaceName, component);
+      } else {
+        client->sync_clearInterfacePrbsStats(interfaceName, component);
+      }
     } catch (const std::exception& ex) {
       PRINT_PRBS_ERROR_W_EXCEPTION(
           "Clearing PRBS Stats on ", interfaceName, component, ex);
