@@ -184,6 +184,11 @@ class PhyManager {
         "Attempted to call setupMacsecState from non-SaiPhyManager");
   }
 
+  enum class XphyThreadingModel {
+    PIM_LEVEL,
+    XPHY_LEVEL,
+  };
+
   folly::EventBase* getPimEventBase(PimID pimID) const;
 
   virtual void
@@ -405,6 +410,9 @@ class PhyManager {
   };
   std::unordered_map<PimID, std::unique_ptr<PimEventMultiThreading>>
       pimToThread_;
+
+  // Threading model - defaults to PIM_LEVEL for backward compatibility
+  XphyThreadingModel xphyThreadingModel_{XphyThreadingModel::PIM_LEVEL};
 
   // In the constructor function, we create this portToCacheInfo_ based on the
   // PlatformMapping, which should have all xphy ports. But their default
