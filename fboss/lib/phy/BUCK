@@ -227,4 +227,36 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "bsp_sai_phy_manager",
+    srcs = [
+        "BspSaiPhyManager.cpp",
+        "SaiPhyManager.cpp",
+    ],
+    headers = [
+        "BspSaiPhyManager.h",
+        "SaiPhyManager.h",
+    ],
+    exported_deps = [
+        ":external_phy",
+        ":phy-cpp2-types",
+        ":phy_management_base",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:stats",
+        "//fboss/agent:utils",
+        "//fboss/agent/hw:hw_switch_warmboot_helper",
+        "//fboss/agent/hw/sai/switch:sai_switch-fake",
+        "//fboss/agent/platforms/sai:sai_platform-fake",
+        "//fboss/agent/state:state",
+        "//fboss/agent/state:state_update",
+        "//fboss/lib/bsp:bsp_core",
+        "//fboss/lib/bsp:bsp_platform_mapping_lib",
+        "//fboss/lib/config:fboss_config_utils",
+        "//fboss/mka_service/if:mka_structs-cpp2-types",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+)
+
 all_sai_phy_management_libs()
