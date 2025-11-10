@@ -111,7 +111,7 @@ bool restartServiceForSwitches(
     VerifyServiceRunState&& verifyServiceRunState,
     Args&&... args) {
   // Save baseline aliveSinceEpoch for all switches
-  std::map<std::string, int64_t> baselineSwitchToAliveSinceEpoch =
+  const auto& baselineSwitchToAliveSinceEpoch =
       forEachWithRetVal(switches, getAliveSinceEpochFunc);
 
   // Restart services on all switches
@@ -120,7 +120,7 @@ bool restartServiceForSwitches(
   auto allRestarted = [switches,
                        getAliveSinceEpochFunc,
                        baselineSwitchToAliveSinceEpoch] {
-    std::map<std::string, int64_t> currentSwitchToAliveSinceEpoch =
+    const auto& currentSwitchToAliveSinceEpoch =
         forEachWithRetVal(switches, getAliveSinceEpochFunc);
 
     return std::all_of(
@@ -149,7 +149,10 @@ bool restartServiceForSwitches(
 
   // Verify service restarted on all switches
   return checkForEachExcluding(
-      switches, {}, verifyServiceRunState, std::forward<Args>(args)...);
+      switches,
+      {},
+      std::forward<VerifyServiceRunState>(verifyServiceRunState),
+      std::forward<Args>(args)...);
 }
 std::vector<NdpEntryThrift> getNdpEntriesOfType(
     const std::string& rdsw,

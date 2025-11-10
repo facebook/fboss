@@ -1019,8 +1019,6 @@ bool verifyLiveSystemPorts(const std::unique_ptr<TopologyInfo>& topologyInfo) {
       30 /* num retries */,
       std::chrono::milliseconds(5000) /* sleep between retries */,
       true /* retry on exception */);
-
-  return true;
 }
 
 bool verifyLiveRifs(const std::unique_ptr<TopologyInfo>& topologyInfo) {
