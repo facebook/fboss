@@ -190,6 +190,10 @@ class PhyManager {
   };
 
   folly::EventBase* getPimEventBase(PimID pimID) const;
+  virtual folly::EventBase* getXphyEventBase(const GlobalXphyID& xphyID) const;
+
+  // Get all xphy IDs for a given PIM
+  std::vector<GlobalXphyID> getXphyIDsForPim(const PimID& pimID) const;
 
   virtual void
   setPortPrbs(PortID portID, phy::Side side, const phy::PortPrbsState& prbs);
@@ -260,6 +264,10 @@ class PhyManager {
     publishPhyCb_ = publishPhyCb;
   }
 
+  XphyThreadingModel getXphyThreadingModel() const {
+    return xphyThreadingModel_;
+  }
+
  protected:
   struct PortCacheInfo {
     // PhyManager is in the middle of changing its apis to accept PortID instead
@@ -296,6 +304,10 @@ class PhyManager {
   template <typename LockedPtr>
   phy::ExternalPhy* getExternalPhyLocked(const LockedPtr& lockedCache) {
     return getExternalPhy(lockedCache->xphyID);
+  }
+
+  void setXphyThreadingModel(XphyThreadingModel model) {
+    xphyThreadingModel_ = model;
   }
 
   // Return true if the new portConfig is different from the cache

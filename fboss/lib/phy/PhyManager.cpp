@@ -211,6 +211,17 @@ folly::EventBase* PhyManager::getPimEventBase(PimID pimID) const {
   throw FbossError("Can't find pim EventBase for pim=", pimID);
 }
 
+folly::EventBase* PhyManager::getXphyEventBase(
+    const GlobalXphyID& xphyID) const {
+  if (xphyThreadingModel_ == XphyThreadingModel::XPHY_LEVEL) {
+    throw FbossError("Can't find xphy EventBase for xphy=", xphyID);
+  }
+
+  // In PIM_LEVEL mode, return the PIM's event base
+  auto phyIDInfo = getPhyIDInfo(xphyID);
+  return getPimEventBase(phyIDInfo.pimID);
+}
+
 PhyManager::PimEventMultiThreading::PimEventMultiThreading(PimID pimID) {
   pim = pimID;
   eventBase = std::make_unique<folly::EventBase>();
@@ -229,6 +240,18 @@ PhyManager::PimEventMultiThreading::~PimEventMultiThreading() {
 
 void PhyManager::setupPimEventMultiThreading(PimID pimID) {
   pimToThread_.emplace(pimID, std::make_unique<PimEventMultiThreading>(pimID));
+}
+
+std::vector<GlobalXphyID> PhyManager::getXphyIDsForPim(
+    const PimID& pimID) const {
+  std::vector<GlobalXphyID> xphyIDs;
+  auto xphyMapIt = xphyMap_.find(pimID);
+  if (xphyMapIt != xphyMap_.end()) {
+    for (const auto& [xphyID, xphy] : xphyMapIt->second) {
+      xphyIDs.push_back(xphyID);
+    }
+  }
+  return xphyIDs;
 }
 
 bool PhyManager::setPortToPortCacheInfoLocked(
