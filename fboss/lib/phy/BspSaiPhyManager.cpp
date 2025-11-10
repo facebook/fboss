@@ -187,4 +187,14 @@ int BspSaiPhyManager::getPimStartNum() {
   return systemContainer_->getPimStartNum();
 }
 
+folly::EventBase* BspSaiPhyManager::getXphyEventBase(
+    const GlobalXphyID& xphyID) const {
+  auto phyIDInfo = getPhyIDInfo(xphyID);
+
+  auto bspPimContainer =
+      systemContainer_->getPimContainerFromPimID(phyIDInfo.pimID);
+
+  return bspPimContainer->getPhyIOEventBase(xphyID);
+}
+
 } // namespace facebook::fboss

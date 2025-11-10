@@ -47,6 +47,9 @@ class BspSaiPhyManager : public SaiPhyManager {
     return cfg::AsicType::ASIC_TYPE_AGERA3;
   }
 
+  // Override to return the event base for a specific XPHY from BspPimContainer
+  folly::EventBase* getXphyEventBase(const GlobalXphyID& xphyID) const override;
+
  private:
   // We won't be using this MultiPimPlatformPimContainer
   void createExternalPhy(
