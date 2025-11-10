@@ -497,7 +497,7 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_3",
           "address": "0x35",
-          "kernelDeviceName": "ladakh800bcls_scmcpld",
+          "kernelDeviceName": "anacapa_scmcpld",
           "pmUnitScopedName": "SCM_CPLD"
         },
         {
@@ -563,14 +563,14 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
           "address": "0x33",
-          "kernelDeviceName": "ladakh800bcls_fancpld",
+          "kernelDeviceName": "anacapa_fancpld",
           "pmUnitScopedName": "MCB_FAN_CPLD",
           "isWatchdog": true
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
           "address": "0x60",
-          "kernelDeviceName": "ladakh800bcls_mcbcpld",
+          "kernelDeviceName": "anacapa_mcbcpld",
           "pmUnitScopedName": "MCB_CPLD"
         },
         {
@@ -818,7 +818,7 @@
         {
           "busName": "INCOMING@0",
           "address": "0x33",
-          "kernelDeviceName": "ladakh800bcls_rtmcpld",
+          "kernelDeviceName": "anacapa_rtmcpld",
           "pmUnitScopedName": "RTM_L_CPLD"
         },
         {
@@ -934,7 +934,7 @@
         {
           "busName": "INCOMING@0",
           "address": "0x33",
-          "kernelDeviceName": "ladakh800bcls_rtmcpld",
+          "kernelDeviceName": "anacapa_rtmcpld",
           "pmUnitScopedName": "RTM_R_CPLD"
         },
         {
@@ -1243,7 +1243,7 @@
         {
           "busName": "INCOMING@2",
           "address": "0x33",
-          "kernelDeviceName": "ladakh800bcls_smbcpld",
+          "kernelDeviceName": "anacapa_smbcpld",
           "pmUnitScopedName": "SMB_L_CPLD"
         },
         {
@@ -1501,7 +1501,7 @@
         {
           "busName": "INCOMING@4",
           "address": "0x33",
-          "kernelDeviceName": "ladakh800bcls_smbcpld",
+          "kernelDeviceName": "anacapa_smbcpld",
           "pmUnitScopedName": "SMB_R_CPLD"
         }
       ]
