@@ -88,9 +88,18 @@ void SaiBridgeManager::setL2LearningMode(
     mode_ = l2LearningMode.value();
     fdbLearningMode_ = getFdbLearningMode(l2LearningMode.value());
   }
-  XLOG(DBG2) << "FDB learning mode set to "
-             << (getL2LearningMode() == cfg::L2LearningMode::HARDWARE
-                     ? "hardware"
-                     : "software");
+  std::string modeStr;
+  switch (getL2LearningMode()) {
+    case cfg::L2LearningMode::HARDWARE:
+      modeStr = "hardware";
+      break;
+    case cfg::L2LearningMode::SOFTWARE:
+      modeStr = "software";
+      break;
+    case cfg::L2LearningMode::DISABLED:
+      modeStr = "disabled";
+      break;
+  }
+  XLOG(DBG2) << "FDB learning mode set to " << modeStr;
 }
 } // namespace facebook::fboss
