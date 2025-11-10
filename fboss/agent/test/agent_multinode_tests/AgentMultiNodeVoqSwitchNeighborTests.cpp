@@ -143,6 +143,7 @@ class AgentMultiNodeVoqSwitchNeighborTest : public AgentMultiNodeTest {
             topologyInfo, rdsw, 2 /* number of neighbors */);
         CHECK_EQ(neighbors.size(), 2);
         auto firstNeighbor = neighbors[0];
+        auto secondNeighbor = neighbors[1];
 
         for (const auto& neighbor : neighbors) {
           utility::addNeighbor(
@@ -168,6 +169,16 @@ class AgentMultiNodeVoqSwitchNeighborTest : public AgentMultiNodeTest {
                 {} /* exclude none */)) {
           XLOG(DBG2) << "Neighbor remove verification failed: " << rdsw
                      << " neighbor: " << firstNeighbor.str();
+          return false;
+        }
+
+        // Disable second neighbor port and verify it is removed from every
+        // RDSW
+        utility::adminDisablePort(rdsw, secondNeighbor.portID);
+        if (!utility::verifyNeighborsLocallyPresentRemoteAbsent(
+                topologyInfo->getRdsws(), {secondNeighbor}, rdsw)) {
+          XLOG(DBG2) << "Neighbor remove verification on port disable failed: "
+                     << rdsw;
           return false;
         }
 
