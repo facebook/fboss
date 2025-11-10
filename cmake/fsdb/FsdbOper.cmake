@@ -36,6 +36,17 @@ target_link_libraries(subscription_manager
   thrift_cow_visitors
 )
 
+add_library(extended_path_builder
+  fboss/fsdb/oper/ExtendedPathBuilder.cpp
+  fboss/fsdb/oper/ExtendedPathBuilder.h
+)
+
+target_link_libraries(extended_path_builder
+  fsdb_oper_cpp2
+  FBThrift::thriftcpp2
+  Folly::folly
+)
+
 add_library(oper_path_helpers
   fboss/fsdb/oper/PathConverter.cpp
   fboss/fsdb/oper/PathConverter.h
