@@ -802,7 +802,7 @@
         },
         {
           "name": "MCB_UP15_XP12R0V_COME_VOUT",
-          "sysfsPath": "/run/devmap/sensors/LOAD_SWITCH_MONITOR/in2_input",
+          "sysfsPath": "/run/devmap/sensors/LOAD_SWITCH_MONITOR/in3_input",
           "type": 1,
           "compute": "@/1000.0"
         },
