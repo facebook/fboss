@@ -162,4 +162,28 @@ Patch makePatch(const folly::F14FastMap<std::string, HwPortStats>& portStats) {
   return p;
 }
 
+OperDelta makeSwitchStateOperDelta(const state::SwitchState& switchState) {
+  OperPath deltaPath;
+  thriftpath::RootThriftPath<FsdbOperStateRoot> root;
+  deltaPath.raw() = root.agent().switchState().tokens();
+  OperDeltaUnit deltaUnit;
+  deltaUnit.path() = deltaPath;
+  deltaUnit.newState() =
+      apache::thrift::BinarySerializer::serialize<std::string>(switchState);
+  OperDelta delta;
+  delta.changes()->push_back(deltaUnit);
+  delta.protocol() = OperProtocol::BINARY;
+  return delta;
+}
+
+OperState makeSwitchStateOperState(const state::SwitchState& switchState) {
+  AgentData agentData;
+  agentData.switchState() = switchState;
+  OperState stateUnit;
+  stateUnit.contents() =
+      apache::thrift::BinarySerializer::serialize<std::string>(agentData);
+  stateUnit.protocol() = OperProtocol::BINARY;
+  return stateUnit;
+}
+
 } // namespace facebook::fboss::fsdb::test

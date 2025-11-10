@@ -60,6 +60,9 @@ folly::F14FastMap<std::string, HwPortStats> makePortStats(
     int64_t inBytes,
     const std::string& portName = "eth1/1/1");
 
+OperDelta makeSwitchStateOperDelta(const state::SwitchState& switchState);
+OperState makeSwitchStateOperState(const state::SwitchState& switchState);
+
 template <typename PubSubT>
 class TestFsdbSubscriber : public PubSubT::SubscriberT {
  public:
