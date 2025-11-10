@@ -253,6 +253,37 @@ struct PowerLossSiren {
   3: PowerPortStatus port3;
 }
 
+/*
+ * Request to send a raw Modbus command.
+ * This allows sending vendor-specific commands (e.g., MEI commands for
+ * firmware updates) that don't fit the standard Modbus register model.
+ */
+struct RawCommandRequest {
+  /* Raw Modbus command bytes (without CRC - will be added automatically).
+     Should include device address and function code. */
+  1: list<byte> cmd;
+
+  /* Expected response length in bytes (including CRC). */
+  2: i32 responseLength;
+
+  /* Optional timeout in milliseconds. */
+  3: optional i32 timeout;
+
+  /* Can be either of ModbusDeviceInfo.devAddress (if address is unique to
+     the system) or ModbusDeviceInfo.uniqueDevAddress (Recommended). */
+  4: optional i16 uniqueDevAddress;
+}
+
+/*
+ * Response from a raw Modbus command.
+ */
+struct RawCommandResponse {
+  1: RackmonStatusCode status;
+
+  /* Raw response bytes (excluding CRC). Empty if status is not SUCCESS. */
+  2: list<byte> data;
+}
+
 service RackmonCtrl {
   /*
    * List the summary of all the detected Modbus devices.
@@ -324,4 +355,14 @@ service RackmonCtrl {
    * Get the status of 6 Power Loss GPIO pins (3 RS485 ports, 2 pins per port).
    */
   PowerLossSiren getPowerLossSiren() throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Send a raw Modbus command to a device.
+   * This is primarily used for vendor-specific operations like firmware updates
+   * that use MEI (Modbus Encapsulated Interface) commands or other non-standard
+   * Modbus operations that don't fit the register read/write model.
+   */
+  RawCommandResponse sendRawCommand(1: RawCommandRequest req) throws (
+    1: fboss.FbossBaseError error,
+  );
 }
