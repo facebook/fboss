@@ -12,6 +12,10 @@
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/platforms/sai/SaiPhyPlatform.h"
+#include "fboss/lib/bsp/BspPimContainer.h"
+#include "fboss/lib/phy/SaiPhyRetimer.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 namespace facebook::fboss {
 
@@ -79,15 +83,54 @@ GlobalXphyID BspSaiPhyManager::getGlobalXphyID(
       phyIDInfo.phyAddr);
 }
 
-bool BspSaiPhyManager::initExternalPhyMap(bool /* warmboot */) {
-  throw FbossError(
-      "BspSaiPhyManager::initExternalPhyMap() not yet implemented");
+bool BspSaiPhyManager::initExternalPhyMap(bool warmboot) {
+  std::optional<GlobalXphyID> firstXphy;
+
+  // Iterate through all PIMs in the BSP mapping
+  for (const auto& [pimID, pimMapping] : bspMapping_->getPimMappings()) {
+    XLOG(INFO) << "Initializing XPHYs for PIM " << pimID;
+
+    auto bspPimContainer = systemContainer_->getPimContainerFromPimID(pimID);
+
+    for (const auto& [phyID, phyMapping] : *pimMapping.phyMapping()) {
+      GlobalXphyID xphyID = GlobalXphyID(phyID);
+
+      if (!firstXphy) {
+        firstXphy = xphyID;
+      }
+
+      phy::PhyIDInfo phyIDInfo;
+      phyIDInfo.pimID = pimID;
+      phyIDInfo.controllerID = *phyMapping.phyIOControllerId();
+      phyIDInfo.phyAddr = *phyMapping.phyAddr();
+
+      // Create ExternalPhy (SaiPhyRetimer) object
+      createExternalPhy(
+          phyIDInfo, const_cast<BspPimContainer*>(bspPimContainer));
+
+      XLOG(INFO) << "Created SaiPhyRetimer and setup threading for xphy "
+                 << xphyID << " in PIM " << pimID;
+    }
+  }
+
+  if (firstXphy) {
+    // Initialize SAI APIs once
+    getSaiPlatform(*firstXphy)->preHwInitialized(warmboot);
+  }
+
+  return true;
 }
 
-void BspSaiPhyManager::initializeXphy(
-    GlobalXphyID /* xphyID */,
-    bool /* warmboot */) {
-  throw FbossError("BspSaiPhyManager::initializeXphy() not yet implemented");
+void BspSaiPhyManager::initializeXphy(GlobalXphyID xphyID, bool warmboot) {
+  auto phyIDInfo = getPhyIDInfo(xphyID);
+  auto pimID = phyIDInfo.pimID;
+
+  XLOG(DBG2) << "Initializing xphy " << xphyID << " in PIM " << pimID;
+
+  initializeXphyImpl<SaiPhyPlatform, phy::SaiPhyRetimer>(
+      pimID, xphyID, warmboot);
+
+  XLOG(DBG2) << "Finished initializing xphy " << xphyID;
 }
 
 void BspSaiPhyManager::initializeSlotPhys(PimID pimID, bool /* warmboot */) {
@@ -100,9 +143,38 @@ void BspSaiPhyManager::initializeSlotPhys(PimID pimID, bool /* warmboot */) {
 }
 
 void BspSaiPhyManager::createExternalPhy(
-    const phy::PhyIDInfo& /* phyIDInfo */,
-    MultiPimPlatformPimContainer* /* pimContainer */) {
-  throw FbossError("BspSaiPhyManager::createExternalPhy() not yet implemented");
+    const phy::PhyIDInfo& phyIDInfo,
+    MultiPimPlatformPimContainer* pimContainer) {
+  auto xphyID = getGlobalXphyID(phyIDInfo);
+
+  // Create SaiPhyPlatform for this xphy
+  auto productInfo =
+      std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
+  addSaiPlatform(
+      xphyID,
+      std::make_unique<SaiPhyPlatform>(
+          std::move(productInfo),
+          std::make_unique<PlatformMapping>(getPlatformMapping()->toThrift()),
+          getLocalMac(),
+          phyIDInfo.pimID,
+          xphyID));
+
+  // Get BspPhyIO from the BSP container
+  auto bspPimContainer = static_cast<const BspPimContainer*>(pimContainer);
+  auto bspPhyContainer = bspPimContainer->getPhyContainerFromPhyID(xphyID);
+  auto bspPhyIO = bspPhyContainer->getPhyIO();
+
+  // Create SaiPhyRetimer using the BspPhyIO
+  auto saiPlatform = static_cast<SaiPhyPlatform*>(getSaiPlatform(xphyID));
+  xphyMap_[phyIDInfo.pimID][xphyID] = std::make_unique<phy::SaiPhyRetimer>(
+      xphyID,
+      phy::PhyAddress(phyIDInfo.phyAddr),
+      bspPhyIO,
+      getPlatformMapping(),
+      saiPlatform);
+
+  XLOG(INFO) << "Created SaiPhyRetimer for xphy " << xphyID << " in PIM "
+             << phyIDInfo.pimID;
 }
 
 MultiPimPlatformSystemContainer* BspSaiPhyManager::getSystemContainer() {
