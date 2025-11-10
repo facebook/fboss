@@ -22,6 +22,7 @@ cpp_library(
         "AgentCoppTests.cpp",
         "AgentDeepPacketInspectionTests.cpp",
         "AgentDiagShellStressTests.cpp",
+        "AgentDot1qMappingTest.cpp",
         "AgentDscpMarkingTests.cpp",
         "AgentDscpQueueMappingTests.cpp",
         "AgentEcmpSpilloverTests.cpp",
