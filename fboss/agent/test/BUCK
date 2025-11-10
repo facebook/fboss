@@ -82,6 +82,7 @@ cpp_unittest(
         ":neighbor_entry_test_util",
         ":route_scale_gen",
         ":utils",
+        "//common/async_trace:folly_scuba_trace",
         "//common/network/if:if-cpp2-types",
         "//common/stats:monotonic_counter",
         "//common/thrift/cpp/server/code_frameworks/testing:server",

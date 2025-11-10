@@ -1,17 +1,37 @@
-// (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #pragma once
 
-#include <folly/testing/TestUtil.h>
 #include <memory>
 
-#include "common/init/Init.h"
-#include "common/services/cpp/ServiceFrameworkLight.h"
 #include "fboss/fsdb/server/ServiceHandler.h"
-#include "thrift/lib/cpp2/server/ThriftServer.h"
-#include "thrift/lib/cpp2/util/ScopedServerInterfaceThread.h"
 
 namespace facebook::fboss::fsdb::test {
+
+class FsdbTestServerImpl {
+ public:
+  explicit FsdbTestServerImpl(
+      std::shared_ptr<ServiceHandler> handler,
+      uint16_t port)
+      : handler_(std::move(handler)), port_(port) {}
+  virtual ~FsdbTestServerImpl() = default;
+
+  virtual void startServer(uint16_t& fsdbPort) = 0;
+  virtual void stopServer() = 0;
+
+ protected:
+  std::shared_ptr<apache::thrift::ThriftServer> createServer(
+      std::shared_ptr<ServiceHandler> handler,
+      uint16_t port);
+
+  void checkServerStart(
+      std::shared_ptr<apache::thrift::ThriftServer> server,
+      uint16_t& fsdbPort);
+
+  std::shared_ptr<ServiceHandler> handler_;
+  uint16_t port_;
+};
+
 class FsdbTestServer {
  public:
   FsdbTestServer(
@@ -36,9 +56,7 @@ class FsdbTestServer {
     return fsdbPort_;
   }
 
-  std::unique_ptr<apache::thrift::Client<FsdbService>> getClient() {
-    return apache::thrift::makeTestClient(handler_);
-  }
+  std::unique_ptr<apache::thrift::Client<FsdbService>> getClient();
 
   const ServiceHandler& serviceHandler() const {
     CHECK(handler_);
@@ -55,12 +73,14 @@ class FsdbTestServer {
   ServiceHandler::ActiveSubscriptions getActiveSubscriptions() const;
 
  private:
+  void startTestServer(uint16_t port);
+  void stopTestServer();
   std::string getPublisherId(int publisherIdx) const;
   const int kMaxPublishers_{3};
-  std::unique_ptr<services::ServiceFrameworkLight> serviceFramework_;
-  std::unique_ptr<std::thread> thriftThread_;
+  std::shared_ptr<FsdbConfig> config_;
   std::shared_ptr<ServiceHandler> handler_;
   uint16_t fsdbPort_{};
+  std::unique_ptr<FsdbTestServerImpl> impl_;
 };
 
 } // namespace facebook::fboss::fsdb::test
