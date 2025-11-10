@@ -2,6 +2,8 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import argparse
+import getpass
+import json
 import os
 import re
 import shlex
@@ -19,9 +21,15 @@ OPT_ARG_NO_SYSTEM_DEPS = "--no-system-deps"
 OPT_ARG_ADD_BUILD_ENV_VAR = "--env-var"
 OPT_ARG_LOCAL = "--local"
 OPT_ARG_NUM_JOBS = "--num-jobs"
+OPT_ARG_SCHEDULE_TYPE = "--schedule-type"
+OPT_ARG_EXTRAS_DIR = "--extras-dir"
+OPT_ARG_CACHE_CONFIG = "--cache-config"
+OPT_ARG_EXTRA_CMAKE_DEFINES = "--extra-cmake-defines"
+OPT_ARG_DOT_FILES = "--dot-files"
 
-FBOSS_IMAGE_NAME = "fboss_image"
-FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
+USERNAME = getpass.getuser()
+FBOSS_IMAGE_NAME = f"fboss_image_{USERNAME}"
+FBOSS_CONTAINER_NAME = f"FBOSS_build_{USERNAME}"
 CONTAINER_SCRATCH_PATH = "/var/FBOSS/tmp_bld_dir"
 CONTAINER_WORKDIR = "/var/FBOSS/fboss"
 
@@ -157,6 +165,54 @@ def parse_args():
             "If unspecified, the default is the number of cpus. (CPU(s) in lspcu output)"
         ),
     )
+    parser.add_argument(
+        OPT_ARG_SCHEDULE_TYPE,
+        type=str,
+        required=False,
+        help=(
+            "Specify the schedule type for the build, which is passed onto "
+            "getdeps.py, where only the output of `continuous` will populate the "
+            "cache."
+        ),
+    )
+    parser.add_argument(
+        OPT_ARG_EXTRAS_DIR,
+        type=str,
+        required=False,
+        help=(
+            "The contents of this directory will be mounted into the docker "
+            "image at /var/extras."
+        ),
+    )
+    parser.add_argument(
+        OPT_ARG_CACHE_CONFIG,
+        type=str,
+        required=False,
+        help=(
+            "Cache config passed to getdeps.py."
+        ),
+    )
+    parser.add_argument(
+        OPT_ARG_EXTRA_CMAKE_DEFINES,
+        type=str,
+        required=False,
+        help=(
+            "Extra cmake defines passed to getdeps.py: "
+            "Input json map that contains extra cmake defines to be used "
+            "when compiling the current project and all its deps. "
+            'e.g: \'{"CMAKE_CXX_FLAGS": "--bla"}\''
+        ),
+    )
+    parser.add_argument(
+        OPT_ARG_DOT_FILES,
+        dest="dot_files",
+        default=False,
+        action="store_true",
+        help=(
+            "Mount essential config files from the user's home directory into the container. "
+            "This includes shell configs (.bashrc/.zshrc), .ssh, .vim, .vimrc, and .gitconfig."
+        ),
+    )
 
     return parser.parse_args()
 
@@ -202,26 +258,28 @@ def use_stable_hashes():
 
 
 def build_docker_image(docker_dir_path: str):
-    fd, log_path = tempfile.mkstemp(suffix="docker-build.log")
-    print(
-        f"Attempting to build docker image from {docker_dir_path}/Dockerfile. You can run `sudo tail -f {log_path}` in order to follow along."
+    dockerfile_path = os.path.join(docker_dir_path, "Dockerfile")
+    shell = os.getenv("SHELL", "/bin/bash")
+    cp = subprocess.run(
+        [
+            "sudo",
+            "docker",
+            "build",
+            ".",
+            "-t",
+            FBOSS_IMAGE_NAME,
+            "-f",
+            dockerfile_path,
+            "--build-arg",
+            f"USERNAME={USERNAME}",
+            "--build-arg",
+            f"USER_UID={os.getuid()}",
+            "--build-arg",
+            f"USER_GID={os.getgid()}",
+            "--build-arg",
+            f"USER_SHELL={shell}",
+        ],
     )
-    with os.fdopen(fd, "w") as output:
-        dockerfile_path = os.path.join(docker_dir_path, "Dockerfile")
-        cp = subprocess.run(
-            [
-                "sudo",
-                "docker",
-                "build",
-                ".",
-                "-t",
-                FBOSS_IMAGE_NAME,
-                "-f",
-                dockerfile_path,
-            ],
-            stdout=output,
-            stderr=subprocess.STDOUT,
-        )
     if not cp.returncode == 0:
         errMsg = f"An error occurred while trying to build the FBOSS docker image: {cp.stderr}"
         print(errMsg, file=sys.stderr)
@@ -236,6 +294,14 @@ def run_fboss_build(
     env_vars: List[str],
     use_local: bool,
     num_jobs: Optional[int],
+    schedule_type: Optional[str],
+    cache_config: Optional[str],
+    extras_dir: Optional[str],
+    extra_cmake_defines: Optional[str],
+    dot_files: bool = False,
+    build: bool = True,
+    daemon: bool = False,
+    sdk_path: Optional[str] = None,
 ):
     use_stable_hashes()
 
@@ -245,7 +311,7 @@ def run_fboss_build(
         if ":" not in ev:
             cmd_args.extend(["-e", f"{ev}=1"])
         elif ev.count(":") == 1:
-            cmd_args.extend(["-e", ev])
+            cmd_args.extend(["-e", ev.replace(":", "=")])
         else:
             errMsg = f"Ignoring environment variable string {ev} as it does not match a supported pattern."
             print(errMsg, file=sys.stderr)
@@ -258,32 +324,81 @@ def run_fboss_build(
     cmd_args.append(f"{scratch_path}:{CONTAINER_SCRATCH_PATH}:z")
     # Add required capability for sudo permissions
     cmd_args.append("--cap-add=CAP_AUDIT_WRITE")
+    if daemon:
+        cmd_args.append("-d")
+        if docker_output:
+            print(
+                "ERROR: Docker output is not supported in daemon mode. "
+                "Use `docker logs -f FBOSS_build_${USER}` to view the logs."
+            )
+            sys.exit(1)
     # Add TTY flags
     if docker_output:
         cmd_args.append("-it")
+    if extras_dir:
+        cmd_args.extend(["-v", f"{extras_dir}:/var/extras:rw"])
+    if sdk_path:
+        cmd_args.extend(["-v", f"{sdk_path}:/opt/sdk:z"])
+
+    # Mount dotfiles if requested
+    if dot_files:
+        home_dir = os.path.expanduser("~")
+        # Mount other common dotfiles/directories
+        dotfiles = [
+            ".bashrc", ".bash_history", ".zshrc", ".zsh_history",
+            ".config",
+            ".emacs", ".emacs.d",
+            ".gitconfig",
+            ".gnupg",
+            ".ssh",
+            ".vim", ".vimrc",
+            "bin",
+            ]
+
+        for dotfile in dotfiles:
+            host_path = os.path.join(home_dir, dotfile)
+            if os.path.exists(host_path):
+                cmd_args.extend(["-v", f"{host_path}:/home/{USERNAME}/{dotfile}:rw"])
+
     # Add args for docker container name
     cmd_args.append(f"--name={FBOSS_CONTAINER_NAME}")
     # Add args for image name
     cmd_args.append(f"{FBOSS_IMAGE_NAME}:latest")
     # Add build command args
-    build_cmd = [
-        "./build/fbcode_builder/getdeps.py",
-        "build",
-        '--extra-cmake-defines={"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20", "CMAKE_C_COMPILER": "/opt/rh/gcc-toolset-12/root/usr/bin/gcc", "CMAKE_CXX_COMPILER": "/opt/rh/gcc-toolset-12/root/usr/bin/g++"}',
-        "--scratch-path",
-        f"{CONTAINER_SCRATCH_PATH}",
-    ]
-    if num_jobs is not None:
-        build_cmd.append("--num-jobs")
-        build_cmd.append(str(num_jobs))
-    if use_system_deps:
-        build_cmd.append("--allow-system-packages")
-    if target is not None:
-        build_cmd.append("--cmake-target")
-        build_cmd.append(target)
-    if use_local:
-        build_cmd.extend(["--src-dir", "."])
-    build_cmd.append("fboss")
+    if build:
+        extra_defines = {
+            "CMAKE_BUILD_TYPE": "MinSizeRel",
+            "CMAKE_CXX_STANDARD": "20",
+            "CMAKE_C_COMPILER": "/opt/rh/gcc-toolset-12/root/usr/bin/gcc",
+            "CMAKE_CXX_COMPILER": "/opt/rh/gcc-toolset-12/root/usr/bin/g++",
+        }
+        if extra_cmake_defines:
+            for k, v in json.loads(extra_cmake_defines).items():
+                extra_defines[k] = v
+        build_cmd = [
+            "./build/fbcode_builder/getdeps.py",
+            "build",
+            f"--extra-cmake-defines={json.dumps(extra_defines)}",
+            "--scratch-path",
+            f"{CONTAINER_SCRATCH_PATH}",
+        ]
+        if num_jobs is not None:
+            build_cmd.append("--num-jobs")
+            build_cmd.append(str(num_jobs))
+        if use_system_deps:
+            build_cmd.append("--allow-system-packages")
+        if target is not None:
+            build_cmd.append("--cmake-target")
+            build_cmd.append(target)
+        if use_local:
+            build_cmd.extend(["--src-dir", "."])
+        if schedule_type:
+            build_cmd.extend(["--schedule-type", schedule_type])
+        if cache_config:
+            build_cmd.extend(["--cache-config", cache_config])
+        build_cmd.append("fboss")
+    else:
+        build_cmd = ["sleep", "infinity"] if daemon else ["bash"]
     cmd_args.extend(build_cmd)
     build_cp = subprocess.run(cmd_args)
     if build_cp.returncode != 0:
@@ -336,6 +451,11 @@ def main():
         args.env_vars,
         args.local,
         args.num_jobs,
+        args.schedule_type,
+        args.cache_config,
+        args.extras_dir,
+        args.extra_cmake_defines,
+        args.dot_files,
     )
 
     cleanup_fboss_build_container()
