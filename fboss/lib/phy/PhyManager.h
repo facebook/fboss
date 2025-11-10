@@ -61,6 +61,19 @@ class PhyManager {
    */
   virtual void initializeSlotPhys(PimID pimID, bool warmboot) = 0;
 
+  /*
+   * Per-xphy initialization function for platforms using XPHY_LEVEL threading.
+   * This MUST be overridden by platforms that set XPHY_LEVEL threading model.
+   * Platforms using PIM_LEVEL threading (default) should use
+   * initializeSlotPhys().
+   */
+  virtual void initializeXphy(GlobalXphyID xphyID, bool warmboot) {
+    throw FbossError(
+        "initializeXphy() must be implemented when using XPHY_LEVEL threading. "
+        "Override this method in your platform-specific PhyManager. xphyID=",
+        xphyID);
+  }
+
   virtual MultiPimPlatformSystemContainer* getSystemContainer() = 0;
 
   int getNumOfSlot() const {
