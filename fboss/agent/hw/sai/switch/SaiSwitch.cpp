@@ -4073,7 +4073,8 @@ bool SaiSwitch::sendPacketOutOfPortSync(
   getSwitchStats()->txSent();
   folly::io::Cursor cursor(pkt->buf());
   EthHdr ethHdr{cursor};
-  if (!ethHdr.getVlanTags().empty()) {
+
+  if (FLAGS_strip_vlan_for_pipeline_bypass && !ethHdr.getVlanTags().empty()) {
     CHECK_EQ(ethHdr.getVlanTags().size(), 1)
         << "found more than one vlan tags while sending packet";
     /* Strip vlans as pipeline bypass doesn't handle this */

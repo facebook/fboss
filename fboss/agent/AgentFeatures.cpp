@@ -389,6 +389,11 @@ DEFINE_string(
     "/tmp/state_delta.log",
     "Path to the state delta log file.");
 
+DEFINE_bool(
+    strip_vlan_for_pipeline_bypass,
+    true,
+    "Strip vlan tag for packet injected with pipeline bypass");
+
 DEFINE_string(
     state_delta_log_protocol,
     "COMPACT",
