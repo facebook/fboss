@@ -1022,6 +1022,12 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
   std::vector<folly::Future<folly::Unit>> initPimTasks;
   std::chrono::steady_clock::time_point begin =
       std::chrono::steady_clock::now();
+
+  // Check if using XPHY_LEVEL threading model
+  bool useXphyLevelThreading =
+      (phyManager_->getXphyThreadingModel() ==
+       PhyManager::XphyThreadingModel::XPHY_LEVEL);
+
   for (int pimIndex = 0; pimIndex < phyManager_->getNumOfSlot(); ++pimIndex) {
     auto pimID = PimID(pimIndex + phyManager_->getPimStartNum());
     if (!phyManager_->shouldInitializePimXphy(pimID)) {
@@ -1029,21 +1035,49 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
                  << static_cast<int>(pimID);
       continue;
     }
-    XLOG(DBG1) << "[" << (warmboot ? "WARM" : "COLD")
-               << " Boot] Initializing PIM " << static_cast<int>(pimID);
-    auto* pimEventBase = phyManager_->getPimEventBase(pimID);
-    initPimTasks.push_back(
-        folly::via(pimEventBase)
-            .thenValue([&, pimID, warmboot](auto&&) {
-              phyManager_->initializeSlotPhys(pimID, warmboot);
-            })
-            .thenError(
-                folly::tag_t<std::exception>{},
-                [pimID](const std::exception& e) {
-                  XLOG(WARNING) << "Exception in initializeSlotPhys() for pim="
-                                << static_cast<int>(pimID) << ", "
-                                << folly::exceptionStr(e);
-                }));
+
+    if (useXphyLevelThreading) {
+      // Per-XPHY initialization - spawn a task for each xphy
+      XLOG(DBG1) << "[" << (warmboot ? "WARM" : "COLD")
+                 << " Boot] Initializing PIM " << static_cast<int>(pimID)
+                 << " with per-xphy threading";
+
+      // Get all xphys for this PIM and initialize each on its own thread
+      auto xphyIDs = phyManager_->getXphyIDsForPim(pimID);
+      for (auto xphyID : xphyIDs) {
+        auto* xphyEventBase = phyManager_->getXphyEventBase(xphyID);
+        initPimTasks.push_back(
+            folly::via(xphyEventBase)
+                .thenValue([&, xphyID, warmboot](auto&&) {
+                  phyManager_->initializeXphy(xphyID, warmboot);
+                })
+                .thenError(
+                    folly::tag_t<std::exception>{},
+                    [xphyID](const std::exception& e) {
+                      XLOG(WARNING) << "Exception in initializeXphy() for xphy="
+                                    << static_cast<int>(xphyID) << ", "
+                                    << folly::exceptionStr(e);
+                    }));
+      }
+    } else {
+      // PIM-level initialization (legacy behavior)
+      XLOG(DBG1) << "[" << (warmboot ? "WARM" : "COLD")
+                 << " Boot] Initializing PIM " << static_cast<int>(pimID);
+      auto* pimEventBase = phyManager_->getPimEventBase(pimID);
+      initPimTasks.push_back(
+          folly::via(pimEventBase)
+              .thenValue([&, pimID, warmboot](auto&&) {
+                phyManager_->initializeSlotPhys(pimID, warmboot);
+              })
+              .thenError(
+                  folly::tag_t<std::exception>{},
+                  [pimID](const std::exception& e) {
+                    XLOG(WARNING)
+                        << "Exception in initializeSlotPhys() for pim="
+                        << static_cast<int>(pimID) << ", "
+                        << folly::exceptionStr(e);
+                  }));
+    }
   }
 
   if (!initPimTasks.empty()) {

@@ -568,7 +568,7 @@ void PhyManager::setPortToExternalPhyPortStats(
 void PhyManager::updateAllXphyPortsStats() {
   for (const auto& portStatsInfo : portToStatsInfo_) {
     bool supportPortStats = false, supportPrbsStats = false;
-    PimID pimID;
+    GlobalXphyID xphyID;
     phy::ExternalPhy* xphy;
     {
       const auto& rLockedCache = getRLockedCache(portStatsInfo.first);
@@ -584,8 +584,7 @@ void PhyManager::updateAllXphyPortsStats() {
       supportPrbsStats =
           xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS);
 
-      auto xphyID = getGlobalXphyIDbyPortIDLocked(rLockedCache);
-      pimID = getPhyIDInfo(xphyID).pimID;
+      xphyID = getGlobalXphyIDbyPortIDLocked(rLockedCache);
     }
 
     // If xphy doesn't support either of stats collection, skip
@@ -594,7 +593,8 @@ void PhyManager::updateAllXphyPortsStats() {
     }
 
     const auto& wLockedStats = getWLockedStats(portStatsInfo.first);
-    auto evb = getPimEventBase(pimID);
+    // Use the appropriate event base based on threading model
+    auto evb = getXphyEventBase(xphyID);
     if (supportPortStats) {
       updatePortStats(portStatsInfo.first, xphy, wLockedStats, evb);
     }
@@ -609,7 +609,7 @@ void PhyManager::updatePortStats(
     PortID portID,
     phy::ExternalPhy* xphy,
     const PhyManager::PortStatsWLockedPtr& wLockedStats,
-    folly::EventBase* pimEvb) {
+    folly::EventBase* evb) {
   if (wLockedStats->ongoingStatCollection.has_value() &&
       !wLockedStats->ongoingStatCollection->isReady()) {
     XLOG(DBG4) << "XPHY Port Stat collection for Port:" << portID
@@ -619,7 +619,7 @@ void PhyManager::updatePortStats(
 
   // Collect xphy port stats
   wLockedStats->ongoingStatCollection =
-      folly::via(pimEvb).thenValue([this, portID, xphy](auto&&) {
+      folly::via(evb).thenValue([this, portID, xphy](auto&&) {
         // Since this is future job, we need to fetch the cache with lock
         std::vector<LaneID> systemLanes, lineLanes;
         cfg::PortSpeed programmedSpeed;
@@ -678,7 +678,7 @@ void PhyManager::updatePrbsStats(
     PortID portID,
     phy::ExternalPhy* xphy,
     const PhyManager::PortStatsWLockedPtr& wLockedStats,
-    folly::EventBase* pimEvb) {
+    folly::EventBase* evb) {
   // Only needs to update prbs stats as long as there's one side enabled
   if (!wLockedStats->stats->isPrbsCollectionEnabled(phy::Side::SYSTEM) &&
       !wLockedStats->stats->isPrbsCollectionEnabled(phy::Side::LINE)) {
@@ -694,7 +694,7 @@ void PhyManager::updatePrbsStats(
 
   // Collect xphy prbs stats
   wLockedStats->ongoingPrbsStatCollection =
-      folly::via(pimEvb).thenValue([this, portID, xphy](auto&&) {
+      folly::via(evb).thenValue([this, portID, xphy](auto&&) {
         // Since this is future job, we need to fetch the cache with lock
         std::vector<LaneID> systemLanes, lineLanes;
         {

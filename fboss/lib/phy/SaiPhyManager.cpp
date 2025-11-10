@@ -100,9 +100,54 @@ SaiSwitch* SaiPhyManager::getSaiSwitch(PortID portID) {
   return static_cast<SaiSwitch*>(getSaiPlatform(portID)->getHwSwitch());
 }
 
+void SaiPhyManager::collectXphyStats(
+    GlobalXphyID xphyID,
+    PlatformInfo* platformInfo) {
+  try {
+    if (!platformInfo->getHwSwitch() ||
+        !platformInfo->getHwSwitch()->isFullyConfigured()) {
+      XLOG(WARN) << "Skipping xphy stats collection for xphy " << xphyID
+                 << " as it's not fully configured";
+      return;
+    }
+    platformInfo->getHwSwitch()->updateStats();
+    platformInfo->getHwSwitch()->updateAllPhyInfo();
+    auto phyInfos = platformInfo->getHwSwitch()->getAllPhyInfo();
+    for (auto& [portId, phyInfo] : phyInfos) {
+      updateXphyInfo(portId, std::move(phyInfo));
+    }
+  } catch (const std::exception& e) {
+    XLOG(INFO) << "Stats collection failed on : " << "switch: "
+               << platformInfo->getHwSwitch()->getSaiSwitchId()
+               << " xphy: " << xphyID << " error: " << e.what();
+  }
+}
+
 void SaiPhyManager::updateAllXphyPortsStats() {
   for (auto& pimAndXphyToPlatforms : saiPlatforms_) {
     auto pimId = pimAndXphyToPlatforms.first;
+
+    // For XPHY_LEVEL threading, we spawn a task per xphy instead of per pim
+    if (getXphyThreadingModel() == XphyThreadingModel::XPHY_LEVEL) {
+      for (auto& [xphy, platformInfo] : pimAndXphyToPlatforms.second) {
+        // Spawn a task for each xphy in this pim
+        auto evb = getXphyEventBase(xphy);
+        folly::via(evb).thenValue([xphy,
+                                   platformInfo = platformInfo.get(),
+                                   this](auto&&) {
+          steady_clock::time_point begin = steady_clock::now();
+          collectXphyStats(xphy, platformInfo);
+          XLOG(DBG3) << "Xphy " << static_cast<int>(xphy)
+                     << " stat collection took "
+                     << duration_cast<milliseconds>(steady_clock::now() - begin)
+                            .count()
+                     << "ms";
+        });
+      }
+      continue;
+    }
+
+    // PIM_LEVEL threading (legacy behavior)
     {
       auto wLockedStatsCollection = pim2OngoingStatsCollection_.wlock();
       auto& ongoingStatsCollection = (*wLockedStatsCollection)[pimId];
@@ -115,24 +160,7 @@ void SaiPhyManager::updateAllXphyPortsStats() {
               steady_clock::time_point begin = steady_clock::now();
               auto& xphyToPlatform = saiPlatforms_.find(pimId)->second;
               for (auto& [xphy, platformInfo] : xphyToPlatform) {
-                try {
-                  if (!platformInfo->getHwSwitch() ||
-                      !platformInfo->getHwSwitch()->isFullyConfigured()) {
-                    XLOG(WARN) << "Skipping xphy stats collection for xphy "
-                               << xphy << " as it's not fully configured";
-                    continue;
-                  }
-                  platformInfo->getHwSwitch()->updateStats();
-                  platformInfo->getHwSwitch()->updateAllPhyInfo();
-                  auto phyInfos = platformInfo->getHwSwitch()->getAllPhyInfo();
-                  for (auto& [portId, phyInfo] : phyInfos) {
-                    updateXphyInfo(portId, std::move(phyInfo));
-                  }
-                } catch (const std::exception& e) {
-                  XLOG(INFO) << "Stats collection failed on : " << "switch: "
-                             << platformInfo->getHwSwitch()->getSaiSwitchId()
-                             << " xphy: " << xphy << " error: " << e.what();
-                }
+                collectXphyStats(xphy, platformInfo.get());
               }
               XLOG(DBG3) << "Pim " << static_cast<int>(pimId) << ": all "
                          << xphyToPlatform.size()

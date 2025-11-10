@@ -229,6 +229,8 @@ class SaiPhyManager : public PhyManager {
 
   std::string getSaiPortInfo(PortID swPort);
 
+  void collectXphyStats(GlobalXphyID xphyID, PlatformInfo* platformInfo);
+
   // Due to SaiPhyManager usually has more than one phy, and each phy has its
   // own SaiPlatform, which needs a local mac address. As local mac address
   // will be the same mac address for the running system, all these phys and
