@@ -1,5 +1,7 @@
 {
-  "i2cBusIgnore": [],
+  "i2cBusIgnore": [
+    "SMBus iSMT adapter at 20fffaba000"
+  ],
   "psus": [
     "/run/devmap/sensors/PDB0_PSU_0X58",
     "/run/devmap/sensors/PDB1_PSU_0X58"
