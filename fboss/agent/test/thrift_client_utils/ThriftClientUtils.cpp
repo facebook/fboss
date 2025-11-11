@@ -303,4 +303,22 @@ void removeNeighbor(
       facebook::network::toBinaryAddress(neighborIP), interfaceID);
 }
 
+void addRoute(
+    const std::string& switchName,
+    const folly::IPAddress& destPrefix,
+    const int16_t prefixLength,
+    const std::vector<folly::IPAddress>& nexthops) {
+  UnicastRoute route;
+  route.dest()->ip() = facebook::network::toBinaryAddress(destPrefix);
+  route.dest()->prefixLength() = prefixLength;
+  for (const auto& nexthop : nexthops) {
+    route.nextHopAddrs()->push_back(
+        facebook::network::toBinaryAddress(nexthop));
+  }
+
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_addUnicastRoutes(
+      static_cast<int16_t>(ClientID::STATIC_ROUTE), {std::move(route)});
+}
+
 } // namespace facebook::fboss::utility

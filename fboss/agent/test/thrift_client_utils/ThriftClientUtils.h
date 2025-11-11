@@ -89,4 +89,10 @@ void removeNeighbor(
     const int32_t& interfaceID,
     const folly::IPAddress& neighborIP);
 
+void addRoute(
+    const std::string& switchName,
+    const folly::IPAddress& destPrefix,
+    const int16_t prefixLength,
+    const std::vector<folly::IPAddress>& nexthops);
+
 } // namespace facebook::fboss::utility
