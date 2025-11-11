@@ -9,6 +9,11 @@ namespace facebook::fboss {
 class AgentMultiNodeVoqSwitchTrafficTest
     : public AgentMultiNodeVoqSwitchNeighborTest {
  protected:
+  std::pair<folly::IPAddressV6, int16_t> kGetRoutePrefixAndPrefixLength()
+      const {
+    return std::make_pair(folly::IPAddressV6("2001:0db8:85a3::"), 64);
+  }
+
   std::map<std::string, utility::Neighbor>
   configureNeighborsAndRoutesForTrafficLoop(
       const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
