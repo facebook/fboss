@@ -1348,4 +1348,19 @@ getPeerToDsfSessionForRdsws(const std::set<std::string>& rdsws) {
   return forEachWithRetVal(rdsws, getPeerToDsfSession);
 }
 
+bool verifyNoSessionsFlapForRdsws(
+    const std::set<std::string>& rdsws,
+    std::map<std::string, std::map<std::string, DsfSessionThrift>>&
+        baselineRdswToPeerAndDsfSession) {
+  for (const auto& [rdsw, baselinePeerToDsfSession] :
+       baselineRdswToPeerAndDsfSession) {
+    if (!verifyNoSessionsFlap(rdsw, baselinePeerToDsfSession)) {
+      XLOG(DBG2) << "DSF Sessions flapped from rdsw: " << rdsw;
+      return false;
+    }
+  }
+
+  return true;
+}
+
 } // namespace facebook::fboss::utility
