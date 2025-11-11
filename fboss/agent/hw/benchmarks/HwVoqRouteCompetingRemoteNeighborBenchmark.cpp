@@ -12,6 +12,13 @@
 
 #include <folly/Benchmark.h>
 #include <folly/Synchronized.h>
+#include <chrono>
+#include <thread>
+
+DEFINE_int32(
+    voq_neighbor_update_interval_ms,
+    1000,
+    "Interval in milliseconds for scheduling interface map updates with/without neighbors");
 
 namespace {
 constexpr auto kEcmpWidth = 2048;
@@ -60,6 +67,101 @@ class InterfaceMapUpdateScheduler {
   FbossEventBase* updateEvb_;
   std::function<void(const InterfaceMapUpdate&)> applyUpdateFn_;
   folly::Synchronized<std::unique_ptr<InterfaceMapUpdate>> nextUpdate_;
+};
+
+class PerSwitchInterfaceMapScheduler {
+ public:
+  PerSwitchInterfaceMapScheduler(
+      SwitchID switchId,
+      std::shared_ptr<InterfaceMap> intfsWithNeighbor,
+      std::shared_ptr<InterfaceMap> intfsWithoutNeighbor,
+      std::shared_ptr<SystemPortMap> systemPorts,
+      AgentEnsemble* ensemble)
+      : switchId_(switchId),
+        intfsWithNeighbor_(std::move(intfsWithNeighbor)),
+        intfsWithoutNeighbor_(std::move(intfsWithoutNeighbor)),
+        systemPorts_(std::move(systemPorts)),
+        ensemble_(ensemble),
+        hasNeighbor_(false) {}
+
+  void start() {
+    evbThread_ = std::make_unique<std::thread>([this]() {
+      eventBase_.setName(folly::sformat("IntfMapEvb-{}", switchId_));
+
+      auto applyUpdateFn =
+          [this](
+              const InterfaceMapUpdateScheduler::InterfaceMapUpdate& update) {
+            std::map<SwitchID, std::shared_ptr<SystemPortMap>>
+                switchId2SystemPorts;
+            switchId2SystemPorts[switchId_] = systemPorts_;
+
+            SwSwitch::StateUpdateFn updateDsfStateFn =
+                [this, update, switchId2SystemPorts](
+                    const std::shared_ptr<SwitchState>& in) {
+                  return DsfStateUpdaterUtil::getUpdatedState(
+                      in,
+                      ensemble_->getSw()->getScopeResolver(),
+                      ensemble_->getSw()->getRib(),
+                      switchId2SystemPorts,
+                      update.switchId2Intfs);
+                };
+
+            ensemble_->getSw()->getRib()->updateStateInRibThread(
+                [this, updateDsfStateFn]() {
+                  ensemble_->getSw()->updateStateWithHwFailureProtection(
+                      folly::sformat(
+                          "Update interface map for switch: {}", switchId_),
+                      updateDsfStateFn);
+                });
+          };
+
+      scheduler_ = std::make_unique<InterfaceMapUpdateScheduler>(
+          &eventBase_, applyUpdateFn);
+
+      eventBase_.runInFbossEventBaseThread([this]() { scheduleNextUpdate(); });
+
+      eventBase_.loopForever();
+    });
+  }
+
+  void stop() {
+    if (eventBase_.isRunning()) {
+      eventBase_.terminateLoopSoon();
+    }
+    if (evbThread_ && evbThread_->joinable()) {
+      evbThread_->join();
+    }
+  }
+
+  ~PerSwitchInterfaceMapScheduler() {
+    stop();
+  }
+
+ private:
+  void scheduleNextUpdate() {
+    InterfaceMapUpdateScheduler::InterfaceMapUpdate update;
+    update.switchId2Intfs[switchId_] =
+        hasNeighbor_ ? intfsWithoutNeighbor_ : intfsWithNeighbor_;
+
+    hasNeighbor_ = !hasNeighbor_;
+
+    scheduler_->queueInterfaceMapUpdate(std::move(update));
+
+    eventBase_.scheduleAt(
+        [this]() { scheduleNextUpdate(); },
+        std::chrono::steady_clock::now() +
+            std::chrono::milliseconds(FLAGS_voq_neighbor_update_interval_ms));
+  }
+
+  SwitchID switchId_;
+  std::shared_ptr<InterfaceMap> intfsWithNeighbor_;
+  std::shared_ptr<InterfaceMap> intfsWithoutNeighbor_;
+  std::shared_ptr<SystemPortMap> systemPorts_;
+  AgentEnsemble* ensemble_;
+  bool hasNeighbor_;
+  FbossEventBase eventBase_;
+  std::unique_ptr<std::thread> evbThread_;
+  std::unique_ptr<InterfaceMapUpdateScheduler> scheduler_;
 };
 
 BENCHMARK(HwVoqRouteCompetingRemoteNeighborBenchmark) {
