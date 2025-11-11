@@ -143,6 +143,15 @@ class AgentMultiNodeVoqSwitchTrafficTest
     // Create Traffic loop
     injectTraffic(rdswToNeighbor[myHostname]);
 
+    // Verify line rate is reached for every switch
+    for (const auto& [rdsw, neighbor] : rdswToNeighbor) {
+      if (!utility::verifyLineRate(rdsw, neighbor.portID)) {
+        XLOG(DBG2) << "Verify line rate failed for rdsw: " << rdsw
+                   << " port: " << neighbor.portID;
+        return false;
+      }
+    }
+
     return true;
   }
 
