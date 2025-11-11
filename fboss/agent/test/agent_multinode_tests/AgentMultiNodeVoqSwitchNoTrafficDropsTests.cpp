@@ -40,6 +40,18 @@ class AgentMultiNodeVoqSwitchNoTrafficDropTest
   bool verifyNoTrafficDropOnProcessRestarts(
       const std::unique_ptr<utility::TopologyInfo>& topologyInfo) {
     XLOG(DBG2) << "Verifying No Traffic Drops on process restarts";
+
+    if (!setupTrafficLoop(topologyInfo)) {
+      XLOG(DBG2) << "Traffic loop setup failed";
+      return false;
+    }
+
+    if (!utility::verifyNoReassemblyErrorsForAllSwitches(topologyInfo)) {
+      XLOG(DBG2) << "Unexpected reassembly errors";
+      // TODO query drop counters to root cause reason for reassembly errors
+      return false;
+    }
+
     return true;
   }
 };
