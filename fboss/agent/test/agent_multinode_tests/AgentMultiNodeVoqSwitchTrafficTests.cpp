@@ -18,8 +18,17 @@ class AgentMultiNodeVoqSwitchTrafficTest
   configureNeighborsAndRoutesForTrafficLoop(
       const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
     std::map<std::string, utility::Neighbor> rdswToNeighbor;
+    auto [prefix, prefixLength] = kGetRoutePrefixAndPrefixLength();
+    std::optional<std::string> prevRdsw{std::nullopt};
+    utility::Neighbor firstRdswNeighbor{};
 
     // Add a neighbor for every RDSW in the cluster
+    // Also, add routes for every RDSW to create a loop i.e.:
+    //    - RDSW A has route with nexthop as RDSW B's neighbor
+    //    - RDSW B has route with nexthop as RDSW C's neighbor
+    //    ...
+    //    - RDSW Z has route with nexthop as RDSW A's neighbor
+    //      so the packet loops around
     for (const auto& rdsw : topologyInfo->getRdsws()) {
       auto neighbors = computeNeighborsForRdsw(
           topologyInfo, rdsw, 1 /* number of neighbors */);
@@ -34,9 +43,36 @@ class AgentMultiNodeVoqSwitchTrafficTest
               topologyInfo->getRdsws(), rdsw, {neighbor})) {
         XLOG(DBG2) << "Neighbor add verification failed: " << rdsw
                    << " neighbor: " << neighbor.str();
-        return rdswToNeighbor;
+        return {};
       }
+
+      if (!prevRdsw.has_value()) { // first RDSW
+        firstRdswNeighbor = neighbor;
+      } else {
+        utility::addRoute(
+            prevRdsw.value(), prefix, prefixLength, {neighbor.ip});
+        if (!utility::verifyRoutePresent(
+                prevRdsw.value(), prefix, prefixLength)) {
+          XLOG(DBG2) << "Route add verification failed: " << prevRdsw.value()
+                     << " route: " << prefix.str()
+                     << " prefixLength: " << prefixLength;
+          return {};
+        }
+      }
+      prevRdsw = rdsw;
     }
+
+    // Add route for first RDSW to complete the loop
+    CHECK(!topologyInfo->getRdsws().empty());
+    auto lastRdsw = std::prev(topologyInfo->getRdsws().end());
+    utility::addRoute(*lastRdsw, prefix, prefixLength, {firstRdswNeighbor.ip});
+    if (!utility::verifyRoutePresent(*lastRdsw, prefix, prefixLength)) {
+      XLOG(DBG2) << "Route add verification failed: " << *lastRdsw
+                 << " route: " << prefix.str()
+                 << " prefixLength: " << prefixLength;
+      return {};
+    }
+
     return rdswToNeighbor;
   }
 
