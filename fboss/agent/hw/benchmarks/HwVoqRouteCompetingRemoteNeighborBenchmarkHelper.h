@@ -74,21 +74,28 @@ class PerSwitchInterfaceMapScheduler {
   PerSwitchInterfaceMapScheduler(
       SwitchID switchId,
       std::shared_ptr<InterfaceMap> intfsWithNeighbor,
-      std::shared_ptr<InterfaceMap> intfsWithoutNeighbor,
       std::shared_ptr<SystemPortMap> systemPorts,
       AgentEnsemble* ensemble,
       int nbrUpdateIntervalMs,
       int numNbrToUpdate)
       : switchId_(switchId),
         intfsWithNeighbor_(std::move(intfsWithNeighbor)),
-        intfsWithoutNeighbor_(std::move(intfsWithoutNeighbor)),
         systemPorts_(std::move(systemPorts)),
         ensemble_(ensemble),
         nbrUpdateIntervalMs_(nbrUpdateIntervalMs),
-        numNbrToUpdate_(numNbrToUpdate),
-        hasNeighbor_(false) {
-    // TODO(zecheng): Compute the other interface map based on number of
-    // neighbors to update
+        hasNeighbor_(false),
+        eventBase_("IntfMapScheduler") {
+    CHECK(numNbrToUpdate <= intfsWithNeighbor_->size());
+    intfsWithoutNeighbor_ = std::make_shared<InterfaceMap>();
+    for (const auto& [intfId, intf] : *intfsWithNeighbor_) {
+      if (intfsWithoutNeighbor_->size() < numNbrToUpdate) {
+        auto intfWithoutNbr = intf->clone();
+        intfWithoutNbr->setNdpTable(std::make_shared<NdpTable>());
+        intfsWithoutNeighbor_->insert(intfId, std::move(intfWithoutNbr));
+      } else {
+        intfsWithoutNeighbor_->insert(intfId, intf->clone());
+      }
+    }
   }
 
   void start() {
@@ -166,7 +173,6 @@ class PerSwitchInterfaceMapScheduler {
   std::shared_ptr<SystemPortMap> systemPorts_;
   AgentEnsemble* ensemble_;
   int nbrUpdateIntervalMs_;
-  int numNbrToUpdate_;
   bool hasNeighbor_;
   FbossEventBase eventBase_;
   std::unique_ptr<std::thread> evbThread_;
@@ -184,8 +190,6 @@ inline void voqRouteCompetingRemoteNeighborBenchmark(
   auto ensemble = setupForVoqRouteScale(ecmpWidth);
   std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
   std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2IntfsWithNeighbor;
-  std::map<SwitchID, std::shared_ptr<InterfaceMap>>
-      switchId2IntfsWithoutNeighbor;
 
   const auto& config = ensemble->getSw()->getConfig();
   const auto useEncapIndex =
@@ -194,19 +198,12 @@ inline void voqRouteCompetingRemoteNeighborBenchmark(
 
   utility::populateRemoteIntfAndSysPorts(
       switchId2SystemPorts, switchId2IntfsWithNeighbor, config, useEncapIndex);
-  utility::populateRemoteIntfAndSysPorts(
-      switchId2SystemPorts,
-      switchId2IntfsWithoutNeighbor,
-      config,
-      useEncapIndex,
-      false /*addNeighbor*/);
 
   std::vector<std::unique_ptr<PerSwitchInterfaceMapScheduler>> schedulers;
   for (const auto& [switchId, systemPorts] : switchId2SystemPorts) {
     auto scheduler = std::make_unique<PerSwitchInterfaceMapScheduler>(
         switchId,
         switchId2IntfsWithNeighbor[switchId],
-        switchId2IntfsWithoutNeighbor[switchId],
         systemPorts,
         ensemble.get(),
         nbrUpdateIntervalMs,
