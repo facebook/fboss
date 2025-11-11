@@ -8,16 +8,13 @@
  *
  */
 
-#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/benchmarks/HwRouteScaleBenchmarkHelpers.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentEnsemble.h"
-#include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
-#include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include <folly/Benchmark.h>
 #include <folly/Synchronized.h>
@@ -100,8 +97,6 @@ class PerSwitchInterfaceMapScheduler {
 
   void start() {
     evbThread_ = std::make_unique<std::thread>([this]() {
-      eventBase_.setName(folly::sformat("IntfMapEvb-{}", switchId_));
-
       auto applyUpdateFn =
           [this](
               const InterfaceMapUpdateScheduler::InterfaceMapUpdate& update) {
@@ -124,7 +119,8 @@ class PerSwitchInterfaceMapScheduler {
                 [this, updateDsfStateFn]() {
                   ensemble_->getSw()->updateStateWithHwFailureProtection(
                       folly::sformat(
-                          "Update interface map for switch: {}", switchId_),
+                          "Update interface map for switch: {}",
+                          static_cast<uint16_t>(switchId_)),
                       updateDsfStateFn);
                 });
           };
