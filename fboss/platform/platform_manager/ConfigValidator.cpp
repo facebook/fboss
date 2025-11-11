@@ -609,7 +609,7 @@ bool ConfigValidator::isValidDeviceName(
               *pciDeviceConfig.spiMasterConfigs(),
               *pciDeviceConfig.fanTachoPwmConfigs(),
               *pciDeviceConfig.ledCtrlConfigs(),
-              Utils().createXcvrCtrlConfigs(pciDeviceConfig),
+              Utils::createXcvrCtrlConfigs(pciDeviceConfig),
               *pciDeviceConfig.xcvrCtrlConfigs(),
               *pciDeviceConfig.spiMasterConfigs(),
               *pciDeviceConfig.gpioChipConfigs(),

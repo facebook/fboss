@@ -254,4 +254,35 @@ std::vector<XcvrCtrlConfig> Utils::createXcvrCtrlConfigs(
   }
   return xcvrCtrlConfigs;
 }
+
+std::vector<LedCtrlConfig> Utils::createLedCtrlConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<LedCtrlConfig> ledCtrlConfigs;
+  const auto ledCtrlConfigBlocks = pciDeviceConfig.ledCtrlBlockConfigs();
+  for (const auto& ledCtrlConfigBlock : *ledCtrlConfigBlocks) {
+    int endPort =
+        *ledCtrlConfigBlock.startPort() + *ledCtrlConfigBlock.numPorts();
+    for (int port = *ledCtrlConfigBlock.startPort(); port < endPort; ++port) {
+      for (int led = 1; led <= ledCtrlConfigBlock.ledPerPort(); ++led) {
+        LedCtrlConfig ledCtrlConfig;
+        ledCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
+            "{}_PORT_{}_LED_{}",
+            *ledCtrlConfigBlock.pmUnitScopedNamePrefix(),
+            port,
+            led);
+        ledCtrlConfig.fpgaIpBlockConfig()->deviceName() = "port_led";
+        ledCtrlConfig.fpgaIpBlockConfig()->csrOffset() =
+            Utils().computeHexExpression(
+                *ledCtrlConfigBlock.csrOffsetCalc(),
+                port,
+                *ledCtrlConfigBlock.startPort(),
+                led);
+        ledCtrlConfig.portNumber() = port;
+        ledCtrlConfig.ledId() = led;
+        ledCtrlConfigs.push_back(ledCtrlConfig);
+      }
+    }
+  }
+  return ledCtrlConfigs;
+}
 } // namespace facebook::fboss::platform::platform_manager

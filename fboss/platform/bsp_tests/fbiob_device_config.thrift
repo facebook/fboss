@@ -30,6 +30,7 @@ enum AuxDeviceType {
   SPI = 2,
   LED = 3,
   XCVR = 4,
+  GPIO = 5,
 }
 
 struct I2cData {

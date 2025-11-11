@@ -66,6 +66,11 @@ class Utils {
   // residing at the given PciDevice. Throw std::runtime_error on failure.
   static std::vector<XcvrCtrlConfig> createXcvrCtrlConfigs(
       const PciDeviceConfig& pciDeviceConfig);
+
+  // Create the LED Controller Config block based on the given ledCtrlConfig
+  // residing at the given PciDevice. Throw std::runtime_error on failure.
+  static std::vector<LedCtrlConfig> createLedCtrlConfigs(
+      const PciDeviceConfig& pciDeviceConfig);
 };
 
 } // namespace facebook::fboss::platform::platform_manager
