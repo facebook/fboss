@@ -84,6 +84,25 @@ class AgentMultiNodeVoqSwitchTrafficTest
     return rdswToNeighbor;
   }
 
+  void injectTraffic(const utility::Neighbor& neighbor) const {}
+
+  bool setupTrafficLoop(
+      const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
+    // Configure for Traffic loop
+    auto rdswToNeighbor =
+        configureNeighborsAndRoutesForTrafficLoop(topologyInfo);
+    if (rdswToNeighbor.empty()) {
+      return false;
+    }
+
+    auto myHostname = topologyInfo->getMyHostname();
+    CHECK(rdswToNeighbor.find(myHostname) != rdswToNeighbor.end());
+    // Create Traffic loop
+    injectTraffic(rdswToNeighbor[myHostname]);
+
+    return true;
+  }
+
  public:
   bool verifyTrafficSpray(
       const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
