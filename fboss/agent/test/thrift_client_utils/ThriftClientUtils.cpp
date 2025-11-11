@@ -307,6 +307,16 @@ void disableConditionalEntropyRehash(
       portID, false /* disable conditional entropy rehash */);
 }
 
+void setSelfHealingLagEnable(const std::string& switchName, int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setSelfHealingLagState(portID, true /* enable SHEL */);
+}
+
+void setSelfHealingLagDisable(const std::string& switchName, int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setSelfHealingLagState(portID, false /* disable SHEL */);
+}
+
 void addNeighbor(
     const std::string& switchName,
     const int32_t& interfaceID,

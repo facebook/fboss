@@ -87,6 +87,9 @@ void disableConditionalEntropyRehash(
     const std::string& switchName,
     int32_t portID);
 
+void setSelfHealingLagEnable(const std::string& switchName, int32_t portID);
+void setSelfHealingLagDisable(const std::string& switchName, int32_t portID);
+
 void addNeighbor(
     const std::string& switchName,
     const int32_t& interfaceID,
