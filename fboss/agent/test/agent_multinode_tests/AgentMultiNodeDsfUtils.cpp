@@ -4,6 +4,7 @@
 
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeUtils.h"
 #include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <gtest/gtest.h>
@@ -1307,6 +1308,39 @@ bool verifyDsfGracefulFabricLinkDownUp(
   }
 
   return true;
+}
+
+bool verifyFabricSpray(const std::string& switchName) {
+  auto verifyFabricSprayHelper = [switchName]() {
+    int64_t lowestMbps = std::numeric_limits<int64_t>::max();
+    int64_t highestMbps = std::numeric_limits<int64_t>::min();
+
+    auto counterNameToCount = getCounterNameToCount(switchName);
+    for (const auto& [_, portInfo] :
+         getActiveFabricPortNameToPortInfo(switchName)) {
+      auto portName = portInfo.name().value();
+      auto counterName = portName + ".out_bytes.rate.60";
+      auto outSpeedMbps = counterNameToCount[counterName] * 8 / 1000000;
+
+      lowestMbps = std::min(lowestMbps, outSpeedMbps);
+      highestMbps = std::max(highestMbps, outSpeedMbps);
+
+      XLOG(DBG2) << "Switch: " << switchName
+                 << " Active Fabric port: " << portInfo.name().value()
+                 << " outSpeedMbps: " << outSpeedMbps
+                 << " lowestMbps: " << lowestMbps
+                 << " highestMbps: " << highestMbps;
+    }
+
+    return isDeviationWithinThreshold(
+        lowestMbps, highestMbps, 5 /* maxDeviationPct */);
+  };
+
+  return checkWithRetryErrorReturn(
+      verifyFabricSprayHelper,
+      30 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
 }
 
 } // namespace facebook::fboss::utility
