@@ -31,7 +31,8 @@ DEFINE_int32(
 
 namespace {
 constexpr auto kEcmpWidth = 2048;
-}
+constexpr auto kEcmpGroup = 16;
+} // namespace
 
 namespace facebook::fboss {
 
@@ -208,10 +209,16 @@ BENCHMARK(HwVoqRouteCompetingRemoteNeighborBenchmark) {
     schedulers.push_back(std::move(scheduler));
   }
 
+  utility::EcmpSetupTargetedPorts6 ecmpHelper(
+      ensemble->getProgrammedState(),
+      ensemble->getSw()->needL2EntryForNeighbor());
+  auto remoteNhops = utility::resolveRemoteNhops(ensemble.get(), ecmpHelper);
+  auto nhopSets = getVoqRouteNextHopSets(remoteNhops, kEcmpGroup, kEcmpWidth);
+  auto prefixes = getVoqRoutePrefixes(kEcmpGroup);
+
   suspender.dismiss();
-
-  // TODO: Program full scale 2K ECMP routes and measure how long it takes
-
+  auto updater = ensemble->getSw()->getRouteUpdater();
+  ecmpHelper.programRoutes(&updater, nhopSets, prefixes);
   suspender.rehire();
 
   for (auto& scheduler : schedulers) {
