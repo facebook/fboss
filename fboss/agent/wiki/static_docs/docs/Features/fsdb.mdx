@@ -1,0 +1,192 @@
+---
+id: Features_fsdb
+title: FSDB
+custom_edit_url: https://www.internalfb.com/intern/diffusion/FBS/browsefile/master/fbcode/fboss/agent/wiki/static_docs/docs/Features/fsdb.mdx
+---
+
+# FSDB
+
+## Overview
+
+### tl;dr
+
+* A central store for all state of a switch.
+
+* Follows a pub/sub model backed by thrift streams
+
+* Onbox services can publish their state (examples) and stats
+
+* Both on-box and off-box services can subscribe to this data.
+
+* See [FSDB Model](https://www.internalfb.com/code/fbsource/fbcode/fboss/fsdb/if/facebook/fsdb_model.thrift) for all data FSDB holds. Each core fboss service owns a branch of this state and is in charge of keeping it updated through the [Pub Sub Protocol](https://fb.quip.com/r0wqAF9D12SR).
+
+* Clients can use the client libraries (currently cpp only) to publish/subscribe to fsdb
+
+
+### What
+
+FBOSS forwarding stack consists of several binaries - wedge_agent, qsfp_service, bgp, openr, etc. The processes for these binaries on a switch have associated stats and operational state at any instance. FSDB is a FBOSS forwarding stack binary to allow on-box processes to publish all their data to on-box FSDB. Subscribers, whether on-box or off-box, can subscribe to any subset of the data available in FSDB.
+
+### Why
+
+A lot of data from forwarding stack binaries is needed by other on-box and off-box processes. To make this data available, each binary needs to add custom thrift APIs for each individual fragment of data. This comes with some costs that FSDB will solve:
+
+* Polling is required if a service needs live data from another service
+
+* Extra development effort whenever new data is needed to be exposed
+
+* CPU cycles needed to serve potentially high throughput (short interval polling) clients
+
+
+Furthermore, having all state piped to a central store can provide some useful applications such as custom historical stats, simple data aggregation, state replay etc.
+
+### Terminology
+
+FSDB’s model viewable at [FSDB Model](https://www.internalfb.com/code/fbsource/fbcode/fboss/fsdb/if/facebook/fsdb_model.thrift). is split into two parts:
+
+* State: Data that changes sporatically and generally event based. i.e. port operational states, neighbor maps, configs etc.
+
+* Stats: Statistic data that generally changes periodically. i.e. hw port stats, link flaps etc.
+
+
+FSDB pub/sub apis operate on a given path in these models, with two general operational modes (more on this in the Client section):
+
+* Path: Operate on a complete object at the given path. i.e. serve entire object at given path on change to any subpath
+
+* Delta: Operate on deltas at the given path. i.e. serve granular deltas on changes to subpaths under the given path
+
+
+## Integration Guide
+
+See [FSDB API](https://www.internalfb.com/code/fbsource/fbcode/fboss/fsdb/if/facebook/fsdb.thrift)  for all exposed thrift apis for subscribing and publishing. All clients need to follow the [Pub Sub Protocol](https://fb.quip.com/r0wqAF9D12SR). For C++ clients please also see the Client Libraries section.
+
+### Subscribers
+
+*Runbook:*
+
+1. Check if desired data is in [FSDB Model](https://www.internalfb.com/code/fbsource/fbcode/fboss/fsdb/if/facebook/fsdb_model.thrift)
+
+2. Double check with the team that owns the component that their service is already publishing data (rollout constraints). You may also use the fboss2 to validate (see CLI section)
+
+3. Pick the type of subscription: Path or Delta. Delta subscriptions are more efficient on transport however may require more book keeping client side
+
+4. Find the path in the model you want to subscribe to. For example, agent sw config in [FSDB Model](https://www.internalfb.com/code/fbsource/fbcode/fboss/fsdb/if/facebook/fsdb_model.thrift) is at path [“agent”, “config”, “sw”]
+
+5. Use a subscribe api from [FSDB API](https://www.internalfb.com/code/fbsource/fbcode/fboss/fsdb/if/facebook/fsdb.thrift) that suits your needs
+
+
+For more complex subscriptions you may also use the extended apis which accept regex paths (see Extended Paths section)
+
+### Publishers
+
+*Runbook:*
+
+1. For new services onboarding, first you need to model the internal state of your service in a way that makes sense for both your service and external clients.
+
+2. Create a thrift struct that models this internal state and add it to [FSDB Model](https://www.internalfb.com/code/fbsource/fbcode/fboss/fsdb/if/facebook/fsdb_model.thrift)
+
+3. Modify [FSDB Config](https://www.internalfb.com/code/configerator/[094f1e2b7833]/source/neteng/fboss/coop/inputs/fsdb_template.mcconf) to recognize your service as a publisher, add the path in the model that your service will own
+
+4. Publish to your service’s path making sure to follow the [Pub Sub Protocol](https://fb.quip.com/r0wqAF9D12SR)
+
+5. Test that FSDB recieves the expected data (See Testing section)
+
+
+## Clients Libraries
+
+FSDB uses thrift streams for subscribing and publishing. We have some libraries to help manage these streams and the threading model. Currently we only have libraries in C++.
+
+### FsdbPubSubManager
+
+[FsdbStreamClient](https://www.internalfb.com/code/fbsource/[14213339a29e]/fbcode/fboss/fsdb/client/FsdbStreamClient.h) is a low level client for establishing a stream with FSDB and handle reconnections.
+
+[FsdbPubSubManager](https://www.internalfb.com/code/fbsource/[14213339a29e]/fbcode/fboss/fsdb/client/FsdbPubSubManager.h) is a higher level abstraction around FsdbStreamClient that manages multiple thrift streams. As a client you may have multiple subscriptions (to different paths) and multiple types of publishers (state and stats). [FsdbPubSubManager](https://www.internalfb.com/code/fbsource/[14213339a29e]/fbcode/fboss/fsdb/client/FsdbPubSubManager.h) will maintain all these stream.
+
+### FsdbSyncManager
+
+Your service may have multiple different components that are in charge of different parts of the published state, all happening on different threads. As an example, 2 such components in wedge_agent are SwitchState and lldp state. We want each component to be in charge of its own publishing, but still follow [Pub Sub Protocol](https://fb.quip.com/r0wqAF9D12SR) and properly do a synchronized initial sync. [FsdbSyncManager](https://www.internalfb.com/code/fbsource/[14213339a29e]/fbcode/fboss/fsdb/client/FsdbSyncManager.h) abstracts this logic out.
+
+## Testing
+
+### Unit Testing
+
+* Testing interactions with FSDB server:
+  * Leverage [FsdbTestServer](https://www.internalfb.com/code/fbsource/[6680b5af90f1f2e6fa910a57611540e26d482688]/fbcode/fboss/fsdb/tests/utils/FsdbTestServer.h?lines=15) to create an in-process FSDB server instance for use in UTs. This allows implementing validations to make use of FSDB server's internal state.
+
+  * Example: See [FsdbSyncer tests](https://www.internalfb.com/code/fbsource/[6680b5af90f1f2e6fa910a57611540e26d482688]/fbcode/fboss/agent/test/fsdb_tests/facebook/FsdbSyncerTest.cpp?lines=23) as example of using FsdbTestServer. These UTs can be run on devserver as:
+
+    ```buck2 test //fboss/agent/test/fsdb_tests/facebook:fsdb_tests```
+
+
+### Integration tests
+
+FBOSS integration tests run fsdb as a service to test integration with various clients including bgp, nsdb and wedge_agent.
+Example command to run routing integration tests:
+```
+netcastle --team fboss_integration --test-config routing/tomahawk3/10.2.0.0_odp__10.2.0.0_odp/brcm
+```
+
+During FSDB client development, to run FSDB as a service for testing, the intergation test framework can be used to quickly set up the service as follows:
+```
+netcastle --team fboss_integration --test-config routing/tomahawk3/10.2.0.0_odp__10.2.0.0_odp/brcm --skip-cleanup --basset-query $query_for_reserved_device
+```
+With the skip-cleanup flag, after integration tests are complete netcastle runner will leave the test services running on the reserved device. This is a quick and easy way to setup fsdb service for testing.
+Note: Please use the skip-cleanup option ONLY WITH YOUR RESERVED LAB DEVICE.
+
+### Running FSDB
+
+* For testing purposes, FSDB process can be run a device as follows:
+``` sudo ./fsdb --thrift_ssl_policy=permitted --checkOperOwnership=false ```
+
+* Useful Config and CLI Flags
+  * thrift_ssl_policy: indicates whether SSL is required/permitted/disabled for Thrift calls to FSDB server.
+  * checkOperOwnership: whether to perform permission checks on publisher id
+  * stateSubscriptionServe_ms: interval at which FSDB serves state subscriptions
+  * statsSubscriptionServe_ms: interval at which FSDB serves stats subscriptions
+
+
+## CLI
+
+* Show currently active publishers:
+```fboss2 show fsdb publishers```
+
+* Show currently active subscriptions:
+```fboss2 show fsdb subscribers```
+
+* Show state published under specified path:
+```fboss2 show fsdb state 'agent'```
+
+* Show stats published under specified path:
+```fboss2 show fsdb stats 'agent/hwPortStats'```
+
+## Advanced Features
+
+### Extended Paths
+
+### Metadata + Publisher Roots
+
+### FSDB Timeouts
+
+FSDB relies on [thrift stream](https://www.internalfb.com/intern/staticdocs/thrift/docs/fb/features/streaming/) and [thrift sink](https://www.internalfb.com/intern/staticdocs/thrift/docs/fb/features/streaming/sink) to support subscribers and publishers respectively.
+To ensure protection for the streams against bad servers and clients, we have various timeouts implemented. These reference wiki [ref1](https://www.internalfb.com/intern/staticdocs/thrift/docs/fb/features/streaming/#timeouts) and [ref2](https://www.internalfb.com/wiki/ServiceRouter/Overview/Timeout/) capture good details about the various timeouts
+supported by thrift and service router.
+
+* Client side: The main timeout we are interested on the client side is the [chunk timeout](https://www.internalfb.com/code/fbsource/[b0bf4ae098f75b0512fd335e4450975ac2748abf]/fbcode/fboss/fsdb/client/FsdbStreamClient.cpp?lines=74). Currently, it can be configured by the client using the *fsdb_state_chunk_timeout* flag. This value is set to 12s except for DSF where its configured to 15s
+* Server side: One the server side, we rely on [stream expire timeout](https://www.internalfb.com/code/fbsource/[a96761ae342fda104fd67a20eab24ed59945b478]/fbcode/fboss/fsdb/server/Server.cpp?lines=136) to ensure that bad clients are removed. This is set to 15 mins in FSDB server (historical value and can be reconfigured if needed). However, stream timeout only kicks in after the server side credits expire.
+    * A client provides 100 credits(configurable) to server by default. When the server has consumed half of provided credits, client replenishes them
+    * In case of a bad client, the credits wont be replenished and the server might run out of the provided credits. Once the credits are exhausted, the stream expire timeout  is started and once it expires, the client is removed.
+
+To ensure we dont hit timeouts, we have a heartbeat mechanism where FSDB server sends empty message to client to keep the socket alive. This hearbeat interval is set to 5s by [default](https://www.internalfb.com/code/fbsource/[a96761ae342fda104fd67a20eab24ed59945b478]/fbcode/fboss/fsdb/server/ServiceHandler.cpp?lines=52). This can be configured by the client when registering for a subscription. Ex: DSF has set this to [2s](https://www.internalfb.com/code/fbsource/[a96761ae342fda104fd67a20eab24ed59945b478]/fbcode/fboss/agent/DsfSubscriber.cpp?lines=15)
+
+:::note
+Even though we have set stream expire timeout to 15 mins, experimentation revealed that we are closing bad clients within 1 min(~54 seconds). This is because of TCP level ACK to our heartbeats. If the heartbeats are not ACKed because of client issues, the socket is closed and server disconnects a bad client. On testing without hearbeats, we noticed the timeout kicking in ~18 mins(credit expire + timeout)
+:::
+
+
+
+
+## Server Implementation
+
+### ThriftPath + Cow storage
+
+* TODO:
