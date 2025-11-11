@@ -114,10 +114,15 @@ class AgentMultiNodeVoqSwitchNoTrafficDropTest
         "gracefullyRestartFsdbAllSwitches",
         [&] { return allFsdbRestartHelper(true /* gracefulRestart */); }};
 
+    Scenario unGracefullyRestartFsdbAllSwitches = {
+        "unGracefullyRestartFsdbAllSwitches",
+        [&] { return allFsdbRestartHelper(false /* ungracefulRestart */); }};
+
     std::vector<Scenario> scenarios = {
         std::move(gracefullyRestartQsfpAllSwitches),
         std::move(unGracefullyRestartQsfpAllSwitches),
         std::move(gracefullyRestartFsdbAllSwitches),
+        std::move(unGracefullyRestartFsdbAllSwitches),
     };
 
     return runScenariosAndVerifyNoDrops(topologyInfo, scenarios);
