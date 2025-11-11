@@ -173,7 +173,36 @@ class AgentMultiNodeVoqSwitchNoTrafficDropTest
       return false;
     }
 
-    return true;
+    auto fabricSwitches = getOneFabricSwitchForEachCluster(topologyInfo);
+    auto drainUndrainHelper = [fabricSwitches]() {
+      {
+        // Drain and then Undrain one Active fabric port for one FDSW for every
+        // cluster. Drain/Undrain is a synchronous call, so we don't check
+        // status. Other tests verify if Drain/Undrain changes Active/Inactive
+        // state.
+        auto switchToActivePort = utility::forEachWithRetVal(
+            fabricSwitches, utility::getFirstActiveFabricPort);
+
+        for (const auto& [switchName, port] : switchToActivePort) {
+          utility::drainPort(switchName, port);
+        }
+        for (const auto& [switchName, port] : switchToActivePort) {
+          utility::undrainPort(switchName, port);
+        }
+
+        return true;
+      }
+    };
+
+    Scenario drainUndrainFabricLinkOnePerFabric = {
+        "drainUndrainFabricLinkOnePerFabric",
+        [&] { return drainUndrainHelper(); }};
+
+    const std::vector<Scenario> scenarios = {
+        std::move(drainUndrainFabricLinkOnePerFabric),
+    };
+
+    return runScenariosAndVerifyNoDrops(topologyInfo, scenarios);
   }
 };
 
