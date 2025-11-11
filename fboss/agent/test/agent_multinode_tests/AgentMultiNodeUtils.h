@@ -199,4 +199,6 @@ bool verifyRoutePresent(
     const folly::IPAddress& destPrefix,
     const int16_t prefixLength);
 
+bool verifyLineRate(const std::string& switchName, int32_t portID);
+
 } // namespace facebook::fboss::utility

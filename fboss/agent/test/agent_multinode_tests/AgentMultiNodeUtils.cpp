@@ -318,4 +318,34 @@ bool verifyRoutePresent(
       true /* retry on exception */);
 }
 
+bool verifyLineRate(const std::string& switchName, int32_t portID) {
+  auto portIdToPortInfo = getPortIdToPortInfo(switchName);
+  CHECK(portIdToPortInfo.find(portID) != portIdToPortInfo.end());
+  auto portName = portIdToPortInfo[portID].name().value();
+  auto portSpeedMbps = portIdToPortInfo[portID].speedMbps().value();
+
+  // Verify is line rate is achieved i.e. in bytes within 5% of line rate.
+  constexpr float kVariance = 0.05; // i.e. + or - 5%
+  auto lowPortSpeedMbps = portSpeedMbps * (1 - kVariance);
+
+  auto verifyLineRateHelper =
+      [switchName, portName, portSpeedMbps, lowPortSpeedMbps]() {
+        auto counterNameToCount = getCounterNameToCount(switchName);
+        auto outSpeedMbps =
+            counterNameToCount[portName + ".out_bytes.rate.60"] * 8 / 1000000;
+        XLOG(DBG2) << "Switch: " << switchName << " portName: " << portName
+                   << " portSpeedMbps: " << portSpeedMbps
+                   << " lowPortSpeedMbps: " << lowPortSpeedMbps
+                   << " outSpeedMbps: " << outSpeedMbps;
+
+        return lowPortSpeedMbps < outSpeedMbps;
+      };
+
+  return checkWithRetryErrorReturn(
+      verifyLineRateHelper,
+      60 /* num retries, flood takes about ~30s to reach line rate */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
 } // namespace facebook::fboss::utility
