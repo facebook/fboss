@@ -1487,4 +1487,22 @@ bool verifyNoReassemblyErrorsForAllSwitches(
       verifyNoReassemblyErrorsForAllSwitchesHelper, 10 /* num retries */);
 }
 
+std::set<std::string> getOneFabricSwitchForEachCluster(
+    const std::unique_ptr<utility::TopologyInfo>& topologyInfo) {
+  // Get one FDSW from each cluster + one SDSW
+  std::set<std::string> fabricSwitchesToTest;
+  for (const auto& [_, fdsws] :
+       std::as_const(topologyInfo->getClusterIdToFdsws())) {
+    if (!fdsws.empty()) {
+      fabricSwitchesToTest.insert(fdsws.front());
+    }
+  }
+
+  if (!topologyInfo->getSdsws().empty()) {
+    fabricSwitchesToTest.insert(*topologyInfo->getSdsws().begin());
+  }
+
+  return fabricSwitchesToTest;
+}
+
 } // namespace facebook::fboss::utility

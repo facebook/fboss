@@ -52,4 +52,7 @@ bool verifyNoSessionsFlapForRdsws(
 bool verifyNoReassemblyErrorsForAllSwitches(
     const std::unique_ptr<utility::TopologyInfo>& topologyInfo);
 
+std::set<std::string> getOneFabricSwitchForEachCluster(
+    const std::unique_ptr<utility::TopologyInfo>& topologyInfo);
+
 } // namespace facebook::fboss::utility
