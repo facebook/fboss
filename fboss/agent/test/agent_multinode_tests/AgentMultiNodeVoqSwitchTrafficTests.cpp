@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeVoqSwitchNeighborTests.h"
 
+#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
 
 namespace facebook::fboss {
@@ -84,7 +85,29 @@ class AgentMultiNodeVoqSwitchTrafficTest
     return rdswToNeighbor;
   }
 
-  void injectTraffic(const utility::Neighbor& neighbor) const {}
+  void injectTraffic(const utility::Neighbor& neighbor) const {
+    auto static kSrcIP = folly::IPAddressV6("2001:0db8:85a0::");
+    auto [prefix, _] = kGetRoutePrefixAndPrefixLength();
+    for (int i = 0; i < 1000; i++) {
+      auto txPacket = utility::makeUDPTxPacket(
+          getSw(),
+          std::nullopt, // vlanIDForTx
+          folly::MacAddress("00:02:00:00:01:01"), // srcMac
+          utility::getMacForFirstInterfaceWithPorts(
+              getSw()->getState()), // dstMac
+          kSrcIP,
+          prefix, // dstIP
+          8000,
+          8001,
+          0, // ECN
+          255, // TTL
+          // Payload
+          std::vector<uint8_t>(1200, 0xff));
+
+      getSw()->sendPacketOutOfPortAsync(
+          std::move(txPacket), PortID(neighbor.portID));
+    }
+  }
 
   bool setupTrafficLoop(
       const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
