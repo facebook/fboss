@@ -129,6 +129,13 @@ class AgentMultiNodeVoqSwitchTrafficTest
  public:
   bool verifyTrafficSpray(
       const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
+    XLOG(DBG2) << "Verifying Traffic Spray";
+
+    if (!setupTrafficLoop(topologyInfo)) {
+      XLOG(ERR) << "Traffic loop setup failed";
+      return false;
+    }
+
     return true;
   }
 };
