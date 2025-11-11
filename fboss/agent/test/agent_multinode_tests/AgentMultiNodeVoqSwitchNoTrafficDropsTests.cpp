@@ -3,6 +3,8 @@
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeVoqSwitchTrafficTests.h"
 
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeDsfUtils.h"
+#include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeUtils.h"
+#include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
 
 namespace facebook::fboss {
 
@@ -52,7 +54,41 @@ class AgentMultiNodeVoqSwitchNoTrafficDropTest
       return false;
     }
 
-    return true;
+    const auto& switches = topologyInfo->getAllSwitches();
+
+    auto allQsfpRestartHelper = [switches](bool gracefulRestart) {
+      {
+        // Restart QSFP on all switches
+        utility::forEach(
+            switches,
+            gracefulRestart ? utility::triggerGracefulQsfpRestart
+                            : utility::triggerUngracefulQsfpRestart);
+
+        // Wait for QSFP to come up on all switches
+        auto restart = utility::checkForEachExcluding(
+            switches,
+            {}, // exclude none
+            [](const std::string& switchName,
+               const QsfpServiceRunState& state) {
+              return utility::verifyQsfpServiceRunState(switchName, state);
+            },
+            QsfpServiceRunState::ACTIVE);
+
+        return restart;
+      }
+    };
+
+    // With traffic loop running, execute a variety of scenarios.
+    // For each scenario, expect no drops on Fabric ports.
+    Scenario gracefullyRestartQsfpAllSwitches = {
+        "gracefullyRestartQsfpAllSwitches",
+        [&] { return allQsfpRestartHelper(true /* gracefulRestart */); }};
+
+    std::vector<Scenario> scenarios = {
+        std::move(gracefullyRestartQsfpAllSwitches),
+    };
+
+    return runScenariosAndVerifyNoDrops(topologyInfo, scenarios);
   }
 };
 
