@@ -78,6 +78,28 @@ class AgentMultiNodeVoqSwitchNoTrafficDropTest
       }
     };
 
+    auto allFsdbRestartHelper = [switches](bool gracefulRestart) {
+      {
+        // Restart FSDB on all switches
+        utility::forEach(
+            switches,
+            gracefulRestart ? utility::triggerGracefulFsdbRestart
+                            : utility::triggerUngracefulFsdbRestart);
+
+        // Wait for FSDB to come up on all switches
+        auto restart = utility::checkForEachExcluding(
+            switches,
+            {}, // exclude none
+            [](const std::string& switchName,
+               const QsfpServiceRunState& state) {
+              return utility::verifyFsdbIsUp(switchName);
+            },
+            QsfpServiceRunState::ACTIVE);
+
+        return restart;
+      }
+    };
+
     // With traffic loop running, execute a variety of scenarios.
     // For each scenario, expect no drops on Fabric ports.
     Scenario gracefullyRestartQsfpAllSwitches = {
@@ -88,9 +110,14 @@ class AgentMultiNodeVoqSwitchNoTrafficDropTest
         "unGracefullyRestartQsfpAllSwitches",
         [&] { return allQsfpRestartHelper(false /* ungracefulRestart */); }};
 
+    Scenario gracefullyRestartFsdbAllSwitches = {
+        "gracefullyRestartFsdbAllSwitches",
+        [&] { return allFsdbRestartHelper(true /* gracefulRestart */); }};
+
     std::vector<Scenario> scenarios = {
         std::move(gracefullyRestartQsfpAllSwitches),
         std::move(unGracefullyRestartQsfpAllSwitches),
+        std::move(gracefullyRestartFsdbAllSwitches),
     };
 
     return runScenariosAndVerifyNoDrops(topologyInfo, scenarios);
