@@ -25,6 +25,7 @@ cpp_library(
         "AgentMultiNodeTest.h",
         "AgentMultiNodeUtils.h",
         "AgentMultiNodeVoqSwitchNeighborTests.h",
+        "AgentMultiNodeVoqSwitchTrafficTests.h",
         "DsfTopologyInfo.h",
     ],
     link_whole = True,
