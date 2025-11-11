@@ -321,4 +321,11 @@ void addRoute(
       static_cast<int16_t>(ClientID::STATIC_ROUTE), {std::move(route)});
 }
 
+std::vector<RouteDetails> getAllRoutes(const std::string& switchName) {
+  std::vector<RouteDetails> routes;
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_getRouteTableDetails(routes);
+  return routes;
+}
+
 } // namespace facebook::fboss::utility

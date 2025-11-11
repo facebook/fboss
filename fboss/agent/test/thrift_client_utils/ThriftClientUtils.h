@@ -95,4 +95,6 @@ void addRoute(
     const int16_t prefixLength,
     const std::vector<folly::IPAddress>& nexthops);
 
+std::vector<RouteDetails> getAllRoutes(const std::string& switchName);
+
 } // namespace facebook::fboss::utility
