@@ -37,15 +37,22 @@ struct Neighbor {
 };
 
 // Invoke the provided func on every element of a given container
+// except on exclusions
 template <typename Container, typename Callable, typename... Args>
-void forEach(const Container& input, Callable&& func, Args&&... args) {
+void forEachExcluding(
+    const Container& input,
+    const Container& exclusions,
+    Callable&& func,
+    Args&&... args) {
   auto argsTuple = std::make_tuple(std::forward<Args>(args)...);
   for (const auto& elem : input) {
-    std::apply(
-        [&](auto&&... unpackedArgs) {
-          func(elem, std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
-        },
-        argsTuple);
+    if (exclusions.find(elem) == exclusions.end()) {
+      std::apply(
+          [&](auto&&... unpackedArgs) {
+            func(elem, std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
+          },
+          argsTuple);
+    }
   }
 }
 
@@ -115,7 +122,7 @@ bool restartServiceForSwitches(
       forEachWithRetVal(switches, getAliveSinceEpochFunc);
 
   // Restart services on all switches
-  forEach(switches, restartServiceFunc);
+  forEachExcluding(switches, {} /* exclude none */, restartServiceFunc);
 
   auto allRestarted = [switches,
                        getAliveSinceEpochFunc,

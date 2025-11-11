@@ -59,7 +59,8 @@ class AgentMultiNodeVoqSwitchNoTrafficDropTest
     auto allQsfpRestartHelper = [switches](bool gracefulRestart) {
       {
         // Restart QSFP on all switches
-        utility::forEach(
+        utility::forEachExcluding(
+            {}, // exclude none
             switches,
             gracefulRestart ? utility::triggerGracefulQsfpRestart
                             : utility::triggerUngracefulQsfpRestart);
@@ -81,8 +82,9 @@ class AgentMultiNodeVoqSwitchNoTrafficDropTest
     auto allFsdbRestartHelper = [switches](bool gracefulRestart) {
       {
         // Restart FSDB on all switches
-        utility::forEach(
+        utility::forEachExcluding(
             switches,
+            {}, // exclude none
             gracefulRestart ? utility::triggerGracefulFsdbRestart
                             : utility::triggerUngracefulFsdbRestart);
 
