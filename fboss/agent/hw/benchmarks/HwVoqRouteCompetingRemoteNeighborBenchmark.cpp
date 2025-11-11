@@ -8,7 +8,16 @@
  *
  */
 
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/benchmarks/HwRouteScaleBenchmarkHelpers.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/utils/DsfConfigUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
+#include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include <folly/Benchmark.h>
 #include <folly/Synchronized.h>
@@ -168,7 +177,6 @@ BENCHMARK(HwVoqRouteCompetingRemoteNeighborBenchmark) {
   folly::BenchmarkSuspender suspender;
 
   auto ensemble = setupForVoqRouteScale(kEcmpWidth);
-
   std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
   std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2IntfsWithNeighbor;
   std::map<SwitchID, std::shared_ptr<InterfaceMap>>
@@ -187,5 +195,27 @@ BENCHMARK(HwVoqRouteCompetingRemoteNeighborBenchmark) {
       config,
       useEncapIndex,
       false /*addNeighbor*/);
+
+  std::vector<std::unique_ptr<PerSwitchInterfaceMapScheduler>> schedulers;
+  for (const auto& [switchId, systemPorts] : switchId2SystemPorts) {
+    auto scheduler = std::make_unique<PerSwitchInterfaceMapScheduler>(
+        switchId,
+        switchId2IntfsWithNeighbor[switchId],
+        switchId2IntfsWithoutNeighbor[switchId],
+        systemPorts,
+        ensemble.get());
+    scheduler->start();
+    schedulers.push_back(std::move(scheduler));
+  }
+
+  suspender.dismiss();
+
+  // TODO: Program full scale 2K ECMP routes and measure how long it takes
+
+  suspender.rehire();
+
+  for (auto& scheduler : schedulers) {
+    scheduler->stop();
+  }
 }
 } // namespace facebook::fboss
