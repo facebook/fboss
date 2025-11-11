@@ -3625,12 +3625,25 @@ bool TransceiverManager::activeCable(const TcvrState& tcvrState) {
 void TransceiverManager::markTransceiverReadyForProgramming(
     TransceiverID tcvrId,
     bool ready) {
+  if (!FLAGS_port_manager_mode) {
+    return;
+  }
   auto lockedTcvrsReadyForProgramming = tcvrsReadyForProgramming_.wlock();
   if (ready) {
     lockedTcvrsReadyForProgramming->insert(tcvrId);
   } else {
     lockedTcvrsReadyForProgramming->erase(tcvrId);
   }
+}
+
+bool TransceiverManager::transceiverJustRemediated(
+    const TransceiverID& id) const {
+  auto stateMachineItr = stateMachineControllers_.find(id);
+  if (stateMachineItr == stateMachineControllers_.end()) {
+    throw FbossError("Transceiver:", id, " doesn't exist");
+  }
+  return stateMachineItr->second->getStateMachine().rlock()->get_attribute(
+      isTransceiverJustRemediated);
 }
 
 std::unordered_set<TransceiverID>

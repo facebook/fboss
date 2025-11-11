@@ -808,6 +808,8 @@ class TransceiverManager {
 
   std::set<TransceiverID> getPresentTransceivers() const;
 
+  bool transceiverJustRemediated(const TransceiverID& id) const;
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.

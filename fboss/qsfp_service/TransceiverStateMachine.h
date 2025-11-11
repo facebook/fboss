@@ -72,13 +72,13 @@ BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, newTransceiverInsertedAfterInit)
 
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, forceRemoveTransceiver)
 
-// clang-format off
-BOOST_MSM_EUML_ACTION(resetProgrammingAttributes) {
-template <class Event, class Fsm, class State>
-void operator()(
-    const Event& /* event */,
-    Fsm& fsm,
-    State& currState) const {
+// Use this value in PortManager mode to know when a transceiver was just
+// remediated, and consequently skip resetting port states.
+BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, isTransceiverJustRemediated)
+
+// Helper function to encapsulate the resetProgrammingAttributes logic
+template <class Fsm, class State>
+static void executeResetProgrammingAttributes(Fsm& fsm, State& currState) {
   auto tcvrID = fsm.get_attribute(transceiverID);
   XLOG(DBG2) << "[Transceiver:" << tcvrID << "] State changed to "
              << apache::thrift::util::enumNameSafe(stateToStateEnum(currState))
@@ -89,12 +89,47 @@ void operator()(
   fsm.get_attribute(needMarkLastDownTime) = true;
   fsm.get_attribute(needToResetToDiscovered) = false;
   fsm.get_attribute(forceRemoveTransceiver) = false;
+
   if (!FLAGS_port_manager_mode) {
-    // We want to keep previous port status available for transceivers that reset in the case that ports are active.
-    fsm.get_attribute(transceiverMgrPtr)->resetProgrammedIphyPortToPortInfo(tcvrID);
+    // Port Manager will handle resetting port information when ports are
+    // enabled / disabled.
+    fsm.get_attribute(transceiverMgrPtr)
+        ->resetProgrammedIphyPortToPortInfo(tcvrID);
+  }
+}
+
+// clang-format off
+BOOST_MSM_EUML_ACTION(resetToNotPresentProgrammingAttributes) {
+template <class Event, class Fsm, class State>
+void operator()(
+    const Event& /* event */,
+    Fsm& fsm,
+    State& currState) const {
+  auto tcvrID = fsm.get_attribute(transceiverID);
+  executeResetProgrammingAttributes(fsm, currState);
+  fsm.get_attribute(isTransceiverJustRemediated) = false;
+  fsm.get_attribute(transceiverMgrPtr)
+      ->markTransceiverReadyForProgramming(
+          tcvrID, false /* transceiverReady */);
+}
+};
+
+BOOST_MSM_EUML_ACTION(resetToDiscoveredProgrammingAttributes) {
+template <class Event, class Fsm, class State>
+void operator()(
+    const Event& /* event */,
+    Fsm& fsm,
+    State& currState) const {
+  executeResetProgrammingAttributes(fsm, currState);
+  if (!fsm.get_attribute(isTransceiverJustRemediated)) {
+    // If the transceiver isn't just remediated, we can clear this attribute.
+    fsm.get_attribute(transceiverMgrPtr)
+        ->markTransceiverReadyForProgramming(
+            fsm.get_attribute(transceiverID), false /* transceiverReady */);
   }
 }
 };
+
 
 BOOST_MSM_EUML_ACTION(markLastDownTime) {
 template <class Event, class Fsm, class State>
@@ -170,19 +205,29 @@ void operator()(
   fsm.get_attribute(newTransceiverInsertedAfterInit) = newTcvrInsertedAfterInit;
 }
 };
+
+BOOST_MSM_EUML_ACTION(clearTransceiverJustRemediated) {
+template <class Event, class Fsm, class State>
+void operator()(
+    const Event& /* event */,
+    Fsm& fsm,
+    State& /* currState */) const {
+  fsm.get_attribute(isTransceiverJustRemediated) = false;
+  }
+};
 // clang-format on
 
 // Transceiver State Machine States
-BOOST_MSM_EUML_STATE((resetProgrammingAttributes), NOT_PRESENT)
+BOOST_MSM_EUML_STATE((resetToNotPresentProgrammingAttributes), NOT_PRESENT)
 BOOST_MSM_EUML_STATE((presentStateEntry), PRESENT)
-BOOST_MSM_EUML_STATE((resetProgrammingAttributes), DISCOVERED)
+BOOST_MSM_EUML_STATE((resetToDiscoveredProgrammingAttributes), DISCOVERED)
 BOOST_MSM_EUML_STATE((), IPHY_PORTS_PROGRAMMED)
 BOOST_MSM_EUML_STATE((), XPHY_PORTS_PROGRAMMED)
 BOOST_MSM_EUML_STATE((), TRANSCEIVER_PROGRAMMED)
 BOOST_MSM_EUML_STATE((activeStateEntry), ACTIVE)
 BOOST_MSM_EUML_STATE((markLastDownTime), INACTIVE)
 BOOST_MSM_EUML_STATE((upgradingStateEntry), UPGRADING)
-BOOST_MSM_EUML_STATE((), TRANSCEIVER_READY)
+BOOST_MSM_EUML_STATE((clearTransceiverJustRemediated), TRANSCEIVER_READY)
 
 // Transceiver State Machine Events
 BOOST_MSM_EUML_EVENT(DETECT_TRANSCEIVER)
@@ -566,7 +611,7 @@ BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
                  << isTransceiverProgrammed << transceiverMgrPtr
                  << transceiverID << needMarkLastDownTime << needResetDataPath
                  << needToResetToDiscovered << newTransceiverInsertedAfterInit
-                 << forceRemoveTransceiver),
+                 << forceRemoveTransceiver << isTransceiverJustRemediated),
     TransceiverStateMachine)
 
 } // namespace facebook::fboss

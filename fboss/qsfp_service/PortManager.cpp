@@ -894,10 +894,17 @@ void PortManager::
     // needs to be retriggered.
     bool shouldReinitPorts{false};
     auto currTcvrState = getTransceiverState(tcvrId);
+    // If transceiver is just remediated, we assume we can program directly with
+    // old transceiver settings, and have already marked that transceiver can
+    // move to transceiver programmed. Port flaps would not be caused here
+    // because the settings haven't been changed.
+    auto isTcvrJustRemediated =
+        transceiverManager_->transceiverJustRemediated(tcvrId);
     auto previousTcvrStateIt = lastTcvrStates_.find(tcvrId);
     if (previousTcvrStateIt != lastTcvrStates_.end()) {
       shouldReinitPorts = currTcvrState != previousTcvrStateIt->second &&
-          currTcvrState == TransceiverStateMachineState::DISCOVERED;
+          currTcvrState == TransceiverStateMachineState::DISCOVERED &&
+          !isTcvrJustRemediated;
     }
 
     auto portSet = *lockedPortSetPtr->rlock();
