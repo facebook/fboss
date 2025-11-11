@@ -4,6 +4,7 @@
 
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 
 namespace facebook::fboss {
 
@@ -229,6 +230,33 @@ AgentMultiNodeVoqSwitchTrafficTest::configureRouteToRemoteRdswWithTwoNhops(
   utility::addRoute(myHostname, prefix, prefixLength, nexthops);
 
   return std ::make_pair(remoteRdsw, remoteNeighbors);
+}
+
+void AgentMultiNodeVoqSwitchTrafficTest::pumpRoCETraffic(
+    const PortID& localPort) const {
+  auto static kSrcIP = folly::IPAddressV6("2001:0db8:85a0::");
+  auto [prefix, _] = kGetRoutePrefixAndPrefixLength();
+
+  constexpr auto kReservedBytesWithRehashEnabled = 0x40;
+  auto packetSize = utility::pumpRoCETraffic(
+      true /* isV6 */,
+      utility::makeAllocator(getSw()),
+      utility::getSendPktFunc(getSw()),
+      utility::getMacForFirstInterfaceWithPorts(getSw()->getState()), // dstMac
+      std::nullopt /* vlan */,
+      localPort,
+      kSrcIP,
+      prefix, // dstIP
+      utility::kUdfL4DstPort,
+      255, // hopLimit
+      folly::MacAddress("00:02:00:00:01:01"), // srcMac
+      1000000, /* packetCount */
+      utility::kUdfRoceOpcodeAck,
+      kReservedBytesWithRehashEnabled, /* reserved */
+      std::nullopt, /* nextHdr */
+      true /* sameDstQueue */);
+
+  XLOG(DBG2) << "RoCE packet sent. Size: " << packetSize;
 }
 
 bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
