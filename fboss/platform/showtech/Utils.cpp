@@ -27,18 +27,20 @@ using namespace facebook::fboss::platform::showtech_config;
 namespace facebook::fboss::platform {
 
 void Utils::printHostDetails() {
-  std::cout << "##### SYSTEM TIME #####" << std::endl;
+  std::cout << "##### Host Information #####" << std::endl;
+  std::cout << "#### SYSTEM TIME ####" << std::endl;
   std::cout << platformUtils_.execCommand("date").second << std::endl;
-  std::cout << "##### HOSTNAME #####" << std::endl;
+  std::cout << "#### HOSTNAME ####" << std::endl;
   std::cout << platformUtils_.execCommand("hostname").second << std::endl;
-  std::cout << "##### Linux Kernel Version #####" << std::endl;
+  std::cout << "#### Linux Kernel Version ####" << std::endl;
   std::cout << platformUtils_.execCommand("uname -r").second << std::endl;
-  std::cout << "##### UPTIME #####" << std::endl;
+  std::cout << "#### UPTIME ####" << std::endl;
   std::cout << platformUtils_.execCommand("uptime").second << std::endl;
   std::cout << platformUtils_.execCommand("last reboot").second << std::endl;
 }
 
 void Utils::printFbossDetails() {
+  std::cout << "##### FBOSS Information #####" << std::endl;
   runFbossCliCmd("product");
   runFbossCliCmd("version agent");
   runFbossCliCmd("environment sensor");
@@ -68,6 +70,7 @@ void Utils::printLspciDetails() {
 }
 
 void Utils::printPortDetails() {
+  std::cout << "##### Port Information #####" << std::endl;
   runFbossCliCmd("port");
   runFbossCliCmd("fabric");
   runFbossCliCmd("lldp");
@@ -77,7 +80,7 @@ void Utils::printPortDetails() {
   runFbossCliCmd("interface phy");
   runFbossCliCmd("transceiver");
   if (!std::filesystem::exists("/etc/ramdisk")) {
-    std::cout << "##### wedge_qsfp_util #####" << std::endl;
+    std::cout << "#### wedge_qsfp_util ####" << std::endl;
     auto [ret, output] =
         platformUtils_.execCommand("timeout 30 wedge_qsfp_util");
     std::cout << output << std::endl;
@@ -89,9 +92,10 @@ void Utils::printPortDetails() {
 }
 
 void Utils::printSensorDetails() {
-  std::cout << "##### SENSORS #####" << std::endl;
+  std::cout << "##### Sensor Information #####" << std::endl;
+  std::cout << "#### SENSORS ####" << std::endl;
   std::cout << platformUtils_.execCommand("sensors").second << std::endl;
-  std::cout << "##### Dump from sensor_service #####" << std::endl;
+  std::cout << "#### Dump from sensor_service ####" << std::endl;
   std::cout << platformUtils_.execCommand("sensor_service_client").second
             << std::endl;
 }
@@ -109,7 +113,7 @@ void Utils::printI2cDetails() {
       continue;
     }
     auto cmd = fmt::format("time i2cdetect -y {}", busNum);
-    std::cout << fmt::format("##### Running `{}` for {} #####", cmd, busName)
+    std::cout << fmt::format("#### Running `{}` for {} ####", cmd, busName)
               << std::endl;
     std::cout << platformUtils_.execCommand(cmd).second << std::endl;
   }
@@ -365,7 +369,7 @@ void Utils::printLogs() {
 void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);
-    std::cout << fmt::format("##### {} #####", fullCmd) << std::endl;
+    std::cout << fmt::format("#### {} ####", fullCmd) << std::endl;
     std::cout << platformUtils_.execCommand(fullCmd).second << std::endl;
   }
 }
