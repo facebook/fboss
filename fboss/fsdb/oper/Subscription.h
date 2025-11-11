@@ -50,6 +50,10 @@ class BaseSubscription {
   virtual bool isActive() const = 0;
 
   void requestPruneWithReason(FsdbErrorCode reason) {
+    if (reason == FsdbErrorCode::SUBSCRIPTION_SERVE_UPDATES_PENDING) {
+      // don't prune, we will retry later
+      return;
+    }
     pruneReason_ = reason;
   }
 
@@ -130,7 +134,7 @@ class BaseSubscription {
   std::optional<FsdbErrorCode> tryWrite(
       folly::coro::BoundedAsyncPipe<T>& pipe,
       V&& val,
-      const std::string& dbgStr) {
+      const std::string& /* dbgStr */) {
     std::optional<FsdbErrorCode> ret{std::nullopt};
     queueWatermark_.withWLock([&](auto& queueWatermark) {
       auto queuedChunks = pipe.getOccupiedSpace();
@@ -160,6 +164,30 @@ class BaseSubscription {
       }
     }
     return ret;
+  }
+
+  template <typename T, typename V>
+  std::optional<FsdbErrorCode> tryCoalescingWrite(
+      folly::coro::BoundedAsyncPipe<T>& pipe,
+      std::optional<V>& val,
+      const std::string& /* dbgStr */) {
+    auto queuedChunks = pipe.getOccupiedSpace();
+    if (queuedChunks > 1) {
+      XLOG(DBG2) << "Subscription " << subscriberId()
+                 << " pending chunks, coalesce update";
+      return FsdbErrorCode::SUBSCRIPTION_SERVE_UPDATES_PENDING;
+    }
+
+    // try_write moves object only if there is space in the pipe
+    // NOLINTNEXTLINE(bugprone-use-after-move)
+    if (pipe.try_write(std::move(val.value()))) {
+      val.reset();
+    } else {
+      XLOG(DBG0) << "Subscription " << subscriberId()
+                 << " pipe closed, skip write";
+    }
+
+    return std::nullopt;
   }
 
  private:
@@ -289,7 +317,8 @@ class PathSubscription : public BasePathSubscription,
   using PathIter = std::vector<std::string>::const_iterator;
 
   std::optional<FsdbErrorCode> offer(DeltaValue<OperState> newVal) override {
-    return tryWrite(pipe_, std::move(newVal), "path.offer");
+    nextOffered_ = std::move(newVal);
+    return tryCoalescingWrite(pipe_, nextOffered_, "path.offer");
   }
 
   bool isActive() const override {
@@ -337,7 +366,9 @@ class PathSubscription : public BasePathSubscription,
   std::optional<FsdbErrorCode> flush(
       const SubscriptionMetadataServer& metadataServer) override {
     updateMetadata(metadataServer);
-    // no-op, we write directly to the pipe in offer
+    if (nextOffered_.has_value()) {
+      return tryCoalescingWrite(pipe_, nextOffered_, "path.flush");
+    }
     return std::nullopt;
   }
 
@@ -372,6 +403,7 @@ class PathSubscription : public BasePathSubscription,
 
  private:
   folly::coro::BoundedAsyncPipe<value_type> pipe_;
+  std::optional<DeltaValue<OperState>> nextOffered_;
 };
 
 class BaseDeltaSubscription : public Subscription {
@@ -561,6 +593,7 @@ class ExtendedPathSubscription : public ExtendedSubscription,
  private:
   folly::coro::BoundedAsyncPipe<gen_type> pipe_;
   std::optional<gen_type> buffered_;
+  std::optional<gen_type> nextOffered_;
 };
 
 class ExtendedDeltaSubscription;

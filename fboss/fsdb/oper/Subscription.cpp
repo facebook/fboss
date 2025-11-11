@@ -314,13 +314,15 @@ std::optional<FsdbErrorCode> ExtendedPathSubscription::flush(
     const SubscriptionMetadataServer& metadataServer) {
   updateMetadata(metadataServer);
 
-  if (!buffered_) {
+  if (buffered_) {
+    nextOffered_ = std::exchange(buffered_, std::nullopt);
+  }
+
+  if (!nextOffered_.has_value()) {
     return std::nullopt;
   }
 
-  std::optional<gen_type> toServe;
-  toServe.swap(buffered_);
-  return tryWrite(pipe_, std::move(toServe).value(), "ExtPath.flush");
+  return tryCoalescingWrite(pipe_, nextOffered_, "ExtPath.flush");
 }
 
 std::unique_ptr<Subscription> ExtendedPathSubscription::resolve(
