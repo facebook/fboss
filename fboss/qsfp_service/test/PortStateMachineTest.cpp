@@ -182,8 +182,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     transceiverManager_->refreshTransceivers();
     portManager_->updateTransceiverPortStatus();
     portManager_->updatePortActiveStatusInTransceiverManager();
-    portManager_
-        ->detectTransceiverDiscoveredAndReinitializeCorrespondingPorts();
+    portManager_->detectTransceiverResetAndReinitializeCorrespondingDownPorts();
     portManager_->triggerProgrammingEvents();
     transceiverManager_->triggerProgrammingEvents();
   }
@@ -780,7 +779,6 @@ TEST_F(
   // Mark transceiver as not present.
   setMockCmisPresence(false);
   setMockCmisTransceiverReady(false);
-  portManager_->setOverrideAgentPortStatusForTesting({}, {portId1_, portId3_});
   transceiverManager_->refreshTransceivers();
   assertCurrentStateEquals(
       TcvrPortStatePair{
@@ -789,7 +787,7 @@ TEST_F(
 
   // Try re-initializing ports, but port should stay up until agent brings port
   // down.
-  portManager_->detectTransceiverDiscoveredAndReinitializeCorrespondingPorts();
+  portManager_->detectTransceiverResetAndReinitializeCorrespondingDownPorts();
   assertCurrentStateEquals(
       TcvrPortStatePair{
           TransceiverStateMachineState::NOT_PRESENT,
@@ -800,7 +798,7 @@ TEST_F(
   assertCurrentStateEquals(
       TcvrPortStatePair{
           TransceiverStateMachineState::NOT_PRESENT, // Not present workflow
-          {PortStateMachineState::PORT_DOWN, std::nullopt}});
+          {PortStateMachineState::PORT_UP, std::nullopt}});
 
   // Not present workflow brings transceiver to TRANSCEIVER_READY even though
   // transceiver isn't present.
@@ -810,30 +808,33 @@ TEST_F(
       TcvrPortStatePair{
           TransceiverStateMachineState::TRANSCEIVER_READY, // Not present
                                                            // workflow
-          {PortStateMachineState::PORT_DOWN, std::nullopt}});
+          {PortStateMachineState::PORT_UP, std::nullopt}});
 
-  // Transceiver is now present, gets discovered and progressed to the next
-  // state.
-  setMockCmisPresence(true);
-  setMockCmisTransceiverReady(true);
-  transceiverManager_->refreshTransceivers();
+  // Some time passes, no change in expected state.
+  for (int i = 0; i < 5; i++) {
+    portManager_->refreshStateMachines();
+  }
   assertCurrentStateEquals(
       TcvrPortStatePair{
-          TransceiverStateMachineState::DISCOVERED,
-          {PortStateMachineState::PORT_DOWN, std::nullopt}});
+          TransceiverStateMachineState::TRANSCEIVER_READY, // Not present
+                                                           // workflow
+          {PortStateMachineState::PORT_UP, std::nullopt}});
 
-  // Port is detected as needing to re-initialize.
-  portManager_->detectTransceiverDiscoveredAndReinitializeCorrespondingPorts();
-  assertCurrentStateEquals(
-      TcvrPortStatePair{
-          TransceiverStateMachineState::DISCOVERED,
-          {PortStateMachineState::INITIALIZED, std::nullopt}});
-
-  // Ensure port status from agent doesn't progress any states.
+  // Agent then sets port down for some reason.
+  portManager_->setOverrideAgentPortStatusForTesting({}, {portId1_, portId3_});
   portManager_->updateTransceiverPortStatus();
   assertCurrentStateEquals(
       TcvrPortStatePair{
-          TransceiverStateMachineState::DISCOVERED,
+          TransceiverStateMachineState::TRANSCEIVER_READY, // Not present
+                                                           // workflow
+          {PortStateMachineState::PORT_DOWN, std::nullopt}});
+
+  // Port Comes to Initialized
+  portManager_->detectTransceiverResetAndReinitializeCorrespondingDownPorts();
+  assertCurrentStateEquals(
+      TcvrPortStatePair{
+          TransceiverStateMachineState::TRANSCEIVER_READY, // Not present
+                                                           // workflow
           {PortStateMachineState::INITIALIZED, std::nullopt}});
 
   // First round of programming.
@@ -1180,9 +1181,7 @@ TEST_F(PortStateMachineTest, verifyDetectingPortStatusOnResetTransceiver) {
     // Refresh cycle a few more times and ensure that port stays in expected
     // state, transceiver reaches transceiver ready, but transceiver isn't
     // present.
-    for (int i = 0; i < 5; i++) {
-      refreshAndTriggerProgramming();
-    }
+    refreshAndTriggerProgramming();
     assertCurrentStateEquals(
         TcvrPortStatePair{
             TransceiverStateMachineState::TRANSCEIVER_READY,

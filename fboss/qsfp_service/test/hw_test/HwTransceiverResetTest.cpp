@@ -43,6 +43,13 @@ class HwTransceiverResetTest : public HwTransceiverTest {
     XLOG(INFO) << "Trigger QSFP Hard reset for tranceivers: ["
                << folly::join(",", hardresetTcvrs) << "]";
 
+    if (FLAGS_port_manager_mode) {
+      getHwQsfpEnsemble()
+          ->getQsfpServiceHandler()
+          ->setOverrideAgentPortStatusForTesting(
+              isPortUp_ /* up */, true /* enabled */);
+    }
+
     waitTillCabledTcvrProgrammed(10 /* numRetries */, isPortUp_ /* portUp */);
   }
 
@@ -526,6 +533,10 @@ TEST_F(HwTransceiverResetTest, verifyHardResetAction) {
   // waitTillCabledTcvrProgrammed will fail
   qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
       true /* up */, true /* enabled */, true /* clearOnly */);
+  if (FLAGS_port_manager_mode) {
+    qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
+        true /* up */, true /* enabled */, false /* clearOnly */);
+  }
 
   waitTillCabledTcvrProgrammed();
 }

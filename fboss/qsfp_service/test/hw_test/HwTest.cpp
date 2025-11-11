@@ -72,7 +72,7 @@ void HwTest::SetUp() {
   }
 
   // Setting remediation paused as a default for 10 minutes
-  ensemble_->getWedgeManager()->setPauseRemediation(1000, nullptr);
+  ensemble_->getWedgeManager()->setPauseRemediation(600, nullptr);
 
   // Allow back to back refresh and customizations in test
   gflags::SetCommandLineOptionWithMode(
@@ -89,6 +89,8 @@ void HwTest::SetUp() {
     // require a wait here
     sleep(5);
   }
+
+  XLOG(INFO) << "HwTest::SetUp() complete";
 }
 
 void HwTest::TearDown() {
@@ -235,8 +237,9 @@ void HwTest::waitTillCabledTcvrProgrammed(int numRetries, bool portUp) {
         }
 
         if (!notProgrammedPorts.empty()) {
-          XLOG(ERR) << "Ports with an unexpected state: "
-                    << folly::join(",", notProgrammedPorts);
+          XLOG(ERR) << "Ports that did not reach "
+                    << apache::thrift::util::enumNameSafe(expectedPortState)
+                    << ": " << folly::join(",", notProgrammedPorts);
         }
 
         return retval;

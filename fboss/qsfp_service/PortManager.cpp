@@ -878,21 +878,21 @@ void PortManager::syncNpuPortStatusUpdate(
 }
 
 /*
- * detectTransceiverDiscoveredAndReinitializeCorrespondingPorts
+ * detectTransceiverResetAndReinitializeCorrespondingDownPorts
  *
  * This function is called within the context of the normal refresh cycle. With
  * SW ports now being separately managed entitites from transceivers, we need to
- * make sure we re-initialize ports when transceivers are re-discovered.
+ * make sure we re-initialize ports when transceivers are re-discovered and
+ * ports are in a terminal state.
  */
 
 void PortManager::
-    detectTransceiverDiscoveredAndReinitializeCorrespondingPorts() {
+    detectTransceiverResetAndReinitializeCorrespondingDownPorts() {
   BlockingStateUpdateResultList results;
 
   for (auto& [tcvrId, lockedPortSetPtr] : tcvrToInitializedPorts_) {
     // Check if transceiver is in a non-programmed state. If so, programming
     // needs to be retriggered.
-    bool shouldReinitPorts{false};
     auto currTcvrState = getTransceiverState(tcvrId);
     // If transceiver is just remediated, we assume we can program directly with
     // old transceiver settings, and have already marked that transceiver can
@@ -900,31 +900,41 @@ void PortManager::
     // because the settings haven't been changed.
     auto isTcvrJustRemediated =
         transceiverManager_->transceiverJustRemediated(tcvrId);
-    auto previousTcvrStateIt = lastTcvrStates_.find(tcvrId);
-    if (previousTcvrStateIt != lastTcvrStates_.end()) {
-      shouldReinitPorts = currTcvrState != previousTcvrStateIt->second &&
-          currTcvrState == TransceiverStateMachineState::DISCOVERED &&
-          !isTcvrJustRemediated;
+    bool shouldReinitPorts =
+        (currTcvrState == TransceiverStateMachineState::TRANSCEIVER_READY ||
+         currTcvrState == TransceiverStateMachineState::DISCOVERED) &&
+        !isTcvrJustRemediated;
+    if (!shouldReinitPorts) {
+      continue;
     }
 
+    // Need to verify that all ports are down.
     auto portSet = *lockedPortSetPtr->rlock();
-    for (auto portId : portSet) {
-      if (shouldReinitPorts) {
-        if (auto result = updateStateBlockingWithoutWait(
-                portId, PortStateMachineEvent::PORT_EV_RESET_TO_INITIALIZED)) {
-          results.push_back(result);
-        }
+    bool allPortsDown{true};
+
+    for (const auto& portId : portSet) {
+      allPortsDown &=
+          (getPortState(portId) == PortStateMachineState::PORT_DOWN);
+    }
+    shouldReinitPorts &= allPortsDown;
+
+    if (!shouldReinitPorts) {
+      continue;
+    }
+
+    for (const auto& portId : portSet) {
+      if (auto result = updateStateBlockingWithoutWait(
+              portId, PortStateMachineEvent::PORT_EV_RESET_TO_INITIALIZED)) {
+        results.push_back(result);
       }
     }
-
-    lastTcvrStates_[tcvrId] = currTcvrState;
   }
 
   int numResults = results.size();
   waitForAllBlockingStateUpdateDone(results);
 
   XLOG_IF(DBG2, numResults > 0)
-      << "detectTransceiverDiscoveredAndReinitializeCorrespondingPorts has "
+      << "detectTransceiverResetAndReinitializeCorrespondingDownPorts has "
       << numResults << " ports need to reset status.";
 }
 
@@ -1554,7 +1564,10 @@ void PortManager::triggerProgrammingEvents() {
 }
 
 bool PortManager::arePortTcvrsProgrammed(PortID portId) const {
-  for (const auto& tcvrId : getTransceiverIdsForPort(portId)) {
+  // Check to see if all of a port's transceivers are programmed.
+  bool arePortTcvrsProgrammed{true};
+  auto tcvrIds = getTransceiverIdsForPort(portId);
+  for (const auto& tcvrId : tcvrIds) {
     if (transceiverManager_->getCurrentState(tcvrId) !=
         TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
       auto portNameStr = getPortNameByPortIdOrThrow(portId);
@@ -1563,11 +1576,21 @@ bool PortManager::arePortTcvrsProgrammed(PortID portId) const {
           << " state is not TRANSCEIVER_PROGRAMMED: "
           << apache::thrift::util::enumNameSafe(getTransceiverState(tcvrId))
           << ". Not advancing PortStateMachine to TRANSCEIVERS_PROGRAMMED.";
-      return false;
+      arePortTcvrsProgrammed = false;
+      break;
     }
   }
 
-  return true;
+  // If not all programmed, tell transceivers that they are ready to program
+  // (they should have been marked for programming earlier, but unexpected
+  // resets can happen).
+  if (!arePortTcvrsProgrammed) {
+    for (const auto& tcvrId : tcvrIds) {
+      transceiverManager_->markTransceiverReadyForProgramming(tcvrId, true);
+    }
+  }
+
+  return arePortTcvrsProgrammed;
 }
 
 void PortManager::restoreWarmBootPhyState() {
@@ -1608,7 +1631,7 @@ void PortManager::refreshStateMachines() {
 
   // Step 4: Reset port state machines for ports that have transceivers that are
   // recently discovered to retrigger programming.
-  detectTransceiverDiscoveredAndReinitializeCorrespondingPorts();
+  detectTransceiverResetAndReinitializeCorrespondingDownPorts();
 
   // Step 5: Check whether there's a wedge_agent config change
   triggerAgentConfigChangeEvent();
