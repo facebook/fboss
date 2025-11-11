@@ -161,6 +161,9 @@ class AgentMultiNodeVoqSwitchTrafficTest
       const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
     XLOG(DBG2) << "Verifying Traffic Spray";
 
+    auto baselineRdswToPeerAndDsfSession =
+        utility::getPeerToDsfSessionForRdsws(topologyInfo->getRdsws());
+
     if (!setupTrafficLoop(topologyInfo)) {
       XLOG(ERR) << "Traffic loop setup failed";
       return false;
@@ -172,6 +175,13 @@ class AgentMultiNodeVoqSwitchTrafficTest
         XLOG(DBG2) << "Verify fabric spray failed for switch: " << switchName;
         return false;
       }
+    }
+
+    // Verify no DSF Sessions flapped due to traffic flood
+    if (!utility::verifyNoSessionsFlapForRdsws(
+            topologyInfo->getRdsws(), baselineRdswToPeerAndDsfSession)) {
+      XLOG(DBG2) << "Traffic flood flapped some DSF sessions";
+      return false;
     }
 
     return true;
