@@ -1212,11 +1212,12 @@ bool verifyDsfUngracefulFSDBRestart(
   return verifyDsfFSDBRestart(topologyInfo, false /* triggerGracefulRestart */);
 }
 
-bool verifyDsfGracefulFabricLinkDown(
+bool verifyDsfGracefulFabricLinkDisableOrDrain(
     const std::unique_ptr<TopologyInfo>& topologyInfo,
     const std::string& rdswToVerify,
-    const std::map<std::string, PortInfoThrift>&
-        activeFabricPortNameToPortInfo) {
+    const std::map<std::string, PortInfoThrift>& activeFabricPortNameToPortInfo,
+    const std::function<void(const std::string&, int32_t)>&
+        portDisableOrDrainFunc) {
   XLOG(DBG2) << "Verifying DSF Graceful Fabric link Down";
 
   CHECK(activeFabricPortNameToPortInfo.size() > 2);
@@ -1234,7 +1235,7 @@ bool verifyDsfGracefulFabricLinkDown(
     XLOG(DBG2) << __func__
                << " Admin disabling port:: " << portInfo.name().value()
                << " portID: " << portInfo.portId().value();
-    adminDisablePort(rdswToVerify, portInfo.portId().value());
+    portDisableOrDrainFunc(rdswToVerify, portInfo.portId().value());
 
     bool checkPassed = true;
     if (portName == lastActivePort) {
@@ -1295,8 +1296,13 @@ bool verifyDsfGracefulFabricLinkDownUp(
   auto activeFabricPortNameToPortInfo =
       getActiveFabricPortNameToPortInfo(myHostname);
 
-  if (!verifyDsfGracefulFabricLinkDown(
-          topologyInfo, myHostname, activeFabricPortNameToPortInfo)) {
+  if (!verifyDsfGracefulFabricLinkDisableOrDrain(
+          topologyInfo,
+          myHostname,
+          activeFabricPortNameToPortInfo,
+          [](const auto& rdswToVerify, int32_t portID) {
+            adminDisablePort(rdswToVerify, portID);
+          })) {
     XLOG(ERR) << "Failed to verify DSF Graceful Fabric link Down";
     return false;
   }
