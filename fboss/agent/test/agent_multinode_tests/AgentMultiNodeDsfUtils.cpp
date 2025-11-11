@@ -1343,4 +1343,9 @@ bool verifyFabricSpray(const std::string& switchName) {
       true /* retry on exception */);
 }
 
+std::map<std::string, std::map<std::string, DsfSessionThrift>>
+getPeerToDsfSessionForRdsws(const std::set<std::string>& rdsws) {
+  return forEachWithRetVal(rdsws, getPeerToDsfSession);
+}
+
 } // namespace facebook::fboss::utility

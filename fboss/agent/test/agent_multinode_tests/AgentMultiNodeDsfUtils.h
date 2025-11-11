@@ -38,4 +38,7 @@ bool verifyDsfGracefulFabricLinkDownUp(
 
 bool verifyFabricSpray(const std::string& rdsw);
 
+std::map<std::string, std::map<std::string, DsfSessionThrift>>
+getPeerToDsfSessionForRdsws(const std::set<std::string>& rdsws);
+
 } // namespace facebook::fboss::utility
