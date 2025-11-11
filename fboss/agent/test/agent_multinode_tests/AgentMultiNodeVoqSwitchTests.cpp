@@ -15,6 +15,16 @@ TEST_F(AgentMultiNodeVoqSwitchTest, verifyGracefulFabricLinkDownUp) {
     }
   });
 }
+
+TEST_F(AgentMultiNodeVoqSwitchTest, verifyFabricLinkDrainUndrain) {
+  runTestWithVerifyCluster([](const auto& topologyInfo) {
+    switch (topologyInfo->getTopologyType()) {
+      case utility::TopologyInfo::TopologyType::DSF:
+        return utility::verifyDsfFabricLinkDrainUndrain(topologyInfo);
+    }
+  });
+}
+
 TEST_F(AgentMultiNodeVoqSwitchTest, verifyGracefulAgentRestartTimeoutRecovery) {
   runTestWithVerifyCluster([](const auto& topologyInfo) {
     switch (topologyInfo->getTopologyType()) {

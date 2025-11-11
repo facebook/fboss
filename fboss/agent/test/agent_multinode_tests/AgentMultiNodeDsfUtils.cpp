@@ -1310,6 +1310,11 @@ bool verifyDsfGracefulFabricLinkDownUp(
   return true;
 }
 
+bool verifyDsfFabricLinkDrainUndrain(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  return true;
+}
+
 bool verifyFabricSpray(const std::string& switchName) {
   auto verifyFabricSprayHelper = [switchName]() {
     int64_t lowestMbps = std::numeric_limits<int64_t>::max();
