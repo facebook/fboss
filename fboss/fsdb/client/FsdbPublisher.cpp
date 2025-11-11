@@ -73,6 +73,7 @@ bool FsdbPublisher<PubUnit>::write(PubUnit&& pubUnit) {
           std::chrono::duration_cast<std::chrono::milliseconds>(ts).count();
     }
   }
+
 #if FOLLY_HAS_COROUTINES
   auto pipeUPtr = asyncPipe_.ulock();
   if (!(*pipeUPtr) || !(*pipeUPtr)->second.try_write(std::move(pubUnit))) {
@@ -97,23 +98,31 @@ template <typename PubUnit>
 folly::coro::AsyncGenerator<PubUnit&&>
 FsdbPublisher<PubUnit>::createGenerator() {
   while (true) {
+    // Extract pubUnit from pipe, then release lock before co_yield
+    // This allows write() to reset the pipe even if we have yielded at
+    // co_yield. This also ensures we dont hold the lock for longer than
+    // necessary
+    std::optional<PubUnit> pubUnit;
     {
       auto pipeRPtr = asyncPipe_.rlock();
       if (*pipeRPtr) {
-        auto pubUnit = co_await (*pipeRPtr)->first.next();
-        if (!pubUnit) {
+        auto pubElement = co_await (*pipeRPtr)->first.next();
+
+        if (!pubElement) {
           continue;
         }
+        pubUnit = std::move(*pubElement);
         queueSize_--;
-        co_yield std::move(*pubUnit);
       } else {
         XLOG(ERR) << "Publish queue is null, unable to dequeue";
         FsdbException ex;
         ex.errorCode_ref() = FsdbErrorCode::DISCONNECTED;
         ex.message_ref() = "Publisher queue is null, cannot dequeue";
         co_yield folly::coro::co_error(ex);
+        continue;
       }
     }
+    co_yield std::move(*pubUnit);
   }
 }
 #endif
