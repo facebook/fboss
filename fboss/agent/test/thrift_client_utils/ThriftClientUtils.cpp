@@ -281,6 +281,11 @@ void adminEnablePort(const std::string& switchName, int32_t portID) {
   swAgentClient->sync_setPortState(portID, true /* enable port */);
 }
 
+void drainPort(const std::string& switchName, int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setPortDrainState(portID, true /* drain port */);
+}
+
 void addNeighbor(
     const std::string& switchName,
     const int32_t& interfaceID,
