@@ -168,6 +168,10 @@ std::vector<NdpEntryThrift> getNdpEntriesOfType(
 std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
     const std::string& switchName);
 
+int64_t getPortOutBytes(
+    const std::string& switchName,
+    const std::string& portName);
+
 bool verifySwSwitchRunState(
     const std::string& switchName,
     const SwitchRunState& expectedSwitchRunState);

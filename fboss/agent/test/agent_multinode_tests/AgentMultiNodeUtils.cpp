@@ -111,6 +111,16 @@ std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
   return upEthernetPortNameToPortInfo;
 }
 
+int64_t getPortOutBytes(
+    const std::string& switchName,
+    const std::string& portName) {
+  auto counterNameToCount = getCounterNameToCount(switchName);
+  auto counterName = portName + ".out_bytes.sum";
+  auto iter = counterNameToCount.find(counterName);
+  CHECK(iter != counterNameToCount.end());
+  return iter->second;
+}
+
 bool verifySwSwitchRunState(
     const std::string& switchName,
     const SwitchRunState& expectedSwitchRunState) {
