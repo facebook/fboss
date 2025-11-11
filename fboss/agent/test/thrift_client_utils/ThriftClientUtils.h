@@ -78,6 +78,7 @@ void adminDisablePort(const std::string& switchName, int32_t portID);
 void adminEnablePort(const std::string& switchName, int32_t portID);
 
 void drainPort(const std::string& switchName, int32_t portID);
+void undrainPort(const std::string& switchName, int32_t portID);
 
 void addNeighbor(
     const std::string& switchName,
