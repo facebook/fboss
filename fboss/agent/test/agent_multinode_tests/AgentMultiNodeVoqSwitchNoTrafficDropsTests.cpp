@@ -55,6 +55,7 @@ class AgentMultiNodeVoqSwitchNoTrafficDropTest
     }
 
     const auto& switches = topologyInfo->getAllSwitches();
+    const auto& myHostname = topologyInfo->getMyHostname();
 
     auto allQsfpRestartHelper = [switches](bool gracefulRestart) {
       {
@@ -102,6 +103,28 @@ class AgentMultiNodeVoqSwitchNoTrafficDropTest
       }
     };
 
+    auto allAgentRestartHelper = [switches, myHostname](bool gracefulRestart) {
+      {
+        // Restart Agent on all switches
+        utility::forEachExcluding(
+            switches,
+            {myHostname}, // exclude self, as running this test binary
+            gracefulRestart ? utility::triggerGracefulAgentRestart
+                            : utility::triggerUngracefulAgentRestart);
+
+        // Wait for Agent to come up on all switches
+        auto restart = utility::checkForEachExcluding(
+            switches,
+            {myHostname}, // exclude self, as running this test binary
+            [](const std::string& switchName, const SwitchRunState& state) {
+              return utility::verifySwSwitchRunState(switchName, state);
+            },
+            SwitchRunState::CONFIGURED);
+
+        return restart;
+      }
+    };
+
     // With traffic loop running, execute a variety of scenarios.
     // For each scenario, expect no drops on Fabric ports.
     Scenario gracefullyRestartQsfpAllSwitches = {
@@ -120,11 +143,16 @@ class AgentMultiNodeVoqSwitchNoTrafficDropTest
         "unGracefullyRestartFsdbAllSwitches",
         [&] { return allFsdbRestartHelper(false /* ungracefulRestart */); }};
 
+    Scenario gracefullyRestartAgentAllSwitches = {
+        "gracefullyRestartFsdbAllSwitches",
+        [&] { return allAgentRestartHelper(true /* gracefulRestart */); }};
+
     std::vector<Scenario> scenarios = {
         std::move(gracefullyRestartQsfpAllSwitches),
         std::move(unGracefullyRestartQsfpAllSwitches),
         std::move(gracefullyRestartFsdbAllSwitches),
         std::move(unGracefullyRestartFsdbAllSwitches),
+        std::move(gracefullyRestartAgentAllSwitches),
     };
 
     return runScenariosAndVerifyNoDrops(topologyInfo, scenarios);
