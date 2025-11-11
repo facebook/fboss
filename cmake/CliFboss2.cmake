@@ -399,6 +399,13 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.cpp
   fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbDataCommon.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperState.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperStats.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbUtils.cpp
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbUtils.h
   fboss/cli/fboss2/commands/show/host/CmdShowHost.h
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.cpp
