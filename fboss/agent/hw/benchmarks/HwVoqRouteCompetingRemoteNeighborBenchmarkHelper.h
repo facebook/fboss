@@ -80,18 +80,17 @@ class PerSwitchInterfaceMapScheduler {
         systemPorts_(std::move(systemPorts)),
         ensemble_(ensemble),
         nbrUpdateIntervalMs_(nbrUpdateIntervalMs),
-        hasNeighbor_(false),
+        hasNeighbor_(true),
         eventBase_("IntfMapScheduler") {
     CHECK(numNbrToUpdate <= intfsWithNeighbor_->size());
     intfsWithoutNeighbor_ = std::make_shared<InterfaceMap>();
     for (const auto& [intfId, intf] : *intfsWithNeighbor_) {
+      auto newIntf = intf->clone();
       if (intfsWithoutNeighbor_->size() < numNbrToUpdate) {
-        auto intfWithoutNbr = intf->clone();
-        intfWithoutNbr->setNdpTable(std::make_shared<NdpTable>());
-        intfsWithoutNeighbor_->insert(intfId, std::move(intfWithoutNbr));
-      } else {
-        intfsWithoutNeighbor_->insert(intfId, intf->clone());
+        newIntf->setNdpTable(std::make_shared<NdpTable>());
+        newIntf->setArpTable(std::make_shared<ArpTable>());
       }
+      intfsWithoutNeighbor_->insert(intfId, std::move(newIntf));
     }
   }
 
@@ -136,6 +135,13 @@ class PerSwitchInterfaceMapScheduler {
 
   void stop() {
     if (eventBase_.isRunning()) {
+      // First cancel any pending scheduled updates
+      eventBase_.runInFbossEventBaseThreadAndWait([this]() {
+        stopped_ = true;
+        // Clear the scheduler to stop accepting new updates
+        scheduler_.reset();
+      });
+      // Then terminate the event loop
       eventBase_.terminateLoopSoon();
     }
     if (evbThread_ && evbThread_->joinable()) {
@@ -148,19 +154,45 @@ class PerSwitchInterfaceMapScheduler {
   }
 
  private:
+  std::shared_ptr<InterfaceMap> cloneInterfaceMapWithNeighborTables(
+      const std::shared_ptr<InterfaceMap>& originalMap) {
+    auto clonedMap = std::make_shared<InterfaceMap>();
+    for (const auto& [intfId, intf] : *originalMap) {
+      auto clonedIntf = intf->clone();
+      // Clone the neighbor tables to ensure they're not published
+      if (intf->getArpTable()) {
+        clonedIntf->setArpTable(intf->getArpTable()->toThrift());
+      }
+      if (intf->getNdpTable()) {
+        clonedIntf->setNdpTable(intf->getNdpTable()->toThrift());
+      }
+      clonedMap->insert(intfId, std::move(clonedIntf));
+    }
+    return clonedMap;
+  }
+
   void scheduleNextUpdate() {
+    if (stopped_) {
+      return;
+    }
+
     InterfaceMapUpdateScheduler::InterfaceMapUpdate update;
+    auto sourceMap = hasNeighbor_ ? intfsWithoutNeighbor_ : intfsWithNeighbor_;
     update.switchId2Intfs[switchId_] =
-        hasNeighbor_ ? intfsWithoutNeighbor_ : intfsWithNeighbor_;
+        cloneInterfaceMapWithNeighborTables(sourceMap);
 
     hasNeighbor_ = !hasNeighbor_;
 
-    scheduler_->queueInterfaceMapUpdate(std::move(update));
+    if (scheduler_) {
+      scheduler_->queueInterfaceMapUpdate(std::move(update));
+    }
 
-    eventBase_.scheduleAt(
-        [this]() { scheduleNextUpdate(); },
-        std::chrono::steady_clock::now() +
-            std::chrono::milliseconds(nbrUpdateIntervalMs_));
+    if (!stopped_) {
+      eventBase_.scheduleAt(
+          [this]() { scheduleNextUpdate(); },
+          std::chrono::steady_clock::now() +
+              std::chrono::milliseconds(nbrUpdateIntervalMs_));
+    }
   }
 
   SwitchID switchId_;
@@ -170,6 +202,7 @@ class PerSwitchInterfaceMapScheduler {
   AgentEnsemble* ensemble_;
   int nbrUpdateIntervalMs_;
   bool hasNeighbor_;
+  bool stopped_{false};
   FbossEventBase eventBase_;
   std::unique_ptr<std::thread> evbThread_;
   std::unique_ptr<InterfaceMapUpdateScheduler> scheduler_;
