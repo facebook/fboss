@@ -11,12 +11,56 @@
 #include "fboss/agent/hw/benchmarks/HwRouteScaleBenchmarkHelpers.h"
 
 #include <folly/Benchmark.h>
+#include <folly/Synchronized.h>
 
 namespace {
 constexpr auto kEcmpWidth = 2048;
 }
 
 namespace facebook::fboss {
+
+class InterfaceMapUpdateScheduler {
+ public:
+  struct InterfaceMapUpdate {
+    std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
+  };
+
+  explicit InterfaceMapUpdateScheduler(
+      FbossEventBase* updateEvb,
+      std::function<void(const InterfaceMapUpdate&)> applyUpdateFn)
+      : updateEvb_(updateEvb), applyUpdateFn_(std::move(applyUpdateFn)) {}
+
+  void queueInterfaceMapUpdate(InterfaceMapUpdate&& update) {
+    bool needsScheduling = false;
+
+    {
+      auto nextUpdateWlock = nextUpdate_.wlock();
+      needsScheduling = (*nextUpdateWlock == nullptr);
+      *nextUpdateWlock =
+          std::make_unique<InterfaceMapUpdate>(std::move(update));
+    }
+
+    if (needsScheduling) {
+      updateEvb_->runInFbossEventBaseThread([this]() {
+        InterfaceMapUpdate update;
+        {
+          auto nextUpdateWlock = nextUpdate_.wlock();
+          if (*nextUpdateWlock == nullptr) {
+            return;
+          }
+          update = std::move(**nextUpdateWlock);
+          nextUpdateWlock->reset();
+        }
+        applyUpdateFn_(update);
+      });
+    }
+  }
+
+ private:
+  FbossEventBase* updateEvb_;
+  std::function<void(const InterfaceMapUpdate&)> applyUpdateFn_;
+  folly::Synchronized<std::unique_ptr<InterfaceMapUpdate>> nextUpdate_;
+};
 
 BENCHMARK(HwVoqRouteCompetingRemoteNeighborBenchmark) {
   folly::BenchmarkSuspender suspender;
