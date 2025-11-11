@@ -1597,7 +1597,7 @@ void PortManager::refreshStateMachines() {
   XLOG(INFO) << "refreshStateMachines started";
   // Step 1: Refresh all transceivers so that we can get updated present
   // transceivers and transceiver data.
-  transceiverManager_->refreshTransceivers();
+  const auto& presentXcvrIds = transceiverManager_->refreshTransceivers();
 
   // Step 2: Fetch current port status from wedge_agent.
   updateTransceiverPortStatus();
@@ -1617,13 +1617,21 @@ void PortManager::refreshStateMachines() {
   triggerProgrammingEvents();
 
   // Step 7: Trigger transceiver programming events.
-  transceiverManager_->triggerProgrammingEvents();
+  const auto& programmedTcvrs = transceiverManager_->triggerProgrammingEvents();
 
-  // TODO(smenta) – Add support for triggering remediation.
+  // Step 8: Trigger remediation.
+  std::vector<TransceiverID> stableTcvrs;
+  for (const auto& tcvrID : presentXcvrIds) {
+    if (std::find(programmedTcvrs.begin(), programmedTcvrs.end(), tcvrID) ==
+        programmedTcvrs.end()) {
+      stableTcvrs.push_back(tcvrID);
+    }
+  }
+  transceiverManager_->triggerRemediateEvents(stableTcvrs);
 
   // TODO(smenta) – Need to add support for publishing PIM states.
 
-  // Step 8: Mark full initialization complete.
+  // Step 9: Mark full initialization complete.
   transceiverManager_->completeRefresh();
   setWarmBootState();
 

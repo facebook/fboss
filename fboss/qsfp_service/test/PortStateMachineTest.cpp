@@ -39,6 +39,10 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     // Setup GFlags for Full Port Manager Functionality
     gflags::SetCommandLineOptionWithMode(
         "port_manager_mode", "t", gflags::SET_FLAGS_DEFAULT);
+    gflags::SetCommandLineOptionWithMode(
+        "remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
+    gflags::SetCommandLineOptionWithMode(
+        "initial_remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
 
     resetManagers();
   }
@@ -140,6 +144,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
         std::move(phyManager),
         castedPlatformMapping,
         threadsMap);
+    transceiverManager_->setPauseRemediation(600, nullptr /* evb */);
   }
 
   void initManagers() {
@@ -287,6 +292,58 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
   bool isTransceiverPresent(const TransceiverID& tcvrId) {
     const auto& presentTcvrs = transceiverManager_->getPresentTransceivers();
     return presentTcvrs.find(tcvrId) != presentTcvrs.end();
+  }
+
+  void setProgramCmisModuleExpectation(
+      bool isProgrammed,
+      ::testing::Sequence& s,
+      bool multiPort = false) {
+    int callTimes = isProgrammed ? 1 : 0;
+    MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+    auto portSpeed = cfg::PortSpeed::HUNDREDG;
+    TransceiverPortState state{kPortName1, 0 /* startHostLane */, portSpeed, 4};
+    EXPECT_CALL(*mockXcvr, customizeTransceiverLocked(state))
+        .Times(callTimes)
+        .InSequence(s);
+    EXPECT_CALL(*mockXcvr, updateQsfpData(true)).Times(callTimes).InSequence(s);
+    if (multiPort) {
+      TransceiverPortState state2{
+          kPortName3, 2 /* startHostLane */, portSpeed, 4};
+      EXPECT_CALL(*mockXcvr, customizeTransceiverLocked(state2))
+          .Times(callTimes)
+          .InSequence(s);
+      EXPECT_CALL(*mockXcvr, updateQsfpData(true))
+          .Times(callTimes)
+          .InSequence(s);
+    }
+    EXPECT_CALL(*mockXcvr, configureModule(0 /* startHostLane */))
+        .Times(callTimes)
+        .InSequence(s);
+    if (multiPort) {
+      EXPECT_CALL(*mockXcvr, configureModule(2 /* startHostLane */))
+          .Times(callTimes)
+          .InSequence(s);
+    }
+
+    const auto& info = transceiverManager_->getTransceiverInfo(tcvrId_);
+    if (auto settings = info.tcvrState()->settings()) {
+      if (auto hostLaneSettings = settings->hostLaneSettings()) {
+        EXPECT_CALL(*mockXcvr, ensureRxOutputSquelchEnabled(*hostLaneSettings))
+            .Times(callTimes)
+            .InSequence(s);
+      }
+    }
+
+    // Normal transceiver programming shouldn't trigger resetDataPath()
+    EXPECT_CALL(*mockXcvr, resetDataPath()).Times(0).InSequence(s);
+
+    EXPECT_CALL(*mockXcvr, updateQsfpData(false))
+        .Times(callTimes)
+        .InSequence(s);
+    ModuleStatus moduleStatus;
+    EXPECT_CALL(*mockXcvr, updateCachedTransceiverInfoLocked(moduleStatus))
+        .Times(callTimes)
+        .InSequence(s);
   }
 
   template <
@@ -456,6 +513,10 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     }
   }
 
+  void triggerRemediateEvents() {
+    transceiverManager_->triggerRemediateEvents(stableXcvrIds_);
+  }
+
   // Manager Attributes
   int numPortsPerModule{8};
 
@@ -466,6 +527,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
   // Tcvr Data
   QsfpModule* xcvr_{};
   const TransceiverID tcvrId_ = TransceiverID(0);
+  const std::vector<TransceiverID> stableXcvrIds_ = {tcvrId_};
   std::vector<std::unique_ptr<MockCmisTransceiverImpl>> cmisQsfpImpls_;
 
   // Port Data
@@ -1232,6 +1294,181 @@ TEST_F(PortStateMachineTest, ensureNoFwUpgradeOnPortUpAndI2cConnectionIssues) {
       "firmware_upgrade_on_tcvr_insert", "f", gflags::SET_FLAGS_DEFAULT);
   gflags::SetCommandLineOptionWithMode(
       "firmware_upgrade_supported", "f", gflags::SET_FLAGS_DEFAULT);
+  resetManagers();
+}
+
+// Basic Coverage of TransceiverRemediation logic coordinated by
+// PortStateMachine - per-tcvrType testing is covered in
+// TransceiverStateMachineTest
+
+// TODO(smenta) – Refactor for multiPort
+TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedSuccess) {
+  std::string kTestName = "CheckTransceiverRemediated";
+  initManagers();
+  XLOG(INFO) << "Verifying " << kTestName;
+  verifyStateMachine(
+      {TcvrPortStatePair{
+          TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+          {PortStateMachineState::PORT_UP,
+           optionalPortState(false, PortStateMachineState::PORT_UP)}}},
+      TcvrPortStatePair{
+          TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+          {PortStateMachineState::PORT_DOWN,
+           optionalPortState(
+               false, PortStateMachineState::PORT_DOWN)}} /* expected state */,
+      [this]() {
+        transceiverManager_->setPauseRemediation(0, nullptr /* evb */);
+        sleep(1);
+
+        MockCmisTransceiverImpl* xcvrImpl =
+            static_cast<MockCmisTransceiverImpl*>(
+                cmisQsfpImpls_[tcvrId_].get());
+        EXPECT_CALL(*xcvrImpl, triggerQsfpHardReset()).Times(1);
+      } /* preUpdate */,
+      [this]() {
+        for (int i = 0; i < 5; i++) {
+          refreshAndTriggerProgramming();
+        }
+        assertCurrentStateEquals(
+            TcvrPortStatePair{
+                TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+                {PortStateMachineState::PORT_UP, std::nullopt}});
+
+        portManager_->setOverrideAllAgentPortStatusForTesting(
+            false /* isUp */, true /* isEnabled */);
+        // Simpler to call full refreshStateMachines() because remediation
+        // logic is already implemented.
+
+        portManager_->refreshStateMachines();
+        EXPECT_TRUE(xcvr_->getDirty_());
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(tcvrId_);
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(isTransceiverJustRemediated));
+        assertCurrentStateEquals(
+            TcvrPortStatePair{
+                TransceiverStateMachineState::DISCOVERED,
+                {PortStateMachineState::PORT_DOWN, std::nullopt}});
+
+        refreshAndTriggerProgramming();
+        assertCurrentStateEquals(
+            TcvrPortStatePair{
+                TransceiverStateMachineState::TRANSCEIVER_READY,
+                {PortStateMachineState::PORT_DOWN, std::nullopt}});
+
+        refreshAndTriggerProgramming();
+        assertCurrentStateEquals(
+            TcvrPortStatePair{
+                TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+                {PortStateMachineState::PORT_DOWN, std::nullopt}});
+      } /* stateUpdate */,
+      [this]() {
+        EXPECT_FALSE(xcvr_->getDirty_());
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(tcvrId_);
+        EXPECT_TRUE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverJustRemediated));
+      } /* verify */,
+      kTestName,
+      true /* isMock */);
+  // Prepare for testing with next multiPort value
+  resetManagers();
+}
+
+// right now only failures are these expectations – some seem easy to fix based
+// on refresh cycles
+ACTION(ThrowFbossError) {
+  throw FbossError("Mock FbossError");
+}
+TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedFailed) {
+  std::string kTestName = "CheckTransceiverRemediated";
+  initManagers();
+  XLOG(INFO) << "Verifying " << kTestName;
+  verifyStateUnchanged(
+      {TcvrPortStatePair{
+          TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+          {PortStateMachineState::PORT_DOWN,
+           optionalPortState(false, PortStateMachineState::PORT_DOWN)}}},
+      [this]() {
+        transceiverManager_->setPauseRemediation(0, nullptr /* evb */);
+        sleep(1);
+
+        MockCmisTransceiverImpl* xcvrImpl =
+            static_cast<MockCmisTransceiverImpl*>(
+                cmisQsfpImpls_[tcvrId_].get());
+        // throw FbossError on first call, then succeed on the next
+        EXPECT_CALL(*xcvrImpl, triggerQsfpHardReset())
+            .Times(2)
+            .WillOnce(ThrowFbossError());
+
+        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+        ::testing::Sequence s;
+
+        // Expect updateQsfpData and updateCachedTransceiverInfoLocked to be
+        // called from refreshStateMachines() we do in verify() below
+        // fix count
+        EXPECT_CALL(*mockXcvr, updateQsfpData(true)).Times(1);
+        // fix count
+        EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(3);
+        // fix count
+        EXPECT_CALL(*mockXcvr, updateCachedTransceiverInfoLocked(::testing::_))
+            .Times(2)
+            .InSequence(s);
+        setProgramCmisModuleExpectation(true, s);
+
+        portManager_->setOverrideAllAgentPortStatusForTesting(
+            false /* isUp */, true /* isEnabled */);
+        portManager_->updateTransceiverPortStatus();
+        portManager_->updatePortActiveStatusInTransceiverManager();
+      } /* preUpdate */,
+      [this]() { triggerRemediateEvents(); } /* stateUpdate */,
+      [this]() {
+        EXPECT_FALSE(xcvr_->getDirty_());
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(tcvrId_);
+        EXPECT_TRUE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverJustRemediated));
+        assertCurrentStateEquals(
+            TcvrPortStatePair{
+                TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+                {PortStateMachineState::PORT_DOWN, std::nullopt}});
+
+        // Try again, it should succeed.
+        triggerRemediateEvents();
+        EXPECT_TRUE(xcvr_->getDirty_());
+        assertCurrentStateEquals(
+            TcvrPortStatePair{
+                TransceiverStateMachineState::DISCOVERED,
+                {PortStateMachineState::PORT_DOWN, std::nullopt}});
+        const auto& afterRemediationStateMachine =
+            transceiverManager_->getStateMachineForTesting(tcvrId_);
+        EXPECT_FALSE(afterRemediationStateMachine.get_attribute(
+            isTransceiverProgrammed));
+        EXPECT_TRUE(afterRemediationStateMachine.get_attribute(
+            isTransceiverJustRemediated));
+
+        portManager_->refreshStateMachines();
+        assertCurrentStateEquals(
+            TcvrPortStatePair{
+                TransceiverStateMachineState::TRANSCEIVER_READY,
+                {PortStateMachineState::PORT_DOWN, std::nullopt}});
+        EXPECT_FALSE(xcvr_->getDirty_());
+
+        portManager_->refreshStateMachines();
+        assertCurrentStateEquals(
+            TcvrPortStatePair{
+                TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+                {PortStateMachineState::PORT_DOWN, std::nullopt}});
+        const auto& afterProgrammingStateMachine =
+            transceiverManager_->getStateMachineForTesting(tcvrId_);
+        EXPECT_TRUE(afterProgrammingStateMachine.get_attribute(
+            isTransceiverProgrammed));
+        EXPECT_FALSE(afterProgrammingStateMachine.get_attribute(
+            isTransceiverJustRemediated));
+      } /* verify */,
+      kTestName,
+      true /* isMock */);
+  // Prepare for testing with next multiPort value
   resetManagers();
 }
 

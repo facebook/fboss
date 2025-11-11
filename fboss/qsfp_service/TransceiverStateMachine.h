@@ -471,13 +471,8 @@ bool operator()(
 }
 };
 
-BOOST_MSM_EUML_ACTION(tryRemediateTransceiver) {
-template <class Event, class Fsm, class Source, class Target>
-bool operator()(
-    const Event& /* ev */,
-    Fsm& fsm,
-    Source& /* src */,
-    Target& /* trg */) {
+template <class Fsm>
+static bool executeTryRemediateTransceiver(Fsm& fsm) {
   auto tcvrID = fsm.get_attribute(transceiverID);
   try {
     bool remediationDone =
@@ -494,6 +489,36 @@ bool operator()(
                << folly::exceptionStr(ex);
     return false;
   }
+}
+
+BOOST_MSM_EUML_ACTION(tryRemediateTransceiver) {
+template <class Event, class Fsm, class Source, class Target>
+bool operator()(
+    const Event& /* ev */,
+    Fsm& fsm,
+    Source& /* src */,
+    Target& /* trg */) {
+  return executeTryRemediateTransceiver(fsm);
+}
+};
+
+BOOST_MSM_EUML_ACTION(isPortManagerModeAndTryRemediateTransceiver) {
+template <class Event, class Fsm, class Source, class Target>
+bool operator()(
+    const Event& /* ev */,
+    Fsm& fsm,
+    Source& /* src */,
+    Target& /* trg */) {
+  if (!FLAGS_port_manager_mode) {
+    return false;
+  }
+  bool remediationDone = executeTryRemediateTransceiver(fsm);
+  // We can reprogram with the previous settings after remediation is done.
+  if (remediationDone) {
+    fsm.get_attribute(transceiverMgrPtr)->markTransceiverReadyForProgramming(fsm.get_attribute(transceiverID), true);
+    fsm.get_attribute(isTransceiverJustRemediated) = true;
+  }
+  return remediationDone;
 }
 };
 
@@ -596,7 +621,9 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     // For non-present transceiver, we still want to call transceiver programming in case optic is actually present.
     // In Port Manager mode, transceiver will skip PHY programming and proced directly to tcvr programming.
     NOT_PRESENT           + PREPARE_TRANSCEIVER [isPortManagerModeAndReadyTcvr] / logStateChanged == TRANSCEIVER_READY,
-    DISCOVERED            + PREPARE_TRANSCEIVER [isPortManagerModeAndReadyTcvr] / logStateChanged == TRANSCEIVER_READY
+    DISCOVERED            + PREPARE_TRANSCEIVER [isPortManagerModeAndReadyTcvr] / logStateChanged == TRANSCEIVER_READY,
+    // Accounting for state machine transition
+    TRANSCEIVER_PROGRAMMED + REMEDIATE_TRANSCEIVER [isPortManagerModeAndTryRemediateTransceiver]  / logStateChanged == DISCOVERED
 //  +------------------------------------------------------------------------------------------------------------+
     ), TransceiverTransitionTable)
 // clang-format on

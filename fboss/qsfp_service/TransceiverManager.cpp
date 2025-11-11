@@ -2599,8 +2599,12 @@ void TransceiverManager::triggerRemediateEvents(
     auto curState = getCurrentState(tcvrID);
     // If we are not in the active or inactive state, don't try to remediate
     // yet
-    if (curState != TransceiverStateMachineState::ACTIVE &&
-        curState != TransceiverStateMachineState::INACTIVE) {
+
+    bool isValidState = FLAGS_port_manager_mode
+        ? curState == TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED
+        : (curState == TransceiverStateMachineState::ACTIVE ||
+           curState == TransceiverStateMachineState::INACTIVE);
+    if (!isValidState) {
       continue;
     }
 

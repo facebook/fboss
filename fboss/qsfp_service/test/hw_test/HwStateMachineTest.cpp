@@ -561,14 +561,21 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
     auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
     qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
         true /* up */, true /* enabled */);
-    // Remove pause remediation
     setPauseRemediation(false);
+    // Ensuring remediation doesn't get triggered for transceivers with all
+    // active ports.
     qsfpServiceHandler->refreshStateMachines();
     for (auto id : getPresentTransceivers()) {
       auto curState = wedgeMgr->getCurrentState(id);
       bool isEnabled = !wedgeMgr->getProgrammedIphyPortToPortInfo(id).empty();
       auto expectedState = isEnabled ? TransceiverStateMachineState::ACTIVE
                                      : TransceiverStateMachineState::INACTIVE;
+      if (FLAGS_port_manager_mode) {
+        expectedState = isEnabled
+            ? TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED
+            : TransceiverStateMachineState::TRANSCEIVER_READY;
+      }
+
       if (isEnabled) {
         enabledTcvrs.insert(id);
       }
@@ -586,28 +593,48 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
     // XPHY_PORTS_PROGRAMMED -> TRANSCEIVER_READY -> TRANSCEIVER_PROGRAMMED
     std::unordered_map<TransceiverID, std::queue<TransceiverStateMachineState>>
         expectedStates;
+    std::unordered_map<PortID, std::queue<PortStateMachineState>>
+        expectedPortStates;
+
     for (auto id : getPresentTransceivers()) {
+      if (enabledTcvrs.find(id) == enabledTcvrs.end() ||
+          !wedgeMgr->supportRemediateTransceiver(id)) {
+        continue;
+      }
+
       std::queue<TransceiverStateMachineState> tcvrExpectedStates;
-      // Only care enabled ports
-      if (enabledTcvrs.find(id) != enabledTcvrs.end()) {
-        if (!wedgeMgr->supportRemediateTransceiver(id)) {
-          continue;
-        }
+      if (!FLAGS_port_manager_mode) {
         tcvrExpectedStates.push(
             TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED);
         tcvrExpectedStates.push(
             TransceiverStateMachineState::TRANSCEIVER_READY);
         tcvrExpectedStates.push(
             TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
+      } else {
+        tcvrExpectedStates.push(TransceiverStateMachineState::DISCOVERED);
+        tcvrExpectedStates.push(
+            TransceiverStateMachineState::TRANSCEIVER_READY);
+        tcvrExpectedStates.push(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
       }
-      expectedStates.emplace(id, std::move(tcvrExpectedStates));
+
+      expectedStates.emplace(id, tcvrExpectedStates);
+      if (FLAGS_port_manager_mode) {
+        const auto programmedPortToPortInfo =
+            wedgeMgr->getProgrammedIphyPortToPortInfo(id);
+        for (const auto& [portId, portInfo] : programmedPortToPortInfo) {
+          expectedPortStates.emplace(portId, []() {
+            std::queue<PortStateMachineState> q;
+            q.push(PortStateMachineState::PORT_DOWN);
+            return q;
+          }());
+        }
+      }
     }
 
     // Due to some platforms are easy to have i2c issue which causes the current
     // refresh not work as expected. Adding enough retries to make sure that we
     // at least can meet all `expectedStates` after 10 times.
-    std::unordered_map<PortID, std::queue<PortStateMachineState>>
-        expectedPortStates;
     WITH_RETRIES_N_TIMED(
         10 /* retries */,
         std::chrono::milliseconds(10000) /* msBetweenRetry */,
@@ -642,7 +669,7 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
               wedgeMgr->getProgrammedIphyPortToPortInfo(id);
           for (const auto& [portId, portInfo] : programmedPortToPortInfo) {
             expectedPortStates.emplace(
-                portId, getExpectedPortStates(hasXphy, false /* isUp */));
+                portId, getExpectedPortStates(hasXphy, true /* isUp */));
           }
         }
       }
