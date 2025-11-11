@@ -201,6 +201,10 @@ inline void voqRouteCompetingRemoteNeighborBenchmark(
 
   std::vector<std::unique_ptr<PerSwitchInterfaceMapScheduler>> schedulers;
   for (const auto& [switchId, systemPorts] : switchId2SystemPorts) {
+    if (schedulers.size() >= numRemoteNode) {
+      break;
+    }
+
     auto scheduler = std::make_unique<PerSwitchInterfaceMapScheduler>(
         switchId,
         switchId2IntfsWithNeighbor[switchId],
