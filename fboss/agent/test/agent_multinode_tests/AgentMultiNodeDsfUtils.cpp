@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeDsfUtils.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeUtils.h"
 #include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -1448,6 +1449,42 @@ bool verifyNoSessionsFlapForRdsws(
   }
 
   return true;
+}
+
+bool verifyNoReassemblyErrorsForAllSwitches(
+    const std::unique_ptr<utility::TopologyInfo>& topologyInfo) {
+  const auto& switches = topologyInfo->getAllSwitches();
+  const auto& switchToAsicType = topologyInfo->getSwitchNameToAsicType();
+  auto verifyNoReassemblyErrorsForAllSwitchesHelper = [switches,
+                                                       switchToAsicType]() {
+    auto getCounterName = [switchToAsicType](const auto& switchName) {
+      auto iter = switchToAsicType.find(switchName);
+      CHECK(iter != switchToAsicType.end());
+      auto asicType = iter->second;
+      auto vendorName = getHwAsicForAsicType(asicType).getVendor();
+
+      return vendorName + ".reassembly.errors.sum";
+    };
+
+    for (const auto& switchName : switches) {
+      auto counterNameToCount = getCounterNameToCount(switchName);
+      auto counterName = getCounterName(switchName);
+      auto reassemblyErrors = counterNameToCount[counterName];
+      if (reassemblyErrors > 0) {
+        XLOG(DBG2) << "Switch: " << switchName
+                   << " counterName: " << counterName
+                   << " reassemblyErrors: " << reassemblyErrors;
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // The reassembly errors may happen after a few seeconds.
+  // Thus, keep retrying for several seconds to ensure no reassembly errors.
+  return checkAlwaysTrueWithRetryErrorReturn(
+      verifyNoReassemblyErrorsForAllSwitchesHelper, 10 /* num retries */);
 }
 
 } // namespace facebook::fboss::utility

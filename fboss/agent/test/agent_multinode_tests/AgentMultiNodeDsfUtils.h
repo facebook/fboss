@@ -49,4 +49,7 @@ bool verifyNoSessionsFlapForRdsws(
     std::map<std::string, std::map<std::string, DsfSessionThrift>>&
         baselineRdswToPeerAndDsfSession);
 
+bool verifyNoReassemblyErrorsForAllSwitches(
+    const std::unique_ptr<utility::TopologyInfo>& topologyInfo);
+
 } // namespace facebook::fboss::utility
