@@ -1351,6 +1351,10 @@ bool verifyDsfFabricLinkDrainUndrain(
   auto myHostname = topologyInfo->getMyHostname();
   auto activeFabricPortNameToPortInfo =
       getActiveFabricPortNameToPortInfo(myHostname);
+  std::set<std::string> activeFabricPorts;
+  for (const auto& [port, _] : activeFabricPortNameToPortInfo) {
+    activeFabricPorts.insert(port);
+  }
 
   if (!verifyDsfGracefulFabricLinkDisableOrDrain(
           topologyInfo,
@@ -1363,6 +1367,14 @@ bool verifyDsfFabricLinkDrainUndrain(
     return false;
   }
 
+  // Post DRAIN, the ports should turn ACTIVE => INACTIVE
+  if (!verifyPortActiveState(
+          myHostname, activeFabricPorts, PortActiveState::INACTIVE)) {
+    XLOG(ERR) << "All Drained ports should be Inactive: ",
+        folly::join(",", activeFabricPorts);
+    return false;
+  }
+
   if (!verifyDsfGracefulFabricLinkEnableOrUndrain(
           topologyInfo,
           myHostname,
@@ -1371,6 +1383,14 @@ bool verifyDsfFabricLinkDrainUndrain(
             undrainPort(rdswToVerify, portID);
           })) {
     XLOG(ERR) << "Failed to verify DSF Fabric link Undrain";
+    return false;
+  }
+
+  // Post UNDRAIN, the same ports should turn INACTIVE => ACTIVE again
+  if (!verifyPortActiveState(
+          myHostname, activeFabricPorts, PortActiveState::ACTIVE)) {
+    XLOG(ERR) << "All Drained ports should be Inactive: ",
+        folly::join(",", activeFabricPorts);
     return false;
   }
 
