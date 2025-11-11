@@ -289,4 +289,33 @@ bool verifyNeighborsLocallyPresentRemoteAbsent(
   return false;
 }
 
+bool verifyRoutePresent(
+    const std::string& switchName,
+    const folly::IPAddress& destPrefix,
+    const int16_t prefixLength) {
+  auto verifyRoutePresentHelper = [switchName, destPrefix, prefixLength]() {
+    for (const auto& route : getAllRoutes(switchName)) {
+      auto ip = folly::IPAddress::fromBinary(
+          folly::ByteRange(
+              reinterpret_cast<const unsigned char*>(
+                  route.dest()->ip()->addr()->data()),
+              route.dest()->ip()->addr()->size()));
+      if (ip == destPrefix && *route.dest()->prefixLength() == prefixLength) {
+        XLOG(DBG2) << "rdsw: " << switchName
+                   << " Found route:: prefix: " << ip.str()
+                   << " prefixLength: " << *route.dest()->prefixLength();
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  return checkWithRetryErrorReturn(
+      verifyRoutePresentHelper,
+      30 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
 } // namespace facebook::fboss::utility

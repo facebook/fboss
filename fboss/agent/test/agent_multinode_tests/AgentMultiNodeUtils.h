@@ -194,4 +194,9 @@ bool verifyNeighborsLocallyPresentRemoteAbsent(
     const std::vector<Neighbor>& neighbors,
     const std::string& switchName);
 
+bool verifyRoutePresent(
+    const std::string& switchName,
+    const folly::IPAddress& destPrefix,
+    const int16_t prefixLength);
+
 } // namespace facebook::fboss::utility
