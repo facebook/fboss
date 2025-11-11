@@ -159,6 +159,28 @@ std::set<std::string> getActiveFabricPorts(const std::string& switchName) {
   return activePorts;
 }
 
+bool verifyPortActiveState(
+    const std::string& switchName,
+    std::set<std::string> fabricPorts,
+    const PortActiveState& activeState) {
+  auto verifyPortActiveStateHelper = [switchName, fabricPorts, activeState] {
+    auto fabricPortNameToPortInfo = getFabricPortNameToPortInfo(switchName);
+    return std::all_of(
+        fabricPorts.begin(), fabricPorts.end(), [&](const auto& fabricPort) {
+          auto iter = fabricPortNameToPortInfo.find(fabricPort);
+          CHECK(iter != fabricPortNameToPortInfo.end());
+          return iter->second.activeState().has_value() &&
+              iter->second.activeState().value() == activeState;
+        });
+  };
+
+  return checkWithRetryErrorReturn(
+      verifyPortActiveStateHelper,
+      10 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
 std::set<std::string> getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) {
