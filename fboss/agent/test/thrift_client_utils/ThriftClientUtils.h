@@ -80,6 +80,13 @@ void adminEnablePort(const std::string& switchName, int32_t portID);
 void drainPort(const std::string& switchName, int32_t portID);
 void undrainPort(const std::string& switchName, int32_t portID);
 
+void enableConditionalEntropyRehash(
+    const std::string& switchName,
+    int32_t portID);
+void disableConditionalEntropyRehash(
+    const std::string& switchName,
+    int32_t portID);
+
 void addNeighbor(
     const std::string& switchName,
     const int32_t& interfaceID,

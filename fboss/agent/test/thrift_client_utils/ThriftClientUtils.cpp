@@ -291,6 +291,22 @@ void undrainPort(const std::string& switchName, int32_t portID) {
   swAgentClient->sync_setPortDrainState(portID, false /* undrain port */);
 }
 
+void enableConditionalEntropyRehash(
+    const std::string& switchName,
+    int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setConditionalEntropyRehash(
+      portID, true /* enable conditional entropy rehash */);
+}
+
+void disableConditionalEntropyRehash(
+    const std::string& switchName,
+    int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setConditionalEntropyRehash(
+      portID, false /* disable conditional entropy rehash */);
+}
+
 void addNeighbor(
     const std::string& switchName,
     const int32_t& interfaceID,
