@@ -36,4 +36,25 @@ bool verifyDsfUngracefulFSDBRestart(
 bool verifyDsfGracefulFabricLinkDownUp(
     const std::unique_ptr<TopologyInfo>& topologyInfo);
 
+bool verifyDsfFabricLinkDrainUndrain(
+    const std::unique_ptr<TopologyInfo>& topologyInfo);
+
+bool verifyFabricSpray(const std::string& rdsw);
+
+std::map<std::string, std::map<std::string, DsfSessionThrift>>
+getPeerToDsfSessionForRdsws(const std::set<std::string>& rdsws);
+
+bool verifyNoSessionsFlapForRdsws(
+    const std::set<std::string>& rdsws,
+    std::map<std::string, std::map<std::string, DsfSessionThrift>>&
+        baselineRdswToPeerAndDsfSession);
+
+bool verifyNoReassemblyErrorsForAllSwitches(
+    const std::unique_ptr<utility::TopologyInfo>& topologyInfo);
+
+std::set<std::string> getOneFabricSwitchForEachCluster(
+    const std::unique_ptr<utility::TopologyInfo>& topologyInfo);
+
+int32_t getFirstActiveFabricPort(const std::string& switchName);
+
 } // namespace facebook::fboss::utility

@@ -111,6 +111,16 @@ std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
   return upEthernetPortNameToPortInfo;
 }
 
+int64_t getPortOutBytes(
+    const std::string& switchName,
+    const std::string& portName) {
+  auto counterNameToCount = getCounterNameToCount(switchName);
+  auto counterName = portName + ".out_bytes.sum";
+  auto iter = counterNameToCount.find(counterName);
+  CHECK(iter != counterNameToCount.end());
+  return iter->second;
+}
+
 bool verifySwSwitchRunState(
     const std::string& switchName,
     const SwitchRunState& expectedSwitchRunState) {
@@ -287,6 +297,97 @@ bool verifyNeighborsLocallyPresentRemoteAbsent(
   }
 
   return false;
+}
+
+bool verifyRoutePresent(
+    const std::string& switchName,
+    const folly::IPAddress& destPrefix,
+    const int16_t prefixLength) {
+  auto verifyRoutePresentHelper = [switchName, destPrefix, prefixLength]() {
+    for (const auto& route : getAllRoutes(switchName)) {
+      auto ip = folly::IPAddress::fromBinary(
+          folly::ByteRange(
+              reinterpret_cast<const unsigned char*>(
+                  route.dest()->ip()->addr()->data()),
+              route.dest()->ip()->addr()->size()));
+      if (ip == destPrefix && *route.dest()->prefixLength() == prefixLength) {
+        XLOG(DBG2) << "rdsw: " << switchName
+                   << " Found route:: prefix: " << ip.str()
+                   << " prefixLength: " << *route.dest()->prefixLength();
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  return checkWithRetryErrorReturn(
+      verifyRoutePresentHelper,
+      30 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
+bool verifyLineRate(const std::string& switchName, int32_t portID) {
+  auto portIdToPortInfo = getPortIdToPortInfo(switchName);
+  CHECK(portIdToPortInfo.find(portID) != portIdToPortInfo.end());
+  auto portName = portIdToPortInfo[portID].name().value();
+  auto portSpeedMbps = portIdToPortInfo[portID].speedMbps().value();
+
+  // Verify is line rate is achieved i.e. in bytes within 5% of line rate.
+  constexpr float kVariance = 0.05; // i.e. + or - 5%
+  auto lowPortSpeedMbps = portSpeedMbps * (1 - kVariance);
+
+  auto verifyLineRateHelper =
+      [switchName, portName, portSpeedMbps, lowPortSpeedMbps]() {
+        auto counterNameToCount = getCounterNameToCount(switchName);
+        auto outSpeedMbps =
+            counterNameToCount[portName + ".out_bytes.rate.60"] * 8 / 1000000;
+        XLOG(DBG2) << "Switch: " << switchName << " portName: " << portName
+                   << " portSpeedMbps: " << portSpeedMbps
+                   << " lowPortSpeedMbps: " << lowPortSpeedMbps
+                   << " outSpeedMbps: " << outSpeedMbps;
+
+        return lowPortSpeedMbps < outSpeedMbps;
+      };
+
+  return checkWithRetryErrorReturn(
+      verifyLineRateHelper,
+      60 /* num retries, flood takes about ~30s to reach line rate */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
+bool verifyPortOutBytesIncrementByMinValue(
+    const std::string& switchName,
+    const std::map<std::string, int64_t>& beforePortToOutBytes,
+    const int64_t& minIncrement) {
+  auto verifyPortOutBytesIncrementHelper =
+      [switchName, beforePortToOutBytes, minIncrement] {
+        for (const auto& [port, beforeOutBytes] : beforePortToOutBytes) {
+          auto afterOutBytes = getPortOutBytes(switchName, port);
+          XLOG(DBG2) << "Switch:: " << switchName << "Port: " << port
+                     << " before out bytes: " << beforeOutBytes
+                     << " after out bytes: " << afterOutBytes;
+
+          if (afterOutBytes < beforeOutBytes + minIncrement) {
+            XLOG(DBG2) << "Traffic did not increase by at least "
+                       << minIncrement << " on port: " << port
+                       << " before: " << beforeOutBytes
+                       << " after: " << afterOutBytes;
+            return false;
+          }
+        }
+        return true;
+      };
+
+  if (!checkWithRetryErrorReturn(
+          verifyPortOutBytesIncrementHelper, 30 /* num retries */)) {
+    XLOG(ERR) << "Port out bytes increment verification failed";
+    return false;
+  }
+
+  return true;
 }
 
 } // namespace facebook::fboss::utility

@@ -77,6 +77,19 @@ void triggerUngracefulFsdbRestart(const std::string& switchName);
 void adminDisablePort(const std::string& switchName, int32_t portID);
 void adminEnablePort(const std::string& switchName, int32_t portID);
 
+void drainPort(const std::string& switchName, int32_t portID);
+void undrainPort(const std::string& switchName, int32_t portID);
+
+void enableConditionalEntropyRehash(
+    const std::string& switchName,
+    int32_t portID);
+void disableConditionalEntropyRehash(
+    const std::string& switchName,
+    int32_t portID);
+
+void setSelfHealingLagEnable(const std::string& switchName, int32_t portID);
+void setSelfHealingLagDisable(const std::string& switchName, int32_t portID);
+
 void addNeighbor(
     const std::string& switchName,
     const int32_t& interfaceID,
@@ -88,5 +101,16 @@ void removeNeighbor(
     const std::string& switchName,
     const int32_t& interfaceID,
     const folly::IPAddress& neighborIP);
+
+void addRoute(
+    const std::string& switchName,
+    const folly::IPAddress& destPrefix,
+    const int16_t prefixLength,
+    const std::vector<folly::IPAddress>& nexthops);
+
+std::vector<RouteDetails> getAllRoutes(const std::string& switchName);
+
+std::map<std::string, int64_t> getCounterNameToCount(
+    const std::string& switchName);
 
 } // namespace facebook::fboss::utility

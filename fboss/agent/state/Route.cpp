@@ -80,9 +80,9 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
     rd.overridenEcmpMode() = *fwd().getOverrideEcmpSwitchingMode();
   }
   if (isResolved() && fwd().getOverrideNextHops().has_value()) {
-    auto nhopSet = normalizedNhopWeights ? fwd().normalizedNextHops()
-                                         : *fwd().getOverrideNextHops();
-    rd.overridenNextHops() = fillNextHops(nhopSet, rd);
+    auto overrideNhopSet = normalizedNhopWeights ? fwd().normalizedNextHops()
+                                                 : *fwd().getOverrideNextHops();
+    rd.overridenNextHops() = fillNextHops(overrideNhopSet, rd);
   }
   return rd;
 }

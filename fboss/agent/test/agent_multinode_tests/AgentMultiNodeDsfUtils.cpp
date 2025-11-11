@@ -2,8 +2,10 @@
 
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeDsfUtils.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeUtils.h"
 #include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <gtest/gtest.h>
@@ -156,6 +158,28 @@ std::set<std::string> getActiveFabricPorts(const std::string& switchName) {
       });
 
   return activePorts;
+}
+
+bool verifyPortActiveState(
+    const std::string& switchName,
+    std::set<std::string> fabricPorts,
+    const PortActiveState& activeState) {
+  auto verifyPortActiveStateHelper = [switchName, fabricPorts, activeState] {
+    auto fabricPortNameToPortInfo = getFabricPortNameToPortInfo(switchName);
+    return std::all_of(
+        fabricPorts.begin(), fabricPorts.end(), [&](const auto& fabricPort) {
+          auto iter = fabricPortNameToPortInfo.find(fabricPort);
+          CHECK(iter != fabricPortNameToPortInfo.end());
+          return iter->second.activeState().has_value() &&
+              iter->second.activeState().value() == activeState;
+        });
+  };
+
+  return checkWithRetryErrorReturn(
+      verifyPortActiveStateHelper,
+      10 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
 }
 
 std::set<std::string> getGlobalSystemPortsOfType(
@@ -1211,11 +1235,12 @@ bool verifyDsfUngracefulFSDBRestart(
   return verifyDsfFSDBRestart(topologyInfo, false /* triggerGracefulRestart */);
 }
 
-bool verifyDsfGracefulFabricLinkDown(
+bool verifyDsfGracefulFabricLinkDisableOrDrain(
     const std::unique_ptr<TopologyInfo>& topologyInfo,
     const std::string& rdswToVerify,
-    const std::map<std::string, PortInfoThrift>&
-        activeFabricPortNameToPortInfo) {
+    const std::map<std::string, PortInfoThrift>& activeFabricPortNameToPortInfo,
+    const std::function<void(const std::string&, int32_t)>&
+        portDisableOrDrainFunc) {
   XLOG(DBG2) << "Verifying DSF Graceful Fabric link Down";
 
   CHECK(activeFabricPortNameToPortInfo.size() > 2);
@@ -1233,7 +1258,7 @@ bool verifyDsfGracefulFabricLinkDown(
     XLOG(DBG2) << __func__
                << " Admin disabling port:: " << portInfo.name().value()
                << " portID: " << portInfo.portId().value();
-    adminDisablePort(rdswToVerify, portInfo.portId().value());
+    portDisableOrDrainFunc(rdswToVerify, portInfo.portId().value());
 
     bool checkPassed = true;
     if (portName == lastActivePort) {
@@ -1255,11 +1280,12 @@ bool verifyDsfGracefulFabricLinkDown(
   return true;
 }
 
-bool verifyDsfGracefulFabricLinkUp(
+bool verifyDsfGracefulFabricLinkEnableOrUndrain(
     const std::unique_ptr<TopologyInfo>& topologyInfo,
     const std::string& rdswToVerify,
-    const std::map<std::string, PortInfoThrift>&
-        activeFabricPortNameToPortInfo) {
+    const std::map<std::string, PortInfoThrift>& activeFabricPortNameToPortInfo,
+    const std::function<void(const std::string&, int32_t)>&
+        portEnableOrUndrainFunc) {
   XLOG(DBG2) << "Verifying DSF Graceful Fabric link Up";
 
   CHECK_GT(activeFabricPortNameToPortInfo.size(), 2);
@@ -1271,7 +1297,7 @@ bool verifyDsfGracefulFabricLinkUp(
     XLOG(DBG2) << __func__
                << " Admin enabling port:: " << portInfo.name().value()
                << " portID: " << portInfo.portId().value();
-    adminEnablePort(rdswToVerify, portInfo.portId().value());
+    portEnableOrUndrainFunc(rdswToVerify, portInfo.portId().value());
 
     bool checkPassed = true;
     if (portName == firstActivePort || portName == lastActivePort) {
@@ -1294,19 +1320,198 @@ bool verifyDsfGracefulFabricLinkDownUp(
   auto activeFabricPortNameToPortInfo =
       getActiveFabricPortNameToPortInfo(myHostname);
 
-  if (!verifyDsfGracefulFabricLinkDown(
-          topologyInfo, myHostname, activeFabricPortNameToPortInfo)) {
+  if (!verifyDsfGracefulFabricLinkDisableOrDrain(
+          topologyInfo,
+          myHostname,
+          activeFabricPortNameToPortInfo,
+          [](const auto& rdswToVerify, int32_t portID) {
+            adminDisablePort(rdswToVerify, portID);
+          })) {
     XLOG(ERR) << "Failed to verify DSF Graceful Fabric link Down";
     return false;
   }
 
-  if (!verifyDsfGracefulFabricLinkUp(
-          topologyInfo, myHostname, activeFabricPortNameToPortInfo)) {
+  if (!verifyDsfGracefulFabricLinkEnableOrUndrain(
+          topologyInfo,
+          myHostname,
+          activeFabricPortNameToPortInfo,
+          [](const auto& rdswToVerify, int32_t portID) {
+            adminEnablePort(rdswToVerify, portID);
+          })) {
     XLOG(ERR) << "Failed to verify DSF Ungraceful Fabric link Up";
     return false;
   }
 
   return true;
+}
+
+bool verifyDsfFabricLinkDrainUndrain(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying DSF Fabric link Drain then Undrain";
+
+  auto myHostname = topologyInfo->getMyHostname();
+  auto activeFabricPortNameToPortInfo =
+      getActiveFabricPortNameToPortInfo(myHostname);
+  std::set<std::string> activeFabricPorts;
+  for (const auto& [port, _] : activeFabricPortNameToPortInfo) {
+    activeFabricPorts.insert(port);
+  }
+
+  if (!verifyDsfGracefulFabricLinkDisableOrDrain(
+          topologyInfo,
+          myHostname,
+          activeFabricPortNameToPortInfo,
+          [](const auto& rdswToVerify, int32_t portID) {
+            drainPort(rdswToVerify, portID);
+          })) {
+    XLOG(ERR) << "Failed to verify DSF Fabric link Drain";
+    return false;
+  }
+
+  // Post DRAIN, the ports should turn ACTIVE => INACTIVE
+  if (!verifyPortActiveState(
+          myHostname, activeFabricPorts, PortActiveState::INACTIVE)) {
+    XLOG(ERR) << "All Drained ports should be Inactive: ",
+        folly::join(",", activeFabricPorts);
+    return false;
+  }
+
+  if (!verifyDsfGracefulFabricLinkEnableOrUndrain(
+          topologyInfo,
+          myHostname,
+          activeFabricPortNameToPortInfo,
+          [](const auto& rdswToVerify, int32_t portID) {
+            undrainPort(rdswToVerify, portID);
+          })) {
+    XLOG(ERR) << "Failed to verify DSF Fabric link Undrain";
+    return false;
+  }
+
+  // Post UNDRAIN, the same ports should turn INACTIVE => ACTIVE again
+  if (!verifyPortActiveState(
+          myHostname, activeFabricPorts, PortActiveState::ACTIVE)) {
+    XLOG(ERR) << "All Drained ports should be Inactive: ",
+        folly::join(",", activeFabricPorts);
+    return false;
+  }
+
+  return true;
+}
+
+bool verifyFabricSpray(const std::string& switchName) {
+  auto verifyFabricSprayHelper = [switchName]() {
+    int64_t lowestMbps = std::numeric_limits<int64_t>::max();
+    int64_t highestMbps = std::numeric_limits<int64_t>::min();
+
+    auto counterNameToCount = getCounterNameToCount(switchName);
+    for (const auto& [_, portInfo] :
+         getActiveFabricPortNameToPortInfo(switchName)) {
+      auto portName = portInfo.name().value();
+      auto counterName = portName + ".out_bytes.rate.60";
+      auto outSpeedMbps = counterNameToCount[counterName] * 8 / 1000000;
+
+      lowestMbps = std::min(lowestMbps, outSpeedMbps);
+      highestMbps = std::max(highestMbps, outSpeedMbps);
+
+      XLOG(DBG2) << "Switch: " << switchName
+                 << " Active Fabric port: " << portInfo.name().value()
+                 << " outSpeedMbps: " << outSpeedMbps
+                 << " lowestMbps: " << lowestMbps
+                 << " highestMbps: " << highestMbps;
+    }
+
+    return isDeviationWithinThreshold(
+        lowestMbps, highestMbps, 5 /* maxDeviationPct */);
+  };
+
+  return checkWithRetryErrorReturn(
+      verifyFabricSprayHelper,
+      30 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
+std::map<std::string, std::map<std::string, DsfSessionThrift>>
+getPeerToDsfSessionForRdsws(const std::set<std::string>& rdsws) {
+  return forEachWithRetVal(rdsws, getPeerToDsfSession);
+}
+
+bool verifyNoSessionsFlapForRdsws(
+    const std::set<std::string>& rdsws,
+    std::map<std::string, std::map<std::string, DsfSessionThrift>>&
+        baselineRdswToPeerAndDsfSession) {
+  for (const auto& [rdsw, baselinePeerToDsfSession] :
+       baselineRdswToPeerAndDsfSession) {
+    if (!verifyNoSessionsFlap(rdsw, baselinePeerToDsfSession)) {
+      XLOG(DBG2) << "DSF Sessions flapped from rdsw: " << rdsw;
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool verifyNoReassemblyErrorsForAllSwitches(
+    const std::unique_ptr<utility::TopologyInfo>& topologyInfo) {
+  const auto& switches = topologyInfo->getAllSwitches();
+  const auto& switchToAsicType = topologyInfo->getSwitchNameToAsicType();
+  auto verifyNoReassemblyErrorsForAllSwitchesHelper = [switches,
+                                                       switchToAsicType]() {
+    auto getCounterName = [switchToAsicType](const auto& switchName) {
+      auto iter = switchToAsicType.find(switchName);
+      CHECK(iter != switchToAsicType.end());
+      auto asicType = iter->second;
+      auto vendorName = getHwAsicForAsicType(asicType).getVendor();
+
+      return vendorName + ".reassembly.errors.sum";
+    };
+
+    for (const auto& switchName : switches) {
+      auto counterNameToCount = getCounterNameToCount(switchName);
+      auto counterName = getCounterName(switchName);
+      auto reassemblyErrors = counterNameToCount[counterName];
+      if (reassemblyErrors > 0) {
+        XLOG(DBG2) << "Switch: " << switchName
+                   << " counterName: " << counterName
+                   << " reassemblyErrors: " << reassemblyErrors;
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // The reassembly errors may happen after a few seeconds.
+  // Thus, keep retrying for several seconds to ensure no reassembly errors.
+  return checkAlwaysTrueWithRetryErrorReturn(
+      verifyNoReassemblyErrorsForAllSwitchesHelper, 10 /* num retries */);
+}
+
+std::set<std::string> getOneFabricSwitchForEachCluster(
+    const std::unique_ptr<utility::TopologyInfo>& topologyInfo) {
+  // Get one FDSW from each cluster + one SDSW
+  std::set<std::string> fabricSwitchesToTest;
+  for (const auto& [_, fdsws] :
+       std::as_const(topologyInfo->getClusterIdToFdsws())) {
+    if (!fdsws.empty()) {
+      fabricSwitchesToTest.insert(fdsws.front());
+    }
+  }
+
+  if (!topologyInfo->getSdsws().empty()) {
+    fabricSwitchesToTest.insert(*topologyInfo->getSdsws().begin());
+  }
+
+  return fabricSwitchesToTest;
+}
+
+int32_t getFirstActiveFabricPort(const std::string& switchName) {
+  auto activeFabricPortNameToPortInfo =
+      getActiveFabricPortNameToPortInfo(switchName);
+  CHECK(activeFabricPortNameToPortInfo.size() > 0);
+  auto portInfo = activeFabricPortNameToPortInfo.cbegin()->second;
+
+  return portInfo.portId().value();
 }
 
 } // namespace facebook::fboss::utility

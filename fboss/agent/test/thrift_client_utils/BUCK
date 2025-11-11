@@ -8,6 +8,7 @@ cpp_library(
     headers = ["ThriftClientUtils.h"],
     exported_deps = [
         "//common/network:util",
+        "//common/thrift/thrift:monitor-cpp2-clients",
         "//fboss/agent:address_utils",
         "//fboss/agent/if:hw_ctrl-cpp2-services",
         "//fboss/agent/if:test_ctrl-cpp2-clients",

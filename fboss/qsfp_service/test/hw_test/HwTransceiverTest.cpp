@@ -16,17 +16,12 @@ namespace facebook::fboss {
 void HwTransceiverTest::SetUp() {
   HwTest::SetUp();
   if (!IsSkipped()) {
-    auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
     auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
 
     // Set override agent port status so that we can update the active state
     // via refreshStateMachines()
     qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
         isPortUp_ /* up */, true /* enabled */);
-    // Pause remediation if isPortUp_ == false to avoid unnecessary remediation
-    if (!isPortUp_) {
-      wedgeManager->setPauseRemediation(600, nullptr);
-    }
     qsfpServiceHandler->refreshStateMachines();
     qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
         isPortUp_ /* up */, true /* enabled */, true /* clearOnly */);

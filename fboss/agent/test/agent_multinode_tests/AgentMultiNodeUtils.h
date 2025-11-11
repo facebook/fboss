@@ -37,15 +37,22 @@ struct Neighbor {
 };
 
 // Invoke the provided func on every element of a given container
+// except on exclusions
 template <typename Container, typename Callable, typename... Args>
-void forEach(const Container& input, Callable&& func, Args&&... args) {
+void forEachExcluding(
+    const Container& input,
+    const Container& exclusions,
+    Callable&& func,
+    Args&&... args) {
   auto argsTuple = std::make_tuple(std::forward<Args>(args)...);
   for (const auto& elem : input) {
-    std::apply(
-        [&](auto&&... unpackedArgs) {
-          func(elem, std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
-        },
-        argsTuple);
+    if (exclusions.find(elem) == exclusions.end()) {
+      std::apply(
+          [&](auto&&... unpackedArgs) {
+            func(elem, std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
+          },
+          argsTuple);
+    }
   }
 }
 
@@ -115,7 +122,7 @@ bool restartServiceForSwitches(
       forEachWithRetVal(switches, getAliveSinceEpochFunc);
 
   // Restart services on all switches
-  forEach(switches, restartServiceFunc);
+  forEachExcluding(switches, {} /* exclude none */, restartServiceFunc);
 
   auto allRestarted = [switches,
                        getAliveSinceEpochFunc,
@@ -161,6 +168,10 @@ std::vector<NdpEntryThrift> getNdpEntriesOfType(
 std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
     const std::string& switchName);
 
+int64_t getPortOutBytes(
+    const std::string& switchName,
+    const std::string& portName);
+
 bool verifySwSwitchRunState(
     const std::string& switchName,
     const SwitchRunState& expectedSwitchRunState);
@@ -193,5 +204,17 @@ bool verifyNeighborsLocallyPresentRemoteAbsent(
     const std::set<std::string>& allSwitches,
     const std::vector<Neighbor>& neighbors,
     const std::string& switchName);
+
+bool verifyRoutePresent(
+    const std::string& switchName,
+    const folly::IPAddress& destPrefix,
+    const int16_t prefixLength);
+
+bool verifyLineRate(const std::string& switchName, int32_t portID);
+
+bool verifyPortOutBytesIncrementByMinValue(
+    const std::string& switchName,
+    const std::map<std::string, int64_t>& beforePortToOutBytes,
+    const int64_t& minIncrement);
 
 } // namespace facebook::fboss::utility

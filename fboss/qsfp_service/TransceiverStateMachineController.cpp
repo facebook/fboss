@@ -137,6 +137,7 @@ void TransceiverStateMachineController::setStateMachineAttributes() {
   stateMachine_.withWLock([&](auto& stateMachine) {
     stateMachine.get_attribute(transceiverID) = id_;
     stateMachine.get_attribute(needResetDataPath) = false;
+    stateMachine.get_attribute(isTransceiverJustRemediated) = false;
   });
 }
 

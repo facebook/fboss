@@ -701,7 +701,7 @@
             {
               "pmUnitScopedNamePrefix": "MCB_IOB",
               "deviceName": "xcvr_ctrl",
-              "csrOffsetCalc": "0x1030 + ({portNum} - {startPort})*0x0",
+              "csrOffsetCalc": "0x1030 + ({portNum} - {startPort})*0x4",
               "numPorts": 1,
               "startPort": 33
             }

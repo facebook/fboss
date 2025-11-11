@@ -57,7 +57,7 @@ class HwTest : public ::testing::Test {
   // We will wait till all the cabled transceivers reach the
   // TRANSCEIVER_PROGRAMMED state by retrying `numRetries` times of
   // TransceiverManager::refreshStateMachines()
-  void waitTillCabledTcvrProgrammed(int numRetries = 10);
+  void waitTillCabledTcvrProgrammed(int numRetries = 10, bool portUp = true);
 
   std::vector<int> getCabledOpticalAndActiveTransceiverIDs();
 

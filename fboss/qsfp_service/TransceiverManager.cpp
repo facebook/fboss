@@ -2599,8 +2599,12 @@ void TransceiverManager::triggerRemediateEvents(
     auto curState = getCurrentState(tcvrID);
     // If we are not in the active or inactive state, don't try to remediate
     // yet
-    if (curState != TransceiverStateMachineState::ACTIVE &&
-        curState != TransceiverStateMachineState::INACTIVE) {
+
+    bool isValidState = FLAGS_port_manager_mode
+        ? curState == TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED
+        : (curState == TransceiverStateMachineState::ACTIVE ||
+           curState == TransceiverStateMachineState::INACTIVE);
+    if (!isValidState) {
       continue;
     }
 
@@ -3625,12 +3629,25 @@ bool TransceiverManager::activeCable(const TcvrState& tcvrState) {
 void TransceiverManager::markTransceiverReadyForProgramming(
     TransceiverID tcvrId,
     bool ready) {
+  if (!FLAGS_port_manager_mode) {
+    return;
+  }
   auto lockedTcvrsReadyForProgramming = tcvrsReadyForProgramming_.wlock();
   if (ready) {
     lockedTcvrsReadyForProgramming->insert(tcvrId);
   } else {
     lockedTcvrsReadyForProgramming->erase(tcvrId);
   }
+}
+
+bool TransceiverManager::transceiverJustRemediated(
+    const TransceiverID& id) const {
+  auto stateMachineItr = stateMachineControllers_.find(id);
+  if (stateMachineItr == stateMachineControllers_.end()) {
+    throw FbossError("Transceiver:", id, " doesn't exist");
+  }
+  return stateMachineItr->second->getStateMachine().rlock()->get_attribute(
+      isTransceiverJustRemediated);
 }
 
 std::unordered_set<TransceiverID>

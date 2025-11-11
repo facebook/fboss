@@ -12,6 +12,7 @@
 
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "common/network/NetworkUtil.h"
+#include "common/thrift/thrift/gen-cpp2/MonitorAsyncClient.h"
 #include "fboss/agent/AddressUtil.h"
 
 namespace facebook::fboss::utility {
@@ -280,6 +281,42 @@ void adminEnablePort(const std::string& switchName, int32_t portID) {
   swAgentClient->sync_setPortState(portID, true /* enable port */);
 }
 
+void drainPort(const std::string& switchName, int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setPortDrainState(portID, true /* drain port */);
+}
+
+void undrainPort(const std::string& switchName, int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setPortDrainState(portID, false /* undrain port */);
+}
+
+void enableConditionalEntropyRehash(
+    const std::string& switchName,
+    int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setConditionalEntropyRehash(
+      portID, true /* enable conditional entropy rehash */);
+}
+
+void disableConditionalEntropyRehash(
+    const std::string& switchName,
+    int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setConditionalEntropyRehash(
+      portID, false /* disable conditional entropy rehash */);
+}
+
+void setSelfHealingLagEnable(const std::string& switchName, int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setSelfHealingLagState(portID, true /* enable SHEL */);
+}
+
+void setSelfHealingLagDisable(const std::string& switchName, int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setSelfHealingLagState(portID, false /* disable SHEL */);
+}
+
 void addNeighbor(
     const std::string& switchName,
     const int32_t& interfaceID,
@@ -301,6 +338,56 @@ void removeNeighbor(
   auto swAgentClient = getSwAgentThriftClient(switchName);
   swAgentClient->sync_flushNeighborEntry(
       facebook::network::toBinaryAddress(neighborIP), interfaceID);
+}
+
+void addRoute(
+    const std::string& switchName,
+    const folly::IPAddress& destPrefix,
+    const int16_t prefixLength,
+    const std::vector<folly::IPAddress>& nexthops) {
+  UnicastRoute route;
+  route.dest()->ip() = facebook::network::toBinaryAddress(destPrefix);
+  route.dest()->prefixLength() = prefixLength;
+  for (const auto& nexthop : nexthops) {
+    route.nextHopAddrs()->push_back(
+        facebook::network::toBinaryAddress(nexthop));
+  }
+
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_addUnicastRoutes(
+      static_cast<int16_t>(ClientID::STATIC_ROUTE), {std::move(route)});
+}
+
+std::vector<RouteDetails> getAllRoutes(const std::string& switchName) {
+  std::vector<RouteDetails> routes;
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_getRouteTableDetails(routes);
+  return routes;
+}
+
+std::map<std::string, int64_t> getCounterNameToCount(
+    const std::string& switchName) {
+  std::map<std::string, int64_t> counterNameToCount;
+
+  auto multiSwitchRunState = getMultiSwitchRunState(switchName);
+  // For split binary (multiSwitchEnabled), the counters are available in the
+  // HwAgent. For monolithic, the counters are available in the SwAgent.
+  if (*multiSwitchRunState.multiSwitchEnabled()) {
+    auto hwAgentQueryFn =
+        [&counterNameToCount](apache::thrift::Client<FbossHwCtrl>& client) {
+          std::map<std::string, int64_t> hwAgentCounters;
+          apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
+              client.getChannelShared()};
+          monitoringClient.sync_getCounters(hwAgentCounters);
+          counterNameToCount.merge(hwAgentCounters);
+        };
+    runOnAllHwAgents(switchName, hwAgentQueryFn);
+  } else {
+    auto swAgentClient = getSwAgentThriftClient(switchName);
+    swAgentClient->sync_getCounters(counterNameToCount);
+  }
+
+  return counterNameToCount;
 }
 
 } // namespace facebook::fboss::utility
