@@ -3,6 +3,7 @@
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeVoqSwitchNeighborTests.h"
 
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeDsfUtils.h"
 #include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
 
 namespace facebook::fboss {
@@ -163,6 +164,14 @@ class AgentMultiNodeVoqSwitchTrafficTest
     if (!setupTrafficLoop(topologyInfo)) {
       XLOG(ERR) << "Traffic loop setup failed";
       return false;
+    }
+
+    // Verify traffic spray for VOQ as well as Fabric switches
+    for (const auto& switchName : topologyInfo->getAllSwitches()) {
+      if (!utility::verifyFabricSpray(switchName)) {
+        XLOG(DBG2) << "Verify fabric spray failed for switch: " << switchName;
+        return false;
+      }
     }
 
     return true;
