@@ -212,4 +212,9 @@ bool verifyRoutePresent(
 
 bool verifyLineRate(const std::string& switchName, int32_t portID);
 
+bool verifyPortOutBytesIncrementByMinValue(
+    const std::string& switchName,
+    const std::map<std::string, int64_t>& beforePortToOutBytes,
+    const int64_t& minIncrement);
+
 } // namespace facebook::fboss::utility

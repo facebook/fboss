@@ -358,4 +358,36 @@ bool verifyLineRate(const std::string& switchName, int32_t portID) {
       true /* retry on exception */);
 }
 
+bool verifyPortOutBytesIncrementByMinValue(
+    const std::string& switchName,
+    const std::map<std::string, int64_t>& beforePortToOutBytes,
+    const int64_t& minIncrement) {
+  auto verifyPortOutBytesIncrementHelper =
+      [switchName, beforePortToOutBytes, minIncrement] {
+        for (const auto& [port, beforeOutBytes] : beforePortToOutBytes) {
+          auto afterOutBytes = getPortOutBytes(switchName, port);
+          XLOG(DBG2) << "Switch:: " << switchName << "Port: " << port
+                     << " before out bytes: " << beforeOutBytes
+                     << " after out bytes: " << afterOutBytes;
+
+          if (afterOutBytes < beforeOutBytes + minIncrement) {
+            XLOG(DBG2) << "Traffic did not increase by at least "
+                       << minIncrement << " on port: " << port
+                       << " before: " << beforeOutBytes
+                       << " after: " << afterOutBytes;
+            return false;
+          }
+        }
+        return true;
+      };
+
+  if (!checkWithRetryErrorReturn(
+          verifyPortOutBytesIncrementHelper, 30 /* num retries */)) {
+    XLOG(ERR) << "Port out bytes increment verification failed";
+    return false;
+  }
+
+  return true;
+}
+
 } // namespace facebook::fboss::utility
