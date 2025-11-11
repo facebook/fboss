@@ -55,4 +55,6 @@ bool verifyNoReassemblyErrorsForAllSwitches(
 std::set<std::string> getOneFabricSwitchForEachCluster(
     const std::unique_ptr<utility::TopologyInfo>& topologyInfo);
 
+int32_t getFirstActiveFabricPort(const std::string& switchName);
+
 } // namespace facebook::fboss::utility

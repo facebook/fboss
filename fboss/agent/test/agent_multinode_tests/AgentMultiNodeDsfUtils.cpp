@@ -1505,4 +1505,13 @@ std::set<std::string> getOneFabricSwitchForEachCluster(
   return fabricSwitchesToTest;
 }
 
+int32_t getFirstActiveFabricPort(const std::string& switchName) {
+  auto activeFabricPortNameToPortInfo =
+      getActiveFabricPortNameToPortInfo(switchName);
+  CHECK(activeFabricPortNameToPortInfo.size() > 0);
+  auto portInfo = activeFabricPortNameToPortInfo.cbegin()->second;
+
+  return portInfo.portId().value();
+}
+
 } // namespace facebook::fboss::utility
