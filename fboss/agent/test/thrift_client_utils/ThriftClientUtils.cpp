@@ -12,6 +12,7 @@
 
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "common/network/NetworkUtil.h"
+#include "common/thrift/thrift/gen-cpp2/MonitorAsyncClient.h"
 #include "fboss/agent/AddressUtil.h"
 
 namespace facebook::fboss::utility {
@@ -326,6 +327,31 @@ std::vector<RouteDetails> getAllRoutes(const std::string& switchName) {
   auto swAgentClient = getSwAgentThriftClient(switchName);
   swAgentClient->sync_getRouteTableDetails(routes);
   return routes;
+}
+
+std::map<std::string, int64_t> getCounterNameToCount(
+    const std::string& switchName) {
+  std::map<std::string, int64_t> counterNameToCount;
+
+  auto multiSwitchRunState = getMultiSwitchRunState(switchName);
+  // For split binary (multiSwitchEnabled), the counters are available in the
+  // HwAgent. For monolithic, the counters are available in the SwAgent.
+  if (*multiSwitchRunState.multiSwitchEnabled()) {
+    auto hwAgentQueryFn =
+        [&counterNameToCount](apache::thrift::Client<FbossHwCtrl>& client) {
+          std::map<std::string, int64_t> hwAgentCounters;
+          apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
+              client.getChannelShared()};
+          monitoringClient.sync_getCounters(hwAgentCounters);
+          counterNameToCount.merge(hwAgentCounters);
+        };
+    runOnAllHwAgents(switchName, hwAgentQueryFn);
+  } else {
+    auto swAgentClient = getSwAgentThriftClient(switchName);
+    swAgentClient->sync_getCounters(counterNameToCount);
+  }
+
+  return counterNameToCount;
 }
 
 } // namespace facebook::fboss::utility

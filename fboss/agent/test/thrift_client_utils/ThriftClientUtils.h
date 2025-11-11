@@ -97,4 +97,7 @@ void addRoute(
 
 std::vector<RouteDetails> getAllRoutes(const std::string& switchName);
 
+std::map<std::string, int64_t> getCounterNameToCount(
+    const std::string& switchName);
+
 } // namespace facebook::fboss::utility
