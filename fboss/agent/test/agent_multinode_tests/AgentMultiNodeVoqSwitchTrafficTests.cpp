@@ -17,6 +17,12 @@ class AgentMultiNodeVoqSwitchTrafficTest
   std::map<std::string, utility::Neighbor>
   configureNeighborsAndRoutesForTrafficLoop(
       const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
+    auto logAddRoute =
+        [](const auto& rdsw, const auto& prefix, const auto& neighbor) {
+          XLOG(DBG2) << "Adding route:: " << " prefix: " << prefix.str()
+                     << " nexthop: " << neighbor.str() << " to " << rdsw;
+        };
+
     std::map<std::string, utility::Neighbor> rdswToNeighbor;
     auto [prefix, prefixLength] = kGetRoutePrefixAndPrefixLength();
     std::optional<std::string> prevRdsw{std::nullopt};
@@ -49,6 +55,7 @@ class AgentMultiNodeVoqSwitchTrafficTest
       if (!prevRdsw.has_value()) { // first RDSW
         firstRdswNeighbor = neighbor;
       } else {
+        logAddRoute(prevRdsw.value(), kPrefix, neighbor);
         utility::addRoute(
             prevRdsw.value(), prefix, prefixLength, {neighbor.ip});
         if (!utility::verifyRoutePresent(
@@ -65,6 +72,7 @@ class AgentMultiNodeVoqSwitchTrafficTest
     // Add route for first RDSW to complete the loop
     CHECK(!topologyInfo->getRdsws().empty());
     auto lastRdsw = std::prev(topologyInfo->getRdsws().end());
+    logAddRoute(*lastRdsw, prefix, firstRdswNeighbor);
     utility::addRoute(*lastRdsw, prefix, prefixLength, {firstRdswNeighbor.ip});
     if (!utility::verifyRoutePresent(*lastRdsw, prefix, prefixLength)) {
       XLOG(DBG2) << "Route add verification failed: " << *lastRdsw
