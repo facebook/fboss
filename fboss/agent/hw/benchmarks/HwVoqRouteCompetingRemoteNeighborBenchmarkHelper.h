@@ -24,16 +24,6 @@
 #include <chrono>
 #include <thread>
 
-DEFINE_int32(
-    voq_neighbor_update_interval_ms,
-    1000,
-    "Interval in milliseconds for scheduling interface map updates with/without neighbors");
-
-namespace {
-constexpr auto kEcmpWidth = 2048;
-constexpr auto kEcmpGroup = 16;
-} // namespace
-
 namespace facebook::fboss {
 
 class InterfaceMapUpdateScheduler {
@@ -86,13 +76,20 @@ class PerSwitchInterfaceMapScheduler {
       std::shared_ptr<InterfaceMap> intfsWithNeighbor,
       std::shared_ptr<InterfaceMap> intfsWithoutNeighbor,
       std::shared_ptr<SystemPortMap> systemPorts,
-      AgentEnsemble* ensemble)
+      AgentEnsemble* ensemble,
+      int nbrUpdateIntervalMs,
+      int numNbrToUpdate)
       : switchId_(switchId),
         intfsWithNeighbor_(std::move(intfsWithNeighbor)),
         intfsWithoutNeighbor_(std::move(intfsWithoutNeighbor)),
         systemPorts_(std::move(systemPorts)),
         ensemble_(ensemble),
-        hasNeighbor_(false) {}
+        nbrUpdateIntervalMs_(nbrUpdateIntervalMs),
+        numNbrToUpdate_(numNbrToUpdate),
+        hasNeighbor_(false) {
+    // TODO(zecheng): Compute the other interface map based on number of
+    // neighbors to update
+  }
 
   void start() {
     evbThread_ = std::make_unique<std::thread>([this]() {
@@ -160,7 +157,7 @@ class PerSwitchInterfaceMapScheduler {
     eventBase_.scheduleAt(
         [this]() { scheduleNextUpdate(); },
         std::chrono::steady_clock::now() +
-            std::chrono::milliseconds(FLAGS_voq_neighbor_update_interval_ms));
+            std::chrono::milliseconds(nbrUpdateIntervalMs_));
   }
 
   SwitchID switchId_;
@@ -168,16 +165,23 @@ class PerSwitchInterfaceMapScheduler {
   std::shared_ptr<InterfaceMap> intfsWithoutNeighbor_;
   std::shared_ptr<SystemPortMap> systemPorts_;
   AgentEnsemble* ensemble_;
+  int nbrUpdateIntervalMs_;
+  int numNbrToUpdate_;
   bool hasNeighbor_;
   FbossEventBase eventBase_;
   std::unique_ptr<std::thread> evbThread_;
   std::unique_ptr<InterfaceMapUpdateScheduler> scheduler_;
 };
 
-BENCHMARK(HwVoqRouteCompetingRemoteNeighborBenchmark) {
+inline void voqRouteCompetingRemoteNeighborBenchmark(
+    int ecmpGroup,
+    int ecmpWidth,
+    int nbrUpdateIntervalMs,
+    int numRemoteNode,
+    int numNbrToUpdate) {
   folly::BenchmarkSuspender suspender;
 
-  auto ensemble = setupForVoqRouteScale(kEcmpWidth);
+  auto ensemble = setupForVoqRouteScale(ecmpWidth);
   std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
   std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2IntfsWithNeighbor;
   std::map<SwitchID, std::shared_ptr<InterfaceMap>>
@@ -204,7 +208,9 @@ BENCHMARK(HwVoqRouteCompetingRemoteNeighborBenchmark) {
         switchId2IntfsWithNeighbor[switchId],
         switchId2IntfsWithoutNeighbor[switchId],
         systemPorts,
-        ensemble.get());
+        ensemble.get(),
+        nbrUpdateIntervalMs,
+        numNbrToUpdate);
     scheduler->start();
     schedulers.push_back(std::move(scheduler));
   }
@@ -213,8 +219,8 @@ BENCHMARK(HwVoqRouteCompetingRemoteNeighborBenchmark) {
       ensemble->getProgrammedState(),
       ensemble->getSw()->needL2EntryForNeighbor());
   auto remoteNhops = utility::resolveRemoteNhops(ensemble.get(), ecmpHelper);
-  auto nhopSets = getVoqRouteNextHopSets(remoteNhops, kEcmpGroup, kEcmpWidth);
-  auto prefixes = getVoqRoutePrefixes(kEcmpGroup);
+  auto nhopSets = getVoqRouteNextHopSets(remoteNhops, ecmpGroup, ecmpWidth);
+  auto prefixes = getVoqRoutePrefixes(ecmpGroup);
 
   suspender.dismiss();
   auto updater = ensemble->getSw()->getRouteUpdater();
