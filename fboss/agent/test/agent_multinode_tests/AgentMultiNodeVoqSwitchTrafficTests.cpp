@@ -176,11 +176,26 @@ bool AgentMultiNodeVoqSwitchTrafficTest::verifyTrafficSpray(
   return true;
 }
 
+bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
+    const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
+  XLOG(DBG2) << "Verifying SHEL(Self Healing ECMP LAG) and Conditional Entropy";
+  return true;
+}
+
 TEST_F(AgentMultiNodeVoqSwitchTrafficTest, verifyTrafficSpray) {
   runTestWithVerifyCluster([this](const auto& topologyInfo) {
     switch (topologyInfo->getTopologyType()) {
       case utility::TopologyInfo::TopologyType::DSF:
         return this->verifyTrafficSpray(topologyInfo);
+    }
+  });
+}
+
+TEST_F(AgentMultiNodeVoqSwitchTrafficTest, verifyShelAndConditionalEntropy) {
+  runTestWithVerifyCluster([this](const auto& topologyInfo) {
+    switch (topologyInfo->getTopologyType()) {
+      case utility::TopologyInfo::TopologyType::DSF:
+        return this->verifyShelAndConditionalEntropy(topologyInfo);
     }
   });
 }

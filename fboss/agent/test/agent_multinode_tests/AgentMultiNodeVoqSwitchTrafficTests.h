@@ -36,6 +36,9 @@ class AgentMultiNodeVoqSwitchTrafficTest
  public:
   bool verifyTrafficSpray(
       const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const;
+
+  bool verifyShelAndConditionalEntropy(
+      const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const;
 };
 
 } // namespace facebook::fboss
