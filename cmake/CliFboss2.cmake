@@ -406,6 +406,8 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.h
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbUtils.cpp
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbUtils.h
+  fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperState.h
+  fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperStats.h
   fboss/cli/fboss2/commands/show/host/CmdShowHost.h
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.cpp
