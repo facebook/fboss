@@ -16,6 +16,7 @@ cpp_library(
         "AgentMultiNodeUtils.cpp",
         "AgentMultiNodeVoqSwitchNeighborTests.cpp",
         "AgentMultiNodeVoqSwitchTests.cpp",
+        "AgentMultiNodeVoqSwitchTrafficTests.cpp",
         "DsfTopologyInfo.cpp",
         "TopologyInfo.cpp",
     ],
