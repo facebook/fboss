@@ -1324,6 +1324,34 @@ bool verifyDsfGracefulFabricLinkDownUp(
 
 bool verifyDsfFabricLinkDrainUndrain(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying DSF Fabric link Drain then Undrain";
+
+  auto myHostname = topologyInfo->getMyHostname();
+  auto activeFabricPortNameToPortInfo =
+      getActiveFabricPortNameToPortInfo(myHostname);
+
+  if (!verifyDsfGracefulFabricLinkDisableOrDrain(
+          topologyInfo,
+          myHostname,
+          activeFabricPortNameToPortInfo,
+          [](const auto& rdswToVerify, int32_t portID) {
+            drainPort(rdswToVerify, portID);
+          })) {
+    XLOG(ERR) << "Failed to verify DSF Fabric link Drain";
+    return false;
+  }
+
+  if (!verifyDsfGracefulFabricLinkEnableOrUndrain(
+          topologyInfo,
+          myHostname,
+          activeFabricPortNameToPortInfo,
+          [](const auto& rdswToVerify, int32_t portID) {
+            undrainPort(rdswToVerify, portID);
+          })) {
+    XLOG(ERR) << "Failed to verify DSF Fabric link Undrain";
+    return false;
+  }
+
   return true;
 }
 
