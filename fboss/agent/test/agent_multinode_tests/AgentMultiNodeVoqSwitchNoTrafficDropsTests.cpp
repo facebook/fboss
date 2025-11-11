@@ -157,6 +157,24 @@ class AgentMultiNodeVoqSwitchNoTrafficDropTest
 
     return runScenariosAndVerifyNoDrops(topologyInfo, scenarios);
   }
+
+  bool verifyNoTrafficDropOnPortStateChanges(
+      const std::unique_ptr<utility::TopologyInfo>& topologyInfo) {
+    XLOG(DBG2) << "Verifying No Traffic Drops on port state changes";
+
+    if (!setupTrafficLoop(topologyInfo)) {
+      XLOG(DBG2) << "Traffic loop setup failed";
+      return false;
+    }
+
+    if (!utility::verifyNoReassemblyErrorsForAllSwitches(topologyInfo)) {
+      XLOG(DBG2) << "Unexpected reassembly errors";
+      // TODO query drop counters to root cause reason for reassembly errors
+      return false;
+    }
+
+    return true;
+  }
 };
 
 TEST_F(
@@ -166,6 +184,17 @@ TEST_F(
     switch (topologyInfo->getTopologyType()) {
       case utility::TopologyInfo::TopologyType::DSF:
         return this->verifyNoTrafficDropOnProcessRestarts(topologyInfo);
+    }
+  });
+}
+
+TEST_F(
+    AgentMultiNodeVoqSwitchNoTrafficDropTest,
+    verifyNoTrafficDropOnPortStateChanges) {
+  runTestWithVerifyCluster([this](const auto& topologyInfo) {
+    switch (topologyInfo->getTopologyType()) {
+      case utility::TopologyInfo::TopologyType::DSF:
+        return this->verifyNoTrafficDropOnPortStateChanges(topologyInfo);
     }
   });
 }
