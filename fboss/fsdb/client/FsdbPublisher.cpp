@@ -162,7 +162,10 @@ void FsdbPublisher<PubUnit>::sendHeartbeat() {
   auto pipeUPtr = asyncPipe_.ulock();
   if ((*pipeUPtr)) {
     PubUnit emptyPubUnit;
-    (*pipeUPtr)->second.try_write(std::move(emptyPubUnit));
+    if ((*pipeUPtr)->second.try_write(std::move(emptyPubUnit))) {
+      // Increment queueSize_ to match the decrement in createGenerator()
+      queueSize_++;
+    }
   }
 }
 
