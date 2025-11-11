@@ -354,6 +354,15 @@ std::string PciExplorer::createFanPwmCtrl(
       pciDevice, *fanPwmCtrlConfig.fpgaIpBlockConfig(), instanceId);
 }
 
+std::string PciExplorer::createMdioBus(
+    const PciDevice& pciDevice,
+    const FpgaIpBlockConfig& mdioBusConfig,
+    uint32_t instanceId) {
+  auto auxData = getAuxData(mdioBusConfig, instanceId);
+  create(pciDevice, mdioBusConfig, auxData);
+  return getMdioBusSysfsPath(pciDevice, mdioBusConfig, instanceId);
+}
+
 void PciExplorer::createFpgaIpBlock(
     const PciDevice& pciDevice,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
@@ -752,6 +761,25 @@ std::string PciExplorer::getXcvrCtrlSysfsPath(
   throw PciSubDeviceRuntimeError(
       fmt::format(
           "Couldn't find XcvrCtrl {} under {}",
+          *fpgaIpBlockConfig.deviceName(),
+          pciDevice.sysfsPath()),
+      *fpgaIpBlockConfig.pmUnitScopedName());
+}
+
+std::string PciExplorer::getMdioBusSysfsPath(
+    const PciDevice& pciDevice,
+    const FpgaIpBlockConfig& fpgaIpBlockConfig,
+    uint32_t instanceId) {
+  std::string expectedEnding =
+      fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
+  for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
+    if (dirEntry.path().string().ends_with(expectedEnding)) {
+      return Utils().resolveMdioBusCharDevPath(instanceId);
+    }
+  }
+  throw PciSubDeviceRuntimeError(
+      fmt::format(
+          "Couldn't find MdioBus {} under {}",
           *fpgaIpBlockConfig.deviceName(),
           pciDevice.sysfsPath()),
       *fpgaIpBlockConfig.pmUnitScopedName());
