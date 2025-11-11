@@ -176,6 +176,61 @@ bool AgentMultiNodeVoqSwitchTrafficTest::verifyTrafficSpray(
   return true;
 }
 
+std::pair<std::string, std::vector<utility::Neighbor>>
+AgentMultiNodeVoqSwitchTrafficTest::configureRouteToRemoteRdswWithTwoNhops(
+    const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
+  auto myHostname = topologyInfo->getMyHostname();
+  const auto& rdsws = topologyInfo->getRdsws();
+
+  auto getRemoteRdsw = [myHostname, rdsws] {
+    auto iter =
+        std::find_if(rdsws.cbegin(), rdsws.cend(), [myHostname](auto& rdsw) {
+          return rdsw != myHostname;
+        });
+    CHECK(iter != rdsws.cend());
+    return *iter;
+  };
+
+  auto addNeighbors =
+      [this](const auto& topologyInfo, const std::string& remoteRdsw) {
+        auto neighbors = computeNeighborsForRdsw(
+            topologyInfo, remoteRdsw, 2 /* number of neighbors */);
+        for (const auto& neighbor : neighbors) {
+          utility::addNeighbor(
+              remoteRdsw,
+              neighbor.intfID,
+              neighbor.ip,
+              neighbor.mac,
+              neighbor.portID);
+        }
+
+        return neighbors;
+      };
+
+  auto getNextHops = [](const std::vector<utility::Neighbor>& neighbors) {
+    std::vector<folly::IPAddress> nexthops;
+    std::transform(
+        neighbors.begin(),
+        neighbors.end(),
+        std::back_inserter(nexthops),
+        [](const utility::Neighbor& neighbor) { return neighbor.ip; });
+    return nexthops;
+  };
+
+  // Setup a route from TestDriver (self) to a remote RDSW.
+  // The route has 2 nexthops.
+  // Resolve neighbors corresponding to those nexthops.
+  auto remoteRdsw = getRemoteRdsw();
+  auto remoteNeighbors = addNeighbors(topologyInfo, remoteRdsw);
+  CHECK_EQ(remoteNeighbors.size(), 2);
+
+  auto nexthops = getNextHops(remoteNeighbors);
+  const auto& [prefix, prefixLength] = kGetRoutePrefixAndPrefixLength();
+  utility::addRoute(myHostname, prefix, prefixLength, nexthops);
+
+  return std ::make_pair(remoteRdsw, remoteNeighbors);
+}
+
 bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
     const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
   XLOG(DBG2) << "Verifying SHEL(Self Healing ECMP LAG) and Conditional Entropy";

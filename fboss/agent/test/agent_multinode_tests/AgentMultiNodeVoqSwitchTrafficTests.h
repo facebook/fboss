@@ -29,6 +29,10 @@ class AgentMultiNodeVoqSwitchTrafficTest
 
   void injectTraffic(const utility::Neighbor& neighbor) const;
 
+  std::pair<std::string, std::vector<utility::Neighbor>>
+  configureRouteToRemoteRdswWithTwoNhops(
+      const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const;
+
  protected:
   bool setupTrafficLoop(
       const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const;
