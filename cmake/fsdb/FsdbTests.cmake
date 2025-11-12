@@ -39,8 +39,10 @@ add_executable(fsdb_utils_benchmark
 )
 
 target_link_libraries(fsdb_utils_benchmark
-  fsdb_common
+  fsdb_utils
   Folly::folly
+  Folly::follybenchmark
+  FBThrift::thriftcpp2
   ${GTEST}
   ${LIBGMOCK}
   ${GFLAGS}
