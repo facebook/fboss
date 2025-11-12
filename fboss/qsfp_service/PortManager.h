@@ -40,6 +40,9 @@ class PortManager {
   using TcvrToSynchronizedPortSet = std::unordered_map<
       TransceiverID,
       std::unique_ptr<folly::Synchronized<std::set<PortID>>>>;
+  using PortToSynchronizedTcvrVec = std::unordered_map<
+      PortID,
+      std::unique_ptr<folly::Synchronized<std::vector<TransceiverID>>>>;
 
  private:
   using TcvrToPortMap = std::unordered_map<TransceiverID, std::vector<PortID>>;
@@ -192,9 +195,10 @@ class PortManager {
   bool isLowestIndexedInitializedPortForTransceiverPortGroup(
       PortID portId) const;
 
-  // Gets all transceiverIDs for a given port. This will contain 2 transceivers
-  // in the multi-tcvr - single-port use case, otherwise will contain 1.
-  std::vector<TransceiverID> getTransceiverIdsForPort(PortID portId) const;
+  /* Gets all transceiverIDs for a given port. This will contain 2 transceivers
+   * in the multi-tcvr - single-port use case, otherwise will contain 1. */
+  std::vector<TransceiverID> getInitializedTransceiverIdsForPort(
+      PortID portId) const;
 
   bool hasPortFinishedIphyProgramming(PortID portId) const;
   bool hasPortFinishedXphyProgramming(PortID portId) const;
@@ -327,6 +331,8 @@ class PortManager {
 
   // Made public for PortManager access.
   void setPortEnabledStatusInCache(PortID portId, bool enabled);
+  void setTransceiverEnabledStatusInCache(PortID portId, TransceiverID tcvrId);
+  void clearEnabledTransceiversForPort(PortID portId);
 
   void updatePortActiveState(
       const std::map<int32_t, PortStatus>& portStatus) noexcept;
@@ -345,6 +351,9 @@ class PortManager {
   void getPortStates(
       std::map<int32_t, PortStateMachineState>& states,
       std::unique_ptr<std::vector<int32_t>> ids);
+
+  std::unordered_map<TransceiverID, TransceiverID>
+  getControllingTcvrToNonControllingTcvrMap() const;
 
  protected:
   /*
@@ -410,6 +419,7 @@ class PortManager {
   PortNameIdMap setupPortNameToPortIDMap();
 
   TcvrToSynchronizedPortSet setupTcvrToSynchronizedPortSet();
+  PortToSynchronizedTcvrVec setupPortToSynchronizedTcvrVec();
 
   void setWarmBootState();
 
@@ -473,7 +483,17 @@ class PortManager {
   PortToStateMachineControllerMap setupPortToStateMachineControllerMap();
   const PortToStateMachineControllerMap stateMachineControllers_;
 
+  // These data structures help out with iterating through initialized ports /
+  // transceivers faster.
+
   const TcvrToSynchronizedPortSet tcvrToInitializedPorts_;
+  // Initialized transceivers indicates if a transceiver is in use by a specific
+  // initialized port (e.g. for cases in which a port needs to subsume current
+  // transceiver and adjacent transceiver's ports.)
+  const PortToSynchronizedTcvrVec portToInitializedTcvrs_;
+
+  std::unordered_map<TransceiverID, TransceiverStateMachineState>
+      lastTcvrStates_;
 };
 
 } // namespace facebook::fboss

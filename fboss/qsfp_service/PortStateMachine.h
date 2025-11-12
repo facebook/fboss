@@ -58,6 +58,7 @@ XLOG(DBG2) << "[Port:" << portId << "] State changed to "
            << apache::thrift::util::enumNameSafe(newState);
 
 portMgr->setPortEnabledStatusInCache(portId, isEnabled);
+portMgr->clearEnabledTransceiversForPort(portId);
 } // namespace facebook::fboss
 }
 ;
