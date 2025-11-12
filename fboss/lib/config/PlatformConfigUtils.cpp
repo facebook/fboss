@@ -383,19 +383,23 @@ std::map<std::string, phy::DataPlanePhyChip> getDataPlanePhyChips(
   return chips;
 }
 
-std::optional<TransceiverID> getTransceiverId(
+const std::vector<TransceiverID> getTransceiverIds(
     const cfg::PlatformPortEntry& port,
     const std::map<std::string, phy::DataPlanePhyChip>& chipsMap) {
   auto transceiverChips = getDataPlanePhyChips(
       port, chipsMap, phy::DataPlanePhyChipType::TRANSCEIVER);
-  // There should be no more than one transceiver associated with a port.
-  // Note that this will change once we start supporting multi-transceiver /
-  // single-port use case (e.g. Wedge400 downlinks).
-  CHECK_LE(transceiverChips.size(), 1);
-  if (!transceiverChips.empty()) {
-    return TransceiverID(*transceiverChips.begin()->second.physicalID());
+  // In most use cases, we expect only one transceiver per port. However, we now
+  // want to support the use case of multi-transceiver ports.
+
+  // Since this function can be used anywhere for platform mapping, we need to
+  // remove the check that guarantees there's only one tcvr per port.
+  std::vector<TransceiverID> ids;
+  ids.reserve(transceiverChips.size());
+  for (const auto& chip : transceiverChips) {
+    ids.emplace_back(*chip.second.physicalID());
   }
-  return std::nullopt;
+
+  return ids;
 }
 
 std::vector<TransceiverID> getTransceiverIds(
@@ -453,20 +457,27 @@ TcvrToPortMap getTcvrToPortMap(
     // Get the transceiver id based on the port info from platform mapping.
     auto portIdInt = *port.mapping()->id();
     auto portId = PortID(portIdInt);
-    auto transceiverId = utility::getTransceiverId(port, chipsMap);
-    if (!transceiverId) {
-      XLOG(INFO) << "Did not find corresponding TransceiverID for PortID: "
+    auto transceiverIds = utility::getTransceiverIds(port, chipsMap);
+    if (transceiverIds.empty()) {
+      XLOG(INFO) << "Did not find corresponding TransceiverIDs for PortID: "
                  << portIdInt;
       continue;
     }
 
-    // Add the port to the transceiver-indexed port group.
-    auto portGroupIt = tcvrToPortMap.find(transceiverId.value());
-    if (portGroupIt == tcvrToPortMap.end()) {
-      tcvrToPortMap[transceiverId.value()] = std::vector<PortID>{portId};
-    } else {
-      tcvrToPortMap.at(transceiverId.value()).emplace_back(portId);
+    for (const auto& transceiverId : transceiverIds) {
+      // Add the port to the transceiver-indexed port group.
+      auto portGroupIt = tcvrToPortMap.find(transceiverId);
+      if (portGroupIt == tcvrToPortMap.end()) {
+        tcvrToPortMap[transceiverId] = std::vector<PortID>{portId};
+      } else {
+        tcvrToPortMap.at(transceiverId).emplace_back(portId);
+      }
     }
+  }
+
+  for (auto& [tcvrId, portIds] : tcvrToPortMap) {
+    XLOG(DBG2) << "TransceiverID(" << tcvrId
+               << ") has ports: " << folly::join(", ", portIds);
   }
 
   return tcvrToPortMap;
@@ -482,20 +493,18 @@ PortToTcvrMap getPortToTcvrMap(
     // Get the transceiver id based on the port info from platform mapping.
     auto portIdInt = *port.mapping()->id();
     auto portId = PortID(portIdInt);
-    auto transceiverId = utility::getTransceiverId(port, chipsMap);
-    if (!transceiverId) {
-      XLOG(INFO) << "Did not find corresponding TransceiverID for PortID: "
+    auto transceiverIds = utility::getTransceiverIds(port, chipsMap);
+    if (transceiverIds.empty()) {
+      XLOG(INFO) << "Did not find corresponding TransceiverIDs for PortID: "
                  << portIdInt;
       continue;
     }
 
-    // Add the transceiver to the port-indexed transceiver group.
-    auto tcvrGroupIt = portToTcvrMap.find(portId);
-    if (tcvrGroupIt == portToTcvrMap.end()) {
-      portToTcvrMap[portId] = std::vector<TransceiverID>{transceiverId.value()};
-    } else {
-      portToTcvrMap.at(portId).emplace_back(transceiverId.value());
-    }
+    // Add all transceivers to the port-indexed transceiver group.
+    portToTcvrMap[portId] = transceiverIds;
+
+    XLOG(ERR) << "PortID(" << portId
+              << ") has transceivers: " << folly::join(", ", transceiverIds);
   }
 
   return portToTcvrMap;

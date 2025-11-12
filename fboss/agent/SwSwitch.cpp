@@ -3849,10 +3849,10 @@ std::shared_ptr<SwitchState> SwSwitch::modifyTransceivers(
     std::unordered_map<PortID, TransceiverID> portIdToTransceiverID;
     const auto& platformPorts = platformMapping->getPlatformPorts();
     for (const auto& [portId, platformPort] : platformPorts) {
-      auto transceiverId =
-          utility::getTransceiverId(platformPort, platformMapping->getChips());
-      if (transceiverId) {
-        portIdToTransceiverID.emplace(PortID(portId), *transceiverId);
+      auto transceiverIds =
+          utility::getTransceiverIds(platformPort, platformMapping->getChips());
+      if (!transceiverIds.empty()) {
+        portIdToTransceiverID.emplace(PortID(portId), transceiverIds[0]);
       }
     }
     auto getPortIdsForTransceiver = [&portIdToTransceiverID](

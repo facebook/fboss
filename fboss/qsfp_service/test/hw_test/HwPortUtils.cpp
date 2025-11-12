@@ -138,8 +138,11 @@ std::optional<TransceiverID> getTranscieverIdx(
   const auto& platformPorts =
       ensemble->getPlatformMapping()->getPlatformPorts();
   const auto& chips = ensemble->getPlatformMapping()->getChips();
-  return utility::getTransceiverId(
+  auto tcvrIds = utility::getTransceiverIds(
       platformPorts.find(static_cast<int32_t>(portId))->second, chips);
+
+  return tcvrIds.empty() ? std::nullopt
+                         : std::make_optional<TransceiverID>(tcvrIds[0]);
 }
 
 std::vector<TransceiverID> getTransceiverIds(

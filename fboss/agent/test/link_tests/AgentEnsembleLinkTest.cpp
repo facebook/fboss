@@ -204,10 +204,10 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
       const auto platformPortEntry = platformPorts.find(portID);
       EXPECT_TRUE(platformPortEntry != platformPorts.end())
           << "Can't find port:" << portID << " in PlatformMapping";
-      auto transceiverID =
-          utility::getTransceiverId(platformPortEntry->second, chips);
-      if (transceiverID.has_value()) {
-        cabledTransceivers_.insert(*transceiverID);
+      auto transceiverIds =
+          utility::getTransceiverIds(platformPortEntry->second, chips);
+      if (!transceiverIds.empty()) {
+        cabledTransceivers_.insert(transceiverIds[0]);
         cabledTransceiverPorts_.emplace_back(portID);
       }
     }

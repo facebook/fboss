@@ -386,18 +386,18 @@ TEST(PlatformConfigUtilsTests, GetDataPlanePhyChipsXphy) {
   EXPECT_EQ(*portChips.begin()->second.physicalID(), 8);
 }
 
-TEST(PlatformConfigUtilsTests, GetTransceiverId) {
-  auto transceiverId = utility::getTransceiverId(
+TEST(PlatformConfigUtilsTests, GetTransceiverIdsFromPortAndChips) {
+  auto transceiverIds = utility::getTransceiverIds(
       getPlatformPortEntryWithXPHY(), getPlatformChips());
-  EXPECT_TRUE(transceiverId);
-  EXPECT_EQ(transceiverId.value(), TransceiverID{2});
+  EXPECT_EQ(transceiverIds.size(), 1);
+  EXPECT_EQ(transceiverIds[0], TransceiverID{2});
 
-  transceiverId = utility::getTransceiverId(
+  transceiverIds = utility::getTransceiverIds(
       getPlatformPortEntryWithoutTransceiver(), getPlatformChips());
-  EXPECT_FALSE(transceiverId);
+  EXPECT_EQ(transceiverIds.size(), 0);
 }
 
-TEST(PlatformConfigUtilsTests, GetTransceiverIds) {
+TEST(PlatformConfigUtilsTests, GetTransceiverIdsFromChips) {
   const auto& portChips = utility::getDataPlanePhyChips(
       getPlatformPortEntryWithXPHY(), getPlatformChips());
   const auto& transceiverIds = utility::getTransceiverIds(portChips);

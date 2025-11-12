@@ -2085,8 +2085,9 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
     std::shared_ptr<TransceiverSpec> transceiver;
     auto platformPort = platformMapping_->getPlatformPort(id);
     const auto& chips = platformMapping_->getChips();
-    if (auto tcvrID = utility::getTransceiverId(platformPort, chips)) {
-      transceiver = transceiverMap->getNodeIf(*tcvrID);
+    if (auto tcvrIds = utility::getTransceiverIds(platformPort, chips);
+        !tcvrIds.empty()) {
+      transceiver = transceiverMap->getNodeIf(tcvrIds[0]);
     }
     if (!origPort) {
       state::PortFields portFields;

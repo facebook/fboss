@@ -62,11 +62,11 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
     EXPECT_NE(hostLanesFromPlatformMapping.size(), 0);
     auto platformPortItr = platformPorts.find(static_cast<int32_t>(portID));
     ASSERT_NE(platformPortItr, platformPorts.end());
-    auto tcvrID = utility::getTransceiverId(platformPortItr->second, chips);
-    ASSERT_TRUE(tcvrID.has_value());
+    auto tcvrIds = utility::getTransceiverIds(platformPortItr->second, chips);
+    ASSERT_EQ(tcvrIds.size(), 1);
     auto portName = *platformPortItr->second.mapping()->name();
 
-    auto tcvrInfoItr = tcvrInfos.find(*tcvrID);
+    auto tcvrInfoItr = tcvrInfos.find(tcvrIds[0]);
     ASSERT_NE(tcvrInfoItr, tcvrInfos.end());
 
     auto& hostLaneMap = *tcvrInfoItr->second.tcvrState()->portNameToHostLanes();

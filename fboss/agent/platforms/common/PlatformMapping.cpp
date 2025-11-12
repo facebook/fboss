@@ -457,12 +457,12 @@ int PlatformMapping::getTransceiverIdFromSwPort(PortID swPort) const {
     throw FbossError("Can't find Platform Port for portId ", swPort);
   }
 
-  auto tcvrID = utility::getTransceiverId(platformPortItr->second, chips);
-  if (!tcvrID.has_value()) {
+  auto tcvrIds = utility::getTransceiverIds(platformPortItr->second, chips);
+  if (tcvrIds.empty()) {
     throw FbossError("Can't find Tcvr ID for portId ", swPort);
   }
 
-  return tcvrID.value();
+  return tcvrIds[0];
 }
 
 std::vector<PortID> PlatformMapping::getSwPortListFromTransceiverId(

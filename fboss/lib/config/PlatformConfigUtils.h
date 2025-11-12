@@ -57,7 +57,7 @@ std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
     const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
     const phy::PortProfileConfig& portProfileConfig);
 
-std::optional<TransceiverID> getTransceiverId(
+const std::vector<TransceiverID> getTransceiverIds(
     const cfg::PlatformPortEntry& port,
     const std::map<std::string, phy::DataPlanePhyChip>& chipsMap);
 

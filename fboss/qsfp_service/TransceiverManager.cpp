@@ -163,7 +163,9 @@ TransceiverManager::TransceiverManager(
     portNameToPortID_.insert(PortNameIdMap::value_type(portName, portID));
     SwPortInfo portInfo;
     portInfo.name = portName;
-    portInfo.tcvrID = utility::getTransceiverId(platformPort, chips);
+    auto tcvrIds = utility::getTransceiverIds(platformPort, chips);
+    portInfo.tcvrID =
+        tcvrIds.empty() ? std::nullopt : std::make_optional(tcvrIds[0]);
     portToSwPortInfo_.emplace(portID, std::move(portInfo));
   }
   try {
@@ -487,14 +489,14 @@ TransceiverManager::getPortNameToModuleMap() const {
     const auto& platformPorts = platformMapping_->getPlatformPorts();
     for (const auto& it : platformPorts) {
       auto port = it.second;
-      auto transceiverId =
-          utility::getTransceiverId(port, platformMapping_->getChips());
-      if (!transceiverId) {
+      auto transceiverIds =
+          utility::getTransceiverIds(port, platformMapping_->getChips());
+      if (transceiverIds.empty()) {
         continue;
       }
 
       auto& portName = *(port.mapping()->name());
-      portNameToModule_[portName] = transceiverId.value();
+      portNameToModule_[portName] = transceiverIds[0];
     }
   }
 

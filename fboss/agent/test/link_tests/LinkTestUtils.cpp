@@ -297,8 +297,9 @@ std::map<std::string, MediaInterfaceCode> getPortToMediaInterface() {
 const TransceiverSpec* getTransceiverSpec(const SwSwitch* sw, PortID portId) {
   auto& platformPort = sw->getPlatformMapping()->getPlatformPort(portId);
   const auto& chips = sw->getPlatformMapping()->getChips();
-  if (auto tcvrID = utility::getTransceiverId(platformPort, chips)) {
-    auto transceiver = sw->getState()->getTransceivers()->getNodeIf(*tcvrID);
+  if (auto tcvrIds = utility::getTransceiverIds(platformPort, chips);
+      !tcvrIds.empty()) {
+    auto transceiver = sw->getState()->getTransceivers()->getNodeIf(tcvrIds[0]);
     return transceiver.get();
   }
   return nullptr;

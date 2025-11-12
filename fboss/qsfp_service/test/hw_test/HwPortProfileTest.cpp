@@ -37,15 +37,16 @@ class HwPortProfileTest : public HwTest {
             "Can't find the platform port entry in platform mapping for port:",
             portID);
       }
-      auto tcvrID = utility::getTransceiverId(
+      auto tcvrIds = utility::getTransceiverIds(
           platformPortEntry->second, platformMapping->getChips());
-      if (!tcvrID) {
+      if (tcvrIds.empty()) {
         throw FbossError(
             "Can't find the transceiver id in platform mapping for port:",
             portID);
       }
       std::optional<TransceiverInfo> tcvrOpt;
-      if (auto tcvr = transceivers.find(*tcvrID); tcvr != transceivers.end()) {
+      if (auto tcvr = transceivers.find(tcvrIds[0]);
+          tcvr != transceivers.end()) {
         tcvrOpt = tcvr->second;
       }
 
