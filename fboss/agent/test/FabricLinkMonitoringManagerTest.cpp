@@ -152,3 +152,53 @@ TEST(FabricLinkMonitoringManagerTest, SendPacketsOnFabricPorts) {
 
   manager->stop();
 }
+
+TEST(FabricLinkMonitoringManagerTest, PacketPayloadValidation) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  waitForStateUpdates(sw);
+  waitForBackgroundThread(sw);
+
+  PortID testPort(1);
+
+  // Get initial stats
+  auto statsBefore = manager->getFabricLinkMonPortStats(testPort);
+
+  auto rxPkt = createFabricMonitoringRxPacket(sw, testPort, 0);
+  Cursor cursor(rxPkt->buf());
+
+  EXPECT_NO_THROW(manager->handlePacket(std::move(rxPkt), std::move(cursor)));
+
+  // Verify that rxCount was incremented, confirming good payload was processed
+  auto statsAfter = manager->getFabricLinkMonPortStats(testPort);
+  EXPECT_EQ(statsAfter.rxCount, statsBefore.rxCount + 1);
+  EXPECT_EQ(statsAfter.invalidPayloadCount, statsBefore.invalidPayloadCount);
+
+  manager->stop();
+}
+
+TEST(FabricLinkMonitoringManagerTest, PacketSizeValidation) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  auto pkt = sw->allocatePacket(kFabricLinkMonitoringPacketSize);
+  EXPECT_EQ(
+      pkt->buf()->computeChainDataLength(), kFabricLinkMonitoringPacketSize);
+}
+
+TEST(FabricLinkMonitoringManagerTest, MultipleStartStopManager) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+
+  for (int i = 0; i < 10; ++i) {
+    EXPECT_NO_THROW(manager->start());
+    waitForBackgroundThread(sw);
+    EXPECT_NO_THROW(manager->stop());
+  }
+}
