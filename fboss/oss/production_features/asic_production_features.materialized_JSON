@@ -361,7 +361,8 @@
         88,
         89,
         90,
-        92
+        94,
+        93
     ],
     "tomahawk6": [
         2,
@@ -830,7 +831,8 @@
         "INTER_PACKET_GAP",
         "AM_IDLES",
         "ALTERNATE_ARS_MEMBERS",
-        "L2_QOS"
+        "L2_QOS",
+        "PFC_TX_DURATION"
     ],
     "tomahawk6": [
         "CPU_RX_TX",
