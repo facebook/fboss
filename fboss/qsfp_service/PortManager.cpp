@@ -439,6 +439,127 @@ TransceiverStateMachineState PortManager::getTransceiverState(
   return transceiverManager_->getCurrentState(tcvrId);
 }
 
+cfg::PortProfileID PortManager::getPerTransceiverProfile(
+    int numTcvrs,
+    cfg::PortProfileID profileId) const {
+  if (numTcvrs == 1) {
+    return profileId;
+  } else if (
+      numTcvrs == 2 &&
+      profileId == cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER) {
+    return cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER;
+  }
+  throw FbossError(
+      apache::thrift::util::enumNameSafe(profileId),
+      " is not a supported dual-transceiver ProfileID.");
+}
+
+std::unordered_map<TransceiverID, std::map<int32_t, cfg::PortProfileID>>
+PortManager::getMultiTransceiverPortProfileIDs(
+    const TransceiverID& initTcvrId,
+    const std::map<int32_t, cfg::PortProfileID>& agentPortToProfileIDs) const {
+  // Check if we need to translate to per-transceiver profile mappings
+  if (agentPortToProfileIDs.size() != 1) {
+    // If we ever receive two portIDs, we can assume the current transceiver is
+    // multi-port, meaning it cannot be subsuming an adjacent transceiver's
+    // ports.
+    return std::
+        unordered_map<TransceiverID, std::map<int32_t, cfg::PortProfileID>>{
+            {initTcvrId, agentPortToProfileIDs}};
+  }
+
+  auto [portId, profileId] = *agentPortToProfileIDs.begin();
+
+  const auto tcvrChips = utility::getDataPlanePhyChips(
+      platformMapping_->getPlatformPorts().find(portId)->second,
+      platformMapping_->getChips(),
+      phy::DataPlanePhyChipType::TRANSCEIVER,
+      profileId);
+
+  if (tcvrChips.size() == 1) {
+    // If the current (portId, profileId) combination only supports one
+    // transceiver, then we return the portToProfileIds returned from agent.
+    return std::
+        unordered_map<TransceiverID, std::map<int32_t, cfg::PortProfileID>>{
+            {initTcvrId, agentPortToProfileIDs}};
+  } else if (tcvrChips.size() > 2) {
+    throw FbossError("Unexpected number of chips for port ", portId);
+  }
+
+  XLOG(DBG2)
+      << "Changing programInternalPhyPorts output received for TransceiverID("
+      << initTcvrId << " to dual transceiver config.";
+
+  // Determine the per-tcvr profileId.
+  cfg::PortProfileID perTcvrProfileId =
+      getPerTransceiverProfile(tcvrChips.size() /* numTcvrs */, profileId);
+
+  // Find the corresponding new portIds that support this new port speed for
+  // each transceiver.
+
+  // This lambda should only be used to find the port and profile for the
+  // subsumed transceiver. We assume the subsumer port already has the intended
+  // profile supported.
+  auto findPortWithSingleTcvrAndProfile =
+      [this](
+          const phy::DataPlanePhyChip& chip, const cfg::PortProfileID profile) {
+        auto platformPorts = utility::getPlatformPortsByChip(
+            platformMapping_->getPlatformPorts(), chip);
+
+        // We only care about controlling ports.
+        std::vector<cfg::PlatformPortEntry> controllingPorts;
+        for (auto& port : platformPorts) {
+          if (*port.mapping()->id() != *port.mapping()->controllingPort()) {
+            // Port is not a controlling port.
+            continue;
+          }
+          if (port.supportedProfiles()->find(profile) ==
+              port.supportedProfiles()->end()) {
+            // Port doesn't support this profile.
+            continue;
+          }
+          if (utility::getDataPlanePhyChips(
+                  port,
+                  platformMapping_->getChips(),
+                  phy::DataPlanePhyChipType::TRANSCEIVER)
+                  .size() != 1) {
+            // Port is not a single transceiver port.
+            continue;
+          }
+          return PortID(*port.mapping()->id());
+        }
+
+        throw FbossError(
+            apache::thrift::util::enumNameSafe(profile),
+            " is not a supported profile for TransceiverID(",
+            *chip.physicalID(),
+            ")");
+      };
+
+  std::unordered_map<TransceiverID, std::map<int32_t, cfg::PortProfileID>>
+      newTcvrToPortToProfileId;
+  // Set subsumer port profile (need to validate this profileId exists here -
+  // otherwise can throw error)
+  newTcvrToPortToProfileId[initTcvrId] = {
+      {static_cast<int32_t>(portId), perTcvrProfileId}};
+
+  // Set subsumee
+  phy::DataPlanePhyChip subsumedTcvrChip;
+  for (auto& [_, chip] : tcvrChips) {
+    if (TransceiverID(*chip.physicalID()) != initTcvrId) {
+      // This is the subsumed transceiver.
+      subsumedTcvrChip = chip;
+      break;
+    }
+  }
+  newTcvrToPortToProfileId[TransceiverID(*subsumedTcvrChip.physicalID())] = {
+      {static_cast<int32_t>(findPortWithSingleTcvrAndProfile(
+           subsumedTcvrChip, perTcvrProfileId)),
+       perTcvrProfileId}};
+
+  return newTcvrToPortToProfileId;
+}
+
 void PortManager::programInternalPhyPorts(TransceiverID id) {
   std::map<int32_t, cfg::PortProfileID> programmedIphyPorts;
 
@@ -472,41 +593,50 @@ void PortManager::programInternalPhyPorts(TransceiverID id) {
   }
   XLOG(INFO) << logStr << "]";
 
-  // TODO(smenta) – Add support for mapping to dual transceivers.
-  for (const auto& [portId, profileID] : programmedIphyPorts) {
-    for (const auto& tcvrId : utility::getTransceiverIds(
-             platformMapping_->getPlatformPort(portId),
-             platformMapping_->getChips(),
-             profileID)) {
-      setTransceiverEnabledStatusInCache(PortID(portId), tcvrId);
+  // Getting tcvr->PortToProfileId in case we are in dual transceiver mode.
+  const auto tcvrToPortToProfileId =
+      getMultiTransceiverPortProfileIDs(id, programmedIphyPorts);
+  bool useAgentPortIdForCache = tcvrToPortToProfileId.size() == 2;
+  for (auto& [tcvrId, portToProfileId] : tcvrToPortToProfileId) {
+    const auto& portToPortInfoIt =
+        transceiverManager_->getSynchronizedProgrammedIphyPortToPortInfo(
+            tcvrId);
+    if (!portToPortInfoIt) {
+      continue;
     }
-  }
 
-  // Now update the programmed SW port to profile mapping
-  const auto& portToPortInfoIt =
-      transceiverManager_->getSynchronizedProgrammedIphyPortToPortInfo(id);
-  if (!portToPortInfoIt) {
-    return;
-  }
+    auto portToPortInfoWithLock = portToPortInfoIt->wlock();
+    portToPortInfoWithLock->clear();
+    for (auto& [portIdInt, profileId] : portToProfileId) {
+      auto programmingPortId = PortID(portIdInt);
+      // For qsfp_service cache, to coordinate tcvr / port states in multi-tcvr
+      // ports.
+      auto cachePortId = useAgentPortIdForCache
+          ? PortID(programmedIphyPorts.begin()->first)
+          : programmingPortId;
 
-  auto portToPortInfoWithLock = portToPortInfoIt->wlock();
-  portToPortInfoWithLock->clear();
-  for (auto [portId, profileID] : programmedIphyPorts) {
-    TransceiverManager::TransceiverPortInfo portInfo;
-    portInfo.profile = profileID;
-    NpuPortStatus status{};
-    status.portEnabled = true;
-    // Set port down by default, will be changed if / when
-    // updateTransceiverPortStatus brings port up.
-    status.operState = false;
-    portInfo.status = status;
-    portToPortInfoWithLock->emplace(PortID(portId), portInfo);
+      // Update programming data - qsfp_service only cares about the profileId
+      // that it needs to program transceivers at.
+      TransceiverManager::TransceiverPortInfo portInfo;
+
+      portInfo.profile = profileId;
+      NpuPortStatus status{};
+      status.portEnabled = true;
+      status.operState = false;
+      portInfo.status = status;
+
+      // TODO(smenta) - Evaluate if should be programmedPortId.
+      portToPortInfoWithLock->emplace(programmingPortId, portInfo);
+      setTransceiverEnabledStatusInCache(cachePortId, tcvrId);
+    }
   }
 
   if (!phyManager_) {
     // If phyManager_ doesn't exist, this means that all PHY programming is
     // complete.
-    transceiverManager_->markTransceiverReadyForProgramming(id, true);
+    for (auto& [tcvrId, _] : tcvrToPortToProfileId) {
+      transceiverManager_->markTransceiverReadyForProgramming(tcvrId, true);
+    }
   }
 }
 

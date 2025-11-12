@@ -545,7 +545,9 @@ TEST_F(PortManagerTest, programInternalPhyPorts) {
 
   // Verify that the programmed port info is updated (we assume that agent
   // profiles have been mapped to tcvr profiles)
-  for (auto [tcvrId, portId] : {std::make_pair(TransceiverID(0), PortID(1))}) {
+  for (auto [tcvrId, portId] :
+       {std::make_pair(TransceiverID(0), PortID(1)),
+        std::make_pair(TransceiverID(1), PortID(5))}) {
     XLOG(ERR) << "Checking for tcvrId: " << tcvrId << " portId: " << portId;
     auto newPortToPortInfoPtr =
         transceiverManager_->getSynchronizedProgrammedIphyPortToPortInfo(
@@ -558,10 +560,9 @@ TEST_F(PortManagerTest, programInternalPhyPorts) {
     auto portInfo = newLockedPortInfo->find(portId);
     ASSERT_NE(portInfo, newLockedPortInfo->end());
     XLOG(ERR) << apache::thrift::util::enumNameSafe(portInfo->second.profile);
-    // TODO(smenta) - Change in the next diff to map to transceiver profile.
     ASSERT_EQ(
         portInfo->second.profile,
-        cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER);
+        cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER);
   }
 }
 
@@ -1217,6 +1218,109 @@ TEST_F(PortManagerTest, getTransceiversWithAllPortsInSet) {
   auto transceivers10 =
       portManager_->getTransceiversWithAllPortsInSet(testSet10);
   EXPECT_EQ(transceivers10.size(), 0);
+}
+
+TEST_F(PortManagerTest, getPerTransceiverProfile) {
+  initManagers(1, 4);
+
+  // Single Transceiver
+  EXPECT_EQ(
+      portManager_->getPerTransceiverProfile(
+          1, cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER),
+      cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER);
+  EXPECT_EQ(
+      portManager_->getPerTransceiverProfile(
+          1, cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER),
+      cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER);
+
+  // Two transceivers
+  EXPECT_EQ(
+      portManager_->getPerTransceiverProfile(
+          2, cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER),
+      cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER);
+  EXPECT_THROW(
+      portManager_->getPerTransceiverProfile(
+          2, cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528),
+      FbossError);
+
+  // >2 transceivers
+  EXPECT_THROW(
+      portManager_->getPerTransceiverProfile(
+          3, cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER),
+      FbossError);
+  EXPECT_THROW(
+      portManager_->getPerTransceiverProfile(
+          4, cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528),
+      FbossError);
+}
+
+TEST_F(PortManagerTest, getMultiTransceiverPortProfileIDs) {
+  // Test Case 1: Single Tcvr – Multi Port
+  // When multiple ports are provided, should return input as-is
+  initManagers(1, 4);
+  std::map<int32_t, cfg::PortProfileID> multiPortInput = {
+      {1, multiPortProfile_}, {3, multiPortProfile_}};
+  auto result1 =
+      portManager_->getMultiTransceiverPortProfileIDs(tcvrId_, multiPortInput);
+
+  EXPECT_EQ(result1.size(), 1);
+  EXPECT_TRUE(result1.find(tcvrId_) != result1.end());
+  EXPECT_EQ(result1[tcvrId_].size(), 2);
+  EXPECT_EQ(result1[tcvrId_][1], multiPortProfile_);
+  EXPECT_EQ(result1[tcvrId_][3], multiPortProfile_);
+
+  // Test Case 2: Single Tcvr – Single Port
+  // When single port with single transceiver chip, should return input as-is
+  initManagers(1, 1);
+  std::map<int32_t, cfg::PortProfileID> singlePortInput = {
+      {1, multiPortProfile_}};
+  auto result2 =
+      portManager_->getMultiTransceiverPortProfileIDs(tcvrId_, singlePortInput);
+
+  EXPECT_EQ(result2.size(), 1);
+  EXPECT_TRUE(result2.find(tcvrId_) != result2.end());
+  EXPECT_EQ(result2[tcvrId_].size(), 1);
+  EXPECT_EQ(result2[tcvrId_][1], multiPortProfile_);
+
+  // Test Case 3: Multi Tcvr – Single Port
+  // When single port spans multiple transceivers, should map to per-transceiver
+  // profiles
+  initManagersWithMultiTcvrPort(false);
+  std::map<int32_t, cfg::PortProfileID> dualTcvrInput = {
+      {1, multiTcvrProfile_}};
+  auto result3 =
+      portManager_->getMultiTransceiverPortProfileIDs(tcvrId_, dualTcvrInput);
+
+  // Should split into two transceivers with per-transceiver profiles
+  EXPECT_EQ(result3.size(), 2);
+  EXPECT_TRUE(result3.find(TransceiverID(0)) != result3.end());
+  EXPECT_TRUE(result3.find(TransceiverID(1)) != result3.end());
+
+  // Each transceiver should have one port mapped to the per-transceiver
+  // profile
+  EXPECT_EQ(result3[TransceiverID(0)].size(), 1);
+  EXPECT_EQ(result3[TransceiverID(1)].size(), 1);
+  EXPECT_EQ(
+      result3[TransceiverID(0)][1],
+      cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER);
+  EXPECT_EQ(
+      result3[TransceiverID(1)][5],
+      cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER);
+
+  // Test Case 4: Multi Tcvr Port with Single Tcvr Profile
+  // When in multi-tcvr port mode but using a profile that only uses one
+  // transceiver chip, should return input as-is
+  std::map<int32_t, cfg::PortProfileID> singleTcvrProfileInput = {
+      {1, cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER}};
+  auto result4 = portManager_->getMultiTransceiverPortProfileIDs(
+      tcvrId_, singleTcvrProfileInput);
+
+  EXPECT_EQ(result4.size(), 1);
+  EXPECT_TRUE(result4.find(tcvrId_) != result4.end());
+  EXPECT_EQ(result4[tcvrId_].size(), 1);
+  EXPECT_EQ(
+      result4[tcvrId_][1],
+      cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER);
 }
 
 } // namespace facebook::fboss

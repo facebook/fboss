@@ -203,6 +203,14 @@ class PortManager {
   bool hasPortFinishedIphyProgramming(PortID portId) const;
   bool hasPortFinishedXphyProgramming(PortID portId) const;
 
+  cfg::PortProfileID getPerTransceiverProfile(
+      int numTcvrs,
+      cfg::PortProfileID profileId) const;
+  std::unordered_map<TransceiverID, std::map<int32_t, cfg::PortProfileID>>
+  getMultiTransceiverPortProfileIDs(
+      const TransceiverID& initTcvrId,
+      const std::map<int32_t, cfg::PortProfileID>& agentPortToProfileIDs) const;
+
   void programInternalPhyPorts(TransceiverID id);
 
   // Marked virtual for MockPortManager testing.
