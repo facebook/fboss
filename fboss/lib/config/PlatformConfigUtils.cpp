@@ -136,6 +136,10 @@ std::string getChipName(const Pin& pin) {
   return *pin.get_end().chip();
 }
 
+std::string getChipName(const PinConfig& pinConfig) {
+  return *pinConfig.id()->chip();
+}
+
 std::vector<int32_t> getPhysicalIdsByChipType(
     const std::map<std::string, DataPlanePhyChip>& chipsMap,
     DataPlanePhyChipType type) {
@@ -353,13 +357,46 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
   return ports;
 }
 
+std::vector<phy::PinConfig> getPinsFromPortPinConfig(
+    const phy::PortPinConfig& pinConfig,
+    phy::DataPlanePhyChipType chipType) {
+  std::vector<phy::PinConfig> pins;
+  switch (chipType) {
+    case phy::DataPlanePhyChipType::IPHY:
+      pins = *pinConfig.iphy();
+      break;
+    case phy::DataPlanePhyChipType::XPHY:
+      if (pinConfig.xphySys().has_value()) {
+        pins = *pinConfig.xphySys();
+      }
+      if (pinConfig.xphyLine().has_value()) {
+        pins.insert(
+            pins.end(),
+            pinConfig.xphyLine()->begin(),
+            pinConfig.xphyLine()->end());
+      }
+      break;
+    case phy::DataPlanePhyChipType::TRANSCEIVER:
+      if (pinConfig.transceiver().has_value()) {
+        pins = *pinConfig.transceiver();
+      }
+      break;
+    default:
+      throw FbossError(
+          "Only IPHY, XPHY, and TRANSCEIVER chip types are supported.");
+  }
+
+  return pins;
+}
+
 std::map<std::string, phy::DataPlanePhyChip> getDataPlanePhyChips(
     const cfg::PlatformPortEntry& port,
     const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
-    std::optional<phy::DataPlanePhyChipType> chipType) {
+    std::optional<phy::DataPlanePhyChipType> chipType,
+    const std::optional<cfg::PortProfileID> profileID) {
   std::map<std::string, phy::DataPlanePhyChip> chips;
 
-  // if not specifying chipType, we return all the chips for such port
+  // If chipType is not specified, we return all the chips for such port.
   std::vector<phy::DataPlanePhyChipType> types;
   if (chipType) {
     types.push_back(*chipType);
@@ -369,26 +406,44 @@ std::map<std::string, phy::DataPlanePhyChip> getDataPlanePhyChips(
     types.push_back(phy::DataPlanePhyChipType::TRANSCEIVER);
   }
 
-  for (auto type : types) {
-    auto pins = getPinsByChipType(chipsMap, *port.mapping()->pins(), type);
-    if (pins.empty()) {
-      continue;
+  // If profileID is specified, we return the chips based on the
+  // profile-specific pins. Else, we return the chips based on the static pin
+  // mapping.
+  if (profileID.has_value() &&
+      port.supportedProfiles()->find(*profileID) !=
+          port.supportedProfiles()->end()) {
+    auto& pinConfig = *port.supportedProfiles()->at(*profileID).pins();
+    for (auto type : types) {
+      for (const auto& pin : getPinsFromPortPinConfig(pinConfig, type)) {
+        // Backplane chips are stored in the transceiver field, so we need to
+        // add an additional filter here.
+        if (auto itChip = chipsMap.find(getChipName(pin));
+            itChip != chipsMap.end() && *itChip->second.type() == type) {
+          chips.emplace(itChip->first, itChip->second);
+        }
+      }
     }
-    for (auto pin : pins) {
-      std::string chipName = getChipName(pin);
-      if (auto itChip = chipsMap.find(chipName); itChip != chipsMap.end()) {
-        chips.emplace(itChip->first, itChip->second);
+  } else {
+    for (auto type : types) {
+      for (const auto& pinConn :
+           getPinsByChipType(chipsMap, *port.mapping()->pins(), type)) {
+        if (auto itChip = chipsMap.find(getChipName(pinConn));
+            itChip != chipsMap.end()) {
+          chips.emplace(itChip->first, itChip->second);
+        }
       }
     }
   }
+
   return chips;
 }
 
 const std::vector<TransceiverID> getTransceiverIds(
     const cfg::PlatformPortEntry& port,
-    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap) {
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
+    const std::optional<cfg::PortProfileID> profileID) {
   auto transceiverChips = getDataPlanePhyChips(
-      port, chipsMap, phy::DataPlanePhyChipType::TRANSCEIVER);
+      port, chipsMap, phy::DataPlanePhyChipType::TRANSCEIVER, profileID);
   // In most use cases, we expect only one transceiver per port. However, we now
   // want to support the use case of multi-transceiver ports.
 
