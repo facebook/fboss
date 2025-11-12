@@ -326,6 +326,25 @@ void AgentEnsembleLinkTest::programDefaultRoute(
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
+// only use when NEXTHOP_TTL_DECREMENT_DISABLE is supported
+// This allows a single state update to both program routes and configure nhops
+void AgentEnsembleLinkTest::programDefaultRouteWithDisableTTLDecrement(
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+    utility::EcmpSetupTargetedPorts6& ecmp6) {
+  ASSERT_GT(ecmpPorts.size(), 0);
+  getSw()->updateStateBlocking(
+      "Resolve nhops", [ecmpPorts, &ecmp6](auto state) {
+        return ecmp6.resolveNextHops(state, ecmpPorts);
+      });
+  ecmp6.programRoutes(
+      std::make_unique<SwSwitchRouteUpdateWrapper>(getSw()->getRouteUpdater()),
+      ecmpPorts,
+      {Route<folly::IPAddressV6>::Prefix{folly::IPAddressV6(), 0}},
+      std::vector<NextHopWeight>(),
+      std::nullopt,
+      true /* disableTTLDecrement */);
+}
+
 void AgentEnsembleLinkTest::createL3DataplaneFlood(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
   auto switchId = scope(ecmpPorts);
@@ -336,8 +355,13 @@ void AgentEnsembleLinkTest::createL3DataplaneFlood(
       RouterID(0),
       false,
       {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
-  programDefaultRoute(ecmpPorts, ecmp6);
-  utility::disableTTLDecrements(getSw(), ecmpPorts);
+  if (getSw()->getHwAsicTable()->isFeatureSupported(
+          switchId, HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
+    programDefaultRouteWithDisableTTLDecrement(ecmpPorts, ecmp6);
+  } else {
+    programDefaultRoute(ecmpPorts, ecmp6);
+    utility::disableTTLDecrements(getSw(), ecmpPorts);
+  }
   auto vlanID = getAgentEnsemble()->getVlanIDForTx();
   utility::pumpTraffic(
       true,
