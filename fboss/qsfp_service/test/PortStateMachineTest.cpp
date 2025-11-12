@@ -43,8 +43,6 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
         "remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
     gflags::SetCommandLineOptionWithMode(
         "initial_remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
-
-    resetManagers();
   }
 
   void setMockCmisPresence(bool isPresent) {
@@ -119,7 +117,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     return qsfpModuleXcvr;
   }
 
-  void resetManagers() {
+  void initManagers() {
     // Create Platform Mapping Object
     const auto platformMapping =
         makeFakePlatformMapping(numModules, numPortsPerModule);
@@ -145,9 +143,8 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
         castedPlatformMapping,
         threadsMap);
     transceiverManager_->setPauseRemediation(600, nullptr /* evb */);
-  }
 
-  void initManagers() {
+    // Initialize managers
     transceiverManager_->init();
     portManager_->init();
   }
@@ -560,11 +557,13 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
 };
 
 TEST_F(PortStateMachineTest, defaultState) {
-  // At this point, refresh cycle hasn't been run yet, so everything should be
-  // NOT_PRESENT / UNINITIALIZED.
+  initManagers();
+  // At this point, refresh cycle hasn't been run yet, so all ports should be
+  // UNINITIALIZED. However, TransceiverManager creation triggers
+  // refreshTransceivers(), which will discover present transceivers.
   ASSERT_EQ(
       transceiverManager_->getCurrentState(tcvrId_),
-      TransceiverStateMachineState::NOT_PRESENT);
+      TransceiverStateMachineState::DISCOVERED);
   ASSERT_EQ(
       portManager_->getPortState(portId1_),
       PortStateMachineState::UNINITIALIZED);
@@ -611,8 +610,6 @@ TEST_F(PortStateMachineTest, enablePorts) {
           verifyXphyNeedResetDataPath(multiPort, false /* expected */);
         } /* verify */,
         "portsInitialized");
-    // Prepare for testing with next multiPort value
-    resetManagers();
   }
 }
 
@@ -637,8 +634,6 @@ TEST_F(PortStateMachineTest, disablePorts) {
         [this]() { disablePortsThroughRefresh(); } /* stateUpdate */,
         []() {} /* verify */,
         "portsDisabled");
-    // Prepare for testing with next multiPort value
-    resetManagers();
   }
 }
 
@@ -671,8 +666,6 @@ TEST_F(
         } /* stateUpdate */,
         []() {} /* verify */,
         "triggerTcvrProgramming");
-    // Prepare for testing with next multiPort value
-    resetManagers();
   }
 }
 
@@ -758,9 +751,6 @@ TEST_F(PortStateMachineTest, fullSimpleRefreshCycle) {
           verifyXphyNeedResetDataPath(multiPort, false /* expected */);
         } /* verify */,
         "allProgramming completes");
-
-    // Prepare for testing with next multiPort value
-    resetManagers();
   }
 }
 
@@ -906,8 +896,6 @@ TEST_F(PortStateMachineTest, agentConfigChangedColdBoot) {
           verifyXphyNeedResetDataPath(multiPort, false /* expected */);
         } /* verify */,
         "agentConfigChanged ColdBoot");
-
-    resetManagers();
   }
 }
 
@@ -943,8 +931,6 @@ TEST_F(PortStateMachineTest, agentConfigChangedWarmBoot) {
           verifyXphyNeedResetDataPath(multiPort, false /* expected */);
         } /* verify */,
         "agentConfigChanged WarmBoot");
-
-    resetManagers();
   }
 }
 
@@ -982,8 +968,6 @@ TEST_F(PortStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
       } /* verify */,
       "agentConfigChanged ColdBoot",
       true /* isMock */);
-
-  resetManagers();
 }
 
 TEST_F(PortStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
@@ -1019,8 +1003,6 @@ TEST_F(PortStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
       } /* verify */,
       "agentConfigChanged ColdBoot",
       true /* isMock */);
-
-  resetManagers();
 }
 
 TEST_F(PortStateMachineTest, syncPortsOnRemovedTransceiver) {
@@ -1097,8 +1079,6 @@ TEST_F(PortStateMachineTest, verifyAllDownPortStatusSharedWithTransceiver) {
           ASSERT_TRUE(allPortsDown);
         } /* verify */,
         kTestName);
-
-    resetManagers();
   }
 }
 
@@ -1134,8 +1114,6 @@ TEST_F(
         ASSERT_EQ(downPorts[0], kPortName1);
       } /* verify */,
       kTestName);
-
-  resetManagers();
 }
 
 TEST_F(PortStateMachineTest, verifyDetectingPortStatusOnResetTransceiver) {
@@ -1208,8 +1186,6 @@ TEST_F(PortStateMachineTest, verifyDetectingPortStatusOnResetTransceiver) {
 
     // Ensure transceiver manager returns updated port status data.
     verifyTcvrPortStatus(portState);
-
-    resetManagers();
   }
 }
 
@@ -1293,7 +1269,6 @@ TEST_F(PortStateMachineTest, ensureNoFwUpgradeOnPortUpAndI2cConnectionIssues) {
       "firmware_upgrade_on_tcvr_insert", "f", gflags::SET_FLAGS_DEFAULT);
   gflags::SetCommandLineOptionWithMode(
       "firmware_upgrade_supported", "f", gflags::SET_FLAGS_DEFAULT);
-  resetManagers();
 }
 
 // Basic Coverage of TransceiverRemediation logic coordinated by
@@ -1370,8 +1345,7 @@ TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedSuccess) {
       } /* verify */,
       kTestName,
       true /* isMock */);
-  // Prepare for testing with next multiPort value
-  resetManagers();
+  // Prepare for testing with next multiPort valu
 }
 
 // right now only failures are these expectations – some seem easy to fix based
@@ -1467,8 +1441,7 @@ TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedFailed) {
       } /* verify */,
       kTestName,
       true /* isMock */);
-  // Prepare for testing with next multiPort value
-  resetManagers();
+  // Prepare for testing with next multiPort valu
 }
 
 } // namespace facebook::fboss
