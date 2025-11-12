@@ -57,8 +57,10 @@ bool isEnabled = newState == PortStateMachineState::INITIALIZED;
 XLOG(DBG2) << "[Port:" << portId << "] State changed to "
            << apache::thrift::util::enumNameSafe(newState);
 
+portMgr->clearTransceiversReadyForProgramming(portId);
 portMgr->setPortEnabledStatusInCache(portId, isEnabled);
 portMgr->clearEnabledTransceiversForPort(portId);
+portMgr->clearMultiTcvrMappings(portId);
 } // namespace facebook::fboss
 }
 ;

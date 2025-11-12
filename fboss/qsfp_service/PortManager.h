@@ -184,6 +184,9 @@ class PortManager {
    */
   TransceiverID getLowestIndexedStaticTransceiverForPort(PortID portId) const;
 
+  std::optional<TransceiverID> getNonControllingTransceiverIdForMultiTcvr(
+      TransceiverID tcvrId) const;
+
   /* Gets ALL transceiver ids that CAN be used by the given port. For a majority
    * of ports, this will be 1. However, for our custom Wedge400 platform mapping
    * that supports reverse Y-Cable downlinks, this will be two transceiver for
@@ -211,10 +214,10 @@ class PortManager {
       const TransceiverID& initTcvrId,
       const std::map<int32_t, cfg::PortProfileID>& agentPortToProfileIDs) const;
 
-  void programInternalPhyPorts(TransceiverID id);
+  virtual void programInternalPhyPorts(TransceiverID id);
 
   // Marked virtual for MockPortManager testing.
-  void programExternalPhyPorts(
+  virtual void programExternalPhyPorts(
       TransceiverID tcvrId,
       bool xPhyNeedResetDataPath);
 
@@ -341,6 +344,8 @@ class PortManager {
   void setPortEnabledStatusInCache(PortID portId, bool enabled);
   void setTransceiverEnabledStatusInCache(PortID portId, TransceiverID tcvrId);
   void clearEnabledTransceiversForPort(PortID portId);
+  void clearTransceiversReadyForProgramming(PortID portId);
+  void clearMultiTcvrMappings(PortID portId);
 
   void updatePortActiveState(
       const std::map<int32_t, PortStatus>& portStatus) noexcept;
@@ -359,9 +364,6 @@ class PortManager {
   void getPortStates(
       std::map<int32_t, PortStateMachineState>& states,
       std::unique_ptr<std::vector<int32_t>> ids);
-
-  std::unordered_map<TransceiverID, TransceiverID>
-  getControllingTcvrToNonControllingTcvrMap() const;
 
  protected:
   /*
@@ -500,8 +502,10 @@ class PortManager {
   // transceiver and adjacent transceiver's ports.)
   const PortToSynchronizedTcvrVec portToInitializedTcvrs_;
 
-  std::unordered_map<TransceiverID, TransceiverStateMachineState>
-      lastTcvrStates_;
+  folly::Synchronized<std::unordered_map<PortID, PortID>>
+      multiTcvrQsfpPortToAgentPort_;
+  folly::Synchronized<std::unordered_map<TransceiverID, TransceiverID>>
+      multiTcvrControllingToNonControllingTcvr_;
 };
 
 } // namespace facebook::fboss

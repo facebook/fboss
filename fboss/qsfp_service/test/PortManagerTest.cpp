@@ -57,8 +57,13 @@ class PortManagerTest : public ::testing::Test {
         platformMapping,
         threadsMap);
 
-    transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
-        overrideMultiPortTcvrToPortAndProfile_);
+    if (numPortsPerModule == 4) {
+      transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+          overrideMultiPortTcvrToPortAndProfile_);
+    } else {
+      transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+          overrideTcvrToPortAndProfile_);
+    }
   }
 
   void initManagersWithMultiTcvrPort(bool setPhyManager = false) {
@@ -129,6 +134,15 @@ class PortManagerTest : public ::testing::Test {
   const TransceiverID tcvrId_ = TransceiverID(0);
   const PortID portId1_ = PortID(1);
   const PortID portId3_ = PortID(3);
+
+  const cfg::PortProfileID profile_ =
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL;
+  const TransceiverManager::OverrideTcvrToPortAndProfile
+      overrideTcvrToPortAndProfile_ = {
+          {tcvrId_,
+           {
+               {portId1_, profile_},
+           }}};
 
   const cfg::PortProfileID multiPortProfile_ =
       cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL;
@@ -949,48 +963,40 @@ TEST_F(PortManagerTest, getPortStates) {
   EXPECT_EQ(states.size(), 2);
 }
 
-TEST_F(PortManagerTest, getControllingTcvrToNonControllingTcvrMap) {
+TEST_F(PortManagerTest, getNonControllingTransceiverIdForMultiTcvr) {
   // Test Case 1: Single Tcvr – Single Port
   // No multi-transceiver ports, so map should be empty
   initManagers(1, 1);
-  setTransceiverEnabledStatusInCache({PortID(1)}, TransceiverID(0));
+  portManager_->programInternalPhyPorts(TransceiverID(0));
 
-  auto map = portManager_->getControllingTcvrToNonControllingTcvrMap();
-  EXPECT_EQ(map.size(), 0);
+  auto id = portManager_->getNonControllingTransceiverIdForMultiTcvr(
+      TransceiverID(0));
+  EXPECT_EQ(id, std::nullopt);
 
   // Test Case 2: Single Tcvr – Multi Port
-  // Still no multi-transceiver ports, so map should be empty
   initManagers(1, 4);
-  setTransceiverEnabledStatusInCache(
-      {PortID(1), PortID(2), PortID(3)}, TransceiverID(0));
+  portManager_->programInternalPhyPorts(TransceiverID(0));
 
-  map = portManager_->getControllingTcvrToNonControllingTcvrMap();
-  EXPECT_EQ(map.size(), 0);
+  id = portManager_->getNonControllingTransceiverIdForMultiTcvr(
+      TransceiverID(0));
+  EXPECT_EQ(id, std::nullopt);
 
   // Test Case 3: Multi Tcvr – Single Port
   // This should create a mapping from controlling to non-controlling
-  // transceiver
+  // transceiver when PHY programming is triggered
   initManagersWithMultiTcvrPort(false);
-  setTransceiverEnabledStatusInCache({PortID(1)}, TransceiverID(0));
-  setTransceiverEnabledStatusInCache({PortID(1)}, TransceiverID(1));
 
-  map = portManager_->getControllingTcvrToNonControllingTcvrMap();
-  EXPECT_EQ(map.size(), 1);
+  // The map is populated during programInternalPhyPorts, not just by
+  // setTransceiverEnabledStatusInCache. We need to trigger the programming.
+  // Since programInternalPhyPorts calls getDualTransceiverPortProfileIDs
+  // which populates the map, we need to call it.
+  portManager_->programInternalPhyPorts(TransceiverID(0));
+
+  id = portManager_->getNonControllingTransceiverIdForMultiTcvr(
+      TransceiverID(0));
+  EXPECT_TRUE(id != std::nullopt);
   // TransceiverID(0) is the lowest, so it should map to TransceiverID(1)
-  EXPECT_EQ(map[TransceiverID(0)], TransceiverID(1));
-
-  // Test Case 4: Multiple ports with multiple transceivers
-  initManagers(4, 1);
-  // Create a multi-transceiver port configuration
-  setTransceiverEnabledStatusInCache({PortID(1)}, TransceiverID(0));
-  setTransceiverEnabledStatusInCache({PortID(1)}, TransceiverID(1));
-  setTransceiverEnabledStatusInCache({PortID(2)}, TransceiverID(2));
-  setTransceiverEnabledStatusInCache({PortID(2)}, TransceiverID(3));
-
-  map = portManager_->getControllingTcvrToNonControllingTcvrMap();
-  EXPECT_EQ(map.size(), 2);
-  EXPECT_EQ(map[TransceiverID(0)], TransceiverID(1));
-  EXPECT_EQ(map[TransceiverID(2)], TransceiverID(3));
+  EXPECT_EQ(*id, TransceiverID(1));
 }
 
 TEST_F(PortManagerTest, setTransceiverEnabledStatusInCache) {
@@ -1091,12 +1097,10 @@ TEST_F(PortManagerTest, clearEnabledTransceiversForPort) {
 
 TEST_F(PortManagerTest, getTransceiversWithAllPortsInSet) {
   // Test Case 1: Single Tcvr - Single Port
-  auto validateSingleTcvrSinglePort = [this](bool setTransceiverCache) {
+  auto validateSingleTcvrSinglePort = [this]() {
     initManagers(1, 1);
+    portManager_->programInternalPhyPorts(TransceiverID(0));
     portManager_->setPortEnabledStatusInCache(PortID(1), true);
-    if (setTransceiverCache) {
-      setTransceiverEnabledStatusInCache({PortID(1)}, TransceiverID(0));
-    }
 
     // Port is in set - should return the transceiver
     std::unordered_set<PortID> testSet1 = {PortID(1)};
@@ -1111,18 +1115,14 @@ TEST_F(PortManagerTest, getTransceiversWithAllPortsInSet) {
         portManager_->getTransceiversWithAllPortsInSet(testSet2);
     EXPECT_EQ(transceivers2.size(), 0);
   };
-  validateSingleTcvrSinglePort(true);
-  validateSingleTcvrSinglePort(false);
+  validateSingleTcvrSinglePort();
 
   // Test Case 2: Single Tcvr - Multi Port
-  auto validateSingleTcvrMultiPort = [this](bool setTransceiverCache) {
+  auto validateSingleTcvrMultiPort = [this]() {
     initManagers(1, 4);
+    portManager_->programInternalPhyPorts(TransceiverID(0));
     portManager_->setPortEnabledStatusInCache(PortID(1), true);
     portManager_->setPortEnabledStatusInCache(PortID(3), true);
-    if (setTransceiverCache) {
-      setTransceiverEnabledStatusInCache({PortID(1)}, TransceiverID(0));
-      setTransceiverEnabledStatusInCache({PortID(3)}, TransceiverID(0));
-    }
 
     // All ports are in set - should return the transceiver
     std::unordered_set<PortID> testSet3 = {PortID(1), PortID(3)};
@@ -1145,34 +1145,27 @@ TEST_F(PortManagerTest, getTransceiversWithAllPortsInSet) {
     EXPECT_EQ(transceivers5.size(), 1);
     EXPECT_TRUE(transceivers5.count(TransceiverID(0)));
   };
-  validateSingleTcvrMultiPort(true);
-  validateSingleTcvrMultiPort(false);
+  validateSingleTcvrMultiPort();
 
   // Test Case 3: Multi Tcvr - Single Port
-  auto validateMultiTcvrSinglePort = [this](bool setTransceiverCache) {
+  auto validateMultiTcvrSinglePort = [this]() {
     initManagersWithMultiTcvrPort(false);
+    portManager_->programInternalPhyPorts(TransceiverID(0));
     portManager_->setPortEnabledStatusInCache(PortID(1), true);
-    if (setTransceiverCache) {
-      setTransceiverEnabledStatusInCache({PortID(1)}, TransceiverID(0));
-      setTransceiverEnabledStatusInCache({PortID(1)}, TransceiverID(1));
-    }
 
     std::unordered_set<PortID> testSet6 = {PortID(1)};
     auto transceivers6 =
         portManager_->getTransceiversWithAllPortsInSet(testSet6);
-    EXPECT_EQ(transceivers6.size(), setTransceiverCache ? 2 : 1);
+    EXPECT_EQ(transceivers6.size(), 2);
     EXPECT_TRUE(transceivers6.count(TransceiverID(0)));
-    if (setTransceiverCache) {
-      EXPECT_TRUE(transceivers6.count(TransceiverID(1)));
-    }
+    EXPECT_TRUE(transceivers6.count(TransceiverID(1)));
 
     std::unordered_set<PortID> testSet7 = {PortID(5)};
     auto transceivers7 =
         portManager_->getTransceiversWithAllPortsInSet(testSet7);
     EXPECT_EQ(transceivers7.size(), 0);
   };
-  validateMultiTcvrSinglePort(true);
-  validateMultiTcvrSinglePort(false);
+  validateMultiTcvrSinglePort();
 
   // Test Case 4: Empty set
   initManagers(1, 4);

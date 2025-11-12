@@ -377,6 +377,16 @@ PortID PortManager::getLowestIndexedInitializedPortForTransceiverPortGroup(
   return *lockedInitializedPorts->begin();
 }
 
+std::optional<TransceiverID>
+PortManager::getNonControllingTransceiverIdForMultiTcvr(
+    TransceiverID tcvrId) const {
+  auto tcvrMap = multiTcvrControllingToNonControllingTcvr_.rlock();
+  if (auto itr = tcvrMap->find(tcvrId); itr != tcvrMap->end()) {
+    return itr->second;
+  }
+  return std::nullopt;
+}
+
 TransceiverID PortManager::getLowestIndexedStaticTransceiverForPort(
     PortID portId) const {
   auto staticTcvrs = getStaticTransceiversForPort(portId);
@@ -593,6 +603,19 @@ void PortManager::programInternalPhyPorts(TransceiverID id) {
   }
   XLOG(INFO) << logStr << "]";
 
+  if (programmedIphyPorts.empty()) {
+    XLOG(WARN)
+        << "programInternalPhyPorts() returned empty map for Transceiver=" << id
+        << ". Skipping port programming.";
+    return;
+  }
+
+  // Only in use for dual transceiver mode.
+  auto [agentPortIdInt, agentProfileId] = *programmedIphyPorts.begin();
+  auto agentPortId = PortID(agentPortIdInt);
+  PortID subsumedPortId{0};
+  TransceiverID nonControllingTcvrId{0};
+
   // Getting tcvr->PortToProfileId in case we are in dual transceiver mode.
   const auto tcvrToPortToProfileId =
       getMultiTransceiverPortProfileIDs(id, programmedIphyPorts);
@@ -609,11 +632,15 @@ void PortManager::programInternalPhyPorts(TransceiverID id) {
     portToPortInfoWithLock->clear();
     for (auto& [portIdInt, profileId] : portToProfileId) {
       auto programmingPortId = PortID(portIdInt);
-      // For qsfp_service cache, to coordinate tcvr / port states in multi-tcvr
-      // ports.
-      auto cachePortId = useAgentPortIdForCache
-          ? PortID(programmedIphyPorts.begin()->first)
-          : programmingPortId;
+      if (tcvrId != id && programmingPortId != agentPortId) {
+        nonControllingTcvrId = tcvrId;
+        subsumedPortId = programmingPortId;
+      }
+
+      // For qsfp_service cache, to coordinate tcvr / port states in
+      // multi-tcvr ports.
+      auto cachePortId =
+          useAgentPortIdForCache ? agentPortId : programmingPortId;
 
       // Update programming data - qsfp_service only cares about the profileId
       // that it needs to program transceivers at.
@@ -629,6 +656,14 @@ void PortManager::programInternalPhyPorts(TransceiverID id) {
       portToPortInfoWithLock->emplace(programmingPortId, portInfo);
       setTransceiverEnabledStatusInCache(cachePortId, tcvrId);
     }
+  }
+
+  // Update mappings for internal use.
+  if (tcvrToPortToProfileId.size() == 2 && subsumedPortId != PortID(0)) {
+    multiTcvrQsfpPortToAgentPort_.wlock()->insert(
+        {subsumedPortId, agentPortId});
+    multiTcvrControllingToNonControllingTcvr_.wlock()->insert(
+        {id, nonControllingTcvrId});
   }
 
   if (!phyManager_) {
@@ -689,6 +724,11 @@ void PortManager::programExternalPhyPorts(
   }
 
   transceiverManager_->markTransceiverReadyForProgramming(tcvrId, true);
+  if (auto nonControllingTcvrId =
+          getNonControllingTransceiverIdForMultiTcvr(tcvrId)) {
+    transceiverManager_->markTransceiverReadyForProgramming(
+        *nonControllingTcvrId, true);
+  }
 }
 
 phy::PhyInfo PortManager::getPhyInfo(const std::string& portNameStr) {
@@ -1029,25 +1069,6 @@ void PortManager::syncNpuPortStatusUpdate(
   updateTransceiverPortStatus();
 }
 
-std::unordered_map<TransceiverID, TransceiverID>
-PortManager::getControllingTcvrToNonControllingTcvrMap() const {
-  std::unordered_map<TransceiverID, TransceiverID> map;
-  for (const auto& [portId, initializedTcvrs] : portToInitializedTcvrs_) {
-    auto lockedInitializedTcvrs = initializedTcvrs->rlock();
-    if (lockedInitializedTcvrs->size() < 2) {
-      continue;
-    }
-    // Copy and sort the transceiver IDs
-    std::vector<TransceiverID> sortedTcvrs(
-        lockedInitializedTcvrs->begin(), lockedInitializedTcvrs->end());
-    std::sort(sortedTcvrs.begin(), sortedTcvrs.end());
-    // Map the lowest to the second lowest
-    map[sortedTcvrs.at(0)] = sortedTcvrs.at(1);
-  }
-
-  return map;
-}
-
 /*
  * detectTransceiverResetAndReinitializeCorrespondingDownPorts
  *
@@ -1061,8 +1082,8 @@ void PortManager::
     detectTransceiverResetAndReinitializeCorrespondingDownPorts() {
   BlockingStateUpdateResultList results;
   // Fetch non-controlling transceivers.
-  const auto& controllingToNonControllingTcvrMap =
-      getControllingTcvrToNonControllingTcvrMap();
+  const auto controllingToNonControllingTcvrMap =
+      *multiTcvrControllingToNonControllingTcvr_.rlock();
 
   // Iterate through controlling transceivers.
   for (auto& [tcvrId, lockedPortSetPtr] : tcvrToInitializedPorts_) {
@@ -1340,6 +1361,11 @@ void PortManager::updateTransceiverPortStatus() noexcept {
 }
 
 void PortManager::updatePortActiveStatusInTransceiverManager() {
+  // Fetch non-controlling transceivers.
+  const auto controllingToNonControllingTcvrMap =
+      *multiTcvrControllingToNonControllingTcvr_.rlock();
+
+  auto multiTcvrQsfpToAgentPort = *multiTcvrQsfpPortToAgentPort_.rlock();
   for (auto& [tcvrId, lockedInitializedPorts] : tcvrToInitializedPorts_) {
     std::unordered_set<PortID> activePorts;
     // Create a copy to avoid holding two locks at once.
@@ -1351,22 +1377,35 @@ void PortManager::updatePortActiveStatusInTransceiverManager() {
       }
     }
 
-    const auto& portToPortInfoIt =
-        transceiverManager_->getSynchronizedProgrammedIphyPortToPortInfo(
-            tcvrId);
-    if (!portToPortInfoIt) {
-      continue;
+    std::vector<TransceiverID> tcvrsToUpdate{tcvrId};
+    if (auto itr = controllingToNonControllingTcvrMap.find(tcvrId);
+        itr != controllingToNonControllingTcvrMap.end()) {
+      tcvrsToUpdate.push_back(itr->second);
     }
 
-    auto portToPortInfoWithLock = portToPortInfoIt->wlock();
-    for (auto& [portId, portInfo] : *portToPortInfoWithLock) {
-      if (!portInfo.status.has_value()) {
-        portInfo.status = NpuPortStatus{};
+    for (const auto& initTcvrId : tcvrsToUpdate) {
+      const auto& portToPortInfoIt =
+          transceiverManager_->getSynchronizedProgrammedIphyPortToPortInfo(
+              initTcvrId);
+      if (!portToPortInfoIt) {
+        continue;
       }
-      portInfo.status->portEnabled =
-          initializedPorts.find(portId) != initializedPorts.end();
-      portInfo.status->operState =
-          activePorts.find(portId) != activePorts.end();
+
+      auto portToPortInfoWithLock = portToPortInfoIt->wlock();
+      for (auto& [qsfpPortId, portInfo] : *portToPortInfoWithLock) {
+        PortID portId = qsfpPortId;
+        if (auto itr = multiTcvrQsfpToAgentPort.find(qsfpPortId);
+            itr != multiTcvrQsfpToAgentPort.end()) {
+          portId = itr->second;
+        }
+        if (!portInfo.status.has_value()) {
+          portInfo.status = NpuPortStatus{};
+        }
+        portInfo.status->portEnabled =
+            initializedPorts.find(portId) != initializedPorts.end();
+        portInfo.status->operState =
+            activePorts.find(portId) != activePorts.end();
+      }
     }
   }
 }
@@ -1629,8 +1668,8 @@ void PortManager::updatePortActiveState(
 std::unordered_set<TransceiverID> PortManager::getTransceiversWithAllPortsInSet(
     const std::unordered_set<PortID>& ports) const {
   // Fetch non-controlling transceivers.
-  const auto& controllingToNonControllingTcvrMap =
-      getControllingTcvrToNonControllingTcvrMap();
+  const auto controllingToNonControllingTcvrMap =
+      *multiTcvrControllingToNonControllingTcvr_.rlock();
 
   // Check if controlling transceiver is fully covered by ports argument.
   std::unordered_set<TransceiverID> transceivers;
@@ -1726,6 +1765,22 @@ void PortManager::clearEnabledTransceiversForPort(PortID portId) {
     auto initializedTcvrs = initializedTcvrsIt->second->wlock();
     initializedTcvrs->clear();
   }
+}
+
+void PortManager::clearTransceiversReadyForProgramming(PortID portId) {
+  auto initializedTcvrsIt = portToInitializedTcvrs_.find(portId);
+  if (initializedTcvrsIt != portToInitializedTcvrs_.end()) {
+    auto initializedTcvrs = initializedTcvrsIt->second->rlock();
+    for (const auto& tcvrId : *initializedTcvrs) {
+      transceiverManager_->markTransceiverReadyForProgramming(tcvrId, false);
+    }
+  }
+}
+
+void PortManager::clearMultiTcvrMappings(PortID portId) {
+  multiTcvrQsfpPortToAgentPort_.wlock()->erase(portId);
+  multiTcvrControllingToNonControllingTcvr_.wlock()->erase(
+      getLowestIndexedStaticTransceiverForPort(portId));
 }
 
 const std::unordered_set<PortID> PortManager::getXphyPortsCache() {

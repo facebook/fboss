@@ -2536,7 +2536,9 @@ std::pair<bool, std::vector<std::string>> TransceiverManager::areAllPortsDown(
   if (portToPortInfoWithLock->empty()) {
     XLOG(WARN) << "Can't find any programmed port for Transceiver:" << id
                << " in cached tcvrToPortInfo_";
-    return {false, {}};
+    //  In PortManager mode, we can interpret an empty map as indicative of no
+    //  ports being up. Otherwise, we should interpret this as ports being up.
+    return {FLAGS_port_manager_mode, {}};
   }
   bool anyPortUp = false;
   std::vector<std::string> downPorts;
