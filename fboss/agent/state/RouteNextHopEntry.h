@@ -49,8 +49,8 @@ class RouteNextHopEntry
       std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
           std::nullopt,
       std::optional<NextHopSet> overrideNextHops = std::nullopt,
-      std::optional<NextHopSetID> normalizedResolvedNextHopSetID =
-          std::nullopt);
+      std::optional<NextHopSetID> normalizedResolvedNextHopSetID = std::nullopt,
+      std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt);
   RouteNextHopEntry(
       NextHopSet nhopSet,
       AdminDistance distance,
@@ -59,8 +59,8 @@ class RouteNextHopEntry
       std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
           std::nullopt,
       std::optional<NextHopSet> overrideNextHops = std::nullopt,
-      std::optional<NextHopSetID> normalizedResolvedNextHopSetID =
-          std::nullopt);
+      std::optional<NextHopSetID> normalizedResolvedNextHopSetID = std::nullopt,
+      std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt);
 
   RouteNextHopEntry(
       NextHop nhop,
@@ -70,8 +70,8 @@ class RouteNextHopEntry
       std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
           std::nullopt,
       std::optional<NextHopSet> overrideNextHops = std::nullopt,
-      std::optional<NextHopSetID> normalizedResolvedNextHopSetID =
-          std::nullopt);
+      std::optional<NextHopSetID> normalizedResolvedNextHopSetID = std::nullopt,
+      std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt);
 
   RouteNextHopEntry(RouteNextHopEntry&& other) noexcept {
     this->fromThrift(other.toThrift());
@@ -227,7 +227,8 @@ class RouteNextHopEntry
       std::optional<AclLookupClass> classID,
       std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
       const std::optional<NextHopSet>& overridNextHops,
-      const std::optional<NextHopSetID>& normalizedResolvedNextHopSetID);
+      const std::optional<NextHopSetID>& normalizedResolvedNextHopSetID,
+      const std::optional<NextHopSetID>& resolvedNextHopSetID);
   void normalize(
       std::vector<NextHopWeight>& scaledWeights,
       NextHopWeight totalWeight) const;
