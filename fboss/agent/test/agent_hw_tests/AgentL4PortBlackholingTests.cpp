@@ -74,7 +74,12 @@ class AgentL4PortBlackHolingTest : public AgentHwTest {
     };
     auto verify = [=, this]() {
       int numL4Ports = kNumL4Ports();
-      PortID portId = masterLogicalInterfacePortIds()[0];
+      PortID portId;
+      if (FLAGS_hyper_port) {
+        portId = masterLogicalHyperPortIds()[0];
+      } else {
+        portId = masterLogicalInterfacePortIds()[0];
+      }
       auto originalPortStats = getLatestPortStats(portId);
       auto original = *originalPortStats.outUnicastPkts_();
       pumpTraffic(isV6);
