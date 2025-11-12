@@ -116,6 +116,22 @@ class RouteNextHopEntry
     }
   }
 
+  const std::optional<NextHopSetID> getResolvedNextHopSetID() const {
+    if (auto nhopSetID = safe_cref<switch_state_tags::resolvedNextHopSetID>()) {
+      return NextHopSetID(nhopSetID->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setResolvedNextHopSetID(std::optional<NextHopSetID>& nhopSetID) {
+    if (nhopSetID) {
+      ref<switch_state_tags::resolvedNextHopSetID>() =
+          static_cast<int64_t>(*nhopSetID);
+    } else {
+      ref<switch_state_tags::resolvedNextHopSetID>().reset();
+    }
+  }
+
   const std::optional<AclLookupClass> getClassID() const {
     if (auto classID = safe_cref<switch_state_tags::classID>()) {
       return classID->cref();

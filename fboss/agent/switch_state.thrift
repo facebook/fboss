@@ -489,6 +489,7 @@ struct RouteNextHopEntry {
   // exhausted.
   7: optional list<common.NextHopThrift> overrideNextHops;
   8: optional i64 normalizedResolvedNextHopSetID;
+  9: optional i64 resolvedNextHopSetID;
 }
 
 struct RouteNextHopsMulti {
