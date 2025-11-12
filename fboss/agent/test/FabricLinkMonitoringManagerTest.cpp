@@ -202,3 +202,217 @@ TEST(FabricLinkMonitoringManagerTest, MultipleStartStopManager) {
     EXPECT_NO_THROW(manager->stop());
   }
 }
+
+TEST(FabricLinkMonitoringManagerTest, PacketSequenceNumberIncrement) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  uint64_t lastSequenceNumber = 0;
+  int packetCount = 0;
+
+  auto getPortIdToTrack = [&]() {
+    auto state = sw->getState();
+    for (auto& portMap : std::as_const(*state->getPorts())) {
+      for (auto& port : std::as_const(*portMap.second)) {
+        if (port.second->getPortType() == cfg::PortType::FABRIC_PORT) {
+          return static_cast<int>(port.second->getID());
+        }
+      }
+    }
+    return -1;
+  };
+
+  auto portIdToTrack = getPortIdToTrack();
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortSyncForPktType_(
+          TxPacketMatcher::createMatcher(
+              "Fabric Monitoring Packet",
+              [&lastSequenceNumber, &packetCount, &portIdToTrack](
+                  const TxPacket* pkt) {
+                Cursor c(pkt->buf());
+                auto seqNum = c.readBE<uint64_t>();
+                auto portId = c.readBE<uint32_t>();
+                if (portId == portIdToTrack) {
+                  if (packetCount > 0) {
+                    EXPECT_GT(seqNum, lastSequenceNumber);
+                  }
+                  lastSequenceNumber = seqNum;
+                  packetCount++;
+                }
+              }),
+          _,
+          _))
+      .Times(AtLeast(5));
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  waitForStateUpdates(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+
+  manager->stop();
+}
+
+TEST(FabricLinkMonitoringManagerTest, OnlyFabricPortsReceivePackets) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  auto state = sw->getState();
+  auto newState = state->clone();
+
+  for (auto& portMap : std::as_const(*newState->getPorts())) {
+    for (auto& port : std::as_const(*portMap.second)) {
+      auto newPort = port.second->modify(&newState);
+      if (port.second->getID() == PortID(1)) {
+        newPort->setPortType(cfg::PortType::INTERFACE_PORT);
+      } else {
+        newPort->setPortType(cfg::PortType::FABRIC_PORT);
+      }
+    }
+  }
+
+  sw->updateStateBlocking(
+      "Update port types", [&](const auto&) { return newState; });
+
+  int fabricPortCount = 0;
+  for (const auto& portMap : std::as_const(*sw->getState()->getPorts())) {
+    for (const auto& [portId, port] : std::as_const(*portMap.second)) {
+      (void)portId;
+      if (port->getPortType() == cfg::PortType::FABRIC_PORT &&
+          port->isPortUp()) {
+        fabricPortCount++;
+      }
+    }
+  }
+
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortSyncForPktType_(
+          TxPacketMatcher::createMatcher(
+              "Fabric Monitoring Packet", checkFabricMonitoringPacket()),
+          _,
+          _))
+      .Times(AtLeast(fabricPortCount));
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  waitForStateUpdates(sw);
+  waitForBackgroundThread(sw);
+
+  manager->stop();
+}
+
+TEST(FabricLinkMonitoringManagerTest, PacketDropDetectionOnMaxPendingExceeded) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortSyncForPktType_(
+          TxPacketMatcher::createMatcher(
+              "Fabric Monitoring Packet", checkFabricMonitoringPacket()),
+          _,
+          _))
+      .Times(AtLeast(4));
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  // Wait for multiple packets to be sent
+  waitForStateUpdates(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+
+  manager->stop();
+}
+
+TEST(FabricLinkMonitoringManagerTest, MultipleSequentialPackets) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortSyncForPktType_(
+          TxPacketMatcher::createMatcher(
+              "Fabric Monitoring Packet", checkFabricMonitoringPacket()),
+          _,
+          _))
+      .Times(AtLeast(5));
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  // Send multiple rounds of packets
+  waitForStateUpdates(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+
+  // Verify packets were sent
+  PortID testPort(1);
+  auto statsAfter = manager->getFabricLinkMonPortStats(testPort);
+  EXPECT_GT(statsAfter.txCount, 0);
+  // Since no packets are being received, pending sequence numbers should
+  // accumulate
+  EXPECT_GT(statsAfter.pendingSequenceNumbers.size(), 0);
+
+  manager->stop();
+}
+
+TEST(FabricLinkMonitoringManagerTest, DetectInvalidPayload) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  waitForStateUpdates(sw);
+
+  // Create a packet with invalid payload
+  PortID portId = PortID(1);
+
+  // Get initial stats
+  auto statsBefore = manager->getFabricLinkMonPortStats(portId);
+  std::vector<uint8_t> data(kFabricLinkMonitoringPacketSize);
+
+  // Serialize sequenceNumber
+  uint64_t seq_be = htobe64(0);
+  std::memcpy(data.data(), &seq_be, sizeof(seq_be));
+
+  // Serialize portId
+  uint32_t port_be = htobe32(static_cast<uint32_t>(portId));
+  std::memcpy(data.data() + 8, &port_be, sizeof(port_be));
+
+  // Fill with incorrect pattern
+  size_t fillStart = sizeof(uint64_t) + sizeof(uint32_t);
+  uint32_t wrongPattern = 0xDEADBEEF; // Wrong pattern
+  for (size_t i = fillStart; i + 4 <= kFabricLinkMonitoringPacketSize; i += 4) {
+    std::memcpy(data.data() + i, &wrongPattern, sizeof(wrongPattern));
+  }
+
+  auto buf = folly::IOBuf::copyBuffer(data.data(), data.size());
+  auto rxPkt = std::make_unique<MockRxPacket>(std::move(buf));
+  rxPkt->setSrcPort(portId);
+
+  folly::io::Cursor cursor(rxPkt->buf());
+  manager->handlePacket(std::move(rxPkt), cursor);
+
+  // Verify invalidPayloadCount was incremented
+  auto statsAfter = manager->getFabricLinkMonPortStats(portId);
+  EXPECT_EQ(
+      statsAfter.invalidPayloadCount, statsBefore.invalidPayloadCount + 1);
+  EXPECT_EQ(statsAfter.rxCount, statsBefore.rxCount);
+
+  manager->stop();
+}
