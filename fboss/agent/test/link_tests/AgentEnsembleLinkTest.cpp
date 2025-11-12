@@ -192,7 +192,9 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
   const auto& platformPorts = getSw()->getPlatformMapping()->getPlatformPorts();
 
   auto swConfig = getSw()->getConfig();
-  const auto& chips = getSw()->getPlatformMapping()->getChips();
+  const auto& platformMapping = getSw()->getPlatformMapping();
+  const auto& chips = platformMapping->getChips();
+
   for (const auto& port : *swConfig.ports()) {
     if (!(*port.expectedLLDPValues()).empty() ||
         !(*port.expectedNeighborReachability()).empty()) {
@@ -204,10 +206,13 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
       const auto platformPortEntry = platformPorts.find(portID);
       EXPECT_TRUE(platformPortEntry != platformPorts.end())
           << "Can't find port:" << portID << " in PlatformMapping";
-      auto transceiverIds =
-          utility::getTransceiverIds(platformPortEntry->second, chips);
-      if (!transceiverIds.empty()) {
-        cabledTransceivers_.insert(transceiverIds[0]);
+
+      const auto tcvrIds = utility::getTransceiverIds(
+          platformPortEntry->second, chips, *port.profileID());
+      for (const auto& tcvrId : tcvrIds) {
+        cabledTransceivers_.insert(tcvrId);
+      }
+      if (!tcvrIds.empty()) {
         cabledTransceiverPorts_.emplace_back(portID);
       }
     }
