@@ -199,6 +199,18 @@ TEST(Route, RouteNextHopsMultiThrift) {
           std::optional<RouteNextHopEntry::NextHopSet>(std::nullopt),
           std::optional<NextHopSetID>(NextHopSetID(200))));
 
+  nhm1.update(
+      CLIENT_A,
+      RouteNextHopEntry(
+          newNextHops(4, "4.4.4."),
+          DISTANCE,
+          std::optional<RouteCounterID>(std::nullopt),
+          std::optional<cfg::AclLookupClass>(std::nullopt),
+          std::optional<cfg::SwitchingMode>(std::nullopt),
+          std::optional<RouteNextHopEntry::NextHopSet>(std::nullopt),
+          std::optional<NextHopSetID>(std::nullopt),
+          std::optional<NextHopSetID>(NextHopSetID(300))));
+
   validateThriftStructNodeSerialization<RouteNextHopsMulti>(nhm1);
 }
 
@@ -308,11 +320,13 @@ TEST(Route, serializeRouteOverrideEcmpMode) {
 }
 
 // Serialization/deseralization of Routes with normalizedResolvedNextHopSetID
-TEST(Route, serializeRouteNormalizedResolvedNextHopSetID) {
+// and resolvedNextHopSetID
+TEST(Route, serializeRouteNextHopSetIDs) {
   ClientID clientId = ClientID(1);
   auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
   std::optional<NextHopSetID> normalizedResolvedNextHopSetID(
       NextHopSetID(12345));
+  std::optional<NextHopSetID> resolvedNextHopSetID(NextHopSetID(54321));
   RouteNextHopEntry nhopEntry(
       nxtHops,
       DISTANCE,
@@ -320,13 +334,15 @@ TEST(Route, serializeRouteNormalizedResolvedNextHopSetID) {
       std::optional<cfg::AclLookupClass>(),
       std::optional<cfg::SwitchingMode>(),
       std::optional<RouteNextHopEntry::NextHopSet>(),
-      normalizedResolvedNextHopSetID);
+      normalizedResolvedNextHopSetID,
+      resolvedNextHopSetID);
   Route<IPAddressV4> rt(
       Route<IPAddressV4>::makeThrift(
           makePrefixV4("1.2.3.4/32"), clientId, nhopEntry));
   rt.setResolved(nhopEntry);
   validateThriftStructNodeSerialization(rt);
 }
+
 // Test utility functions for converting RouteNextHopSet to thrift and back
 TEST(RouteTypes, toFromRouteNextHops) {
   RouteNextHopSet nhs;
