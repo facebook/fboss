@@ -79,26 +79,6 @@ void recurseGetPinsByChipType(
   }
 }
 
-std::vector<Pin> getPinsByChipType(
-    const std::map<std::string, DataPlanePhyChip>& chipsMap,
-    const std::vector<PinConnection>& pinConns,
-    DataPlanePhyChipType type) {
-  // First get all the expected chip type into a map to make search easier
-  std::map<std::string, DataPlanePhyChip> filteredChips;
-  for (const auto& itChip : chipsMap) {
-    if (*itChip.second.type() == type) {
-      filteredChips[itChip.first] = itChip.second;
-    }
-  }
-
-  // use the recurse function to get all the expected chip pin
-  std::vector<Pin> results;
-  for (const auto& pinConn : pinConns) {
-    recurseGetPinsByChipType(pinConn, filteredChips, results);
-  }
-  return results;
-}
-
 void checkPinType(const Pin& pin, const DataPlanePhyChipType& expectedType) {
   switch (expectedType) {
     case DataPlanePhyChipType::IPHY:
@@ -122,6 +102,31 @@ void checkPinType(const Pin& pin, const DataPlanePhyChipType& expectedType) {
           "Unsupported pin type:",
           apache::thrift::util::enumNameSafe(expectedType));
   }
+}
+
+std::vector<Pin> getPinsByChipType(
+    const std::map<std::string, DataPlanePhyChip>& chipsMap,
+    const std::vector<PinConnection>& pinConns,
+    DataPlanePhyChipType type) {
+  // First get all the expected chip type into a map to make search easier
+  std::map<std::string, DataPlanePhyChip> filteredChips;
+  for (const auto& itChip : chipsMap) {
+    if (*itChip.second.type() == type) {
+      filteredChips[itChip.first] = itChip.second;
+    }
+  }
+
+  // use the recurse function to get all the expected chip pin
+  std::vector<Pin> results;
+  for (const auto& pinConn : pinConns) {
+    recurseGetPinsByChipType(pinConn, filteredChips, results);
+  }
+
+  for (auto& pin : results) {
+    checkPinType(pin, type);
+  }
+
+  return results;
 }
 
 std::string getChipName(const Pin& pin) {
@@ -176,7 +181,6 @@ std::vector<phy::PinID> getTransceiverLanes(
         phy::DataPlanePhyChipType::TRANSCEIVER);
     // the return pins should always be PinID for transceiver
     for (auto pin : pins) {
-      checkPinType(pin, phy::DataPlanePhyChipType::TRANSCEIVER);
       lanes.push_back(pin.get_end());
     }
   }
@@ -253,7 +257,6 @@ std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
         *platformPortEntry.mapping()->pins(),
         phy::DataPlanePhyChipType::XPHY);
     for (const auto& pin : xphyPinList) {
-      checkPinType(pin, phy::DataPlanePhyChipType::XPHY);
       for (const auto& connection : *pin.get_junction().line()) {
         if (auto pn = connection.polaritySwap()) {
           xphyPolaritySwapMap.emplace(*connection.a()->lane(), *pn);
@@ -297,7 +300,6 @@ std::vector<phy::PinID> getOrderedIphyLanes(
         chipsMap, *port.mapping()->pins(), phy::DataPlanePhyChipType::IPHY);
     // the return pins should always be PinID for transceiver
     for (auto pin : pins) {
-      checkPinType(pin, phy::DataPlanePhyChipType::IPHY);
       lanes.push_back(pin.get_end());
     }
   }
@@ -373,7 +375,6 @@ std::map<std::string, phy::DataPlanePhyChip> getDataPlanePhyChips(
       continue;
     }
     for (auto pin : pins) {
-      checkPinType(pin, type);
       std::string chipName = getChipName(pin);
       if (auto itChip = chipsMap.find(chipName); itChip != chipsMap.end()) {
         chips.emplace(itChip->first, itChip->second);
