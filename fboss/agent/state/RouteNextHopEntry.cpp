@@ -185,6 +185,7 @@ std::string RouteNextHopEntry::str_DEPRACATED() const {
   auto classID = getClassID();
   auto overrideEcmpMode = getOverrideEcmpSwitchingMode();
   auto normalizedResolvedNhSetID = getNormalizedResolvedNextHopSetID();
+  auto resolvedNhSetID = getResolvedNextHopSetID();
   result += folly::to<std::string>(
       ";counterID=", counterID.has_value() ? *counterID : "none");
   result += folly::to<std::string>(
@@ -209,6 +210,12 @@ std::string RouteNextHopEntry::str_DEPRACATED() const {
       normalizedResolvedNhSetID.has_value()
           ? std::to_string(static_cast<uint64_t>(*normalizedResolvedNhSetID))
           : "none");
+
+  result += folly::to<std::string>(
+      ";resolvedNextHopSetID=",
+      resolvedNhSetID.has_value()
+          ? std::to_string(static_cast<uint64_t>(*resolvedNhSetID))
+          : "none");
   return result;
 }
 
@@ -228,7 +235,8 @@ bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
               b.getOverrideEcmpSwitchingMode() &&
           a.getOverrideNextHops() == b.getOverrideNextHops()) &&
       a.getNormalizedResolvedNextHopSetID() ==
-      b.getNormalizedResolvedNextHopSetID();
+      b.getNormalizedResolvedNextHopSetID() &&
+      a.getResolvedNextHopSetID() == b.getResolvedNextHopSetID();
 }
 
 bool operator<(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
