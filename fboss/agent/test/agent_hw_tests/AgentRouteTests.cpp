@@ -87,7 +87,11 @@ class AgentRouteTest : public AgentHwTest {
   std::vector<PortDescriptor> portDescs() const {
     std::vector<PortDescriptor> ports;
     for (auto i = 0; i < 4; ++i) {
-      ports.push_back(PortDescriptor(masterLogicalInterfacePortIds()[i]));
+      if (FLAGS_hyper_port) {
+        ports.push_back(PortDescriptor(masterLogicalHyperPortIds()[i]));
+      } else {
+        ports.push_back(PortDescriptor(masterLogicalInterfacePortIds()[i]));
+      }
     }
     return ports;
   }
@@ -479,20 +483,15 @@ TYPED_TEST(AgentRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
 
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto newState = ecmpHelper.unresolveNextHops(
-          in,
-          {PortDescriptor(this->masterLogicalInterfacePortIds()[0]),
-           PortDescriptor(this->masterLogicalInterfacePortIds()[1])});
+          in, {this->portDescs()[0], this->portDescs()[1]});
       return newState;
     });
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto newState = ecmpHelper.resolveNextHops(
-          in, {PortDescriptor(this->masterLogicalInterfacePortIds()[0])});
+      auto newState = ecmpHelper.resolveNextHops(in, {this->portDescs()[0]});
       return newState;
     });
     ecmpHelper.programRoutes(
-        &wrapper,
-        {PortDescriptor(this->masterLogicalInterfacePortIds()[0])},
-        {this->kGetRoutePrefix0()});
+        &wrapper, {this->portDescs()[0]}, {this->kGetRoutePrefix0()});
   };
   this->verifyAcrossWarmBoots([] {}, verify);
 }
@@ -801,15 +800,12 @@ TYPED_TEST(AgentMplsRouteTest, StaticIp2MplsRoutes) {
     auto wrapper = this->getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(
         &wrapper,
-        {PortDescriptor(this->masterLogicalInterfacePortIds()[0]),
-         PortDescriptor(this->masterLogicalInterfacePortIds()[1])},
+        {this->portDescs()[0], this->portDescs()[1]},
         {this->kGetRoutePrefix0()});
 
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto newState = ecmpHelper.resolveNextHops(
-          in,
-          {PortDescriptor(this->masterLogicalInterfacePortIds()[0]),
-           PortDescriptor(this->masterLogicalInterfacePortIds()[1])});
+          in, {this->portDescs()[0], this->portDescs()[1]});
       return newState;
     });
   };
