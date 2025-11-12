@@ -144,16 +144,19 @@ if (!portMgr) {
 }
 
 try {
-  if (portMgr->isLowestIndexedPortForTransceiverPortGroup(portId)) {
+  if (portMgr->isLowestIndexedInitializedPortForTransceiverPortGroup(portId)) {
     // Port should orchestrate PHY programming.
-    for (auto tcvrID : portMgr->getTransceiverIdsForPort(portId)) {
-      portMgr->programInternalPhyPorts(tcvrID);
-    }
+    // First transceiver will communicate which pins need to be programmed (for
+    // both ports) - so only one transceiver needs to request information from
+    // agent.
+
+    portMgr->programInternalPhyPorts(
+        portMgr->getLowestIndexedStaticTransceiverForPort(portId));
   } else {
     // Port shouldn't orchestrate PHY programming. Port needs to check state
     // of orchestrating port to proceed to next stage.
     auto lowestIdxPort =
-        portMgr->getLowestIndexedPortForTransceiverPortGroup(portId);
+        portMgr->getLowestIndexedInitializedPortForTransceiverPortGroup(portId);
     return portMgr->hasPortFinishedIphyProgramming(lowestIdxPort);
   }
   return true;
@@ -182,17 +185,18 @@ if (!portMgr) {
 }
 
 try {
-  if (portMgr->isLowestIndexedPortForTransceiverPortGroup(portId)) {
+  if (portMgr->isLowestIndexedInitializedPortForTransceiverPortGroup(portId)) {
     // Port should orchestrate PHY programming.
-    for (auto tcvrID : portMgr->getTransceiverIdsForPort(portId)) {
-      portMgr->programExternalPhyPorts(
-          tcvrID, fsm.get_attribute(xphyNeedResetDataPath));
-    }
+    // TODO(smenta) – When Y-Cable support is needed for XPHY tcvrs, may need to
+    // loop through all transceivers for ports.
+    auto tcvrId = portMgr->getLowestIndexedStaticTransceiverForPort(portId);
+    portMgr->programExternalPhyPorts(
+        tcvrId, fsm.get_attribute(xphyNeedResetDataPath));
   } else {
     // Port shouldn't orchestrate PHY programming. Port needs to check state
     // of orchestrating port to proceed to next stage.
     auto lowestIdxPort =
-        portMgr->getLowestIndexedPortForTransceiverPortGroup(portId);
+        portMgr->getLowestIndexedInitializedPortForTransceiverPortGroup(portId);
     return portMgr->hasPortFinishedXphyProgramming(lowestIdxPort);
   }
   return true;

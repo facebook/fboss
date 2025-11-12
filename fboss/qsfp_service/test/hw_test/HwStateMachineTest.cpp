@@ -209,7 +209,7 @@ class HwStateMachineTest : public HwTest {
         EXPECT_EQ(portMgr->getXphyNeedResetDataPath(portId), isAgentColdboot);
       } else if (curState == PortStateMachineState::XPHY_PORTS_PROGRAMMED) {
         // Check xphy programmed correctly
-        auto tcvrId = portMgr->getLowestIndexedTransceiverForPort(portId);
+        auto tcvrId = portMgr->getLowestIndexedStaticTransceiverForPort(portId);
         const auto programmedPortToPortInfo =
             wedgeMgr->getProgrammedIphyPortToPortInfo(tcvrId);
         const auto& transceiver = wedgeMgr->getTransceiverInfo(tcvrId);

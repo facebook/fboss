@@ -159,11 +159,12 @@ class PortManager {
    * transceiver (e.g. programInternalPhyPorts).
    *
    * For 1:1 tcvr:port case, this will simply return the passed in portID.
-   * For 1:X tcvr:port case, this will return the lowest portID assigned to the
-   * transceiver.
+   * For 1:X tcvr:port case, this will return the lowest initialized portID
+   * assigned to the transceiver.
    * For X:1 tcvr:port case, this will simply return the passed in portID.
    */
-  PortID getLowestIndexedPortForTransceiverPortGroup(PortID portId) const;
+  PortID getLowestIndexedInitializedPortForTransceiverPortGroup(
+      PortID portId) const;
 
   /* Gets lowest-indexed transceiverID associated with a given portID. This is
    * used for assigning port state machine functions to a thread for execution.
@@ -172,10 +173,24 @@ class PortManager {
    * For 1:X tcvr:port case, this will return the assigned transceiverID.
    * For X:1 tcvr:port case, this will return the lowest transceiverID assigned
    * to the port.
+   *
+   * This information can be pulled from static mapping in platform mapping or
+   * from the profile-specific pins – either way we are guaranteed that the
+   * first transceiver for a port will always be in use. That guarantee doesn't
+   * hold for the second transceiver.
    */
-  TransceiverID getLowestIndexedTransceiverForPort(PortID portId) const;
+  TransceiverID getLowestIndexedStaticTransceiverForPort(PortID portId) const;
 
-  bool isLowestIndexedPortForTransceiverPortGroup(PortID portId) const;
+  /* Gets ALL transceiver ids that CAN be used by the given port. For a majority
+   * of ports, this will be 1. However, for our custom Wedge400 platform mapping
+   * that supports reverse Y-Cable downlinks, this will be two transceiver for
+   * downlink ports. */
+  std::vector<TransceiverID> getStaticTransceiversForPort(PortID portId) const;
+
+  /* Checks if a port is the lowest indexed, initialized port assigned to a
+   * specific transceiver. */
+  bool isLowestIndexedInitializedPortForTransceiverPortGroup(
+      PortID portId) const;
 
   // Gets all transceiverIDs for a given port. This will contain 2 transceivers
   // in the multi-tcvr - single-port use case, otherwise will contain 1.

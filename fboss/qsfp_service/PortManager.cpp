@@ -225,14 +225,14 @@ void PortManager::programXphyPort(
 
   // TODO(smenta): If Y-Cable will be supported on XPHY ports, we need to
   // iterate through all transceivers for the given port.
-  auto tcvrID = getLowestIndexedTransceiverForPort(portId);
+  auto tcvrId = getLowestIndexedStaticTransceiverForPort(portId);
   std::optional<TransceiverInfo> tcvrInfo =
-      transceiverManager_->getTransceiverInfoOptional(tcvrID);
+      transceiverManager_->getTransceiverInfoOptional(tcvrId);
 
   if (!tcvrInfo) {
     auto portNameStr = getPortNameByPortIdOrThrow(portId);
     SW_PORT_LOG(WARNING, "", portNameStr, portId)
-        << "Port doesn't have transceiver info for transceiver id:" << tcvrID;
+        << "Port doesn't have transceiver info for transceiver id:" << tcvrId;
   }
 
   phyManager_->programOnePort(
@@ -359,9 +359,9 @@ PortStateMachineState PortManager::getPortState(PortID portId) const {
   return stateMachineItr->second->getCurrentState();
 }
 
-PortID PortManager::getLowestIndexedPortForTransceiverPortGroup(
+PortID PortManager::getLowestIndexedInitializedPortForTransceiverPortGroup(
     PortID portId) const {
-  TransceiverID tcvrId = getLowestIndexedTransceiverForPort(portId);
+  TransceiverID tcvrId = getLowestIndexedStaticTransceiverForPort(portId);
 
   // Find lowest indexed port assigned to the above transceiver.
   auto tcvrToPortMapItr = tcvrToInitializedPorts_.find(tcvrId);
@@ -376,7 +376,16 @@ PortID PortManager::getLowestIndexedPortForTransceiverPortGroup(
   return *lockedInitializedPorts->begin();
 }
 
-TransceiverID PortManager::getLowestIndexedTransceiverForPort(
+TransceiverID PortManager::getLowestIndexedStaticTransceiverForPort(
+    PortID portId) const {
+  auto staticTcvrs = getStaticTransceiversForPort(portId);
+  if (staticTcvrs.empty()) {
+    throw FbossError("No static transceiver for port ", portId);
+  }
+  return staticTcvrs.at(0);
+}
+
+std::vector<TransceiverID> PortManager::getStaticTransceiversForPort(
     PortID portId) const {
   auto portToTcvrMapItr = portToTcvrMap_.find(portId);
   if (portToTcvrMapItr == portToTcvrMap_.end() ||
@@ -384,12 +393,13 @@ TransceiverID PortManager::getLowestIndexedTransceiverForPort(
     throw FbossError("No transceiver found for port ", portId);
   }
 
-  return portToTcvrMapItr->second.at(0);
+  return portToTcvrMapItr->second;
 }
 
-bool PortManager::isLowestIndexedPortForTransceiverPortGroup(
+bool PortManager::isLowestIndexedInitializedPortForTransceiverPortGroup(
     PortID portId) const {
-  return portId == getLowestIndexedPortForTransceiverPortGroup(portId);
+  return portId ==
+      getLowestIndexedInitializedPortForTransceiverPortGroup(portId);
 }
 
 std::vector<TransceiverID> PortManager::getTransceiverIdsForPort(
@@ -606,7 +616,7 @@ void PortManager::getAllPortSupportedProfiles(
     bool checkOptics) {
   // Find the list of all available ports from agent config
   std::vector<std::string> availablePorts;
-  for (const auto& [tcvrID, initializedPorts] : tcvrToInitializedPorts_) {
+  for (const auto& [tcvrId, initializedPorts] : tcvrToInitializedPorts_) {
     auto lockedPorts = initializedPorts->rlock();
     for (const auto& port : *lockedPorts) {
       auto portNameStr = getPortNameByPortIdOrThrow(port);
@@ -667,9 +677,9 @@ void PortManager::getAllPortSupportedProfiles(
 
       // We should never have a portID in the platform mapping that doesn't have
       // an associated transceiverID.
-      auto tcvrID = getLowestIndexedTransceiverForPort(*portId);
+      auto tcvrId = getLowestIndexedStaticTransceiverForPort(*portId);
       if (transceiverManager_->isTransceiverPortStateSupported(
-              tcvrID, portState)) {
+              tcvrId, portState)) {
         supportedPortProfiles[portNameStr].push_back(profileID);
       }
     }
@@ -1330,7 +1340,7 @@ void PortManager::handlePendingUpdates() {
   for (auto& stateMachinePair : stateMachineControllers_) {
     const auto& portId = stateMachinePair.first;
     const auto& stateMachineControllerPtr = stateMachinePair.second;
-    const auto& tcvrID = getLowestIndexedTransceiverForPort(portId);
+    const auto& tcvrID = getLowestIndexedStaticTransceiverForPort(portId);
     auto threadsItr = threads_->find(tcvrID);
     if (threadsItr == threads_->end()) {
       PORTMGR_SM_LOG(WARN) << "Can't find ThreadHelper for threadID " << tcvrID
@@ -1464,7 +1474,7 @@ PortManager::setupTcvrToSynchronizedPortSet() {
 }
 
 void PortManager::setPortEnabledStatusInCache(PortID portId, bool enabled) {
-  auto tcvrId = getLowestIndexedTransceiverForPort(portId);
+  auto tcvrId = getLowestIndexedStaticTransceiverForPort(portId);
   auto tcvrToInitializedPortsItr = tcvrToInitializedPorts_.find(tcvrId);
   if (tcvrToInitializedPortsItr == tcvrToInitializedPorts_.end()) {
     throw FbossError(
@@ -1629,8 +1639,8 @@ void PortManager::refreshStateMachines() {
   // and Tcvr Insert
   updatePortActiveStatusInTransceiverManager();
 
-  // Step 4: Reset port state machines for ports that have transceivers that are
-  // recently discovered to retrigger programming.
+  // Step 4: Reset port state machines for ports that have transceivers that
+  // are recently discovered to retrigger programming.
   detectTransceiverResetAndReinitializeCorrespondingDownPorts();
 
   // Step 5: Check whether there's a wedge_agent config change
