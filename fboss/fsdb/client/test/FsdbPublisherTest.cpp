@@ -24,7 +24,10 @@ class TestFsdbStreamPublisher : public FsdbPublisher<OperDelta> {
             {"agent"},
             streamEvb,
             timerEvb,
-            false) {}
+            false) {
+    // Start unblocked
+    serveStreamBlock_.post();
+  }
 
   ~TestFsdbStreamPublisher() override {
     cancel();
@@ -38,6 +41,8 @@ class TestFsdbStreamPublisher : public FsdbPublisher<OperDelta> {
     auto gen = createGenerator();
     generatorStart_.wait();
     while (auto pubUnit = co_await gen.next()) {
+      // Block here if requested to simulate stuck serveStream
+      serveStreamBlock_.wait();
       if (isCancelled()) {
         XLOG(DBG2) << " Detected cancellation";
         break;
@@ -52,9 +57,16 @@ class TestFsdbStreamPublisher : public FsdbPublisher<OperDelta> {
   void startGenerator() {
     generatorStart_.post();
   }
+  void blockServeStream() {
+    serveStreamBlock_.reset();
+  }
+  void unblockServeStream() {
+    serveStreamBlock_.post();
+  }
 
  private:
   folly::Baton<> generatorStart_;
+  folly::Baton<> serveStreamBlock_;
 };
 
 } // namespace
@@ -122,6 +134,52 @@ TEST_F(StreamPublisherTest, overflowQueue) {
   });
   EXPECT_EQ(
       fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 0);
+#endif
+}
+
+TEST_F(StreamPublisherTest, pipeResetWhenServeStreamStuck) {
+  auto counterPrefix = streamPublisher_->getCounterPrefix();
+  EXPECT_EQ(counterPrefix, "fsdbDeltaStatePublisher_agent");
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 0);
+
+  streamPublisher_->markConnecting();
+  WITH_RETRIES(
+      { EXPECT_EVENTUALLY_TRUE(streamPublisher_->isConnectedToServer()); });
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 1);
+
+#if FOLLY_HAS_COROUTINES
+  // Start the generator so serveStream begins consuming
+  streamPublisher_->startGenerator();
+
+  // Write one item to get serveStream started
+  EXPECT_TRUE(streamPublisher_->write(OperDelta{}));
+
+  // Give serveStream time to consume the first item
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Block serveStream after it has consumed from generator
+  streamPublisher_->blockServeStream();
+
+  // Fill queue to capacity while serveStream is stuck processing
+  for (auto i = 0; i < streamPublisher_->queueCapacity(); ++i) {
+    streamPublisher_->write(OperDelta{});
+  }
+
+  // Try to write more - this should reset the pipe since serveStream is stuck
+  // and queue is full (no back pressure callback registered)
+  for (auto i = 0; i < streamPublisher_->queueCapacity(); ++i) {
+    streamPublisher_->write(OperDelta{});
+  }
+
+  // Verify pipe was reset (queue size should be 0)
+  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(streamPublisher_->queueSize(), 0); });
+
+  // Unblock serveStream and verify publisher disconnects
+  streamPublisher_->unblockServeStream();
+  WITH_RETRIES(
+      { EXPECT_EVENTUALLY_FALSE(streamPublisher_->isConnectedToServer()); });
 #endif
 }
 
