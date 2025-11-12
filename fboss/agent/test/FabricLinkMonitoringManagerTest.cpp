@@ -416,3 +416,125 @@ TEST(FabricLinkMonitoringManagerTest, DetectInvalidPayload) {
 
   manager->stop();
 }
+
+TEST(FabricLinkMonitoringManagerTest, DetectPortIdMismatch) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  waitForStateUpdates(sw);
+
+  // Create a packet with mismatched port ID
+  PortID actualPort = PortID(1);
+
+  // Get initial stats
+  auto statsBefore = manager->getFabricLinkMonPortStats(actualPort);
+  PortID wrongPortInPacket = PortID(99);
+  std::vector<uint8_t> data(kFabricLinkMonitoringPacketSize);
+
+  // Serialize sequenceNumber
+  uint64_t seq_be = htobe64(0);
+  std::memcpy(data.data(), &seq_be, sizeof(seq_be));
+
+  // Serialize wrong portId
+  uint32_t port_be = htobe32(static_cast<uint32_t>(wrongPortInPacket));
+  std::memcpy(data.data() + 8, &port_be, sizeof(port_be));
+
+  // Fill with correct pattern
+  size_t fillStart = sizeof(uint64_t) + sizeof(uint32_t);
+  auto fillPattern = FabricLinkMonitoringManager::getPayloadPattern(0);
+  for (size_t i = fillStart; i + 4 <= kFabricLinkMonitoringPacketSize; i += 4) {
+    std::memcpy(data.data() + i, &fillPattern, sizeof(fillPattern));
+  }
+
+  auto buf = folly::IOBuf::copyBuffer(data.data(), data.size());
+  auto rxPkt = std::make_unique<MockRxPacket>(std::move(buf));
+  rxPkt->setSrcPort(actualPort);
+
+  folly::io::Cursor cursor(rxPkt->buf());
+  manager->handlePacket(std::move(rxPkt), cursor);
+
+  // Verify invalidPayloadCount was incremented (port ID mismatch)
+  auto statsAfter = manager->getFabricLinkMonPortStats(actualPort);
+  EXPECT_EQ(
+      statsAfter.invalidPayloadCount, statsBefore.invalidPayloadCount + 1);
+  EXPECT_EQ(statsAfter.rxCount, statsBefore.rxCount);
+
+  manager->stop();
+}
+
+TEST(FabricLinkMonitoringManagerTest, OutOfOrderPacketHandling) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortSyncForPktType_(
+          TxPacketMatcher::createMatcher(
+              "Fabric Monitoring Packet", checkFabricMonitoringPacket()),
+          _,
+          _))
+      .Times(AtLeast(5));
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  // Wait for multiple rounds of packets to build up pending sequence numbers
+  waitForStateUpdates(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+  waitForBackgroundThread(sw);
+
+  // Stop the manager to avoid race condition where background thread
+  // sends another packet while we're reading stats
+  manager->stop();
+
+  PortID portId = PortID(1);
+  auto statsBefore = manager->getFabricLinkMonPortStats(portId);
+
+  // Verify packets were sent and are pending
+  EXPECT_GT(statsBefore.txCount, 0);
+  EXPECT_GT(statsBefore.pendingSequenceNumbers.size(), 0);
+
+  // Get the pending sequence numbers
+  auto pendingSeqNums = statsBefore.pendingSequenceNumbers;
+  ASSERT_FALSE(pendingSeqNums.empty());
+
+  // Find the last (highest) sequence number in the pending list
+  uint64_t lastSeqNum =
+      *std::max_element(pendingSeqNums.begin(), pendingSeqNums.end());
+
+  // Count how many sequence numbers are before the last one
+  size_t expectedDropCount = 0;
+  for (auto seqNum : pendingSeqNums) {
+    if (seqNum < lastSeqNum) {
+      expectedDropCount++;
+    }
+  }
+
+  // Receive the last packet in the pending list
+  // This should cause all earlier pending packets to be marked as dropped
+  auto rxPkt = createFabricMonitoringRxPacket(sw, portId, lastSeqNum);
+  folly::io::Cursor cursor(rxPkt->buf());
+  manager->handlePacket(std::move(rxPkt), cursor);
+
+  auto statsAfter = manager->getFabricLinkMonPortStats(portId);
+  EXPECT_EQ(statsAfter.rxCount, statsBefore.rxCount + 1);
+  // All packets with sequence numbers < lastSeqNum should now be dropped
+  EXPECT_EQ(
+      statsAfter.droppedCount, statsBefore.droppedCount + expectedDropCount);
+}
+
+TEST(FabricLinkMonitoringManagerTest, GetPayloadPatternAlternates) {
+  // Verify payload pattern alternates between odd and even sequence numbers
+  EXPECT_EQ(FabricLinkMonitoringManager::getPayloadPattern(0), 0x5A5A5A5A);
+  EXPECT_EQ(FabricLinkMonitoringManager::getPayloadPattern(1), 0xA5A5A5A5);
+  EXPECT_EQ(FabricLinkMonitoringManager::getPayloadPattern(2), 0x5A5A5A5A);
+  EXPECT_EQ(FabricLinkMonitoringManager::getPayloadPattern(3), 0xA5A5A5A5);
+  EXPECT_EQ(FabricLinkMonitoringManager::getPayloadPattern(100), 0x5A5A5A5A);
+  EXPECT_EQ(FabricLinkMonitoringManager::getPayloadPattern(101), 0xA5A5A5A5);
+}
