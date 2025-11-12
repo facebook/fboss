@@ -238,7 +238,7 @@ class BuilderBase(object):
             )
         )
 
-    def run_tests(self, schedule_type, owner, test_filter, retry, no_testpilot) -> None:
+    def run_tests(self, schedule_type, owner, test_filter, retry, no_testpilot, timeout=None) -> None:
         """Execute any tests that we know how to run.  If they fail,
         raise an exception."""
         pass
@@ -343,7 +343,7 @@ class MakeBuilder(BuilderBase):
             for file in glob.glob(srcpattern):
                 shutil.copy(file, libdir)
 
-    def run_tests(self, schedule_type, owner, test_filter, retry, no_testpilot) -> None:
+    def run_tests(self, schedule_type, owner, test_filter, retry, no_testpilot, timeout=None) -> None:
         if not self.test_args:
             return
 
@@ -357,6 +357,9 @@ class MakeBuilder(BuilderBase):
             env["GETDEPS_TEST_RETRY"] = retry
         else:
             env["GETDEPS_TEST_RETRY"] = 0
+
+        if timeout is not None:
+            env["GETDEPS_TEST_TIMEOUT"] = str(timeout)
 
         cmd = (
             [self._make_binary, "-j%s" % self.num_jobs]
@@ -919,7 +922,7 @@ if __name__ == "__main__":
         )
 
     def run_tests(
-        self, schedule_type, owner, test_filter, retry: int, no_testpilot
+        self, schedule_type, owner, test_filter, retry: int, no_testpilot, timeout=None
     ) -> None:
         env = self._compute_env()
         ctest = path_search(env, "ctest")
@@ -1126,6 +1129,8 @@ if __name__ == "__main__":
             ]
             if test_filter:
                 args += ["-R", test_filter]
+            if timeout is not None:
+                args += ["--timeout", str(timeout)]
 
             count = 0
             retcode = -1
@@ -1421,7 +1426,7 @@ class SetupPyBuilder(BuilderBase):
         with open(os.path.join(self.inst_dir, ".built-by-getdeps"), "w") as f:
             f.write("built")
 
-    def run_tests(self, schedule_type, owner, test_filter, retry, no_testpilot) -> None:
+    def run_tests(self, schedule_type, owner, test_filter, retry, no_testpilot, timeout=None) -> None:
         # setup.py actually no longer has a standard command for running tests.
         # Instead we let manifest files specify an arbitrary Python file to run
         # as a test.
