@@ -538,3 +538,63 @@ TEST(FabricLinkMonitoringManagerTest, GetPayloadPatternAlternates) {
   EXPECT_EQ(FabricLinkMonitoringManager::getPayloadPattern(100), 0x5A5A5A5A);
   EXPECT_EQ(FabricLinkMonitoringManager::getPayloadPattern(101), 0xA5A5A5A5);
 }
+
+TEST(FabricLinkMonitoringManagerTest, PortsDownNotSent) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  // Bring all ports down
+  auto state = sw->getState();
+  auto newState = state->clone();
+  for (auto& portMap : std::as_const(*newState->getPorts())) {
+    for (auto& port : std::as_const(*portMap.second)) {
+      auto newPort = port.second->modify(&newState);
+      newPort->setOperState(false);
+    }
+  }
+  sw->updateStateBlocking(
+      "bring ports down", [newState](const auto&) { return newState; });
+
+  // Should not send any packets when ports are down
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortSyncForPktType_(
+          TxPacketMatcher::createMatcher(
+              "Fabric Monitoring Packet", checkFabricMonitoringPacket()),
+          _,
+          _))
+      .Times(0);
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  waitForStateUpdates(sw);
+  waitForBackgroundThread(sw);
+
+  manager->stop();
+}
+
+TEST(FabricLinkMonitoringManagerTest, HandlePacketWithNoPendingSequence) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  waitForStateUpdates(sw);
+  waitForBackgroundThread(sw);
+
+  // Try to receive a packet when no packets were sent
+  PortID portId = PortID(1);
+  auto rxPkt = createFabricMonitoringRxPacket(sw, portId, 999);
+  folly::io::Cursor cursor(rxPkt->buf());
+
+  // handlePacket should not throw even when receiving unexpected packet
+  EXPECT_NO_THROW(manager->handlePacket(std::move(rxPkt), cursor));
+
+  // Verify noPendingSeqNumCount was incremented
+  auto statsAfter = manager->getFabricLinkMonPortStats(portId);
+  EXPECT_GT(statsAfter.noPendingSeqNumCount, 0);
+
+  manager->stop();
+}
