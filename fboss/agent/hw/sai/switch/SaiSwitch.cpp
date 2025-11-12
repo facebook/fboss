@@ -5067,6 +5067,7 @@ void SaiSwitch::pfcDeadlockNotificationCallback(
   // need to switch to a tophalf/bottom half model, avoiding it for now.
   for (int idx = 0; idx < count; ++idx) {
     auto queueSaiId = static_cast<QueueSaiId>(data[idx].queue_id);
+    XLOG(DBG2) << "queue_id " << data[idx].queue_id;
     auto queueInfo =
         managerTable_->queueManager().getQueueIndexAndPortSaiId(queueSaiId);
     if (!queueInfo.has_value()) {
@@ -5086,7 +5087,8 @@ void SaiSwitch::pfcDeadlockNotificationCallback(
     PortID portId = portItr->second.portID;
     XLOG_EVERY_MS(WARNING, 5000)
         << "PFC deadlock notification callback invoked for qid: " << qId
-        << ", on port: " << portId << ", with event: " << deadlockEvent;
+        << ", on port: " << portId << ", with event: " << deadlockEvent
+        << " and queueSaiId " << (int)(queueSaiId);
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     switch (deadlockEvent) {
       case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_DETECTED:

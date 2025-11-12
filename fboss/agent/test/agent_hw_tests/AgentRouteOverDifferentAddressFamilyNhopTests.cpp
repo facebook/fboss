@@ -93,8 +93,22 @@ class AgentRouteOverDifferentAddressFamilyNhopTest : public AgentHwTest {
       }
     }
     auto setup = [this, useLinkLocalNhop] {
+      std::set<cfg::PortType> portTypes;
+      std::vector<PortID> portIdsForTest;
+      if (FLAGS_hyper_port) {
+        portIdsForTest = masterLogicalHyperPortIds();
+        portTypes = {cfg::PortType::HYPER_PORT};
+      } else {
+        portIdsForTest = masterLogicalInterfacePortIds();
+        portTypes = {cfg::PortType::INTERFACE_PORT};
+      }
       utility::EcmpSetupTargetedPorts<NhopAddrT> ecmpHelper(
-          getProgrammedState(), getSw()->needL2EntryForNeighbor());
+          getProgrammedState(),
+          getSw()->needL2EntryForNeighbor(),
+          std::nullopt,
+          RouterID(0),
+          false,
+          portTypes);
       auto addRoute = [this, &ecmpHelper, useLinkLocalNhop](
                           auto nw, const auto& nhopPorts) {
         RouteNextHopEntry::NextHopSet nhops;
@@ -117,10 +131,10 @@ class AgentRouteOverDifferentAddressFamilyNhopTest : public AgentHwTest {
         updater.program();
       };
       boost::container::flat_set<PortDescriptor> ecmpNhopPorts(
-          {PortDescriptor(masterLogicalInterfacePortIds()[0]),
-           PortDescriptor(masterLogicalInterfacePortIds()[1])});
+          {PortDescriptor(portIdsForTest[0]),
+           PortDescriptor(portIdsForTest[1])});
       boost::container::flat_set<PortDescriptor> nonEcmpNhopPorts(
-          {PortDescriptor(masterLogicalInterfacePortIds()[2])});
+          {PortDescriptor(portIdsForTest[2])});
       for (auto ecmp : {true, false}) {
         auto nhopPorts = ecmp ? ecmpNhopPorts : nonEcmpNhopPorts;
         applyNewState([&](const std::shared_ptr<SwitchState>& in) {
