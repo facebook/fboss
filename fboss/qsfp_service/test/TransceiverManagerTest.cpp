@@ -333,4 +333,37 @@ TEST_F(TransceiverManagerTest, programTransceiverWithNullQsfpConfig) {
   transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(std::nullopt);
 }
 
+TEST_F(TransceiverManagerTest, areAllPortsDownWithEmptyPortInfo) {
+  // Test Case 1: FLAGS_port_manager_mode is false (default)
+  // When port info is empty, should return {false, {}} (ports are assumed up)
+  gflags::SetCommandLineOptionWithMode(
+      "port_manager_mode", "0", gflags::SET_FLAGS_DEFAULT);
+
+  // Call areAllPortsDown on a transceiver with no programmed ports
+  // TransceiverID(0) exists but has no programmed ports yet
+  auto [allPortsDown, downPorts] =
+      transceiverManager_->areAllPortsDown(TransceiverID(0));
+
+  // In non-PortManager mode, empty port info means ports are assumed up
+  EXPECT_FALSE(allPortsDown);
+  EXPECT_TRUE(downPorts.empty());
+
+  // Test Case 2: FLAGS_port_manager_mode is true
+  // When port info is empty, should return {true, {}} (no ports up)
+  gflags::SetCommandLineOptionWithMode(
+      "port_manager_mode", "1", gflags::SET_FLAGS_DEFAULT);
+
+  // Call areAllPortsDown again with port_manager_mode enabled
+  auto [allPortsDown2, downPorts2] =
+      transceiverManager_->areAllPortsDown(TransceiverID(0));
+
+  // In PortManager mode, empty port info means all ports are down
+  EXPECT_TRUE(allPortsDown2);
+  EXPECT_TRUE(downPorts2.empty());
+
+  // Reset flag to default
+  gflags::SetCommandLineOptionWithMode(
+      "port_manager_mode", "0", gflags::SET_FLAGS_DEFAULT);
+}
+
 } // namespace facebook::fboss
