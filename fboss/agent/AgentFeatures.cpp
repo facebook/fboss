@@ -380,6 +380,11 @@ DEFINE_bool(
     "Enable fabric link monitoring feature in DSF");
 
 DEFINE_bool(
+    lldp_port_drain_state,
+    false,
+    "Enable sending and receiving port drain state in LLDP packets");
+
+DEFINE_bool(
     enable_state_delta_logging,
     false,
     "Enable logging of state deltas applied in applyUpdate()");
