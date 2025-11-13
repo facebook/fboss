@@ -197,5 +197,6 @@ class ReconnectingThriftClient {
   std::string connectionLogStr_;
   folly::Synchronized<std::optional<std::function<void()>>>
       gracefulServiceLoopCompletionCb_;
+  std::atomic<bool> cancelling_{false};
 };
 }; // namespace facebook::fboss

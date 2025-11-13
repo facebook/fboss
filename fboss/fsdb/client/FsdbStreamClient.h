@@ -125,16 +125,22 @@ class FsdbStreamClient : public ReconnectingThriftClient {
     auto disconnectReason = disconnectReason_.wlock();
     *disconnectReason = reason;
   }
-  virtual void setState(State state) override {
-    if (state == State::CONNECTED) {
+  void setState(State state) override final {
+    // Don't access member variables when being destroyed (CANCELLED state)
+    // to avoid undefined behavior
+    if (state == State::CONNECTED && !cancelling_.load()) {
       setDisconnectReason(FsdbErrorCode::NONE);
     }
     ReconnectingThriftClient::setState(state);
   }
   void setStateDisconnectedWithReason(fsdb::FsdbErrorCode reason) {
-    setDisconnectReason(reason);
-    setState(State::DISCONNECTED);
-    updateDisconnectReasonCounter(reason);
+    // Don't access member variables if object is being cancelled/destroyed
+    // Use cancelling_ flag instead of isCancelled() to avoid race condition
+    if (!cancelling_.load()) {
+      setDisconnectReason(reason);
+      setState(State::DISCONNECTED);
+      updateDisconnectReasonCounter(reason);
+    }
   }
   std::unique_ptr<apache::thrift::Client<FsdbService>> client_;
 
