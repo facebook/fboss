@@ -30,7 +30,8 @@ FabricLinkMonitoring::getPort2LinkSwitchIdMapping() const {
 SwitchID FabricLinkMonitoring::getSwitchIdForPort(const PortID& portId) const {
   const auto& portIter = portId2LinkSwitchId_.find(portId);
   CHECK(portIter != portId2LinkSwitchId_.end())
-      << "Port ID " << portId << " not found in the port ID to switch ID map!";
+      << "FabricLinkMon: Port ID " << portId
+      << " not found in the port ID to switch ID map!";
   return portIter->second;
 }
 
@@ -53,22 +54,23 @@ int FabricLinkMonitoring::calculateParallelLinkOffset(
   const auto remoteSwitch2VdIter =
       remoteSwitchId2Vd2Ports_.find(remoteSwitchId);
   CHECK(remoteSwitch2VdIter != remoteSwitchId2Vd2Ports_.end())
-      << "Remote switch VD mapping not found for switch: " << remoteSwitchId;
+      << "FabricLinkMon: Remote switch VD mapping not found for switch: "
+      << remoteSwitchId;
 
   const auto vd2PortsIter = remoteSwitch2VdIter->second.find(vd);
   CHECK(vd2PortsIter != remoteSwitch2VdIter->second.end())
-      << "VD port mapping not found for VD: " << vd;
+      << "FabricLinkMon: VD port mapping not found for VD: " << vd;
 
   // Find this port's position in the ordered list
   CHECK(port.name().has_value())
-      << "Missing port name in parallel link offset compuration for port ID: "
+      << "FabricLinkMon: Missing port name in parallel link offset compuration for port ID: "
       << *port.logicalID();
   const auto& portName = *port.name();
 
   const auto& portList = vd2PortsIter->second;
   const auto portIt = std::find(portList.begin(), portList.end(), portName);
   CHECK(portIt != portList.end())
-      << "Port not found in VD port list for VD: " << vd
+      << "FabricLinkMon: Port not found in VD port list for VD: " << vd
       << ", port: " << portName;
 
   return static_cast<int>(std::distance(portList.begin(), portIt));
@@ -119,7 +121,7 @@ int FabricLinkMonitoring::getSwitchIdOffset(
 void FabricLinkMonitoring::allocateSwitchIdForPorts(
     const cfg::SwitchConfig* config) {
   CHECK(config->switchSettings()->switchId().has_value())
-      << "Local switch ID missing in switch settings!";
+      << "FabricLinkMon: Local switch ID missing in switch settings!";
   SwitchID localSwitchId = SwitchID(*config->switchSettings()->switchId());
   bool isDualStageNetwork = utility::isDualStage(*config);
 
@@ -155,13 +157,13 @@ void FabricLinkMonitoring::allocateSwitchIdForPorts(
         maxNumSwitchIds = kDualStageMaxLeafL1FabricLinkMonitoringSwitchIds;
         switchIdBase = kMaxUsableVoqSwitchId - maxNumSwitchIds;
         CHECK_GT(switchIdBase, kDualStageMaxGlobalSwitchId)
-            << "Fabric link monitoring base switch ID should be > "
+            << "FabricLinkMon: Fabric link monitoring base switch ID should be > "
             << kDualStageMaxGlobalSwitchId;
       } else {
         maxNumSwitchIds = kSingleStageMaxLeafL1FabricLinkMonitoringSwitchIds;
         switchIdBase = kMaxUsableVoqSwitchId - maxNumSwitchIds;
         CHECK_GE(switchIdBase, kSingleStageMaxGlobalSwitchId)
-            << "Fabric link monitoring base switch ID should be >= "
+            << "FabricLinkMon: Fabric link monitoring base switch ID should be >= "
             << kSingleStageMaxGlobalSwitchId;
       }
       maxParallelLinks = maxParallelLeafToL1Links_;
@@ -185,11 +187,11 @@ void FabricLinkMonitoring::allocateSwitchIdForPorts(
     // SwitchID allocated should be in the specific range bounded by the maximum
     // number of switchIDs possible for the 2 roles connected by the port/link.
     CHECK_LE(linksAtLevel, maxNumSwitchIds)
-        << "Fabric link monitoring links: " << linksAtLevel
+        << "FabricLinkMon: Fabric link monitoring links: " << linksAtLevel
         << " should be <= the max switch IDs available for link monitoring: "
         << maxNumSwitchIds;
     portId2LinkSwitchId_[portId] = switchIdBase + (offset % maxNumSwitchIds);
-    XLOG(DBG3) << "Fabric Link Mon - Port name:"
+    XLOG(DBG3) << "FabricLinkMon: Fabric Link Mon - Port name:"
                << port.name().value_or("Unknown") << " Port ID:" << portId
                << " Link Switch ID:" << portId2LinkSwitchId_[portId]
                << " localSwitchId:" << localSwitchId
@@ -242,7 +244,7 @@ void FabricLinkMonitoring::updateLowestSwitchIds(
       lowestL2SwitchId_ = std::min(nodeSwitchId, lowestL2SwitchId_);
     } else {
       throw FbossError(
-          "DSF node should be one of interface node, l1 or l2 fabric switch!");
+          "FabricLinkMon: DSF node should be one of interface node, l1 or l2 fabric switch!");
     }
   }
 }
@@ -282,7 +284,8 @@ void FabricLinkMonitoring::processLinkInfo(const cfg::SwitchConfig* config) {
     updateLinkCounts(config, remoteSwitchId, vd);
 
     CHECK(port.name().has_value())
-        << "Missing port name for port with ID: " << *port.logicalID();
+        << "FabricLinkMon: Missing port name for port with ID: "
+        << *port.logicalID();
     // Keep track of local/remote port per VD for each remote SwitchID
     const auto& localPortName = *port.name();
     remoteSwitchId2Vd2PortNamePairs[remoteSwitchId][vd].emplace_back(
@@ -315,7 +318,7 @@ void FabricLinkMonitoring::validateLinkLimits() const {
   auto throwExceededMaxExpectedLinkCount =
       [](int linkCount, int maxLinkCount, const std::string& linkTypeStr) {
         throw FbossError(
-            "Too many ",
+            "FabricLinkMon: Too many ",
             linkTypeStr,
             " links - ",
             linkCount,
@@ -382,16 +385,16 @@ int32_t FabricLinkMonitoring::getVirtualDeviceIdForLink(
     const cfg::Port& port,
     const SwitchID& neighborSwitchId) {
   CHECK(config->switchSettings()->switchId().has_value())
-      << "Local switch ID missing in switch settings!";
+      << "FabricLinkMon: Local switch ID missing in switch settings!";
   CHECK(*port.portType() == cfg::PortType::FABRIC_PORT)
-      << "Virtual device is applicable only for fabric ports, "
-      << "not for port with ID " << *port.logicalID() << " of type "
+      << "FabricLinkMon: Virtual device is applicable only for fabric "
+      << "port, not for port with ID " << *port.logicalID() << " of type "
       << apache::thrift::util::enumNameSafe(*port.portType());
   // Find the neighbor DSF node in case of VoQ switch or in case
   // of L2 switch.
   auto neighborSwitchIter = config->dsfNodes()->find(neighborSwitchId);
   CHECK(neighborSwitchIter != config->dsfNodes()->end())
-      << "DSF node missing for switchId: " << neighborSwitchId;
+      << "FabricLinkMon: DSF node missing for switchId: " << neighborSwitchId;
   bool useNeighborSwitchVd = isVoqSwitch_ ||
       (neighborSwitchIter->second.fabricLevel().has_value() &&
        *neighborSwitchIter->second.fabricLevel() == 2);
@@ -399,7 +402,8 @@ int32_t FabricLinkMonitoring::getVirtualDeviceIdForLink(
       ? neighborSwitchIter
       : config->dsfNodes()->find(*config->switchSettings()->switchId());
   CHECK(port.name().has_value())
-      << "Missing port name for port with ID: " << *port.logicalID();
+      << "FabricLinkMon: Missing port name for port with ID: "
+      << *port.logicalID();
   std::string portName = useNeighborSwitchVd
       ? getExpectedNeighborAndPortName(port).second
       : *port.name();
@@ -407,12 +411,13 @@ int32_t FabricLinkMonitoring::getVirtualDeviceIdForLink(
   auto platformType = *dsfNodeIter->second.platformType();
   const auto platformMapping = getPlatformMappingForPlatformType(platformType);
   if (!platformMapping) {
-    throw FbossError("Unable to find platform mapping!");
+    throw FbossError("FabricLinkMon: Unable to find platform mapping!");
   }
 
   auto virtualDeviceId = platformMapping->getVirtualDeviceID(portName);
   if (!virtualDeviceId.has_value()) {
-    throw FbossError("Unable to find virtual device id for port: ", portName);
+    throw FbossError(
+        "FabricLinkMon: Unable to find virtual device id for port: ", portName);
   }
 
   return *virtualDeviceId;
@@ -423,7 +428,7 @@ void FabricLinkMonitoring::updateMaxParallelLinks(
   auto updateParallelLinkCounts = [](int& currentCount, int newCount) {
     if (currentCount != 0 && newCount != currentCount) {
       XLOG(WARN)
-          << "Asymmetric topology with different number of parallel links between nodes";
+          << "FabricLinkMon: Asymmetric topology with different number of parallel links between nodes";
     }
     if (newCount > currentCount) {
       currentCount = newCount;
