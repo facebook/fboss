@@ -56,6 +56,9 @@ struct LinkNeighborFields {
   // seconds
   14: i64 receivedTTL;
   15: i64 expirationTime;
+
+  // Port drain state from the neighbor
+  16: optional bool portDrainState;
 }
 
 // neighbor key is a string "<portId>_<chassisId>_<portIdType>_<chassisIdType>"
