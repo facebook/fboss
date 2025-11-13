@@ -121,6 +121,7 @@ cpp_unittest(
         "//folly/json:dynamic",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
         "//nettools/common:TestUtils",
+        "//thrift/lib/cpp2/reflection:testing",
     ],
     external_deps = [("boost", None, "boost_algorithm")],
 )
