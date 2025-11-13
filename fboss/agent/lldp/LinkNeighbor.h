@@ -133,6 +133,18 @@ class LinkNeighbor
   }
 
   /*
+   * Get the port drain state.
+   *
+   * Returns an optional bool indicating if the neighbor port is drained.
+   */
+  std::optional<bool> getPortDrainState() const {
+    if (auto drainState = get<lldp_tags::portDrainState>()) {
+      return drainState->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  /*
    * Get the TTL originally specified in the packet.
    *
    * This always returns the value contained in the packet.  Use
@@ -249,6 +261,13 @@ class LinkNeighbor
   }
   void setSystemDescription(folly::StringPiece desc) {
     ref<lldp_tags::systemDescription>() = desc.str();
+  }
+
+  /*
+   * Set the port drain state.
+   */
+  void setPortDrainState(bool drainState) {
+    ref<lldp_tags::portDrainState>() = drainState;
   }
 
   /*
