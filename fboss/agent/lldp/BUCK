@@ -19,6 +19,7 @@ cpp_library(
     exported_deps = [
         ":lldp_structs-cpp2-reflection",
         ":lldp_structs-cpp2-types",
+        "//fboss/agent:agent_features",
         "//fboss/agent:fboss-types",
         "//fboss/thrift_cow/nodes:nodes",
         "//fboss/thrift_cow/storage:cow_storage",

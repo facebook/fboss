@@ -311,6 +311,7 @@ class LinkNeighbor
   void parseLldpPortId(folly::io::Cursor* cursor, uint16_t length);
   void parseLldpTtl(folly::io::Cursor* cursor, uint16_t length);
   void parseLldpSystemCaps(folly::io::Cursor* cursor, uint16_t length);
+  void parseLldpOrgSpecific(folly::io::Cursor* cursor, uint16_t length);
 
   bool parseCdpPayload(
       PortID srcPort,
