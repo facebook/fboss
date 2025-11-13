@@ -232,6 +232,10 @@ class MockAsic : public HwAsic {
   std::optional<uint32_t> getArsBaseIndex() const override {
     return std::nullopt;
   }
+  const std::set<uint16_t>& getL1FabricPortsToConnectToL2() const override {
+    static const std::set<uint16_t> l1FabricPortsToConnectToL2{};
+    return l1FabricPortsToConnectToL2;
+  }
 };
 
 } // namespace facebook::fboss

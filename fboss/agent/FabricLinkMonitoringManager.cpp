@@ -75,10 +75,28 @@ void FabricLinkMonitoringManager::start() {
 
   // Expect fabric ports to not change once the system is configured
   std::shared_ptr<SwitchState> state = sw_->getState();
+
+  auto portConnectedToL2Switch = [&](const PortID& portId) {
+    auto matcher = sw_->getScopeResolver()->scope(portId);
+    auto hwAsic = sw_->getHwAsicTable()->getHwAsicIf(matcher.switchId());
+    auto it = hwAsic->getL1FabricPortsToConnectToL2().find(
+        static_cast<int16_t>(portId));
+    return it != hwAsic->getL1FabricPortsToConnectToL2().end();
+  };
+
+  bool voqSwitch = sw_->getSwitchInfoTable()
+                       .getSwitchIdsOfType(cfg::SwitchType::VOQ)
+                       .size() > 0;
   for (const auto& portMap : std::as_const(*state->getPorts())) {
     for (const auto& [_, port] : std::as_const(*portMap.second)) {
       if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
+        // Fabric link monitoring packets should be sent from CPU
+        // only in the RDSW->FDSW and FDSW->SDSW direction, not in
+        // the reverse direction.
         const PortID portId = port->getID();
+        if (!voqSwitch && portConnectedToL2Switch(portId)) {
+          continue;
+        }
         int groupId = getPortGroup(portId);
         portGroupToPortsMap_[groupId].push_back(portId);
         portToGroupMap_[portId] = groupId;
