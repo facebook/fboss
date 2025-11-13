@@ -57,7 +57,7 @@ class LldpManager : private folly::AsyncTimeout {
     SYSTEM_CAPABILITY_ROUTER = 1 << 4, // 5th bit for router
     TTL_TLV_LENGTH = 0x2,
     TTL_TLV_VALUE = 120,
-    PDU_END_TLV_LENGTH = 0
+    PDU_END_TLV_LENGTH = 0,
   };
   explicit LldpManager(SwSwitch* sw);
   ~LldpManager() override;
@@ -114,7 +114,8 @@ class LldpManager : private folly::AsyncTimeout {
       const std::string& portname,
       const std::string& portdesc,
       const uint16_t ttl,
-      const uint16_t capabilities);
+      const uint16_t capabilities,
+      const std::optional<bool> portDrainState = std::nullopt);
 
   // This function is internal.  It is only public for use in unit tests.
   void sendLldpOnAllPorts();
@@ -133,7 +134,8 @@ class LldpManager : private folly::AsyncTimeout {
       const std::string& hostname,
       const std::string& portname,
       const std::string& portdesc,
-      const std::string& sysDesc);
+      const std::string& sysDesc,
+      bool includePortDrainState = false);
 
  private:
   void timeoutExpired() noexcept override;

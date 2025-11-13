@@ -8,6 +8,7 @@
 #include <folly/io/Cursor.h>
 #include <folly/logging/xlog.h>
 #include <glog/logging.h>
+#include "fboss/agent/lldp/gen-cpp2/lldp_constants.h"
 
 using folly::ByteRange;
 using folly::IPAddressV4;
@@ -31,6 +32,7 @@ enum class LinkNeighbor::LldpTlvType : uint8_t {
   SYSTEM_DESC = 6,
   SYSTEM_CAPS = 7,
   MGMT_ADDR = 8,
+  CUSTOM = 127,
 };
 
 enum class LinkNeighbor::CdpTlvType : uint16_t {
