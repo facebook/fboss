@@ -40,6 +40,7 @@ class SensorServiceImpl {
   auto static constexpr kTotalPower = "TOTAL_POWER";
   auto static constexpr kDerivedFailure = "derived.{}.failure";
   auto static constexpr kDerivedValue = "derived.{}.value";
+  auto static constexpr kPmUnitVersion = "pmunit.{}.version.{}.{}.{}";
 
   explicit SensorServiceImpl(
       const SensorConfig& sensorConfig,
@@ -83,6 +84,12 @@ class SensorServiceImpl {
   void publishDerivedStats(
       const std::string& entity,
       std::optional<float> value);
+
+  void publishVersionedSensorStats(
+      const std::string& pmUnitName,
+      int16_t productProductionState,
+      int16_t productVersion,
+      int16_t productSubVersion);
 
   folly::Synchronized<std::map<std::string, SensorData>> polledData_{};
   std::unique_ptr<FsdbSyncer> fsdbSyncer_;

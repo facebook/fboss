@@ -151,6 +151,21 @@ void SensorServiceImpl::fetchSensorData() {
   }
 }
 
+void SensorServiceImpl::publishVersionedSensorStats(
+    const std::string& pmUnitName,
+    int16_t productProductionState,
+    int16_t productVersion,
+    int16_t productSubVersion) {
+  fb303::fbData->setCounter(
+      fmt::format(
+          kPmUnitVersion,
+          pmUnitName,
+          productProductionState,
+          productVersion,
+          productSubVersion),
+      1);
+}
+
 std::vector<PmSensor> SensorServiceImpl::resolveSensors(
     const PmUnitSensors& pmUnitSensors) {
   auto pmSensors = *pmUnitSensors.sensors();
@@ -165,6 +180,11 @@ std::vector<PmSensor> SensorServiceImpl::resolveSensors(
         *versionedPmSensors->productSubVersion(),
         *pmUnitSensors.pmUnitName(),
         *pmUnitSensors.slotPath());
+    publishVersionedSensorStats(
+        *pmUnitSensors.pmUnitName(),
+        *versionedPmSensors->productProductionState(),
+        *versionedPmSensors->productVersion(),
+        *versionedPmSensors->productSubVersion());
     pmSensors.insert(
         pmSensors.end(),
         versionedPmSensors->sensors()->begin(),
