@@ -131,6 +131,7 @@ target_link_libraries(state
   thrift_cow_nodes
   Folly::folly
   lacp_types
+  agent_features
 )
 
 set_target_properties(state PROPERTIES COMPILE_FLAGS "-DENABLE_DYNAMIC_APIS")
