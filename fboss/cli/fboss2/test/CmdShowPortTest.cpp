@@ -9,16 +9,23 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
+#include <thrift/lib/cpp2/reflection/testing.h>
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
 
+#ifdef IS_OSS
+#define BGP_DRAINED_TRUE false
+#define BGP_DRAINED_YES "No"
+#else
+#define BGP_DRAINED_TRUE true
+#define BGP_DRAINED_YES "Yes"
 #include "configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
+using namespace facebook::neteng::fboss::bgp::thrift;
+#endif
 
 using namespace ::testing;
-using namespace facebook::neteng::fboss::bgp::thrift;
 
 namespace facebook::fboss {
 
@@ -106,7 +113,7 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   TransceiverIdxThrift tcvr4;
   tcvr4.transceiverId() = 3;
   portEntry4.transceiverIdx() = tcvr4;
-  portEntry4.isDrained() = true;
+  portEntry4.isDrained() = BGP_DRAINED_TRUE;
 
   PortInfoThrift portEntry5;
   portEntry5.portId() = 7;
@@ -216,7 +223,7 @@ cli::ShowPortModel createPortModel() {
   entry1.numUnicastQueues() = 0;
   // when pfc exists, pause shouldn't
   entry1.pfc() = "TX RX WD";
-  entry1.isDrained() = "Yes";
+  entry1.isDrained() = BGP_DRAINED_YES;
   entry1.activeErrors() = "--";
   entry1.peerSwitchDrained() = "--";
   entry1.peerPortDrainedOrDown() = "--";
@@ -276,7 +283,7 @@ cli::ShowPortModel createPortModel() {
   entry4.tcvrPresent() = "Absent";
   entry4.numUnicastQueues() = 0;
   entry4.pause() = "";
-  entry4.isDrained() = "Yes";
+  entry4.isDrained() = BGP_DRAINED_YES;
   entry4.activeErrors() = "--";
   entry4.peerSwitchDrained() = "--";
   entry4.peerPortDrainedOrDown() = "--";
@@ -316,7 +323,7 @@ cli::ShowPortModel createPortModel() {
   entry6.tcvrPresent() = "Present";
   entry6.numUnicastQueues() = 0;
   entry6.pause() = "";
-  entry6.isDrained() = "Yes";
+  entry6.isDrained() = BGP_DRAINED_YES;
   entry6.activeErrors() = "--";
   entry6.peerSwitchDrained() = "--";
   entry6.peerPortDrainedOrDown() = "--";
@@ -341,16 +348,24 @@ std::unordered_map<std::string, bool> createPeerPortStates() {
 }
 
 std::vector<std::string> createDrainedInterfaces() {
+#ifdef IS_OSS
+  return {};
+#else
   return {"eth1/4/1", "eth1/5/1"};
+#endif
 }
 
 std::string createMockedBgpConfig() {
+#ifdef IS_OSS
+  return "";
+#else
   std::string bgpConfigStr;
   bgp::thrift::BgpConfig bgpConfig;
   std::vector<std::string> drainedInterfaces = createDrainedInterfaces();
   bgpConfig.drained_interfaces() = std::move(drainedInterfaces);
   apache::thrift::SimpleJSONSerializer::serialize(bgpConfig, &bgpConfigStr);
   return bgpConfigStr;
+#endif
 }
 
 class CmdShowPortTestFixture : public CmdHandlerTestBase {
@@ -435,9 +450,11 @@ TEST_F(CmdShowPortTestFixture, queryClient) {
       .WillOnce(Invoke(
           [&](auto& entries, auto) { entries = mockTransceiverEntries; }));
 
+#ifndef IS_OSS
   EXPECT_CALL(getBgpService(), getRunningConfig(_))
       .WillOnce(Invoke(
           [&](auto& bgpConfigStr) { bgpConfigStr = mockBgpRunningConfig; }));
+#endif
   EXPECT_CALL(getMockAgent(), getMultiSwitchRunState(_))
       .WillOnce(
           Invoke([&](auto& entries) { entries = mockMultiSwitchRunState; }));

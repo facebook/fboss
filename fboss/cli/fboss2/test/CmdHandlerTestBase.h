@@ -40,11 +40,13 @@ class CmdHandlerTestBase : public ::testing::Test {
   }
 
   void setupMockedBgpServer() {
+#ifndef IS_OSS
     mockedBgpServer_ =
         std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
             mockedBgpService_);
     CmdGlobalOptions::getInstance()->setBgpThriftPort(
         mockedBgpServer_->getAddress().getPort());
+#endif
   }
 
   void TearDown() override {

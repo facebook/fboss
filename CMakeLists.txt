@@ -182,6 +182,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-compare")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused-variable")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
 if (WITH_ASAN)
@@ -1050,6 +1051,12 @@ add_custom_target(led_targets)
 add_dependencies(led_targets
   led_service
   led_service_hw_test
+)
+
+add_custom_target(fboss2_targets)
+add_dependencies(fboss2_targets
+  fboss2
+  fboss2_cmd_test
 )
 
 add_custom_target(fboss_other_services)
