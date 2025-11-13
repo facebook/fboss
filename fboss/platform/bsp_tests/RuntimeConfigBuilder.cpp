@@ -1,6 +1,7 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 #include "fboss/platform/bsp_tests/RuntimeConfigBuilder.h"
+#include "fboss/platform/platform_manager/Utils.h"
 
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -36,6 +37,13 @@ fbiob::AuxData RuntimeConfigBuilder::createLedAuxData(
   ledInfo.portNumber() = *ledCtrl.portNumber();
   ledInfo.ledId() = *ledCtrl.ledId();
   auxData.ledData() = ledInfo;
+
+  return auxData;
+}
+
+fbiob::AuxData RuntimeConfigBuilder::createGpioAuxData(
+    const FpgaIpBlockConfig& gpioChipConf) {
+  auto auxData = createBaseAuxData(gpioChipConf, fbiob::AuxDeviceType::GPIO);
 
   return auxData;
 }
@@ -236,11 +244,14 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
         i2cAdapters[*i2cAdapter.pmName()] = i2cAdapter;
       }
 
-      for (const auto& ledCtrl : *dev.ledCtrlConfigs()) {
+      for (const auto& ledCtrl : Utils::createLedCtrlConfigs(dev)) {
         pciDevice.auxDevices()->push_back(createLedAuxData(ledCtrl));
       }
-      for (const auto& xcvrCtrl : *dev.xcvrCtrlConfigs()) {
+      for (const auto& xcvrCtrl : Utils::createXcvrCtrlConfigs(dev)) {
         pciDevice.auxDevices()->push_back(createXcvrAuxData(xcvrCtrl));
+      }
+      for (const auto& gpioChipConf : *dev.gpioChipConfigs()) {
+        pciDevice.auxDevices()->push_back(createGpioAuxData(gpioChipConf));
       }
       for (const auto& fanCtrl : *dev.fanTachoPwmConfigs()) {
         pciDevice.auxDevices()->push_back(createFanAuxData(fanCtrl));

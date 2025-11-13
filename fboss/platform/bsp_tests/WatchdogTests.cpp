@@ -155,13 +155,6 @@ class WatchdogTest : public BspTest {
         }
         FAIL() << "Exception during " << testName << " test: " << e.what();
       }
-
-      if (adapter.pciAdapterInfo().has_value()) {
-        CdevUtils::deleteDevice(
-            *adapter.pciAdapterInfo()->pciInfo(),
-            *adapter.pciAdapterInfo()->auxData(),
-            adapterId);
-      }
     }
   }
 };
