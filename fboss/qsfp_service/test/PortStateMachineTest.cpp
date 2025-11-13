@@ -2185,4 +2185,229 @@ TEST_F(
       true /* isMock */);
 }
 
+TEST_F(PortStateMachineTest, upgradeFirmware) {
+  const std::string kTestName = "upgradeFirmware";
+  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+    verifyStateMachine(
+        {makeStates(
+            TransceiverStateMachineState::NOT_PRESENT,
+            PortStateMachineState::UNINITIALIZED,
+            isMultiTcvr,
+            isMultiPort)},
+        makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_UP,
+            isMultiTcvr,
+            isMultiPort) /* expected state */,
+        [this]() {
+          enableTransceiverFirmwareUpgradeTesting(true);
+        } /* preUpdate */,
+        [this]() {
+          for (int i = 0; i < 5; ++i) {
+            portManager_->refreshStateMachines();
+          }
+        } /* stateUpdate */,
+        [this, isMultiTcvr]() {
+          std::map<std::string, bool> expectedAttrValues = {
+              {"needToResetToDiscovered", false}};
+          verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
+          enableTransceiverFirmwareUpgradeTesting(false);
+        } /* verify */,
+        kTestName,
+        true /* isMock */);
+  }
+}
+
+TEST_F(PortStateMachineTest, reseatTransceiver) {
+  const std::string kTestName = "reseatTransceiver";
+
+  // This test verifies that removing and reinserting a transceiver properly
+  // resets the state machine and allows reprogramming
+  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+    initManagers(isMultiTcvr);
+
+    // Lambda to handle transceiver removal and insertion
+    auto removeCmisTransceiver = [this, isMultiPort](
+                                     TransceiverID tcvrId, bool isRemoval) {
+      if (isRemoval) {
+        XLOG(INFO) << "Verifying Removing Transceiver: " << tcvrId;
+        // Set mgmt interface to UNKNOWN to simulate removal
+        transceiverManager_->overrideMgmtInterface(
+            static_cast<int>(tcvrId) + 1,
+            uint8_t(TransceiverModuleIdentifier::UNKNOWN));
+        // Actually remove the transceiver object
+        transceiverManager_->overrideTransceiverForTesting(tcvrId, nullptr);
+      } else {
+        XLOG(INFO) << "Verifying Inserting new CMIS Transceiver: " << tcvrId;
+        // Mimic a module replacement by setting to CMIS
+        transceiverManager_->overrideMgmtInterface(
+            static_cast<int>(tcvrId) + 1,
+            uint8_t(TransceiverModuleIdentifier::QSFP_PLUS_CMIS));
+
+        // Create new mock CMIS transceiver implementation
+        cmisQsfpImpls_.push_back(
+            std::make_unique<MockCmisTransceiverImpl>(
+                tcvrId, transceiverManager_.get()));
+        EXPECT_CALL(*cmisQsfpImpls_.back().get(), detectTransceiver())
+            .WillRepeatedly(::testing::Return(true));
+
+        // Create and override with new MockCmisModule
+        auto* xcvr = static_cast<QsfpModule*>(
+            transceiverManager_->overrideTransceiverForTesting(
+                tcvrId,
+                std::make_unique<MockCmisModule>(
+                    transceiverManager_->getPortNames(tcvrId),
+                    cmisQsfpImpls_.back().get(),
+                    tcvrConfig_,
+                    transceiverManager_->getTransceiverName(tcvrId))));
+
+        // Update the test's transceiver pointers
+        if (tcvrId == tcvrId1_) {
+          xcvr1_ = xcvr;
+        } else if (tcvrId == tcvrId2_) {
+          xcvr2_ = xcvr;
+        }
+      }
+    };
+
+    // Step 1: Start from TRANSCEIVER_PROGRAMMED / PORT_DOWN state
+    xcvr1_ = overrideTransceiver(isMultiPort, true, tcvrId1_);
+    if (isMultiTcvr) {
+      xcvr2_ = overrideTransceiver(isMultiPort, true, tcvrId2_);
+    }
+    setState(
+        makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_DOWN,
+            isMultiTcvr,
+            isMultiPort),
+        isMultiPort,
+        isMultiTcvr);
+
+    // Step 2: Remove the transceiver(s) by actually setting them to nullptr
+    XLOG(INFO) << "Removing transceiver(s)";
+    removeCmisTransceiver(tcvrId1_, true /* isRemoval */);
+    if (isMultiTcvr) {
+      removeCmisTransceiver(tcvrId2_, true /* isRemoval */);
+    }
+
+    // Refresh to detect removal
+    portManager_->refreshStateMachines();
+
+    // Verify transceiver is not present
+    const auto& xcvrInfo1 = transceiverManager_->getTransceiverInfo(tcvrId1_);
+    EXPECT_FALSE(*xcvrInfo1.tcvrState()->present());
+    // Verify timestamp is set even when not present
+    EXPECT_GT(*xcvrInfo1.tcvrState()->timeCollected(), 0);
+    EXPECT_GT(*xcvrInfo1.tcvrStats()->timeCollected(), 0);
+
+    if (isMultiTcvr) {
+      const auto& xcvrInfo2 = transceiverManager_->getTransceiverInfo(tcvrId2_);
+      EXPECT_FALSE(*xcvrInfo2.tcvrState()->present());
+      EXPECT_GT(*xcvrInfo2.tcvrState()->timeCollected(), 0);
+      EXPECT_GT(*xcvrInfo2.tcvrStats()->timeCollected(), 0);
+    }
+
+    // After removal, port should still be DOWN, transceiver back to NOT_PRESENT
+    assertCurrentStateEquals(makeStates(
+        TransceiverStateMachineState::TRANSCEIVER_READY,
+        PortStateMachineState::PORT_DOWN,
+        isMultiTcvr,
+        isMultiPort));
+    ASSERT_FALSE(isTransceiverPresent(tcvrId1_));
+    if (isMultiTcvr) {
+      ASSERT_FALSE(isTransceiverPresent(tcvrId2_));
+    }
+
+    // Step 3: Reinitialize ports which should trigger IPHY programming
+    portManager_->detectTransceiverResetAndReinitializeCorrespondingDownPorts();
+    portManager_->triggerProgrammingEvents();
+    assertCurrentStateEquals(makeStates(
+        TransceiverStateMachineState::TRANSCEIVER_READY,
+        PortStateMachineState::IPHY_PORTS_PROGRAMMED,
+        isMultiTcvr,
+        isMultiPort));
+
+    // Verify programming attributes
+    std::map<std::string, bool> afterIphyAttr = {
+        {"isTransceiverProgrammed", false}};
+    verifyStateMachineAttributes(isMultiTcvr, afterIphyAttr);
+
+    // Step 4: Trigger XPHY programming
+    portManager_->triggerProgrammingEvents();
+    assertCurrentStateEquals(makeStates(
+        TransceiverStateMachineState::TRANSCEIVER_READY,
+        PortStateMachineState::XPHY_PORTS_PROGRAMMED,
+        isMultiTcvr,
+        isMultiPort));
+
+    std::map<std::string, bool> afterXphyAttr = {
+        {"isTransceiverProgrammed", false}};
+    verifyStateMachineAttributes(isMultiTcvr, afterXphyAttr);
+
+    // Step 5: Insert new transceiver(s) using the lambda
+    XLOG(INFO) << "Inserting new transceiver(s)";
+    removeCmisTransceiver(tcvrId1_, false /* isRemoval */);
+    if (isMultiTcvr) {
+      removeCmisTransceiver(tcvrId2_, false /* isRemoval */);
+    }
+
+    transceiverManager_->refreshTransceivers();
+
+    assertCurrentStateEquals(makeStates(
+        TransceiverStateMachineState::DISCOVERED,
+        PortStateMachineState::XPHY_PORTS_PROGRAMMED,
+        isMultiTcvr,
+        isMultiPort));
+
+    // Verify transceiver is now present
+    ASSERT_TRUE(isTransceiverPresent(tcvrId1_));
+    if (isMultiTcvr) {
+      ASSERT_TRUE(isTransceiverPresent(tcvrId2_));
+    }
+
+    // Should progress to TRANSCEIVER_READY after detection
+    portManager_->triggerProgrammingEvents();
+    transceiverManager_->triggerProgrammingEvents();
+    assertCurrentStateEquals(makeStates(
+        TransceiverStateMachineState::TRANSCEIVER_READY,
+        PortStateMachineState::XPHY_PORTS_PROGRAMMED,
+        isMultiTcvr,
+        isMultiPort));
+
+    // Step 6: Complete programming to TRANSCEIVER_PROGRAMMED
+    portManager_->refreshStateMachines();
+    assertCurrentStateEquals(makeStates(
+        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+        PortStateMachineState::XPHY_PORTS_PROGRAMMED,
+        isMultiTcvr,
+        isMultiPort));
+
+    portManager_->refreshStateMachines();
+    assertCurrentStateEquals(makeStates(
+        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+        PortStateMachineState::TRANSCEIVERS_PROGRAMMED,
+        isMultiTcvr,
+        isMultiPort));
+
+    // Verify all programming attributes are now true
+    std::map<std::string, bool> finalAttr = {{"isTransceiverProgrammed", true}};
+    verifyStateMachineAttributes(isMultiTcvr, finalAttr);
+
+    EXPECT_FALSE(xcvr1_->getDirty_());
+    if (isMultiTcvr) {
+      EXPECT_FALSE(xcvr2_->getDirty_());
+    }
+
+    portManager_->refreshStateMachines();
+    assertCurrentStateEquals(makeStates(
+        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+        PortStateMachineState::PORT_DOWN,
+        isMultiTcvr,
+        isMultiPort));
+  }
+}
+
 } // namespace facebook::fboss
