@@ -18,6 +18,7 @@
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/FabricLinkMonitoringManager.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
@@ -609,6 +610,10 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
 
   if (lagManager_) {
     lagManager_.reset();
+  }
+
+  if (fabricLinkMonitoringManager_) {
+    fabricLinkMonitoringManager_->stop();
   }
 
   // Need to destroy IPv6Handler as it is a state observer,
@@ -1549,6 +1554,10 @@ void SwSwitch::initialConfigApplied(
 
   if (lldpManager_) {
     lldpManager_->start();
+  }
+
+  if (fabricLinkMonitoringManager_) {
+    fabricLinkMonitoringManager_->start();
   }
 
   // Send neighbor solicitation for configured interfaces after
@@ -2806,6 +2815,7 @@ void SwSwitch::startThreads() {
 
 void SwSwitch::postInit() {
   initLldpManager();
+  initFabricLinkMonitoringManager();
   publishBootTypeStats();
   initThreadHeartbeats();
   startHeartbeatWatchdog();
@@ -2815,6 +2825,28 @@ void SwSwitch::postInit() {
 void SwSwitch::initLldpManager() {
   if (flags_ & SwitchFlags::ENABLE_LLDP) {
     lldpManager_ = std::make_unique<LldpManager>(this);
+  }
+}
+
+void SwSwitch::initFabricLinkMonitoringManager() {
+  if (flags_ & SwitchFlags::ENABLE_FABRIC_LINK_MONITORING) {
+    // Fabric link monitoring manager is needed to send/receive packets
+    // from VoQ switch to L1 fabric and from L1 to L2 fabric. It is not
+    // needed on single stage fabric or dual stage L2 fabric devices.
+    bool isVoqSwitch =
+        getSwitchInfoTable().getSwitchIdsOfType(cfg::SwitchType::VOQ).size();
+    auto hwAsic = getHwAsicTable()->getHwAsicIf(
+        *getSwitchInfoTable().getSwitchIDs().begin());
+    bool isDualStageL1 = isVoqSwitch
+        ? false
+        : hwAsic->getFabricNodeRole() == HwAsic::FabricNodeRole::DUAL_STAGE_L1;
+    if (isVoqSwitch || isDualStageL1) {
+      fabricLinkMonitoringManager_ =
+          std::make_unique<FabricLinkMonitoringManager>(this);
+    } else {
+      XLOG(DBG3) << "Fabric Link Monitoring Manager packet send/receive is not"
+                    " enabled on single stage fabric and dual stage L2 fabric!";
+    }
   }
 }
 

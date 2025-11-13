@@ -111,6 +111,7 @@ class ResourceAccountant;
 class RemoteNeighborUpdater;
 class EcmpResourceManager;
 class ShelManager;
+class FabricLinkMonitoringManager;
 
 inline static const int kHiPriorityBufferSize{1000};
 inline static const int kMidPriorityBufferSize{1000};
@@ -127,6 +128,7 @@ enum class SwitchFlags : int {
   PUBLISH_STATS = 4,
   ENABLE_LACP = 8,
   ENABLE_MACSEC = 16,
+  ENABLE_FABRIC_LINK_MONITORING = 32,
 };
 
 inline SwitchFlags operator|(SwitchFlags lhs, SwitchFlags rhs) {
@@ -1152,6 +1154,8 @@ class SwSwitch : public HwSwitchCallback {
 
   void initLldpManager();
 
+  void initFabricLinkMonitoringManager();
+
   void publishBootTypeStats();
 
   void initThreadHeartbeats();
@@ -1372,6 +1376,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<ResourceAccountant> resourceAccountant_;
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager_;
   std::unique_ptr<ShelManager> shelManager_;
+  std::unique_ptr<FabricLinkMonitoringManager> fabricLinkMonitoringManager_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
