@@ -131,6 +131,7 @@ void SaiPortManager::changePortByRecreate(
     // Port Macro and re-create the removed ports with the new speed.
     removePort(oldPort);
     pendingNewPorts_[newPort->getID()] = newPort;
+    setPortType(newPort->getID(), newPort->getPortType());
     bool allPortsInGroupRemoved = true;
     auto& platformPortEntry =
         platform_->getPort(oldPort->getID())->getPlatformPortEntry();

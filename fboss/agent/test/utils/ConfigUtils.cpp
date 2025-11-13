@@ -1442,7 +1442,7 @@ void configurePortProfile(
     // iteration of the loop.
     auto cfgPort = findCfgPortIf(config, portID);
     if (cfgPort == config.ports()->end()) {
-      return;
+      continue;
     }
 
     const auto& platPortEntry = platformMapping->getPlatformPort(portID);
