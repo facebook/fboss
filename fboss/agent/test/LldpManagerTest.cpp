@@ -406,4 +406,152 @@ TEST(LldpManagerTest, MismatchedNeighbor) {
       cfg::SwitchType::VOQ, PortID(5), std::nullopt /* vlanID */);
 }
 
+TEST(LldpManagerTest, PortDrainStateTxTest) {
+  FLAGS_lldp_port_drain_state = true;
+
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  // Helper lambda to create and parse a packet
+  auto createAndParsePkt = [&sw](
+                               MacAddress mac,
+                               const std::string& hostname,
+                               const std::string& portname,
+                               std::optional<bool> portDrainState) {
+    // Calculate the correct packet size based on whether port drain state is
+    // included
+    uint32_t pktSize = LldpManager::LldpPktSize(
+        hostname,
+        portname,
+        "Test port description",
+        "FBOSS",
+        portDrainState.has_value());
+    auto pkt = sw->allocatePacket(pktSize);
+
+    LldpManager::fillLldpTlv(
+        pkt.get(),
+        mac,
+        VlanID(1),
+        "FBOSS",
+        hostname,
+        portname,
+        "Test port description",
+        120,
+        LldpManager::SYSTEM_CAPABILITY_ROUTER,
+        portDrainState);
+
+    // Parse the packet back
+    Cursor c(pkt->buf());
+    c.skip(14 + 4); // Skip Ethernet header (14 bytes) + VLAN tag (4 bytes)
+
+    auto neighbor = std::make_shared<LinkNeighbor>();
+    bool parsed = neighbor->parseLldpPdu(
+        PortID(1), VlanID(1), mac, LldpManager::ETHERTYPE_LLDP, &c);
+
+    EXPECT_TRUE(parsed);
+    return neighbor;
+  };
+
+  // Test with drain state = true
+  auto neighbor1 =
+      createAndParsePkt(MacAddress("2:2:2:2:2:10"), "testhost1", "port1", true);
+  auto drainState1 = neighbor1->getPortDrainState();
+  EXPECT_TRUE(drainState1.has_value());
+  EXPECT_TRUE(drainState1.value());
+
+  // Test with drain state = false
+  auto neighbor2 = createAndParsePkt(
+      MacAddress("2:2:2:2:2:11"), "testhost2", "port2", false);
+  auto drainState2 = neighbor2->getPortDrainState();
+  EXPECT_TRUE(drainState2.has_value());
+  EXPECT_FALSE(drainState2.value());
+
+  // Test without drain state (std::nullopt)
+  auto neighbor3 = createAndParsePkt(
+      MacAddress("2:2:2:2:2:12"), "testhost3", "port3", std::nullopt);
+  auto drainState3 = neighbor3->getPortDrainState();
+  EXPECT_FALSE(drainState3.has_value());
+}
+
+TEST(LldpManagerTest, PortDrainStateRxTest) {
+  FLAGS_lldp_port_drain_state = true;
+
+  auto lldpPortDrainStateRxHelper = [](cfg::SwitchType switchType,
+                                       const std::optional<VlanID>& vlanID,
+                                       std::optional<bool> portDrainState) {
+    cfg::SwitchConfig config = testConfigA(switchType);
+    *config.ports()[0].routable() = true;
+
+    auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
+    auto sw = handle->getSw();
+
+    // Cache the current stats
+    CounterCache counters(sw);
+
+    // Create base LLDP packet size
+    auto basePkt = LldpManager::createLldpPkt(
+        sw,
+        MacAddress("2:2:2:2:2:10"),
+        vlanID,
+        "remotesys",
+        "remoteport",
+        "remoteportdesc",
+        120,
+        LldpManager::SYSTEM_CAPABILITY_ROUTER);
+
+    std::unique_ptr<TxPacket> pkt;
+    if (portDrainState.has_value()) {
+      // Calculate correct packet size when including port drain state TLV
+      uint32_t pktSize = LldpManager::LldpPktSize(
+          "remotesys", "remoteport", "remoteportdesc", "FBOSS", true);
+      pkt = sw->allocatePacket(pktSize);
+
+      LldpManager::fillLldpTlv(
+          pkt.get(),
+          MacAddress("2:2:2:2:2:10"),
+          vlanID,
+          "FBOSS",
+          "remotesys",
+          "remoteport",
+          "remoteportdesc",
+          120,
+          LldpManager::SYSTEM_CAPABILITY_ROUTER,
+          portDrainState);
+    } else {
+      pkt = std::move(basePkt);
+    }
+
+    handle->rxPacket(
+        std::make_unique<folly::IOBuf>(*pkt->buf()),
+        PortDescriptor(PortID(1)),
+        vlanID);
+
+    counters.update();
+    counters.checkDelta(SwitchStats::kCounterPrefix + "lldp.recvd.sum", 1);
+
+    // Verify the port drain state was parsed correctly
+    auto db = sw->getLldpMgr()->getDB();
+    auto neighbors = db->getNeighbors();
+    EXPECT_EQ(neighbors.size(), 1);
+
+    const auto& neighbor = neighbors[0];
+    if (portDrainState.has_value()) {
+      auto drainState = neighbor->getPortDrainState();
+      EXPECT_TRUE(drainState.has_value());
+      EXPECT_EQ(drainState.value(), portDrainState.value());
+    } else {
+      auto drainState = neighbor->getPortDrainState();
+      EXPECT_FALSE(drainState.has_value());
+    }
+  };
+
+  // Test with drain state = true
+  lldpPortDrainStateRxHelper(cfg::SwitchType::NPU, VlanID(1), true);
+
+  // Test with drain state = false
+  lldpPortDrainStateRxHelper(cfg::SwitchType::NPU, VlanID(1), false);
+
+  // Test without drain state
+  lldpPortDrainStateRxHelper(cfg::SwitchType::NPU, VlanID(1), std::nullopt);
+}
 } // unnamed namespace
