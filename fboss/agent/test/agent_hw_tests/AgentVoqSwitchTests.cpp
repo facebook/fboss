@@ -657,7 +657,11 @@ TEST_F(AgentVoqSwitchTest, localSystemPortEcmp) {
     for (auto& systemPortMap :
          std::as_const(*getProgrammedState()->getSystemPorts())) {
       for (auto& [_, localSysPort] : std::as_const(*systemPortMap.second)) {
-        localSysPorts.insert(PortDescriptor(localSysPort->getID()));
+        PortDescriptor portDesc = PortDescriptor(localSysPort->getID());
+        // no need to configure RIF interface for hyper port members
+        if (ecmpHelper.getInterface(portDesc, getProgrammedState())) {
+          localSysPorts.insert(portDesc);
+        }
       }
     }
     applyNewState([=](const std::shared_ptr<SwitchState>& in) {
