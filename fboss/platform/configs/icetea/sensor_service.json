@@ -1633,12 +1633,20 @@
           "name": "FCB_XP48R0V_HOTSWAP_IOUT",
           "sysfsPath": "/run/devmap/sensors/FCB_48V_HSC_MONITOR/curr1_input",
           "type": 2,
+          "thresholds": {
+            "maxAlarmVal": 93,
+            "upperCriticalVal": 98
+          },
           "compute": "1.8*@/1000"
         },
         {
           "name": "FCB_XP48R0V_HOTSWAP_PIN",
           "sysfsPath": "/run/devmap/sensors/FCB_48V_HSC_MONITOR/power1_input",
           "type": 0,
+          "thresholds": {
+            "maxAlarmVal": 3600,
+            "upperCriticalVal": 4000
+          },
           "compute": "1.8*@/1000000"
         },
         {
@@ -1651,12 +1659,24 @@
           "name": "FCB_XP48R0V_HOTSWAP_VIN",
           "sysfsPath": "/run/devmap/sensors/FCB_48V_HSC_MONITOR/in1_input",
           "type": 1,
+          "thresholds": {
+            "maxAlarmVal": 62,
+            "minAlarmVal": 42,
+            "upperCriticalVal": 64,
+            "lowerCriticalVal": 40
+          },
           "compute": "@/1000"
         },
         {
           "name": "FCB_XP48R0V_HOTSWAP_VOUT",
           "sysfsPath": "/run/devmap/sensors/FCB_48V_HSC_MONITOR/in2_input",
           "type": 1,
+          "thresholds": {
+            "maxAlarmVal": 62,
+            "minAlarmVal": 42,
+            "upperCriticalVal": 64,
+            "lowerCriticalVal": 40
+          },
           "compute": "@/1000"
         }
       ]
@@ -1802,7 +1822,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ADC2_SENSOR/in1_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 1.236,
+            "maxAlarmVal": 1.30,
             "minAlarmVal": 1.164,
             "upperCriticalVal": 1.38,
             "lowerCriticalVal": 0
@@ -1838,10 +1858,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ADC2_SENSOR/in6_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 1.908,
-            "minAlarmVal": 1.692,
-            "upperCriticalVal": 1.98,
-            "lowerCriticalVal": 1.62
+            "maxAlarmVal": 2,
+            "minAlarmVal": 1.81,
+            "upperCriticalVal": 2.1,
+            "lowerCriticalVal": 1.71
           },
           "compute": "@/1000"
         },
@@ -1862,8 +1882,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 80,
-            "upperCriticalVal": 85
+            "upperCriticalVal": 100
           },
           "compute": "@/1000"
         },
@@ -1872,8 +1891,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp2_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 100,
-            "upperCriticalVal": 105
+            "upperCriticalVal": 100
           },
           "compute": "@/1000"
         },
@@ -1882,8 +1900,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp3_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 100,
-            "upperCriticalVal": 105
+            "upperCriticalVal": 100
           },
           "compute": "@/1000"
         },
@@ -1892,8 +1909,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_2/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 80,
-            "upperCriticalVal": 85
+            "upperCriticalVal": 100
           },
           "compute": "@/1000"
         },
@@ -1902,18 +1918,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_2/temp2_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 100,
-            "upperCriticalVal": 105
-          },
-          "compute": "@/1000"
-        },
-        {
-          "name": "SMB_U30_RIGHT_TMP432_2_TEMP3",
-          "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_2/temp3_input",
-          "type": 3,
-          "thresholds": {
-            "maxAlarmVal": 80,
-            "upperCriticalVal": 85
+            "upperCriticalVal": 100
           },
           "compute": "@/1000"
         },
