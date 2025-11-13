@@ -900,6 +900,25 @@ TYPED_TEST(FsdbSlowPathSubscriberTest, slowSubscriberCoalescedUpdates) {
   ASSERT_EQ(
       info.state, FsdbStreamClient::ReconnectingThriftClient::State::CONNECTED);
 
+  // validate counter for chunks coalesced
+  WITH_RETRIES_N(90, {
+    auto subscriberId = slowSub->clientId();
+    auto subscriberToInfo = folly::coro::blockingWait(
+        this->fsdbTestServer_->getClient()->co_getOperSubscriberInfos(
+            {subscriberId}));
+    auto sitr = subscriberToInfo.find(subscriberId);
+    ASSERT_EVENTUALLY_NE(sitr, subscriberToInfo.end());
+    ASSERT_EVENTUALLY_EQ(sitr->second.size(), 1);
+    if (sitr != subscriberToInfo.end()) {
+      OperSubscriberInfo expectedInfo = sitr->second[0];
+      ASSERT_EVENTUALLY_EQ(
+          expectedInfo.subscriptionChunksCoalesced().has_value(), true);
+      if (expectedInfo.subscriptionChunksCoalesced().has_value()) {
+        ASSERT_EVENTUALLY_GT(*expectedInfo.subscriptionChunksCoalesced(), 0);
+      }
+    }
+  });
+
   resumeReconnect.post();
 }
 

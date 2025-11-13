@@ -1605,6 +1605,10 @@ void mergeOperSubscriberInfo(
             sub.subscriptionQueueWatermark() =
                 *subInfo.subscriptionQueueWatermark();
           }
+          if (subInfo.subscriptionChunksCoalesced().has_value()) {
+            sub.subscriptionChunksCoalesced() =
+                *subInfo.subscriptionChunksCoalesced();
+          }
         }
       }
     }

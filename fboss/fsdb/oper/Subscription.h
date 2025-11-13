@@ -120,6 +120,10 @@ class BaseSubscription {
     return *queueWatermark_.rlock();
   }
 
+  uint32_t getChunksCoalesced() const {
+    return *chunksCoalesced_.rlock();
+  }
+
   void stop();
 
  protected:
@@ -175,6 +179,8 @@ class BaseSubscription {
     if (queuedChunks > 1) {
       XLOG(DBG2) << "Subscription " << subscriberId()
                  << " pending chunks, coalesce update";
+      chunksCoalesced_.withWLock(
+          [&](auto& chunksCoalesced) { chunksCoalesced++; });
       return FsdbErrorCode::SUBSCRIPTION_SERVE_UPDATES_PENDING;
     }
 
@@ -200,6 +206,7 @@ class BaseSubscription {
   folly::coro::CancellableAsyncScope backgroundScope_;
   std::chrono::milliseconds heartbeatInterval_;
   folly::Synchronized<uint32_t> queueWatermark_{0};
+  folly::Synchronized<uint32_t> chunksCoalesced_{0};
   std::optional<FsdbErrorCode> pruneReason_{std::nullopt};
   std::optional<OperMetadata> lastServedMetadata_;
 };

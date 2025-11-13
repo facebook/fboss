@@ -245,6 +245,7 @@ std::map<FsdbClient, SubscriberStats> SubscriptionStore::getSubscriberStats()
     stats.subscriptionServeQueueWatermark = std::max(
         stats.subscriptionServeQueueWatermark,
         subscription.getQueueWatermark());
+    stats.subscriptionChunksCoalesced = subscription.getChunksCoalesced();
   };
   for (auto& [id, subscription] : subscriptions_) {
     updateSubscriberStats(toRet, *subscription, updater);
