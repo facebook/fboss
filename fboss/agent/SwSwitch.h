@@ -787,6 +787,11 @@ class SwSwitch : public HwSwitchCallback {
   LookupClassRouteUpdater* getLookupClassRouteUpdater() {
     return lookupClassRouteUpdater_.get();
   }
+
+  FabricLinkMonitoringManager* getFabricLinkMonitoringManager() {
+    return fabricLinkMonitoringManager_.get();
+  }
+
   const EcmpResourceManager* getEcmpResourceManager() const {
     return ecmpResourceManager_.get();
   }
