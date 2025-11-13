@@ -25,6 +25,7 @@ void validateLedName(
     const std::string& ledName,
     std::vector<std::string>& errorMessages) {
   int firstId = -1;
+  std::string firstIdStr;
   std::string secondIdStr;
 
   if (ledName.starts_with("port")) {
@@ -34,7 +35,7 @@ void validateLedName(
     }
   } else if (ledName.starts_with("fan")) {
     re2::RE2 fanLedRegex("fan(\\d*)_led");
-    if (!re2::RE2::FullMatch(ledName, kFanLedName, &firstId)) {
+    if (!re2::RE2::FullMatch(ledName, kFanLedName, &firstIdStr)) {
       errorMessages.emplace_back(
           fmt::format("LED name `{}` does not match expected format", ledName));
     }
@@ -46,10 +47,19 @@ void validateLedName(
     return;
   }
 
-  if (firstId == 0) {
-    errorMessages.emplace_back(
-        fmt::format("index in LED name {} is not 1-based", ledName));
+  auto checkIndex = [&](int checkId) {
+    if (checkId == 0) {
+      errorMessages.emplace_back(
+          fmt::format("index in LED name {} is not 1-based", ledName));
+    }
+  };
+
+  if (!firstIdStr.empty()) {
+    int fanindexId = std::stoi(firstIdStr);
+    checkIndex(fanindexId);
   }
+
+  checkIndex(firstId);
 
   if (!secondIdStr.empty()) {
     int secondId = std::stoi(secondIdStr);
