@@ -350,6 +350,11 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       }
     } else if (
         tcvrState == TransceiverStateMachineState::TRANSCEIVER_READY &&
+        portState == PortStateMachineState::UNINITIALIZED) {
+      transceiverManager_->refreshTransceivers();
+      transceiverManager_->triggerProgrammingEvents();
+    } else if (
+        tcvrState == TransceiverStateMachineState::TRANSCEIVER_READY &&
         portState == PortStateMachineState::INITIALIZED) {
       initializePortsThroughRefresh();
       transceiverManager_->triggerProgrammingEvents();
@@ -911,6 +916,8 @@ TEST_F(PortStateMachineTest, verifyStateSetupMacro) {
            PortStateMachineState::IPHY_PORTS_PROGRAMMED},
           {TransceiverStateMachineState::DISCOVERED,
            PortStateMachineState::XPHY_PORTS_PROGRAMMED},
+          {TransceiverStateMachineState::TRANSCEIVER_READY,
+           PortStateMachineState::UNINITIALIZED},
           {TransceiverStateMachineState::TRANSCEIVER_READY,
            PortStateMachineState::INITIALIZED},
           {TransceiverStateMachineState::TRANSCEIVER_READY,
@@ -2410,4 +2417,53 @@ TEST_F(PortStateMachineTest, reseatTransceiver) {
   }
 }
 
+TEST_F(PortStateMachineTest, agentDisableEnablePort) {
+  std::string kTestName = "agentDisableEnablePort";
+  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+    verifyStateMachine(
+        {makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_UP,
+            isMultiTcvr,
+            isMultiPort)},
+        makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_READY,
+            PortStateMachineState::UNINITIALIZED,
+            isMultiTcvr,
+            isMultiPort) /* expected state */,
+        []() {} /* preUpdate */,
+        [this]() {
+          portManager_->setOverrideAllAgentPortStatusForTesting(false, false);
+          for (int i = 0; i < 5; ++i) {
+            refreshAndTriggerProgramming();
+          }
+        } /* stateUpdate */,
+        []() {} /* verify */,
+        kTestName + "-phase-disable",
+        true /* isMock */);
+
+    verifyStateMachine(
+        {makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_READY,
+            PortStateMachineState::UNINITIALIZED,
+            isMultiTcvr,
+            isMultiPort)},
+        makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_UP,
+            isMultiTcvr,
+            isMultiPort) /* expected state */,
+        []() {} /* preUpdate */,
+        [this]() {
+          portManager_->setOverrideAllAgentPortStatusForTesting(true, true);
+          for (int i = 0; i < 5; ++i) {
+            refreshAndTriggerProgramming();
+          }
+        } /* stateUpdate */,
+        []() {} /* verify */,
+        kTestName + "-phase-enable",
+        true /* isMock */);
+  }
+}
 } // namespace facebook::fboss
