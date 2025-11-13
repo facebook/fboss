@@ -286,24 +286,25 @@ void PciExplorer::createLedCtrl(
 std::vector<LedCtrlConfig> PciExplorer::createLedCtrlConfigs(
     const PciDeviceConfig& pciDeviceConfig) {
   std::vector<LedCtrlConfig> ledCtrlConfigs;
-  const auto ledCtrlConfigBlocks = pciDeviceConfig.ledCtrlBlockConfigs();
-  for (const auto& ledCtrlConfigBlock : *ledCtrlConfigBlocks) {
+  const auto ledCtrlBlockConfigs = pciDeviceConfig.ledCtrlBlockConfigs();
+  for (const auto& ledCtrlBlockConfig : *ledCtrlBlockConfigs) {
     int endPort =
-        *ledCtrlConfigBlock.startPort() + *ledCtrlConfigBlock.numPorts();
-    for (int port = *ledCtrlConfigBlock.startPort(); port < endPort; ++port) {
-      for (int led = 1; led <= ledCtrlConfigBlock.ledPerPort(); ++led) {
+        *ledCtrlBlockConfig.startPort() + *ledCtrlBlockConfig.numPorts();
+    for (int port = *ledCtrlBlockConfig.startPort(); port < endPort; ++port) {
+      for (int led = 1; led <= ledCtrlBlockConfig.ledPerPort(); ++led) {
         LedCtrlConfig ledCtrlConfig;
         ledCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
             "{}_PORT_{}_LED_{}",
-            *ledCtrlConfigBlock.pmUnitScopedNamePrefix(),
+            *ledCtrlBlockConfig.pmUnitScopedNamePrefix(),
             port,
             led);
-        ledCtrlConfig.fpgaIpBlockConfig()->deviceName() = "port_led";
+        ledCtrlConfig.fpgaIpBlockConfig()->deviceName() =
+            *ledCtrlBlockConfig.deviceName();
         ledCtrlConfig.fpgaIpBlockConfig()->csrOffset() =
             Utils().computeHexExpression(
-                *ledCtrlConfigBlock.csrOffsetCalc(),
+                *ledCtrlBlockConfig.csrOffsetCalc(),
                 port,
-                *ledCtrlConfigBlock.startPort(),
+                *ledCtrlBlockConfig.startPort(),
                 led);
         ledCtrlConfig.portNumber() = port;
         ledCtrlConfig.ledId() = led;
