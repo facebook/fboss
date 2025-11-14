@@ -9,6 +9,7 @@
  */
 #include <folly/Benchmark.h>
 
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/test/benchmarks/HwBenchmarkUtils.h"
 
@@ -16,18 +17,30 @@ namespace facebook::fboss {
 
 BENCHMARK(PhyInitAllColdBoot) {
   folly::BenchmarkSuspender suspender;
-  auto wedgeMgr = setupForColdboot();
+  std::unique_ptr<WedgeManager> wedgeMgr;
+  std::unique_ptr<PortManager> portMgr;
+  std::tie(wedgeMgr, portMgr) = setupForColdboot();
   suspender.dismiss();
 
-  wedgeMgr->initExternalPhyMap();
+  if (FLAGS_port_manager_mode) {
+    portMgr->initExternalPhyMap();
+  } else {
+    wedgeMgr->initExternalPhyMap();
+  }
 }
 
 BENCHMARK(PhyInitAllWarmBoot) {
   folly::BenchmarkSuspender suspender;
-  auto wedgeMgr = setupForWarmboot();
+  std::unique_ptr<WedgeManager> wedgeMgr;
+  std::unique_ptr<PortManager> portMgr;
+  std::tie(wedgeMgr, portMgr) = setupForWarmboot();
   suspender.dismiss();
 
-  wedgeMgr->initExternalPhyMap();
+  if (FLAGS_port_manager_mode) {
+    portMgr->initExternalPhyMap();
+  } else {
+    wedgeMgr->initExternalPhyMap();
+  }
 }
 
 } // namespace facebook::fboss
