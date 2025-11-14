@@ -233,7 +233,6 @@ class WedgeManager : public TransceiverManager {
   using LockedTransceiversPtr = folly::Synchronized<
       std::map<TransceiverID, std::unique_ptr<Transceiver>>>::WLockedPtr;
 
-  std::unique_ptr<QsfpFsdbSyncManager> fsdbSyncManager_;
   std::unique_ptr<QsfpRestClient> qsfpRestClient_;
   std::string dataCenter_{""};
   std::string hostnameScheme_{""};

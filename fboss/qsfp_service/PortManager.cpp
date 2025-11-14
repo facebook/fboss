@@ -85,10 +85,12 @@ PortManager::PortManager(
     std::unique_ptr<PhyManager> phyManager,
     const std::shared_ptr<const PlatformMapping> platformMapping,
     const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-        threads)
+        threads,
+    std::shared_ptr<QsfpFsdbSyncManager> fsdbSyncManager)
     : platformMapping_(platformMapping),
       transceiverManager_(transceiverManager),
       phyManager_(std::move(phyManager)),
+      fsdbSyncManager_(std::move(fsdbSyncManager)),
       cachedXphyPorts_(getXphyPortsCache()),
       threads_(threads),
       tcvrToPortMap_(getTcvrToPortMap(platformMapping_)),
@@ -1955,9 +1957,10 @@ void PortManager::refreshStateMachines() {
   }
   transceiverManager_->triggerRemediateEvents(stableTcvrs);
 
-  // TODO(smenta) – Need to add support for publishing PIM states.
+  // Step 9: Publish PIM states to FSDB
+  transceiverManager_->publishPimStatesToFsdb();
 
-  // Step 9: Mark full initialization complete.
+  // Step 10: Mark full initialization complete.
   transceiverManager_->completeRefresh();
   setWarmBootState();
 
@@ -2001,6 +2004,31 @@ void PortManager::getPortStates(
     } catch (const FbossError& /* e */) {
       XLOG(WARN) << "Unrecognized Port:" << portId;
     }
+  }
+}
+
+void PortManager::publishPhyStateToFsdb(
+    std::string&& portNameStr,
+    std::optional<phy::PhyState>&& newState) const {
+  if (FLAGS_publish_state_to_fsdb) {
+    fsdbSyncManager_->updatePhyState(
+        std::move(portNameStr), std::move(newState));
+  }
+}
+
+void PortManager::publishPhyStatToFsdb(
+    std::string&& portNameStr,
+    phy::PhyStats&& stat) const {
+  if (FLAGS_publish_stats_to_fsdb) {
+    fsdbSyncManager_->updatePhyStat(std::move(portNameStr), std::move(stat));
+  }
+}
+
+void PortManager::publishPortStatToFsdb(
+    std::string&& portNameStr,
+    HwPortStats&& stat) const {
+  if (FLAGS_publish_stats_to_fsdb) {
+    fsdbSyncManager_->updatePortStat(std::move(portNameStr), std::move(stat));
   }
 }
 

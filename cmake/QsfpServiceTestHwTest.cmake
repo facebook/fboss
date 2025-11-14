@@ -27,6 +27,7 @@ target_link_libraries(hw_transceiver_utils
   error
   switch_config_cpp2
   transceiver_cpp2
+  transceiver_manager
 )
 
 add_executable(qsfp_hw_test
