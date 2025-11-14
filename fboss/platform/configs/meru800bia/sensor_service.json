@@ -621,5 +621,19 @@
       "name": "PSU2",
       "powerSensorName": "PSU2_PIN"
     }
+  ],
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "SMB_J3_DIODE_CORE_TEMP",
+        "SMB_J3_DIODE_FAB0_TEMP",
+        "SMB_J3_DIODE_FAB1_TEMP",
+        "SMB_J3_DIODE_HBM0_TEMP",
+        "SMB_J3_DIODE_HBM1_TEMP",
+        "SMB_J3_DIODE_NIF0_TEMP",
+        "SMB_J3_DIODE_NIF1_TEMP"
+      ]
+    }
   ]
 }
