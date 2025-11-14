@@ -43,3 +43,8 @@ This document describes all of the locations in the code where you need to add c
 3. In `fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp`, add a function called `create{PLATFORM}WedgeManager` that instantiates a `WedgeManager` object with the platform mapping JSON file.
    - `fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h` [Header example](https://github.com/facebook/fboss/blob/main/fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h#L59)
    - `fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp` [Source example](https://github.com/facebook/fboss/blob/main/fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp#L181)
+
+4. Make changes to CMake files to support building in open source:
+   - Add BSP library definition to [cmake/QsfpService.cmake](https://github.com/facebook/fboss/blob/main/cmake/QsfpService.cmake) and link to `qsfp_bsp_core`
+   - Add LED Manager source file to `led_manager_lib` in [cmake/LedService.cmake](https://github.com/facebook/fboss/blob/main/cmake/LedService.cmake) and link BSP and platform mapping libraries
+   - Add platform mapping library to `qsfp_platforms_wedge` in [cmake/QsfpServicePlatformsWedge.cmake](https://github.com/facebook/fboss/blob/main/cmake/QsfpServicePlatformsWedge.cmake)
