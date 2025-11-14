@@ -530,4 +530,111 @@ TEST_F(ConfigSessionTestFixture, revisionNumberExtraction) {
       999);
 }
 
+TEST_F(ConfigSessionTestFixture, rollbackCreatesNewRevision) {
+  // This test actually calls the rollback() method with a specific revision
+  fs::path cliConfigDir = testEtcDir_ / "coop" / "cli";
+  fs::path symlinkPath = testEtcDir_ / "coop" / "agent.conf";
+  fs::path sessionConfigPath = testHomeDir_ / ".fboss2" / "agent.conf";
+
+  // Remove the regular file created by SetUp
+  if (fs::exists(symlinkPath)) {
+    fs::remove(symlinkPath);
+  }
+
+  // Create revision files (simulating previous commits)
+  createTestConfig(cliConfigDir / "agent-r1.conf", R"({"revision": 1})");
+  createTestConfig(cliConfigDir / "agent-r2.conf", R"({"revision": 2})");
+  createTestConfig(cliConfigDir / "agent-r3.conf", R"({"revision": 3})");
+
+  // Create symlink pointing to r3 (current revision)
+  fs::create_symlink(cliConfigDir / "agent-r3.conf", symlinkPath);
+
+  // Verify initial state
+  EXPECT_TRUE(fs::is_symlink(symlinkPath));
+  EXPECT_EQ(fs::read_symlink(symlinkPath), cliConfigDir / "agent-r3.conf");
+
+  // Setup mock agent server
+  setupMockedAgentServer();
+
+  // Expect reloadConfig to be called once
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(1);
+
+  // Create a testable ConfigSession with test paths
+  TestableConfigSession session(
+      sessionConfigPath.string(), symlinkPath.string(), cliConfigDir.string());
+
+  // Call the actual rollback method to rollback to r1
+  int newRevision = session.rollback(localhost(), "r1");
+
+  // Verify rollback created a new revision (r4)
+  EXPECT_EQ(newRevision, 4);
+  EXPECT_TRUE(fs::is_symlink(symlinkPath));
+  EXPECT_EQ(fs::read_symlink(symlinkPath), cliConfigDir / "agent-r4.conf");
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r4.conf"));
+
+  // Verify r4 has same content as r1 (the target revision)
+  EXPECT_EQ(
+      readFile(cliConfigDir / "agent-r1.conf"),
+      readFile(cliConfigDir / "agent-r4.conf"));
+
+  // Verify old revisions still exist (rollback doesn't delete history)
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r1.conf"));
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.conf"));
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r3.conf"));
+}
+
+TEST_F(ConfigSessionTestFixture, rollbackToPreviousRevision) {
+  // This test actually calls the rollback() method without a revision argument
+  // to rollback to the previous revision
+  fs::path cliConfigDir = testEtcDir_ / "coop" / "cli";
+  fs::path symlinkPath = testEtcDir_ / "coop" / "agent.conf";
+  fs::path sessionConfigPath = testHomeDir_ / ".fboss2" / "agent.conf";
+
+  // Remove the regular file created by SetUp
+  if (fs::exists(symlinkPath)) {
+    fs::remove(symlinkPath);
+  }
+
+  // Create revision files (simulating previous commits)
+  createTestConfig(cliConfigDir / "agent-r1.conf", R"({"revision": 1})");
+  createTestConfig(cliConfigDir / "agent-r2.conf", R"({"revision": 2})");
+  createTestConfig(cliConfigDir / "agent-r3.conf", R"({"revision": 3})");
+
+  // Create symlink pointing to r3 (current revision)
+  fs::create_symlink(cliConfigDir / "agent-r3.conf", symlinkPath);
+
+  // Verify initial state
+  EXPECT_TRUE(fs::is_symlink(symlinkPath));
+  EXPECT_EQ(fs::read_symlink(symlinkPath), cliConfigDir / "agent-r3.conf");
+
+  // Setup mock agent server
+  setupMockedAgentServer();
+
+  // Expect reloadConfig to be called once
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(1);
+
+  // Create a testable ConfigSession with test paths
+  TestableConfigSession session(
+      sessionConfigPath.string(), symlinkPath.string(), cliConfigDir.string());
+
+  // Call the actual rollback method without a revision (should go to previous)
+  int newRevision = session.rollback(localhost());
+
+  // Verify rollback to previous revision created r4 with content from r2
+  EXPECT_EQ(newRevision, 4);
+  EXPECT_TRUE(fs::is_symlink(symlinkPath));
+  EXPECT_EQ(fs::read_symlink(symlinkPath), cliConfigDir / "agent-r4.conf");
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r4.conf"));
+
+  // Verify r4 has same content as r2 (the previous revision)
+  EXPECT_EQ(
+      readFile(cliConfigDir / "agent-r2.conf"),
+      readFile(cliConfigDir / "agent-r4.conf"));
+
+  // Verify old revisions still exist (rollback doesn't delete history)
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r1.conf"));
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.conf"));
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r3.conf"));
+}
+
 } // namespace facebook::fboss

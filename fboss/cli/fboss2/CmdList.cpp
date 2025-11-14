@@ -22,6 +22,7 @@
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
+#include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
@@ -557,6 +558,12 @@ const CommandTree& kCommandTree() {
        "Reload agent configuration",
        commandHandler<CmdConfigReload>,
        argTypeHandler<CmdConfigReloadTraits>},
+
+      {"config",
+       "rollback",
+       "Rollback to a previous config revision",
+       commandHandler<CmdConfigRollback>,
+       argTypeHandler<CmdConfigRollbackTraits>},
   };
   sort(root.begin(), root.end());
   return root;
