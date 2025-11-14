@@ -10,10 +10,13 @@
 
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
+#include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 
 namespace facebook::fboss {
 
+template void
+CmdHandler<CmdConfigAppliedInfo, CmdConfigAppliedInfoTraits>::run();
 template void CmdHandler<CmdConfigReload, CmdConfigReloadTraits>::run();
 
 } // namespace facebook::fboss

@@ -117,6 +117,7 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
       void,
       getAllEcmpDetails,
       (std::vector<facebook::fboss::EcmpDetails>&));
+  MOCK_METHOD(void, getConfigAppliedInfo, (ConfigAppliedInfo&));
 };
 
 class MockFbossQsfpService : public QsfpServiceSvIf {
