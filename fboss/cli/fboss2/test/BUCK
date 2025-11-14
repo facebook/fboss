@@ -53,6 +53,7 @@ cpp_unittest(
 cpp_unittest(
     name = "cmd_test",
     srcs = [
+        "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigReloadTest.cpp",
         "CmdGetPcapTest.cpp",
         "CmdSetPortStateTest.cpp",

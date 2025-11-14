@@ -337,6 +337,8 @@ cpp_library(
         "commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h",
         "commands/clear/interface/prbs/CmdClearInterfacePrbs.h",
         "commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h",
+        "commands/config/CmdConfigAppliedInfo.h",
+        "commands/config/CmdConfigAppliedInfo.cpp",
         "commands/config/CmdConfigReload.h",
         "commands/config/CmdConfigReload.cpp",
         "commands/create/facebook/CmdCreateConfig.h",
