@@ -87,7 +87,15 @@ cpp_unittest(
         "CmdShowTransceiverTest.cpp",
         "CmdStartPcapTest.cpp",
         "CmdStopPcapTest.cpp",
+        "PortMapTest.cpp",
     ],
+    # Config files for PortMapTest parameterized tests
+    resources = [
+        "//fboss/oss/link_test_configs:link_test_configs",
+    ],
+    # Required for parameterized tests (TEST_P) - static listing doesn't support them
+    # See: https://fburl.com/parameterized-test-not-supported
+    supports_static_listing = False,
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":cmd_test_utils",
@@ -121,9 +129,12 @@ cpp_unittest(
         "//fboss/cli/fboss2/commands/show/route:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/teflow:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/transceiver:model-cpp2-types",
+        "//folly:file_util",
         "//folly:network_address",
         "//folly/json:dynamic",
+        "//folly/testing:test_util",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
+        "//thrift/lib/cpp2/protocol:protocol",
         "//thrift/lib/cpp2/reflection:testing",
     ],
     external_deps = [("boost", None, "boost_algorithm")],

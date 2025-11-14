@@ -313,6 +313,7 @@ cpp_library(
         "utils/CmdClientUtils.cpp",
         "utils/CmdUtils.cpp",
         "utils/NetwhoamiUtils.cpp",
+        "utils/PortMap.cpp",
         "utils/PrbsUtils.cpp",
         "utils/TeFlowUtils.cpp",
         "utils/clients/BmcClient.cpp",
@@ -774,7 +775,14 @@ cpp_library(
     exported_deps = [
         ":cmd-handler",
         ":fboss2-lib",
+        "//fboss/agent:agent_config-cpp2-types",
+        "//fboss/agent:agent_dir_util",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
         "//folly:conv",
+    ],
+    exported_external_deps = [
+        "glog",
     ],
 )
 
