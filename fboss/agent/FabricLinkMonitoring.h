@@ -20,6 +20,10 @@ class FabricLinkMonitoring {
   const std::map<PortID, SwitchID>& getPort2LinkSwitchIdMapping() const;
   SwitchID getSwitchIdForPort(const PortID& portId) const;
 
+  // Test-only methods to enable/check test mode
+  static void setTestMode(bool enabled);
+  static bool isTestMode();
+
  private:
   // Forward declarations for methods to be added in later diffs
   // Compute switch ID offsets

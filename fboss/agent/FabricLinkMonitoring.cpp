@@ -3,12 +3,28 @@
 #include "fboss/agent/FabricLinkMonitoring.h"
 #include "fboss/agent/AgentFeatures.h"
 
+#include <atomic>
+
 #include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
+
+namespace {
+// Static flag for test mode
+std::atomic<bool> testModeEnabled{false};
+} // namespace
+
+// Test-only function to enable test mode
+void FabricLinkMonitoring::setTestMode(bool enabled) {
+  testModeEnabled.store(enabled);
+}
+
+bool FabricLinkMonitoring::isTestMode() {
+  return testModeEnabled.load();
+}
 
 // Constructor initializes the fabric link monitoring system by processing
 // DSF nodes and link information from the switch configuration
@@ -390,6 +406,12 @@ int32_t FabricLinkMonitoring::getVirtualDeviceIdForLink(
       << "FabricLinkMon: Virtual device is applicable only for fabric "
       << "port, not for port with ID " << *port.logicalID() << " of type "
       << apache::thrift::util::enumNameSafe(*port.portType());
+
+  if (isTestMode()) {
+    // In unit test cases, avoid dependency on platform mapping
+    return *port.logicalID() % 4;
+  }
+
   // Find the neighbor DSF node in case of VoQ switch or in case
   // of L2 switch.
   auto neighborSwitchIter = config->dsfNodes()->find(neighborSwitchId);
