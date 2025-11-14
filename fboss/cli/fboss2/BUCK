@@ -352,6 +352,8 @@ cpp_library(
         "commands/config/interface/CmdConfigInterfaceBase.h",
         "commands/config/interface/CmdConfigInterfaceDescription.h",
         "commands/config/interface/CmdConfigInterfaceDescription.cpp",
+        "commands/config/interface/CmdConfigInterfaceMtu.h",
+        "commands/config/interface/CmdConfigInterfaceMtu.cpp",
         "commands/config/session/CmdConfigSessionCommit.h",
         "commands/config/session/CmdConfigSessionCommit.cpp",
         "commands/config/session/CmdConfigSessionDiff.h",
