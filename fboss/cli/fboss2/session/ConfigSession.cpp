@@ -169,9 +169,34 @@ ConfigSession::ConfigSession() {
   initializeSession();
 }
 
-ConfigSession& ConfigSession::getInstance() {
-  static ConfigSession instance;
+ConfigSession::ConfigSession(
+    const std::string& sessionConfigPath,
+    const std::string& systemConfigPath,
+    const std::string& cliConfigDir)
+    : sessionConfigPath_(sessionConfigPath),
+      systemConfigPath_(systemConfigPath),
+      cliConfigDir_(cliConfigDir) {
+  username_ = getUsername();
+  initializeSession();
+}
+
+namespace {
+std::unique_ptr<ConfigSession>& getInstancePtr() {
+  static std::unique_ptr<ConfigSession> instance;
   return instance;
+}
+} // namespace
+
+ConfigSession& ConfigSession::getInstance() {
+  auto& instance = getInstancePtr();
+  if (!instance) {
+    instance = std::make_unique<ConfigSession>();
+  }
+  return *instance;
+}
+
+void ConfigSession::setInstance(std::unique_ptr<ConfigSession> newInstance) {
+  getInstancePtr() = std::move(newInstance);
 }
 
 std::string ConfigSession::getSessionConfigPath() const {
@@ -180,6 +205,10 @@ std::string ConfigSession::getSessionConfigPath() const {
 
 std::string ConfigSession::getSystemConfigPath() const {
   return systemConfigPath_;
+}
+
+std::string ConfigSession::getCliConfigDir() const {
+  return cliConfigDir_;
 }
 
 bool ConfigSession::sessionExists() const {
@@ -282,7 +311,9 @@ void ConfigSession::loadConfig() {
 
 void ConfigSession::initializeSession() {
   if (!sessionExists()) {
-    ensureDirectoryExists(getHomeDirectory() + "/.fboss2");
+    // Ensure the parent directory of the session config exists
+    fs::path sessionPath(sessionConfigPath_);
+    ensureDirectoryExists(sessionPath.parent_path().string());
     copySystemConfigToSession();
   }
 }
