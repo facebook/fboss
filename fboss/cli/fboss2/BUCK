@@ -344,6 +344,8 @@ cpp_library(
         "commands/config/CmdConfigReload.cpp",
         "commands/config/session/CmdConfigSessionCommit.h",
         "commands/config/session/CmdConfigSessionCommit.cpp",
+        "commands/config/session/CmdConfigSessionDiff.h",
+        "commands/config/session/CmdConfigSessionDiff.cpp",
         "session/ConfigSession.h",
         "session/ConfigSession.cpp",
         "commands/create/facebook/CmdCreateConfig.h",
