@@ -83,7 +83,7 @@ def _setup_qsfp_service(
     if platform_mapping_override_path:
         if not os.path.exists(platform_mapping_override_path):
             raise Exception(
-                "platform_mapping override path: {platform_mapping_override_path} does not exist"
+                f"platform_mapping override path: {platform_mapping_override_path} does not exist"
             )
         extra_args += (
             f"{_PLATFORM_MAPPING_OVERRIDE_PATH_ARG} {platform_mapping_override_path}"
@@ -91,9 +91,9 @@ def _setup_qsfp_service(
     if bsp_platform_mapping_override_path:
         if not os.path.exists(bsp_platform_mapping_override_path):
             raise Exception(
-                "bsp_platform_mapping override path: {bsp_platform_mapping_override_path} does not exist"
+                f"bsp_platform_mapping override path: {bsp_platform_mapping_override_path} does not exist"
             )
-        extra_args += f"{_BSP_PLATFORM_MAPPING_OVERRIDE_PATH_ARG} {bsp_platform_mapping_override_path}"
+        extra_args += f" {_BSP_PLATFORM_MAPPING_OVERRIDE_PATH_ARG} {bsp_platform_mapping_override_path}"
     qsfp_service_cmd = (
         f"{qsfp_service_bin_path} --qsfp-config {qsfp_service_config_path} {extra_args}"
     )
