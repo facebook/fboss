@@ -38,4 +38,3 @@ class CmdConfigAppliedInfo
 };
 
 } // namespace facebook::fboss
-
