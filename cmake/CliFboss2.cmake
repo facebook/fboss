@@ -82,6 +82,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_fabric_monitoring_model
+  fboss/cli/fboss2/commands/show/fabric/monitoring/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_host_model
   fboss/cli/fboss2/commands/show/host/model.thrift
   OPTIONS
@@ -398,6 +405,8 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h
   fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.cpp
   fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h
+  fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringCounters.h
+  fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringCounters.cpp
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbDataCommon.h
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperState.h
@@ -510,6 +519,7 @@ target_link_libraries(fboss2
   show_fabric_model
   show_fabric_reachability_model
   show_fabric_inputbalance_model
+  show_fabric_monitoring_model
   show_host_model
   show_lldp_model
   show_mirror_model
