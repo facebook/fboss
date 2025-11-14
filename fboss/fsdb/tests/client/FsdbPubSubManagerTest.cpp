@@ -57,6 +57,10 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   void updateSubscriptionLastDisconnectReason(
       SubscriptionType subscriptionType,
       bool isStats) {
+    // Check if pubSubManager_ is still valid before accessing it
+    if (!this->pubSubManager_) {
+      return;
+    }
     auto subscriptionInfoList = this->pubSubManager_->getSubscriptionInfo();
     for (const auto& subscriptionInfo : subscriptionInfoList) {
       if (subscriptionType == subscriptionInfo.subscriptionType &&
@@ -98,7 +102,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   SubscriptionStateChangeCb subscrStateChangeCb(
       folly::Synchronized<std::vector<SubUnit>>& subUnits,
       std::optional<std::function<void()>> onDisconnect = std::nullopt) {
-    return [this, &onDisconnect, &subUnits](
+    return [this, onDisconnect, &subUnits](
                SubscriptionState /*oldState*/,
                SubscriptionState newState,
                std::optional<bool> /*initialSyncHasData*/) {
@@ -786,6 +790,8 @@ TYPED_TEST(FsdbPubSubManagerGRTest, verifySubscriptionDisconnectOnPublisherGR) {
   this->createPublishers();
   this->publish(makeAgentConfig({{"foo", "bar"}}));
   this->publish(makePortStats(1));
+  // Clear the disconnect reasons before the second disconnect
+  this->subscriptionLastDisconnectReason.wlock()->clear();
   this->pubSubManager_->removeStatDeltaPublisher();
   this->pubSubManager_->removeStatPathPublisher();
   this->pubSubManager_->removeStateDeltaPublisher();
