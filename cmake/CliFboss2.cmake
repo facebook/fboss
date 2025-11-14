@@ -472,7 +472,6 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
   fboss/cli/fboss2/CmdSubcommands.cpp
   fboss/cli/fboss2/oss/CmdGlobalOptions.cpp
-  fboss/cli/fboss2/oss/CmdList.cpp
   fboss/cli/fboss2/utils/CmdUtils.cpp
   fboss/cli/fboss2/utils/CLIParserUtils.cpp
   fboss/cli/fboss2/utils/CmdClientUtils.cpp
@@ -559,6 +558,7 @@ target_link_libraries(fboss2_lib
 
 add_executable(fboss2
   fboss/cli/fboss2/Main.cpp
+  fboss/cli/fboss2/oss/CmdList.cpp
 )
 
 target_link_libraries(fboss2
@@ -567,3 +567,29 @@ target_link_libraries(fboss2
 )
 
 install(TARGETS fboss2)
+
+# Config commands library for fboss2-dev
+add_library(fboss2_config_lib
+  fboss/cli/fboss2/commands/config/CmdConfigReload.h
+  fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
+  fboss/cli/fboss2/CmdListConfig.cpp
+  fboss/cli/fboss2/CmdHandlerImplConfig.cpp
+)
+
+target_link_libraries(fboss2_config_lib
+  fboss2_lib
+  agent_dir_util
+)
+
+add_executable(fboss2-dev
+  fboss/cli/fboss2/Main.cpp
+  fboss/cli/fboss2/oss/CmdListConfig.cpp
+)
+
+target_link_libraries(fboss2-dev
+  fboss2_config_lib
+  fboss2_lib
+  Folly::folly
+)
+
+install(TARGETS fboss2-dev)
