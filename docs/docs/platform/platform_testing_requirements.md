@@ -10,7 +10,7 @@ platform development.
 
 ## x86
 
-### Two months before shipping the Unit to Meta
+### One month before shipping the Unit to Meta
 
 * Represent the Platform with PlatformManager configuration and ensure it passes validation.
 
