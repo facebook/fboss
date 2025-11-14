@@ -181,9 +181,23 @@ ConfigSession::ConfigSession(
   initializeSession();
 }
 
-ConfigSession& ConfigSession::getInstance() {
-  static ConfigSession instance;
+namespace {
+std::unique_ptr<ConfigSession>& getInstancePtr() {
+  static std::unique_ptr<ConfigSession> instance;
   return instance;
+}
+} // namespace
+
+ConfigSession& ConfigSession::getInstance() {
+  auto& instance = getInstancePtr();
+  if (!instance) {
+    instance = std::make_unique<ConfigSession>();
+  }
+  return *instance;
+}
+
+void ConfigSession::setInstance(std::unique_ptr<ConfigSession> newInstance) {
+  getInstancePtr() = std::move(newInstance);
 }
 
 std::string ConfigSession::getSessionConfigPath() const {
@@ -192,6 +206,10 @@ std::string ConfigSession::getSessionConfigPath() const {
 
 std::string ConfigSession::getSystemConfigPath() const {
   return systemConfigPath_;
+}
+
+std::string ConfigSession::getCliConfigDir() const {
+  return cliConfigDir_;
 }
 
 bool ConfigSession::sessionExists() const {
