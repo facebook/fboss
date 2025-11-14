@@ -1269,5 +1269,19 @@
       "name": "PSU4",
       "powerSensorName": "PSU4_PIN"
     }
+  ],
+  "temperatureConfigs": [
+    {
+      "name": "ASIC1",
+      "temperatureSensorNames": [
+        "R3_0_TEMP"
+      ]
+    },
+    {
+      "name": "ASIC2",
+      "temperatureSensorNames": [
+        "R3_1_TEMP"
+      ]
+    }
   ]
 }
