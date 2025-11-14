@@ -426,6 +426,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::map<int64_t, cfg::SwitchDrainState>& switchId2ActualSwitchDrainState)
       override;
   void getMultiSwitchRunState(MultiSwitchRunState& runState) override;
+  void getAllFabricLinkMonitoringStats(
+      std::map<int32_t, FabricLinkMonPortStats>& stats) override;
 
  protected:
   void addMplsRoutesImpl(

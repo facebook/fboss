@@ -14,6 +14,7 @@
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/DsfSubscriber.h"
+#include "fboss/agent/FabricLinkMonitoringManager.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/HwAsicTable.h"
@@ -3239,6 +3240,36 @@ void ThriftHandler::getSwitchIdToSwitchInfo(
   for (const auto& [switchId, switchInfo] :
        switchSettings->getSwitchIdToSwitchInfo()) {
     switchIdToSwitchInfo[switchId] = switchInfo;
+  }
+}
+
+void ThriftHandler::getAllFabricLinkMonitoringStats(
+    std::map<int32_t, FabricLinkMonPortStats>& stats) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+
+  // Get FabricLinkMonitoringManager from SwSwitch
+  auto fabricLinkMonitoringMgr = sw_->getFabricLinkMonitoringManager();
+  if (!fabricLinkMonitoringMgr) {
+    XLOG(WARNING) << "FabricLinkMonitoringManager not available";
+    return;
+  }
+
+  // Get all fabric ports from the current state
+  std::shared_ptr<SwitchState> swState = sw_->getState();
+  for (const auto& portMap : std::as_const(*(swState->getPorts()))) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      // Only process fabric ports
+      if (port.second->getPortType() != cfg::PortType::FABRIC_PORT) {
+        continue;
+      }
+
+      auto portId = port.second->getID();
+      // Get stats from FabricLinkMonitoringManager (returns thrift struct
+      // directly)
+      stats[portId] =
+          fabricLinkMonitoringMgr->getFabricLinkMonPortStats(portId);
+    }
   }
 }
 

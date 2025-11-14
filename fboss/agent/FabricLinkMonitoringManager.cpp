@@ -72,6 +72,8 @@ void FabricLinkMonitoringManager::start() {
   portToGroupMap_.clear();
   auto portStatsLocked = portStats_.wlock();
   portStatsLocked->clear();
+  auto portPendingSeqNumsLocked = portPendingSequenceNumbers_.wlock();
+  portPendingSeqNumsLocked->clear();
 
   // Expect fabric ports to not change once the system is configured
   std::shared_ptr<SwitchState> state = sw_->getState();
@@ -160,8 +162,7 @@ uint32_t FabricLinkMonitoringManager::getPayloadPattern(uint64_t sequenceNum) {
 // Get statistics for a specific port including TX count, RX count, dropped
 // packets, and validation errors. Returns empty stats if port not found.
 // Used primarily for tests/CLI.
-FabricLinkMonitoringManager::FabricLinkMonPortStats
-FabricLinkMonitoringManager::getFabricLinkMonPortStats(
+FabricLinkMonPortStats FabricLinkMonitoringManager::getFabricLinkMonPortStats(
     const PortID& portId) const {
   auto lockedStats = portStats_.rlock();
   auto it = lockedStats->find(portId);
@@ -170,6 +171,17 @@ FabricLinkMonitoringManager::getFabricLinkMonPortStats(
   }
   auto portStats = it->second.rlock();
   return *portStats;
+}
+
+// Get pending sequence numbers for a specific port
+std::vector<uint64_t> FabricLinkMonitoringManager::getPendingSequenceNumbers(
+    const PortID& portId) const {
+  auto lockedPendingSeqNums = portPendingSequenceNumbers_.rlock();
+  auto it = lockedPendingSeqNums->find(portId);
+  if (it == lockedPendingSeqNums->end()) {
+    return {}; // Return empty vector if port not found
+  }
+  return std::vector<uint64_t>(it->second.begin(), it->second.end());
 }
 
 // Send monitoring packets on all fabric ports by iterating through all port
@@ -285,7 +297,8 @@ void FabricLinkMonitoringManager::sendPacketOnPort(
   int changeToOutstandingPacketCount{0};
   {
     auto stats = portStats_.wlock()->at(portId).wlock();
-    sequenceNumber = stats->txCount++;
+    sequenceNumber = *stats->txCount();
+    stats->txCount() = sequenceNumber + 1;
 
     auto pkt = createMonitoringPacket(portId, sequenceNumber);
     if (!pkt) {
@@ -297,7 +310,11 @@ void FabricLinkMonitoringManager::sendPacketOnPort(
 
     sw_->sendPacketOutOfPortSyncForPktType(
         std::move(pkt), portId, TxPacketType::FABRIC_LINK_MONITORING);
-    stats->pendingSequenceNumbers.push_back(sequenceNumber);
+
+    // Track pending sequence numbers
+    auto pendingSeqNumsLocked = portPendingSequenceNumbers_.wlock();
+    auto& pendingSeqNums = (*pendingSeqNumsLocked)[portId];
+    pendingSeqNums.push_back(sequenceNumber);
     // Increment outstanding packet count.
     changeToOutstandingPacketCount += 1;
 
@@ -306,11 +323,11 @@ void FabricLinkMonitoringManager::sendPacketOnPort(
     // need to clear the pending sequence numbers assuming those packets are
     // dropped as we have not received those in the interval needed to send
     // FLAGS_fabric_link_monitoring_max_pending_seq_numbers packets.
-    if (stats->pendingSequenceNumbers.size() >
+    if (pendingSeqNums.size() >
         FLAGS_fabric_link_monitoring_max_pending_seq_numbers) {
-      uint64_t droppedSeqNum = stats->pendingSequenceNumbers.front();
-      stats->pendingSequenceNumbers.pop_front();
-      stats->droppedCount++;
+      uint64_t droppedSeqNum = pendingSeqNums.front();
+      pendingSeqNums.pop_front();
+      *stats->droppedCount() = *stats->droppedCount() + 1;
       // We decided to consider one of the outstanding packets as dropped,
       // which means we should not expect to see this packet anymore and
       // should decrement the outstanding packet count.
@@ -384,7 +401,8 @@ void FabricLinkMonitoringManager::handlePacket(
     auto lockedStats = portStats_.wlock();
     auto it = lockedStats->find(portId);
     if (it != lockedStats->end()) {
-      it->second.wlock()->invalidPayloadCount++;
+      auto stats = it->second.wlock();
+      *stats->invalidPayloadCount() = *stats->invalidPayloadCount() + 1;
     }
     XLOG(DBG4) << "FabricLinkMonitoring: Port ID mismatch for port " << portId
                << ", received port ID " << receivedPortId
@@ -402,7 +420,8 @@ void FabricLinkMonitoringManager::handlePacket(
       auto lockedStats = portStats_.wlock();
       auto it = lockedStats->find(portId);
       if (it != lockedStats->end()) {
-        it->second.wlock()->invalidPayloadCount++;
+        auto stats = it->second.wlock();
+        *stats->invalidPayloadCount() = *stats->invalidPayloadCount() + 1;
       }
       XLOG(DBG4) << "FabricLinkMonitoring: Payload mismatch on port " << portId
                  << " for sequence number " << receivedSequenceNumber
@@ -430,22 +449,26 @@ void FabricLinkMonitoringManager::handlePacket(
       stats = it->second.wlock();
     }
 
+    // Access the pending sequence numbers
+    auto pendingSeqNumsLocked = portPendingSequenceNumbers_.wlock();
+    auto& pendingSeqNums = (*pendingSeqNumsLocked)[portId];
+
     // Receiving a packet when we are not expecting a sequence number
     // or when we get a sequence number greater than we expect to see.
-    if (stats->pendingSequenceNumbers.empty() ||
-        stats->pendingSequenceNumbers.back() < receivedSequenceNumber) {
-      stats->noPendingSeqNumCount++;
+    if (pendingSeqNums.empty() ||
+        pendingSeqNums.back() < receivedSequenceNumber) {
+      *stats->noPendingSeqNumCount() = *stats->noPendingSeqNumCount() + 1;
       XLOG(DBG4) << "FabricLinkMonitoring: Received packet on port " << portId
                  << " with sequence number " << receivedSequenceNumber
                  << ", but no pending sequence number found!";
       return;
     }
 
-    while (!stats->pendingSequenceNumbers.empty() &&
-           stats->pendingSequenceNumbers.front() < receivedSequenceNumber) {
-      uint64_t droppedSeqNum = stats->pendingSequenceNumbers.front();
-      stats->pendingSequenceNumbers.pop_front();
-      stats->droppedCount++;
+    while (!pendingSeqNums.empty() &&
+           pendingSeqNums.front() < receivedSequenceNumber) {
+      uint64_t droppedSeqNum = pendingSeqNums.front();
+      pendingSeqNums.pop_front();
+      *stats->droppedCount() = *stats->droppedCount() + 1;
       droppedPackets++;
       XLOG(DBG4) << "FabricLinkMonitoring: Pending sequence number "
                  << droppedSeqNum << " on port " << portId
@@ -453,19 +476,20 @@ void FabricLinkMonitoringManager::handlePacket(
                  << "sequence number " << receivedSequenceNumber << " first)";
     }
 
-    if (!stats->pendingSequenceNumbers.empty() &&
-        stats->pendingSequenceNumbers.front() == receivedSequenceNumber) {
-      stats->pendingSequenceNumbers.pop_front();
-      stats->rxCount++;
+    if (!pendingSeqNums.empty() &&
+        pendingSeqNums.front() == receivedSequenceNumber) {
+      pendingSeqNums.pop_front();
+      *stats->rxCount() = *stats->rxCount() + 1;
       packetProcessed = true;
     }
 
     XLOG(DBG4)
         << "FabricLinkMonitoring: Successfully received and verified packet on port "
         << portId << " with sequence number " << receivedSequenceNumber
-        << ". TX count: " << stats->txCount << ", RX count: " << stats->rxCount
-        << ", Dropped count: " << stats->droppedCount
-        << ", Pending: " << stats->pendingSequenceNumbers.size();
+        << ". TX count: " << *stats->txCount()
+        << ", RX count: " << *stats->rxCount()
+        << ", Dropped count: " << *stats->droppedCount()
+        << ", Pending: " << pendingSeqNums.size();
   }
 
   if (packetProcessed || droppedPackets > 0) {

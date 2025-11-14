@@ -11,6 +11,7 @@
 #include <memory>
 #include <vector>
 
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
 
 namespace folly {
@@ -53,18 +54,11 @@ class FabricLinkMonitoringManager : private folly::AsyncTimeout {
   // Get the payload pattern for a sequence number
   static uint32_t getPayloadPattern(uint64_t sequenceNum);
 
-  // Per-port statistics for tracking packet transmission and reception
-  struct FabricLinkMonPortStats {
-    uint64_t txCount{0};
-    uint64_t rxCount{0};
-    uint64_t droppedCount{0};
-    uint64_t invalidPayloadCount{0};
-    uint64_t noPendingSeqNumCount{0};
-    std::deque<uint64_t> pendingSequenceNumbers;
-  };
-
   // Get statistics for a specific port (for testing)
   FabricLinkMonPortStats getFabricLinkMonPortStats(const PortID& portId) const;
+
+  // Get pending sequence numbers for a specific port (for testing)
+  std::vector<uint64_t> getPendingSequenceNumbers(const PortID& portId) const;
 
  private:
   void timeoutExpired() noexcept override;
@@ -91,6 +85,8 @@ class FabricLinkMonitoringManager : private folly::AsyncTimeout {
   folly::Synchronized<
       std::map<PortID, folly::Synchronized<FabricLinkMonPortStats>>>
       portStats_;
+  folly::Synchronized<std::map<PortID, std::deque<uint64_t>>>
+      portPendingSequenceNumbers_;
   folly::Synchronized<std::map<int, PortGroupStats>> portGroupStats_;
   std::map<PortID, int> portToGroupMap_;
   std::map<int, std::vector<PortID>> portGroupToPortsMap_;

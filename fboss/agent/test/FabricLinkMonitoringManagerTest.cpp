@@ -175,8 +175,9 @@ TEST(FabricLinkMonitoringManagerTest, PacketPayloadValidation) {
 
   // Verify that rxCount was incremented, confirming good payload was processed
   auto statsAfter = manager->getFabricLinkMonPortStats(testPort);
-  EXPECT_EQ(statsAfter.rxCount, statsBefore.rxCount + 1);
-  EXPECT_EQ(statsAfter.invalidPayloadCount, statsBefore.invalidPayloadCount);
+  EXPECT_EQ(*statsAfter.rxCount(), *statsBefore.rxCount() + 1);
+  EXPECT_EQ(
+      *statsAfter.invalidPayloadCount(), *statsBefore.invalidPayloadCount());
 
   manager->stop();
 }
@@ -362,10 +363,10 @@ TEST(FabricLinkMonitoringManagerTest, MultipleSequentialPackets) {
   // Verify packets were sent
   PortID testPort(1);
   auto statsAfter = manager->getFabricLinkMonPortStats(testPort);
-  EXPECT_GT(statsAfter.txCount, 0);
+  EXPECT_GT(*statsAfter.txCount(), 0);
   // Since no packets are being received, pending sequence numbers should
   // accumulate
-  EXPECT_GT(statsAfter.pendingSequenceNumbers.size(), 0);
+  EXPECT_GT(manager->getPendingSequenceNumbers(testPort).size(), 0);
 
   manager->stop();
 }
@@ -411,8 +412,9 @@ TEST(FabricLinkMonitoringManagerTest, DetectInvalidPayload) {
   // Verify invalidPayloadCount was incremented
   auto statsAfter = manager->getFabricLinkMonPortStats(portId);
   EXPECT_EQ(
-      statsAfter.invalidPayloadCount, statsBefore.invalidPayloadCount + 1);
-  EXPECT_EQ(statsAfter.rxCount, statsBefore.rxCount);
+      *statsAfter.invalidPayloadCount(),
+      *statsBefore.invalidPayloadCount() + 1);
+  EXPECT_EQ(*statsAfter.rxCount(), *statsBefore.rxCount());
 
   manager->stop();
 }
@@ -459,8 +461,9 @@ TEST(FabricLinkMonitoringManagerTest, DetectPortIdMismatch) {
   // Verify invalidPayloadCount was incremented (port ID mismatch)
   auto statsAfter = manager->getFabricLinkMonPortStats(actualPort);
   EXPECT_EQ(
-      statsAfter.invalidPayloadCount, statsBefore.invalidPayloadCount + 1);
-  EXPECT_EQ(statsAfter.rxCount, statsBefore.rxCount);
+      *statsAfter.invalidPayloadCount(),
+      *statsBefore.invalidPayloadCount() + 1);
+  EXPECT_EQ(*statsAfter.rxCount(), *statsBefore.rxCount());
 
   manager->stop();
 }
@@ -497,11 +500,11 @@ TEST(FabricLinkMonitoringManagerTest, OutOfOrderPacketHandling) {
   auto statsBefore = manager->getFabricLinkMonPortStats(portId);
 
   // Verify packets were sent and are pending
-  EXPECT_GT(statsBefore.txCount, 0);
-  EXPECT_GT(statsBefore.pendingSequenceNumbers.size(), 0);
+  EXPECT_GT(*statsBefore.txCount(), 0);
 
   // Get the pending sequence numbers
-  auto pendingSeqNums = statsBefore.pendingSequenceNumbers;
+  auto pendingSeqNums = manager->getPendingSequenceNumbers(portId);
+  EXPECT_GT(pendingSeqNums.size(), 0);
   ASSERT_FALSE(pendingSeqNums.empty());
 
   // Find the last (highest) sequence number in the pending list
@@ -523,10 +526,11 @@ TEST(FabricLinkMonitoringManagerTest, OutOfOrderPacketHandling) {
   manager->handlePacket(std::move(rxPkt), cursor);
 
   auto statsAfter = manager->getFabricLinkMonPortStats(portId);
-  EXPECT_EQ(statsAfter.rxCount, statsBefore.rxCount + 1);
+  EXPECT_EQ(*statsAfter.rxCount(), *statsBefore.rxCount() + 1);
   // All packets with sequence numbers < lastSeqNum should now be dropped
   EXPECT_EQ(
-      statsAfter.droppedCount, statsBefore.droppedCount + expectedDropCount);
+      *statsAfter.droppedCount(),
+      *statsBefore.droppedCount() + expectedDropCount);
 }
 
 TEST(FabricLinkMonitoringManagerTest, GetPayloadPatternAlternates) {
@@ -594,7 +598,7 @@ TEST(FabricLinkMonitoringManagerTest, HandlePacketWithNoPendingSequence) {
 
   // Verify noPendingSeqNumCount was incremented
   auto statsAfter = manager->getFabricLinkMonPortStats(portId);
-  EXPECT_GT(statsAfter.noPendingSeqNumCount, 0);
+  EXPECT_GT(*statsAfter.noPendingSeqNumCount(), 0);
 
   manager->stop();
 }
