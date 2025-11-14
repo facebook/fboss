@@ -23,6 +23,7 @@
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
+#include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
 #include "fboss/cli/fboss2/commands/help/CmdHelp.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
@@ -539,6 +540,12 @@ const CommandTree& kCommandTree() {
                commandHandler<CmdConfigSessionCommit>,
                argTypeHandler<CmdConfigSessionCommitTraits>,
            },
+           {
+               "diff",
+               "Show diff between configs (session vs live, session vs revision, or revision vs revision)",
+               commandHandler<CmdConfigSessionDiff>,
+               argTypeHandler<CmdConfigSessionDiffTraits>,
+           }},
       },
 
       {"config",
