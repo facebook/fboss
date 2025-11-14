@@ -524,6 +524,76 @@ TEST_F(ConfigSessionTestFixture, diffWithCurrentKeyword) {
   // The diff command with "current" would compare r1 to system config
 }
 
+TEST_F(ConfigSessionTestFixture, rollbackCreatesNewRevision) {
+  fs::path cliConfigDir = testEtcDir_ / "coop" / "cli";
+  fs::path symlinkPath = testEtcDir_ / "coop" / "agent.conf";
+
+  // Remove the regular file created by SetUp
+  if (fs::exists(symlinkPath)) {
+    fs::remove(symlinkPath);
+  }
+
+  // Create revision files
+  createTestConfig(cliConfigDir / "agent-r1.conf", R"({"revision": 1})");
+  createTestConfig(cliConfigDir / "agent-r2.conf", R"({"revision": 2})");
+  createTestConfig(cliConfigDir / "agent-r3.conf", R"({"revision": 3})");
+
+  // Create symlink pointing to r3 (current)
+  fs::create_symlink(cliConfigDir / "agent-r3.conf", symlinkPath);
+
+  // Verify current symlink
+  EXPECT_TRUE(fs::is_symlink(symlinkPath));
+  EXPECT_EQ(fs::read_symlink(symlinkPath), cliConfigDir / "agent-r3.conf");
+
+  // Simulate rollback to r1: update symlink and create r4 as copy of r1
+  fs::remove(symlinkPath);
+  fs::create_symlink(cliConfigDir / "agent-r1.conf", symlinkPath);
+  fs::copy_file(cliConfigDir / "agent-r1.conf", cliConfigDir / "agent-r4.conf");
+
+  // Verify rollback
+  EXPECT_TRUE(fs::is_symlink(symlinkPath));
+  EXPECT_EQ(fs::read_symlink(symlinkPath), cliConfigDir / "agent-r1.conf");
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r4.conf"));
+
+  // Verify r4 has same content as r1
+  EXPECT_EQ(
+      readFile(cliConfigDir / "agent-r1.conf"),
+      readFile(cliConfigDir / "agent-r4.conf"));
+}
+
+TEST_F(ConfigSessionTestFixture, rollbackToPreviousRevision) {
+  fs::path cliConfigDir = testEtcDir_ / "coop" / "cli";
+  fs::path symlinkPath = testEtcDir_ / "coop" / "agent.conf";
+
+  // Remove the regular file created by SetUp
+  if (fs::exists(symlinkPath)) {
+    fs::remove(symlinkPath);
+  }
+
+  // Create revision files
+  createTestConfig(cliConfigDir / "agent-r1.conf", R"({"revision": 1})");
+  createTestConfig(cliConfigDir / "agent-r2.conf", R"({"revision": 2})");
+  createTestConfig(cliConfigDir / "agent-r3.conf", R"({"revision": 3})");
+
+  // Create symlink pointing to r3 (current)
+  fs::create_symlink(cliConfigDir / "agent-r3.conf", symlinkPath);
+
+  // Simulate rollback without argument: should go to r2 (previous)
+  fs::remove(symlinkPath);
+  fs::create_symlink(cliConfigDir / "agent-r2.conf", symlinkPath);
+  fs::copy_file(cliConfigDir / "agent-r2.conf", cliConfigDir / "agent-r4.conf");
+
+  // Verify rollback to previous revision
+  EXPECT_TRUE(fs::is_symlink(symlinkPath));
+  EXPECT_EQ(fs::read_symlink(symlinkPath), cliConfigDir / "agent-r2.conf");
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r4.conf"));
+
+  // Verify r4 has same content as r2
+  EXPECT_EQ(
+      readFile(cliConfigDir / "agent-r2.conf"),
+      readFile(cliConfigDir / "agent-r4.conf"));
+}
+
 TEST_F(ConfigSessionTestFixture, commitCreatesRevisionFile) {
   fs::path sessionDir = testHomeDir_ / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
