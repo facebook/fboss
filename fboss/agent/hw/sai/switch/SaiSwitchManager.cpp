@@ -1338,6 +1338,7 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     updateSramLowBufferLimitHitCounter();
   }
   switchTemperatureStats_ = getHwSwitchTemperatureStats();
+  publishSwitchTemperatureStats(switchTemperatureStats_);
   switchPipelineStats_ = getHwSwitchPipelineStats(updateWatermarks);
   publishSwitchPipelineStats(switchPipelineStats_);
 }
