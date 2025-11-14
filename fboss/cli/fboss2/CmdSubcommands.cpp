@@ -24,6 +24,7 @@ const std::map<std::string, std::string>& kSupportedVerbs() {
   static const std::map<std::string, std::string> supportedVerbs = {
       {"show", "Show object info"},
       {"clear", "Clear object info"},
+      {"config", "Configuration commands"},
       {"create", "Create object"},
       {"delete", "Delete object"},
       {"debug", "Debug object"},
