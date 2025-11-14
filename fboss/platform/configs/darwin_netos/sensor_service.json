@@ -542,5 +542,14 @@
       "voltageSensorName": "PEM_ADC_VIN",
       "currentSensorName": "PEM_ECB_IOUT_CH2"
     }
+  ],
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "SC_TH3_DIODE1_TEMP",
+        "SC_TH3_DIODE2_TEMP"
+      ]
+    }
   ]
 }
