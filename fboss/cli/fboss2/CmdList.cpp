@@ -22,6 +22,7 @@
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
+#include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
@@ -560,6 +561,11 @@ const CommandTree& kCommandTree() {
        "Rollback to a previous config revision",
        commandHandler<CmdConfigRollback>,
        argTypeHandler<CmdConfigRollbackTraits>},
+      {"config",
+       "history",
+       "Show history of committed config revisions",
+       commandHandler<CmdConfigHistory>,
+       argTypeHandler<CmdConfigHistoryTraits>},
   };
   sort(root.begin(), root.end());
   return root;
