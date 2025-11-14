@@ -283,6 +283,19 @@ struct FabricLinkMonPortStats {
 }
 
 /*
+ * Fabric monitoring detail for a single fabric port
+ */
+struct FabricMonitoringDetail {
+  1: string portName;
+  2: i32 portId;
+  3: string neighborSwitch;
+  4: string neighborPortName;
+  5: i32 virtualDevice;
+  6: i32 linkSwitchId;
+  7: string linkSystemPort;
+}
+
+/*
  * Values in these counters are cumulative since the last time the agent
  * started.
  */
@@ -1534,6 +1547,13 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * Get fabric link monitoring statistics for all fabric ports
    */
   map<i32, FabricLinkMonPortStats> getAllFabricLinkMonitoringStats() throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
+   * Get fabric monitoring details for all fabric ports
+   */
+  list<FabricMonitoringDetail> getFabricMonitoringDetails() throws (
     1: fboss.FbossBaseError error,
   );
 }

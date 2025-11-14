@@ -428,6 +428,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getMultiSwitchRunState(MultiSwitchRunState& runState) override;
   void getAllFabricLinkMonitoringStats(
       std::map<int32_t, FabricLinkMonPortStats>& stats) override;
+  void getFabricMonitoringDetails(
+      std::vector<FabricMonitoringDetail>& details) override;
 
  protected:
   void addMplsRoutesImpl(
@@ -461,6 +463,28 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       const std::unique_ptr<std::vector<UnicastRoute>>& routes,
       const std::string& updType,
       bool sync);
+
+  void buildFabricMonitoringLookupMaps(
+      const cfg::SwitchConfig& config,
+      const std::shared_ptr<SwitchState>& swState,
+      cfg::SwitchType switchType,
+      std::map<std::string, SwitchID>& switchNameToSwitchIds,
+      std::map<SwitchID, std::string>& switchIdToSystemPort);
+
+  int determineVirtualDevice(
+      const std::shared_ptr<Port>& swPort,
+      const cfg::SwitchConfig& config,
+      cfg::SwitchType switchType,
+      const std::map<std::string, SwitchID>& switchNameToSwitchIds,
+      const cfg::PortNeighbor& neighbor);
+
+  void populateFabricPortDetail(
+      const std::shared_ptr<Port>& swPort,
+      const cfg::SwitchConfig& config,
+      cfg::SwitchType switchType,
+      const std::map<std::string, SwitchID>& switchNameToSwitchIds,
+      const std::map<SwitchID, std::string>& switchIdToSystemPort,
+      FabricMonitoringDetail& detail);
 
   void fillPortStats(PortInfoThrift& portInfo, int numPortQs = 0);
 

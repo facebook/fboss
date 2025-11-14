@@ -1062,6 +1062,7 @@ cpp_library(
     ],
     exported_deps = [
         ":address_utils",
+        ":agent_features",
         ":core",
         ":fboss-error",
         ":fboss-types",

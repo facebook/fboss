@@ -11,6 +11,7 @@
 
 #include "common/logging/logging.h"
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/DsfSubscriber.h"
@@ -3269,6 +3270,161 @@ void ThriftHandler::getAllFabricLinkMonitoringStats(
       // directly)
       stats[portId] =
           fabricLinkMonitoringMgr->getFabricLinkMonPortStats(portId);
+    }
+  }
+}
+
+void ThriftHandler::buildFabricMonitoringLookupMaps(
+    const cfg::SwitchConfig& config,
+    const std::shared_ptr<SwitchState>& swState,
+    cfg::SwitchType switchType,
+    std::map<std::string, SwitchID>& switchNameToSwitchIds,
+    std::map<SwitchID, std::string>& switchIdToSystemPort) {
+  // Collect switch name to switch ID mapping
+  for (const auto& dsfNodeEntry : *config.dsfNodes()) {
+    switchNameToSwitchIds[*dsfNodeEntry.second.name()] =
+        SwitchID(dsfNodeEntry.first);
+  }
+
+  // Build a cache of switch ID to system port ID for VOQ switches
+  if (switchType == cfg::SwitchType::VOQ) {
+    for (const auto& sysPortMap :
+         std::as_const(*(swState->getFabricLinkMonitoringSystemPorts()))) {
+      for (const auto& sysPort : std::as_const(*sysPortMap.second)) {
+        switchIdToSystemPort[sysPort.second->getSwitchId()] =
+            std::to_string(sysPort.second->getID());
+      }
+    }
+  }
+}
+
+int ThriftHandler::determineVirtualDevice(
+    const std::shared_ptr<Port>& swPort,
+    const cfg::SwitchConfig& config,
+    cfg::SwitchType switchType,
+    const std::map<std::string, SwitchID>& switchNameToSwitchIds,
+    const cfg::PortNeighbor& neighbor) {
+  if (switchType == cfg::SwitchType::FABRIC) {
+    auto localPlatformMapping = sw_->getPlatformMapping();
+    if (localPlatformMapping) {
+      auto vdId = localPlatformMapping->getVirtualDeviceID(swPort->getName());
+      return vdId.value_or(-1);
+    }
+  } else if (switchType == cfg::SwitchType::VOQ) {
+    const auto& neighborSwitchName = *neighbor.remoteSystem();
+    auto neighborSwitchIdIter = switchNameToSwitchIds.find(neighborSwitchName);
+    if (neighborSwitchIdIter != switchNameToSwitchIds.end()) {
+      auto baseSwitchId = neighborSwitchIdIter->second;
+      auto dsfNodeItr = config.dsfNodes()->find(baseSwitchId);
+      if (dsfNodeItr != config.dsfNodes()->end()) {
+        const auto platformMapping = getPlatformMappingForPlatformType(
+            *dsfNodeItr->second.platformType());
+        if (platformMapping) {
+          auto vdId =
+              platformMapping->getVirtualDeviceID(*neighbor.remotePort());
+          return vdId.value_or(-1);
+        }
+      }
+    }
+  }
+  return -1;
+}
+
+void ThriftHandler::populateFabricPortDetail(
+    const std::shared_ptr<Port>& swPort,
+    const cfg::SwitchConfig& config,
+    cfg::SwitchType switchType,
+    const std::map<std::string, SwitchID>& switchNameToSwitchIds,
+    const std::map<SwitchID, std::string>& switchIdToSystemPort,
+    FabricMonitoringDetail& detail) {
+  detail.portName() = swPort->getName();
+  detail.portId() = swPort->getID();
+
+  // Get expected neighbor values
+  const auto& expectedNeighbors =
+      swPort->getExpectedNeighborValues()->toThrift();
+  if (expectedNeighbors.empty()) {
+    detail.neighborSwitch() = "--";
+    detail.neighborPortName() = "--";
+    detail.virtualDevice() = -1;
+    detail.linkSwitchId() = -1;
+    detail.linkSystemPort() = "--";
+    return;
+  }
+
+  const auto& neighbor = expectedNeighbors.front();
+  detail.neighborSwitch() = *neighbor.remoteSystem();
+  detail.neighborPortName() = *neighbor.remotePort();
+
+  // Determine virtual device
+  detail.virtualDevice() = determineVirtualDevice(
+      swPort, config, switchType, switchNameToSwitchIds, neighbor);
+
+  // Set link switch ID and system port
+  auto portSwitchId = swPort->getPortSwitchId();
+  detail.linkSwitchId() = portSwitchId.value_or(-1);
+
+  if (switchType == cfg::SwitchType::VOQ && portSwitchId.has_value()) {
+    auto it = switchIdToSystemPort.find(SwitchID(*portSwitchId));
+    if (it != switchIdToSystemPort.end()) {
+      detail.linkSystemPort() = it->second;
+    } else {
+      detail.linkSystemPort() = "--";
+    }
+  } else {
+    detail.linkSystemPort() = "--";
+  }
+}
+
+void ThriftHandler::getFabricMonitoringDetails(
+    std::vector<FabricMonitoringDetail>& details) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+
+  if (!FLAGS_enable_fabric_link_monitoring) {
+    XLOG(ERR) << "Fabric Link Monitoring is not enabled!";
+    return;
+  }
+
+  std::shared_ptr<SwitchState> swState = sw_->getState();
+  auto config = sw_->getConfig();
+  if (config.ports()->empty()) {
+    XLOG(ERR) << "Port config is not available!";
+    return;
+  }
+
+  // Get switch type
+  const auto& switchSettings = swState->getSwitchSettings()->cbegin()->second;
+  auto switchIds = switchSettings->getSwitchIds();
+  if (switchIds.empty()) {
+    XLOG(ERR) << "No switch IDs available in switch settings!";
+    return;
+  }
+  auto switchId = static_cast<int64_t>(*switchIds.begin());
+  auto switchType = switchSettings->getSwitchType(switchId);
+
+  // Build lookup maps for efficient fabric port processing
+  std::map<std::string, SwitchID> switchNameToSwitchIds;
+  std::map<SwitchID, std::string> switchIdToSystemPort;
+  buildFabricMonitoringLookupMaps(
+      config, swState, switchType, switchNameToSwitchIds, switchIdToSystemPort);
+
+  // Process all fabric ports
+  for (const auto& portMap : std::as_const(*(swState->getPorts()))) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      if (port.second->getPortType() != cfg::PortType::FABRIC_PORT) {
+        continue;
+      }
+
+      FabricMonitoringDetail detail;
+      populateFabricPortDetail(
+          port.second,
+          config,
+          switchType,
+          switchNameToSwitchIds,
+          switchIdToSystemPort,
+          detail);
+      details.push_back(detail);
     }
   }
 }
