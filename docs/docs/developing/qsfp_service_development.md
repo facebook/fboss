@@ -14,7 +14,7 @@ Note that for the purpose of `qsfp_service` development or `qsfp_hw_test`, the r
 
 ### Step 2: Add BSP Platform Mapping
 
-This step is common for `qsfp_service` and `led_service` development. BSP Platform Mapping defines the sysfs paths to control the transceiver (and their respective LEDs in `led_service`). It can be added by following the instructions defined in the [BSP Platform Mapping Documentation](https://facebook.github.io/fboss/docs/developing/bsp_platform_mapping/).
+This step is common for `qsfp_service` and `led_service` development. BSP Platform Mapping defines the sysfs paths to control the transceiver (and their respective LEDs in `led_service`). It can be added by following the instructions defined in the [BSP Platform Mapping Documentation](https://facebook.github.io/fboss/docs/developing/bsp_mapping/).
 
 ### Step 3: Add Per Platform Support
 
