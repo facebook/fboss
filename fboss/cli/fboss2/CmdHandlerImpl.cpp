@@ -18,6 +18,7 @@
 #include "fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
+#include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
 #include "fboss/cli/fboss2/commands/help/CmdHelp.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
@@ -242,6 +243,7 @@ template void CmdHandler<CmdClearArp, CmdClearArpTraits>::run();
 template void CmdHandler<CmdClearNdp, CmdClearNdpTraits>::run();
 template void
 CmdHandler<CmdClearInterfaceCounters, CmdClearInterfaceCountersTraits>::run();
+template void CmdHandler<CmdConfigReload, CmdConfigReloadTraits>::run();
 template void
 CmdHandler<CmdShowInterfaceStatus, CmdShowInterfaceStatusTraits>::run();
 template void CmdHandler<CmdBounceInterface, CmdBounceInterfaceTraits>::run();
