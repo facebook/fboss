@@ -766,10 +766,12 @@ cpp_library(
         "CmdListConfig.cpp",
         "commands/config/CmdConfigAppliedInfo.cpp",
         "commands/config/CmdConfigReload.cpp",
+        "utils/PortMap.cpp",
     ],
     headers = [
         "commands/config/CmdConfigAppliedInfo.h",
         "commands/config/CmdConfigReload.h",
+        "utils/PortMap.h",
     ],
     exported_deps = [
         ":cmd-handler",
