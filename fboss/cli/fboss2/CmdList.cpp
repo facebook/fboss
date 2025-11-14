@@ -25,6 +25,7 @@
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h"
+#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
@@ -554,6 +555,12 @@ const CommandTree& kCommandTree() {
                "Set interface description",
                commandHandler<CmdConfigInterfaceDescription>,
                argTypeHandler<CmdConfigInterfaceDescriptionTraits>,
+           },
+           {
+               "mtu",
+               "Set interface MTU",
+               commandHandler<CmdConfigInterfaceMtu>,
+               argTypeHandler<CmdConfigInterfaceMtuTraits>,
            }},
       },
 

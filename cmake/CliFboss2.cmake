@@ -379,6 +379,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.cpp
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.cpp
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.cpp
   fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h
