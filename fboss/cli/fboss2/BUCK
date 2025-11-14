@@ -313,6 +313,7 @@ cpp_library(
         "utils/CmdClientUtils.cpp",
         "utils/CmdUtils.cpp",
         "utils/NetwhoamiUtils.cpp",
+        "utils/PortMap.cpp",
         "utils/PrbsUtils.cpp",
         "utils/TeFlowUtils.cpp",
         "utils/clients/BmcClient.cpp",
