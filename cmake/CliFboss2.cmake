@@ -372,6 +372,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h
   fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h
   fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h
+  fboss/cli/fboss2/commands/config/CmdConfigReload.h
+  fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
   fboss/cli/fboss2/CmdHandlerImpl.cpp
