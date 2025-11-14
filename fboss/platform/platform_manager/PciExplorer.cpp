@@ -283,38 +283,6 @@ void PciExplorer::createLedCtrl(
   create(pciDevice, *ledCtrlConfig.fpgaIpBlockConfig(), auxData);
 }
 
-std::vector<LedCtrlConfig> PciExplorer::createLedCtrlConfigs(
-    const PciDeviceConfig& pciDeviceConfig) {
-  std::vector<LedCtrlConfig> ledCtrlConfigs;
-  const auto ledCtrlBlockConfigs = pciDeviceConfig.ledCtrlBlockConfigs();
-  for (const auto& ledCtrlBlockConfig : *ledCtrlBlockConfigs) {
-    int endPort =
-        *ledCtrlBlockConfig.startPort() + *ledCtrlBlockConfig.numPorts();
-    for (int port = *ledCtrlBlockConfig.startPort(); port < endPort; ++port) {
-      for (int led = 1; led <= ledCtrlBlockConfig.ledPerPort(); ++led) {
-        LedCtrlConfig ledCtrlConfig;
-        ledCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
-            "{}_PORT_{}_LED_{}",
-            *ledCtrlBlockConfig.pmUnitScopedNamePrefix(),
-            port,
-            led);
-        ledCtrlConfig.fpgaIpBlockConfig()->deviceName() =
-            *ledCtrlBlockConfig.deviceName();
-        ledCtrlConfig.fpgaIpBlockConfig()->csrOffset() =
-            Utils().computeHexExpression(
-                *ledCtrlBlockConfig.csrOffsetCalc(),
-                port,
-                *ledCtrlBlockConfig.startPort(),
-                led);
-        ledCtrlConfig.portNumber() = port;
-        ledCtrlConfig.ledId() = led;
-        ledCtrlConfigs.push_back(ledCtrlConfig);
-      }
-    }
-  }
-  return ledCtrlConfigs;
-}
-
 std::string PciExplorer::createXcvrCtrl(
     const PciDevice& pciDevice,
     const XcvrCtrlConfig& xcvrCtrlConfig,
