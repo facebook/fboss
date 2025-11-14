@@ -31,6 +31,8 @@ constexpr auto kSystemLanesKey = "systemLanes";
 constexpr auto kLineLanesKey = "lineLanes";
 constexpr auto kPortProfileStrKey = "profile";
 constexpr auto kPortSpeedStrKey = "speed";
+static constexpr auto kXphyGetPortInfoFailed = "xphy_get_port_info_failed";
+static constexpr auto kPimPrefix = "qsfp.pim";
 } // namespace
 
 namespace facebook::fboss {
@@ -64,6 +66,12 @@ cfg::PortProfileID getProfileIDBySpeed(
       portID,
       " doesn't support speed:",
       apache::thrift::util::enumNameSafe(speed));
+}
+
+void bumpXphyGetPortInfoFailed(const PimID& pimId) {
+  auto stat = folly::to<std::string>(
+      kPimPrefix, ".", pimId, ".", kXphyGetPortInfoFailed);
+  facebook::tcData().addStatValue(stat, 1, facebook::fb303::SUM);
 }
 } // namespace
 
@@ -595,8 +603,9 @@ void PhyManager::updateAllXphyPortsStats() {
     const auto& wLockedStats = getWLockedStats(portStatsInfo.first);
     // Use the appropriate event base based on threading model
     auto evb = getXphyEventBase(xphyID);
+    auto pimID = getPhyIDInfo(xphyID).pimID;
     if (supportPortStats) {
-      updatePortStats(portStatsInfo.first, xphy, wLockedStats, evb);
+      updatePortStats(portStatsInfo.first, pimID, xphy, wLockedStats, evb);
     }
     if (supportPrbsStats) {
       updatePrbsStats(portStatsInfo.first, xphy, wLockedStats, evb);
@@ -607,6 +616,7 @@ void PhyManager::updateAllXphyPortsStats() {
 using namespace std::chrono;
 void PhyManager::updatePortStats(
     PortID portID,
+    const PimID& pimID,
     phy::ExternalPhy* xphy,
     const PhyManager::PortStatsWLockedPtr& wLockedStats,
     folly::EventBase* evb) {
@@ -619,7 +629,7 @@ void PhyManager::updatePortStats(
 
   // Collect xphy port stats
   wLockedStats->ongoingStatCollection =
-      folly::via(evb).thenValue([this, portID, xphy](auto&&) {
+      folly::via(evb).thenValue([this, pimID, portID, xphy](auto&&) {
         // Since this is future job, we need to fetch the cache with lock
         std::vector<LaneID> systemLanes, lineLanes;
         cfg::PortSpeed programmedSpeed;
@@ -654,6 +664,7 @@ void PhyManager::updatePortStats(
           } catch (const std::exception& ex) {
             XLOG(ERR) << getPortName(portID) << " getPortInfo failed with "
                       << ex.what();
+            bumpXphyGetPortInfoFailed(pimID);
           }
 
           currentPhyInfo.state()->name() = getPortName(portID);
