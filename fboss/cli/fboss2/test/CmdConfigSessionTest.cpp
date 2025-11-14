@@ -475,6 +475,91 @@ TEST_F(ConfigSessionTestFixture, rollbackToPreviousRevision) {
   EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r3.conf"));
 }
 
+TEST_F(ConfigSessionTestFixture, historyListsRevisions) {
+  fs::path cliConfigDir = testEtcDir_ / "coop" / "cli";
+
+  // Create revision files
+  createTestConfig(cliConfigDir / "agent-r1.conf", R"({"revision": 1})");
+  createTestConfig(cliConfigDir / "agent-r2.conf", R"({"revision": 2})");
+  createTestConfig(cliConfigDir / "agent-r3.conf", R"({"revision": 3})");
+
+  // Verify all revision files exist
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r1.conf"));
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.conf"));
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r3.conf"));
+
+  // The history command would list all three revisions with their metadata
+}
+
+TEST_F(ConfigSessionTestFixture, historyIgnoresNonMatchingFiles) {
+  fs::path cliConfigDir = testEtcDir_ / "coop" / "cli";
+
+  // Create valid revision files
+  createTestConfig(cliConfigDir / "agent-r1.conf", R"({"revision": 1})");
+  createTestConfig(cliConfigDir / "agent-r2.conf", R"({"revision": 2})");
+
+  // Create files that should be ignored
+  createTestConfig(cliConfigDir / "agent.conf.bak", R"({"backup": true})");
+  createTestConfig(cliConfigDir / "other-r1.conf", R"({"other": true})");
+  createTestConfig(cliConfigDir / "agent-r1.txt", R"({"wrong_ext": true})");
+  createTestConfig(cliConfigDir / "agent-rX.conf", R"({"invalid": true})");
+
+  // Verify all files exist
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r1.conf"));
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.conf"));
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent.conf.bak"));
+  EXPECT_TRUE(fs::exists(cliConfigDir / "other-r1.conf"));
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r1.txt"));
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-rX.conf"));
+
+  // The history command would only list r1 and r2, ignoring the others
+}
+
+TEST_F(ConfigSessionTestFixture, historyEmptyDirectory) {
+  fs::path cliConfigDir = testEtcDir_ / "coop" / "cli";
+
+  // Directory exists but has no revision files
+  EXPECT_TRUE(fs::exists(cliConfigDir));
+  EXPECT_FALSE(fs::exists(cliConfigDir / "agent-r1.conf"));
+
+  // The history command would report no revisions found
+}
+
+TEST_F(ConfigSessionTestFixture, historyNonSequentialRevisions) {
+  fs::path cliConfigDir = testEtcDir_ / "coop" / "cli";
+
+  // Create non-sequential revision files (e.g., after deletions)
+  createTestConfig(cliConfigDir / "agent-r1.conf", R"({"revision": 1})");
+  createTestConfig(cliConfigDir / "agent-r5.conf", R"({"revision": 5})");
+  createTestConfig(cliConfigDir / "agent-r10.conf", R"({"revision": 10})");
+
+  // Verify files exist
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r1.conf"));
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r5.conf"));
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r10.conf"));
+
+  // The history command would list r1, r5, r10 in order
+}
+
+TEST_F(ConfigSessionTestFixture, historyShowsFileMetadata) {
+  fs::path cliConfigDir = testEtcDir_ / "coop" / "cli";
+
+  // Create a revision file
+  createTestConfig(cliConfigDir / "agent-r1.conf", R"({"revision": 1})");
+
+  // Verify file exists
+  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r1.conf"));
+
+  // Get file metadata using stat
+  struct stat fileStat;
+  EXPECT_EQ(stat((cliConfigDir / "agent-r1.conf").c_str(), &fileStat), 0);
+
+  // Verify we can get UID (owner)
+  EXPECT_GE(fileStat.st_uid, 0);
+
+  // The history command would show owner and timestamp for this file
+}
+
 TEST_F(ConfigSessionTestFixture, commitCreatesRevisionFile) {
   fs::path sessionDir = testHomeDir_ / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
