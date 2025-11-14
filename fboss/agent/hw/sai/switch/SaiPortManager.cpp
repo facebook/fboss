@@ -2680,11 +2680,12 @@ void SaiPortManager::programSampling(
     uint64_t sampleRate,
     std::optional<cfg::SampleDestination> sampleDestination) {
   auto portType = getPortType(portId);
-  if (portType != cfg::PortType::INTERFACE_PORT) {
+  if (portType != cfg::PortType::INTERFACE_PORT &&
+      portType != cfg::PortType::HYPER_PORT) {
     throw FbossError(
-        "Programming Sampling is only supported for Interface Ports; PortID: ",
+        "Programming Sampling is only supported for Interface Ports and Hyper Ports; PortID: ",
         portId,
-        " has type",
+        " has type ",
         apache::thrift::util::enumNameSafe(portType));
   }
   auto destination = sampleDestination.has_value()
@@ -2731,11 +2732,12 @@ void SaiPortManager::programMirror(
     MirrorAction action,
     std::optional<std::string> mirrorId) {
   auto portType = getPortType(portId);
-  if (portType != cfg::PortType::INTERFACE_PORT) {
+  if (portType != cfg::PortType::INTERFACE_PORT &&
+      portType != cfg::PortType::HYPER_PORT) {
     throw FbossError(
-        "Programming mirroring is only supported for Interface Ports; PortID: ",
+        "Programming mirroring is only supported for Interface Ports and Hyper Ports; PortID: ",
         portId,
-        " has type",
+        " has type ",
         apache::thrift::util::enumNameSafe(portType));
   }
 
@@ -2772,11 +2774,12 @@ void SaiPortManager::programSamplingMirror(
     MirrorAction action,
     std::optional<std::string> mirrorId) {
   auto portType = getPortType(portId);
-  if (portType != cfg::PortType::INTERFACE_PORT) {
+  if (portType != cfg::PortType::INTERFACE_PORT &&
+      portType != cfg::PortType::HYPER_PORT) {
     throw FbossError(
-        "Programming sampling mirror is only supported for Interface Ports; PortID: ",
+        "Programming sampling mirror is only supported for Interface Ports and Hyper Ports; PortID: ",
         portId,
-        " has type",
+        " has type ",
         apache::thrift::util::enumNameSafe(portType));
   }
   auto portHandle = getPortHandle(portId);
