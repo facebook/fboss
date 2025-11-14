@@ -556,6 +556,7 @@ class TransceiverManager {
       bool removeTransceiver);
 
   void publishLinkSnapshots(std::string portName);
+  void publishLinkSnapshotsTransceiver(PortID portID);
 
   void getInterfacePhyInfo(
       std::map<std::string, phy::PhyInfo>& phyInfos,

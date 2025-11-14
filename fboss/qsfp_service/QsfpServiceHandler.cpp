@@ -196,7 +196,6 @@ void QsfpServiceHandler::getSymbolErrorHistogram(
     CdbDatapathSymErrHistogram& symErr,
     std::unique_ptr<std::string> portName) {
   auto log = LOG_THRIFT_CALL(INFO);
-  // TODO(smenta) - Support in Port Manager mode
   tcvrManager_->getSymbolErrorHistogram(symErr, *portName);
 }
 

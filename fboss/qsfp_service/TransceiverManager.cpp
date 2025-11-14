@@ -2703,6 +2703,10 @@ void TransceiverManager::publishLinkSnapshots(PortID portID) {
     phyManager_->publishXphyInfoSnapshots(portID);
   }
   // Publish transceiver snapshots if there's a transceiver
+  publishLinkSnapshotsTransceiver(portID);
+}
+
+void TransceiverManager::publishLinkSnapshotsTransceiver(PortID portID) {
   if (auto tcvrIDOpt = getTransceiverID(portID)) {
     auto lockedTransceivers = transceivers_.rlock();
     if (auto tcvrIt = lockedTransceivers->find(*tcvrIDOpt);

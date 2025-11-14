@@ -115,10 +115,6 @@ class PortManager {
       phy::PortComponent /* component */,
       bool /* setAdminUp */);
 
-  void getSymbolErrorHistogram(
-      CdbDatapathSymErrHistogram& symErr,
-      const std::string& portName);
-
   std::string saiPhyRegisterAccess(
       const std::string& /* portName */,
       bool /* opRead */,
