@@ -24,6 +24,7 @@ namespace facebook::fboss {
 class ConfigSession {
  public:
   ConfigSession();
+
   ~ConfigSession() = default;
 
   // Get or create the current config session
@@ -44,6 +45,11 @@ class ConfigSession {
   // Returns the revision number that was committed if the commit was
   // successful.
   int commit(const HostInfo& hostInfo);
+
+  // Rollback to a specific revision or to the previous revision
+  // Returns the revision that was rolled back to
+  int rollback(const HostInfo& hostInfo);
+  int rollback(const HostInfo& hostInfo, const std::string& revision);
 
   // Check if a session exists
   bool sessionExists() const;
