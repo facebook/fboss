@@ -1012,7 +1012,7 @@ add_dependencies(fboss_other_services
   qsfp_targets
   led_targets
   fboss2
-  fsdb
+  fsdb_all_services
 )
 
 add_custom_target(fboss_platform_mapping_gen)
@@ -1097,6 +1097,6 @@ if (GITHUB_ACTIONS_BUILD)
   add_dependencies(github_actions_fboss_other_services
     # Services
     fboss2
-    fsdb
+    fsdb_all_services
   )
 endif()
