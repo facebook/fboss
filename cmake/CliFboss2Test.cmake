@@ -3,6 +3,7 @@
 # cmd_test - Command tests from BUCK file
 add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/TestMain.cpp
+  fboss/cli/fboss2/test/CmdConfigReloadTest.cpp
   fboss/cli/fboss2/test/CmdSetPortStateTest.cpp
   fboss/cli/fboss2/test/CmdShowAclTest.cpp
   fboss/cli/fboss2/test/CmdShowAgentSslTest.cpp
