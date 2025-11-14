@@ -1295,6 +1295,8 @@ void PortManager::updateTransceiverPortStatus() noexcept {
         stateMachineState != PortStateMachineState::UNINITIALIZED;
     bool arePortTcvrsJustProgrammed =
         stateMachineState == PortStateMachineState::TRANSCEIVERS_PROGRAMMED;
+    bool isPortUpOrDown = stateMachineState == PortStateMachineState::PORT_UP ||
+        stateMachineState == PortStateMachineState::PORT_DOWN;
 
     // Extract port data from agent.
     bool newPortStatusEnabled{false};
@@ -1309,7 +1311,8 @@ void PortManager::updateTransceiverPortStatus() noexcept {
       // The corresponding state machine is already enabled, so we might need
       // to update port up / port down status.
 
-      if (arePortTcvrsJustProgrammed || stateMachineState != newState) {
+      if (arePortTcvrsJustProgrammed ||
+          ((stateMachineState != newState) && isPortUpOrDown)) {
         statusChangedPorts.insert(portId);
         auto event = getPortStatusChangeEvent(newState);
         if (auto result =
@@ -1667,10 +1670,12 @@ void PortManager::updatePortActiveState(
     XLOG(INFO) << "Syncing port status for port " << portId;
     bool arePortTcvrsJustProgrammed =
         portState == PortStateMachineState::TRANSCEIVERS_PROGRAMMED;
+    bool isPortUpOrDown = portState == PortStateMachineState::PORT_UP ||
+        portState == PortStateMachineState::PORT_DOWN;
     auto newState = operStateToPortState(portStatus.operState);
 
     if (arePortTcvrsJustProgrammed ||
-        (portStatus.portEnabled && portState != newState)) {
+        (portStatus.portEnabled && isPortUpOrDown && (portState != newState))) {
       ++numPortStatusChanged;
       statusChangedPorts.insert(portId);
       auto event = getPortStatusChangeEvent(newState);
