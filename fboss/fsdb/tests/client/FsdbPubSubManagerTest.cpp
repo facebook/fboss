@@ -933,6 +933,8 @@ using PatchApiTestTypes = ::testing::Types<PatchPubSubForState>;
 TYPED_TEST_SUITE(FsdbPubSubManagerPatchApiTest, PatchApiTestTypes);
 
 TYPED_TEST(FsdbPubSubManagerPatchApiTest, verifyEmptyInitialResponse) {
+  // TODO: Block this test in OSS until we support patchNodes
+#ifndef IS_OSS
   folly::Synchronized<std::vector<SubscriberChunk>> received;
   bool initialResponseReceived = false;
   bool isDataExpected;
@@ -970,6 +972,7 @@ TYPED_TEST(FsdbPubSubManagerPatchApiTest, verifyEmptyInitialResponse) {
   // check for initial chunk
   WITH_RETRIES_N(
       this->kRetries, { ASSERT_EVENTUALLY_EQ(received.rlock()->size(), 1); });
+#endif
 }
 
 TYPED_TEST(FsdbPubSubManagerTest, portOperStateToggleTest) {
