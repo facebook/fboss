@@ -22,6 +22,7 @@
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
+#include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
 #include "fboss/cli/fboss2/commands/help/CmdHelp.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
@@ -531,6 +532,18 @@ const CommandTree& kCommandTree() {
        "Show config applied information",
        commandHandler<CmdConfigAppliedInfo>,
        argTypeHandler<CmdConfigAppliedInfoTraits>},
+
+      {
+          "config",
+          "session",
+          "Manage config session",
+          {{
+              "commit",
+              "Commit the current config session",
+              commandHandler<CmdConfigSessionCommit>,
+              argTypeHandler<CmdConfigSessionCommitTraits>,
+          }},
+      },
 
       {"config",
        "reload",
