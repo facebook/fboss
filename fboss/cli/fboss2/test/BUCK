@@ -87,6 +87,7 @@ cpp_unittest(
         "CmdShowTransceiverTest.cpp",
         "CmdStartPcapTest.cpp",
         "CmdStopPcapTest.cpp",
+        "PortMapTest.cpp",
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
