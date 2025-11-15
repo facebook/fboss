@@ -956,7 +956,7 @@
           "type": 5,
           "thresholds": {
             "upperCriticalVal": 255,
-            "lowerCriticalVal": 140
+            "lowerCriticalVal": 25
           }
         },
         {
@@ -1053,7 +1053,7 @@
           "type": 5,
           "thresholds": {
             "upperCriticalVal": 255,
-            "lowerCriticalVal": 140
+            "lowerCriticalVal": 25
           }
         },
         {
