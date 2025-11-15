@@ -52,11 +52,19 @@ class AgentMirroringTest : public AgentHwTest {
   PortID getMirrorToPort(
       const AgentEnsemble& ensemble,
       uint8_t mirrorToPortIndex = utility::kMirrorToPortIndex) const {
+    if (FLAGS_hyper_port) {
+      return ensemble.masterLogicalPortIds(
+          {cfg::PortType::HYPER_PORT})[mirrorToPortIndex];
+    }
     return ensemble.masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT})[mirrorToPortIndex];
   }
 
   PortID getTrafficPort(const AgentEnsemble& ensemble) const {
+    if (FLAGS_hyper_port) {
+      return ensemble.masterLogicalPortIds(
+          {cfg::PortType::HYPER_PORT})[utility::kTrafficPortIndex];
+    }
     return ensemble.masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT})[utility::kTrafficPortIndex];
   }
