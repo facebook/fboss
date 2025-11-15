@@ -8,7 +8,7 @@
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
+#include <thrift/lib/cpp2/reflection/testing.h>
 
 using namespace ::testing;
 using namespace facebook::neteng::fboss::bgp::thrift;

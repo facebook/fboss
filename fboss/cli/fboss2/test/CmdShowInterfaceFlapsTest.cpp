@@ -7,7 +7,7 @@
 #include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
+#include <thrift/lib/cpp2/reflection/testing.h>
 
 using namespace ::testing;
 

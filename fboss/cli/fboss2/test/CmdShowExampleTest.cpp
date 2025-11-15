@@ -6,7 +6,7 @@
 #include "fboss/cli/fboss2/commands/show/example/CmdShowExample.h"
 #include "fboss/cli/fboss2/commands/show/example/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
+#include <thrift/lib/cpp2/reflection/testing.h>
 
 using namespace ::testing;
 namespace facebook::fboss {

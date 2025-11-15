@@ -362,7 +362,7 @@ add_fbthrift_cpp_library(
 
 find_package(CLI11 CONFIG REQUIRED)
 
-add_executable(fboss2
+add_library(fboss2_lib
   fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h
   fboss/cli/fboss2/commands/clear/CmdClearArp.h
   fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h
@@ -372,6 +372,25 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h
   fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h
   fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h
+  fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h
+  fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.cpp
+  fboss/cli/fboss2/commands/config/CmdConfigReload.h
+  fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.cpp
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.cpp
+  fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h
+  fboss/cli/fboss2/commands/config/history/CmdConfigHistory.cpp
+  fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h
+  fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.cpp
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.cpp
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.cpp
+  fboss/cli/fboss2/session/ConfigSession.h
+  fboss/cli/fboss2/session/ConfigSession.cpp
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
   fboss/cli/fboss2/CmdHandlerImpl.cpp
@@ -471,15 +490,17 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
   fboss/cli/fboss2/CmdSubcommands.cpp
-  fboss/cli/fboss2/Main.cpp
   fboss/cli/fboss2/oss/CmdGlobalOptions.cpp
   fboss/cli/fboss2/oss/CmdList.cpp
   fboss/cli/fboss2/utils/CmdUtils.cpp
   fboss/cli/fboss2/utils/CLIParserUtils.cpp
   fboss/cli/fboss2/utils/CmdClientUtils.cpp
   fboss/cli/fboss2/utils/CmdUtilsCommon.cpp
+  fboss/cli/fboss2/utils/PortMap.cpp
   fboss/cli/fboss2/utils/Table.cpp
   fboss/cli/fboss2/utils/HostInfo.h
+  fboss/cli/fboss2/utils/InterfaceList.h
+  fboss/cli/fboss2/utils/InterfaceList.cpp
   fboss/cli/fboss2/utils/FilterOp.h
   fboss/cli/fboss2/utils/AggregateOp.h
   fboss/cli/fboss2/utils/AggregateUtils.h
@@ -493,7 +514,7 @@ add_executable(fboss2
   fboss/cli/fboss2/options/SSLPolicy.h
 )
 
-target_link_libraries(fboss2
+target_link_libraries(fboss2_lib
   CLI11::CLI11
   tabulate::tabulate
   fb303_cpp2
@@ -556,6 +577,15 @@ target_link_libraries(fboss2
   show_rif
   show_interface_counters_fec_uncorrectable
   ${RE2}
+)
+
+add_executable(fboss2
+  fboss/cli/fboss2/Main.cpp
+)
+
+target_link_libraries(fboss2
+  fboss2_lib
+  Folly::folly
 )
 
 install(TARGETS fboss2)
