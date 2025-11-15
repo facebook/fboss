@@ -4,11 +4,11 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <thrift/lib/cpp2/reflection/testing.h>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
 
 using namespace ::testing;
 using namespace facebook::neteng::fboss::bgp::thrift;
