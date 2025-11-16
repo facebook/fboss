@@ -17,7 +17,35 @@ class HwAsic {
       std::unordered_set<cfg::SwitchType> supportedModes = {
           cfg::SwitchType::NPU});
   enum class Feature {
-    // ACL Features
+    // ACL Features::
+    //
+    // ACL Entry:
+    //   - Consists of Matcher and Action
+    //   - Matcher: check if patcket matches criteria e.g. specific source IP.
+    //   - Action: perform action on match e.g. drop packet
+    //
+    // ACL Counter:
+    //   - Can be optionally attached to an ACL entry.
+    //   - Can be configured to count the number of bytes and/or packets that
+    //     matched that ACL entry.
+    //
+    // ACL Table:
+    //  - Ordered list of ACL entries
+    //  - Only the first matching ACL entry and its Action take effect.
+    //
+    // ACL Table Group:
+    //  - Group of ACL Tables
+    //  - First matching ACL entry in each table and its Action takes effect.
+    //
+    // Bind point:
+    //  - Where to attach the ACL e.g. switch (global), per port etc.
+    //  - FBOSS supports only switch level ACLs i.e. ACL will be checked for
+    //    very packet in the switch.
+    //
+    // Stage:
+    //  - Stage in the pipeline the ACL will be checked.
+    //  - For example: ingress, egress etc.
+    //
     SWITCH_ATTR_INGRESS_ACL,
     INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     MULTIPLE_ACL_TABLES,
