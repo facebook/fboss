@@ -66,7 +66,13 @@ class HwAsic {
     //   - If we decide to keep the feature, rename to carry ACL_ prefix.
     SEPARATE_BYTE_AND_PACKET_ACL_COUNTER,
 
+    // Set to true if Ingress ACLs are supported.
+    // Used to bind an ACL Table or ACL Table Group to a switch using
+    // SAI_SWITCH_ATTR_INGRESS_ACL
+    // TODO:
+    //  - Candidate for removal: YES. All ASICs/SDKs already support this.
     SWITCH_ATTR_INGRESS_ACL,
+
     INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     EMPTY_ACL_MATCHER,
     SAI_ACL_TABLE_UPDATE,
