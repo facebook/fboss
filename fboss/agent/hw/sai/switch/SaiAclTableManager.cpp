@@ -1115,27 +1115,23 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       sendToCpu = setTc.second;
     }
 
-    auto setCopyOrTrap = [&aclActionPacketAction](
-                             bool supportCopyToCpu,
-                             const MatchAction& matchAction) {
-      if (matchAction.getToCpuAction()) {
-        switch (matchAction.getToCpuAction().value()) {
-          case cfg::ToCpuAction::COPY:
-            if (!supportCopyToCpu) {
-              throw FbossError("COPY_TO_CPU is not supported on this ASIC");
+    auto setCopyOrTrap =
+        [&aclActionPacketAction](const MatchAction& matchAction) {
+          if (matchAction.getToCpuAction()) {
+            switch (matchAction.getToCpuAction().value()) {
+              case cfg::ToCpuAction::COPY:
+                aclActionPacketAction =
+                    SaiAclEntryTraits::Attributes::ActionPacketAction{
+                        SAI_PACKET_ACTION_COPY};
+                break;
+              case cfg::ToCpuAction::TRAP:
+                aclActionPacketAction =
+                    SaiAclEntryTraits::Attributes::ActionPacketAction{
+                        SAI_PACKET_ACTION_TRAP};
+                break;
             }
-            aclActionPacketAction =
-                SaiAclEntryTraits::Attributes::ActionPacketAction{
-                    SAI_PACKET_ACTION_COPY};
-            break;
-          case cfg::ToCpuAction::TRAP:
-            aclActionPacketAction =
-                SaiAclEntryTraits::Attributes::ActionPacketAction{
-                    SAI_PACKET_ACTION_TRAP};
-            break;
-        }
-      }
-    };
+          }
+        };
 
     if (tc != std::nullopt) {
       if (!sendToCpu) {
@@ -1154,9 +1150,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          * Tajo claims to map TC i to Queue i by default as well.
          * However, explicitly set the QoS Map and associate with the CPU port.
          */
-        setCopyOrTrap(
-            platform_->getAsic()->isSupported(HwAsic::Feature::ACL_COPY_TO_CPU),
-            matchAction);
+        setCopyOrTrap(matchAction);
         aclActionSetTC = SaiAclEntryTraits::Attributes::ActionSetTC{
             AclEntryActionU8(tc.value())};
       }
@@ -1183,9 +1177,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             managerTable_->hostifManager().ensureHostifUserDefinedTrap(queueId);
         aclActionSetUserTrap = SaiAclEntryTraits::Attributes::ActionSetUserTrap{
             AclEntryActionSaiObjectIdT(userDefinedTrap->trap->adapterKey())};
-        setCopyOrTrap(
-            platform_->getAsic()->isSupported(HwAsic::Feature::ACL_COPY_TO_CPU),
-            matchAction);
+        setCopyOrTrap(matchAction);
       }
 #endif
     }
