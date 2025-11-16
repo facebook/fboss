@@ -46,10 +46,16 @@ class HwAsic {
     //  - Stage in the pipeline the ACL will be checked.
     //  - For example: ingress, egress etc.
     //
-    SWITCH_ATTR_INGRESS_ACL,
-    INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
+
+    // Set to true if Multiple ACL Tables are supported
+    // TODO:
+    //  - Candidate for removal: YES, ACL_TABLE_GROUP is enabled everywhere.
+    //  - Consolidate to a single feature prefixed with ACL_
     MULTIPLE_ACL_TABLES,
     ACL_TABLE_GROUP,
+
+    SWITCH_ATTR_INGRESS_ACL,
+    INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     EMPTY_ACL_MATCHER,
     SAI_ACL_TABLE_UPDATE,
     ACL_COUNTER_LABEL,
