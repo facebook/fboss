@@ -24,6 +24,7 @@ cpp_unittest(
         "EncapIndexAllocatorTest.cpp",
         "FabricConnectivityManagerTests.cpp",
         "FabricLinkMonitoringManagerTest.cpp",
+        "FabricLinkMonitoringTest.cpp",
         "FibHelperTests.cpp",
         "ICMPTest.cpp",
         "IPv4Test.cpp",
