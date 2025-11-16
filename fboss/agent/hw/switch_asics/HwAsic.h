@@ -54,13 +54,24 @@ class HwAsic {
     MULTIPLE_ACL_TABLES,
     ACL_TABLE_GROUP,
 
+    // Set to true if SAI implementations allow individually enabling Packet
+    // counter and byte counter.
+    // On some SAI implementations, supporting this is non-trivial. Those SAI
+    // implementations enable bytes as well as packet counters even if only one
+    // of the two is enabled.
+    // TODO:
+    //   - Candidate for removal: YES. FBOSS use case does not require enabling
+    //     only one. Enforce that either both are enabled or neither is enabled
+    //     on every platform, and then remove this feature.
+    //   - If we decide to keep the feature, rename to carry ACL_ prefix.
+    SEPARATE_BYTE_AND_PACKET_ACL_COUNTER,
+
     SWITCH_ATTR_INGRESS_ACL,
     INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     EMPTY_ACL_MATCHER,
     SAI_ACL_TABLE_UPDATE,
     ACL_COUNTER_LABEL,
     ACL_METADATA_QUALIFER,
-    SEPARATE_BYTE_AND_PACKET_ACL_COUNTER,
     SAI_ACL_ENTRY_SRC_PORT_QUALIFIER,
     ACL_ENTRY_ETHER_TYPE,
     ACL_BYTE_COUNTER,
