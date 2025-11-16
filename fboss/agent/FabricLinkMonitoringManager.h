@@ -57,6 +57,9 @@ class FabricLinkMonitoringManager : private folly::AsyncTimeout {
   // Get statistics for a specific port (for testing)
   FabricLinkMonPortStats getFabricLinkMonPortStats(const PortID& portId) const;
 
+  // Get statistics for all monitored ports (for fb303 export)
+  std::map<PortID, FabricLinkMonPortStats> getAllFabricLinkMonPortStats() const;
+
   // Get pending sequence numbers for a specific port (for testing)
   std::vector<uint64_t> getPendingSequenceNumbers(const PortID& portId) const;
 

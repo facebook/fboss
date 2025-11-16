@@ -173,6 +173,20 @@ FabricLinkMonPortStats FabricLinkMonitoringManager::getFabricLinkMonPortStats(
   return *portStats;
 }
 
+// Get statistics for all monitored ports. This is more efficient than
+// calling getFabricLinkMonPortStats() for each port individually.
+// Used for fb303 stats export.
+std::map<PortID, FabricLinkMonPortStats>
+FabricLinkMonitoringManager::getAllFabricLinkMonPortStats() const {
+  std::map<PortID, FabricLinkMonPortStats> result;
+  auto lockedStats = portStats_.rlock();
+  for (const auto& [portId, syncedStats] : *lockedStats) {
+    auto portStats = syncedStats.rlock();
+    result[portId] = *portStats;
+  }
+  return result;
+}
+
 // Get pending sequence numbers for a specific port
 std::vector<uint64_t> FabricLinkMonitoringManager::getPendingSequenceNumbers(
     const PortID& portId) const {

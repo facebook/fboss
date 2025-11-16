@@ -1098,6 +1098,28 @@ void SwSwitch::updateStats() {
 
   phySnapshotManager_->updatePhyInfos(phyInfo);
   updatePhyFb303Stats(phyInfo);
+  updateFabricLinkMonitoringStats();
+}
+
+void SwSwitch::updateFabricLinkMonitoringStats() {
+  // Check if fabricLinkMonitoringManager is instantiated
+  auto fabricLinkMonMgr = getFabricLinkMonitoringManager();
+  if (!fabricLinkMonMgr) {
+    return;
+  }
+
+  // Get all fabric link monitoring stats in a single call (more efficient
+  // than calling getFabricLinkMonPortStats() for each port individually)
+  auto allPortStats = fabricLinkMonMgr->getAllFabricLinkMonPortStats();
+
+  // Update fb303 counters for each monitored port
+  for (const auto& [portId, stats] : allPortStats) {
+    auto portStat = portStats(portId);
+
+    // Update RX and TX counters
+    portStat->fabricLinkMonitoringRxPackets(*stats.rxCount());
+    portStat->fabricLinkMonitoringTxPackets(*stats.txCount());
+  }
 }
 
 void SwSwitch::updateRouteStats() {
