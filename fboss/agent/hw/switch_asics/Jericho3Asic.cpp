@@ -60,7 +60,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER:
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
-    case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::ERSPANv4:

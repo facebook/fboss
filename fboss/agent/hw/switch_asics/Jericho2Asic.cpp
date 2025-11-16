@@ -19,7 +19,6 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
-    case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::OBM_COUNTERS:
