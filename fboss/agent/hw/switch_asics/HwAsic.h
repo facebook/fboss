@@ -73,8 +73,12 @@ class HwAsic {
     //  - Candidate for removal: YES. All ASICs/SDKs already support this.
     SWITCH_ATTR_INGRESS_ACL,
 
-    INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
+    // Set to true if Empty Matcher can be used to match all packets.
+    // TODO:
+    //  - Rename to carry ACL_ prefix.
     EMPTY_ACL_MATCHER,
+
+    INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     SAI_ACL_TABLE_UPDATE,
     ACL_COUNTER_LABEL,
     ACL_METADATA_QUALIFER,
