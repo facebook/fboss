@@ -159,6 +159,10 @@ class HwAsic {
     //    SAI implementations that support this action.
     ACL_SET_ECMP_HASH_ALGORITHM,
 
+    // Set to true if flex counters are supported by ingress field processor.
+    // TODO:
+    //  - Candidate for removal: YES.
+    //  - Only used by non-SAI. Once we completely migrate to SAI, remove.
     INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     SAI_ACL_TABLE_UPDATE,
     // Other features
