@@ -4,7 +4,7 @@
   "pwmBoostOnNoQsfpAfterInSec": 31,
   "pwmBoostValue": 73,
   "pwmTransitionValue": 50,
-  "pwmLowerThreshold": 30,
+  "pwmLowerThreshold": 43,
   "pwmUpperThreshold": 100,
   "optics": [
     {
@@ -37,19 +37,19 @@
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
-        "15": 30,
+        "15": 43,
         "110": 100
       },
       "normalDownTable": {
-        "15": 30,
+        "15": 43,
         "110": 100
       },
       "failUpTable": {
-        "15": 30,
+        "15": 43,
         "110": 100
       },
       "failDownTable": {
-        "15": 30,
+        "15": 43,
         "110": 100
       }
     }
