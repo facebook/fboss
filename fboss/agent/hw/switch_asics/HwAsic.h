@@ -78,10 +78,17 @@ class HwAsic {
     //  - Rename to carry ACL_ prefix.
     EMPTY_ACL_MATCHER,
 
+    // Set to true if Metadata qualifier is supported for ACLs.
+    // Metadata is an integer field that can be associated with an L2 entry,
+    // Neighbor entry, Route entry etc. When that L2/Neighbor/Route enetry is
+    // hit, the corresponding Metadata is  associated with the packet. This
+    // packet can match any ACL that carries the same Metadata in the matcher
+    // field and corresponding ACL action takes effect.
+    ACL_METADATA_QUALIFER,
+
     INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     SAI_ACL_TABLE_UPDATE,
     ACL_COUNTER_LABEL,
-    ACL_METADATA_QUALIFER,
     SAI_ACL_ENTRY_SRC_PORT_QUALIFIER,
     ACL_ENTRY_ETHER_TYPE,
     ACL_BYTE_COUNTER,
