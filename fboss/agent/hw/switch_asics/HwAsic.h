@@ -86,9 +86,15 @@ class HwAsic {
     // field and corresponding ACL action takes effect.
     ACL_METADATA_QUALIFER,
 
+    // Set to true if the SAI implementation supports setting a
+    // label (string identifier) for an ACL counter.
+    // This label can be used to uniquely identify ACL counter
+    // object during warmboot.  The support was added by SAI community PR 1430,
+    // and is part of the SAI spec since v1.10.0.
+    ACL_COUNTER_LABEL,
+
     INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     SAI_ACL_TABLE_UPDATE,
-    ACL_COUNTER_LABEL,
     SAI_ACL_ENTRY_SRC_PORT_QUALIFIER,
     ACL_ENTRY_ETHER_TYPE,
     ACL_BYTE_COUNTER,
