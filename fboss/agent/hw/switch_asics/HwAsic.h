@@ -126,9 +126,21 @@ class HwAsic {
     //  - Rename to carry ACL_ prefix.
     ANY_ACL_DROP_COUNTER,
 
+    // Set to true if the SAI implementation supports Ether type as ACL matcher
+    // For SAI, this maps to whether SAI_ACL_TABLE_ATTR_FIELD_{IN, SRC}_PORT can
+    // be set during ACL Table creation.
+    // TODO:
+    //  - Candidate for removal: YES, but non-trivial.
+    //  - Extend SAI spec sai_acl_capability_t to return the list of ACL
+    //    matchers supported.
+    //  - Work with SAI implementations to support this capability.
+    //  - Extend FBOSS to query supported matchers for a given stage e.g.
+    //    SAI_SWITCH_ATTR_ACL_STAGE_INGRESS
+    //  - Rename to carry ACL_ prefix.
+    SAI_ACL_ENTRY_SRC_PORT_QUALIFIER,
+
     INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     SAI_ACL_TABLE_UPDATE,
-    SAI_ACL_ENTRY_SRC_PORT_QUALIFIER,
     INGRESS_POST_LOOKUP_ACL_TABLE,
     ACL_SET_ECMP_HASH_ALGORITHM,
     // Other features
