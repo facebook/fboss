@@ -147,9 +147,20 @@ class HwAsic {
     //  - Rename to carry ACL_ prefix.
     SAI_ACL_ENTRY_SRC_PORT_QUALIFIER,
 
+    // Set to true if the SAI implementation supports ACL action to set hash
+    // algorithm. For SAI, this maps to whether
+    // SAI_ACL_ACTION_TYPE_SET_ECMP_HASH_ALGORITHM
+    // ACL action is supported.
+    // TODO:
+    //  - Candidate for removal: YES.
+    //  - switch_config.AclTable already carries list of actionTypes.
+    //  - Start populating that field in the config.
+    //  - Populate SAI_ACL_ACTION_TYPE_SET_ECMP_HASH_ALGORITHM action only for
+    //    SAI implementations that support this action.
+    ACL_SET_ECMP_HASH_ALGORITHM,
+
     INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     SAI_ACL_TABLE_UPDATE,
-    ACL_SET_ECMP_HASH_ALGORITHM,
     // Other features
     SPAN,
     ERSPANv4,
