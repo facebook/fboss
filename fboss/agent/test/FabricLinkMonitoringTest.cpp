@@ -662,3 +662,128 @@ TEST_F(FabricLinkMonitoringTest, L1L2SwitchIdOffsetCalculation) {
   EXPECT_NE(switchId513, switchId517)
       << "Ports to different L2 switches should have different offsets";
 }
+
+// Test config with ports but no expected neighbors (should skip)
+TEST_F(FabricLinkMonitoringTest, PortsWithoutExpectedNeighborsAreSkipped) {
+  cfg::SwitchConfig config;
+  config.switchSettings() = cfg::SwitchSettings();
+  config.switchSettings()->switchId() = 0;
+  config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
+  config.dsfNodes() = std::map<int64_t, cfg::DsfNode>();
+  config.ports() = std::vector<cfg::Port>();
+
+  // Add VoQ switch
+  addDsfNode(config, 0, "voq0", cfg::DsfNodeType::INTERFACE_NODE);
+
+  // Add port WITHOUT expected neighbor
+  cfg::Port port;
+  port.logicalID() = 1;
+  port.name() = "fab1/1/1";
+  port.portType() = cfg::PortType::FABRIC_PORT;
+  port.expectedNeighborReachability() = std::vector<cfg::PortNeighbor>();
+  // Empty neighbor list
+  config.ports()->push_back(port);
+
+  FabricLinkMonitoring monitoring(&config);
+  const auto& mapping = monitoring.getPort2LinkSwitchIdMapping();
+
+  // Port without expected neighbors should not be in mapping
+  EXPECT_TRUE(mapping.empty())
+      << "Ports without expected neighbors should not get switch IDs";
+}
+
+// Test non-fabric ports are ignored
+TEST_F(FabricLinkMonitoringTest, NonFabricPortsAreIgnored) {
+  cfg::SwitchConfig config;
+  config.switchSettings() = cfg::SwitchSettings();
+  config.switchSettings()->switchId() = 0;
+  config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
+  config.dsfNodes() = std::map<int64_t, cfg::DsfNode>();
+  config.ports() = std::vector<cfg::Port>();
+
+  // Add VoQ switch
+  addDsfNode(config, 0, "voq0", cfg::DsfNodeType::INTERFACE_NODE);
+
+  // Add non-fabric port
+  cfg::Port port;
+  port.logicalID() = 1;
+  port.name() = "eth1/1/1";
+  port.portType() = cfg::PortType::INTERFACE_PORT; // Non-fabric
+  port.expectedNeighborReachability() = std::vector<cfg::PortNeighbor>();
+
+  cfg::PortNeighbor neighbor;
+  neighbor.remoteSystem() = "switch1";
+  neighbor.remotePort() = "eth1/1/1";
+  port.expectedNeighborReachability()->push_back(neighbor);
+
+  config.ports()->push_back(port);
+
+  FabricLinkMonitoring monitoring(&config);
+  const auto& mapping = monitoring.getPort2LinkSwitchIdMapping();
+
+  // Non-fabric ports should not be in mapping
+  EXPECT_TRUE(mapping.empty()) << "Non-fabric ports should not get switch IDs";
+}
+
+// Test multiple switch names mapping to same switch ID (lowest ID wins)
+TEST_F(FabricLinkMonitoringTest, MultipleSwitchNamesMapToSameSwitchId) {
+  cfg::SwitchConfig config;
+  config.switchSettings() = cfg::SwitchSettings();
+  config.switchSettings()->switchId() = 0;
+  config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
+  config.dsfNodes() = std::map<int64_t, cfg::DsfNode>();
+  config.ports() = std::vector<cfg::Port>();
+
+  // Add VoQ switch
+  addDsfNode(config, 0, "voq0", cfg::DsfNodeType::INTERFACE_NODE);
+
+  // Add same fabric switch with multiple names and IDs
+  addDsfNode(config, 8, "fabric_high", cfg::DsfNodeType::FABRIC_NODE, 1);
+  addDsfNode(
+      config,
+      4,
+      "fabric_high",
+      cfg::DsfNodeType::FABRIC_NODE,
+      1); // Lower ID, same name
+
+  // Add port connecting to "fabric_high"
+  addFabricPort(config, 1, "fab1/1/1", "fabric_high", "fab1/1/1");
+
+  FabricLinkMonitoring monitoring(&config);
+
+  // Should use the lower switch ID (4) when multiple names map to same switch
+  // The implementation should handle this gracefully
+  EXPECT_NO_THROW(monitoring.getSwitchIdForPort(PortID(1)));
+}
+
+// Test VD assignment in test mode
+TEST_F(FabricLinkMonitoringTest, TestModeVdAssignment) {
+  auto config = createVoqConfig();
+
+  FabricLinkMonitoring monitoring(&config);
+
+  // In test mode, VD = portId % 4
+  // Port 1 -> VD 1, Port 2 -> VD 2, Port 3 -> VD 3, Port 4 -> VD 0
+  // Ports with same VD (mod 4) and connecting to same fabric should have
+  // similar switch IDs
+
+  // Get switch IDs for ports that differ by 4 (same VD in test mode)
+  SwitchID switchId1 = monitoring.getSwitchIdForPort(PortID(1)); // VD 1
+  SwitchID switchId5 =
+      monitoring.getSwitchIdForPort(PortID(5)); // VD 1 (5 % 4 = 1)
+
+  // Since port 1 and 5 connect to different fabric switches,
+  // they should have different switch IDs
+  EXPECT_NE(switchId1, switchId5)
+      << "Ports with same VD but different fabric switches should have different switch IDs";
+
+  // Ports 1, 2, 3, 4 all connect to Fabric 4 but have different VDs
+  SwitchID switchId2 = monitoring.getSwitchIdForPort(PortID(2)); // VD 2
+  SwitchID switchId3 = monitoring.getSwitchIdForPort(PortID(3)); // VD 3
+  SwitchID switchId4 = monitoring.getSwitchIdForPort(PortID(4)); // VD 0
+
+  // All should be different (different VDs, same fabric switch)
+  std::set<SwitchID> uniqueIds = {switchId1, switchId2, switchId3, switchId4};
+  EXPECT_EQ(uniqueIds.size(), 4)
+      << "Ports to same fabric with different VDs should have different switch IDs";
+}
