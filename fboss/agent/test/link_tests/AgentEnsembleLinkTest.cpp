@@ -57,7 +57,6 @@ long swAgentMemThreshold(facebook::fboss::PlatformType platform) {
   switch (platform) {
     case facebook::fboss::PlatformType::PLATFORM_WEDGE100:
     case facebook::fboss::PlatformType::PLATFORM_WEDGE400:
-    case facebook::fboss::PlatformType::PLATFORM_WEDGE400C:
     case facebook::fboss::PlatformType::PLATFORM_DARWIN:
     case facebook::fboss::PlatformType::PLATFORM_DARWIN48V:
     case facebook::fboss::PlatformType::PLATFORM_MINIPACK:
