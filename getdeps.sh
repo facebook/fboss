@@ -10,7 +10,7 @@ fi
 
 FBOSS_DIR=$(dirname "$0")
 GETDEPS_PATHS=(
-    "$FBOSS_DIR/build/fbcode_builder/getdeps.py"
+    "$FBOSS_DIR/fboss/oss/scripts/run-getdeps.py"
     "$FBOSS_DIR/../../opensource/fbcode_builder/getdeps.py"
 )
 for getdeps in "${GETDEPS_PATHS[@]}"; do
