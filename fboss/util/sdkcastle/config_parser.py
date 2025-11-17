@@ -129,8 +129,10 @@ class ConfigParser:
     def _parse_n_warmboot_tests_spec(self, data: Dict[str, Any]) -> NWarmbootTestsSpec:
         """Parse NWarmbootTestsSpec from dictionary"""
         return NWarmbootTestsSpec(
-            test_name=data["test_name"],
-            common_test_spec=self._parse_common_test_spec(data["common_test_spec"]),
+            test_name=data["testName"],
+            common_test_spec=self._parse_common_test_spec(data["commonTestSpec"]),
+            npu_mode=self._string_to_enum(data.get("npuMode"), NpuMode),
+            num_iterations=data.get("numIterations"),
         )
 
     def _parse_link_tests_spec(self, data: Dict[str, Any]) -> LinkTestsSpec:

@@ -123,7 +123,7 @@ class TestExecutor:
                     result = future.result()
                     results.append(result)
                     print(
-                        f"Completed: {' '.join(cmd[:5])}... - Status: {result['status']}"
+                        f"Completed: {' '.join(cmd)} ... - Status: {result['status']}\n"
                     )
                 except Exception as exc:
                     error_result = {
@@ -134,7 +134,7 @@ class TestExecutor:
                         "return_code": -1,
                     }
                     results.append(error_result)
-                    print(f"Error executing {' '.join(cmd[:5])}...: {exc}")
+                    print(f"Error executing {' '.join(cmd)}...: {exc}")
 
         # Summary
         successful = sum(1 for r in results if r["status"] == "success")
@@ -174,7 +174,7 @@ class TestExecutor:
                     stdout=log_file,
                     stderr=subprocess.STDOUT,
                     text=True,
-                    timeout=3600,
+                    timeout=3600 * 12,
                 )
 
             return {

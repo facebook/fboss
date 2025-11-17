@@ -97,8 +97,9 @@ class NetcastleTestRunner(BaseTestRunner):
         asic_type: AsicType,
         asic_options: AsicTestOptions,
         agent_test: Optional[AgentTestsSpec] = None,  # type: ignore
-    ) -> Tuple[List[str], str, str, str]:
-        """Build netcastle command and return command, asic, sdk_project_version, npu_mode"""
+        n_warmboot_test: Optional[NWarmbootTestsSpec] = None,  # type: ignore
+    ) -> Tuple[List[str], str, str, Optional[str], Optional[str]]:
+        """Build netcastle command and return command, asic, sdk_project_version, npu_mode, multi_stage"""
         team = TEST_TYPE_TEAM_MAPPING.get(test_type, "sai_agent_test")
 
         # Parse SDK version to extract vendor and project version
@@ -129,6 +130,12 @@ class NetcastleTestRunner(BaseTestRunner):
         npu_mode = None
         if agent_test and hasattr(agent_test, "npu_mode") and agent_test.npu_mode:
             npu_mode = agent_test.npu_mode.value
+        if (
+            n_warmboot_test
+            and hasattr(n_warmboot_test, "npu_mode")
+            and n_warmboot_test.npu_mode
+        ):
+            npu_mode = n_warmboot_test.npu_mode.value
 
         # Build test-config: <vendor>/<sdkProjectVersion>/<sdkProjectVersion>/<asic>
         if npu_mode is not None:
@@ -167,6 +174,15 @@ class NetcastleTestRunner(BaseTestRunner):
             multi_stage = agent_test.multi_stage.value
             cmd.extend(["--multistage-role", multi_stage])
 
+        if n_warmboot_test:
+            num_iterations = "128"
+            if (
+                hasattr(n_warmboot_test, "num_iterations")
+                and n_warmboot_test.num_iterations
+            ):
+                num_iterations = n_warmboot_test.num_iterations
+            cmd.extend(["--num-wb-iterations", num_iterations])
+
         # Add regex if specified
         if asic_options.regex:
             cmd.extend(["--regex", asic_options.regex])
@@ -178,7 +194,7 @@ class NetcastleTestRunner(BaseTestRunner):
         test_type: str,
         asic: str,
         sdk_project_version: str,
-        npu_mode: str,
+        npu_mode: Optional[str],
         multi_stage: Optional[str] = None,
     ) -> str:
         """Generate log filename based on test type and metadata"""
@@ -203,8 +219,8 @@ class NetcastleTestRunner(BaseTestRunner):
         self, hw_test: HwTestsSpec, asic_type: AsicType, asic_options: AsicTestOptions
     ) -> List[Tuple[List[str], str]]:
         """Build hardware test commands"""
-        cmd, asic, sdk_project_version, npu_mode = self._build_netcastle_command(
-            "hw", asic_type, asic_options
+        cmd, asic, sdk_project_version, npu_mode, multi_stage = (
+            self._build_netcastle_command("hw", asic_type, asic_options)
         )
         log_filename = self._generate_log_filename(
             "hw", asic, sdk_project_version, npu_mode
@@ -219,7 +235,9 @@ class NetcastleTestRunner(BaseTestRunner):
     ) -> List[Tuple[List[str], str]]:
         """Build agent test commands"""
         cmd, asic, sdk_project_version, npu_mode, multi_stage = (
-            self._build_netcastle_command("agent", asic_type, asic_options, agent_test)
+            self._build_netcastle_command(
+                "agent", asic_type, asic_options, agent_test=agent_test
+            )
         )
         log_filename = self._generate_log_filename(
             "agent", asic, sdk_project_version, npu_mode, multi_stage
@@ -233,8 +251,8 @@ class NetcastleTestRunner(BaseTestRunner):
         asic_options: AsicTestOptions,
     ) -> List[Tuple[List[str], str]]:
         """Build link test commands"""
-        cmd, asic, sdk_project_version, npu_mode = self._build_netcastle_command(
-            "link", asic_type, asic_options
+        cmd, asic, sdk_project_version, npu_mode, multi_stage = (
+            self._build_netcastle_command("link", asic_type, asic_options)
         )
         log_filename = self._generate_log_filename(
             "link", asic, sdk_project_version, npu_mode
@@ -248,11 +266,13 @@ class NetcastleTestRunner(BaseTestRunner):
         asic_options: AsicTestOptions,
     ) -> List[Tuple[List[str], str]]:
         """Build n-warmboot test commands"""
-        cmd, asic, sdk_project_version, npu_mode = self._build_netcastle_command(
-            "n-warmboot", asic_type, asic_options
+        cmd, asic, sdk_project_version, npu_mode, multi_stage = (
+            self._build_netcastle_command(
+                "n-warmboot", asic_type, asic_options, n_warmboot_test=warmboot_test
+            )
         )
         log_filename = self._generate_log_filename(
-            "n-warmboot", asic, sdk_project_version, npu_mode
+            "n-warmboot", asic, sdk_project_version, npu_mode, multi_stage
         )
         return [(cmd, log_filename)]
 
@@ -263,8 +283,8 @@ class NetcastleTestRunner(BaseTestRunner):
         asic_options: AsicTestOptions,
     ) -> List[Tuple[List[str], str]]:
         """Build config test commands"""
-        cmd, asic, sdk_project_version, npu_mode = self._build_netcastle_command(
-            "config", asic_type, asic_options
+        cmd, asic, sdk_project_version, npu_mode, multi_stage = (
+            self._build_netcastle_command("config", asic_type, asic_options)
         )
         log_filename = self._generate_log_filename(
             "config", asic, sdk_project_version, npu_mode
@@ -278,8 +298,8 @@ class NetcastleTestRunner(BaseTestRunner):
         asic_options: AsicTestOptions,
     ) -> List[Tuple[List[str], str]]:
         """Build benchmark test commands"""
-        cmd, asic, sdk_project_version, npu_mode = self._build_netcastle_command(
-            "benchmark", asic_type, asic_options
+        cmd, asic, sdk_project_version, npu_mode, multi_stage = (
+            self._build_netcastle_command("benchmark", asic_type, asic_options)
         )
         log_filename = self._generate_log_filename(
             "benchmark", asic, sdk_project_version, npu_mode

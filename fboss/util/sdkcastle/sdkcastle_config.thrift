@@ -92,6 +92,8 @@ struct AgentTestsSpec {
 struct NWarmbootTestsSpec {
   1: string testName;
   2: CommonTestSpec commonTestSpec;
+  3: NpuMode npuMode = NpuMode.MONO;
+  4: optional string numIterations;
 }
 
 struct LinkTestsSpec {

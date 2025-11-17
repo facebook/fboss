@@ -77,6 +77,8 @@ class NWarmbootTestsSpec:
 
     test_name: str
     common_test_spec: CommonTestSpec
+    npu_mode: Optional[NpuMode] = None
+    num_iterations: Optional[MultiStage] = None
 
 
 @dataclass
