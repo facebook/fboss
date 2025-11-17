@@ -1,1 +1,90 @@
-{}
+{
+  "testData": {
+    "FCB.IDPROM": {
+      "i2cTestData": {
+        "i2cDumpData": [
+          {
+            "start": "0x04",
+            "end": "0x08",
+            "expected": [
+              "01",
+              "03",
+              "46",
+              "43",
+              "42"
+            ]
+          }
+        ],
+        "i2cGetData": [
+          {
+            "reg": "0x04",
+            "expected": "0x01"
+          },
+          {
+            "reg": "0x05",
+            "expected": "0x03"
+          }
+        ],
+        "i2cSetData": []
+      }
+    },
+    "ICETEA_MCB.MCB_CPLD": {
+      "i2cTestData": {
+        "i2cDumpData": [],
+        "i2cGetData": [],
+        "i2cSetData": [
+          {
+            "reg": "0x04",
+            "value": "0xff"
+          }
+        ]
+      }
+    },
+    "ICETEA_MCB.MCB_FAN_CPLD": {
+      "i2cTestData": {
+        "i2cDumpData": [],
+        "i2cGetData": [],
+        "i2cSetData": [
+          {
+            "reg": "0x32",
+            "value": "0x16"
+          },
+          {
+            "reg": "0x42",
+            "value": "0x16"
+          },
+          {
+            "reg": "0x52",
+            "value": "0x16"
+          },
+          {
+            "reg": "0x62",
+            "value": "0x16"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "fan1",
+          "fan2",
+          "fan3",
+          "fan4"
+        ]
+      },
+      "watchdogTestData": {
+        "numWatchdogs": 1
+      }
+    },
+    "FCB.FCB_48V_HSC_MONITOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "pin",
+          "iout1"
+        ]
+      }
+    }
+  }
+}
