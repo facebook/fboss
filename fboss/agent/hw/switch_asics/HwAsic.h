@@ -115,6 +115,17 @@ class HwAsic {
     //  - Extend FBOSS to query whether ACL Byte counters are supported.
     ACL_BYTE_COUNTER,
 
+    // Packet is dropped due to configured ACL rules, all stages/bind points
+    // For SAI this maps to whether debug counter SAI_IN_DROP_REASON_ACL_ANY
+    // can be queried.
+    // TODO:
+    //  - Candidate for removal: YES, but non-trivial.
+    //  - Extend SAI spec to support capability_t for Debug counters.
+    //  - Work with SAI implementations to support this capability.
+    //  - Extend FBOSS to query.
+    //  - Rename to carry ACL_ prefix.
+    ANY_ACL_DROP_COUNTER,
+
     INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     SAI_ACL_TABLE_UPDATE,
     SAI_ACL_ENTRY_SRC_PORT_QUALIFIER,
@@ -255,7 +266,6 @@ class HwAsic {
     SAI_PORT_SERDES_PROGRAMMING,
     RX_SNR,
     MANAGEMENT_PORT,
-    ANY_ACL_DROP_COUNTER,
     ANY_TRAP_DROP_COUNTER,
     PORT_WRED_COUNTER,
     PORT_SERDES_ZERO_PREEMPHASIS,
