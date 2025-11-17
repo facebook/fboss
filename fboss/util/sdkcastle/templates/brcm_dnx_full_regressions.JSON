@@ -1,0 +1,99 @@
+{
+  "testSdkVersion": "brcm-sai/12.2.0.0_odp",
+  "runMode": "list-test-runner-cmds-only",
+  "buildMode": "opt-asan",
+  "testRunnerMode": "meta-internal",
+  "testOutDirPath": "~/mylogs/sdkcastle_logs",
+  "testSpecs": {
+    "agentTests": [
+      {
+        "testName": "jericho3AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "jericho3": {
+              "asicTestName": "j3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "jericho3"
+              },
+              "numJobs": 4
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "jericho3AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "jericho3": {
+              "asicTestName": "j3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "jericho3"
+              },
+              "numJobs": 4
+            }
+          }
+        },
+        "npuMode": "mono",
+        "multiStage": "fap"
+      },
+      {
+        "testName": "ramon3AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "ramon3": {
+              "asicTestName": "r3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "ramon3"
+              },
+              "numJobs": 4
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "ramon3AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "ramon3": {
+              "asicTestName": "r3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "ramon3"
+              },
+              "numJobs": 4
+            }
+          }
+        },
+        "npuMode": "mono",
+        "multiStage": "fe2"
+      },
+      {
+        "testName": "ramon3AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "ramon3": {
+              "asicTestName": "r3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "ramon3"
+              },
+              "numJobs": 4
+            }
+          }
+        },
+        "npuMode": "mono",
+        "multiStage": "fe13"
+      }
+    ]
+  }
+}

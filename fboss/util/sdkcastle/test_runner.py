@@ -8,7 +8,7 @@
 # pyre-unsafe
 
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from .config import (
     AgentTestsSpec,
@@ -92,7 +92,11 @@ class NetcastleTestRunner(BaseTestRunner):
     """Test runner for meta-internal mode using netcastle commands"""
 
     def _build_netcastle_command(
-        self, test_type: str, asic_type: AsicType, asic_options: AsicTestOptions
+        self,
+        test_type: str,
+        asic_type: AsicType,
+        asic_options: AsicTestOptions,
+        agent_test: Optional[AgentTestsSpec] = None,  # type: ignore
     ) -> Tuple[List[str], str, str, str]:
         """Build netcastle command and return command, asic, sdk_project_version, npu_mode"""
         team = TEST_TYPE_TEAM_MAPPING.get(test_type, "sai_agent_test")
@@ -122,17 +126,20 @@ class NetcastleTestRunner(BaseTestRunner):
         if vendor == "brcm" and asic_type.value in BRCM_DNX_ASICS:
             sdk_project_version = sdk_project_version.replace("odp", "dnx_odp")
 
-        # TODO: Get the npu mode
-        npu_mode = "mono"
+        npu_mode = None
+        if agent_test and hasattr(agent_test, "npu_mode") and agent_test.npu_mode:
+            npu_mode = agent_test.npu_mode.value
 
         # Build test-config: <vendor>/<sdkProjectVersion>/<sdkProjectVersion>/<asic>
-        test_config = f"{vendor}/{sdk_project_version}/{sdk_project_version}/{asic_type.value}/{npu_mode}"
+        if npu_mode is not None:
+            test_config = f"{vendor}/{sdk_project_version}/{sdk_project_version}/{asic_type.value}/{npu_mode}"
+        else:
+            test_config = f"{vendor}/{sdk_project_version}/{sdk_project_version}/{asic_type.value}"
 
         # Build basset-query: <devicePool>/asic=<asic>
         basset_query = f"{asic_options.basset_query.device_pool}/asic={asic_type.value}"
 
-        # TODO: Get the num jobs
-        num_jobs = 4
+        num_jobs = asic_options.num_jobs
 
         build_mode_value = (
             asic_options.build_mode.value
@@ -155,18 +162,32 @@ class NetcastleTestRunner(BaseTestRunner):
             str(num_jobs),
         ]
 
+        multi_stage = None
+        if agent_test and hasattr(agent_test, "multi_stage") and agent_test.multi_stage:
+            multi_stage = agent_test.multi_stage.value
+            cmd.extend(["--multistage-role", multi_stage])
+
         # Add regex if specified
         if asic_options.regex:
             cmd.extend(["--regex", asic_options.regex])
 
-        return cmd, asic_type.value, sdk_project_version, npu_mode
+        return cmd, asic_type.value, sdk_project_version, npu_mode, multi_stage
 
     def _generate_log_filename(
-        self, test_type: str, asic: str, sdk_project_version: str, npu_mode: str
+        self,
+        test_type: str,
+        asic: str,
+        sdk_project_version: str,
+        npu_mode: str,
+        multi_stage: Optional[str] = None,
     ) -> str:
         """Generate log filename based on test type and metadata"""
         if test_type == "agent":
-            return f"{asic}_{sdk_project_version}_agent_{npu_mode}.log"
+            return (
+                f"{asic}_{sdk_project_version}_agent_{npu_mode}.log"
+                if multi_stage is None
+                else f"{asic}_{sdk_project_version}_agent_{npu_mode}_{multi_stage}.log"
+            )
         elif test_type == "n-warmboot":
             return f"{asic}_{sdk_project_version}_n_wb.log"
         elif test_type == "link":
@@ -197,11 +218,11 @@ class NetcastleTestRunner(BaseTestRunner):
         asic_options: AsicTestOptions,
     ) -> List[Tuple[List[str], str]]:
         """Build agent test commands"""
-        cmd, asic, sdk_project_version, npu_mode = self._build_netcastle_command(
-            "agent", asic_type, asic_options
+        cmd, asic, sdk_project_version, npu_mode, multi_stage = (
+            self._build_netcastle_command("agent", asic_type, asic_options, agent_test)
         )
         log_filename = self._generate_log_filename(
-            "agent", asic, sdk_project_version, npu_mode
+            "agent", asic, sdk_project_version, npu_mode, multi_stage
         )
         return [(cmd, log_filename)]
 

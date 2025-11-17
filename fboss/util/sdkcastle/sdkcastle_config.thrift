@@ -45,8 +45,8 @@ enum BootType {
 }
 
 enum NpuMode {
-  SINGLE = 0,
-  MULTI = 1,
+  MONO = 0,
+  MULTI_SWITCH = 1,
 }
 
 enum MultiStage {
@@ -85,7 +85,7 @@ struct HwTestsSpec {
 struct AgentTestsSpec {
   1: string testName;
   2: CommonTestSpec commonTestSpec;
-  3: optional NpuMode npuMode;
+  3: NpuMode npuMode = NpuMode.MONO;
   4: optional MultiStage multiStage;
 }
 
