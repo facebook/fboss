@@ -111,6 +111,7 @@ cpp_unittest(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent:utils",
+        "//fboss/agent:voq_utils",
         "//fboss/agent/hw/mock:mock",
         "//fboss/agent/hw/mock:pkt",
         "//fboss/agent/hw/switch_asics:switch_asics",

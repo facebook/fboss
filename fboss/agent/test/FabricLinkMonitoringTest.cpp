@@ -1,8 +1,10 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/FabricLinkMonitoring.h"
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 
@@ -214,6 +216,87 @@ cfg::SwitchConfig createFabricConfig() {
   return config;
 }
 
+// Helper to create a dual-stage Fabric config
+// L1 fabric connects to 128 VoQ switches and 128 L2 switches
+// VoQ switch IDs < L1 switch ID < L2 switch IDs
+cfg::SwitchConfig createDualStageFabricConfig() {
+  cfg::SwitchConfig config;
+  config.dsfNodes() = std::map<int64_t, cfg::DsfNode>();
+  config.switchSettings() = cfg::SwitchSettings();
+  config.switchSettings()->switchType() = cfg::SwitchType::FABRIC;
+  config.ports() = std::vector<cfg::Port>();
+
+  // Add 128 VoQ switches (switchIds: 0, 4, 8, ..., 508)
+  for (int i = 0; i < 128; i++) {
+    int64_t voqSwitchId = i * 4;
+    addDsfNode(
+        config,
+        voqSwitchId,
+        "voq" + std::to_string(voqSwitchId),
+        cfg::DsfNodeType::INTERFACE_NODE);
+  }
+
+  // L1 fabric switch ID = 512
+  int64_t l1SwitchId = 512;
+  config.switchSettings()->switchId() = l1SwitchId;
+
+  // Add L1 fabric switch
+  addDsfNode(
+      config,
+      l1SwitchId,
+      "fabric" + std::to_string(l1SwitchId),
+      cfg::DsfNodeType::FABRIC_NODE,
+      1);
+
+  // Add 128 L2 switches (switchIds: 516, 520, 524, ..., 1028)
+  for (int i = 0; i < 128; i++) {
+    int64_t l2SwitchId = 516 + (i * 4);
+    addDsfNode(
+        config,
+        l2SwitchId,
+        "fabric_l2_" + std::to_string(l2SwitchId),
+        cfg::DsfNodeType::FABRIC_NODE,
+        2);
+  }
+
+  // Add 512 ports connecting to VoQ switches: 4 ports per VoQ switch
+  int portId = 1;
+  for (int i = 0; i < 128; i++) {
+    int64_t voqSwitchId = i * 4;
+    std::string voqSwitchName = "voq" + std::to_string(voqSwitchId);
+
+    for (int portOffset = 0; portOffset < 4; portOffset++) {
+      addFabricPort(
+          config,
+          portId,
+          "fab1/" + std::to_string(i + 1) + "/" +
+              std::to_string(portOffset + 1),
+          voqSwitchName,
+          "fab1/1/" + std::to_string(portOffset + 1));
+      portId++;
+    }
+  }
+
+  // Add 512 ports connecting to L2 switches: 4 ports per L2 switch
+  for (int i = 0; i < 128; i++) {
+    int64_t l2SwitchId = 516 + (i * 4);
+    std::string l2SwitchName = "fabric_l2_" + std::to_string(l2SwitchId);
+
+    for (int portOffset = 0; portOffset < 4; portOffset++) {
+      addFabricPort(
+          config,
+          portId,
+          "fab2/" + std::to_string(i + 1) + "/" +
+              std::to_string(portOffset + 1),
+          l2SwitchName,
+          "fab2/1/" + std::to_string(portOffset + 1));
+      portId++;
+    }
+  }
+
+  return config;
+}
+
 // Helper to validate switch ID allocation
 void validateSwitchIdAllocation(
     const cfg::SwitchConfig& config,
@@ -373,4 +456,103 @@ TEST_F(FabricLinkMonitoringTest, FabricSwitchAllocatesUniqueSwitchIds) {
 
   // Expected: 128+3 unique switch IDs (128 VoQ switches × 4 VD groups)
   validateSwitchIdAllocation(config, 512, 131);
+}
+
+// Test VoQ switch exceeds max leaf-L1 links per VD
+TEST_F(FabricLinkMonitoringTest, VoqSwitchExceedsMaxLeafL1Links) {
+  // kDsfMaxLeafFabricLinksPerVd = 40
+  // Need to create ports that map to the SAME VD (in test mode: portId % 4)
+  // Create config with 41 ports all mapping to VD 0 (ports 4, 8, 12, ..., 164)
+  cfg::SwitchConfig config;
+  config.switchSettings() = cfg::SwitchSettings();
+  config.switchSettings()->switchId() = 0;
+  config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
+  config.dsfNodes() = std::map<int64_t, cfg::DsfNode>();
+  config.ports() = std::vector<cfg::Port>();
+
+  addDsfNode(config, 0, "voq0", cfg::DsfNodeType::INTERFACE_NODE);
+  addDsfNode(config, 4, "fabric4", cfg::DsfNodeType::FABRIC_NODE, 1);
+
+  // Add 41 ports that all map to the same VD (VD 0)
+  // In test mode, VD = portId % 4, so use ports 4, 8, 12, ..., 164
+  for (int i = 0; i < 41; i++) {
+    int portId = 4 + (i * 4); // VD 0: 4, 8, 12, ..., 164
+    addFabricPort(
+        config,
+        portId,
+        "fab1/1/" + std::to_string(portId),
+        "fabric4",
+        "fab1/1/" + std::to_string(i + 1));
+  }
+
+  EXPECT_THROW(
+      {
+        try {
+          FabricLinkMonitoring monitoring(&config);
+        } catch (const FbossError& e) {
+          EXPECT_THAT(
+              e.what(), ::testing::HasSubstr("Too many leaf to L1 links"));
+          EXPECT_THAT(e.what(), ::testing::HasSubstr("41"));
+          EXPECT_THAT(e.what(), ::testing::HasSubstr("40"));
+          throw;
+        }
+      },
+      FbossError);
+}
+
+// Test VoQ switch within max leaf-L1 links (edge case)
+TEST_F(FabricLinkMonitoringTest, VoqSwitchWithinMaxLeafL1Links) {
+  // Exactly at limit: kDsfMaxLeafFabricLinksPerVd = 40
+  cfg::SwitchConfig config;
+  config.switchSettings() = cfg::SwitchSettings();
+  config.switchSettings()->switchId() = 0;
+  config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
+  config.dsfNodes() = std::map<int64_t, cfg::DsfNode>();
+  config.ports() = std::vector<cfg::Port>();
+
+  addDsfNode(config, 0, "voq0", cfg::DsfNodeType::INTERFACE_NODE);
+  addDsfNode(config, 4, "fabric4", cfg::DsfNodeType::FABRIC_NODE, 1);
+
+  // Add exactly 40 ports to VD 0
+  for (int i = 0; i < 40; i++) {
+    int portId = 4 + (i * 4);
+    addFabricPort(
+        config,
+        portId,
+        "fab1/1/" + std::to_string(portId),
+        "fabric4",
+        "fab1/1/" + std::to_string(i + 1));
+  }
+
+  // Should not throw - exactly at limit is OK
+  EXPECT_NO_THROW(FabricLinkMonitoring monitoring(&config));
+}
+
+// Test dual-stage fabric L1-L2 links validation
+TEST_F(FabricLinkMonitoringTest, DualStageFabricL1ToL2LinksValidation) {
+  // Create dual-stage config with 128 VoQ switches + 128 L2 switches
+  // Total: 1024 ports (512 to VoQ + 512 to L2)
+  auto config = createDualStageFabricConfig();
+
+  FabricLinkMonitoring monitoring(&config);
+  const auto& mapping = monitoring.getPort2LinkSwitchIdMapping();
+
+  // Verify all 1024 ports have switch IDs
+  EXPECT_EQ(mapping.size(), 1024);
+
+  // Verify switch IDs are allocated correctly for all ports
+  for (int portId = 1; portId <= 1024; portId++) {
+    EXPECT_NO_THROW(monitoring.getSwitchIdForPort(PortID(portId)))
+        << "Port " << portId << " should have switch ID in dual-stage topology";
+  }
+}
+
+// Test dual-stage fabric within L1-L2 link limits
+TEST_F(FabricLinkMonitoringTest, DualStageFabricWithinL1ToL2LinkLimits) {
+  // Create dual-stage config with 4 L2 switches = 16 links per VD (well within
+  // 128 limit)
+  auto config = createDualStageFabricConfig();
+
+  // Should not throw - well within limits
+  EXPECT_NO_THROW(FabricLinkMonitoring monitoring(&config));
 }
