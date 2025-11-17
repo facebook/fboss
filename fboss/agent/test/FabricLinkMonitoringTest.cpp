@@ -343,6 +343,42 @@ void validateDsfNodeProcessing(
   }
 }
 
+cfg::SwitchConfig createConfigWithParallelLinks(
+    int64_t switchId,
+    int numParallelLinks) {
+  cfg::SwitchConfig config;
+  config.switchSettings() = cfg::SwitchSettings();
+  config.switchSettings()->switchId() = switchId;
+  config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
+  config.dsfNodes() = std::map<int64_t, cfg::DsfNode>();
+  config.ports() = std::vector<cfg::Port>();
+
+  // Add VoQ switch
+  addDsfNode(
+      config,
+      switchId,
+      "voq" + std::to_string(switchId),
+      cfg::DsfNodeType::INTERFACE_NODE);
+  // Add fabric switch
+  addDsfNode(config, 4, "fabric4", cfg::DsfNodeType::FABRIC_NODE, 1);
+
+  // Add parallel links (multiple ports connecting to same fabric switch)
+  // These will all map to the same VD (based on portId % 4 in test mode)
+  int portId = 1;
+  for (int i = 0; i < numParallelLinks; i++) {
+    // Use port IDs that map to VD 1 (1, 5, 9, 13...)
+    int actualPortId = portId + (i * 4);
+    addFabricPort(
+        config,
+        actualPortId,
+        "fab1/1/" + std::to_string(actualPortId),
+        "fabric4",
+        "fab1/1/" + std::to_string(i + 1));
+  }
+
+  return config;
+}
+
 } // namespace
 
 // Test VoQ switch constructor
@@ -555,4 +591,53 @@ TEST_F(FabricLinkMonitoringTest, DualStageFabricWithinL1ToL2LinkLimits) {
 
   // Should not throw - well within limits
   EXPECT_NO_THROW(FabricLinkMonitoring monitoring(&config));
+}
+
+// Test parallel links allocate correct switch IDs
+TEST_F(FabricLinkMonitoringTest, ParallelLinksAllocateDifferentSwitchIds) {
+  // Create config with 3 parallel links to same fabric switch/VD
+  auto config = createConfigWithParallelLinks(0, 3);
+
+  FabricLinkMonitoring monitoring(&config);
+  const auto& mapping = monitoring.getPort2LinkSwitchIdMapping();
+
+  // All 3 parallel ports should have switch IDs
+  EXPECT_EQ(mapping.size(), 3);
+
+  // Collect switch IDs for the parallel links
+  std::vector<SwitchID> switchIds;
+  switchIds.reserve(mapping.size());
+  for (const auto& [portId, switchId] : mapping) {
+    switchIds.push_back(switchId);
+  }
+
+  // All parallel links should have different switch IDs
+  std::set<SwitchID> uniqueSwitchIds(switchIds.begin(), switchIds.end());
+  EXPECT_EQ(uniqueSwitchIds.size(), 3)
+      << "Parallel links should have different switch IDs";
+}
+
+// Test parallel links canonical ordering
+TEST_F(FabricLinkMonitoringTest, ParallelLinksUsesCanonicalOrdering) {
+  // Create two identical configs
+  auto config1 = createConfigWithParallelLinks(0, 2);
+  auto config2 = createConfigWithParallelLinks(0, 2);
+
+  FabricLinkMonitoring monitoring1(&config1);
+  FabricLinkMonitoring monitoring2(&config2);
+
+  // Both should produce identical switch ID mappings
+  // (canonical ordering ensures deterministic assignment)
+  const auto& mapping1 = monitoring1.getPort2LinkSwitchIdMapping();
+  const auto& mapping2 = monitoring2.getPort2LinkSwitchIdMapping();
+
+  EXPECT_EQ(mapping1.size(), mapping2.size());
+
+  // Switch IDs should be identical for same logical links
+  for (const auto& [portId, switchId1] : mapping1) {
+    auto it = mapping2.find(portId);
+    ASSERT_TRUE(it != mapping2.end());
+    EXPECT_EQ(it->second, switchId1)
+        << "Canonical ordering should produce identical switch IDs";
+  }
 }
