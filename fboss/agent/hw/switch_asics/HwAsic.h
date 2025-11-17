@@ -418,8 +418,8 @@ class HwAsic {
       cfg::StreamType streamType,
       cfg::PortType portType) const = 0;
   virtual int getBasePortQueueId(
-      cfg::StreamType streamType,
-      cfg::PortType portType) const {
+      cfg::StreamType /* streamType */,
+      cfg::PortType /* portType */) const {
     return 0;
   }
   virtual uint32_t getMaxLabelStackDepth() const = 0;
