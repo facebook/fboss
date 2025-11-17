@@ -105,10 +105,19 @@ class HwAsic {
     //    SAI_SWITCH_ATTR_ACL_STAGE_INGRESS
     ACL_ENTRY_ETHER_TYPE,
 
+    // Set to true if the SAI implementation supports ACL Byte counters
+    // For SAI, this maps to whether SAI_ACL_COUNTER_ATTR_BYTES can be queried.
+    // TODO:
+    //  - Candidate for removal: YES, but non-trivial.
+    //  - Extend SAI spec sai_acl_capability_t to return whether ACL Byte
+    //    counters are supported.
+    //  - Work with SAI implementations to support this capability.
+    //  - Extend FBOSS to query whether ACL Byte counters are supported.
+    ACL_BYTE_COUNTER,
+
     INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     SAI_ACL_TABLE_UPDATE,
     SAI_ACL_ENTRY_SRC_PORT_QUALIFIER,
-    ACL_BYTE_COUNTER,
     INGRESS_POST_LOOKUP_ACL_TABLE,
     ACL_SET_ECMP_HASH_ALGORITHM,
     // Other features
