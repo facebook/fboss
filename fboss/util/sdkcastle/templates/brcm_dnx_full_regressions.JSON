@@ -5,6 +5,40 @@
   "testRunnerMode": "meta-internal",
   "testOutDirPath": "~/mylogs/sdkcastle_logs",
   "testSpecs": {
+    "hwTests": [
+      {
+        "testName": "jericho3HwTests",
+        "commonTestSpec": {
+          "testTeam": "sai_test",
+          "asicTestOptions": {
+            "jericho3": {
+              "asicTestName": "j3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "jericho3"
+              },
+              "numJobs": 2
+            }
+          }
+        }
+      },
+      {
+        "testName": "ramon3HwTests",
+        "commonTestSpec": {
+          "testTeam": "sai_test",
+          "asicTestOptions": {
+            "ramon3": {
+              "asicTestName": "r3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "ramon3"
+              },
+              "numJobs": 1
+            }
+          }
+        }
+      }
+    ],
     "agentTests": [
       {
         "testName": "jericho3AgentTests",
