@@ -8,6 +8,7 @@ sha256 = 6cb1e6d37bdcb756dbbe59be438790db409cdb4868c66e888d5df9f13f7c027f
 [build]
 builder = cmake
 subdir = fmt-11.0.2
+patchfile = fmt_consteval_clang.patch
 
 [cmake.defines]
 FMT_TEST = OFF
