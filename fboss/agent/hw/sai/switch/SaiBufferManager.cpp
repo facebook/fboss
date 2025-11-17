@@ -273,7 +273,19 @@ void SaiBufferManager::setupIngressBufferPool(
   ingressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   auto& store = saiStore_->get<SaiBufferPoolTraits>();
 
-  // Pool size is the sum of (shared + headroom + reserved) * number of buffers
+  // Pool size determination is different for the various asics we support.
+  // Below are the various combinations of pool sizes we support:
+  // 1. Shared size
+  // 2. Shared + headroom sizes
+  // 3. Shared + headroom + reserved sizes
+  // This size is then multiplied by the number of buffers.
+  auto poolSize = *bufferPoolCfg.sharedBytes();
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM)) {
+    if (auto headroomBytes = bufferPoolCfg.headroomBytes()) {
+      poolSize += *headroomBytes;
+    }
+  }
   // When programming the shared limit in HW, XGS excludes any reserved
   // space from the size configured. Reserved bytes will ensure we configure
   // this additional buffer so the shared limit programmed is actually what we
@@ -281,10 +293,6 @@ void SaiBufferManager::setupIngressBufferPool(
   // TODO(ravi) This reserved size is currently statically computed in CFGR. A
   // better way would be dynamically, based on pg/q min, compute it from config
   // in SwSwitch.
-  auto poolSize = *bufferPoolCfg.sharedBytes();
-  if (auto headroomBytes = bufferPoolCfg.headroomBytes()) {
-    poolSize += *headroomBytes;
-  }
   if (auto reservedBytes = bufferPoolCfg.reservedBytes()) {
     poolSize += *reservedBytes;
   }
