@@ -11,9 +11,10 @@ add_library(qsfp_platforms_wedge
   fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
   fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
   fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
+  fboss/qsfp_service/platforms/wedge/Wedge400Manager.cpp
+  fboss/qsfp_service/platforms/wedge/Wedge400CManager.cpp
   fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp
   fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
-  fboss/qsfp_service/platforms/wedge/oss/Wedge400CManager.cpp
 )
 
 target_link_libraries(qsfp_platforms_wedge
