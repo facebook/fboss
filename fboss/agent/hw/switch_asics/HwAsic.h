@@ -73,6 +73,14 @@ class HwAsic {
     //  - Candidate for removal: YES. All ASICs/SDKs already support this.
     SWITCH_ATTR_INGRESS_ACL,
 
+    // Set to true if Egress ACL Table is supported.
+    // However, this Table sits post lookup but before buffering.
+    // Thus, named as INGRESS_POST_LOOKUP_ACL_TABLE.
+    // For SAI, this maps to SAI_ACL_STAGE_EGRESS.
+    // TODO:
+    //  - Rename to carry ACL_ prefix.
+    INGRESS_POST_LOOKUP_ACL_TABLE,
+
     // Set to true if Empty Matcher can be used to match all packets.
     // TODO:
     //  - Rename to carry ACL_ prefix.
@@ -141,7 +149,6 @@ class HwAsic {
 
     INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     SAI_ACL_TABLE_UPDATE,
-    INGRESS_POST_LOOKUP_ACL_TABLE,
     ACL_SET_ECMP_HASH_ALGORITHM,
     // Other features
     SPAN,
