@@ -222,6 +222,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS: // CS00012426349
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT: // CS00012426349
+    case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
       return false;
   }
   return false;

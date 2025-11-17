@@ -239,6 +239,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
+    case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
       return false;
   }
   return false;

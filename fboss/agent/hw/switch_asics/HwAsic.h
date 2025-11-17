@@ -285,6 +285,10 @@ class HwAsic {
     FABRIC_LINK_MONITORING,
     ARS_ALTERNATE_MEMBERS,
     RESERVED_BYTES_FOR_BUFFER_POOL,
+    // Indicates the buffer pool size excludes the headroom
+    // pool size given the buffer pool size determination is
+    // left to vendor SAI implementation.
+    INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM,
   };
 
   enum class AsicMode {
