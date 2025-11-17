@@ -641,3 +641,24 @@ TEST_F(FabricLinkMonitoringTest, ParallelLinksUsesCanonicalOrdering) {
         << "Canonical ordering should produce identical switch IDs";
   }
 }
+
+// Test L1-L2 switch ID offset calculation
+TEST_F(FabricLinkMonitoringTest, L1L2SwitchIdOffsetCalculation) {
+  // Create dual-stage fabric config to test L1-L2 offset
+  auto config = createDualStageFabricConfig();
+
+  FabricLinkMonitoring monitoring(&config);
+  const auto& mapping = monitoring.getPort2LinkSwitchIdMapping();
+
+  // Verify all 1024 ports have switch IDs (512 to VoQ + 512 to L2)
+  EXPECT_EQ(mapping.size(), 1024);
+
+  // Test L2 connections (ports 513-1024 connect to L2 switches)
+  // Port 513 connects to first L2 switch (516)
+  // Port 517 connects to second L2 switch (520)
+  SwitchID switchId513 = monitoring.getSwitchIdForPort(PortID(513));
+  SwitchID switchId517 = monitoring.getSwitchIdForPort(PortID(517));
+
+  EXPECT_NE(switchId513, switchId517)
+      << "Ports to different L2 switches should have different offsets";
+}
