@@ -45,6 +45,19 @@ PciDeviceConfig getValidPciDeviceConfig() {
   pciDevConfig.subSystemDeviceId() = "0x1b29";
   return pciDevConfig;
 }
+
+PlatformConfig getBasicConfig() {
+  auto config = PlatformConfig();
+  config.platformName() = "SAMPLE_PLATFORM";
+  config.rootSlotType() = "SCM_SLOT";
+  config.bspKmodsRpmName() = "sample_bsp_kmods";
+  config.bspKmodsRpmVersion() = "1.0.0-4";
+  config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
+  auto pmUnitConfig = PmUnitConfig();
+  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  return config;
+}
 } // namespace
 
 TEST(ConfigValidatorTest, PlatformName) {
@@ -75,37 +88,18 @@ TEST(ConfigValidatorTest, PlatformName) {
 }
 
 TEST(ConfigValidatorTest, InvalidRootSlotType) {
-  auto config = PlatformConfig();
-  config.platformName() = "MERU400BIU";
-  config.rootSlotType() = "SCM_SLOT";
-  config.bspKmodsRpmName() = "sample_bsp_kmods";
-  config.bspKmodsRpmVersion() = "1.0.0-4";
+  auto config = getBasicConfig();
+  config.rootSlotType() = "MCB_SLOT";
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, ValidConfig) {
-  auto config = PlatformConfig();
-  config.platformName() = "MERU400BIU";
-  config.rootSlotType() = "SCM_SLOT";
-  config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
-  auto pmUnitConfig = PmUnitConfig();
-  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
-  config.bspKmodsRpmName() = "sample_bsp_kmods";
-  config.bspKmodsRpmVersion() = "1.0.0-4";
+  auto config = getBasicConfig();
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
-  auto config = PlatformConfig();
-  config.platformName() = "SAMPLE_PLATFORM";
-  config.rootSlotType() = "SCM_SLOT";
-  config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
-  config.bspKmodsRpmName() = "sample_bsp_kmods";
-  config.bspKmodsRpmVersion() = "1.0.0-4";
-  auto pmUnitConfig = PmUnitConfig();
-  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  auto config = getBasicConfig();
 
   // Test 1: Empty versionedPmUnitConfigs vector
   config.versionedPmUnitConfigs() = {{"SCM", {}}};
@@ -151,16 +145,7 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
 }
 
 TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
-  auto config = PlatformConfig();
-  auto pmUnitConfig = PmUnitConfig();
-  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
-
-  config.platformName() = "SAMPLE_PLATFORM";
-  config.rootSlotType() = "SCM_SLOT";
-  config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
-  config.bspKmodsRpmName() = "sample_bsp_kmods";
-  config.bspKmodsRpmVersion() = "1.0.0-4";
+  auto config = getBasicConfig();
 
   // Test 1: Valid with single versioned config (productSubVersion = 0)
   auto versionedPmUnitConfig1 = VersionedPmUnitConfig();
@@ -200,6 +185,7 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   // Test 6: Valid with matching pciDeviceConfigs (non-empty)
   versionedPmUnitConfig1.pmUnitConfig()->pciDeviceConfigs() = {
       getValidPciDeviceConfig()};
+  auto pmUnitConfig = config.pmUnitConfigs()->at("SCM");
   pmUnitConfig.pciDeviceConfigs() = {getValidPciDeviceConfig()};
   config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
@@ -227,6 +213,7 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   i2cConfig2.pmUnitScopedName() = "SCM_EEPROM_V2";
   i2cConfig2.address() = "0x51";
   versionedPmUnitConfig1.pmUnitConfig()->i2cDeviceConfigs() = {i2cConfig1};
+  pmUnitConfig = config.pmUnitConfigs()->at("SCM");
   pmUnitConfig.i2cDeviceConfigs() = {i2cConfig2};
   pmUnitConfig.pciDeviceConfigs() = {};
   config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
@@ -235,16 +222,7 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
 }
 
 TEST(ConfigValidatorTest, PmUnitNameReferentialIntegrity) {
-  auto config = PlatformConfig();
-  config.platformName() = "MERU400BIU";
-  config.rootSlotType() = "SCM_SLOT";
-  config.bspKmodsRpmName() = "sample_bsp_kmods";
-  config.bspKmodsRpmVersion() = "1.0.0-4";
-
-  // Add a valid pmUnitConfig
-  auto pmUnitConfig = PmUnitConfig();
-  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  auto config = getBasicConfig();
 
   // Test 1: slotTypeConfig.pmUnitName references non-existent PMUnit name
   auto slotTypeConfig = SlotTypeConfig();
@@ -277,11 +255,8 @@ TEST(ConfigValidatorTest, PmUnitNameReferentialIntegrity) {
 }
 
 TEST(ConfigValidatorTest, PmUnitNameAllowedListValidation) {
-  auto config = PlatformConfig();
-  config.platformName() = "MERU400BIU";
+  auto config = getBasicConfig();
   config.rootSlotType() = "PIM_SLOT";
-  config.bspKmodsRpmName() = "sample_bsp_kmods";
-  config.bspKmodsRpmVersion() = "1.0.0-4";
 
   // Create a basic SlotTypeConfig without pmUnitName to avoid referential
   // integrity issues
