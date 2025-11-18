@@ -1,0 +1,659 @@
+{
+  "platform": "icecube800bc",
+  "pimInfo": [
+    {
+      "slot": 1,
+      "pimName": "",
+      "interfaces": {
+        "eth1/1/1": {
+            "neighbor": "eth1/1/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/1/5": {
+            "neighbor": "eth1/1/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/10/1": {
+            "neighbor": "eth1/10/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/10/5": {
+            "neighbor": "eth1/10/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/11/1": {
+            "neighbor": "eth1/11/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/11/5": {
+            "neighbor": "eth1/11/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/12/1": {
+            "neighbor": "eth1/12/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/12/5": {
+            "neighbor": "eth1/12/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/13/1": {
+            "neighbor": "eth1/13/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/13/5": {
+            "neighbor": "eth1/13/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/14/1": {
+            "neighbor": "eth1/14/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/14/5": {
+            "neighbor": "eth1/14/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/15/1": {
+            "neighbor": "eth1/15/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/15/5": {
+            "neighbor": "eth1/15/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/16/1": {
+            "neighbor": "eth1/16/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/16/5": {
+            "neighbor": "eth1/16/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/17/1": {
+            "neighbor": "eth1/17/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/17/5": {
+            "neighbor": "eth1/17/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/18/1": {
+            "neighbor": "eth1/18/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/18/5": {
+            "neighbor": "eth1/18/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/19/1": {
+            "neighbor": "eth1/19/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/19/5": {
+            "neighbor": "eth1/19/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/2/1": {
+            "neighbor": "eth1/2/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/2/5": {
+            "neighbor": "eth1/2/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/20/1": {
+            "neighbor": "eth1/20/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/20/5": {
+            "neighbor": "eth1/20/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/21/1": {
+            "neighbor": "eth1/21/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/21/5": {
+            "neighbor": "eth1/21/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/22/1": {
+            "neighbor": "eth1/22/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/22/5": {
+            "neighbor": "eth1/22/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/23/1": {
+            "neighbor": "eth1/23/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/23/5": {
+            "neighbor": "eth1/23/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/24/1": {
+            "neighbor": "eth1/24/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/24/5": {
+            "neighbor": "eth1/24/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/25/1": {
+            "neighbor": "eth1/25/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/25/5": {
+            "neighbor": "eth1/25/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/26/1": {
+            "neighbor": "eth1/26/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/26/5": {
+            "neighbor": "eth1/26/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/27/1": {
+            "neighbor": "eth1/27/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/27/5": {
+            "neighbor": "eth1/27/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/28/1": {
+            "neighbor": "eth1/28/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/28/5": {
+            "neighbor": "eth1/28/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/29/1": {
+            "neighbor": "eth1/29/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/29/5": {
+            "neighbor": "eth1/29/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/3/1": {
+            "neighbor": "eth1/3/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/3/5": {
+            "neighbor": "eth1/3/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/30/1": {
+            "neighbor": "eth1/30/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/30/5": {
+            "neighbor": "eth1/30/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/31/1": {
+            "neighbor": "eth1/31/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/31/5": {
+            "neighbor": "eth1/31/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/32/1": {
+            "neighbor": "eth1/32/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/32/5": {
+            "neighbor": "eth1/32/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/33/1": {
+            "neighbor": "eth1/33/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/33/5": {
+            "neighbor": "eth1/33/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/34/1": {
+            "neighbor": "eth1/34/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/34/5": {
+            "neighbor": "eth1/34/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/35/1": {
+            "neighbor": "eth1/35/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/35/5": {
+            "neighbor": "eth1/35/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/36/1": {
+            "neighbor": "eth1/36/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/36/5": {
+            "neighbor": "eth1/36/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/37/1": {
+            "neighbor": "eth1/37/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/37/5": {
+            "neighbor": "eth1/37/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/38/1": {
+            "neighbor": "eth1/38/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/38/5": {
+            "neighbor": "eth1/38/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/39/1": {
+            "neighbor": "eth1/39/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/39/5": {
+            "neighbor": "eth1/39/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/4/1": {
+            "neighbor": "eth1/4/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/4/5": {
+            "neighbor": "eth1/4/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/40/1": {
+            "neighbor": "eth1/40/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/40/5": {
+            "neighbor": "eth1/40/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/41/1": {
+            "neighbor": "eth1/41/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/41/5": {
+            "neighbor": "eth1/41/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/42/1": {
+            "neighbor": "eth1/42/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/42/5": {
+            "neighbor": "eth1/42/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/43/1": {
+            "neighbor": "eth1/43/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/43/5": {
+            "neighbor": "eth1/43/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/44/1": {
+            "neighbor": "eth1/44/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/44/5": {
+            "neighbor": "eth1/44/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/45/1": {
+            "neighbor": "eth1/45/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/45/5": {
+            "neighbor": "eth1/45/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/46/1": {
+            "neighbor": "eth1/46/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/46/5": {
+            "neighbor": "eth1/46/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/47/1": {
+            "neighbor": "eth1/47/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/47/5": {
+            "neighbor": "eth1/47/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/48/1": {
+            "neighbor": "eth1/48/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/48/5": {
+            "neighbor": "eth1/48/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/49/1": {
+            "neighbor": "eth1/49/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/49/5": {
+            "neighbor": "eth1/49/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/5/1": {
+            "neighbor": "eth1/5/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/5/5": {
+            "neighbor": "eth1/5/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/50/1": {
+            "neighbor": "eth1/50/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/50/5": {
+            "neighbor": "eth1/50/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/51/1": {
+            "neighbor": "eth1/51/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/51/5": {
+            "neighbor": "eth1/51/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/52/1": {
+            "neighbor": "eth1/52/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/52/5": {
+            "neighbor": "eth1/52/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/53/1": {
+            "neighbor": "eth1/53/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/53/5": {
+            "neighbor": "eth1/53/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/54/1": {
+            "neighbor": "eth1/54/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/54/5": {
+            "neighbor": "eth1/54/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/55/1": {
+            "neighbor": "eth1/55/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/55/5": {
+            "neighbor": "eth1/55/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/56/1": {
+            "neighbor": "eth1/56/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/56/5": {
+            "neighbor": "eth1/56/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/57/1": {
+            "neighbor": "eth1/57/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/57/5": {
+            "neighbor": "eth1/57/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/58/1": {
+            "neighbor": "eth1/58/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/58/5": {
+            "neighbor": "eth1/58/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/59/1": {
+            "neighbor": "eth1/59/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/59/5": {
+            "neighbor": "eth1/59/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/6/1": {
+            "neighbor": "eth1/6/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/6/5": {
+            "neighbor": "eth1/6/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/60/1": {
+            "neighbor": "eth1/60/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/60/5": {
+            "neighbor": "eth1/60/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/61/1": {
+            "neighbor": "eth1/61/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/61/5": {
+            "neighbor": "eth1/61/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/62/1": {
+            "neighbor": "eth1/62/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/62/5": {
+            "neighbor": "eth1/62/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/63/1": {
+            "neighbor": "eth1/63/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/63/5": {
+            "neighbor": "eth1/63/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/64/1": {
+            "neighbor": "eth1/64/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/64/5": {
+            "neighbor": "eth1/64/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/65/1": {
+            "neighbor": "eth1/65/1",
+            "profileID": 23,
+            "hasTransceiver": true
+        },
+        "eth1/7/1": {
+            "neighbor": "eth1/7/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/7/5": {
+            "neighbor": "eth1/7/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/8/1": {
+            "neighbor": "eth1/8/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/8/5": {
+            "neighbor": "eth1/8/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/9/1": {
+            "neighbor": "eth1/9/5",
+            "profileID": 52,
+            "hasTransceiver": true
+        },
+        "eth1/9/5": {
+            "neighbor": "eth1/9/1",
+            "profileID": 52,
+            "hasTransceiver": true
+        }
+      },
+      "tcvrs": {
+        
+      }
+    }
+  ]
+}
