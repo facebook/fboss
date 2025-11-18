@@ -367,10 +367,10 @@ const CommandTree& kCommandTree() {
           "sdk",
           "Show SDK state",
           {
-              {"dump",
-               "dump",
-               commandHandler<CmdShowSdkDump>,
-               argTypeHandler<CmdShowSdkDumpTraits>},
+              {"dump", // rename this to "qsfp", "dump" is too generic
+               "Get QSFP SDK state (NOTE: this only dumps qsfp sdk state)",
+               commandHandler<CmdShowQsfpSdkDump>,
+               argTypeHandler<CmdShowQsfpSdkDumpTraits>},
           },
       },
 

@@ -19,16 +19,17 @@
 
 namespace facebook::fboss {
 
-struct CmdShowSdkDumpTraits : public ReadCommandTraits {
+struct CmdShowQsfpSdkDumpTraits : public ReadCommandTraits {
   using ParentCmd = void;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using RetType = bool;
 };
 
-class CmdShowSdkDump : public CmdHandler<CmdShowSdkDump, CmdShowSdkDumpTraits> {
+class CmdShowQsfpSdkDump
+    : public CmdHandler<CmdShowQsfpSdkDump, CmdShowQsfpSdkDumpTraits> {
  public:
-  using RetType = CmdShowSdkDumpTraits::RetType;
+  using RetType = CmdShowQsfpSdkDumpTraits::RetType;
   std::unique_ptr<folly::test::TemporaryFile> tempSdkFile;
 
   RetType queryClient(const HostInfo& hostInfo) {
