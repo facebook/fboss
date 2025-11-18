@@ -21,7 +21,7 @@ using namespace ::testing;
 using namespace facebook::fboss;
 
 static constexpr int kSecondsBetweenSnapshots = 20;
-static constexpr int kRsFec528CodewordBins = 8;
+static constexpr int kRsFec528CodewordBins = 7;
 static constexpr int kRsFec544CodewordBins = 15;
 
 namespace {
@@ -568,8 +568,8 @@ TEST_F(LinkTest, verifyIphyFecBerCounters) {
         if (hasCorrectedCodewords) {
           EXPECT_NE(rsFecNow->get_preFECBer(), 0);
         }
-        // If the codewordStats is supported, it should either have 9 keys or
-        // 16. For Rs528, there are 8 codeword bins. For Rs544, there are 15.
+        // If the codewordStats is supported, it should either have 8 keys or
+        // 16. For Rs528, there are 7 codeword bins. For Rs544, there are 15.
         // We need to add 1 to the expected codewordStats keys since the first
         // key will be for codewords with 0 corrections
         if (!rsFecNow->codewordStats().value().empty()) {
@@ -591,7 +591,13 @@ TEST_F(LinkTest, verifyIphyFecBerCounters) {
               countNonZeroBins++;
             }
           }
-          if (hasCorrectedCodewords) {
+          // On TH4, we can only read bins 8-15. Thus we can't test for certain
+          // we got a non zero bin since it could be in the bins 1-7
+          auto switchId = *sw()->getSwitchInfoTable().getSwitchIDs().begin();
+          auto asic = sw()->getHwAsicTable()->getHwAsic(switchId);
+          bool isTH4 =
+              asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4;
+          if (!isTH4 && hasCorrectedCodewords) {
             EXPECT_GT(countNonZeroBins, 0);
           }
           // Expect the fec tail to be populated when codeword stats is since it

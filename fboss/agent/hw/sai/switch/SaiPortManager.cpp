@@ -2206,7 +2206,7 @@ void SaiPortManager::updateStats(
       // SAI_PORT_ATTR_MAX_FEC_SYMBOL_ERRORS_DETECTABLE but this attribute
       // isn't supported yet
       sai_stat_id_t maxFecCounterId = getFECMode(portId) == phy::FecMode::RS528
-          ? SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S8
+          ? SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S7
           : SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S15;
       std::vector<sai_stat_id_t> fecCodewordsToRead;
       for (int counterId = SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0;
