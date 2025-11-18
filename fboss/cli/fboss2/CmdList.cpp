@@ -371,6 +371,10 @@ const CommandTree& kCommandTree() {
                "Get QSFP SDK state (NOTE: this only dumps qsfp sdk state)",
                commandHandler<CmdShowQsfpSdkDump>,
                argTypeHandler<CmdShowQsfpSdkDumpTraits>},
+              {"agent",
+               "Get Agent SDK state",
+               commandHandler<CmdShowAgentSdkDump>,
+               argTypeHandler<CmdShowAgentSdkDumpTraits>},
           },
       },
 

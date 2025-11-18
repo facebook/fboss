@@ -225,6 +225,7 @@ template void CmdHandler<
 template void
 CmdHandler<CmdShowInterfaceTraffic, CmdShowInterfaceTrafficTraits>::run();
 template void CmdHandler<CmdShowQsfpSdkDump, CmdShowQsfpSdkDumpTraits>::run();
+template void CmdHandler<CmdShowAgentSdkDump, CmdShowAgentSdkDumpTraits>::run();
 template void CmdHandler<CmdShowSystemPort, CmdShowSystemPortTraits>::run();
 template void CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits>::run();
 template void CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::run();
@@ -352,6 +353,8 @@ template const ValidFilterMapType CmdHandler<
     CmdShowInterfaceTrafficTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdShowQsfpSdkDump, CmdShowQsfpSdkDumpTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowAgentSdkDump, CmdShowAgentSdkDumpTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdShowSystemPort, CmdShowSystemPortTraits>::getValidFilters();
 template const ValidFilterMapType
