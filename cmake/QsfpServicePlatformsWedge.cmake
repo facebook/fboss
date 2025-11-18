@@ -7,7 +7,6 @@ add_library(qsfp_platforms_wedge
   fboss/qsfp_service/platforms/wedge/BspWedgeManager.cpp
   fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
   fboss/qsfp_service/platforms/wedge/QsfpRestClient.cpp
-  fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
   fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
   fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
   fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
@@ -47,4 +46,25 @@ target_link_libraries(qsfp_platforms_wedge
   io_stats_recorder
   platform_mapping_utils
   port_manager
+  wedge_transceiver
+  wedge_i2c
+)
+
+add_library(wedge_transceiver
+  fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
+  fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
+)
+
+target_link_libraries(wedge_transceiver
+  io_stats_recorder
+  base_i2c_dependencies
+  i2_api
+  usb_api
+  qsfp_stats
+  transceiver_manager
+  firmware_upgrader
+  i2c_log_buffer
+  qsfp_module
+  cmis_cpp2
+  Folly::folly
 )

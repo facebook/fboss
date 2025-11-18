@@ -23,6 +23,7 @@ target_link_libraries(wedge_qsfp_util
   port_manager
   qsfp_platforms_wedge
   fboss_common_cpp2
+  wedge_i2c
 )
 
 install(TARGETS wedge_qsfp_util)

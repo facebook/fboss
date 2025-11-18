@@ -3,13 +3,20 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_library(qsfp_stats
+  fboss/qsfp_service/StatsPublisher.h
+  fboss/qsfp_service/oss/StatsPublisher.cpp
+)
+
+target_link_libraries(qsfp_stats
+  transceiver_manager
+  Folly::folly
+)
+
 add_library(qsfp_lib
   fboss/qsfp_service/fsdb/QsfpFsdbSubscriber.cpp
   fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.cpp
   fboss/qsfp_service/fsdb/oss/QsfpFsdbSyncManager.cpp
-  fboss/qsfp_service/oss/StatsPublisher.cpp
-  fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
-  fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
   fboss/qsfp_service/lib/QsfpCache.cpp
 )
 
@@ -32,8 +39,7 @@ target_link_libraries(qsfp_lib
     fsdb_model
     qsfp_bsp_core
     thrift_cow_serializer
-    io_stats_recorder
-    cmis_cpp2
+    wedge_transceiver
 )
 
 add_library(qsfp_config

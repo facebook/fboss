@@ -3,6 +3,19 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_library(fpga_device
+  fboss/lib/fpga/FpgaDevice.cpp
+  fboss/lib/fpga/HwMemoryRegion.h
+  fboss/lib/fpga/HwMemoryRegister.h
+)
+
+target_link_libraries(fpga_device
+  pci_device
+  physical_memory
+  fboss_types
+  Folly::folly
+)
+
 add_library(fpga_multi_pim_container
   fboss/lib/fpga/MultiPimPlatformPimContainer.cpp
 )
@@ -32,6 +45,19 @@ target_link_libraries(fb_fpga_i2c
   utils
   Folly::folly
   i2c_controller_stats_cpp2
+)
+
+add_library(fb_fpga_spi
+  fboss/lib/fpga/FbFpgaSpi.h
+  fboss/lib/fpga/FbFpgaSpi.cpp
+)
+
+target_link_libraries(fb_fpga_spi
+  facebook_fpga
+  utils
+  i2c_ctrl
+  i2_api
+  Folly::folly
 )
 
 add_library(wedge400_fpga
