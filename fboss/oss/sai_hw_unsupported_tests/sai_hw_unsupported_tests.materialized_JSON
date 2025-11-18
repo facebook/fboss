@@ -2463,7 +2463,7 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         }
     ],
-    "chenab/116.133.2508.10/116.133.2508.10/chenab": [
+    "chenab/116.133.2509.6/116.133.2509.6/chenab": [
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
@@ -2567,7 +2567,7 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         }
     ],
-    "chenab/116.133.2509.6/116.133.2509.6/chenab": [
+    "chenab/2505.34/2505.34/chenab": [
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
