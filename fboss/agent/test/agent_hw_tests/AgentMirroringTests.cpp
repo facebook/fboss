@@ -138,8 +138,17 @@ class AgentMirroringTest : public AgentHwTest {
   void resolveMirror(
       const std::string& mirrorName,
       uint8_t mirrorToPortIndex = utility::kMirrorToPortIndex) {
+    std::set<cfg::PortType> ecmpPortTypes;
+    if (FLAGS_hyper_port) {
+      ecmpPortTypes = {cfg::PortType::HYPER_PORT};
+    } else {
+      ecmpPortTypes = {cfg::PortType::INTERFACE_PORT};
+    }
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
-        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+        getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
+        RouterID(0),
+        ecmpPortTypes);
     PortID trafficPort = getTrafficPort(*getAgentEnsemble());
     PortID mirrorToPort =
         getMirrorToPort(*getAgentEnsemble(), mirrorToPortIndex);
@@ -153,7 +162,10 @@ class AgentMirroringTest : public AgentHwTest {
       boost::container::flat_set<PortDescriptor> nhopPorts{
           PortDescriptor(mirrorToPort)};
       return utility::EcmpSetupAnyNPorts<AddrT>(
-                 in, getSw()->needL2EntryForNeighbor())
+                 in,
+                 getSw()->needL2EntryForNeighbor(),
+                 RouterID(0),
+                 ecmpPortTypes)
           .resolveNextHops(in, nhopPorts);
     });
     getSw()->getUpdateEvb()->runInFbossEventBaseThreadAndWait([] {});
