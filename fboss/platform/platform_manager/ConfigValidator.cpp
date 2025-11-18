@@ -665,6 +665,12 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     return false;
   }
 
+  // Validate chassisEepromDevicePath
+  if (!isValidChassisEepromDevicePath(
+          config, *config.chassisEepromDevicePath())) {
+    return false;
+  }
+
   // Validate SlotTypeConfigs.
   for (const auto& [slotName, slotTypeConfig] : *config.slotTypeConfigs()) {
     XLOG(INFO) << fmt::format(
@@ -1133,6 +1139,49 @@ bool ConfigValidator::isValidPortRanges(
           currStart);
       return false;
     }
+  }
+
+  return true;
+}
+
+bool ConfigValidator::isValidChassisEepromDevicePath(
+    const PlatformConfig& platformConfig,
+    const std::string& chassisEepromDevicePath) {
+  if (platformConfig.platformName() == "DARWIN") {
+    // Darwin has a special case where the chassis EEPROM is not a real device
+    return true;
+  }
+
+  // First check if the device path is valid
+  if (!isValidDevicePath(platformConfig, chassisEepromDevicePath)) {
+    return false;
+  }
+
+  auto [_, deviceName] = Utils().parseDevicePath(chassisEepromDevicePath);
+  if (deviceName == "IDPROM") {
+    // IDPROM is only allowed for certain platforms
+    const auto& exceptionPlatforms = platform_manager_validators_constants::
+        PLATFORMS_WITH_IDPROM_CHASSIS_EEPROM();
+    if (std::find(
+            exceptionPlatforms.begin(),
+            exceptionPlatforms.end(),
+            *platformConfig.platformName()) == exceptionPlatforms.end()) {
+      XLOG(ERR) << fmt::format(
+          "Platform {} has chassisEepromDevicePath pointing to IDPROM device '{}'. "
+          "New platforms must NOT use IDPROM for chassisEepromDevicePath. "
+          "Please use a dedicated chassis EEPROM device instead.",
+          *platformConfig.platformName(),
+          chassisEepromDevicePath);
+      return false;
+    }
+  } else if (deviceName != "CHASSIS_EEPROM") {
+    // Device name must be CHASSIS_EEPROM
+    XLOG(ERR) << fmt::format(
+        "Platform {} has chassisEepromDevicePath pointing to device '{}'. "
+        "Device name must be 'CHASSIS_EEPROM'.",
+        *platformConfig.platformName(),
+        deviceName);
+    return false;
   }
 
   return true;

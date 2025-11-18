@@ -50,6 +50,7 @@ const list<string> ALLOWED_PMUNIT_NAMES = [
   "MINIPACK3_SCM",
   "MINIPACK3_SMB",
   // The BIOS infers the PlatformName from MCB EEPROM in these platforms
+  // This is for platforms reliant on NETLAKE BIOS.
   "MINIPACK3_MCB",
   "MINIPACK3BA_MCB",
   "MINIPACK3N_MCB",
@@ -66,4 +67,15 @@ const list<string> ALLOWED_PMUNIT_NAMES = [
   "YOLO_MAX",
   "SMB_FRU",
   "PSU_2GH",
+];
+
+// List of platforms that are allowed to have chassisEepromDevicePath
+// pointing to an IDPROM device. This is a legacy exception list.
+// New platforms should NOT use IDPROM for chassisEepromDevicePath.
+const list<string> PLATFORMS_WITH_IDPROM_CHASSIS_EEPROM = [
+  "MERU800BFA",
+  "MERU800BIA",
+  "MORGAN800CC",
+  "JANGA800BIC",
+  "TAHAN800BC",
 ];

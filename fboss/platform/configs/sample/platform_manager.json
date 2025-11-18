@@ -337,6 +337,7 @@
     "/run/devmap/i2c-busses/DOM_MASTER_0": "/SMB_SLOT@0/YOLO_SLOT@0/[YOLO_DOM_I2C_0]",
     "/run/devmap/sensors/FAN_CPLD": "/SMB_SLOT@0/[FAN_CPLD]"
   },
+  "chassisEepromDevicePath": "/SMB_SLOT@0/[CHASSIS_EEPROM]",
   "bspKmodsRpmName": "sample_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.2-1"
 }

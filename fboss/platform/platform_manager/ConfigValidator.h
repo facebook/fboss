@@ -45,6 +45,9 @@ class ConfigValidator {
       std::optional<int16_t> ledNum = std::nullopt);
   bool isValidPortRanges(
       const std::vector<std::pair<int16_t, int16_t>>& startPortAndNumPorts);
+  bool isValidChassisEepromDevicePath(
+      const PlatformConfig& platformConfig,
+      const std::string& chassisEepromDevicePath);
 
   // Used by other platform services config validation.
   virtual bool isValidSlotPath(

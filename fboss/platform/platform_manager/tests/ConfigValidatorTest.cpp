@@ -55,20 +55,18 @@ PlatformConfig getBasicConfig() {
   config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
   auto pmUnitConfig = PmUnitConfig();
   pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
+  I2cDeviceConfig chassisEeprom;
+  chassisEeprom.pmUnitScopedName() = "CHASSIS_EEPROM";
+  chassisEeprom.address() = "0x50";
+  pmUnitConfig.i2cDeviceConfigs() = {chassisEeprom};
   config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.chassisEepromDevicePath() = "/[CHASSIS_EEPROM]";
   return config;
 }
 } // namespace
 
 TEST(ConfigValidatorTest, PlatformName) {
-  auto config = PlatformConfig();
-  config.rootSlotType() = "SCM_SLOT";
-  config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
-  auto pmUnitConfig = PmUnitConfig();
-  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
-  config.bspKmodsRpmName() = "sample_bsp_kmods";
-  config.bspKmodsRpmVersion() = "1.0.0-4";
+  auto config = getBasicConfig();
 
   // Test 1: Empty platform name
   config.platformName() = "";
@@ -214,7 +212,7 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   i2cConfig2.address() = "0x51";
   versionedPmUnitConfig1.pmUnitConfig()->i2cDeviceConfigs() = {i2cConfig1};
   pmUnitConfig = config.pmUnitConfigs()->at("SCM");
-  pmUnitConfig.i2cDeviceConfigs() = {i2cConfig2};
+  pmUnitConfig.i2cDeviceConfigs()->emplace_back(i2cConfig2);
   pmUnitConfig.pciDeviceConfigs() = {};
   config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
@@ -256,46 +254,32 @@ TEST(ConfigValidatorTest, PmUnitNameReferentialIntegrity) {
 
 TEST(ConfigValidatorTest, PmUnitNameAllowedListValidation) {
   auto config = getBasicConfig();
-  config.rootSlotType() = "PIM_SLOT";
 
   // Create a basic SlotTypeConfig without pmUnitName to avoid referential
   // integrity issues
   auto slotTypeConfig = SlotTypeConfig();
   slotTypeConfig.idpromConfig() = IdpromConfig();
   slotTypeConfig.idpromConfig()->address() = "0x14";
-  config.slotTypeConfigs() = {{"PIM_SLOT", slotTypeConfig}};
+  config.slotTypeConfigs()->emplace("PIM_SLOT", slotTypeConfig);
 
   auto pmUnitConfig = PmUnitConfig();
   pmUnitConfig.pluggedInSlotType() = "PIM_SLOT";
 
   // Test 1: Valid PMUnit name from allowed list (should pass)
-  config.pmUnitConfigs() = {{"PIM_8DD", pmUnitConfig}};
+  config.pmUnitConfigs()->emplace("PIM_8DD", pmUnitConfig);
   EXPECT_TRUE(ConfigValidator().isValid(config));
 
   // Test 2: Another valid PMUnit name from allowed list (should pass)
-  config.pmUnitConfigs() = {{"PIM_16Q", pmUnitConfig}};
+  config.pmUnitConfigs()->emplace("PIM_16Q", pmUnitConfig);
   EXPECT_TRUE(ConfigValidator().isValid(config));
 
   // Test 3: Invalid PMUnit name not in allowed list (should fail)
-  config.pmUnitConfigs() = {{"INVALID_PMUNIT_NAME", pmUnitConfig}};
+  config.pmUnitConfigs()->emplace("INVALID_PMUNIT_NAME", pmUnitConfig);
   EXPECT_FALSE(ConfigValidator().isValid(config));
+  config.pmUnitConfigs()->erase("INVALID_PMUNIT_NAME");
 
   // Test 4: Another invalid PMUnit name (should fail)
-  config.pmUnitConfigs() = {{"RANDOM_NAME", pmUnitConfig}};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
-
-  // Test 5: Multiple PMUnits - all valid (should pass)
-  config.pmUnitConfigs() = {
-      {"FAN", pmUnitConfig},
-      {"PIM_16Q", pmUnitConfig},
-      {"PIM_8DD", pmUnitConfig}};
-  EXPECT_TRUE(ConfigValidator().isValid(config));
-
-  // Test 6: Multiple PMUnits - one invalid (should fail)
-  config.pmUnitConfigs() = {
-      {"PIM_8DD", pmUnitConfig},
-      {"INVALID_NAME", pmUnitConfig},
-      {"PIM_8DD", pmUnitConfig}};
+  config.pmUnitConfigs()->emplace("RANDOM_NAME", pmUnitConfig);
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
@@ -1256,4 +1240,32 @@ TEST(ConfigValidatorTest, PciDeviceConfigWithXcvrCtrlBlockConfigs) {
 
   pciDevConfig.xcvrCtrlBlockConfigs() = {config1, config2};
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+}
+
+TEST(ConfigValidatorTest, ChassisEepromDevicePath) {
+  auto config = getBasicConfig();
+
+  I2cDeviceConfig otherEeprom;
+  otherEeprom.pmUnitScopedName() = "SOME_OTHER_EEPROM";
+  otherEeprom.address() = "0x52";
+  auto pmUnitConfig = config.pmUnitConfigs()->at("SCM");
+  pmUnitConfig.i2cDeviceConfigs()->emplace_back(otherEeprom);
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+
+  // Valid: non-IDPROM chassis EEPROM
+  config.chassisEepromDevicePath() = "/[CHASSIS_EEPROM]";
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Invalid: New platform using IDPROM as chassis EEPROM
+  config.chassisEepromDevicePath() = "/[IDPROM]";
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Valid: Exception list platform can use IDPROM
+  config.platformName() = "MERU800BIA";
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Invalid: Device name other than CHASSIS_EEPROM
+  config.platformName() = "NEW_PLATFORM";
+  config.chassisEepromDevicePath() = "/[SOME_OTHER_EEPROM]";
+  EXPECT_FALSE(ConfigValidator().isValid(config));
 }
