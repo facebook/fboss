@@ -258,26 +258,45 @@ class CmdShowTransceiver
       interfaceToPortId[portInfo.name().value()] = portId;
     }
 
+    auto getPortEntry = [&](const auto& intf) -> std::optional<PortStatus> {
+      std::optional<PortStatus> portEntry;
+      if (auto portIdIter = interfaceToPortId.find(intf);
+          portIdIter != interfaceToPortId.end()) {
+        if (auto portStatusIter = portStatusEntries.find(portIdIter->second);
+            portStatusIter != portStatusEntries.end()) {
+          portEntry = portStatusIter->second;
+        }
+      }
+      return portEntry;
+    };
+
     // Iterate over transceiver entries, since there are some transceivers
     // (bypass modules) that won't have port entries
     for (const auto& tcvrEntry : transceiverEntries) {
       const auto& transceiver = tcvrEntry.second;
+      // First check if any interface on the transceiver has a corresponding
+      // port on the agent. If not, we can assume it's a bypass module
+      auto isBypassModule = true;
+      for (const auto& intf : *transceiver.tcvrState()->interfaces()) {
+        isBypassModule &= !getPortEntry(intf).has_value();
+      }
+
       for (const auto& intf : *transceiver.tcvrState()->interfaces()) {
         if (!queriedPorts.empty() &&
             queriedPorts.find(intf) == queriedPorts.end()) {
           continue;
         }
+
+        // For non-bypass modules, only consider the interfaces that have a
+        // corresponding agent port (otherwise we'd print unused interfaces on
+        // multi-port modules)
+        const auto& portEntry = getPortEntry(intf);
+        if (!isBypassModule && !portEntry.has_value()) {
+          continue;
+        }
+
         cli::TransceiverDetail details;
         details.name() = intf;
-
-        std::optional<PortStatus> portEntry;
-        if (auto portIdIter = interfaceToPortId.find(intf);
-            portIdIter != interfaceToPortId.end()) {
-          if (auto portStatusIter = portStatusEntries.find(portIdIter->second);
-              portStatusIter != portStatusEntries.end()) {
-            portEntry = portStatusIter->second;
-          }
-        }
 
         const auto& tcvrState = *transceiver.tcvrState();
         const auto& tcvrStats = *transceiver.tcvrStats();
