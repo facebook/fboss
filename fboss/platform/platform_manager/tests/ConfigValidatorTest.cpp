@@ -47,10 +47,31 @@ PciDeviceConfig getValidPciDeviceConfig() {
 }
 } // namespace
 
-TEST(ConfigValidatorTest, InvalidPlatformName) {
+TEST(ConfigValidatorTest, PlatformName) {
   auto config = PlatformConfig();
+  config.rootSlotType() = "SCM_SLOT";
+  config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
+  auto pmUnitConfig = PmUnitConfig();
+  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.bspKmodsRpmName() = "sample_bsp_kmods";
+  config.bspKmodsRpmVersion() = "1.0.0-4";
+
+  // Test 1: Empty platform name
   config.platformName() = "";
   EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 2: Lowercase platform name
+  config.platformName() = "meru800bia";
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 3: Mixed case platform name
+  config.platformName() = "Meru800BIA";
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 4: Valid uppercase platform name
+  config.platformName() = "MERU800BIA";
+  EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, InvalidRootSlotType) {

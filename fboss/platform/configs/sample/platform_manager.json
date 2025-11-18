@@ -1,6 +1,6 @@
 {
   "___COMMENT___": "See the associated topology in sample_platform_topology.txt",
-  "platformName": "sample_platform",
+  "platformName": "SAMPLE_PLATFORM",
   "rootPmUnitName": "SCM",
   "rootSlotType": "SCM_SLOT",
   "slotTypeConfigs": {

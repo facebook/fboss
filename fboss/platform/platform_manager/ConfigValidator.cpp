@@ -643,6 +643,15 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     return false;
   }
 
+  // Verify platformName is in uppercase
+  if (containsLower(*config.platformName())) {
+    XLOGF(
+        ERR,
+        "Platform name must be in uppercase; {} contains lowercase characters",
+        *config.platformName());
+    return false;
+  }
+
   if (config.rootSlotType()->empty()) {
     XLOG(ERR) << "Platform rootSlotType cannot be empty";
     return false;

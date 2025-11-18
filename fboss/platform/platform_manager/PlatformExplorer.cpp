@@ -311,8 +311,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     with ioctl and written to the /run/devmap file.
     See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
     */
-    if ((platformConfig_.platformName().value() == "meru800bfa" ||
-         platformConfig_.platformName().value() == "meru800bia") &&
+    if ((platformConfig_.platformName().value() == "MERU800BFA" ||
+         platformConfig_.platformName().value() == "MERU800BIA") &&
         (!(idpromConfig.busName()->starts_with("INCOMING")) &&
          *idpromConfig.address() == "0x50")) {
       try {
