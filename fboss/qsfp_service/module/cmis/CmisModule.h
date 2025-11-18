@@ -669,6 +669,9 @@ class CmisModule : public QsfpModule {
     return getIdentifier() == TransceiverModuleIdentifier::OSFP;
   }
 
+  // Check if module should be kept in low power mode for AppSel programming.
+  bool programAppSelInLowPowerMode() const;
+
   // Private functions to extract and fill in VDM performance monitoring stats
   bool fillVdmPerfMonitorSnr(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorBer(VdmPerfMonitorStats& vdmStats);
