@@ -220,6 +220,7 @@
             }
           ],
           "spiMasterConfigs": [],
+          "xcvrCtrlConfigs": [],
           "infoRomConfigs": [
             {
               "pmUnitScopedName": "ROOK_CPU_CPLD_INFO_ROM",
@@ -235,7 +236,6 @@
           "deviceId": "0x0001",
           "subSystemVendorId": "0x3475",
           "subSystemDeviceId": "0x0002",
-          "__comment__": "XCVR settings (P1817021386) are removed intentionally",
           "i2cAdapterConfigs": [
             {
               "fpgaIpBlockConfig": {
@@ -250,6 +250,38 @@
                 "pmUnitScopedName": "SCD_SMBUS1",
                 "deviceName": "i2c_master",
                 "csrOffset": "0x8080"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SCD_SMBUS2",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8100"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SCD_SMBUS3",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8180"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SCD_SMBUS4",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8200"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SCD_SMBUS5",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8280"
               },
               "numberOfAdapters": 8
             },
@@ -294,6 +326,25 @@
               "pmUnitScopedName": "PSU_STATUS_LED",
               "deviceName": "psu_led",
               "csrOffset": "0x6070"
+            }
+          ],
+          "ledCtrlBlockConfigs": [
+            {
+              "pmUnitScopedNamePrefix": "QSFP",
+              "deviceName": "port_led_darwin",
+              "csrOffsetCalc": "0x6100 + ({portNum} - {startPort})*0x40 + ({ledNum} - 1)*0x40",
+              "numPorts": 32,
+              "ledPerPort": 1,
+              "startPort": 1
+            }
+          ],
+          "xcvrCtrlBlockConfigs": [
+            {
+              "pmUnitScopedNamePrefix": "QSFP",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0xa010 + ({portNum} - {startPort})*0x10",
+              "numPorts": 32,
+              "startPort": 1
             }
           ],
           "infoRomConfigs": [
@@ -428,6 +479,38 @@
     "/run/devmap/i2c-busses/SCD_SMBUS1_CH5": "/[SCD_SMBUS1@5]",
     "/run/devmap/i2c-busses/SCD_SMBUS1_CH6": "/[SCD_SMBUS1@6]",
     "/run/devmap/i2c-busses/SCD_SMBUS1_CH7": "/[SCD_SMBUS1@7]",
+    "/run/devmap/i2c-busses/SCD_SMBUS2_CH0": "/[SCD_SMBUS2@0]",
+    "/run/devmap/i2c-busses/SCD_SMBUS2_CH1": "/[SCD_SMBUS2@1]",
+    "/run/devmap/i2c-busses/SCD_SMBUS2_CH2": "/[SCD_SMBUS2@2]",
+    "/run/devmap/i2c-busses/SCD_SMBUS2_CH3": "/[SCD_SMBUS2@3]",
+    "/run/devmap/i2c-busses/SCD_SMBUS2_CH4": "/[SCD_SMBUS2@4]",
+    "/run/devmap/i2c-busses/SCD_SMBUS2_CH5": "/[SCD_SMBUS2@5]",
+    "/run/devmap/i2c-busses/SCD_SMBUS2_CH6": "/[SCD_SMBUS2@6]",
+    "/run/devmap/i2c-busses/SCD_SMBUS2_CH7": "/[SCD_SMBUS2@7]",
+    "/run/devmap/i2c-busses/SCD_SMBUS3_CH0": "/[SCD_SMBUS3@0]",
+    "/run/devmap/i2c-busses/SCD_SMBUS3_CH1": "/[SCD_SMBUS3@1]",
+    "/run/devmap/i2c-busses/SCD_SMBUS3_CH2": "/[SCD_SMBUS3@2]",
+    "/run/devmap/i2c-busses/SCD_SMBUS3_CH3": "/[SCD_SMBUS3@3]",
+    "/run/devmap/i2c-busses/SCD_SMBUS3_CH4": "/[SCD_SMBUS3@4]",
+    "/run/devmap/i2c-busses/SCD_SMBUS3_CH5": "/[SCD_SMBUS3@5]",
+    "/run/devmap/i2c-busses/SCD_SMBUS3_CH6": "/[SCD_SMBUS3@6]",
+    "/run/devmap/i2c-busses/SCD_SMBUS3_CH7": "/[SCD_SMBUS3@7]",
+    "/run/devmap/i2c-busses/SCD_SMBUS4_CH0": "/[SCD_SMBUS4@0]",
+    "/run/devmap/i2c-busses/SCD_SMBUS4_CH1": "/[SCD_SMBUS4@1]",
+    "/run/devmap/i2c-busses/SCD_SMBUS4_CH2": "/[SCD_SMBUS4@2]",
+    "/run/devmap/i2c-busses/SCD_SMBUS4_CH3": "/[SCD_SMBUS4@3]",
+    "/run/devmap/i2c-busses/SCD_SMBUS4_CH4": "/[SCD_SMBUS4@4]",
+    "/run/devmap/i2c-busses/SCD_SMBUS4_CH5": "/[SCD_SMBUS4@5]",
+    "/run/devmap/i2c-busses/SCD_SMBUS4_CH6": "/[SCD_SMBUS4@6]",
+    "/run/devmap/i2c-busses/SCD_SMBUS4_CH7": "/[SCD_SMBUS4@7]",
+    "/run/devmap/i2c-busses/SCD_SMBUS5_CH0": "/[SCD_SMBUS5@0]",
+    "/run/devmap/i2c-busses/SCD_SMBUS5_CH1": "/[SCD_SMBUS5@1]",
+    "/run/devmap/i2c-busses/SCD_SMBUS5_CH2": "/[SCD_SMBUS5@2]",
+    "/run/devmap/i2c-busses/SCD_SMBUS5_CH3": "/[SCD_SMBUS5@3]",
+    "/run/devmap/i2c-busses/SCD_SMBUS5_CH4": "/[SCD_SMBUS5@4]",
+    "/run/devmap/i2c-busses/SCD_SMBUS5_CH5": "/[SCD_SMBUS5@5]",
+    "/run/devmap/i2c-busses/SCD_SMBUS5_CH6": "/[SCD_SMBUS5@6]",
+    "/run/devmap/i2c-busses/SCD_SMBUS5_CH7": "/[SCD_SMBUS5@7]",
     "/run/devmap/i2c-busses/SCD_SMBUS6_CH0": "/[SCD_SMBUS6@0]",
     "/run/devmap/i2c-busses/SCD_SMBUS6_CH1": "/[SCD_SMBUS6@1]",
     "/run/devmap/i2c-busses/SCD_SMBUS6_CH2": "/[SCD_SMBUS6@2]",
@@ -436,6 +519,8 @@
     "/run/devmap/i2c-busses/SCD_SMBUS6_CH5": "/[SCD_SMBUS6@5]",
     "/run/devmap/i2c-busses/SCD_SMBUS6_CH6": "/[SCD_SMBUS6@6]",
     "/run/devmap/i2c-busses/SCD_SMBUS6_CH7": "/[SCD_SMBUS6@7]",
+    "/run/devmap/eeproms/RACKMON_EEPROM": "/RACKMON_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/PEM_EEPROM": "/PEM_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/CPU_BOARD_TEMP_MAX6658": "/[CPU_BOARD_TEMP_MAX6658]",
     "/run/devmap/sensors/CPU_FP_TEMP_LM73": "/[CPU_FP_TEMP_LM73]",
     "/run/devmap/sensors/CPU_MPS1_PMBUS": "/[CPU_MPS1_PMBUS]",
@@ -452,20 +537,83 @@
     "/run/devmap/sensors/PCH_THERMAL": "/[PCH_THERMAL]",
     "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
     "/run/devmap/flashes/SCD_SPI_MASTER_DEVICE1": "/[SCD_SPI_MASTER_DEVICE1]",
-    "/run/devmap/eeproms/RACKMON_EEPROM": "/RACKMON_SLOT@0/[IDPROM]",
-    "/run/devmap/eeproms/PEM_EEPROM": "/PEM_SLOT@0/[IDPROM]",
+    "/run/devmap/xcvrs/xcvr_io_1": "/[SCD_SMBUS2@0]",
+    "/run/devmap/xcvrs/xcvr_ctrl_1": "/[QSFP_XCVR_CTRL_PORT_1]",
+    "/run/devmap/xcvrs/xcvr_io_2": "/[SCD_SMBUS2@1]",
+    "/run/devmap/xcvrs/xcvr_ctrl_2": "/[QSFP_XCVR_CTRL_PORT_2]",
+    "/run/devmap/xcvrs/xcvr_io_3": "/[SCD_SMBUS2@2]",
+    "/run/devmap/xcvrs/xcvr_ctrl_3": "/[QSFP_XCVR_CTRL_PORT_3]",
+    "/run/devmap/xcvrs/xcvr_io_4": "/[SCD_SMBUS2@3]",
+    "/run/devmap/xcvrs/xcvr_ctrl_4": "/[QSFP_XCVR_CTRL_PORT_4]",
+    "/run/devmap/xcvrs/xcvr_io_5": "/[SCD_SMBUS2@4]",
+    "/run/devmap/xcvrs/xcvr_ctrl_5": "/[QSFP_XCVR_CTRL_PORT_5]",
+    "/run/devmap/xcvrs/xcvr_io_6": "/[SCD_SMBUS2@5]",
+    "/run/devmap/xcvrs/xcvr_ctrl_6": "/[QSFP_XCVR_CTRL_PORT_6]",
+    "/run/devmap/xcvrs/xcvr_io_7": "/[SCD_SMBUS2@6]",
+    "/run/devmap/xcvrs/xcvr_ctrl_7": "/[QSFP_XCVR_CTRL_PORT_7]",
+    "/run/devmap/xcvrs/xcvr_io_8": "/[SCD_SMBUS2@7]",
+    "/run/devmap/xcvrs/xcvr_ctrl_8": "/[QSFP_XCVR_CTRL_PORT_8]",
+    "/run/devmap/xcvrs/xcvr_io_9": "/[SCD_SMBUS3@0]",
+    "/run/devmap/xcvrs/xcvr_ctrl_9": "/[QSFP_XCVR_CTRL_PORT_9]",
+    "/run/devmap/xcvrs/xcvr_io_10": "/[SCD_SMBUS3@1]",
+    "/run/devmap/xcvrs/xcvr_ctrl_10": "/[QSFP_XCVR_CTRL_PORT_10]",
+    "/run/devmap/xcvrs/xcvr_io_11": "/[SCD_SMBUS3@2]",
+    "/run/devmap/xcvrs/xcvr_ctrl_11": "/[QSFP_XCVR_CTRL_PORT_11]",
+    "/run/devmap/xcvrs/xcvr_io_12": "/[SCD_SMBUS3@3]",
+    "/run/devmap/xcvrs/xcvr_ctrl_12": "/[QSFP_XCVR_CTRL_PORT_12]",
+    "/run/devmap/xcvrs/xcvr_io_13": "/[SCD_SMBUS3@4]",
+    "/run/devmap/xcvrs/xcvr_ctrl_13": "/[QSFP_XCVR_CTRL_PORT_13]",
+    "/run/devmap/xcvrs/xcvr_io_14": "/[SCD_SMBUS3@5]",
+    "/run/devmap/xcvrs/xcvr_ctrl_14": "/[QSFP_XCVR_CTRL_PORT_14]",
+    "/run/devmap/xcvrs/xcvr_io_15": "/[SCD_SMBUS3@6]",
+    "/run/devmap/xcvrs/xcvr_ctrl_15": "/[QSFP_XCVR_CTRL_PORT_15]",
+    "/run/devmap/xcvrs/xcvr_io_16": "/[SCD_SMBUS3@7]",
+    "/run/devmap/xcvrs/xcvr_ctrl_16": "/[QSFP_XCVR_CTRL_PORT_16]",
+    "/run/devmap/xcvrs/xcvr_io_17": "/[SCD_SMBUS4@0]",
+    "/run/devmap/xcvrs/xcvr_ctrl_17": "/[QSFP_XCVR_CTRL_PORT_17]",
+    "/run/devmap/xcvrs/xcvr_io_18": "/[SCD_SMBUS4@1]",
+    "/run/devmap/xcvrs/xcvr_ctrl_18": "/[QSFP_XCVR_CTRL_PORT_18]",
+    "/run/devmap/xcvrs/xcvr_io_19": "/[SCD_SMBUS4@2]",
+    "/run/devmap/xcvrs/xcvr_ctrl_19": "/[QSFP_XCVR_CTRL_PORT_19]",
+    "/run/devmap/xcvrs/xcvr_io_20": "/[SCD_SMBUS4@3]",
+    "/run/devmap/xcvrs/xcvr_ctrl_20": "/[QSFP_XCVR_CTRL_PORT_20]",
+    "/run/devmap/xcvrs/xcvr_io_21": "/[SCD_SMBUS4@4]",
+    "/run/devmap/xcvrs/xcvr_ctrl_21": "/[QSFP_XCVR_CTRL_PORT_21]",
+    "/run/devmap/xcvrs/xcvr_io_22": "/[SCD_SMBUS4@5]",
+    "/run/devmap/xcvrs/xcvr_ctrl_22": "/[QSFP_XCVR_CTRL_PORT_22]",
+    "/run/devmap/xcvrs/xcvr_io_23": "/[SCD_SMBUS4@6]",
+    "/run/devmap/xcvrs/xcvr_ctrl_23": "/[QSFP_XCVR_CTRL_PORT_23]",
+    "/run/devmap/xcvrs/xcvr_io_24": "/[SCD_SMBUS4@7]",
+    "/run/devmap/xcvrs/xcvr_ctrl_24": "/[QSFP_XCVR_CTRL_PORT_24]",
+    "/run/devmap/xcvrs/xcvr_io_25": "/[SCD_SMBUS5@0]",
+    "/run/devmap/xcvrs/xcvr_ctrl_25": "/[QSFP_XCVR_CTRL_PORT_25]",
+    "/run/devmap/xcvrs/xcvr_io_26": "/[SCD_SMBUS5@1]",
+    "/run/devmap/xcvrs/xcvr_ctrl_26": "/[QSFP_XCVR_CTRL_PORT_26]",
+    "/run/devmap/xcvrs/xcvr_io_27": "/[SCD_SMBUS5@2]",
+    "/run/devmap/xcvrs/xcvr_ctrl_27": "/[QSFP_XCVR_CTRL_PORT_27]",
+    "/run/devmap/xcvrs/xcvr_io_28": "/[SCD_SMBUS5@3]",
+    "/run/devmap/xcvrs/xcvr_ctrl_28": "/[QSFP_XCVR_CTRL_PORT_28]",
+    "/run/devmap/xcvrs/xcvr_io_29": "/[SCD_SMBUS5@4]",
+    "/run/devmap/xcvrs/xcvr_ctrl_29": "/[QSFP_XCVR_CTRL_PORT_29]",
+    "/run/devmap/xcvrs/xcvr_io_30": "/[SCD_SMBUS5@5]",
+    "/run/devmap/xcvrs/xcvr_ctrl_30": "/[QSFP_XCVR_CTRL_PORT_30]",
+    "/run/devmap/xcvrs/xcvr_io_31": "/[SCD_SMBUS5@6]",
+    "/run/devmap/xcvrs/xcvr_ctrl_31": "/[QSFP_XCVR_CTRL_PORT_31]",
+    "/run/devmap/xcvrs/xcvr_io_32": "/[SCD_SMBUS5@7]",
+    "/run/devmap/xcvrs/xcvr_ctrl_32": "/[QSFP_XCVR_CTRL_PORT_32]",
     "/run/devmap/sensors/FS_FAN_SLG4F4527": "/RACKMON_SLOT@0/[FS_FAN_SLG4F4527]",
     "/run/devmap/gpiochips/RACKMON_PLS": "/RACKMON_SLOT@0/[RACKMON_PLS]",
-    "/run/devmap/eeproms/FANSPINNER_EEPROM": "/RACKMON_SLOT@0/[FANSPINNER_EEPROM]",
     "/run/devmap/sensors/PEM_ECB_MAX5970": "/PEM_SLOT@0/[PEM_ECB_MAX5970]",
     "/run/devmap/sensors/PEM_ADC_MAX11645": "/PEM_SLOT@0/[PEM_ADC_MAX11645]",
     "/run/devmap/sensors/PEM_TEMP_MAX6658": "/PEM_SLOT@0/[PEM_TEMP_MAX6658]"
   },
+  "numXcvrs": 32,
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.9-1",
+  "bspKmodsRpmVersion": "0.7.17-1",
   "requiredKmodsToLoad": [
+    "spidev",
     "i2c_i801",
     "scd",
-    "scd_spi"
+    "ledtrig_timer"
   ]
 }
