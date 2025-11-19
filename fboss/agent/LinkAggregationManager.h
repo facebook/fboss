@@ -32,7 +32,12 @@ class SwSwitch;
 
 struct LacpServicerIf {
   LacpServicerIf() {}
-  virtual ~LacpServicerIf() {}
+  virtual ~LacpServicerIf() = default;
+
+  LacpServicerIf(const LacpServicerIf&) = delete;
+  LacpServicerIf& operator=(const LacpServicerIf&) = delete;
+  LacpServicerIf(LacpServicerIf&&) = delete;
+  LacpServicerIf& operator=(LacpServicerIf&&) = delete;
 
   virtual bool transmit(LACPDU lacpdu, PortID portID) = 0;
   virtual void enableForwardingAndSetPartnerState(
@@ -122,6 +127,8 @@ class LinkAggregationManager : public StateObserver, public LacpServicerIf {
   // Forbidden copy constructor and assignment operator
   LinkAggregationManager(LinkAggregationManager const&) = delete;
   LinkAggregationManager& operator=(LinkAggregationManager const&) = delete;
+  LinkAggregationManager(LinkAggregationManager&&) = delete;
+  LinkAggregationManager& operator=(LinkAggregationManager&&) = delete;
 
   using PortIDToController =
       boost::container::flat_map<PortID, std::shared_ptr<LacpController>>;
