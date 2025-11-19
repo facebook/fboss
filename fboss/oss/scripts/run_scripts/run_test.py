@@ -7,6 +7,7 @@ import csv
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -283,6 +284,10 @@ class TestRunner(abc.ABC):
         (?P<test_case>[\w\.\/]+)\s+\((?P<duration>\d+)\s+ms\)$""",
         re.VERBOSE,
     )
+
+    def __init__(self):
+        super().__init__()
+        self._config_file_modified = None
 
     @abc.abstractmethod
     def _get_config_path(self):
@@ -621,7 +626,31 @@ class TestRunner(abc.ABC):
         except Exception as e:
             print(f"Error when replacing string in {file_path}: {str(e)}")
 
-    def _run_tests(self, tests_to_run, args):
+    def _backup_and_modify_config(self, conf_file):
+        """Create a copy of the config and modify settings"""
+        if args.run_on_reference_board:
+            # Create a copy of the config file for modification
+            try:
+                # Create a modified copy in /tmp with standard name
+                config_filename = os.path.basename(conf_file)
+                self._config_file_modified = f"/tmp/modified-{config_filename}"
+                shutil.copy2(conf_file, self._config_file_modified)
+
+                print("Using a modified config file {self._config_file_modified} for test runs")
+                # Some platforms, like TH5 SVK, need to set
+                # AUTOLOAD_BOARD_SETTINGS=1 to autodetect reference board
+                self._replace_string_in_file(
+                    self._config_file_modified,
+                    "AUTOLOAD_BOARD_SETTINGS: 0",
+                    "AUTOLOAD_BOARD_SETTINGS: 1",
+                )
+                return self._config_file_modified
+            except Exception as e:
+                print(f"Error creating config copy {conf_file}: {str(e)}")
+                return conf_file
+        return conf_file
+
+    def _run_tests(self, tests_to_run, conf_file, args):
         if args.sai_replayer_logging:
             if os.path.isdir(args.sai_replayer_logging) or os.path.isfile(
                 args.sai_replayer_logging
@@ -662,14 +691,6 @@ class TestRunner(abc.ABC):
             warmboot = True
 
         test_binary_name = self._get_test_binary_name()
-        conf_file = (
-            args.config if (args.config is not None) else self._get_config_path()
-        )
-        if args.oss and self._string_in_file(args.fruid_path, "MONTBLANC"):
-            # TH5 SVK platform need to set AUTOLOAD_BOARD_SETTINGS=1
-            self._replace_string_in_file(
-                conf_file, "AUTOLOAD_BOARD_SETTINGS: 0", "AUTOLOAD_BOARD_SETTINGS: 1"
-            )
         if test_binary_name != "qsfp_hw_test" and not os.path.exists(conf_file):
             print("########## Conf file not found: " + conf_file)
             return []
@@ -773,7 +794,11 @@ class TestRunner(abc.ABC):
         # Check if tests need to be run or only listed
         if args.list_tests is False:
             start_time = datetime.now()
-            output = self._run_tests(tests_to_run, args)
+            original_conf_file = (
+                args.config if (args.config is not None) else self._get_config_path()
+            )
+            conf_file = self._backup_and_modify_config(original_conf_file)
+            output = self._run_tests(tests_to_run, conf_file, args)
             end_time = datetime.now()
             delta_time = end_time - start_time
             print(
@@ -1418,6 +1443,12 @@ if __name__ == "__main__":
         type=int,
         default=DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
         help="Specify test run timeout in seconds",
+    )
+    ap.add_argument(
+        "--run-on-reference-board",
+        action="store_true",
+        help="Modify SAI settings to run on reference board instead of real product",
+        default=False,
     )
 
     # Add subparsers for different test types
