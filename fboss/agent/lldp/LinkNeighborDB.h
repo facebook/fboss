@@ -26,6 +26,7 @@ class LinkNeighbor;
 class LinkNeighborDB {
  public:
   LinkNeighborDB();
+  ~LinkNeighborDB() = default;
 
   /*
    * Update the DB with new neighbor information.
@@ -64,6 +65,8 @@ class LinkNeighborDB {
   // Forbidden copy constructor and assignment operator
   LinkNeighborDB(LinkNeighborDB const&) = delete;
   LinkNeighborDB& operator=(LinkNeighborDB const&) = delete;
+  LinkNeighborDB(LinkNeighborDB&&) = delete;
+  LinkNeighborDB& operator=(LinkNeighborDB&&) = delete;
 
   folly::Synchronized<LldpState> byLocalPort_{LldpState(lldp::LldpState())};
 };
