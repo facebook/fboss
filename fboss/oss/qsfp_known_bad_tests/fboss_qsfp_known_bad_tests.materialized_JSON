@@ -2,6 +2,9 @@
   "known_bad_tests": {
     "darwin/physdk-credo-0.7.2/credo-0.7.2": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -9,6 +12,9 @@
         }
     ],
     "darwin/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -18,6 +24,9 @@
     ],
     "darwin_mix/physdk-credo-0.7.2/credo-0.7.2": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -25,6 +34,9 @@
         }
     ],
     "darwin_mix/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -34,6 +46,9 @@
     ],
     "darwin_original/physdk-credo-0.7.2/credo-0.7.2": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -42,6 +57,9 @@
     ],
     "darwin_original/physdk-credo-0.9.0/credo-0.9.0": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -49,6 +67,9 @@
         }
     ],
     "elbert_2x16Q_6x8DD/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
         },
@@ -73,6 +94,9 @@
     ],
     "elbert_2x16Q_6x8DD/physdk-credo-0.9.0/credo-0.9.0": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwPortPrbsTest.*$"
         },
         {
@@ -95,6 +119,9 @@
         }
     ],
     "elbert_5x16Q_3x8DD/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
         },
@@ -119,6 +146,9 @@
     ],
     "elbert_5x16Q_3x8DD/physdk-credo-0.9.0/credo-0.9.0": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwPortPrbsTest.*$"
         },
         {
@@ -142,6 +172,9 @@
     ],
     "elbert_8x16Q/physdk-credo-0.7.2/credo-0.7.2": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -149,6 +182,9 @@
         }
     ],
     "elbert_8x16Q/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -158,6 +194,9 @@
     ],
     "fuji_5x16Q/physdk-barchetta2-5.2/barchetta2-5.2": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -166,6 +205,9 @@
     ],
     "fuji_5x16Q/physdk-barchetta2-7.4/barchetta2-7.4": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -173,6 +215,9 @@
         }
     ],
     "fuji_8x16Q/physdk-barchetta2-5.2/barchetta2-5.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
         },
@@ -185,6 +230,9 @@
     ],
     "fuji_8x16Q/physdk-barchetta2-7.4/barchetta2-7.4": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwPortPrbsTest.*$"
         },
         {
@@ -196,6 +244,9 @@
     ],
     "icecube800bc/physdk-credo-0.7.2/credo-0.7.2": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -203,6 +254,9 @@
         }
     ],
     "icecube800bc/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -212,6 +266,9 @@
     ],
     "icetea800bc/physdk-credo-0.7.2/credo-0.7.2": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -219,6 +276,9 @@
         }
     ],
     "icetea800bc/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -228,6 +288,9 @@
     ],
     "janga800bic/physdk-credo-0.7.2/credo-0.7.2": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -235,6 +298,9 @@
         }
     ],
     "janga800bic/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -244,6 +310,9 @@
     ],
     "meru400bfu/physdk-credo-0.7.2/credo-0.7.2": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -251,6 +320,9 @@
         }
     ],
     "meru400bfu/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -260,6 +332,9 @@
     ],
     "meru400biu/physdk-credo-0.7.2/credo-0.7.2": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -267,6 +342,9 @@
         }
     ],
     "meru400biu/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -276,6 +354,9 @@
     ],
     "meru800bfa/physdk-credo-0.7.2/credo-0.7.2": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -283,6 +364,9 @@
         }
     ],
     "meru800bfa/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -292,6 +376,9 @@
     ],
     "meru800bia/physdk-credo-0.7.2/credo-0.7.2": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -299,6 +386,9 @@
         }
     ],
     "meru800bia/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -308,6 +398,9 @@
     ],
     "minipack3ba/physdk-credo-0.7.2/credo-0.7.2": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -315,6 +408,9 @@
         }
     ],
     "minipack3ba/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -324,6 +420,9 @@
     ],
     "minipack3n/physdk-credo-0.7.2/credo-0.7.2": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -331,6 +430,9 @@
         }
     ],
     "minipack3n/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -340,6 +442,9 @@
     ],
     "minipack_7x16Q_1x16O/physdk-millenio-5.5/millenio-5.5": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -347,6 +452,9 @@
         }
     ],
     "montblanc/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -356,6 +464,9 @@
     ],
     "montblanc/physdk-credo-0.9.0/credo-0.9.0": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -363,6 +474,9 @@
         }
     ],
     "morgan800cc/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -372,6 +486,9 @@
     ],
     "morgan800cc/physdk-credo-0.9.0/credo-0.9.0": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -379,6 +496,9 @@
         }
     ],
     "tahan800bc/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -388,6 +508,9 @@
     ],
     "tahan800bc/physdk-credo-0.9.0/credo-0.9.0": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -395,6 +518,9 @@
         }
     ],
     "tahansb800bc/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -404,6 +530,9 @@
     ],
     "tahansb800bc/physdk-credo-0.9.0/credo-0.9.0": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -411,6 +540,9 @@
         }
     ],
     "wedge100s/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -420,6 +552,9 @@
     ],
     "wedge100s/physdk-credo-0.9.0/credo-0.9.0": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -427,6 +562,9 @@
         }
     ],
     "wedge400/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -436,6 +574,9 @@
     ],
     "wedge400/physdk-credo-0.9.0/credo-0.9.0": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -443,6 +584,9 @@
         }
     ],
     "wedge400c/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -452,6 +596,9 @@
     ],
     "wedge400c/physdk-credo-0.9.0/credo-0.9.0": [
         {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -459,6 +606,9 @@
         }
     ],
     "yamp_8x16Q/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
@@ -470,6 +620,9 @@
         }
     ],
     "yamp_8x16Q/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
