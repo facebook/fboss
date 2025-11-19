@@ -1179,6 +1179,21 @@ const HwSwitchTemperatureStats SaiSwitchManager::getHwSwitchTemperatureStats()
   // Get temperature stats
   HwSwitchTemperatureStats switchTemperatureStats;
   static sai_int32_t NumTemperatureSensors = -1;
+  static auto lastReadTimestamp =
+      std::chrono::system_clock::now().time_since_epoch().count();
+  // Read temperature stats is expensive, so read it as often as fsdb would
+  // stream stats to its client defined by FLAGS_fsdbStatsStreamIntervalSeconds
+  const uint64_t kReadInterval =
+      static_cast<int64_t>(FLAGS_fsdbStatsStreamIntervalSeconds) * 1000000000;
+
+  auto currReadTimestamp =
+      std::chrono::system_clock::now().time_since_epoch().count();
+
+  if (currReadTimestamp - lastReadTimestamp < kReadInterval) {
+    return switchTemperatureStats;
+  }
+  lastReadTimestamp = currReadTimestamp;
+
   if (!supportedTemperatureStats().empty()) {
     folly::F14FastMap<sai_attr_id_t, sai_attribute_value_t> attrValues;
     for (auto attrId : supportedTemperatureStats()) {
