@@ -199,6 +199,7 @@ class FakeAsic : public HwAsic {
         return 1;
       case cfg::MMUScalingFactor::FOUR:
         return 2;
+      case cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT:
       case cfg::MMUScalingFactor::ONE_32768TH:
         // Unsupported
         throw FbossError(
