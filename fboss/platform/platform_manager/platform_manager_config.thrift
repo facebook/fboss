@@ -361,12 +361,25 @@ struct XcvrCtrlConfig {
 // `numPorts`: Number of ports for this block config
 //
 // `startPort`: Starting port for calculation for each block config
+//
+// `iobufOffsetCalc`: Calculation to iobuf register hex offset of the SPI Master in
+//  the FPGA. This expression includes a base start address, port, a starting port
+//  number or index. Final offset result is in hex format.
+//  Example
+//  iobufOffsetCalc: "0x1000 + ({portNum} - {startPort})*0x4"
+//  portNum=1, startPort=1:
+//    iobufOffsetCalc: "0x1000 + (1 - 1)*0x4"
+//    iobufOffsetCalc: "0x1000"
+//  portNum=2, startPort=1::
+//    iobufOffsetCalc: "0x1000 + (2 - 1)*0x4"
+//    iobufOffsetCalc: "0x1004"
 struct XcvrCtrlBlockConfig {
   1: string pmUnitScopedNamePrefix;
   2: string deviceName;
   3: string csrOffsetCalc;
   4: i32 numPorts;
   6: i32 startPort;
+  7: string iobufOffsetCalc;
 }
 
 // Defines the LED Controller block in FPGAs.
@@ -397,7 +410,7 @@ struct LedCtrlConfig {
 //  This expression includes a base start address, port, a starting port number
 //  or index, and a led number. Final offset result is in hex format.
 //  Example:
-//  csrOffsetCalc: "0x1000 + ({portNum} - {startPort})*0x10 + ({ledNum} - 1)*0x4"
+//  csrOffsetCalc: "0x1000 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4"
 //  portNum=1, ledNum=1, startPort=1:
 //    csrOffsetCalc: "0x1000 + (1 - 1)*0x8 + (1 - 1)*0x4"
 //    csrOffsetCalc: "0x1000"
@@ -408,12 +421,26 @@ struct LedCtrlConfig {
 //    csrOffsetCalc: "0x1000 + (2 - 1)*0x8 + (2 - 1)*0x4"
 //    csrOffsetCalc: "0x100c"
 //
-//
 // `numPorts`: Number of ports for this block config
 //
 // `ledPerPort`: Number of LEDs per port
 //
 // `startPort`: Starting port for calculation for each block config
+//
+// `iobufOffsetCalc`: Calculation to iobuf register hex offset of the SPI Master in
+//  the FPGA. This expression includes a base start address, port, a starting port number
+//  or index, and a led number. Final offset result is in hex format.
+// Example
+//  iobufOffsetCalc: "0x1000 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4"
+//  portNum=1, ledNum=1, startPort=1:
+//    iobufOffsetCalc: "0x1000 + (1 - 1)*0x8 + (1 - 1)*0x4"
+//    iobufOffsetCalc: "0x1000"
+//  portNum=1, ledNum=2, startPort=1::
+//    iobufOffsetCalc: "0x1000 + (1 - 1)*0x8 + (2 - 1)*0x4"
+//    iobufOffsetCalc: "0x1004"
+//  portNum=2, ledNum=2, startPort=1:
+//    iobufOffsetCalc: "0x1000 + (2 - 1)*0x8 + (2 - 1)*0x4"
+//    iobufOffsetCalc: "0x100c"
 struct LedCtrlBlockConfig {
   1: string pmUnitScopedNamePrefix;
   2: string deviceName;
@@ -421,6 +448,7 @@ struct LedCtrlBlockConfig {
   4: i32 numPorts;
   5: i32 ledPerPort;
   6: i32 startPort;
+  7: string iobufOffsetCalc;
 }
 
 // Defines PCI Devices in the PmUnits. A new PciDeviceConfig should be created
