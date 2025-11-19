@@ -50,6 +50,8 @@ add_library(state
   fboss/agent/state/ControlPlane.cpp
   fboss/agent/state/DsfNode.cpp
   fboss/agent/state/DsfNodeMap.cpp
+  fboss/agent/state/FibInfo.cpp
+  fboss/agent/state/FibInfoMap.cpp
   fboss/agent/state/FlowletSwitchingConfig.cpp
   fboss/agent/state/ForwardingInformationBase.cpp
   fboss/agent/state/ForwardingInformationBaseContainer.cpp
