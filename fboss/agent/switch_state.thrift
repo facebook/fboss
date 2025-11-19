@@ -529,6 +529,10 @@ struct FibContainerFields {
   3: map<string, RouteFields> fibV6;
 }
 
+struct FibInfoFields {
+  1: map<i16, FibContainerFields> fibsMap;
+}
+
 struct TrafficClassToQosAttributeEntry {
   1: i16 trafficClass;
   2: i16 attr;
@@ -754,6 +758,7 @@ struct SwitchState {
     SwitchIdList,
     map<string, MirrorOnDropReportFields>
   > mirrorOnDropReportMaps;
+  124: map<SwitchIdList, FibInfoFields> fibsInfoMap;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;
