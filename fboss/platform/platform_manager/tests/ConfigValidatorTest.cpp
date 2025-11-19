@@ -719,6 +719,24 @@ TEST(ConfigValidatorTest, LedCtrlBlockConfig) {
   validator.numXcvrs_ = 32;
   EXPECT_TRUE(validator.isValidLedCtrlBlockConfig(config));
 
+  // Test case: Valid config with iobufOffsetCalc
+  config.pmUnitScopedNamePrefix() = "MCB_LED";
+  config.deviceName() = "port_led";
+  config.csrOffsetCalc() =
+      "0x1000 + ({portNum} - {startPort})*0x100 + ({ledNum}-1)*0x10";
+  config.iobufOffsetCalc() =
+      "0x2000 + ({portNum} - {startPort})*0x100 + ({ledNum}-1)*0x10";
+  config.numPorts() = 32;
+  config.ledPerPort() = 2;
+  config.startPort() = 1;
+  validator.numXcvrs_ = 32;
+  EXPECT_TRUE(validator.isValidLedCtrlBlockConfig(config));
+
+  // Test case: Invalid iobufOffsetCalc expression
+  config.iobufOffsetCalc() = "invalid_expression";
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.iobufOffsetCalc() = "";
+
   // Test case: Empty pmUnitScopedNamePrefix
   config.pmUnitScopedNamePrefix() = "";
   EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
@@ -1055,6 +1073,21 @@ TEST(ConfigValidatorTest, XcvrCtrlBlockConfig) {
   config.startPort() = 1;
   validator.numXcvrs_ = 32;
   EXPECT_TRUE(validator.isValidXcvrCtrlBlockConfig(config));
+
+  // Test case: Valid config with iobufOffsetCalc
+  config.pmUnitScopedNamePrefix() = "SMB_DOM1_XCVR";
+  config.deviceName() = "xcvr_ctrl";
+  config.csrOffsetCalc() = "0x1000 + ({portNum} - {startPort})*0x100";
+  config.iobufOffsetCalc() = "0x2000 + ({portNum} - {startPort})*0x100";
+  config.numPorts() = 32;
+  config.startPort() = 1;
+  validator.numXcvrs_ = 32;
+  EXPECT_TRUE(validator.isValidXcvrCtrlBlockConfig(config));
+
+  // Test case: Invalid iobufOffsetCalc expression
+  config.iobufOffsetCalc() = "invalid_expression";
+  EXPECT_FALSE(validator.isValidXcvrCtrlBlockConfig(config));
+  config.iobufOffsetCalc() = "";
 
   // Test case: Empty pmUnitScopedNamePrefix
   config.pmUnitScopedNamePrefix() = "";
