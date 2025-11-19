@@ -276,6 +276,16 @@ bool ConfigValidator::isValidLedCtrlBlockConfig(
               led)) {
         return false;
       }
+
+      if (!ledCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+        if (!isValidIobufOffsetCalc(
+                *ledCtrlBlockConfig.iobufOffsetCalc(),
+                port,
+                *ledCtrlBlockConfig.startPort(),
+                led)) {
+          return false;
+        }
+      }
     }
   }
 
@@ -334,6 +344,15 @@ bool ConfigValidator::isValidXcvrCtrlBlockConfig(
             port,
             *xcvrCtrlBlockConfig.startPort())) {
       return false;
+    }
+
+    if (!xcvrCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+      if (!isValidIobufOffsetCalc(
+              *xcvrCtrlBlockConfig.iobufOffsetCalc(),
+              port,
+              *xcvrCtrlBlockConfig.startPort())) {
+        return false;
+      }
     }
   }
 
@@ -1034,6 +1053,35 @@ bool ConfigValidator::isValidCsrOffsetCalc(
     return true;
   } catch (const std::exception& e) {
     XLOG(ERR) << "csrOffsetCalc expression validation failed: " << e.what();
+    return false;
+  }
+}
+
+bool ConfigValidator::isValidIobufOffsetCalc(
+    const std::string& iobufOffsetCalc,
+    const int16_t& portNum,
+    const int16_t& startPort,
+    std::optional<int16_t> ledNum) {
+  // Test the expression with sample values to see if it's computable
+  try {
+    // Use Utils to test if the expression can be compiled and evaluated
+    auto result = Utils().computeHexExpression(
+        iobufOffsetCalc, portNum, startPort, ledNum);
+
+    // Validate the resulting hex value
+    if (result.empty()) {
+      XLOG(ERR) << "iobufOffsetCalc expression resulted in empty value";
+      return false;
+    }
+    if (!result.starts_with("0x")) {
+      XLOG(ERR)
+          << "iobufOffsetCalc expression result is not in valid hex format: "
+          << result;
+      return false;
+    }
+    return true;
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "iobufOffsetCalc expression validation failed: " << e.what();
     return false;
   }
 }

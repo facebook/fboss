@@ -202,7 +202,7 @@ std::string Utils::evaluateExpression(const std::string& expression) {
   if (!parser.compile(decimalExpression, expr)) {
     throw std::runtime_error(
         fmt::format(
-            "Failed to parse csrOffset expression: {}", decimalExpression));
+            "Failed to parse offset expression: {}", decimalExpression));
   }
 
   uint64_t value = static_cast<uint64_t>(expr.value());
@@ -268,6 +268,13 @@ std::vector<XcvrCtrlConfig> Utils::createXcvrCtrlConfigs(
               port,
               *xcvrCtrlBlockConfig.startPort());
       xcvrCtrlConfig.portNumber() = port;
+      if (!xcvrCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+        xcvrCtrlConfig.fpgaIpBlockConfig()->iobufOffset() =
+            Utils().computeHexExpression(
+                *xcvrCtrlBlockConfig.iobufOffsetCalc(),
+                port,
+                *xcvrCtrlBlockConfig.startPort());
+      }
       xcvrCtrlConfigs.push_back(xcvrCtrlConfig);
     }
   }
@@ -299,6 +306,14 @@ std::vector<LedCtrlConfig> Utils::createLedCtrlConfigs(
                 led);
         ledCtrlConfig.portNumber() = port;
         ledCtrlConfig.ledId() = led;
+        if (!ledCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+          ledCtrlConfig.fpgaIpBlockConfig()->iobufOffset() =
+              Utils().computeHexExpression(
+                  *ledCtrlBlockConfig.iobufOffsetCalc(),
+                  port,
+                  *ledCtrlBlockConfig.startPort(),
+                  led);
+        }
         ledCtrlConfigs.push_back(ledCtrlConfig);
       }
     }

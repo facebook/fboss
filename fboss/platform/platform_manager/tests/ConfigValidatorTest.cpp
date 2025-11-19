@@ -993,6 +993,56 @@ TEST(ConfigValidatorTest, CsrOffsetCalc) {
   EXPECT_FALSE(validator.isValidCsrOffsetCalc("{ledNum} * 5 abcd 10", 1, 1, 1));
 }
 
+TEST(ConfigValidatorTest, IobOffsetCalc) {
+  ConfigValidator validator;
+
+  // Test case: Valid  LED control expressions
+  EXPECT_TRUE(validator.isValidIobufOffsetCalc(
+      "0x40410 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4", 2, 1, 1));
+  EXPECT_TRUE(validator.isValidIobufOffsetCalc(
+      "0x48410 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+      45,
+      2,
+      33));
+  EXPECT_TRUE(validator.isValidIobufOffsetCalc(
+      "0x65c0 + ({portNum} - {startPort})*0x10 + ({ledNum} - 1)*0x10",
+      39,
+      3,
+      39));
+
+  // Test case: Valid expressions with zero values
+  EXPECT_TRUE(validator.isValidIobufOffsetCalc(
+      "{portNum} + {ledNum} + {startPort}", 0, 0, 0));
+
+  // Test case: Valid expression
+  EXPECT_TRUE(validator.isValidIobufOffsetCalc("12345", 1, 1, 1));
+
+  // Test case: Invalid expressions - syntax errors
+  EXPECT_FALSE(validator.isValidIobufOffsetCalc("invalid_expression", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidIobufOffsetCalc("0x1000 +", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidIobufOffsetCalc("0x1000 + * 0x100", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidIobufOffsetCalc("", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidIobufOffsetCalc("0x + 1000", 1, 1, 1));
+
+  // Test case: Invalid expressions - unbalanced parentheses
+  EXPECT_FALSE(
+      validator.isValidIobufOffsetCalc("({portNum} + {ledNum}", 1, 1, 1));
+  EXPECT_FALSE(
+      validator.isValidIobufOffsetCalc("{portNum} + {ledNum})", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidIobufOffsetCalc("((({portNum}))", 1, 1, 1));
+
+  // Test case: Invalid expressions - unknown variables
+  EXPECT_FALSE(validator.isValidIobufOffsetCalc("{unknownVar}", 1, 1, 1));
+  EXPECT_FALSE(
+      validator.isValidIobufOffsetCalc("0x1000 + {portNumber}", 1, 1, 1));
+  EXPECT_FALSE(
+      validator.isValidIobufOffsetCalc("0x1000 + {ledNumber}", 1, 1, 1));
+  EXPECT_FALSE(
+      validator.isValidIobufOffsetCalc("0x1000 + {ledNumber}", 1, 1, 1));
+  EXPECT_FALSE(
+      validator.isValidIobufOffsetCalc("{ledNum} * 5 abcd 10", 1, 1, 1));
+}
+
 TEST(ConfigValidatorTest, XcvrCtrlBlockConfig) {
   ConfigValidator validator;
   XcvrCtrlBlockConfig config;
