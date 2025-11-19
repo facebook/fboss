@@ -251,12 +251,17 @@ device:
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
 
-    auto port0 = ensemble.masterLogicalInterfacePortIds()[0];
+    std::vector<PortID> allPorts;
+    if (FLAGS_hyper_port) {
+      allPorts = ensemble.masterLogicalHyperPortIds();
+    } else {
+      allPorts = ensemble.masterLogicalInterfacePortIds();
+    }
+    auto port0 = allPorts[0];
     auto port0Switch =
         ensemble.getSw()->getScopeResolver()->scope(port0).switchId();
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(port0Switch);
-    auto ports =
-        getPortsForSampling(ensemble.masterLogicalInterfacePortIds(), asic);
+    auto ports = getPortsForSampling(allPorts, asic);
     if (asic->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
       utility::addEventorVoqConfig(&cfg, cfg::StreamType::UNICAST);
       for (auto& port : *cfg.ports()) {
@@ -333,20 +338,27 @@ device:
         : cfg::PortType::INTERFACE_PORT;
   }
 
+  std::vector<PortID> getAllPorts() const {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds();
+    }
+    return masterLogicalInterfacePortIds();
+  }
+
   std::vector<PortID> getPortsForSampling() const {
-    auto allIntfPorts = masterLogicalInterfacePortIds();
+    std::vector<PortID> allPorts = getAllPorts();
     auto nonSampledPort = getNonSflowSampledInterfacePort();
     // Ports with sampling enabled are all interface ports except any
     // on which we are sending the sampled packets out!
     std::vector<PortID> sampledPorts;
     std::copy_if(
-        allIntfPorts.begin(),
-        allIntfPorts.end(),
+        allPorts.begin(),
+        allPorts.end(),
         std::back_inserter(sampledPorts),
         [nonSampledPort](const auto& portId) {
           return portId != nonSampledPort;
         });
-    auto switchID = switchIdForPort(allIntfPorts[0]);
+    auto switchID = switchIdForPort(allPorts[0]);
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchID);
     return getPortsForSampling(sampledPorts, asic);
   }
@@ -1144,7 +1156,7 @@ class AgentSflowMirrorWithLineRateTrafficTest
   void testSflowEgressCongestion(int iterations) {
     constexpr int kNumDataTrafficPorts{6};
     auto setup = [=, this]() {
-      auto allPorts = masterLogicalInterfacePortIds();
+      auto allPorts = getAllPorts();
       std::vector<PortID> portIds(
           allPorts.begin(), allPorts.begin() + kNumDataTrafficPorts);
       std::vector<int> losslessPgIds = {kLosslessPriority};
@@ -1532,13 +1544,13 @@ class AgentSflowMirrorEventorTest
         getAgentEnsemble()->getProgrammedState(),
         getAgentEnsemble()->getSw()->needL2EntryForNeighbor(),
         intfMac);
-    for (auto portId : masterLogicalInterfacePortIds()) {
+    for (auto portId : getAllPorts()) {
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return ecmpHelper.unresolveNextHops(in, {PortDescriptor(portId)});
       });
     }
-    verifyNoTrafficOnPort(masterLogicalInterfacePortIds()[0], 3 /*iterations*/);
-    for (auto portId : masterLogicalInterfacePortIds()) {
+    verifyNoTrafficOnPort(getAllPorts()[0], 3 /*iterations*/);
+    for (auto portId : getAllPorts()) {
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return ecmpHelper.resolveNextHops(in, {PortDescriptor(portId)});
       });
@@ -1548,7 +1560,7 @@ class AgentSflowMirrorEventorTest
 
 TEST_F(AgentSflowMirrorEventorTest, VerifyEventorMtu) {
   constexpr int kNumPorts = 1;
-  const PortID trafficLoopPortId = masterLogicalInterfacePortIds()[0];
+  const PortID trafficLoopPortId = getAllPorts()[0];
   const PortID eventorPortId =
       masterLogicalPortIds({cfg::PortType::EVENTOR_PORT})[0];
 

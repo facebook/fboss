@@ -579,8 +579,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-  auto loopbackMode =
-      utility::getSaiPortLoopbackMode(swPort->getLoopbackMode());
+  std::optional<int> loopbackMode;
+  if (swPort->getPortType() != cfg::PortType::HYPER_PORT_MEMBER) {
+    // hyper port member loopback mode should be determined by hyper port
+    loopbackMode = utility::getSaiPortLoopbackMode(swPort->getLoopbackMode());
+  }
 #else
   auto internalLoopbackMode =
       utility::getSaiPortInternalLoopbackMode(swPort->getLoopbackMode());
