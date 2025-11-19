@@ -3036,10 +3036,12 @@
   ],
   "powerConsumptionConfigs": [
     {
+      "__comment__": "Hot-swap VRM chip ltc4287 monitors the main power consumption of the system",
       "name": "HSC",
       "powerSensorName": "MCB_PU1066_XP48R0V_HOTSWAP_PIN"
     },
     {
+      "__comment__": "TPS16890 chip monitors the standby power consumption of the system",
       "name": "PSU1",
       "voltageSensorName": "MCB_PU101_XP48R0V_STBY_VIN",
       "currentSensorName": "MCB_PU101_XP48R0V_STBY_IIN"
