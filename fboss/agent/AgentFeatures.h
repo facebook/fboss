@@ -127,3 +127,4 @@ DECLARE_bool(strip_vlan_for_pipeline_bypass);
 DECLARE_string(state_delta_log_file);
 DECLARE_string(state_delta_log_protocol);
 DECLARE_int32(state_delta_log_timeout_ms);
+DECLARE_int32(fsdbStatsStreamIntervalSeconds);

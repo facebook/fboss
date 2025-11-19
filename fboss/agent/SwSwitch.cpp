@@ -162,11 +162,6 @@ DEFINE_int32(
     64,
     "Expected minimum ethernet packet length");
 
-DEFINE_int32(
-    fsdbStatsStreamIntervalSeconds,
-    5,
-    "Interval at which stats subscriptions are served");
-
 DECLARE_bool(intf_nbr_tables);
 
 DEFINE_int32(
