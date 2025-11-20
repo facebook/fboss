@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 
+#include <folly/logging/xlog.h>
+
 namespace facebook::fboss {
 
 class AgentDiagShellStressTest : public AgentHwTest {
@@ -23,12 +25,14 @@ class AgentDiagShellStressTest : public AgentHwTest {
         case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
         case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
         case cfg::AsicType::ASIC_TYPE_JERICHO2:
-        case cfg::AsicType::ASIC_TYPE_JERICHO3:
         case cfg::AsicType::ASIC_TYPE_RAMON:
         case cfg::AsicType::ASIC_TYPE_RAMON3:
         case cfg::AsicType::ASIC_TYPE_CHENAB:
         case cfg::AsicType::ASIC_TYPE_AGERA3:
           // No diag shell to test for these ASICs
+          break;
+        case cfg::AsicType::ASIC_TYPE_JERICHO3:
+          runBcmDnxCmds(switchId);
           break;
         case cfg::AsicType::ASIC_TYPE_EBRO:
         case cfg::AsicType::ASIC_TYPE_GARONNE:
@@ -102,6 +106,30 @@ class AgentDiagShellStressTest : public AgentHwTest {
           makeDiagCmd("dapi.dump_port_counters()"), out, id);
       ensemble->runDiagCommand(makeDiagCmd("get_counters()"), out, id);
     }
+    std::ignore = out;
+  }
+
+  void runBcmDnxCmds(SwitchID id) {
+    std::string out;
+    auto ensemble = getAgentEnsemble();
+    // This is to check the solution in D76308958
+    // Run the following command sequence to check if the command hangs
+    try {
+      for (int i = 0; i < kNumRestarts; i++) {
+        ensemble->runDiagCommand(makeDiagCmd(""), out, id);
+        ensemble->runDiagCommand(
+            makeDiagCmd("debug soc counter debug"), out, id);
+        ensemble->runDiagCommand(makeDiagCmd("port status"), out, id);
+        ensemble->runDiagCommand(makeDiagCmd("port status"), out, id);
+        // Actuall call for quit
+        ensemble->runDiagCommand(makeDiagCmd("\x0d"), out, id);
+      }
+    } catch (const std::exception& ex) {
+      XLOG(FATAL) << "Diag command failed with exception for "
+                  << "switchId: " << static_cast<int>(id)
+                  << ", exception: " << ex.what();
+    }
+
     std::ignore = out;
   }
 };
