@@ -3,17 +3,31 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
-add_library(qsfp_platforms_wedge
-  fboss/qsfp_service/platforms/wedge/BspWedgeManager.cpp
-  fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
+set(QSFP_PLATFORMS_WEDGE_SRC
+  fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
   fboss/qsfp_service/platforms/wedge/QsfpRestClient.cpp
   fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
-  fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
   fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
   fboss/qsfp_service/platforms/wedge/Wedge400Manager.cpp
   fboss/qsfp_service/platforms/wedge/Wedge400CManager.cpp
+  fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
   fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp
+  fboss/qsfp_service/platforms/wedge/BspWedgeManager.cpp
   fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
+)
+
+if(SAI_BRCM_PAI_IMPL)
+  list(APPEND QSFP_PLATFORMS_WEDGE_SRC
+    fboss/qsfp_service/platforms/wedge/brcm_pai/WedgeManagerInit.cpp
+  )
+else()
+  list(APPEND QSFP_PLATFORMS_WEDGE_SRC
+    fboss/qsfp_service/platforms/wedge/non_xphy/WedgeManagerInit.cpp
+  )
+endif()
+
+add_library(qsfp_platforms_wedge
+  "${QSFP_PLATFORMS_WEDGE_SRC}"
 )
 
 target_link_libraries(qsfp_platforms_wedge
@@ -49,6 +63,12 @@ target_link_libraries(qsfp_platforms_wedge
   wedge_transceiver
   wedge_i2c
 )
+
+if(SAI_BRCM_PAI_IMPL)
+  target_link_libraries(qsfp_platforms_wedge
+    sai_phy_management
+  )
+endif()
 
 add_library(wedge_transceiver
   fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
