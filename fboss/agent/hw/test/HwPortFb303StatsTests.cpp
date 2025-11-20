@@ -370,7 +370,13 @@ TEST(HwPortFb303StatsTest, StatName) {
 }
 
 TEST(HwPortFb303StatsTest, StatsInit) {
-  HwPortFb303Stats stats(kPortName, kQueue2Name, kEnabledPfcPriorities);
+  HwPortFb303Stats stats(
+      kPortName,
+      kQueue2Name,
+      kEnabledPfcPriorities,
+      std::nullopt,
+      true /* inCongestionDiscardCountSupported */,
+      true /* inCongestionDiscardSeenSupported */);
   for (auto statKey : stats.kPortMonotonicCounterStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kPortName)));
@@ -386,7 +392,7 @@ TEST(HwPortFb303StatsTest, StatsInit) {
     }
   }
   for (auto statKey : stats.kPfcMonotonicCounterStatKeys()) {
-    for (auto pfcPriority : kEnabledPfcPriorities) {
+    for (const auto& pfcPriority : kEnabledPfcPriorities) {
       EXPECT_TRUE(fbData->getStatMap()->contains(
           HwPortFb303Stats::statName(statKey, kPortName, pfcPriority)));
     }
@@ -438,7 +444,13 @@ TEST(HwPortFb303StatsTest, StatsDeInit) {
 TEST(HwPortFb303StatsTest, ReInit) {
   constexpr auto kNewPortName = "eth1/2/1";
 
-  HwPortFb303Stats stats(kPortName, kQueue2Name, kEnabledPfcPriorities);
+  HwPortFb303Stats stats(
+      kPortName,
+      kQueue2Name,
+      kEnabledPfcPriorities,
+      std::nullopt,
+      true /* inCongestionDiscardCountSupported */,
+      true /* inCongestionDiscardSeenSupported */);
   stats.portNameChanged(kNewPortName);
   for (const auto& sName : stats.kPortMonotonicCounterStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
@@ -521,7 +533,13 @@ TEST(HwPortFb303StatsTest, ReInit) {
 TEST(HwPortFb303Stats, UpdateStats) {
   // Initialize with PFC priorities to ensure priority group counters are
   // created
-  HwPortFb303Stats portStats(kPortName, kQueue2Name, kEnabledPfcPriorities);
+  HwPortFb303Stats portStats(
+      kPortName,
+      kQueue2Name,
+      kEnabledPfcPriorities,
+      std::nullopt,
+      true /* inCongestionDiscardCountSupported */,
+      true /* inCongestionDiscardSeenSupported */);
   updateStats(portStats);
   verifyUpdatedStats(portStats);
 }
