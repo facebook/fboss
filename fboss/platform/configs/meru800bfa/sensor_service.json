@@ -1257,6 +1257,12 @@
         "name": "PSU4",
         "powerSensorName": "PSU4_PIN"
       }
+    ],
+    "inputVoltageSensors": [
+      "PSU1_VIN",
+      "PSU2_VIN",
+      "PSU3_VIN",
+      "PSU4_VIN"
     ]
   },
   "temperatureConfigs": [
