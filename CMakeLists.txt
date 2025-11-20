@@ -81,6 +81,12 @@ if ($ENV{CHENAB_SAI_SDK})
   add_definitions (-DCHENAB_SAI_SDK)
 endif()
 
+option(SAI_BRCM_PAI_IMPL "Build SAI api with BRCOM_PAI-SAI extensions" OFF)
+if ($ENV{SAI_BRCM_PAI_IMPL})
+  message(STATUS "ENV SAI_BRCM_PAI_IMPL is set")
+  set (SAI_BRCM_PAI_IMPL ON)
+endif()
+
 if (NOT $ENV{SAI_VERSION} EQUAL "")
   message(STATUS "ENV SAI_VERSION is set")
   set (SAI_VERSION $ENV{SAI_VERSION})
