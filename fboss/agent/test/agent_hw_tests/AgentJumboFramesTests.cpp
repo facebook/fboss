@@ -15,8 +15,9 @@
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
+#include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/EthHdr.h"
-#include "fboss/agent/packet/IPv4Hdr.h"
+
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -82,10 +83,12 @@ class AgentJumboFramesTest : public AgentHwTest {
           EXPECT_EVENTUALLY_EQ(bytesBefore, bytesAfter);
         } else {
           EXPECT_EVENTUALLY_EQ(pktsBefore + 1, pktsAfter);
-          EXPECT_EVENTUALLY_EQ(
-              bytesBefore + EthHdr::SIZE + IPv6Hdr::SIZE + UDPHeader::size() +
-                  payloadSize,
-              bytesAfter);
+          auto expectedBytes = bytesBefore + EthHdr::SIZE + IPv6Hdr::SIZE +
+              UDPHeader::size() + payloadSize;
+          if (FLAGS_hyper_port) {
+            expectedBytes += utility::EthFrame::HYPER_PORT_HEADER_SIZE;
+          }
+          EXPECT_EVENTUALLY_EQ(expectedBytes, bytesAfter);
         }
       });
     };
