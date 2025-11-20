@@ -196,10 +196,11 @@ std::pair<std::unique_ptr<WedgeManager>, std::unique_ptr<PortManager>>
 createQsfpManagers() {
   auto [productInfo, platformMapping, threads] = initializeManagerComponents();
 
-  auto phyManager =
-      createPhyManager(productInfo->getType(), platformMapping.get());
+  const auto platformType = productInfo->getType();
   auto wedgeManager =
       createWedgeManager(std::move(productInfo), platformMapping, threads);
+  auto phyManager =
+      createPhyManager(platformType, platformMapping.get(), wedgeManager.get());
 
   std::unique_ptr<PortManager> portManager{nullptr};
   if (FLAGS_port_manager_mode) {

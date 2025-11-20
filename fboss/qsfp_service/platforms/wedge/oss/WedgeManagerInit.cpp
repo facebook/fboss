@@ -50,8 +50,9 @@ std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
 }
 
 std::unique_ptr<PhyManager> createPhyManager(
-    PlatformType mode,
-    const PlatformMapping* platformMapping) {
+    PlatformType /* mode */,
+    const PlatformMapping* /* platformMapping */,
+    const WedgeManager* /* wedgeManager */) {
   return nullptr;
 }
 
