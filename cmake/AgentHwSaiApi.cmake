@@ -132,7 +132,7 @@ elseif (CHENAB_SAI_SDK)
     fboss/agent/hw/sai/api/oss/TamApi.cpp
     fboss/agent/hw/sai/api/chenab/SwitchApi.cpp
     fboss/agent/hw/sai/api/oss/DebugCounterApi.cpp
-    fboss/agent/hw/sai/api/oss/BufferApi.cpp
+    fboss/agent/hw/sai/api/chenab/BufferApi.cpp
     fboss/agent/hw/sai/api/oss/QueueApi.cpp
     fboss/agent/hw/sai/api/oss/MirrorApi.cpp
     fboss/agent/hw/sai/api/oss/SystemPortApi.cpp

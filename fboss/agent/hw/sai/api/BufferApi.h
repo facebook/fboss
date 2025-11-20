@@ -144,6 +144,11 @@ struct SaiBufferProfileTraits<SAI_BUFFER_PROFILE_THRESHOLD_MODE_STATIC> {
     };
     using SramDynamicTh =
         SaiExtensionAttribute<sai_int8_t, AttributeSramDynamicTh>;
+    struct AttributePgPipelineLatencyBytes {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PgPipelineLatencyBytes =
+        SaiExtensionAttribute<sai_uint32_t, AttributePgPipelineLatencyBytes>;
   };
 
   using CreateAttributes = std::tuple<
@@ -161,7 +166,8 @@ struct SaiBufferProfileTraits<SAI_BUFFER_PROFILE_THRESHOLD_MODE_STATIC> {
       std::optional<typename Attributes::SramFadtMaxTh>,
       std::optional<typename Attributes::SramFadtMinTh>,
       std::optional<typename Attributes::SramFadtXonOffset>,
-      std::optional<typename Attributes::SramDynamicTh>>;
+      std::optional<typename Attributes::SramDynamicTh>,
+      std::optional<typename Attributes::PgPipelineLatencyBytes>>;
   using AdapterHostKey = CreateAttributes;
 };
 
@@ -210,6 +216,11 @@ struct SaiBufferProfileTraits<SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC> {
     };
     using SramDynamicTh =
         SaiExtensionAttribute<sai_int8_t, AttributeSramDynamicTh>;
+    struct AttributePgPipelineLatencyBytes {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PgPipelineLatencyBytes =
+        SaiExtensionAttribute<sai_uint32_t, AttributePgPipelineLatencyBytes>;
   };
 
   using CreateAttributes = std::tuple<
@@ -225,7 +236,8 @@ struct SaiBufferProfileTraits<SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC> {
       std::optional<typename Attributes::SramFadtMaxTh>,
       std::optional<typename Attributes::SramFadtMinTh>,
       std::optional<typename Attributes::SramFadtXonOffset>,
-      std::optional<typename Attributes::SramDynamicTh>>;
+      std::optional<typename Attributes::SramDynamicTh>,
+      std::optional<typename Attributes::PgPipelineLatencyBytes>>;
   using AdapterHostKey = CreateAttributes;
 };
 
@@ -279,6 +291,7 @@ SAI_ATTRIBUTE_NAME(StaticBufferProfile, SramFadtMaxTh);
 SAI_ATTRIBUTE_NAME(StaticBufferProfile, SramFadtMinTh);
 SAI_ATTRIBUTE_NAME(StaticBufferProfile, SramFadtXonOffset);
 SAI_ATTRIBUTE_NAME(StaticBufferProfile, SramDynamicTh);
+SAI_ATTRIBUTE_NAME(StaticBufferProfile, PgPipelineLatencyBytes);
 SAI_ATTRIBUTE_NAME(DynamicBufferProfile, SharedDynamicThreshold);
 SAI_ATTRIBUTE_NAME(DynamicBufferProfile, SharedFadtMaxTh);
 SAI_ATTRIBUTE_NAME(DynamicBufferProfile, SharedFadtMinTh);
@@ -286,6 +299,7 @@ SAI_ATTRIBUTE_NAME(DynamicBufferProfile, SramFadtMaxTh);
 SAI_ATTRIBUTE_NAME(DynamicBufferProfile, SramFadtMinTh);
 SAI_ATTRIBUTE_NAME(DynamicBufferProfile, SramFadtXonOffset);
 SAI_ATTRIBUTE_NAME(DynamicBufferProfile, SramDynamicTh);
+SAI_ATTRIBUTE_NAME(DynamicBufferProfile, PgPipelineLatencyBytes);
 
 struct SaiIngressPriorityGroupTraits {
   static constexpr sai_api_t ApiType = SAI_API_BUFFER;

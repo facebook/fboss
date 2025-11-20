@@ -657,6 +657,9 @@ BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
       sramFadtXonOffset{};
   std::optional<typename BufferProfileTraits::Attributes::SramDynamicTh>
       sramDynamicTh{};
+  std::optional<
+      typename BufferProfileTraits::Attributes::PgPipelineLatencyBytes>
+      pgPipelineLatencyBytes{};
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (queue.getMaxDynamicSharedBytes()) {
     sharedFadtMaxTh = queue.getMaxDynamicSharedBytes().value();
@@ -676,6 +679,10 @@ BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
 #endif
 #endif
 
+#if defined(CHENAB_SAI_SDK)
+  // Not applicable for egress
+  pgPipelineLatencyBytes = 0;
+#endif
   if constexpr (std::is_same_v<
                     BufferProfileTraits,
                     SaiStaticBufferProfileTraits>) {
@@ -708,7 +715,8 @@ BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
         sramFadtMaxTh,
         sramFadtMinTh,
         sramFadtXonOffset,
-        sramDynamicTh};
+        sramDynamicTh,
+        pgPipelineLatencyBytes};
   } else {
     typename BufferProfileTraits::Attributes::ThresholdMode mode{
         SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
@@ -739,7 +747,8 @@ BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
         sramFadtMaxTh,
         sramFadtMinTh,
         sramFadtXonOffset,
-        sramDynamicTh};
+        sramDynamicTh,
+        pgPipelineLatencyBytes};
   }
 }
 
@@ -860,6 +869,16 @@ SaiBufferManager::ingressProfileCreateAttrs(
 #endif
 #endif
 
+  std::optional<
+      typename BufferProfileTraits::Attributes::PgPipelineLatencyBytes>
+      pgPipelineLatencyBytes;
+#if defined(CHENAB_SAI_SDK)
+  // For lossy PGs, explicitly configure an additional buffering
+  // of 39KB to compensate for the pipeline latency from AR / ACLs.
+  if (*config.headroomLimitBytes() == 0) {
+    pgPipelineLatencyBytes = 39 * 1024;
+  }
+#endif
   if constexpr (std::is_same_v<
                     BufferProfileTraits,
                     SaiStaticBufferProfileTraits>) {
@@ -895,7 +914,8 @@ SaiBufferManager::ingressProfileCreateAttrs(
         sramFadtMaxTh,
         sramFadtMinTh,
         sramFadtXonOffset,
-        sramDynamicTh};
+        sramDynamicTh,
+        pgPipelineLatencyBytes};
   } else {
     typename BufferProfileTraits::Attributes::ThresholdMode mode{
         SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
@@ -921,7 +941,8 @@ SaiBufferManager::ingressProfileCreateAttrs(
         sramFadtMaxTh,
         sramFadtMinTh,
         sramFadtXonOffset,
-        sramDynamicTh};
+        sramDynamicTh,
+        pgPipelineLatencyBytes};
   }
 }
 
