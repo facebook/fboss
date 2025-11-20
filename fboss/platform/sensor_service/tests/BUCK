@@ -91,3 +91,15 @@ cpp_unittest(
         "//folly:file_util",
     ],
 )
+
+cpp_unittest(
+    name = "sensor_service_input_voltage_test",
+    srcs = [
+        "SensorServiceImplInputVoltageTest.cpp",
+    ],
+    deps = [
+        "//fb303:service_data",
+        "//fboss/platform/sensor_service:service",
+        "//folly:file_util",
+    ],
+)

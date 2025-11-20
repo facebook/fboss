@@ -129,6 +129,9 @@ void SensorServiceImpl::fetchSensorData() {
 
   processTemperature(polledData, *sensorConfig_.temperatureConfigs());
 
+  processInputVoltage(
+      polledData, *sensorConfig_.powerConfig()->inputVoltageSensors());
+
   fb303::fbData->setCounter(kReadTotal, polledData.size());
   fb303::fbData->setCounter(kTotalReadFailure, readFailures);
   fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
@@ -393,5 +396,41 @@ void SensorServiceImpl::processTemperature(
         maxSensor.value_or("NONE"),
         numFailures);
   }
+}
+
+void SensorServiceImpl::processInputVoltage(
+    const std::map<std::string, SensorData>& polledData,
+    const std::vector<std::string>& inputVoltageSensors) {
+  auto getSensorValue = [&](const std::string& sensorName) {
+    auto it = polledData.find(sensorName);
+    if (it != polledData.end()) {
+      return it->second.value().to_optional();
+    }
+    return std::optional<float>(std::nullopt);
+  };
+
+  std::optional<float> maxVoltage{std::nullopt};
+  int numFailures{0};
+  std::optional<std::string> maxSensor{};
+
+  for (const auto& sensorName : inputVoltageSensors) {
+    auto sensorValue = getSensorValue(sensorName);
+    if (sensorValue) {
+      if (!maxVoltage || *sensorValue > *maxVoltage) {
+        maxVoltage = sensorValue;
+        maxSensor = sensorName;
+      }
+    } else {
+      numFailures++;
+    }
+  }
+
+  publishDerivedStats(kMaxInputVoltage, maxVoltage);
+  XLOG(INFO) << fmt::format(
+      "Max Input Voltage: {}V (Based on {}).  Processed: {}/{}",
+      maxVoltage.value_or(0),
+      maxSensor.value_or("NONE"),
+      inputVoltageSensors.size() - numFailures,
+      inputVoltageSensors.size());
 }
 } // namespace facebook::fboss::platform::sensor_service
