@@ -59,9 +59,9 @@ class SensorServiceImpl {
     return fsdbSyncer_.get();
   }
 
-  void processPowerConsumption(
+  void processPower(
       const std::map<std::string, SensorData>& polledData,
-      const std::vector<PowerConsumptionConfig>& pcConfigs);
+      const PowerConfig& powerConfig);
 
   void processTemperature(
       const std::map<std::string, SensorData>& polledData,

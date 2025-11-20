@@ -1643,14 +1643,16 @@
       ]
     }
   ],
-  "powerConsumptionConfigs": [
-    {
-      "name": "PSU1",
-      "powerSensorName": "PSU0_PIN_MN"
-    },
-    {
-      "name": "PSU2",
-      "powerSensorName": "PSU1_PIN_MN"
-    }
-  ]
+  "powerConfig": {
+    "perSlotPowerConfigs": [
+      {
+        "name": "PSU1",
+        "powerSensorName": "PSU0_PIN_MN"
+      },
+      {
+        "name": "PSU2",
+        "powerSensorName": "PSU1_PIN_MN"
+      }
+    ]
+  }
 }

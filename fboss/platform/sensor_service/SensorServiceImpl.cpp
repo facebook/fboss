@@ -125,7 +125,8 @@ void SensorServiceImpl::fetchSensorData() {
     publishPerSensorStats(sensorName, sensorData.value().to_optional());
   }
 
-  processPowerConsumption(polledData, *sensorConfig_.powerConsumptionConfigs());
+  processPower(polledData, *sensorConfig_.powerConfig());
+
   processTemperature(polledData, *sensorConfig_.temperatureConfigs());
 
   fb303::fbData->setCounter(kReadTotal, polledData.size());
@@ -285,9 +286,9 @@ SensorData SensorServiceImpl::processAsicCmd(const AsicCommand& asicCommand) {
   return sensorData;
 }
 
-void SensorServiceImpl::processPowerConsumption(
+void SensorServiceImpl::processPower(
     const std::map<std::string, SensorData>& polledData,
-    const std::vector<PowerConsumptionConfig>& pcConfigs) {
+    const PowerConfig& powerConfig) {
   auto getSensorValue = [&](const std::string& sensorName) {
     auto it = polledData.find(sensorName);
     if (it != polledData.end()) {
@@ -295,39 +296,66 @@ void SensorServiceImpl::processPowerConsumption(
     }
     return std::optional<float>(std::nullopt);
   };
+
   float totalPowerVal{0};
-  for (const auto& pcConfig : pcConfigs) {
-    std::optional<float> psuPower{std::nullopt};
+
+  // Process per-slot power configs (PSU/PEM/HSC)
+  for (const auto& perSlotConfig : *powerConfig.perSlotPowerConfigs()) {
+    std::optional<float> slotPower{std::nullopt};
     std::string calcMethod{};
-    if (pcConfig.powerSensorName()) {
-      psuPower = getSensorValue(*pcConfig.powerSensorName());
-      calcMethod = fmt::format("Power Sensor: {}", *pcConfig.powerSensorName());
-    } else if (pcConfig.voltageSensorName() && pcConfig.currentSensorName()) {
-      auto voltage = getSensorValue(*pcConfig.voltageSensorName());
-      auto current = getSensorValue(*pcConfig.currentSensorName());
+    if (perSlotConfig.powerSensorName()) {
+      slotPower = getSensorValue(*perSlotConfig.powerSensorName());
+      calcMethod =
+          fmt::format("Power Sensor: {}", *perSlotConfig.powerSensorName());
+    } else if (
+        perSlotConfig.voltageSensorName() &&
+        perSlotConfig.currentSensorName()) {
+      auto voltage = getSensorValue(*perSlotConfig.voltageSensorName());
+      auto current = getSensorValue(*perSlotConfig.currentSensorName());
       if (voltage && current) {
-        psuPower = *voltage * *current;
+        slotPower = *voltage * *current;
       }
       calcMethod = fmt::format(
           "Voltage Sensor: {} * Current Sensor: {}",
-          *pcConfig.voltageSensorName(),
-          *pcConfig.currentSensorName());
+          *perSlotConfig.voltageSensorName(),
+          *perSlotConfig.currentSensorName());
     }
-    publishDerivedStats(fmt::format("{}_POWER", *pcConfig.name()), psuPower);
-    if (psuPower) {
+    publishDerivedStats(
+        fmt::format("{}_POWER", *perSlotConfig.name()), slotPower);
+    if (slotPower) {
       XLOG(INFO) << fmt::format(
           "{}: Power {}W (Based on {})",
-          *pcConfig.name(),
-          *psuPower,
+          *perSlotConfig.name(),
+          *slotPower,
           calcMethod);
-      totalPowerVal += *psuPower;
+      totalPowerVal += *slotPower;
     } else {
       XLOG(ERR) << fmt::format(
           "{}: Error reading power (Based on {})",
-          *pcConfig.name(),
+          *perSlotConfig.name(),
           calcMethod);
     }
   }
+
+  // Process other power sensors (e.g., FANx power sensors)
+  for (const auto& sensorName : *powerConfig.otherPowerSensorNames()) {
+    auto sensorValue = getSensorValue(sensorName);
+    if (sensorValue) {
+      XLOG(INFO) << fmt::format(
+          "{}: Power {}W (Direct Sensor)", sensorName, *sensorValue);
+      totalPowerVal += *sensorValue;
+    } else {
+      XLOG(ERR) << fmt::format("{}: Error reading power sensor", sensorName);
+    }
+  }
+
+  // Add power delta if configured
+  if (*powerConfig.powerDelta() != 0) {
+    XLOG(INFO) << fmt::format(
+        "Adding power delta: {}W", *powerConfig.powerDelta());
+    totalPowerVal += *powerConfig.powerDelta();
+  }
+
   publishDerivedStats(kTotalPower, totalPowerVal);
 }
 

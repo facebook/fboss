@@ -9927,6 +9927,16 @@
       ]
     }
   ],
+  "powerConfig": {
+    "perSlotPowerConfigs": [
+      {
+        "__comment__": "Hot-swap VRM chip ADM1272 monitors the power consumption of the entire system",
+        "name": "HSC",
+        "voltageSensorName": "SMB_U279_MAIN_HSC_ADM1272_VOUT",
+        "currentSensorName": "SMB_U279_MAIN_HSC_ADM1272_IOUT"
+      }
+    ]
+  },
   "powerConsumptionConfigs": [
     {
       "__comment__": "Hot-swap VRM chip ADM1272 monitors the power consumption of the entire system",

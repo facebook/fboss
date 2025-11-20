@@ -860,12 +860,14 @@
       ]
     }
   ],
-  "powerConsumptionConfigs": [
-    {
-      "name": "PSU1",
-      "powerSensorName": "PSU_PIN"
-    }
-  ],
+  "powerConfig": {
+    "perSlotPowerConfigs": [
+      {
+        "name": "PSU1",
+        "powerSensorName": "PSU_PIN"
+      }
+    ]
+  },
   "temperatureConfigs": [
     {
       "name": "ASIC",
