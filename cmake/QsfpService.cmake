@@ -329,20 +329,28 @@ target_link_libraries(qsfp_core
   qsfp_handler
 )
 
-add_executable(qsfp_service
-    fboss/qsfp_service/Main.cpp
+set(QSFP_SERVICE_SRCS
+  fboss/qsfp_service/Main.cpp
 )
 
-target_link_libraries(qsfp_service
-    qsfp_module
-    qsfp_config
-    phy_management_base
-    transceiver_manager
-    port_manager
-    qsfp_platforms_wedge
-    log_thrift_call
-    qsfp_core
-    qsfp_handler
+set(QSFP_SERVICE_DEPS
+  qsfp_module
+  qsfp_config
+  phy_management_base
+  transceiver_manager
+  port_manager
+  qsfp_platforms_wedge
+  log_thrift_call
+  qsfp_core
+  qsfp_handler
 )
 
-install(TARGETS qsfp_service)
+if(SAI_BRCM_PAI_IMPL)
+  BUILD_AND_INSTALL_WITH_XPHY_SDK_LIBS(
+    "qsfp_service" QSFP_SERVICE_SRCS QSFP_SERVICE_DEPS "brcm_pai" XPHY_SDK_LIBS
+  )
+else()
+  BUILD_AND_INSTALL_WITH_XPHY_SDK_LIBS(
+    "qsfp_service" QSFP_SERVICE_SRCS QSFP_SERVICE_DEPS "" ""
+  )
+endif()
