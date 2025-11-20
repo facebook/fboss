@@ -753,6 +753,10 @@
         "name": "PSU2",
         "powerSensorName": "PSU2_PIN"
       }
+    ],
+    "inputVoltageSensors": [
+      "PSU1_VIN",
+      "PSU2_VIN"
     ]
   },
   "temperatureConfigs": [
