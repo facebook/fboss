@@ -7465,6 +7465,9 @@
         "name": "HSC",
         "powerSensorName": "SMB_HOTSWAP_PIN"
       }
+    ],
+    "inputVoltageSensors": [
+      "SMB_HOTSWAP_VIN"
     ]
   },
   "temperatureConfigs": [
