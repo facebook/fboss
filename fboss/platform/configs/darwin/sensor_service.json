@@ -543,6 +543,9 @@
         "voltageSensorName": "PEM_ADC_VIN",
         "currentSensorName": "PEM_ECB_IOUT_CH2"
       }
+    ],
+    "inputVoltageSensors": [
+      "PEM_ADC_VIN"
     ]
   },
   "temperatureConfigs": [
