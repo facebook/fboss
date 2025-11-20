@@ -403,12 +403,9 @@ TEST(HwPortFb303StatsTest, StatsInit) {
           HwPortFb303Stats::pgStatName(statKey, kPortName, pfcPriority)));
     }
   }
-  for (auto statKey : stats.kPriorityGroupCounterStatKeys()) {
-    for (const auto& pfcPriority : kEnabledPfcPriorities) {
-      EXPECT_TRUE(fbData->getStatMap()->contains(
-          HwPortFb303Stats::pgStatName(statKey, kPortName, pfcPriority)));
-    }
-  }
+  // kPriorityGroupCounterStatKeys() are not initialized on construction,
+  // they will be initialized on the first set/update. Hence, we don't
+  // check for their existence in this test.
 }
 
 TEST(HwPortFb303StatsTest, StatsDeInit) {
@@ -516,14 +513,9 @@ TEST(HwPortFb303StatsTest, ReInit) {
           HwPortFb303Stats::pgStatName(statKey, kPortName, pfcPriority)));
     }
   }
-  for (auto statKey : stats.kPriorityGroupCounterStatKeys()) {
-    for (const auto& pfcPriority : kEnabledPfcPriorities) {
-      EXPECT_TRUE(fbData->getStatMap()->contains(
-          HwPortFb303Stats::pgStatName(statKey, kNewPortName, pfcPriority)));
-      EXPECT_FALSE(fbData->getStatMap()->contains(
-          HwPortFb303Stats::pgStatName(statKey, kPortName, pfcPriority)));
-    }
-  }
+  // kPriorityGroupCounterStatKeys() are not initialized on construction or
+  // reinit. They will be initialized only on the first set (via setPgCounter).
+  // Hence, we don't check for their existence in this test.
 }
 
 TEST(HwPortFb303Stats, UpdateStats) {
