@@ -118,6 +118,11 @@ class Timer {
         std::chrono::duration_cast<std::chrono::microseconds>(end - start_);
   }
 
+  Timer(const Timer&) = delete;
+  Timer& operator=(const Timer&) = delete;
+  Timer(Timer&&) = delete;
+  Timer& operator=(Timer&&) = delete;
+
  private:
   std::chrono::microseconds* duration_;
   std::chrono::time_point<std::chrono::steady_clock> start_;

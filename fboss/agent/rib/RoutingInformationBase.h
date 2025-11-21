@@ -209,6 +209,8 @@ class RoutingInformationBase {
  public:
   RoutingInformationBase(const RoutingInformationBase& o) = delete;
   RoutingInformationBase& operator=(const RoutingInformationBase& o) = delete;
+  RoutingInformationBase(RoutingInformationBase&&) = delete;
+  RoutingInformationBase& operator=(RoutingInformationBase&&) = delete;
   RoutingInformationBase();
   ~RoutingInformationBase();
 
