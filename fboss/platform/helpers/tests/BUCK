@@ -24,6 +24,7 @@ cpp_unittest(
     ],
     deps = [
         "//fboss/platform/helpers:platform_fs_utils",
+        "//folly:file_util",
         "//folly/testing:test_util",
     ],
 )
