@@ -1779,7 +1779,8 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (port->getPortType() == cfg::PortType::INTERFACE_PORT ||
-      port->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+      port->getPortType() == cfg::PortType::MANAGEMENT_PORT ||
+      port->getPortType() == cfg::PortType::HYPER_PORT) {
     auto shelEnable = GET_OPT_ATTR(Port, ShelEnable, attributes);
     port->setSelfHealingECMPLagEnable(shelEnable);
   }
