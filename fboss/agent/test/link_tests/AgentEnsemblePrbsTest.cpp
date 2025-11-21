@@ -324,10 +324,11 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       prbs::InterfacePrbsState& expectedState) {
     try {
       prbs::InterfacePrbsState state;
-      if (getSw()->isRunModeMonolithic()) {
-        client->sync_getInterfacePrbsState(state, interfaceName, component);
-      } else {
+      if (getSw()->isRunModeMultiSwitch() &&
+          component == phy::PortComponent::ASIC) {
         getInterfacePrbsStateMultiSwitch(state, interfaceName, component);
+      } else {
+        client->sync_getInterfacePrbsState(state, interfaceName, component);
       }
       if (expectedState.generatorEnabled().has_value() &&
           expectedState.generatorEnabled().value()) {
@@ -531,10 +532,11 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
                  << ", component: "
                  << apache::thrift::util::enumNameSafe(component);
       phy::PrbsStats stats;
-      if (getSw()->isRunModeMonolithic()) {
-        client->sync_getInterfacePrbsStats(stats, interfaceName, component);
-      } else {
+      if (getSw()->isRunModeMultiSwitch() &&
+          component == phy::PortComponent::ASIC) {
         getInterfacePrbsStatsMultiSwitch(stats, interfaceName, component);
+      } else {
+        client->sync_getInterfacePrbsStats(stats, interfaceName, component);
       }
 
       EXPECT_FALSE(stats.laneStats().value().empty())
@@ -602,7 +604,8 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       std::string& interfaceName,
       phy::PortComponent component) {
     try {
-      if (getSw()->isRunModeMultiSwitch()) {
+      if (getSw()->isRunModeMultiSwitch() &&
+          component == phy::PortComponent::ASIC) {
         clearInterfacePrbsStatsMultiSwitch(interfaceName, component);
       } else {
         client->sync_clearInterfacePrbsStats(interfaceName, component);

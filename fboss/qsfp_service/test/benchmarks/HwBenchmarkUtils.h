@@ -16,7 +16,9 @@ std::vector<TransceiverID> getMatchingTcvrIds(
 std::size_t refreshTcvrs(MediaInterfaceCode mediaType);
 std::size_t readOneByte(MediaInterfaceCode mediaType);
 
-std::unique_ptr<WedgeManager> setupForColdboot();
-std::unique_ptr<WedgeManager> setupForWarmboot();
+std::pair<std::unique_ptr<WedgeManager>, std::unique_ptr<PortManager>>
+setupForColdboot();
+std::pair<std::unique_ptr<WedgeManager>, std::unique_ptr<PortManager>>
+setupForWarmboot();
 
 } // namespace facebook::fboss

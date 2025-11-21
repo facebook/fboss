@@ -491,6 +491,10 @@ size_t pumpRoCETraffic(
           nxtHdr.value().end(),
           std::back_inserter(rocePayload));
     }
+    // Filler to take pkt size >64. IPv4 is at 58 which typically below SDK
+    // supported value
+    std::vector<uint8_t> filler = {0, 0, 0, 0, 0, 0, 0};
+    std::move(filler.begin(), filler.end(), std::back_inserter(rocePayload));
     auto pkt = makeUDPTxPacket(
         allocateFn,
         vlan,

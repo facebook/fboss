@@ -68,6 +68,11 @@ class FsdbPublisher : public FsdbStreamClient {
               }
             }),
         publishPath_(publishPath),
+        chunksWritten_(
+            fb303::ThreadCachedServiceData::get()->getThreadStats(),
+            getCounterPrefix() + ".chunksWritten",
+            fb303::SUM,
+            fb303::RATE),
 #if FOLLY_HAS_COROUTINES
         asyncPipe_(makePipe()),
 #endif
@@ -94,10 +99,19 @@ class FsdbPublisher : public FsdbStreamClient {
   folly::coro::AsyncGenerator<PubUnit&&> createGenerator();
 #endif
   OperPubRequest createRequest() const;
+  virtual bool tryWrite(
+      folly::coro::BoundedAsyncPipe<PubUnit, false>& pipe,
+      PubUnit&& pubUnit);
+
+  virtual bool flush(
+      folly::coro::BoundedAsyncPipe<PubUnit, false>& /* pipe */) {
+    return true;
+  }
 
   const std::vector<std::string> publishPath_;
   std::atomic<bool> initialSyncComplete_{false};
   std::atomic<uint64_t> lastConfirmedAt_{0};
+  fb303::ThreadCachedServiceData::TLTimeseries chunksWritten_;
 
  private:
   void scheduleHeartbeatLoop();

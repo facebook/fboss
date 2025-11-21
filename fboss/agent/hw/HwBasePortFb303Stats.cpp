@@ -83,7 +83,7 @@ void HwBasePortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
     // just delete the counter
     utility::deleteCounter(statName(statKey, oldPortName.value_or("")));
   }
-  for (auto queueIdAndName : queueId2Name_) {
+  for (const auto& queueIdAndName : queueId2Name_) {
     for (auto statKey : kQueueMonotonicCounterStatKeys()) {
       auto newStatName = statName(
           statKey, portName_, queueIdAndName.first, queueIdAndName.second);
@@ -110,24 +110,6 @@ void HwBasePortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
   // Init per priority PFC stats
   if (getEnabledPfcPriorities().size()) {
     reinitPfcStats(oldPortName);
-  }
-
-  // Init priority group stats
-  for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX(); ++i) {
-    for (auto statKey : kPriorityGroupMonotonicCounterStatKeys()) {
-      auto newStatName = pgStatName(statKey, portName_, i);
-      std::optional<std::string> oldStatName = oldPortName
-          ? std::optional<std::string>(pgStatName(statKey, *oldPortName, i))
-          : std::nullopt;
-      portCounters_.reinitStat(newStatName, oldStatName);
-    }
-    for (auto statKey : kPriorityGroupCounterStatKeys()) {
-      auto newStatName = pgStatName(statKey, portName_, i);
-      std::optional<std::string> oldStatName = oldPortName
-          ? std::optional<std::string>(pgStatName(statKey, *oldPortName, i))
-          : std::nullopt;
-      portCounters_.reinitStat(newStatName, oldStatName);
-    }
   }
 }
 
@@ -191,6 +173,22 @@ void HwBasePortFb303Stats::reinitPfcStats(
   if (pfcInfo_.txPfcDurationEnabled) {
     reinitPortPriorityPfcStats({kTxPfcDurationUsec()});
   }
+
+  // Init priority group stats
+  for (const auto& pfcPriority : getEnabledPfcPriorities()) {
+    if (pfcInfo_.inCongestionDiscardCountSupported) {
+      for (auto statKey : kPriorityGroupMonotonicCounterStatKeys()) {
+        auto newStatName = pgStatName(statKey, portName_, pfcPriority);
+        std::optional<std::string> oldStatName = oldPortName
+            ? std::optional<std::string>(
+                  pgStatName(statKey, *oldPortName, pfcPriority))
+            : std::nullopt;
+        portCounters_.reinitStat(newStatName, oldStatName);
+      }
+      // kPriorityGroupCounterStatKeys() need not be inited, init will happen on
+      // the next set.
+    }
+  }
 }
 
 /*
@@ -252,26 +250,55 @@ void HwBasePortFb303Stats::queueRemoved(int queueId) {
 void HwBasePortFb303Stats::pfcConfigChanged(
     std::vector<PfcPriority> enabledPriorities,
     std::optional<cfg::PortPfc> pfc) {
-  auto removeKeys = [&](const std::vector<PfcPriority>& priorities,
-                        const auto& keys) {
-    for (const auto& priority : priorities) {
-      // Remove old keys
-      for (auto statKey : keys) {
-        portCounters_.removeStat(statName(statKey, portName_, priority));
-      }
-    }
-  };
+  auto removeAllPfcPriorityKeys =
+      [&](const std::vector<PfcPriority>& priorities, const auto& keys) {
+        for (const auto& priority : priorities) {
+          // Remove old keys
+          for (auto statKey : keys) {
+            portCounters_.removeStat(statName(statKey, portName_, priority));
+          }
+        }
+      };
 
-  auto reinitKeys = [&](const std::vector<PfcPriority>& priorities,
-                        const auto& keys) {
-    for (const auto& priority : priorities) {
-      // Reinit keys
-      for (auto statKey : keys) {
-        portCounters_.reinitStat(
-            statName(statKey, portName_, priority), std::nullopt);
-      }
-    }
-  };
+  auto reinitAllPfcPriorityKeys =
+      [&](const std::vector<PfcPriority>& priorities, const auto& keys) {
+        for (const auto& priority : priorities) {
+          // Reinit keys
+          for (auto statKey : keys) {
+            portCounters_.reinitStat(
+                statName(statKey, portName_, priority), std::nullopt);
+          }
+        }
+      };
+
+  auto removeAllPriorityGroupKeys =
+      [&](const std::vector<PfcPriority>& priorities) {
+        for (const auto& priority : priorities) {
+          if (pfcInfo_.inCongestionDiscardCountSupported) {
+            for (auto statKey : kPriorityGroupMonotonicCounterStatKeys()) {
+              auto statName = pgStatName(statKey, portName_, priority);
+              portCounters_.removeStat(
+                  pgStatName(statKey, portName_, priority));
+            }
+          }
+          // TODO(nivinl): Delete kPriorityGroupCounterStatKeys()!
+        }
+      };
+
+  auto reinitAllPriorityGroupKeys =
+      [&](const std::vector<PfcPriority>& priorities) {
+        for (const auto& priority : priorities) {
+          if (pfcInfo_.inCongestionDiscardCountSupported) {
+            for (auto statKey : kPriorityGroupMonotonicCounterStatKeys()) {
+              auto statName = pgStatName(statKey, portName_, priority);
+              portCounters_.reinitStat(
+                  pgStatName(statKey, portName_, priority), std::nullopt);
+            }
+            // kPriorityGroupCounterStatKeys() need not be inited, init will
+            // happen on the next set.
+          }
+        }
+      };
 
   bool rxPfcDurationEnabled =
       pfc.has_value() && pfc->rxPfcDurationEnable().has_value()
@@ -287,10 +314,10 @@ void HwBasePortFb303Stats::pfcConfigChanged(
     auto keys = {kRxPfcDurationUsec()};
     if (getEnabledPfcPriorities() != enabledPriorities ||
         !pfcInfo_.rxPfcDurationEnabled) {
-      removeKeys(getEnabledPfcPriorities(), keys);
+      removeAllPfcPriorityKeys(getEnabledPfcPriorities(), keys);
     }
     if (pfcInfo_.rxPfcDurationEnabled) {
-      reinitKeys(enabledPriorities, keys);
+      reinitAllPfcPriorityKeys(enabledPriorities, keys);
     }
   }
   if (pfcInfo_.txPfcDurationEnabled != txPfcDurationEnabled) {
@@ -298,19 +325,21 @@ void HwBasePortFb303Stats::pfcConfigChanged(
     auto keys = {kTxPfcDurationUsec()};
     if (getEnabledPfcPriorities() != enabledPriorities ||
         !pfcInfo_.txPfcDurationEnabled) {
-      removeKeys(getEnabledPfcPriorities(), keys);
+      removeAllPfcPriorityKeys(getEnabledPfcPriorities(), keys);
     }
     if (pfcInfo_.txPfcDurationEnabled) {
-      reinitKeys(enabledPriorities, keys);
+      reinitAllPfcPriorityKeys(enabledPriorities, keys);
     }
   }
 
   // Handle a change in PFC priorities
   if (getEnabledPfcPriorities() != enabledPriorities) {
-    auto keys = kPfcMonotonicCounterStatKeys();
-    removeKeys(getEnabledPfcPriorities(), keys);
+    auto pfckeys = kPfcMonotonicCounterStatKeys();
+    removeAllPfcPriorityKeys(getEnabledPfcPriorities(), pfckeys);
+    removeAllPriorityGroupKeys(getEnabledPfcPriorities());
     pfcInfo_.enabledPfcPriorities = std::move(enabledPriorities);
-    reinitKeys(getEnabledPfcPriorities(), keys);
+    reinitAllPfcPriorityKeys(getEnabledPfcPriorities(), pfckeys);
+    reinitAllPriorityGroupKeys(getEnabledPfcPriorities());
   }
   if (getEnabledPfcPriorities().size()) {
     // If PFC is enabled for priorities, init aggregated port

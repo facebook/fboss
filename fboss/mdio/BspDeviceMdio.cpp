@@ -17,13 +17,18 @@
 #include <cstdint>
 #include "fboss/mdio/MdioError.h"
 
-// TODO(rajank):
-// Remove this temporary definition and include mdio_ioctl.h
 namespace {
+/*
+ * The structure contains all the required information to initiate MDIO
+ * C45 transactions from user space.
+ * Fields are kept as u32 as the kernel driver expects so, but
+ * only the lower bits are used per Clause 45 spec:
+ */
 using mdio_access_req_t = struct mdio_access_req_t {
-  uint32_t addr;
-  uint32_t reg;
-  uint32_t value;
+  uint32_t phy_addr; // 5-bit PHY address
+  uint32_t dev_addr; // 5-bit device address
+  uint32_t reg_addr; // 16-bit register address
+  uint32_t reg_data; // 16-bit register value
 };
 
 #define MDIO_ACCESS_REGRD _IOR('m', 1, mdio_access_req_t)
@@ -78,11 +83,10 @@ phy::Cl45Data BspDeviceMdio::cl45Operation(
 
   request_++;
 
-  req.addr = physAddr;
-  // This assumes upper 16 bits are DevType. We might have to make that a mask
-  // an argument if other BSPs need it to be different.
-  req.reg = (devAddr << 16) | regAddr;
-  req.value = (ioctlVal == MDIO_ACCESS_REGWR) ? data : 0;
+  req.phy_addr = physAddr;
+  req.dev_addr = devAddr;
+  req.reg_addr = regAddr;
+  req.reg_data = (ioctlVal == MDIO_ACCESS_REGWR) ? data : 0;
 
   // Perform MDIO clause 45 read/write operation
   // (read: MDIO_ACCESS_REGRD, write: MDIO_ACCESS_REGWR)
@@ -96,7 +100,7 @@ phy::Cl45Data BspDeviceMdio::cl45Operation(
             folly::errnoStr(errno)));
   }
 
-  return req.value;
+  return req.reg_data;
 }
 
 phy::Cl45Data BspDeviceMdio::readCl45(

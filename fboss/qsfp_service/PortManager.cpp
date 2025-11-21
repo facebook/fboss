@@ -85,10 +85,12 @@ PortManager::PortManager(
     std::unique_ptr<PhyManager> phyManager,
     const std::shared_ptr<const PlatformMapping> platformMapping,
     const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-        threads)
+        threads,
+    std::shared_ptr<QsfpFsdbSyncManager> fsdbSyncManager)
     : platformMapping_(platformMapping),
       transceiverManager_(transceiverManager),
       phyManager_(std::move(phyManager)),
+      fsdbSyncManager_(std::move(fsdbSyncManager)),
       cachedXphyPorts_(getXphyPortsCache()),
       threads_(threads),
       tcvrToPortMap_(getTcvrToPortMap(platformMapping_)),
@@ -332,10 +334,6 @@ void PortManager::setPortAdminState(
              << static_cast<int>(portId);
   phyManager_->setPortAdminState(PortID(portId), component, setAdminUp);
 }
-
-void PortManager::getSymbolErrorHistogram(
-    CdbDatapathSymErrHistogram& symErr,
-    const std::string& portNameStr) {}
 
 const std::set<std::string> PortManager::getPortNames(
     TransceiverID tcvrId) const {
@@ -913,7 +911,9 @@ std::vector<PortID> PortManager::getAllPlatformPorts(
   return tcvrToPortMapItr->second;
 }
 
-void PortManager::publishLinkSnapshots(const std::string& portNameStr) {}
+void PortManager::publishLinkSnapshots(const std::string& portNameStr) {
+  publishLinkSnapshots(getPortIDByPortNameOrThrow(portNameStr));
+}
 
 void PortManager::getInterfacePhyInfo(
     std::map<std::string, phy::PhyInfo>& phyInfos,
@@ -1152,7 +1152,14 @@ void PortManager::
       << numResults << " ports need to reset status.";
 }
 
-void PortManager::publishLinkSnapshots(PortID portId) {}
+void PortManager::publishLinkSnapshots(PortID portId) {
+  // Publish xphy snapshots if there's a phyManager and xphy ports
+  if (phyManager_) {
+    phyManager_->publishXphyInfoSnapshots(portId);
+  }
+  // Publish transceiver snapshots if there's a transceiver
+  transceiverManager_->publishLinkSnapshotsTransceiver(portId);
+}
 
 void PortManager::triggerAgentConfigChangeEvent() {
   auto wedgeAgentClient = utils::createWedgeAgentClient();
@@ -1249,6 +1256,7 @@ void PortManager::triggerAgentConfigChangeEvent() {
 void PortManager::updateTransceiverPortStatus() noexcept {
   steady_clock::time_point begin = steady_clock::now();
   std::unordered_set<PortID> portsForReset;
+  std::unordered_set<PortID> statusChangedPorts;
 
   // Get updated port status from agent.
   std::map<int32_t, NpuPortStatus> newPortToPortStatus;
@@ -1287,6 +1295,8 @@ void PortManager::updateTransceiverPortStatus() noexcept {
         stateMachineState != PortStateMachineState::UNINITIALIZED;
     bool arePortTcvrsJustProgrammed =
         stateMachineState == PortStateMachineState::TRANSCEIVERS_PROGRAMMED;
+    bool isPortUpOrDown = stateMachineState == PortStateMachineState::PORT_UP ||
+        stateMachineState == PortStateMachineState::PORT_DOWN;
 
     // Extract port data from agent.
     bool newPortStatusEnabled{false};
@@ -1300,7 +1310,10 @@ void PortManager::updateTransceiverPortStatus() noexcept {
           operStateToPortState(portToPortItr->second.operState);
       // The corresponding state machine is already enabled, so we might need
       // to update port up / port down status.
-      if (arePortTcvrsJustProgrammed || stateMachineState != newState) {
+
+      if (arePortTcvrsJustProgrammed ||
+          ((stateMachineState != newState) && isPortUpOrDown)) {
+        statusChangedPorts.insert(portId);
         auto event = getPortStatusChangeEvent(newState);
         if (auto result =
                 enqueueStateUpdateForPortWithoutExecuting(portId, event)) {
@@ -1347,6 +1360,15 @@ void PortManager::updateTransceiverPortStatus() noexcept {
   // Update transceiver state machines based on portsForReset. We only reset
   // transceivers that have all their enabled ports in this list.
   transceiverManager_->triggerResetEvents(tcvrsForReset);
+
+  for (auto portId : statusChangedPorts) {
+    try {
+      publishLinkSnapshots(portId);
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Port " << portId
+                << " failed publishLinkSnapshpts(): " << ex.what();
+    }
+  }
 
   XLOG_IF(
       DBG2,
@@ -1631,6 +1653,7 @@ void PortManager::updatePortActiveState(
       getNpuPortStatus(portStatusMap);
 
   int numPortStatusChanged{0};
+  std::unordered_set<PortID> statusChangedPorts;
   BlockingStateUpdateResultList results;
 
   for (const auto& [portIdInt, portStatus] : npuPortStatus) {
@@ -1647,15 +1670,27 @@ void PortManager::updatePortActiveState(
     XLOG(INFO) << "Syncing port status for port " << portId;
     bool arePortTcvrsJustProgrammed =
         portState == PortStateMachineState::TRANSCEIVERS_PROGRAMMED;
+    bool isPortUpOrDown = portState == PortStateMachineState::PORT_UP ||
+        portState == PortStateMachineState::PORT_DOWN;
     auto newState = operStateToPortState(portStatus.operState);
 
     if (arePortTcvrsJustProgrammed ||
-        (portStatus.portEnabled && portState != newState)) {
+        (portStatus.portEnabled && isPortUpOrDown && (portState != newState))) {
       ++numPortStatusChanged;
+      statusChangedPorts.insert(portId);
       auto event = getPortStatusChangeEvent(newState);
       if (auto result = updateStateBlockingWithoutWait(portId, event)) {
         results.push_back(result);
       }
+    }
+  }
+
+  for (auto portId : statusChangedPorts) {
+    try {
+      publishLinkSnapshots(portId);
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Port " << portId
+                << " failed publishLinkSnapshpts(): " << ex.what();
     }
   }
 
@@ -1955,9 +1990,10 @@ void PortManager::refreshStateMachines() {
   }
   transceiverManager_->triggerRemediateEvents(stableTcvrs);
 
-  // TODO(smenta) – Need to add support for publishing PIM states.
+  // Step 9: Publish PIM states to FSDB
+  transceiverManager_->publishPimStatesToFsdb();
 
-  // Step 9: Mark full initialization complete.
+  // Step 10: Mark full initialization complete.
   transceiverManager_->completeRefresh();
   setWarmBootState();
 
@@ -2001,6 +2037,31 @@ void PortManager::getPortStates(
     } catch (const FbossError& /* e */) {
       XLOG(WARN) << "Unrecognized Port:" << portId;
     }
+  }
+}
+
+void PortManager::publishPhyStateToFsdb(
+    std::string&& portNameStr,
+    std::optional<phy::PhyState>&& newState) const {
+  if (FLAGS_publish_state_to_fsdb) {
+    fsdbSyncManager_->updatePhyState(
+        std::move(portNameStr), std::move(newState));
+  }
+}
+
+void PortManager::publishPhyStatToFsdb(
+    std::string&& portNameStr,
+    phy::PhyStats&& stat) const {
+  if (FLAGS_publish_stats_to_fsdb) {
+    fsdbSyncManager_->updatePhyStat(std::move(portNameStr), std::move(stat));
+  }
+}
+
+void PortManager::publishPortStatToFsdb(
+    std::string&& portNameStr,
+    HwPortStats&& stat) const {
+  if (FLAGS_publish_stats_to_fsdb) {
+    fsdbSyncManager_->updatePortStat(std::move(portNameStr), std::move(stat));
   }
 }
 

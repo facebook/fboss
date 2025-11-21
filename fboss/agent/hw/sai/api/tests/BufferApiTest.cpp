@@ -78,6 +78,7 @@ class BufferApiTest : public ::testing::Test {
           std::nullopt,
           std::nullopt,
           std::nullopt,
+          std::nullopt,
           std::nullopt};
       return bufferApi->create<SaiDynamicBufferProfileTraits>(c, 0);
     } else {
@@ -92,6 +93,7 @@ class BufferApiTest : public ::testing::Test {
           xoffTh,
           xonTh,
           xonOffsetTh,
+          std::nullopt,
           std::nullopt,
           std::nullopt,
           std::nullopt,

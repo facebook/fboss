@@ -133,7 +133,7 @@ bool PlatformPortProfileConfigMatcher::matchOverrideWithFactor(
       return false;
     }
   }
-  XLOGF(INFO, "Found override for matcher {}", toString());
+  XLOGF(DBG3, "Found override for matcher {}", toString());
   return true;
 }
 

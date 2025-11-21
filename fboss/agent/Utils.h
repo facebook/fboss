@@ -95,6 +95,7 @@ class HwAsic;
 class HwSwitchFb303Stats;
 
 constexpr auto kRecyclePortIdOffset = 1;
+constexpr auto kOperDeltaHwSwitchMatcherPathIndex = 1;
 
 template <typename T>
 inline T readBuffer(const uint8_t* buffer, uint32_t pos, size_t buffSize) {
@@ -414,7 +415,10 @@ class OperDeltaFilter {
   explicit OperDeltaFilter(SwitchID switchId);
   std::optional<fsdb::OperDelta> filterWithSwitchStateRootPath(
       const fsdb::OperDelta& delta) const {
-    return filter(delta, 1);
+    // Index 0 is the root of the Agent State Delta, where index 1 is the
+    // HwMatcher string. Therefore, filter on the matcher string to only send
+    // deltas related to the specific switchID down to hardware.
+    return filter(delta, kOperDeltaHwSwitchMatcherPathIndex);
   }
 
   std::optional<fsdb::OperDelta> filter(const fsdb::OperDelta& delta, int index)

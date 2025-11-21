@@ -86,8 +86,13 @@ int main(int argc, char* argv[]) {
     for (const auto& [eepromName, _] : ConfigUtils().getFruEepromList()) {
       std::cout << fmt::format("#### Reading EEPROM: {} ####", eepromName)
                 << std::endl;
-      auto weutilInstance = createWeUtilIntf(eepromName, "", 0);
-      weutilInstance->printInfo();
+      try {
+        auto weutilInstance = createWeUtilIntf(eepromName, "", 0);
+        weutilInstance->printInfo();
+      } catch (const std::exception& ex) {
+        std::cout << ex.what() << std::endl;
+        std::cout << "ERROR: weutil finished with an exception." << std::endl;
+      }
       std::cout << std::endl;
     }
     return 0;

@@ -24,6 +24,7 @@
       "verify": {
         "commandType": "flashrom",
         "flashromArgs": {
+          "spi_layout": "A00000:FFFFFF normal\n400000:9EFFFF fallback",
           "programmer_type": "internal",
           "flashromExtraArgs": [
             "-i",
@@ -41,6 +42,7 @@
       "read": {
         "commandType": "flashrom",
         "flashromArgs": {
+          "spi_layout": "A00000:FFFFFF normal\n400000:9EFFFF fallback",
           "programmer_type": "internal",
           "flashromExtraArgs": [
             "-i",

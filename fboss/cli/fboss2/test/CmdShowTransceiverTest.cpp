@@ -663,6 +663,132 @@ TEST_F(CmdShowTransceiverTestFixture, queryClientFilteredBypassModule) {
   EXPECT_EQ(bypassModule.partNumber().value(), "5");
 }
 
+// Verify that we properly handle the case of an optic that supports more
+// interfaces than are currently active (e.g. 2x800G optic that supports 8x200G
+// mode, but is running in 2x800G mode)
+TEST_F(CmdShowTransceiverTestFixture, multiPortOpticWithExtraInterfaces) {
+  setupMockedAgentServer();
+
+  std::map<int32_t, PortInfoThrift> activePortEntries;
+  PortInfoThrift port1;
+  port1.portId() = 1;
+  port1.name() = "eth1/20/1";
+  activePortEntries[1] = port1;
+
+  PortInfoThrift port5;
+  port5.portId() = 5;
+  port5.name() = "eth1/20/5";
+  activePortEntries[5] = port5;
+
+  // Create port status entries for the two active interfaces
+  std::map<int32_t, PortStatus> activePortStatusEntries;
+  PortStatus status1;
+  TransceiverIdxThrift tcvr1;
+  tcvr1.transceiverId() = 20;
+  status1.transceiverIdx() = tcvr1;
+  status1.up() = true;
+  activePortStatusEntries[1] = status1;
+
+  PortStatus status5;
+  TransceiverIdxThrift tcvr5;
+  tcvr5.transceiverId() = 20;
+  status5.transceiverIdx() = tcvr5;
+  status5.up() = true;
+  activePortStatusEntries[5] = status5;
+
+  std::map<int32_t, TransceiverInfo> transceiverEntries;
+  TransceiverInfo tcvrInfo;
+  Vendor vendor;
+  vendor.name() = "vendor2x800G";
+  vendor.serialNumber() = "sn800g";
+  vendor.partNumber() = "pn800g";
+  tcvrInfo.tcvrState()->vendor() = vendor;
+  tcvrInfo.tcvrState()->present() = true;
+  tcvrInfo.tcvrState()->moduleMediaInterface() = MediaInterfaceCode::FR8_800G;
+  // TransceiverInfo lists all 8 possible interfaces
+  tcvrInfo.tcvrState()->interfaces() = {
+      "eth1/20/1",
+      "eth1/20/2",
+      "eth1/20/3",
+      "eth1/20/4",
+      "eth1/20/5",
+      "eth1/20/6",
+      "eth1/20/7",
+      "eth1/20/8"};
+  tcvrInfo.tcvrState()->port() = 20;
+  Sensor tempSensor;
+  Sensor voltageSensor;
+  tempSensor.value() = 40.0;
+  voltageSensor.value() = 26.0;
+  GlobalSensors sensors;
+  sensors.temp() = tempSensor;
+  sensors.vcc() = voltageSensor;
+  tcvrInfo.tcvrStats()->sensor() = sensors;
+  tcvrInfo.tcvrStats()->channels() = {};
+  transceiverEntries[20] = tcvrInfo;
+
+  std::map<int32_t, std::string> validationEntries;
+  validationEntries[20] = "";
+
+  // Query without filtering (should only show the two active interfaces)
+  CmdShowTransceiverTraits::ObjectArgType queriedEntries;
+
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = activePortEntries; }));
+
+  EXPECT_CALL(getMockAgent(), getPortStatus(_, _))
+      .WillOnce(Invoke(
+          [&](auto& entries, auto) { entries = activePortStatusEntries; }));
+
+  EXPECT_CALL(getQsfpService(), getTransceiverInfo(_, _))
+      .WillOnce(
+          Invoke([&](auto& entries, auto) { entries = transceiverEntries; }));
+
+  EXPECT_CALL(getQsfpService(), getTransceiverConfigValidationInfo(_, _, _))
+      .WillOnce(Invoke(
+          [&](auto& entries, auto, auto) { entries = validationEntries; }));
+
+  auto cmd = CmdShowTransceiver();
+  auto model = cmd.queryClient(localhost(), queriedEntries);
+
+  // Verify that only the two active interfaces are shown, not all 8
+  EXPECT_EQ(model.transceivers()->size(), 2);
+  EXPECT_TRUE(
+      model.transceivers()->find("eth1/20/1") != model.transceivers()->end());
+  EXPECT_TRUE(
+      model.transceivers()->find("eth1/20/5") != model.transceivers()->end());
+
+  // Verify that the inactive interfaces are NOT shown
+  EXPECT_TRUE(
+      model.transceivers()->find("eth1/20/2") == model.transceivers()->end());
+  EXPECT_TRUE(
+      model.transceivers()->find("eth1/20/3") == model.transceivers()->end());
+  EXPECT_TRUE(
+      model.transceivers()->find("eth1/20/4") == model.transceivers()->end());
+  EXPECT_TRUE(
+      model.transceivers()->find("eth1/20/6") == model.transceivers()->end());
+  EXPECT_TRUE(
+      model.transceivers()->find("eth1/20/7") == model.transceivers()->end());
+  EXPECT_TRUE(
+      model.transceivers()->find("eth1/20/8") == model.transceivers()->end());
+
+  auto& activeIntf1 = model.transceivers()->at("eth1/20/1");
+  EXPECT_EQ(activeIntf1.name().value(), "eth1/20/1");
+  EXPECT_TRUE(activeIntf1.isUp().has_value());
+  EXPECT_TRUE(activeIntf1.isUp().value());
+  EXPECT_TRUE(activeIntf1.isPresent().value());
+  EXPECT_EQ(activeIntf1.vendor().value(), "vendor2x800G");
+  EXPECT_EQ(activeIntf1.serial().value(), "sn800g");
+
+  auto& activeIntf5 = model.transceivers()->at("eth1/20/5");
+  EXPECT_EQ(activeIntf5.name().value(), "eth1/20/5");
+  EXPECT_TRUE(activeIntf5.isUp().has_value());
+  EXPECT_TRUE(activeIntf5.isUp().value());
+  EXPECT_TRUE(activeIntf5.isPresent().value());
+  EXPECT_EQ(activeIntf5.vendor().value(), "vendor2x800G");
+  EXPECT_EQ(activeIntf5.serial().value(), "sn800g");
+}
+
 TEST_F(CmdShowTransceiverTestFixture, printOutput) {
   std::stringstream ss;
   CmdShowTransceiver().printOutput(normalizedModel, ss);

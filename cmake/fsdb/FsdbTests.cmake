@@ -48,6 +48,9 @@ target_link_libraries(fsdb_utils_benchmark
   ${GFLAGS}
 )
 
+# Register this executable for fsdb_all_services target
+set(FSDB_EXECUTABLES ${FSDB_EXECUTABLES} fsdb_utils_benchmark CACHE INTERNAL "List of all FSDB executables")
+
 add_library(fsdb_test_clients
   fboss/fsdb/tests/client/FsdbTestClients.h
   fboss/fsdb/tests/client/FsdbTestClients.cpp
@@ -87,3 +90,6 @@ target_link_libraries(fsdb_pub_sub_tests
 )
 
 gtest_discover_tests(fsdb_pub_sub_tests)
+
+# Register this executable for fsdb_all_services target
+set(FSDB_EXECUTABLES ${FSDB_EXECUTABLES} fsdb_pub_sub_tests CACHE INTERNAL "List of all FSDB executables")

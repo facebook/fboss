@@ -81,6 +81,35 @@ if ($ENV{CHENAB_SAI_SDK})
   add_definitions (-DCHENAB_SAI_SDK)
 endif()
 
+option(SAI_BRCM_PAI_IMPL "Build SAI api with BRCOM_PAI-SAI extensions" OFF)
+if ($ENV{SAI_BRCM_PAI_IMPL})
+  message(STATUS "ENV SAI_BRCM_PAI_IMPL is set")
+  set(SAI_BRCM_PAI_IMPL ON)
+  # NOTE: Unlike agent that we use sai_impl, we directly use pre-built SDK from
+  # local directory
+  # Header files for libpai.a, the whole inc directory from SDK
+  set(SAI_BRCM_PAI_IMPL_INC_DIR "/var/FBOSS/pai_impl/include")
+  # macsec headers
+  include_directories("${SAI_BRCM_PAI_IMPL_INC_DIR}/pai_macsec")
+
+  # SDK artifacts directory which hosts libpai.a, EPDM SW artifact, PHY Driver
+  # SW artifact
+  set(SAI_BRCM_PAI_IMPL_LIB_DIR "/var/FBOSS/pai_impl/lib")
+  set(CMAKE_PREFIX_PATH ${SAI_BRCM_PAI_IMPL_LIB_DIR} ${CMAKE_PREFIX_PATH})
+  find_library(PAI_LIB pai)
+  find_library(EPDM_LIB epdm)
+  find_library(DRIVER_LIB phymodepil)
+  message(
+    STATUS
+    "PAI_LIB: ${PAI_LIB}, EPDM_LIB: ${EPDM_LIB}, DRIVER_LIB: ${DRIVER_LIB}"
+  )
+  set(XPHY_SDK_LIBS
+    ${DRIVER_LIB}
+    ${EPDM_LIB}
+    ${PAI_LIB}
+  )
+endif()
+
 if (NOT $ENV{SAI_VERSION} EQUAL "")
   message(STATUS "ENV SAI_VERSION is set")
   set (SAI_VERSION $ENV{SAI_VERSION})
@@ -203,27 +232,41 @@ include_directories(${NLOHMANN_JSON_INCLUDE_DIRS})
 find_package(Python3 COMPONENTS Interpreter Development)
 include_directories(${Python3_INCLUDE_DIR})
 
-find_path(SAI_INCLUDE_DIR NAMES sai.h)
+# SAI_BRCM_PAI_IMPL SDK comes with SAI headers instead of using public SAI
+if (SAI_BRCM_PAI_IMPL)
+  set(SAI_INCLUDE_DIR "${SAI_BRCM_PAI_IMPL_INC_DIR}/sai/inc")
+else()
+  find_path(SAI_INCLUDE_DIR NAMES sai.h)
+endif()
 include_directories(${SAI_INCLUDE_DIR})
+message(STATUS "Found SAI Include dir: ${SAI_INCLUDE_DIR}")
 
 if (SAI_BRCM_IMPL)
   find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES saiswitchextensions.h)
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
-  message(STATUS, "Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
 elseif(CHENAB_SAI_SDK)
   # Chenab-TODO: set experimental directories appropriately
   set(SAI_EXPERIMENTAL_INCLUDE_DIR "/var/FBOSS/sai_impl_output/include")
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
-  message(STATUS, "Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+elseif(SAI_BRCM_PAI_IMPL)
+  set(
+    SAI_EXPERIMENTAL_INCLUDE_DIR
+    "${SAI_BRCM_PAI_IMPL_INC_DIR}/sai/experimental"
+  )
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
+  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
 else()
   find_path(SAI_EXPERIMENTAL_INCLUDE_DIR
     NAMES
     experimental/saiswitchextensions.h)
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
-  message(STATUS, "Experimental Dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+  message(
+    STATUS
+    "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental"
+  )
 endif()
-
-message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
 
 find_library(LIBNL nl-3)
 find_path(LIBNL_INCLUDE_DIR NAMES libnl3/netlink/socket.h)
@@ -1012,7 +1055,7 @@ add_dependencies(fboss_other_services
   qsfp_targets
   led_targets
   fboss2
-  fsdb
+  fsdb_all_services
 )
 
 add_custom_target(fboss_platform_mapping_gen)
@@ -1097,6 +1140,6 @@ if (GITHUB_ACTIONS_BUILD)
   add_dependencies(github_actions_fboss_other_services
     # Services
     fboss2
-    fsdb
+    fsdb_all_services
   )
 endif()

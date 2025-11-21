@@ -37,6 +37,7 @@ struct SaiSystemPortHandle {
   std::optional<std::string> qosPolicy;
   SaiQueueHandles queues;
   std::vector<SaiQueueHandle*> configuredQueues;
+  bool qosMapsSupported{};
 
   void resetQueues();
 };

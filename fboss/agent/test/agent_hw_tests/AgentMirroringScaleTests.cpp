@@ -96,7 +96,7 @@ class AgentMirroringScaleTest : public AgentHwTest {
                        : "egress")
                << " mirrors";
     // single mirror session need pair of ports to work
-    if (maxMirrors * 2 > ensemble.masterLogicalInterfacePortIds().size()) {
+    if (maxMirrors * 2 > this->getAllPorts(ensemble).size()) {
       throw FbossError("Not enough ports to create mirrors");
     }
     for (int i = 0; i < maxMirrors; i++) {
@@ -121,6 +121,9 @@ class AgentMirroringScaleTest : public AgentHwTest {
         MirrorT::mirrorType == MirrorType::EGRESS_SPAN) {
       maxMirrorsEntries = maxMirrorsEntries - 0;
     }
+    if (FLAGS_hyper_port) {
+      maxMirrorsEntries = std::min(maxMirrorsEntries, (uint32_t)(2));
+    }
     CHECK_GT(maxMirrorsEntries, 0);
     return maxMirrorsEntries;
   }
@@ -142,10 +145,16 @@ class AgentMirroringScaleTest : public AgentHwTest {
     throw FbossError("Invalid mirror type");
   }
 
+  std::vector<PortID> getAllPorts(const AgentEnsemble& ensemble) const {
+    if (FLAGS_hyper_port) {
+      return ensemble.masterLogicalHyperPortIds();
+    }
+    return ensemble.masterLogicalInterfacePortIds();
+  }
+
   PortID getTrafficPort(const AgentEnsemble& ensemble, int portIndex) const {
-    CHECK_LE(portIndex, ensemble.masterLogicalInterfacePortIds().size());
-    return ensemble.masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[portIndex];
+    CHECK_LE(portIndex, getAllPorts(ensemble).size());
+    return getAllPorts(ensemble)[portIndex];
   }
   void addPortMirrorConfig(
       cfg::SwitchConfig* cfg,

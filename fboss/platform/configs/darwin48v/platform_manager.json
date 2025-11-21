@@ -1,5 +1,5 @@
 {
-  "platformName": "darwin48v",
+  "platformName": "DARWIN48V",
   "rootPmUnitName": "SMB",
   "rootSlotType": "SMB_SLOT",
   "slotTypeConfigs": {

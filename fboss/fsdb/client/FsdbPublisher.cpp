@@ -76,7 +76,7 @@ bool FsdbPublisher<PubUnit>::write(PubUnit&& pubUnit) {
 
 #if FOLLY_HAS_COROUTINES
   auto pipeUPtr = asyncPipe_.ulock();
-  if (!(*pipeUPtr) || !(*pipeUPtr)->second.try_write(std::move(pubUnit))) {
+  if (!(*pipeUPtr) || !tryWrite((*pipeUPtr)->second, std::move(pubUnit))) {
     XLOG(ERR) << "Could not enqueue pub unit";
     if (*pipeUPtr) {
       XLOG(ERR) << "Queue overflow, reset queue pointer";
@@ -89,8 +89,20 @@ bool FsdbPublisher<PubUnit>::write(PubUnit&& pubUnit) {
     return false;
   }
 #endif
-  queueSize_++;
   return true;
+}
+
+template <typename PubUnit>
+bool FsdbPublisher<PubUnit>::tryWrite(
+    folly::coro::BoundedAsyncPipe<PubUnit, false>& pipe,
+    PubUnit&& pubUnit) {
+  if (pipe.try_write(pubUnit)) {
+    queueSize_++;
+    chunksWritten_.addValue(1);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 #if FOLLY_HAS_COROUTINES
@@ -161,10 +173,15 @@ void FsdbPublisher<PubUnit>::sendHeartbeat() {
   }
   auto pipeUPtr = asyncPipe_.ulock();
   if ((*pipeUPtr)) {
+    // flush any pending update before sending heartbeat
+    flush((*pipeUPtr)->second);
     PubUnit emptyPubUnit;
-    if ((*pipeUPtr)->second.try_write(std::move(emptyPubUnit))) {
-      // Increment queueSize_ to match the decrement in createGenerator()
+    if (((*pipeUPtr)->second).try_write(std::move(emptyPubUnit))) {
       queueSize_++;
+    } else {
+      XLOG(ERR) << "sendHeartbeat: queue full, reset pipe";
+      pipeUPtr.moveFromUpgradeToWrite()->reset();
+      queueSize_ = 0;
     }
   }
 }

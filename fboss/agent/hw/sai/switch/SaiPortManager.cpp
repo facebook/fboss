@@ -2206,7 +2206,7 @@ void SaiPortManager::updateStats(
       // SAI_PORT_ATTR_MAX_FEC_SYMBOL_ERRORS_DETECTABLE but this attribute
       // isn't supported yet
       sai_stat_id_t maxFecCounterId = getFECMode(portId) == phy::FecMode::RS528
-          ? SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S8
+          ? SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S7
           : SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S15;
       std::vector<sai_stat_id_t> fecCodewordsToRead;
       for (int counterId = SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0;
@@ -2680,11 +2680,12 @@ void SaiPortManager::programSampling(
     uint64_t sampleRate,
     std::optional<cfg::SampleDestination> sampleDestination) {
   auto portType = getPortType(portId);
-  if (portType != cfg::PortType::INTERFACE_PORT) {
+  if (portType != cfg::PortType::INTERFACE_PORT &&
+      portType != cfg::PortType::HYPER_PORT) {
     throw FbossError(
-        "Programming Sampling is only supported for Interface Ports; PortID: ",
+        "Programming Sampling is only supported for Interface Ports and Hyper Ports; PortID: ",
         portId,
-        " has type",
+        " has type ",
         apache::thrift::util::enumNameSafe(portType));
   }
   auto destination = sampleDestination.has_value()
@@ -2731,11 +2732,12 @@ void SaiPortManager::programMirror(
     MirrorAction action,
     std::optional<std::string> mirrorId) {
   auto portType = getPortType(portId);
-  if (portType != cfg::PortType::INTERFACE_PORT) {
+  if (portType != cfg::PortType::INTERFACE_PORT &&
+      portType != cfg::PortType::HYPER_PORT) {
     throw FbossError(
-        "Programming mirroring is only supported for Interface Ports; PortID: ",
+        "Programming mirroring is only supported for Interface Ports and Hyper Ports; PortID: ",
         portId,
-        " has type",
+        " has type ",
         apache::thrift::util::enumNameSafe(portType));
   }
 
@@ -2772,11 +2774,12 @@ void SaiPortManager::programSamplingMirror(
     MirrorAction action,
     std::optional<std::string> mirrorId) {
   auto portType = getPortType(portId);
-  if (portType != cfg::PortType::INTERFACE_PORT) {
+  if (portType != cfg::PortType::INTERFACE_PORT &&
+      portType != cfg::PortType::HYPER_PORT) {
     throw FbossError(
-        "Programming sampling mirror is only supported for Interface Ports; PortID: ",
+        "Programming sampling mirror is only supported for Interface Ports and Hyper Ports; PortID: ",
         portId,
-        " has type",
+        " has type ",
         apache::thrift::util::enumNameSafe(portType));
   }
   auto portHandle = getPortHandle(portId);

@@ -87,11 +87,6 @@ class PciExplorer {
       const LedCtrlConfig& ledCtrlConfig,
       uint32_t instanceId);
 
-  // Create the LED Controller Config block based on the given ledCtrlConfig
-  // residing at the given PciDevice. Throw std::runtime_error on failure.
-  std::vector<LedCtrlConfig> createLedCtrlConfigs(
-      const PciDeviceConfig& pciDeviceConfig);
-
   // Create the Transceiver block based on the given xcvrCtrlConfig residing
   // at the given PciDevice.
   // Return the SysfsPath. Throw std::runtime_error on failure.

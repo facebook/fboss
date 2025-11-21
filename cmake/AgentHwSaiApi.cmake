@@ -105,7 +105,7 @@ if (SAI_TAJO_IMPL)
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
   include_directories(${SAI_IMPL_DIR})
-  message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
+  message(STATUS "Found SAI_IMPL_DIR: ${SAI_IMPL_DIR}")
 elseif (SAI_BRCM_IMPL)
   list(APPEND SAI_API_SRC
     fboss/agent/hw/sai/api/bcm/ArsProfileApi.cpp
@@ -124,7 +124,7 @@ elseif (SAI_BRCM_IMPL)
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
   include_directories(${SAI_IMPL_DIR})
-  message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
+  message(STATUS "Found SAI_IMPL_DIR: ${SAI_IMPL_DIR}")
 elseif (CHENAB_SAI_SDK)
   list(APPEND SAI_API_SRC
     fboss/agent/hw/sai/api/oss/ArsProfileApi.cpp
@@ -132,7 +132,7 @@ elseif (CHENAB_SAI_SDK)
     fboss/agent/hw/sai/api/oss/TamApi.cpp
     fboss/agent/hw/sai/api/chenab/SwitchApi.cpp
     fboss/agent/hw/sai/api/oss/DebugCounterApi.cpp
-    fboss/agent/hw/sai/api/oss/BufferApi.cpp
+    fboss/agent/hw/sai/api/chenab/BufferApi.cpp
     fboss/agent/hw/sai/api/oss/QueueApi.cpp
     fboss/agent/hw/sai/api/oss/MirrorApi.cpp
     fboss/agent/hw/sai/api/oss/SystemPortApi.cpp
@@ -143,8 +143,22 @@ elseif (CHENAB_SAI_SDK)
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
   include_directories(${SAI_IMPL_DIR})
-  message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
-
+  message(STATUS "Found SAI_IMPL_DIR: ${SAI_IMPL_DIR}")
+elseif (SAI_BRCM_PAI_IMPL)
+  list(APPEND SAI_API_SRC
+    fboss/agent/hw/sai/api/oss/AclApi.cpp
+    fboss/agent/hw/sai/api/oss/ArsProfileApi.cpp
+    fboss/agent/hw/sai/api/oss/DebugCounterApi.cpp
+    fboss/agent/hw/sai/api/oss/NextHopGroupApi.cpp
+    fboss/agent/hw/sai/api/oss/PortApi.cpp
+    fboss/agent/hw/sai/api/oss/SwitchApi.cpp
+    fboss/agent/hw/sai/api/oss/TamApi.cpp
+    fboss/agent/hw/sai/api/oss/BufferApi.cpp
+    fboss/agent/hw/sai/api/oss/QueueApi.cpp
+    fboss/agent/hw/sai/api/oss/MirrorApi.cpp
+    fboss/agent/hw/sai/api/oss/SystemPortApi.cpp
+    fboss/agent/hw/sai/api/oss/HostifApi.cpp
+  )
 else()
   list(APPEND SAI_API_SRC
     fboss/agent/hw/sai/api/fake/FakeSaiExtensions.cpp

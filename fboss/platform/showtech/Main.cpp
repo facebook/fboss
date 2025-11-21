@@ -82,6 +82,8 @@ int main(int argc, char** argv) {
   app.set_version_flag("--version", helpers::getBuildVersion());
 
   std::vector<std::string> detailsArg = {};
+  std::string configFilePath;
+
   app.add_option("--details", detailsArg, folly::stripLeftMargin(R"(
            Comma-separated list of details to print.
            Use specific section details to avoid printing too much data.
@@ -92,6 +94,9 @@ int main(int argc, char** argv) {
       ->required()
       ->check(CLI::IsMember(getValidDetailNames()));
 
+  app.add_option(
+      "--config_file", configFilePath, "Path to the showtech config file");
+
   try {
     app.parse(argc, argv);
   } catch (const CLI::ParseError& e) {
@@ -99,7 +104,8 @@ int main(int argc, char** argv) {
   }
 
   try {
-    std::string showtechConfJson = ConfigLib().getShowtechConfig();
+    std::string showtechConfJson =
+        ConfigLib(configFilePath).getShowtechConfig();
     auto config =
         apache::thrift::SimpleJSONSerializer::deserialize<ShowtechConfig>(
             showtechConfJson);

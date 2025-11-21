@@ -89,6 +89,10 @@ std::vector<PortID> HwTest::masterLogicalInterfacePortIds() const {
       {cfg::PortType::INTERFACE_PORT});
 }
 
+std::vector<PortID> HwTest::masterLogicalHyperPortIds() const {
+  return hwSwitchEnsemble_->masterLogicalPortIds({cfg::PortType::HYPER_PORT});
+}
+
 std::vector<PortID> HwTest::masterLogicalFabricPortIds() const {
   return hwSwitchEnsemble_->masterLogicalPortIds({cfg::PortType::FABRIC_PORT});
 }

@@ -71,7 +71,7 @@ WedgeManager::WedgeManager(
    * the QSFP devices on I2C/CPLD managed platforms
    */
   if (FLAGS_publish_state_to_fsdb || FLAGS_publish_stats_to_fsdb) {
-    fsdbSyncManager_ = std::make_unique<QsfpFsdbSyncManager>();
+    fsdbSyncManager_ = std::make_shared<QsfpFsdbSyncManager>();
   }
 
   dataCenter_ = getDeviceDatacenter();

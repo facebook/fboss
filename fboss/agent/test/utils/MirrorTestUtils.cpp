@@ -49,9 +49,17 @@ void addMirrorConfig(
     bool truncate,
     uint8_t dscp,
     uint16_t mirrorToPortIndex) {
-  CHECK_LE(mirrorToPortIndex, ensemble.masterLogicalInterfacePortIds().size());
-  auto mirrorToPort = ensemble.masterLogicalPortIds(
-      {cfg::PortType::INTERFACE_PORT})[mirrorToPortIndex];
+  PortID mirrorToPort;
+  if (FLAGS_hyper_port) {
+    CHECK_LE(mirrorToPortIndex, ensemble.masterLogicalHyperPortIds().size());
+    mirrorToPort = ensemble.masterLogicalPortIds(
+        {cfg::PortType::HYPER_PORT})[mirrorToPortIndex];
+  } else {
+    CHECK_LE(
+        mirrorToPortIndex, ensemble.masterLogicalInterfacePortIds().size());
+    mirrorToPort = ensemble.masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT})[mirrorToPortIndex];
+  }
   auto params = getMirrorTestParams<AddrT>();
   cfg::MirrorDestination destination;
   destination.egressPort() = cfg::MirrorEgressPort();

@@ -152,8 +152,8 @@ bool QsfpModule::upgradeFirmware(
     try {
       return upgradeFwFn();
     } catch (const std::exception& ex) {
-      QSFP_LOG(DBG2, this) << "Error calling upgradeFirmwareLocked(): "
-                           << ex.what();
+      QSFP_LOG(ERR, this) << "Error calling upgradeFirmwareLocked(): "
+                          << ex.what();
     }
     return false;
   }
@@ -164,7 +164,7 @@ bool QsfpModule::upgradeFirmware(
         try {
           fwUpgradeStatus = upgradeFwFn();
         } catch (const std::exception& ex) {
-          QSFP_LOG(DBG2, this)
+          QSFP_LOG(ERR, this)
               << "Error calling upgradeFirmwareLocked(): " << ex.what();
         }
       })

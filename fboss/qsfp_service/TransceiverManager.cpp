@@ -763,6 +763,15 @@ bool TransceiverManager::upgradeFirmware(Transceiver& tcvr) {
     return false;
   }
 
+  if (!fwStorage()) {
+    FW_LOG(ERR, tcvrID)
+        << "FbossFwStorage not initialized. Firmware upgrade not supported. "
+        << "Part Number=" << partNumber
+        << " fwStorageHandle=" << fwStorageHandleName
+        << ". Skipping fw upgrade";
+    return false;
+  }
+
   std::vector<std::unique_ptr<FbossFirmware>> fwList;
 
   auto& fwVersions = *(fwFromConfig->versions());
@@ -2703,6 +2712,10 @@ void TransceiverManager::publishLinkSnapshots(PortID portID) {
     phyManager_->publishXphyInfoSnapshots(portID);
   }
   // Publish transceiver snapshots if there's a transceiver
+  publishLinkSnapshotsTransceiver(portID);
+}
+
+void TransceiverManager::publishLinkSnapshotsTransceiver(PortID portID) {
   if (auto tcvrIDOpt = getTransceiverID(portID)) {
     auto lockedTransceivers = transceivers_.rlock();
     if (auto tcvrIt = lockedTransceivers->find(*tcvrIDOpt);

@@ -832,6 +832,7 @@ enum MMUScalingFactor {
   TWO = 9,
   FOUR = 10,
   ONE_32768TH = 11,
+  ONE_HUNDRED_TWENTY_EIGHT = 12,
 }
 
 // This determines how packets are scheduled on a per queue basis
@@ -1974,6 +1975,7 @@ struct SwitchSettings {
   // Connected system ports are for fabric links and used in fabric link
   // monitoring feature.
   34: optional i32 fabricLinkMonitoringSystemPortOffset;
+  35: optional bool measureCableLengths;
 }
 
 // Global buffer pool

@@ -70,7 +70,7 @@ bool isEnabledPortWithSubnet(
 
 std::vector<std::string> getLoopbackIps(SwitchID switchId);
 
-int getMaxRdsw();
+int getMaxRdsw(std::optional<PlatformType> platformType = std::nullopt);
 int getMaxEdsw();
 
 cfg::DsfNode dsfNodeConfig(

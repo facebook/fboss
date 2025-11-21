@@ -78,7 +78,7 @@ std::vector<uint8_t> ParserUtils::loadEeprom(
   } catch (std::exception& ex) {
     std::cout << "Failed to detect EEPROM size (" << eeprom
               << "): " << ex.what() << std::endl;
-    throw std::runtime_error("Unabled to detect EEPROM size.");
+    throw std::runtime_error("Unable to detect EEPROM size.");
   }
 
   // Now, read the eeprom

@@ -52,6 +52,8 @@ cpp_library(
         "ControlPlane.cpp",
         "DsfNode.cpp",
         "DsfNodeMap.cpp",
+        "FibInfo.cpp",
+        "FibInfoMap.cpp",
         "FlowletSwitchingConfig.cpp",
         "ForwardingInformationBase.cpp",
         "ForwardingInformationBaseContainer.cpp",

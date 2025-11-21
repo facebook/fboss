@@ -67,6 +67,11 @@ SaiStaticBufferProfileTraits::Attributes::AttributeSramDynamicTh::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t> SaiStaticBufferProfileTraits::Attributes::
+    AttributePgPipelineLatencyBytes::operator()() {
+  return std::nullopt;
+}
+
 std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
     AttributeSharedFadtMaxTh::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
@@ -128,6 +133,11 @@ std::optional<sai_attr_id_t> SaiIngressPriorityGroupTraits::Attributes::
 #else
   return std::nullopt;
 #endif
+}
+
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributePgPipelineLatencyBytes::operator()() {
+  return std::nullopt;
 }
 
 } // namespace facebook::fboss

@@ -1,3 +1,4 @@
+load("@fbcode//fboss/lib/phy:sai_xphy.bzl", "all_sai_xphy_libs")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 load("//fboss/lib/phy:sai_phy_management.bzl", "all_sai_phy_management_libs")
@@ -122,34 +123,6 @@ cpp_library(
 )
 
 cpp_library(
-    name = "sai_phy_retimer",
-    srcs = [
-        "SaiPhyRetimer.cpp",
-    ],
-    headers = [
-        "SaiPhyRetimer.h",
-    ],
-    exported_deps = [
-        "fbsource//third-party/fmt:fmt",
-        ":external_phy",
-        ":phy-cpp2-types",
-        "//fboss/agent:fboss-error",
-        "//fboss/agent:fboss-types",
-        "//fboss/agent:hwswitchcallback",
-        "//fboss/agent:packet",
-        "//fboss/agent/hw/sai/api:sai_api-fake",
-        "//fboss/agent/hw/sai/api:sai_types",
-        "//fboss/agent/if:ctrl-cpp2-types",
-        "//fboss/agent/if:multiswitch_ctrl-cpp2-types",
-        "//fboss/agent/platforms/common:platform_mapping",
-        "//fboss/lib/bsp:bsp_core",
-        "//fboss/mdio:mdio",
-        "//folly:conv",
-        "//folly/logging:logging",
-    ],
-)
-
-cpp_library(
     name = "phy_management_base",
     srcs = [
         "PhyManager.cpp",
@@ -227,39 +200,6 @@ cpp_library(
     ],
 )
 
-cpp_library(
-    name = "bsp_sai_phy_manager",
-    srcs = [
-        "BspSaiPhyManager.cpp",
-        "SaiPhyManager.cpp",
-    ],
-    headers = [
-        "BspSaiPhyManager.h",
-        "SaiPhyManager.h",
-    ],
-    exported_deps = [
-        ":external_phy",
-        ":phy-cpp2-types",
-        ":phy_management_base",
-        ":sai_phy_retimer",
-        "//fboss/agent:fboss-error",
-        "//fboss/agent:fboss-types",
-        "//fboss/agent:stats",
-        "//fboss/agent:utils",
-        "//fboss/agent/hw:hw_switch_warmboot_helper",
-        "//fboss/agent/hw/sai/switch:sai_switch-fake",
-        "//fboss/agent/platforms/sai:sai_phy_platform",
-        "//fboss/agent/platforms/sai:sai_platform-fake",
-        "//fboss/agent/state:state",
-        "//fboss/agent/state:state_update",
-        "//fboss/lib/bsp:bsp_core",
-        "//fboss/lib/bsp:bsp_platform_mapping_lib",
-        "//fboss/lib/config:fboss_config_utils",
-        "//fboss/lib/platforms:product-info",
-        "//fboss/mka_service/if:mka_structs-cpp2-types",
-        "//folly/logging:logging",
-        "//thrift/lib/cpp/util:enum_utils",
-    ],
-)
+all_sai_xphy_libs()
 
 all_sai_phy_management_libs()

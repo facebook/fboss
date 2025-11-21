@@ -52,7 +52,7 @@ cpp_library(
         "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
-        "//fboss/platform/weutil:config_utils",
+        "//fboss/platform/weutil:config_utils_lib",
         "//fboss/platform/weutil:fboss_eeprom_lib",
         "//folly:network_address",
         "//folly/logging:logging",

@@ -182,11 +182,11 @@ void fillHwSwitchTemperatureStats(
   for (auto attrIdAndValue : attrId2Value) {
     auto [attrId, value] = attrIdAndValue;
     if (attrId == SAI_SWITCH_ATTR_TEMP_LIST) {
+      auto timeStamp =
+          std::chrono::system_clock::now().time_since_epoch().count();
       for (uint32_t i = 0; i < value.s32list.count; i++) {
         auto sensorName = std::to_string(i);
-        hwSwitchTemperatureStats.timeStamp()->insert(
-            {sensorName,
-             std::chrono::system_clock::now().time_since_epoch().count()});
+        hwSwitchTemperatureStats.timeStamp()->insert({sensorName, timeStamp});
         hwSwitchTemperatureStats.value()->insert(
             {sensorName, value.s32list.list[i]});
       }
@@ -1178,23 +1178,43 @@ const HwSwitchTemperatureStats SaiSwitchManager::getHwSwitchTemperatureStats()
     const {
   // Get temperature stats
   HwSwitchTemperatureStats switchTemperatureStats;
+  static sai_int32_t NumTemperatureSensors = -1;
+  static auto lastReadTimestamp =
+      std::chrono::system_clock::now().time_since_epoch().count();
+  // Read temperature stats is expensive, so read it as often as fsdb would
+  // stream stats to its client defined by FLAGS_fsdbStatsStreamIntervalSeconds
+  const uint64_t kReadInterval =
+      static_cast<int64_t>(FLAGS_fsdbStatsStreamIntervalSeconds) * 1000000000;
+
+  auto currReadTimestamp =
+      std::chrono::system_clock::now().time_since_epoch().count();
+
+  if (currReadTimestamp - lastReadTimestamp < kReadInterval) {
+    return switchTemperatureStats;
+  }
+  lastReadTimestamp = currReadTimestamp;
+
   if (!supportedTemperatureStats().empty()) {
     folly::F14FastMap<sai_attr_id_t, sai_attribute_value_t> attrValues;
     for (auto attrId : supportedTemperatureStats()) {
       try {
         if (attrId == SAI_SWITCH_ATTR_MAX_NUMBER_OF_TEMP_SENSORS) {
-          auto NumTemperatureSensors =
-              SaiApiTable::getInstance()->switchApi().getAttribute(
-                  switch_->adapterKey(),
-                  SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          if (NumTemperatureSensors < 0) {
+            NumTemperatureSensors =
+                SaiApiTable::getInstance()->switchApi().getAttribute(
+                    switch_->adapterKey(),
+                    SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          }
           sai_attribute_value_t value;
           value.u8 = NumTemperatureSensors;
           attrValues[attrId] = value;
         } else if (attrId == SAI_SWITCH_ATTR_TEMP_LIST) {
-          auto NumTemperatureSensors =
-              SaiApiTable::getInstance()->switchApi().getAttribute(
-                  switch_->adapterKey(),
-                  SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          if (NumTemperatureSensors < 0) {
+            NumTemperatureSensors =
+                SaiApiTable::getInstance()->switchApi().getAttribute(
+                    switch_->adapterKey(),
+                    SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          }
           std::vector<sai_int32_t> temperatureList;
           XLOG(DBG5) << "# temperature sensor: " << NumTemperatureSensors;
           temperatureList.resize(NumTemperatureSensors);
@@ -1338,6 +1358,7 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     updateSramLowBufferLimitHitCounter();
   }
   switchTemperatureStats_ = getHwSwitchTemperatureStats();
+  publishSwitchTemperatureStats(switchTemperatureStats_);
   switchPipelineStats_ = getHwSwitchPipelineStats(updateWatermarks);
   publishSwitchPipelineStats(switchPipelineStats_);
 }

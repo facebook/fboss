@@ -38,6 +38,7 @@ class SensorServiceImpl {
       "sensor_read.sensor_{}.type_{}.critical_threshold_violation";
   auto static constexpr kAsicTemp = "asic_temp";
   auto static constexpr kTotalPower = "TOTAL_POWER";
+  auto static constexpr kMaxInputVoltage = "MAX_INPUT_VOLTAGE";
   auto static constexpr kDerivedFailure = "derived.{}.failure";
   auto static constexpr kDerivedValue = "derived.{}.value";
   auto static constexpr kPmUnitVersion = "pmunit.{}.version.{}.{}.{}";
@@ -59,13 +60,17 @@ class SensorServiceImpl {
     return fsdbSyncer_.get();
   }
 
-  void processPowerConsumption(
+  void processPower(
       const std::map<std::string, SensorData>& polledData,
-      const std::vector<PowerConsumptionConfig>& pcConfigs);
+      const PowerConfig& powerConfig);
 
   void processTemperature(
       const std::map<std::string, SensorData>& polledData,
       const std::vector<TemperatureConfig>& tempConfigs);
+
+  void processInputVoltage(
+      const std::map<std::string, SensorData>& polledData,
+      const std::vector<std::string>& inputVoltageSensors);
 
   SensorData processAsicCmd(const AsicCommand& asicCommand);
 

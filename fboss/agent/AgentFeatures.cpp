@@ -409,3 +409,8 @@ DEFINE_int32(
     100,
     "Log timeout value in milliseconds. Logger will periodically"
     "flush logs even if the buffer is not full");
+
+DEFINE_int32(
+    fsdbStatsStreamIntervalSeconds,
+    5,
+    "Interval at which stats subscriptions are served");

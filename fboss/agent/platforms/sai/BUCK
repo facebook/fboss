@@ -36,19 +36,3 @@ cpp_library(
         "//fboss/agent/platforms/tests/utils:test_platform_types",
     ],
 )
-
-cpp_library(
-    name = "sai_phy_platform",
-    srcs = [
-        "SaiPhyPlatform.cpp",
-    ],
-    headers = [
-        "SaiPhyPlatform.h",
-    ],
-    exported_deps = [
-        ":sai_platform-fake",
-        "//fboss/agent:fboss-error",
-        "//fboss/agent/hw/sai/switch:sai_switch-fake",
-        "//fboss/agent/hw/switch_asics:switch_asics",
-    ],
-)

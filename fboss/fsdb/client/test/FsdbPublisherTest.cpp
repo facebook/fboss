@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/client/FsdbDeltaPublisher.h"
+#include "fboss/fsdb/client/FsdbStatePublisher.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/coro/AsyncGenerator.h>
@@ -180,6 +181,120 @@ TEST_F(StreamPublisherTest, pipeResetWhenServeStreamStuck) {
   streamPublisher_->unblockServeStream();
   WITH_RETRIES(
       { EXPECT_EVENTUALLY_FALSE(streamPublisher_->isConnectedToServer()); });
+#endif
+}
+
+class TestPathPublisher : public FsdbStatePublisher {
+ public:
+  TestPathPublisher(folly::EventBase* streamEvb, folly::EventBase* timerEvb)
+      : FsdbStatePublisher(
+            "test_fsdb_client",
+            {"agent"},
+            streamEvb,
+            timerEvb,
+            false) {}
+
+  ~TestPathPublisher() override {
+    this->cancel();
+  }
+
+#if FOLLY_HAS_COROUTINES
+  folly::coro::Task<StreamT> setupStream() override {
+    co_return StreamT();
+  }
+
+  folly::coro::Task<void> serveStream(StreamT&& /* stream */) override {
+    auto gen = this->createGenerator();
+    generatorStart_.wait();
+    while (auto pubUnit = co_await gen.next()) {
+      if (this->isCancelled()) {
+        XLOG(DBG2) << " Detected cancellation";
+        break;
+      }
+      if (!initialSyncComplete_) {
+        initialSyncComplete_ = true;
+      }
+    }
+    co_return;
+  }
+
+#endif
+  void markConnecting() {
+    this->setState(State::CONNECTING);
+  }
+
+  void startGenerator() {
+    generatorStart_.post();
+  }
+
+ private:
+  folly::Baton<> generatorStart_;
+};
+
+class PathPublisherTest : public ::testing::Test {
+ public:
+  void SetUp() override {
+    streamEvbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
+    connRetryEvbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
+    streamPublisher_ = std::make_unique<TestPathPublisher>(
+        streamEvbThread_->getEventBase(), connRetryEvbThread_->getEventBase());
+  }
+
+  void TearDown() override {
+    streamPublisher_.reset();
+    streamEvbThread_.reset();
+    connRetryEvbThread_.reset();
+  }
+
+ protected:
+  std::unique_ptr<folly::ScopedEventBaseThread> streamEvbThread_;
+  std::unique_ptr<folly::ScopedEventBaseThread> connRetryEvbThread_;
+  std::unique_ptr<TestPathPublisher> streamPublisher_;
+};
+
+TEST_F(PathPublisherTest, coalesceOnPublishQueueBuildup) {
+  auto counterPrefix = streamPublisher_->getCounterPrefix();
+  EXPECT_EQ(counterPrefix, "fsdbPathStatePublisher_agent");
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 0);
+
+  streamPublisher_->markConnecting();
+  WITH_RETRIES(
+      { EXPECT_EVENTUALLY_TRUE(streamPublisher_->isConnectedToServer()); });
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 1);
+
+#if FOLLY_HAS_COROUTINES
+  constexpr int numUpdates = 10;
+  for (auto i = 0; i < numUpdates; ++i) {
+    streamPublisher_->write(OperState{});
+  }
+
+  // verify updates are coalesced
+  WITH_RETRIES({
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    EXPECT_EVENTUALLY_EQ(
+        fb303::ServiceData::get()->getCounter(
+            counterPrefix + ".chunksWritten.sum"),
+        2);
+    EXPECT_EVENTUALLY_EQ(
+        fb303::ServiceData::get()->getCounter(
+            counterPrefix + ".coalescedUpdates.sum"),
+        numUpdates - 3);
+  });
+
+  // Start the generator so serveStream begins consuming
+  streamPublisher_->startGenerator();
+
+  // verify that coalesced update is written
+  WITH_RETRIES({
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    EXPECT_EVENTUALLY_EQ(
+        fb303::ServiceData::get()->getCounter(
+            counterPrefix + ".chunksWritten.sum"),
+        3);
+  });
+
 #endif
 }
 

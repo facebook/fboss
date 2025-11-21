@@ -19,16 +19,17 @@
 
 namespace facebook::fboss {
 
-struct CmdShowSdkDumpTraits : public ReadCommandTraits {
+struct CmdShowQsfpSdkDumpTraits : public ReadCommandTraits {
   using ParentCmd = void;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using RetType = bool;
 };
 
-class CmdShowSdkDump : public CmdHandler<CmdShowSdkDump, CmdShowSdkDumpTraits> {
+class CmdShowQsfpSdkDump
+    : public CmdHandler<CmdShowQsfpSdkDump, CmdShowQsfpSdkDumpTraits> {
  public:
-  using RetType = CmdShowSdkDumpTraits::RetType;
+  using RetType = CmdShowQsfpSdkDumpTraits::RetType;
   std::unique_ptr<folly::test::TemporaryFile> tempSdkFile;
 
   RetType queryClient(const HostInfo& hostInfo) {
@@ -69,4 +70,33 @@ class CmdShowSdkDump : public CmdHandler<CmdShowSdkDump, CmdShowSdkDumpTraits> {
   }
 };
 
+struct CmdShowAgentSdkDumpTraits : public ReadCommandTraits {
+  using ParentCmd = void;
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+  using RetType = std::string;
+};
+
+class CmdShowAgentSdkDump
+    : public CmdHandler<CmdShowAgentSdkDump, CmdShowAgentSdkDumpTraits> {
+ public:
+  using RetType = CmdShowAgentSdkDumpTraits::RetType;
+  std::unique_ptr<folly::test::TemporaryFile> tempSdkFile;
+
+  RetType queryClient(const HostInfo& hostInfo) {
+    auto client =
+        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+    std::string debugDump{};
+    client->sync_getHwDebugDump(debugDump);
+    return debugDump;
+  }
+
+  void printOutput(const RetType& rc, std::ostream& out = std::cout) {
+    std::ifstream sdkDumpStream;
+    std::string outputLine;
+
+    out << "Printing Agent SDK state:" << std::endl;
+    out << rc;
+  }
+};
 } // namespace facebook::fboss

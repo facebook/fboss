@@ -316,6 +316,11 @@ const std::shared_ptr<MultiSwitchQosPolicyMap>& SwitchState::getQosPolicies()
   return safe_cref<switch_state_tags::qosPolicyMaps>();
 }
 
+const std::shared_ptr<MultiSwitchFibInfoMap>& SwitchState::getFibsInfoMap()
+    const {
+  return safe_cref<switch_state_tags::fibsInfoMap>();
+}
+
 const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>&
 SwitchState::getFibs() const {
   return safe_cref<switch_state_tags::fibsMap>();
@@ -338,6 +343,11 @@ void SwitchState::resetLabelForwardingInformationBase(
 void SwitchState::resetForwardingInformationBases(
     std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs) {
   ref<switch_state_tags::fibsMap>() = fibs;
+}
+
+void SwitchState::resetFibsInfoMap(
+    std::shared_ptr<MultiSwitchFibInfoMap> fibsInfoMap) {
+  ref<switch_state_tags::fibsInfoMap>() = fibsInfoMap;
 }
 
 void SwitchState::resetTransceivers(

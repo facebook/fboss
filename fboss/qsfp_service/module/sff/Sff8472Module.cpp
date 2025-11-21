@@ -343,9 +343,14 @@ bool Sff8472Module::getSensorsPerChanInfo(std::vector<Channel>& channels) {
       transceiverI2CAddress);
   const uint8_t* data =
       getSfpValuePtr(dataAddress, offset, length, transceiverI2CAddress);
+  CHECK_GE(length, 0);
+  if (channels.size() != 1 || numMediaLanes() != 1) {
+    QSFP_LOG(ERR, this) << "Unexpected channel count: channels.size()="
+                        << channels.size()
+                        << ", numMediaLanes()=" << numMediaLanes();
+    return false;
+  }
   uint16_t value = data[0] << 8 | data[1];
-  CHECK_EQ(channels.size(), 1);
-  CHECK_EQ(numMediaLanes(), 1);
   auto firstChannel = channels.begin();
   firstChannel->sensors()->txBias()->value() =
       Sff8472FieldInfo::getTxBias(value);
@@ -358,6 +363,7 @@ bool Sff8472Module::getSensorsPerChanInfo(std::vector<Channel>& channels) {
       length,
       transceiverI2CAddress);
   data = getSfpValuePtr(dataAddress, offset, length, transceiverI2CAddress);
+  CHECK_GE(length, 0);
   value = data[0] << 8 | data[1];
   auto pwr = Sff8472FieldInfo::getPwr(value);
   firstChannel->sensors()->txPwr()->value() = pwr;
@@ -411,7 +417,13 @@ bool Sff8472Module::getSignalsPerMediaLane(
   auto txFault = getSettingsValue(
       Sff8472Field::STATUS_AND_CONTROL_BITS, FieldMasks::TX_FAULT_MASK);
 
-  CHECK_EQ(signals.size(), numMediaLanes());
+  if (signals.size() != numMediaLanes()) {
+    QSFP_LOG(ERR, this) << "Unexpected media lane count: signals.size()="
+                        << signals.size()
+                        << ", numMediaLanes()=" << numMediaLanes();
+    return false;
+  }
+
   auto firstSignal = signals.begin();
   if (firstSignal == signals.end()) {
     QSFP_LOG(ERR, this)

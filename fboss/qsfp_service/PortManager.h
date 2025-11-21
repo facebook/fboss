@@ -66,7 +66,8 @@ class PortManager {
       std::unique_ptr<PhyManager> phyManager,
       const std::shared_ptr<const PlatformMapping> platformMapping,
       const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          threads);
+          threads,
+      std::shared_ptr<QsfpFsdbSyncManager> fsdbSyncManager = nullptr);
   virtual ~PortManager();
   void gracefulExit();
 
@@ -113,10 +114,6 @@ class PortManager {
       const std::string& /* portName */,
       phy::PortComponent /* component */,
       bool /* setAdminUp */);
-
-  void getSymbolErrorHistogram(
-      CdbDatapathSymErrHistogram& symErr,
-      const std::string& portName);
 
   std::string saiPhyRegisterAccess(
       const std::string& /* portName */,
@@ -294,15 +291,16 @@ class PortManager {
       phy::PortComponent component);
 
   void publishPhyStateToFsdb(
-      std::string&& /* portName */,
-      std::optional<phy::PhyState>&& /* newState */) const {}
+      std::string&& /* portNameStr */,
+      std::optional<phy::PhyState>&& /* newState */) const;
+
   void publishPhyStatToFsdb(
-      std::string&& /* portName */,
-      phy::PhyStats&& /* stat */) const {}
+      std::string&& /* portNameStr */,
+      phy::PhyStats&& /* stat */) const;
 
   void publishPortStatToFsdb(
-      std::string&& /* portName */,
-      HwPortStats&& /* stat */) const {}
+      std::string&& /* portNameStr */,
+      HwPortStats&& /* stat */) const;
 
   void syncNpuPortStatusUpdate(
       std::map<int, facebook::fboss::NpuPortStatus>& portStatus);
@@ -365,12 +363,12 @@ class PortManager {
       std::map<int32_t, PortStateMachineState>& states,
       std::unique_ptr<std::vector<int32_t>> ids);
 
- protected:
   /*
    * function to initialize all the Phy in the system
    */
   bool initExternalPhyMap(bool forceWarmboot = false);
 
+ protected:
   void publishLinkSnapshots(PortID portId);
 
   std::unordered_set<TransceiverID> getTransceiversWithAllPortsInSet(
@@ -383,6 +381,10 @@ class PortManager {
 
   // For platforms that needs to program xphy (passed in through constructor).
   std::unique_ptr<PhyManager> phyManager_;
+
+  // Shared pointer to QsfpFsdbSyncManager for publishing to FSDB.
+  // Shared with TransceiverManager.
+  std::shared_ptr<QsfpFsdbSyncManager> fsdbSyncManager_;
 
  private:
   PortManager(PortManager const&) = delete;

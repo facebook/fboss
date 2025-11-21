@@ -142,14 +142,14 @@ std::unordered_map<std::string, FruEeprom> ConfigUtils::getFruEepromList() {
   // The SCM EEPROM is not a symlink created by PlatformManager (instead it is
   // a regular file). So it is not present in `symbolicLinkToDevicePath`, and we
   // have to add it explicitly. ```
-  if (config_.platformName().value() == "meru800bfa" ||
-      config_.platformName().value() == "meru800bia") {
+  if (config_.platformName().value() == "MERU800BFA" ||
+      config_.platformName().value() == "MERU800BIA") {
     std::string eepromName = "SCM";
     FruEeprom fruEeprom;
     fruEeprom.path = "/run/devmap/eeproms/MERU_SCM_EEPROM";
     fruEeprom.offset = getEepromOffset(config_, eepromName);
     fruEepromList[eepromName] = fruEeprom;
-  } else if (config_.platformName().value() == "darwin") {
+  } else if (config_.platformName().value() == "DARWIN") {
     // Darwin Platform special case that doesn't have a chassis EEPROM path
     std::string eepromName = "CHASSIS";
     FruEeprom fruEeprom;
@@ -164,7 +164,7 @@ std::unordered_map<std::string, FruEeprom> ConfigUtils::getFruEepromList() {
 std::string ConfigUtils::getChassisEepromName() {
   // Get Chassis Eeprom Device Name
   // Darwin Platform special case that doesn't have a chassis EEPROM path
-  if (config_.platformName().value() == "darwin") {
+  if (config_.platformName().value() == "DARWIN") {
     return "CHASSIS";
   } else if (!config_.chassisEepromDevicePath()->empty()) {
     std::string chassisEepromPath =

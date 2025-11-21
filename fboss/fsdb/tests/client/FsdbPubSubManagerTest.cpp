@@ -57,6 +57,10 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   void updateSubscriptionLastDisconnectReason(
       SubscriptionType subscriptionType,
       bool isStats) {
+    // Check if pubSubManager_ is still valid before accessing it
+    if (!this->pubSubManager_) {
+      return;
+    }
     auto subscriptionInfoList = this->pubSubManager_->getSubscriptionInfo();
     for (const auto& subscriptionInfo : subscriptionInfoList) {
       if (subscriptionType == subscriptionInfo.subscriptionType &&
@@ -98,7 +102,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   SubscriptionStateChangeCb subscrStateChangeCb(
       folly::Synchronized<std::vector<SubUnit>>& subUnits,
       std::optional<std::function<void()>> onDisconnect = std::nullopt) {
-    return [this, &onDisconnect, &subUnits](
+    return [this, onDisconnect, &subUnits](
                SubscriptionState /*oldState*/,
                SubscriptionState newState,
                std::optional<bool> /*initialSyncHasData*/) {
@@ -256,6 +260,16 @@ class FsdbPubSubManagerTest : public ::testing::Test {
     return kPublishRoot;
   }
   std::vector<ExtendedOperPath> extSubscriptionPaths() const {
+#ifdef IS_OSS
+    // OSS sets serveIdPathSubs to false since it has an issue with serving IDs
+    ExtendedOperPath path = ext_path_builder::raw("agent")
+                                .raw("config")
+                                .raw("defaultCommandLineArgs")
+                                .any()
+                                .get();
+#else
+    // Internal: Use field IDs since serveIdPathSubs = true in internal test
+    // server
     using StateRootMembers =
         apache::thrift::reflect_struct<FsdbOperStateRoot>::member;
     using AgentRootMembers = apache::thrift::reflect_struct<AgentData>::member;
@@ -267,6 +281,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
             .raw(AgentConfigRootMembers::defaultCommandLineArgs::id::value)
             .any()
             .get();
+#endif
     return {std::move(path)};
   }
 
@@ -786,6 +801,8 @@ TYPED_TEST(FsdbPubSubManagerGRTest, verifySubscriptionDisconnectOnPublisherGR) {
   this->createPublishers();
   this->publish(makeAgentConfig({{"foo", "bar"}}));
   this->publish(makePortStats(1));
+  // Clear the disconnect reasons before the second disconnect
+  this->subscriptionLastDisconnectReason.wlock()->clear();
   this->pubSubManager_->removeStatDeltaPublisher();
   this->pubSubManager_->removeStatPathPublisher();
   this->pubSubManager_->removeStateDeltaPublisher();
@@ -916,6 +933,8 @@ using PatchApiTestTypes = ::testing::Types<PatchPubSubForState>;
 TYPED_TEST_SUITE(FsdbPubSubManagerPatchApiTest, PatchApiTestTypes);
 
 TYPED_TEST(FsdbPubSubManagerPatchApiTest, verifyEmptyInitialResponse) {
+  // TODO: Block this test in OSS until we support patchNodes
+#ifndef IS_OSS
   folly::Synchronized<std::vector<SubscriberChunk>> received;
   bool initialResponseReceived = false;
   bool isDataExpected;
@@ -953,6 +972,7 @@ TYPED_TEST(FsdbPubSubManagerPatchApiTest, verifyEmptyInitialResponse) {
   // check for initial chunk
   WITH_RETRIES_N(
       this->kRetries, { ASSERT_EVENTUALLY_EQ(received.rlock()->size(), 1); });
+#endif
 }
 
 TYPED_TEST(FsdbPubSubManagerTest, portOperStateToggleTest) {

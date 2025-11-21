@@ -67,6 +67,7 @@ class BufferStoreTest : public SaiStoreTest {
           std::nullopt,
           std::nullopt,
           std::nullopt,
+          std::nullopt,
           std::nullopt};
     } else {
       mode = SAI_BUFFER_PROFILE_THRESHOLD_MODE_STATIC;
@@ -81,6 +82,7 @@ class BufferStoreTest : public SaiStoreTest {
           xoffTh,
           xonTh,
           xonOffsetTh,
+          std::nullopt,
           std::nullopt,
           std::nullopt,
           std::nullopt,

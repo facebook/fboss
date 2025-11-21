@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "fboss/lib/fpga/Wedge400I2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
 namespace facebook::fboss {

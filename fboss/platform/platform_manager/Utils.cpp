@@ -202,7 +202,7 @@ std::string Utils::evaluateExpression(const std::string& expression) {
   if (!parser.compile(decimalExpression, expr)) {
     throw std::runtime_error(
         fmt::format(
-            "Failed to parse csrOffset expression: {}", decimalExpression));
+            "Failed to parse offset expression: {}", decimalExpression));
   }
 
   uint64_t value = static_cast<uint64_t>(expr.value());
@@ -268,9 +268,56 @@ std::vector<XcvrCtrlConfig> Utils::createXcvrCtrlConfigs(
               port,
               *xcvrCtrlBlockConfig.startPort());
       xcvrCtrlConfig.portNumber() = port;
+      if (!xcvrCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+        xcvrCtrlConfig.fpgaIpBlockConfig()->iobufOffset() =
+            Utils().computeHexExpression(
+                *xcvrCtrlBlockConfig.iobufOffsetCalc(),
+                port,
+                *xcvrCtrlBlockConfig.startPort());
+      }
       xcvrCtrlConfigs.push_back(xcvrCtrlConfig);
     }
   }
   return xcvrCtrlConfigs;
+}
+
+std::vector<LedCtrlConfig> Utils::createLedCtrlConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<LedCtrlConfig> ledCtrlConfigs;
+  const auto ledCtrlBlockConfigs = pciDeviceConfig.ledCtrlBlockConfigs();
+  for (const auto& ledCtrlBlockConfig : *ledCtrlBlockConfigs) {
+    int endPort =
+        *ledCtrlBlockConfig.startPort() + *ledCtrlBlockConfig.numPorts();
+    for (int port = *ledCtrlBlockConfig.startPort(); port < endPort; ++port) {
+      for (int led = 1; led <= ledCtrlBlockConfig.ledPerPort(); ++led) {
+        LedCtrlConfig ledCtrlConfig;
+        ledCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
+            "{}_PORT_{}_LED_{}",
+            *ledCtrlBlockConfig.pmUnitScopedNamePrefix(),
+            port,
+            led);
+        ledCtrlConfig.fpgaIpBlockConfig()->deviceName() =
+            *ledCtrlBlockConfig.deviceName();
+        ledCtrlConfig.fpgaIpBlockConfig()->csrOffset() =
+            Utils().computeHexExpression(
+                *ledCtrlBlockConfig.csrOffsetCalc(),
+                port,
+                *ledCtrlBlockConfig.startPort(),
+                led);
+        ledCtrlConfig.portNumber() = port;
+        ledCtrlConfig.ledId() = led;
+        if (!ledCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+          ledCtrlConfig.fpgaIpBlockConfig()->iobufOffset() =
+              Utils().computeHexExpression(
+                  *ledCtrlBlockConfig.iobufOffsetCalc(),
+                  port,
+                  *ledCtrlBlockConfig.startPort(),
+                  led);
+        }
+        ledCtrlConfigs.push_back(ledCtrlConfig);
+      }
+    }
+  }
+  return ledCtrlConfigs;
 }
 } // namespace facebook::fboss::platform::platform_manager

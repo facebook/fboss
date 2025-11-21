@@ -49,6 +49,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP_2(BufferProfile, StaticBufferProfile, SramFadtMinTh)
   SAI_EXT_ATTR_MAP_2(BufferProfile, StaticBufferProfile, SramFadtXonOffset)
   SAI_EXT_ATTR_MAP_2(BufferProfile, StaticBufferProfile, SramDynamicTh)
+  SAI_EXT_ATTR_MAP_2(BufferProfile, StaticBufferProfile, PgPipelineLatencyBytes)
 
   SAI_EXT_ATTR_MAP_2(BufferProfile, DynamicBufferProfile, SharedFadtMaxTh)
   SAI_EXT_ATTR_MAP_2(BufferProfile, DynamicBufferProfile, SharedFadtMinTh)
@@ -56,6 +57,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP_2(BufferProfile, DynamicBufferProfile, SramFadtMinTh)
   SAI_EXT_ATTR_MAP_2(BufferProfile, DynamicBufferProfile, SramFadtXonOffset)
   SAI_EXT_ATTR_MAP_2(BufferProfile, DynamicBufferProfile, SramDynamicTh)
+  SAI_EXT_ATTR_MAP_2(
+      BufferProfile, DynamicBufferProfile, PgPipelineLatencyBytes)
 
   SAI_EXT_ATTR_MAP(IngressPriorityGroup, LosslessEnable)
 }

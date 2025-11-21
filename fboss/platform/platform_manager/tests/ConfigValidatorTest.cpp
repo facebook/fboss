@@ -45,46 +45,59 @@ PciDeviceConfig getValidPciDeviceConfig() {
   pciDevConfig.subSystemDeviceId() = "0x1b29";
   return pciDevConfig;
 }
-} // namespace
 
-TEST(ConfigValidatorTest, InvalidPlatformName) {
+PlatformConfig getBasicConfig() {
   auto config = PlatformConfig();
-  config.platformName() = "";
-  EXPECT_FALSE(ConfigValidator().isValid(config));
-}
-
-TEST(ConfigValidatorTest, InvalidRootSlotType) {
-  auto config = PlatformConfig();
-  config.platformName() = "MERU400BIU";
+  config.platformName() = "SAMPLE_PLATFORM";
   config.rootSlotType() = "SCM_SLOT";
   config.bspKmodsRpmName() = "sample_bsp_kmods";
   config.bspKmodsRpmVersion() = "1.0.0-4";
+  config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
+  auto pmUnitConfig = PmUnitConfig();
+  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
+  I2cDeviceConfig chassisEeprom;
+  chassisEeprom.pmUnitScopedName() = "CHASSIS_EEPROM";
+  chassisEeprom.address() = "0x50";
+  pmUnitConfig.i2cDeviceConfigs() = {chassisEeprom};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.chassisEepromDevicePath() = "/[CHASSIS_EEPROM]";
+  return config;
+}
+} // namespace
+
+TEST(ConfigValidatorTest, PlatformName) {
+  auto config = getBasicConfig();
+
+  // Test 1: Empty platform name
+  config.platformName() = "";
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 2: Lowercase platform name
+  config.platformName() = "meru800bia";
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 3: Mixed case platform name
+  config.platformName() = "Meru800BIA";
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 4: Valid uppercase platform name
+  config.platformName() = "MERU800BIA";
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidRootSlotType) {
+  auto config = getBasicConfig();
+  config.rootSlotType() = "MCB_SLOT";
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, ValidConfig) {
-  auto config = PlatformConfig();
-  config.platformName() = "MERU400BIU";
-  config.rootSlotType() = "SCM_SLOT";
-  config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
-  auto pmUnitConfig = PmUnitConfig();
-  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
-  config.bspKmodsRpmName() = "sample_bsp_kmods";
-  config.bspKmodsRpmVersion() = "1.0.0-4";
+  auto config = getBasicConfig();
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
-  auto config = PlatformConfig();
-  config.platformName() = "SAMPLE_PLATFORM";
-  config.rootSlotType() = "SCM_SLOT";
-  config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
-  config.bspKmodsRpmName() = "sample_bsp_kmods";
-  config.bspKmodsRpmVersion() = "1.0.0-4";
-  auto pmUnitConfig = PmUnitConfig();
-  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  auto config = getBasicConfig();
 
   // Test 1: Empty versionedPmUnitConfigs vector
   config.versionedPmUnitConfigs() = {{"SCM", {}}};
@@ -130,16 +143,7 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
 }
 
 TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
-  auto config = PlatformConfig();
-  auto pmUnitConfig = PmUnitConfig();
-  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
-
-  config.platformName() = "SAMPLE_PLATFORM";
-  config.rootSlotType() = "SCM_SLOT";
-  config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
-  config.bspKmodsRpmName() = "sample_bsp_kmods";
-  config.bspKmodsRpmVersion() = "1.0.0-4";
+  auto config = getBasicConfig();
 
   // Test 1: Valid with single versioned config (productSubVersion = 0)
   auto versionedPmUnitConfig1 = VersionedPmUnitConfig();
@@ -179,6 +183,7 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   // Test 6: Valid with matching pciDeviceConfigs (non-empty)
   versionedPmUnitConfig1.pmUnitConfig()->pciDeviceConfigs() = {
       getValidPciDeviceConfig()};
+  auto pmUnitConfig = config.pmUnitConfigs()->at("SCM");
   pmUnitConfig.pciDeviceConfigs() = {getValidPciDeviceConfig()};
   config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
@@ -206,7 +211,8 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   i2cConfig2.pmUnitScopedName() = "SCM_EEPROM_V2";
   i2cConfig2.address() = "0x51";
   versionedPmUnitConfig1.pmUnitConfig()->i2cDeviceConfigs() = {i2cConfig1};
-  pmUnitConfig.i2cDeviceConfigs() = {i2cConfig2};
+  pmUnitConfig = config.pmUnitConfigs()->at("SCM");
+  pmUnitConfig.i2cDeviceConfigs()->emplace_back(i2cConfig2);
   pmUnitConfig.pciDeviceConfigs() = {};
   config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
@@ -214,16 +220,7 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
 }
 
 TEST(ConfigValidatorTest, PmUnitNameReferentialIntegrity) {
-  auto config = PlatformConfig();
-  config.platformName() = "MERU400BIU";
-  config.rootSlotType() = "SCM_SLOT";
-  config.bspKmodsRpmName() = "sample_bsp_kmods";
-  config.bspKmodsRpmVersion() = "1.0.0-4";
-
-  // Add a valid pmUnitConfig
-  auto pmUnitConfig = PmUnitConfig();
-  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  auto config = getBasicConfig();
 
   // Test 1: slotTypeConfig.pmUnitName references non-existent PMUnit name
   auto slotTypeConfig = SlotTypeConfig();
@@ -256,50 +253,33 @@ TEST(ConfigValidatorTest, PmUnitNameReferentialIntegrity) {
 }
 
 TEST(ConfigValidatorTest, PmUnitNameAllowedListValidation) {
-  auto config = PlatformConfig();
-  config.platformName() = "MERU400BIU";
-  config.rootSlotType() = "PIM_SLOT";
-  config.bspKmodsRpmName() = "sample_bsp_kmods";
-  config.bspKmodsRpmVersion() = "1.0.0-4";
+  auto config = getBasicConfig();
 
   // Create a basic SlotTypeConfig without pmUnitName to avoid referential
   // integrity issues
   auto slotTypeConfig = SlotTypeConfig();
   slotTypeConfig.idpromConfig() = IdpromConfig();
   slotTypeConfig.idpromConfig()->address() = "0x14";
-  config.slotTypeConfigs() = {{"PIM_SLOT", slotTypeConfig}};
+  config.slotTypeConfigs()->emplace("PIM_SLOT", slotTypeConfig);
 
   auto pmUnitConfig = PmUnitConfig();
   pmUnitConfig.pluggedInSlotType() = "PIM_SLOT";
 
   // Test 1: Valid PMUnit name from allowed list (should pass)
-  config.pmUnitConfigs() = {{"PIM_8DD", pmUnitConfig}};
+  config.pmUnitConfigs()->emplace("PIM_8DD", pmUnitConfig);
   EXPECT_TRUE(ConfigValidator().isValid(config));
 
   // Test 2: Another valid PMUnit name from allowed list (should pass)
-  config.pmUnitConfigs() = {{"PIM_16Q", pmUnitConfig}};
+  config.pmUnitConfigs()->emplace("PIM_16Q", pmUnitConfig);
   EXPECT_TRUE(ConfigValidator().isValid(config));
 
   // Test 3: Invalid PMUnit name not in allowed list (should fail)
-  config.pmUnitConfigs() = {{"INVALID_PMUNIT_NAME", pmUnitConfig}};
+  config.pmUnitConfigs()->emplace("INVALID_PMUNIT_NAME", pmUnitConfig);
   EXPECT_FALSE(ConfigValidator().isValid(config));
+  config.pmUnitConfigs()->erase("INVALID_PMUNIT_NAME");
 
   // Test 4: Another invalid PMUnit name (should fail)
-  config.pmUnitConfigs() = {{"RANDOM_NAME", pmUnitConfig}};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
-
-  // Test 5: Multiple PMUnits - all valid (should pass)
-  config.pmUnitConfigs() = {
-      {"FAN", pmUnitConfig},
-      {"PIM_16Q", pmUnitConfig},
-      {"PIM_8DD", pmUnitConfig}};
-  EXPECT_TRUE(ConfigValidator().isValid(config));
-
-  // Test 6: Multiple PMUnits - one invalid (should fail)
-  config.pmUnitConfigs() = {
-      {"PIM_8DD", pmUnitConfig},
-      {"INVALID_NAME", pmUnitConfig},
-      {"PIM_8DD", pmUnitConfig}};
+  config.pmUnitConfigs()->emplace("RANDOM_NAME", pmUnitConfig);
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
@@ -739,6 +719,24 @@ TEST(ConfigValidatorTest, LedCtrlBlockConfig) {
   validator.numXcvrs_ = 32;
   EXPECT_TRUE(validator.isValidLedCtrlBlockConfig(config));
 
+  // Test case: Valid config with iobufOffsetCalc
+  config.pmUnitScopedNamePrefix() = "MCB_LED";
+  config.deviceName() = "port_led";
+  config.csrOffsetCalc() =
+      "0x1000 + ({portNum} - {startPort})*0x100 + ({ledNum}-1)*0x10";
+  config.iobufOffsetCalc() =
+      "0x2000 + ({portNum} - {startPort})*0x100 + ({ledNum}-1)*0x10";
+  config.numPorts() = 32;
+  config.ledPerPort() = 2;
+  config.startPort() = 1;
+  validator.numXcvrs_ = 32;
+  EXPECT_TRUE(validator.isValidLedCtrlBlockConfig(config));
+
+  // Test case: Invalid iobufOffsetCalc expression
+  config.iobufOffsetCalc() = "invalid_expression";
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.iobufOffsetCalc() = "";
+
   // Test case: Empty pmUnitScopedNamePrefix
   config.pmUnitScopedNamePrefix() = "";
   EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
@@ -1013,6 +1011,56 @@ TEST(ConfigValidatorTest, CsrOffsetCalc) {
   EXPECT_FALSE(validator.isValidCsrOffsetCalc("{ledNum} * 5 abcd 10", 1, 1, 1));
 }
 
+TEST(ConfigValidatorTest, IobOffsetCalc) {
+  ConfigValidator validator;
+
+  // Test case: Valid  LED control expressions
+  EXPECT_TRUE(validator.isValidIobufOffsetCalc(
+      "0x40410 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4", 2, 1, 1));
+  EXPECT_TRUE(validator.isValidIobufOffsetCalc(
+      "0x48410 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+      45,
+      2,
+      33));
+  EXPECT_TRUE(validator.isValidIobufOffsetCalc(
+      "0x65c0 + ({portNum} - {startPort})*0x10 + ({ledNum} - 1)*0x10",
+      39,
+      3,
+      39));
+
+  // Test case: Valid expressions with zero values
+  EXPECT_TRUE(validator.isValidIobufOffsetCalc(
+      "{portNum} + {ledNum} + {startPort}", 0, 0, 0));
+
+  // Test case: Valid expression
+  EXPECT_TRUE(validator.isValidIobufOffsetCalc("12345", 1, 1, 1));
+
+  // Test case: Invalid expressions - syntax errors
+  EXPECT_FALSE(validator.isValidIobufOffsetCalc("invalid_expression", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidIobufOffsetCalc("0x1000 +", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidIobufOffsetCalc("0x1000 + * 0x100", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidIobufOffsetCalc("", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidIobufOffsetCalc("0x + 1000", 1, 1, 1));
+
+  // Test case: Invalid expressions - unbalanced parentheses
+  EXPECT_FALSE(
+      validator.isValidIobufOffsetCalc("({portNum} + {ledNum}", 1, 1, 1));
+  EXPECT_FALSE(
+      validator.isValidIobufOffsetCalc("{portNum} + {ledNum})", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidIobufOffsetCalc("((({portNum}))", 1, 1, 1));
+
+  // Test case: Invalid expressions - unknown variables
+  EXPECT_FALSE(validator.isValidIobufOffsetCalc("{unknownVar}", 1, 1, 1));
+  EXPECT_FALSE(
+      validator.isValidIobufOffsetCalc("0x1000 + {portNumber}", 1, 1, 1));
+  EXPECT_FALSE(
+      validator.isValidIobufOffsetCalc("0x1000 + {ledNumber}", 1, 1, 1));
+  EXPECT_FALSE(
+      validator.isValidIobufOffsetCalc("0x1000 + {ledNumber}", 1, 1, 1));
+  EXPECT_FALSE(
+      validator.isValidIobufOffsetCalc("{ledNum} * 5 abcd 10", 1, 1, 1));
+}
+
 TEST(ConfigValidatorTest, XcvrCtrlBlockConfig) {
   ConfigValidator validator;
   XcvrCtrlBlockConfig config;
@@ -1025,6 +1073,21 @@ TEST(ConfigValidatorTest, XcvrCtrlBlockConfig) {
   config.startPort() = 1;
   validator.numXcvrs_ = 32;
   EXPECT_TRUE(validator.isValidXcvrCtrlBlockConfig(config));
+
+  // Test case: Valid config with iobufOffsetCalc
+  config.pmUnitScopedNamePrefix() = "SMB_DOM1_XCVR";
+  config.deviceName() = "xcvr_ctrl";
+  config.csrOffsetCalc() = "0x1000 + ({portNum} - {startPort})*0x100";
+  config.iobufOffsetCalc() = "0x2000 + ({portNum} - {startPort})*0x100";
+  config.numPorts() = 32;
+  config.startPort() = 1;
+  validator.numXcvrs_ = 32;
+  EXPECT_TRUE(validator.isValidXcvrCtrlBlockConfig(config));
+
+  // Test case: Invalid iobufOffsetCalc expression
+  config.iobufOffsetCalc() = "invalid_expression";
+  EXPECT_FALSE(validator.isValidXcvrCtrlBlockConfig(config));
+  config.iobufOffsetCalc() = "";
 
   // Test case: Empty pmUnitScopedNamePrefix
   config.pmUnitScopedNamePrefix() = "";
@@ -1260,4 +1323,32 @@ TEST(ConfigValidatorTest, PciDeviceConfigWithXcvrCtrlBlockConfigs) {
 
   pciDevConfig.xcvrCtrlBlockConfigs() = {config1, config2};
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+}
+
+TEST(ConfigValidatorTest, ChassisEepromDevicePath) {
+  auto config = getBasicConfig();
+
+  I2cDeviceConfig otherEeprom;
+  otherEeprom.pmUnitScopedName() = "SOME_OTHER_EEPROM";
+  otherEeprom.address() = "0x52";
+  auto pmUnitConfig = config.pmUnitConfigs()->at("SCM");
+  pmUnitConfig.i2cDeviceConfigs()->emplace_back(otherEeprom);
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+
+  // Valid: non-IDPROM chassis EEPROM
+  config.chassisEepromDevicePath() = "/[CHASSIS_EEPROM]";
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Invalid: New platform using IDPROM as chassis EEPROM
+  config.chassisEepromDevicePath() = "/[IDPROM]";
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Valid: Exception list platform can use IDPROM
+  config.platformName() = "MERU800BIA";
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Invalid: Device name other than CHASSIS_EEPROM
+  config.platformName() = "NEW_PLATFORM";
+  config.chassisEepromDevicePath() = "/[SOME_OTHER_EEPROM]";
+  EXPECT_FALSE(ConfigValidator().isValid(config));
 }

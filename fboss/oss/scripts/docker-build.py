@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import argparse
+import getpass
 import json
 import os
 import re
@@ -22,7 +23,9 @@ OPT_ARG_LOCAL = "--local"
 OPT_ARG_NUM_JOBS = "--num-jobs"
 OPT_ARG_EXTRAS_DIR = "--extras-dir"
 OPT_ARG_EXTRA_CMAKE_DEFINES = "--extra-cmake-defines"
+OPT_ARG_DOT_FILES = "--dot-file"
 
+USERNAME = getpass.getuser()
 FBOSS_IMAGE_NAME = "fboss_image"
 FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
 CONTAINER_SCRATCH_PATH = "/var/FBOSS/tmp_bld_dir"
@@ -180,6 +183,16 @@ def parse_args():
             'e.g: \'{"CMAKE_CXX_FLAGS": "--bla"}\''
         ),
     )
+    parser.add_argument(
+        OPT_ARG_DOT_FILES,
+        dest="dot_files",
+        default=[],
+        action="append",
+        help=(
+            "Choose essential config files to mount from the user's home directory into the container. "
+            "Usage: --dot-file .vimrc --dot-file .vim --dot-file .bashrc"
+        ),
+    )
 
     return parser.parse_args()
 
@@ -225,26 +238,28 @@ def use_stable_hashes():
 
 
 def build_docker_image(docker_dir_path: str):
-    fd, log_path = tempfile.mkstemp(suffix="docker-build.log")
-    print(
-        f"Attempting to build docker image from {docker_dir_path}/Dockerfile. You can run `sudo tail -f {log_path}` in order to follow along."
+    dockerfile_path = os.path.join(docker_dir_path, "Dockerfile")
+    shell = os.getenv("SHELL", "/bin/bash")
+    cp = subprocess.run(
+        [
+            "sudo",
+            "docker",
+            "build",
+            ".",
+            "-t",
+            FBOSS_IMAGE_NAME,
+            "-f",
+            dockerfile_path,
+            "--build-arg",
+            f"USERNAME={USERNAME}",
+            "--build-arg",
+            f"USER_UID={os.getuid()}",
+            "--build-arg",
+            f"USER_GID={os.getgid()}",
+            "--build-arg",
+            f"USER_SHELL={shell}",
+        ],
     )
-    with os.fdopen(fd, "w") as output:
-        dockerfile_path = os.path.join(docker_dir_path, "Dockerfile")
-        cp = subprocess.run(
-            [
-                "sudo",
-                "docker",
-                "build",
-                ".",
-                "-t",
-                FBOSS_IMAGE_NAME,
-                "-f",
-                dockerfile_path,
-            ],
-            stdout=output,
-            stderr=subprocess.STDOUT,
-        )
     if not cp.returncode == 0:
         errMsg = f"An error occurred while trying to build the FBOSS docker image: {cp.stderr}"
         print(errMsg, file=sys.stderr)
@@ -261,6 +276,7 @@ def run_fboss_build(
     num_jobs: Optional[int],
     extras_dir: Optional[str],
     extra_cmake_defines: Optional[str],
+    dot_files: Optional[List],
 ):
     use_stable_hashes()
 
@@ -288,6 +304,14 @@ def run_fboss_build(
         cmd_args.append("-it")
     if extras_dir:
         cmd_args.extend(["-v", f"{extras_dir}:/var/extras:rw"])
+
+    # Mount dotfiles if requested
+    home_dir = os.path.expanduser("~")
+    for dotfile in dot_files:
+        host_path = os.path.join(home_dir, dotfile)
+        if os.path.exists(host_path):
+            cmd_args.extend(["-v", f"{host_path}:/home/{USERNAME}/{dotfile}:rw"])
+
     # Add args for docker container name
     cmd_args.append(f"--name={FBOSS_CONTAINER_NAME}")
     # Add args for image name
@@ -374,6 +398,7 @@ def main():
         args.num_jobs,
         args.extras_dir,
         args.extra_cmake_defines,
+        args.dot_files,
     )
 
     cleanup_fboss_build_container()

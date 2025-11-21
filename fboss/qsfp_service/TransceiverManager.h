@@ -30,6 +30,7 @@
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
 #include "fboss/qsfp_service/TransceiverValidator.h"
 #include "fboss/qsfp_service/TypedStateMachineUpdate.h"
+#include "fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/port_state_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
@@ -555,6 +556,7 @@ class TransceiverManager {
       bool removeTransceiver);
 
   void publishLinkSnapshots(std::string portName);
+  void publishLinkSnapshotsTransceiver(PortID portID);
 
   void getInterfacePhyInfo(
       std::map<std::string, phy::PhyInfo>& phyInfos,
@@ -653,6 +655,7 @@ class TransceiverManager {
   virtual void publishPhyStateToFsdb(
       std::string&& /* portName */,
       std::optional<phy::PhyState>&& /* newState */) const {}
+
   virtual void publishPhyStatToFsdb(
       std::string&& /* portName */,
       phy::PhyStats&& /* stat */) const {}
@@ -810,6 +813,10 @@ class TransceiverManager {
 
   bool transceiverJustRemediated(const TransceiverID& id) const;
 
+  std::shared_ptr<QsfpFsdbSyncManager> getFsdbSyncManager() const {
+    return fsdbSyncManager_;
+  }
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
@@ -883,6 +890,10 @@ class TransceiverManager {
 
   // For platforms that needs to program xphy
   std::unique_ptr<PhyManager> phyManager_;
+
+  // Shared pointer to QsfpFsdbSyncManager for publishing to FSDB.
+  // Shared between WedgeManager and PortManager.
+  std::shared_ptr<QsfpFsdbSyncManager> fsdbSyncManager_;
 
   // Use the following bidirectional map to cache the static mapping so that
   // we don't have to search from PlatformMapping again and again
