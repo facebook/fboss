@@ -460,6 +460,15 @@
           "compute": "@/1000.0"
         },
         {
+          "name": "MCB_PU101_XP48R0V_STBY_PIN",
+          "sysfsPath": "/run/devmap/sensors/48V_STBY_PWR_SENSOR/power1_input",
+          "type": 0,
+          "thresholds": {
+            "minAlarmVal": 0
+          },
+          "compute": "@/1000000.0"
+        },
+        {
           "name": "MCB_PU1066_XP48R0V_HOTSWAP_VIN",
           "sysfsPath": "/run/devmap/sensors/48V_HSC_MONITOR/in1_input",
           "type": 1,
@@ -4102,6 +4111,35 @@
           },
           "compute": "@/1000.0"
         }
+      ]
+    }
+  ],
+  "powerConfig": {
+    "perSlotPowerConfigs": [
+      {
+        "__comment__": "Hot-swap VRM chip ltc4287 monitors the main power consumption of the system",
+        "name": "HSC",
+        "powerSensorName": "MCB_PU1066_XP48R0V_HOTSWAP_PIN"
+      }
+    ],
+    "__comment__": "TPS16890 chip monitors the standby power consumption of the system",
+    "otherPowerSensorNames": [
+      "MCB_PU101_XP48R0V_STBY_PIN"
+    ],
+    "inputVoltageSensors": [
+      "MCB_PU1066_XP48R0V_HOTSWAP_VIN",
+      "MCB_PU101_XP48R0V_STBY_VIN"
+    ]
+  },
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "SMB_U29_LEFT_TMP432_1_TEMP1",
+        "SMB_U29_LEFT_TMP432_1_TEMP2",
+        "SMB_U29_LEFT_TMP432_1_TEMP3",
+        "SMB_U30_RIGHT_TMP432_2_TEMP1",
+        "SMB_U30_RIGHT_TMP432_2_TEMP2"
       ]
     }
   ]
