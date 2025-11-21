@@ -1,16 +1,16 @@
 {
   "systemLedConfig": {
-    "presentLedSysfsPath": "/sys/class/leds/system:green:status/brightness",
-    "absentLedSysfsPath": "/sys/class/leds/system:red:status/brightness"
+    "presentLedSysfsPath": "/sys/class/leds/sys_led:green:status/brightness",
+    "absentLedSysfsPath": "/sys/class/leds/sys_led:red:status/brightness"
   },
   "fruTypeLedConfigs": {
     "FAN": {
-      "presentLedSysfsPath": "/sys/class/leds/fan:green:status/brightness",
-      "absentLedSysfsPath": "/sys/class/leds/fan:red:status/brightness"
+      "presentLedSysfsPath": "/sys/class/leds/fan_led:green:status/brightness",
+      "absentLedSysfsPath": "/sys/class/leds/fan_led:red:status/brightness"
     },
     "PEM": {
-      "presentLedSysfsPath": "/sys/class/leds/pem:green:status/brightness",
-      "absentLedSysfsPath": "/sys/class/leds/pem:red:status/brightness"
+      "presentLedSysfsPath": "/sys/class/leds/psu_led:green:status/brightness",
+      "absentLedSysfsPath": "/sys/class/leds/psu_led:red:status/brightness"
     }
   },
   "fruConfigs": [
@@ -60,6 +60,16 @@
       "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan5_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "FAN6",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/fpgas/SCD_FPGA/rackmon_present",
           "desiredValue": 1
         }
       }
