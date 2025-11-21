@@ -27,3 +27,13 @@ cpp_unittest(
         "//folly/testing:test_util",
     ],
 )
+
+cpp_unittest(
+    name = "platform_utils_test",
+    srcs = [
+        "PlatformUtilsTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/helpers:platform_utils",
+    ],
+)
