@@ -19,14 +19,14 @@ DECLARE_int32(fsdb_publisher_heartbeat_interval_secs);
 namespace facebook::fboss::fsdb {
 template <typename PubUnit>
 class FsdbPublisher : public FsdbStreamClient {
-  static constexpr auto kPubQueueCapacity{2000};
+  static constexpr auto kDefaultPubQueueCapacity{2000};
 #if FOLLY_HAS_COROUTINES
   using PipeT =
       folly::coro::BoundedAsyncPipe<PubUnit, false /* SingleProducer */>;
   using GenT = folly::coro::AsyncGenerator<PubUnit&&>;
   using GenPipeT = std::pair<GenT, PipeT>;
-  static std::unique_ptr<GenPipeT> makePipe() {
-    return std::make_unique<GenPipeT>(PipeT::create(kPubQueueCapacity));
+  std::unique_ptr<GenPipeT> makePipe() {
+    return std::make_unique<GenPipeT>(PipeT::create(queueCapacity_));
   }
 #endif
   std::string typeStr();
@@ -39,7 +39,8 @@ class FsdbPublisher : public FsdbStreamClient {
       folly::EventBase* connRetryEvb,
       bool publishStats,
       FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
-                                                 State /*newState*/) {})
+                                                 State /*newState*/) {},
+      std::optional<size_t> queueCapacity = std::nullopt)
       : FsdbStreamClient(
             clientId,
             streamEvb,
@@ -73,6 +74,9 @@ class FsdbPublisher : public FsdbStreamClient {
             getCounterPrefix() + ".chunksWritten",
             fb303::SUM,
             fb303::RATE),
+        queueCapacity_(
+            queueCapacity.has_value() ? queueCapacity.value()
+                                      : kDefaultPubQueueCapacity),
 #if FOLLY_HAS_COROUTINES
         asyncPipe_(makePipe()),
 #endif
@@ -91,7 +95,7 @@ class FsdbPublisher : public FsdbStreamClient {
     return queueSize_;
   }
   size_t queueCapacity() const {
-    return kPubQueueCapacity;
+    return queueCapacity_;
   }
 
  protected:
@@ -121,6 +125,7 @@ class FsdbPublisher : public FsdbStreamClient {
   void sendHeartbeat();
 
   void handleStateChange(State oldState, State newState);
+  size_t queueCapacity_;
 // Note unique_ptr is synchronized, not GenT/PipeT. The latter manages its
 // own synchronization
 #if FOLLY_HAS_COROUTINES

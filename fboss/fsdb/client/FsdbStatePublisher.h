@@ -18,14 +18,16 @@ class FsdbStatePublisher : public FsdbPublisher<OperState> {
       folly::EventBase* connRetryEvb,
       bool publishStats,
       FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
-                                                 State /*newState*/) {})
+                                                 State /*newState*/) {},
+      std::optional<size_t> queueCapacity = std::nullopt)
       : BaseT(
             clientId,
             publishPath,
             streamEvb,
             connRetryEvb,
             publishStats,
-            std::move(stateChangeCb)),
+            std::move(stateChangeCb),
+            queueCapacity),
         coalescedUpdates_(
             fb303::ThreadCachedServiceData::get()->getThreadStats(),
             getCounterPrefix() + ".coalescedUpdates",
