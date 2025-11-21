@@ -62,6 +62,7 @@ target_link_libraries(bsp_test_environment
   platform_config_lib
   platform_manager_pkg_manager
   platform_manager_config_cpp2
+  platform_manager_utils
   Folly::folly
   FBThrift::thriftcpp2
 )
