@@ -11,3 +11,13 @@ cpp_unittest(
         "//fboss/platform/fw_util:core",
     ],
 )
+
+cpp_unittest(
+    name = "fw_util_helpers_test",
+    srcs = [
+        "FwUtilHelpersTests.cpp",
+    ],
+    deps = [
+        "//fboss/platform/fw_util:core",
+    ],
+)
