@@ -2926,5 +2926,40 @@
         }
       ]
     }
+  ],
+  "powerConfig": {
+    "perSlotPowerConfigs": [
+      {
+        "__comment__": "48V HOTSWAP LTC4287 monitors the power consumption of the main input",
+        "name": "HSC",
+        "powerSensorName": "MCB_PU1066_LTC4287_P48V_PIN"
+      }
+    ],
+    "__comment__1": "48V HOTSWAP INA238+TPS16851 monitors the power consumption of the fans",
+    "otherPowerSensorNames": [
+      "MCB_FAN1_INA238_POWER",
+      "MCB_FAN2_INA238_POWER",
+      "MCB_FAN3_INA238_POWER",
+      "MCB_FAN4_INA238_POWER"
+    ],
+    "__comment__2": "48V HOTSWAP TPS16851 Standby Power Estimation: 10W",
+    "powerDelta": 10,
+    "inputVoltageSensors": [
+      "MCB_PU1066_LTC4287_XP48R0V_VIN",
+      "MCB_FAN1_INA238_VBUS",
+      "MCB_FAN2_INA238_VBUS",
+      "MCB_FAN3_INA238_VBUS",
+      "MCB_FAN4_INA238_VBUS"
+    ]
+  },
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "SMB_U29_LEFT_TMP432_1_TEMP2",
+        "SMB_U29_LEFT_TMP432_1_TEMP3",
+        "SMB_U30_RIGHT_TMP432_2_TEMP2"
+      ]
+    }
   ]
 }
