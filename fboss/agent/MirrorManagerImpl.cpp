@@ -7,7 +7,6 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/AggregatePort.h"
-#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/Route.h"
