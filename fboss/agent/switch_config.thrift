@@ -1975,6 +1975,7 @@ struct SwitchSettings {
   // Connected system ports are for fabric links and used in fabric link
   // monitoring feature.
   34: optional i32 fabricLinkMonitoringSystemPortOffset;
+  35: optional bool measureCableLengths;
 }
 
 // Global buffer pool
