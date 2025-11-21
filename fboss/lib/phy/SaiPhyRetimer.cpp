@@ -289,6 +289,7 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
       std::nullopt, // range list of local scope system port ids
 #endif
       std::nullopt, // enable PFC monitoring for the switch
+      std::nullopt, // enable cable propagation delay measurement
   };
 }
 

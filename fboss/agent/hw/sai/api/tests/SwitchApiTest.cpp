@@ -685,3 +685,32 @@ TEST_F(SwitchApiTest, testPfcMonitorEnable) {
           switchId, SaiSwitchTraits::Attributes::PfcMonitorEnable{}),
       false);
 }
+
+TEST_F(SwitchApiTest, testCablePropagationDelayMeasurement) {
+  // Test default value
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement{}),
+      false);
+
+  // Test setting to true
+  SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement
+      cablePropagationDelayMeasurementEnable{true};
+  switchApi->setAttribute(switchId, cablePropagationDelayMeasurementEnable);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement{}),
+      true);
+
+  // Test setting to false
+  SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement
+      cablePropagationDelayMeasurementDisable{false};
+  switchApi->setAttribute(switchId, cablePropagationDelayMeasurementDisable);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement{}),
+      false);
+}

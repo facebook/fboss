@@ -734,4 +734,12 @@ SaiSwitchTraits::Attributes::AttributePfcMonitorEnable::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeCablePropagationDelayMeasurement::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  return SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT;
+#endif
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss
