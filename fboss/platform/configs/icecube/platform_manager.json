@@ -1606,36 +1606,56 @@
           "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_1",
           "initRegSettings": [
             {
-              "regOffset": 13,
+              "__comment__": "Local temp high limit setting for high byte.",
+              "regOffset": 11,
               "ioBuf": [
-                105
+                100
               ]
             },
             {
+              "__comment__": "Local temp high limit setting for low byte.",
+              "regOffset": 61,
+              "ioBuf": [
+                0
+              ]
+            },
+            {
+              "__comment__": "Remote temp1 high limit setting for high byte.",
+              "regOffset": 13,
+              "ioBuf": [
+                100
+              ]
+            },
+            {
+              "__comment__": "Remote temp1 high limit setting for low byte.",
               "regOffset": 19,
               "ioBuf": [
                 0
               ]
             },
             {
+              "__comment__": "Remote temp2 high limit setting for high byte.",
               "regOffset": 21,
               "ioBuf": [
-                105
+                100
               ]
             },
             {
+              "__comment__": "Remote temp2 high limit setting for low byte.",
               "regOffset": 23,
               "ioBuf": [
                 0
               ]
             },
             {
+              "__comment__": "N-factor correction remote1.",
               "regOffset": 39,
               "ioBuf": [
                 5
               ]
             },
             {
+              "__comment__": "N-factor correction remote2.",
               "regOffset": 40,
               "ioBuf": [
                 5
@@ -1668,24 +1688,42 @@
           "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_2",
           "initRegSettings": [
             {
-              "regOffset": 13,
+              "__comment__": "Local temp high limit setting for high byte.",
+              "regOffset": 11,
               "ioBuf": [
-                105
+                100
               ]
             },
             {
+              "__comment__": "Local temp high limit setting for low byte.",
+              "regOffset": 61,
+              "ioBuf": [
+                0
+              ]
+            },
+            {
+              "__comment__": "Remote temp1 high limit setting for high byte.",
+              "regOffset": 13,
+              "ioBuf": [
+                100
+              ]
+            },
+            {
+              "__comment__": "Remote temp1 high limit setting for low byte.",
               "regOffset": 19,
               "ioBuf": [
                 0
               ]
             },
             {
+              "__comment__": "N-factor correction remote1.",
               "regOffset": 39,
               "ioBuf": [
                 5
               ]
             },
             {
+              "__comment__": "N-factor correction remote2.",
               "regOffset": 40,
               "ioBuf": [
                 5
