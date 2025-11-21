@@ -647,19 +647,17 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
 
   void verifyDlbGroups() {
     // DLB groups can be either spray or flowlet
-    std::vector<EcmpDetails> ecmpGroups;
-
-    if (getSw()->isRunModeMonolithic()) {
-      ecmpGroups = getSw()->getMonolithicHwSwitchHandler()->getAllEcmpDetails();
-    } else {
-      throw FbossError(
-          "getAllEcmpDetails is not supported in multi-switch mode");
-    }
-    XLOG(DBG2) << "ECMP group count " << ecmpGroups.size();
-    for (auto ecmpGroup : ecmpGroups) {
-      XLOG(DBG2) << "ECMP ID: " << *(ecmpGroup.ecmpId());
-      ASSERT_TRUE(*(ecmpGroup.flowletEnabled()));
-    }
+    // Verify that the default route uses dynamic load balancing (DLB)
+    RoutePrefixV6 defaultPrefix{folly::IPAddressV6("::"), 0};
+    auto switchingMode = getAgentEnsemble()->getFwdSwitchingMode(defaultPrefix);
+    XLOG(DBG2) << "Default route switching mode: "
+               << apache::thrift::util::enumNameSafe(switchingMode);
+    WITH_RETRIES({
+      // DLB modes are FLOWLET_QUALITY and PER_PACKET_QUALITY
+      EXPECT_TRUE(
+          switchingMode == cfg::SwitchingMode::FLOWLET_QUALITY ||
+          switchingMode == cfg::SwitchingMode::PER_PACKET_QUALITY);
+    });
     XLOG(DBG2) << "Verify DLB groups Done";
   }
 
