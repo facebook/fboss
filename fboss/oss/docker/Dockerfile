@@ -116,7 +116,7 @@ RUN echo "%wheel ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 # Create user if USERNAME is not root
 RUN if [ "$USERNAME" != "root" ] && [ "$USER_UID" != "0" ]; then \
     groupadd -g $USER_GID $USERNAME && \
-    useradd -m -u $USER_UID -g $USER_GID -G root,adm,wheel,users -s $USER_SHELL $USERNAME && \
+    useradd -l -m -u $USER_UID -g $USER_GID -G root,adm,wheel,users -s $USER_SHELL $USERNAME && \
     chown -R $USERNAME /var/FBOSS; \
     fi
 
