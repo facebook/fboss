@@ -98,6 +98,16 @@ class FsdbPublisher : public FsdbStreamClient {
     return queueCapacity_;
   }
 
+  virtual bool isPipeClosed() const {
+    bool closed{true};
+    asyncPipe_.withRLock([&closed](auto& pipePtr) {
+      if (pipePtr) {
+        closed = pipePtr->second.isClosed();
+      }
+    });
+    return closed;
+  }
+
  protected:
 #if FOLLY_HAS_COROUTINES
   folly::coro::AsyncGenerator<PubUnit&&> createGenerator();

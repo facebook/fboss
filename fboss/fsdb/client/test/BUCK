@@ -18,6 +18,7 @@ cpp_unittest(
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly/coro:async_generator",
         "//folly/coro:async_pipe",
+        "//folly/futures:core",
         "//folly/io/async:scoped_event_base_thread",
         "//folly/logging:logging",
     ],
