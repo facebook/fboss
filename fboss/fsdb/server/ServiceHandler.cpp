@@ -928,18 +928,20 @@ ServiceHandler::makePatchStreamGenerator(
   }
 
   if (!request->paths()->empty()) {
-    return isStats
+    auto streamReader = isStats
         ? operStatsStorage_.subscribe_patch(
               std::move(subId), *request->paths(), subscriptionParams)
         : operStorage_.subscribe_patch(
               std::move(subId), *request->paths(), subscriptionParams);
+    return std::move(streamReader.generator_);
   } else {
     CHECK_GT(request->extPaths()->size(), 0);
-    return isStats
+    auto streamReader = isStats
         ? operStatsStorage_.subscribe_patch_extended(
               std::move(subId), *request->extPaths(), subscriptionParams)
         : operStorage_.subscribe_patch_extended(
               std::move(subId), *request->extPaths(), subscriptionParams);
+    return std::move(streamReader.generator_);
   }
 }
 

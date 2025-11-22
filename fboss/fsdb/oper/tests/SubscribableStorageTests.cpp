@@ -33,6 +33,15 @@ using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
 
 constexpr auto kSubscriber = "testSubscriber";
 
+template <typename value_type>
+folly::coro::Task<value_type> consumeOne(
+    SubscriptionStreamReader<value_type>& reader) {
+  auto& generator = reader.generator_;
+  auto item = co_await generator.next();
+  auto&& value = *item;
+  co_return std::move(value);
+}
+
 template <typename Gen>
 folly::coro::Task<typename Gen::value_type> consumeOne(Gen& generator) {
   auto item = co_await generator.next();
@@ -288,8 +297,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatch) {
   auto storage = this->initStorage(this->testStruct);
   storage.setConvertToIDPaths(true);
 
-  auto generator = storage.subscribe_patch(
+  auto streamReader = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), this->root);
+  auto generator = std::move(streamReader.generator_);
   storage.start();
 
   // Initial sync post subscription setup
@@ -341,8 +351,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchUpdate) {
   storage.start();
 
   const auto& path = this->root.stringToStruct()["test"].max();
-  auto generator = storage.subscribe_patch(
+  auto streamReader = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), path);
+  auto generator = std::move(streamReader.generator_);
 
   // set and check
   EXPECT_EQ(storage.set(path, 1), std::nullopt);
@@ -391,12 +402,13 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchMulti) {
   // validate both tokens and idTokens work
   p1.path() = path1.tokens();
   p2.path() = path2.idTokens();
-  auto generator = storage.subscribe_patch(
+  auto streamReader = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       {
           {1, std::move(p1)},
           {2, std::move(p2)},
       });
+  auto generator = std::move(streamReader.generator_);
 
   // set and check, should only recv one patch on the path that exists
   EXPECT_EQ(storage.set(path1, 123), std::nullopt);
@@ -449,8 +461,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchHeartbeat) {
   storage.setConvertToIDPaths(true);
   storage.start();
 
-  auto generator = storage.subscribe_patch(
+  auto streamReader = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), this->root);
+  auto generator = std::move(streamReader.generator_);
 
   auto element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(20)));
@@ -473,12 +486,14 @@ TYPED_TEST(SubscribableStorageTests, SubscribeHeartbeatConfigured) {
   SubscriptionStorageParams params1(std::chrono::seconds(2));
   SubscriptionStorageParams params2(std::chrono::seconds(10));
 
-  auto generator1 = storage.subscribe_patch(
+  auto streamReader1 = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       this->root,
       params1);
-  auto generator2 = storage.subscribe_patch(
+  auto generator1 = std::move(streamReader1.generator_);
+  auto streamReader2 = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), this->root);
+  auto generator2 = std::move(streamReader2.generator_);
 
   auto element1 = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator1), std::chrono::seconds(20)));
@@ -514,13 +529,15 @@ TYPED_TEST(SubscribableStorageTests, SubscribeHeartbeatNotReceived) {
 
   SubscriptionStorageParams params(std::chrono::seconds(30));
 
-  auto generator1 = storage.subscribe_patch(
+  auto streamReader1 = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       this->root,
       params);
+  auto generator1 = std::move(streamReader1.generator_);
   // Keep default subscription hearbeat interval of 5 seconds
-  auto generator2 = storage.subscribe_patch(
+  auto streamReader2 = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), this->root);
+  auto generator2 = std::move(streamReader2.generator_);
 
   auto element1 = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator1), std::chrono::seconds(20)));

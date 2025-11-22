@@ -389,9 +389,10 @@ TYPED_TEST(FsdbNsdbPipelineTests, FsdbToSwitchAgentPatchSubscription) {
   TestStruct emptyInitialData;
   auto tgtStorage = this->initStorage(emptyInitialData);
 
-  PatchGenerator genPatch = srcStorage.subscribe_patch(
+  auto streamReader = srcStorage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       factory.subscriptionPath());
+  PatchGenerator genPatch = std::move(streamReader.generator_);
 
   // 1. initial sync: patch initial sync, and verify target storage state
   Patch patch = awaitPatch(genPatch, true);

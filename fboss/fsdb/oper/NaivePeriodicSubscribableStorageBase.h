@@ -184,16 +184,14 @@ class NaivePeriodicSubscribableStorageBase {
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt);
 
-  folly::coro::AsyncGenerator<
-      SubscriptionServeQueueElement<SubscriberMessage>&&>
+  SubscriptionStreamReader<SubscriptionServeQueueElement<SubscriberMessage>>
   subscribe_patch_impl(
       SubscriptionIdentifier&& subscriber,
       std::map<SubscriptionKey, RawOperPath> rawPaths,
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt);
 
-  folly::coro::AsyncGenerator<
-      SubscriptionServeQueueElement<SubscriberMessage>&&>
+  SubscriptionStreamReader<SubscriptionServeQueueElement<SubscriberMessage>>
   subscribe_patch_extended_impl(
       SubscriptionIdentifier&& subscriber,
       std::map<SubscriptionKey, ExtendedOperPath> paths,

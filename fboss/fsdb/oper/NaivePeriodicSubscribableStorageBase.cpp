@@ -535,7 +535,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
   return std::move(gen);
 }
 
-folly::coro::AsyncGenerator<SubscriptionServeQueueElement<SubscriberMessage>&&>
+SubscriptionStreamReader<SubscriptionServeQueueElement<SubscriberMessage>>
 NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
     SubscriptionIdentifier&& subscriber,
     std::map<SubscriptionKey, RawOperPath> rawPaths,
@@ -559,10 +559,12 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
       heartbeatInterval,
       params_.defaultSubscriptionServeQueueSize_);
   subMgr().registerExtendedSubscription(std::move(subscription));
-  return std::move(gen);
+  return SubscriptionStreamReader<
+      SubscriptionServeQueueElement<SubscriberMessage>>{
+      std::move(gen), nullptr};
 }
 
-folly::coro::AsyncGenerator<SubscriptionServeQueueElement<SubscriberMessage>&&>
+SubscriptionStreamReader<SubscriptionServeQueueElement<SubscriberMessage>>
 NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
     SubscriptionIdentifier&& subscriber,
     std::map<SubscriptionKey, ExtendedOperPath> paths,
@@ -586,7 +588,9 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
       heartbeatInterval,
       params_.defaultSubscriptionServeQueueSize_);
   subMgr().registerExtendedSubscription(std::move(subscription));
-  return std::move(gen);
+  return SubscriptionStreamReader<
+      SubscriptionServeQueueElement<SubscriberMessage>>{
+      std::move(gen), nullptr};
 }
 
 } // namespace facebook::fboss::fsdb
