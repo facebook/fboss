@@ -430,10 +430,11 @@ TYPED_TEST(FsdbNsdbPipelineTests, SwitchAgentToNsdbDeltaPublish) {
   TestStruct emptyInitialData;
   auto tgtStorage = this->initStorage(emptyInitialData);
 
-  DeltaGenerator generator = srcStorage.subscribe_delta(
+  auto streamReader = srcStorage.subscribe_delta(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       factory.subscriptionPath(),
       OperProtocol::SIMPLE_JSON);
+  DeltaGenerator generator = std::move(streamReader.generator_);
 
   // 1. initial sync: patch initial sync, and verify target storage state
   OperDelta deltaVal = awaitDelta(generator);
@@ -466,10 +467,11 @@ TYPED_TEST(FsdbNsdbPipelineTests, verifyNsdbDeltaSubscriptionGranularity) {
   TestDataFactory<decltype(srcStorage), TypeParam::dataType> factory(
       srcStorage);
 
-  auto generator = srcStorage.subscribe_delta(
+  auto streamReader = srcStorage.subscribe_delta(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       factory.subscriptionPath(),
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
 
   // 1. verify initial sync
   auto deltaMsg = awaitDelta(generator);

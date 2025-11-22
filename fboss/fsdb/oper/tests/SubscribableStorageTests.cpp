@@ -179,10 +179,11 @@ TYPED_TEST(SubscribableStorageTests, SubscribeDelta) {
   FLAGS_serveHeartbeats = true;
   auto storage = this->initStorage(this->testStruct);
 
-  auto generator = storage.subscribe_delta(
+  auto streamReader = storage.subscribe_delta(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       this->root,
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
   storage.start();
   // First sync post subscription setup
   auto deltaVal = folly::coro::blockingWait(
@@ -216,10 +217,11 @@ TYPED_TEST(SubscribableStorageTests, SubscribeHybridDelta) {
   FLAGS_serveHeartbeats = true;
   auto storage = this->initStorage(this->testStruct);
 
-  auto generator = storage.subscribe_delta(
+  auto streamReader = storage.subscribe_delta(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       this->root,
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
   storage.start();
 
   // First sync post subscription setup
@@ -569,10 +571,11 @@ TYPED_TEST(SubscribableStorageTests, SubscribeDeltaUpdate) {
   storage.start();
 
   const auto& path = this->root.stringToStruct()["test"].max();
-  auto generator = storage.subscribe_delta(
+  auto streamReader = storage.subscribe_delta(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       path,
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
 
   // set value and subscribe
   EXPECT_EQ(storage.set(path, 1), std::nullopt);
@@ -605,10 +608,11 @@ TYPED_TEST(SubscribableStorageTests, SubscribeDeltaAddRemoveParent) {
   // add subscription for a path that doesn't exist yet, then add parent
   auto storage = this->initStorage(this->testStruct);
   auto path = this->root.structMap()[99].min();
-  auto generator = storage.subscribe_delta(
+  auto streamReader = storage.subscribe_delta(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       std::move(path),
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
   if (this->isHybridStorage()) {
     // extended subscription under HybridNode is unsupported
     return;
@@ -802,10 +806,11 @@ TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaSimple) {
   // add subscription for a path that doesn't exist yet, then add parent
   auto storage = this->initStorage(this->testStruct);
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
-  auto generator = storage.subscribe_delta_extended(
+  auto streamReader = storage.subscribe_delta_extended(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       {path},
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
   if (this->isHybridStorage()) {
     // extended subscription under HybridNode is unsupported
     return;
@@ -847,10 +852,11 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaUpdate) {
 
   const auto& path =
       ext_path_builder::raw("stringToStruct").regex("test1.*").raw("max").get();
-  auto generator = storage.subscribe_delta_extended(
+  auto streamReader = storage.subscribe_delta_extended(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       {path},
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
   if (this->isHybridStorage()) {
     // extended subscription under HybridNode is unsupported
   } else {
@@ -872,10 +878,11 @@ TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaMultipleChanges) {
   // add subscription for a path that doesn't exist yet, then add parent
   auto storage = this->initStorage(this->testStruct);
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
-  auto generator = storage.subscribe_delta_extended(
+  auto streamReader = storage.subscribe_delta_extended(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       {path},
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
   if (this->isHybridStorage()) {
     // extended subscription under HybridNode is unsupported
     return;
@@ -1099,10 +1106,11 @@ TYPED_TEST(SubscribableStorageTests, PruneSubscriptionPathStores) {
 
   // create subscriber
   const auto& path = this->root.stringToStruct()["test"].max();
-  auto generator = storage.subscribe_delta(
+  auto streamReader = storage.subscribe_delta(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       path,
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
 
   // add path and wait for it to be served (publishAndAddPaths)
   EXPECT_EQ(storage.set(path, 1), std::nullopt);
@@ -1382,8 +1390,9 @@ CO_TEST_P(SubscribableStorageTestsPathDelta, UnregisterSubscriber) {
           folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
       EXPECT_FALSE(ret.hasException());
     } else {
-      auto generator = storage.subscribe_delta_extended(
+      auto streamReader = storage.subscribe_delta_extended(
           std::move(subId), {path}, OperProtocol::SIMPLE_JSON);
+      auto generator = std::move(streamReader.generator_);
       auto ret = co_await co_awaitTry(
           folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
       EXPECT_FALSE(ret.hasException());
@@ -1418,8 +1427,9 @@ CO_TEST_P(SubscribableStorageTestsPathDelta, UnregisterSubscriberMulti) {
       co_await folly::coro::sleep(
           std::chrono::milliseconds(folly::Random::rand32(0, 5000)));
     } else {
-      auto generator = storage.subscribe_delta_extended(
+      auto streamReader = storage.subscribe_delta_extended(
           std::move(subId), {path}, OperProtocol::SIMPLE_JSON);
+      auto generator = std::move(streamReader.generator_);
       co_await folly::coro::sleep(
           std::chrono::milliseconds(folly::Random::rand32(0, 5000)));
     }

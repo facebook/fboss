@@ -137,7 +137,7 @@ class SubscribableStorage {
   }
 
   template <typename Path>
-  folly::coro::AsyncGenerator<SubscriptionServeQueueElement<OperDelta>&&>
+  SubscriptionStreamReader<SubscriptionServeQueueElement<OperDelta>>
   subscribe_delta(
       SubscriptionIdentifier&& subscriber,
       Path&& path,
@@ -154,7 +154,7 @@ class SubscribableStorage {
         std::move(subscriptionParams));
   }
 
-  folly::coro::AsyncGenerator<SubscriptionServeQueueElement<OperDelta>&&>
+  SubscriptionStreamReader<SubscriptionServeQueueElement<OperDelta>>
   subscribe_delta(
       SubscriptionIdentifier&& subscriber,
       const ConcretePath& path,
@@ -169,7 +169,7 @@ class SubscribableStorage {
         std::move(subscriptionParams));
   }
 
-  folly::coro::AsyncGenerator<SubscriptionServeQueueElement<OperDelta>&&>
+  SubscriptionStreamReader<SubscriptionServeQueueElement<OperDelta>>
   subscribe_delta(
       SubscriptionIdentifier&& subscriber,
       PathIter begin,
@@ -181,8 +181,8 @@ class SubscribableStorage {
         std::move(subscriber), begin, end, protocol, subscriptionParams);
   }
 
-  folly::coro::AsyncGenerator<
-      SubscriptionServeQueueElement<std::vector<TaggedOperDelta>>&&>
+  SubscriptionStreamReader<
+      SubscriptionServeQueueElement<std::vector<TaggedOperDelta>>>
   subscribe_delta_extended(
       SubscriptionIdentifier&& subscriber,
       std::vector<ExtendedOperPath> paths,

@@ -458,7 +458,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
   return std::move(gen);
 }
 
-folly::coro::AsyncGenerator<SubscriptionServeQueueElement<OperDelta>&&>
+SubscriptionStreamReader<SubscriptionServeQueueElement<OperDelta>>
 NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
     SubscriptionIdentifier&& subscriber,
     PathIter begin,
@@ -481,7 +481,8 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
       heartbeatInterval,
       params_.defaultSubscriptionServeQueueSize_);
   subMgr().registerSubscription(std::move(subscription));
-  return std::move(gen);
+  return SubscriptionStreamReader<SubscriptionServeQueueElement<OperDelta>>{
+      std::move(gen), nullptr};
 }
 
 folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
@@ -509,8 +510,8 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
   return std::move(gen);
 }
 
-folly::coro::AsyncGenerator<
-    SubscriptionServeQueueElement<std::vector<TaggedOperDelta>>&&>
+SubscriptionStreamReader<
+    SubscriptionServeQueueElement<std::vector<TaggedOperDelta>>>
 NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
     SubscriptionIdentifier&& subscriber,
     std::vector<ExtendedOperPath> paths,
@@ -532,7 +533,9 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
       heartbeatInterval,
       params_.defaultSubscriptionServeQueueSize_);
   subMgr().registerExtendedSubscription(std::move(subscription));
-  return std::move(gen);
+  return SubscriptionStreamReader<
+      SubscriptionServeQueueElement<std::vector<TaggedOperDelta>>>{
+      std::move(gen), nullptr};
 }
 
 SubscriptionStreamReader<SubscriptionServeQueueElement<SubscriberMessage>>

@@ -158,7 +158,7 @@ class NaivePeriodicSubscribableStorageBase {
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt);
 
-  folly::coro::AsyncGenerator<SubscriptionServeQueueElement<OperDelta>&&>
+  SubscriptionStreamReader<SubscriptionServeQueueElement<OperDelta>>
   subscribe_delta_impl(
       SubscriptionIdentifier&& subscriber,
       PathIter begin,
@@ -175,8 +175,8 @@ class NaivePeriodicSubscribableStorageBase {
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt);
 
-  folly::coro::AsyncGenerator<
-      SubscriptionServeQueueElement<std::vector<TaggedOperDelta>>&&>
+  SubscriptionStreamReader<
+      SubscriptionServeQueueElement<std::vector<TaggedOperDelta>>>
   subscribe_delta_extended_impl(
       SubscriptionIdentifier&& subscriber,
       std::vector<ExtendedOperPath> paths,

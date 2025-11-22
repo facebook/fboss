@@ -1038,18 +1038,19 @@ ServiceHandler::makeDeltaStreamGenerator(
         std::chrono::seconds(request->heartbeatInterval().value());
   }
 
-  return isStats ? operStatsStorage_.subscribe_delta(
-                       std::move(subId),
-                       request->path()->raw()->begin(),
-                       request->path()->raw()->end(),
-                       *request->protocol(),
-                       subscriptionParams)
-                 : operStorage_.subscribe_delta(
-                       std::move(subId),
-                       request->path()->raw()->begin(),
-                       request->path()->raw()->end(),
-                       *request->protocol(),
-                       subscriptionParams);
+  auto streamReader = isStats ? operStatsStorage_.subscribe_delta(
+                                    std::move(subId),
+                                    request->path()->raw()->begin(),
+                                    request->path()->raw()->end(),
+                                    *request->protocol(),
+                                    subscriptionParams)
+                              : operStorage_.subscribe_delta(
+                                    std::move(subId),
+                                    request->path()->raw()->begin(),
+                                    request->path()->raw()->end(),
+                                    *request->protocol(),
+                                    subscriptionParams);
+  return std::move(streamReader.generator_);
 }
 
 folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
@@ -1063,16 +1064,17 @@ ServiceHandler::makeExtendedDeltaStreamGenerator(
         std::chrono::seconds(request->heartbeatInterval().value());
   }
 
-  auto generator = isStats ? operStatsStorage_.subscribe_delta_extended(
-                                 std::move(subId),
-                                 *request->paths(),
-                                 *request->protocol(),
-                                 subscriptionParams)
-                           : operStorage_.subscribe_delta_extended(
-                                 std::move(subId),
-                                 *request->paths(),
-                                 *request->protocol(),
-                                 subscriptionParams);
+  auto streamReader = isStats ? operStatsStorage_.subscribe_delta_extended(
+                                    std::move(subId),
+                                    *request->paths(),
+                                    *request->protocol(),
+                                    subscriptionParams)
+                              : operStorage_.subscribe_delta_extended(
+                                    std::move(subId),
+                                    *request->paths(),
+                                    *request->protocol(),
+                                    subscriptionParams);
+  auto generator = std::move(streamReader.generator_);
 
   while (auto item = co_await generator.next()) {
     auto&& element = *item;

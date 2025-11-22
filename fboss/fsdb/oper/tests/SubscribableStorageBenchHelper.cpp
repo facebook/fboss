@@ -105,8 +105,9 @@ folly::coro::Task<void> StorageBenchmarkHelper::addDeltaSubscription(
     int nExpectedValues,
     std::optional<std::function<void()>> onDataReceived) {
   std::vector<std::string> path = getSubscriptionPath();
-  auto generator = storage_.subscribe_delta(
+  auto streamReader = storage_.subscribe_delta(
       std::move(subscriberId), path, OperProtocol::COMPACT);
+  auto generator = std::move(streamReader.generator_);
   auto consumer = makeConsumer(generator, nExpectedValues, onDataReceived);
   consumer();
   co_return;
