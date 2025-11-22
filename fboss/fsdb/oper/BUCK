@@ -63,6 +63,7 @@ cpp_library(
         "//folly:string",
         "//folly:traits",
         "//folly/container:f14_hash",
+        "//folly/coro:async_generator",
         "//folly/coro:async_pipe",
         "//folly/coro:async_scope",
         "//folly/coro:blocking_wait",
