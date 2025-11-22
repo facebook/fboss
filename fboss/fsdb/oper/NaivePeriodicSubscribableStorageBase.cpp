@@ -458,7 +458,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
   return std::move(gen);
 }
 
-folly::coro::AsyncGenerator<OperDelta&&>
+folly::coro::AsyncGenerator<SubscriptionServeQueueElement<OperDelta>&&>
 NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
     SubscriptionIdentifier&& subscriber,
     PathIter begin,
@@ -509,7 +509,8 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
   return std::move(gen);
 }
 
-folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
+folly::coro::AsyncGenerator<
+    SubscriptionServeQueueElement<std::vector<TaggedOperDelta>>&&>
 NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
     SubscriptionIdentifier&& subscriber,
     std::vector<ExtendedOperPath> paths,
@@ -534,7 +535,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
   return std::move(gen);
 }
 
-folly::coro::AsyncGenerator<SubscriberMessage&&>
+folly::coro::AsyncGenerator<SubscriptionServeQueueElement<SubscriberMessage>&&>
 NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
     SubscriptionIdentifier&& subscriber,
     std::map<SubscriptionKey, RawOperPath> rawPaths,
@@ -561,7 +562,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
   return std::move(gen);
 }
 
-folly::coro::AsyncGenerator<SubscriberMessage&&>
+folly::coro::AsyncGenerator<SubscriptionServeQueueElement<SubscriberMessage>&&>
 NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
     SubscriptionIdentifier&& subscriber,
     std::map<SubscriptionKey, ExtendedOperPath> paths,

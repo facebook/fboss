@@ -9,6 +9,7 @@
 #include "fboss/fsdb/oper/DeltaValue.h"
 #include "fboss/fsdb/oper/SubscriptionCommon.h"
 #include "fboss/fsdb/oper/SubscriptionMetadataServer.h"
+#include "fboss/fsdb/oper/SubscriptionServeQueue.h"
 #include "fboss/thrift_cow/gen-cpp2/patch_types.h"
 
 #include <boost/core/noncopyable.hpp>
@@ -465,7 +466,7 @@ class DeltaSubscription : public BaseDeltaSubscription,
       override;
 
   static std::pair<
-      folly::coro::AsyncGenerator<OperDelta&&>,
+      folly::coro::AsyncGenerator<SubscriptionServeQueueElement<OperDelta>&&>,
       std::unique_ptr<DeltaSubscription>>
   create(
       SubscriptionIdentifier&& subscriber,
@@ -480,7 +481,8 @@ class DeltaSubscription : public BaseDeltaSubscription,
   DeltaSubscription(
       SubscriptionIdentifier&& subscriber,
       std::vector<std::string> path,
-      folly::coro::BoundedAsyncPipe<OperDelta> pipe,
+      folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<OperDelta>>
+          pipe,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot,
       folly::EventBase* heartbeatEvb,
@@ -497,7 +499,7 @@ class DeltaSubscription : public BaseDeltaSubscription,
   std::optional<FsdbErrorCode> serveHeartbeat() override;
 
  private:
-  folly::coro::BoundedAsyncPipe<OperDelta> pipe_;
+  folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<OperDelta>> pipe_;
 };
 
 class ExtendedPathSubscription;
@@ -654,7 +656,7 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
       const std::vector<std::string>& path) override;
 
   static std::pair<
-      folly::coro::AsyncGenerator<gen_type&&>,
+      folly::coro::AsyncGenerator<SubscriptionServeQueueElement<gen_type>&&>,
       std::shared_ptr<ExtendedDeltaSubscription>>
   create(
       SubscriptionIdentifier&& subscriber,
@@ -684,7 +686,8 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
   ExtendedDeltaSubscription(
       SubscriptionIdentifier&& subscriber,
       ExtSubPathMap paths,
-      folly::coro::BoundedAsyncPipe<value_type> pipe,
+      folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<value_type>>
+          pipe,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot,
       folly::EventBase* heartbeatEvb,
@@ -699,7 +702,7 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
         pipe_(std::move(pipe)) {}
 
  private:
-  folly::coro::BoundedAsyncPipe<gen_type> pipe_;
+  folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<gen_type>> pipe_;
   std::optional<gen_type> buffered_;
 };
 
@@ -753,7 +756,7 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
 
   // Single path
   static std::pair<
-      folly::coro::AsyncGenerator<gen_type&&>,
+      folly::coro::AsyncGenerator<SubscriptionServeQueueElement<gen_type>&&>,
       std::unique_ptr<ExtendedPatchSubscription>>
   create(
       SubscriptionIdentifier&& subscriber,
@@ -766,7 +769,7 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
 
   // Multipath
   static std::pair<
-      folly::coro::AsyncGenerator<gen_type&&>,
+      folly::coro::AsyncGenerator<SubscriptionServeQueueElement<gen_type>&&>,
       std::unique_ptr<ExtendedPatchSubscription>>
   create(
       SubscriptionIdentifier&& subscriber,
@@ -779,7 +782,7 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
 
   // Extended paths
   static std::pair<
-      folly::coro::AsyncGenerator<gen_type&&>,
+      folly::coro::AsyncGenerator<SubscriptionServeQueueElement<gen_type>&&>,
       std::unique_ptr<ExtendedPatchSubscription>>
   create(
       SubscriptionIdentifier&& subscriber,
@@ -793,7 +796,8 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
   ExtendedPatchSubscription(
       SubscriptionIdentifier&& subscriber,
       ExtSubPathMap paths,
-      folly::coro::BoundedAsyncPipe<gen_type> pipe,
+      folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<gen_type>>
+          pipe,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot,
       folly::EventBase* heartbeatEvb,
@@ -832,7 +836,7 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       const SubscriptionMetadataServer& metadataServer);
 
   std::map<SubscriptionKey, std::vector<Patch>> buffered_;
-  folly::coro::BoundedAsyncPipe<gen_type> pipe_;
+  folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<gen_type>> pipe_;
 };
 
 } // namespace facebook::fboss::fsdb

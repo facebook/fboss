@@ -916,7 +916,7 @@ ServiceHandler::makeExtendedStateStreamGenerator(
                        subscriptionParams);
 }
 
-folly::coro::AsyncGenerator<SubscriberMessage&&>
+folly::coro::AsyncGenerator<SubscriptionServeQueueElement<SubscriberMessage>&&>
 ServiceHandler::makePatchStreamGenerator(
     std::unique_ptr<SubRequest> request,
     bool isStats,
@@ -1025,7 +1025,7 @@ ServiceHandler::co_subscribeOperStatsPath(
           })};
 }
 
-folly::coro::AsyncGenerator<OperDelta&&>
+folly::coro::AsyncGenerator<SubscriptionServeQueueElement<OperDelta>&&>
 ServiceHandler::makeDeltaStreamGenerator(
     std::unique_ptr<OperSubRequest> request,
     bool isStats,
@@ -1061,16 +1061,21 @@ ServiceHandler::makeExtendedDeltaStreamGenerator(
         std::chrono::seconds(request->heartbeatInterval().value());
   }
 
-  return isStats ? operStatsStorage_.subscribe_delta_extended(
-                       std::move(subId),
-                       *request->paths(),
-                       *request->protocol(),
-                       subscriptionParams)
-                 : operStorage_.subscribe_delta_extended(
-                       std::move(subId),
-                       *request->paths(),
-                       *request->protocol(),
-                       subscriptionParams);
+  auto generator = isStats ? operStatsStorage_.subscribe_delta_extended(
+                                 std::move(subId),
+                                 *request->paths(),
+                                 *request->protocol(),
+                                 subscriptionParams)
+                           : operStorage_.subscribe_delta_extended(
+                                 std::move(subId),
+                                 *request->paths(),
+                                 *request->protocol(),
+                                 subscriptionParams);
+
+  while (auto item = co_await generator.next()) {
+    auto&& element = *item;
+    co_yield std::move(element.val);
+  }
 }
 
 folly::coro::Task<
@@ -1101,7 +1106,7 @@ ServiceHandler::co_subscribeOperStateDelta(
                 std::move(request), false, std::move(subId));
             while (auto item = co_await generator.next()) {
               // got value
-              co_yield std::move(*item);
+              co_yield std::move((*item).val);
             }
           })};
 }
@@ -1224,7 +1229,7 @@ ServiceHandler::co_subscribeOperStatsDelta(
                 std::move(request), true, std::move(subId));
             while (auto item = co_await generator.next()) {
               // got value
-              co_yield std::move(*item);
+              co_yield std::move((*item).val);
             }
           })};
 }
@@ -1353,8 +1358,11 @@ ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
        subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        return makePatchStreamGenerator(
+        auto generator = makePatchStreamGenerator(
             std::move(request), false, std::move(subId));
+        while (auto item = co_await generator.next()) {
+          co_yield std::move((*item).val);
+        }
       });
   co_return {{}, std::move(stream)};
 }
@@ -1394,8 +1402,11 @@ ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
        subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        return makePatchStreamGenerator(
+        auto generator = makePatchStreamGenerator(
             std::move(request), true, std::move(subId));
+        while (auto item = co_await generator.next()) {
+          co_yield std::move((*item).val);
+        }
       });
   co_return {{}, std::move(stream)};
 }
@@ -1437,8 +1448,11 @@ ServiceHandler::co_subscribeStateExtended(std::unique_ptr<SubRequest> request) {
        subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        return makePatchStreamGenerator(
+        auto generator = makePatchStreamGenerator(
             std::move(request), false, std::move(subId));
+        while (auto item = co_await generator.next()) {
+          co_yield std::move((*item).val);
+        }
       });
   co_return {{}, std::move(stream)};
 }
@@ -1480,8 +1494,11 @@ ServiceHandler::co_subscribeStatsExtended(std::unique_ptr<SubRequest> request) {
        subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        return makePatchStreamGenerator(
+        auto generator = makePatchStreamGenerator(
             std::move(request), true, std::move(subId));
+        while (auto item = co_await generator.next()) {
+          co_yield std::move((*item).val);
+        }
       });
   co_return {{}, std::move(stream)};
 }

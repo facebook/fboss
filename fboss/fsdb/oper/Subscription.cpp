@@ -104,7 +104,7 @@ std::optional<OperDelta> BaseDeltaSubscription::moveFromCurrDelta(
 }
 
 std::pair<
-    folly::coro::AsyncGenerator<OperDelta&&>,
+    folly::coro::AsyncGenerator<SubscriptionServeQueueElement<OperDelta>&&>,
     std::unique_ptr<DeltaSubscription>>
 DeltaSubscription::create(
     SubscriptionIdentifier&& subscriber,
@@ -115,8 +115,8 @@ DeltaSubscription::create(
     folly::EventBase* heartbeatEvb,
     std::chrono::milliseconds heartbeatInterval,
     int32_t pipeCapacity) {
-  auto [generator, pipe] =
-      folly::coro::BoundedAsyncPipe<OperDelta>::create(pipeCapacity);
+  auto [generator, pipe] = folly::coro::BoundedAsyncPipe<
+      SubscriptionServeQueueElement<OperDelta>>::create(pipeCapacity);
   std::vector<std::string> path(begin, end);
   auto subscription = std::make_unique<DeltaSubscription>(
       std::move(subscriber),
@@ -135,7 +135,10 @@ std::optional<FsdbErrorCode> DeltaSubscription::flush(
   std::optional<FsdbErrorCode> ret;
   auto delta = moveFromCurrDelta(metadataServer);
   if (delta) {
-    ret = tryWrite(pipe_, std::move(*delta), "delta.flush");
+    ret = tryWrite(
+        pipe_,
+        SubscriptionServeQueueElement<OperDelta>(std::move(*delta)),
+        "delta.flush");
   }
   return ret;
 }
@@ -146,7 +149,10 @@ std::optional<FsdbErrorCode> DeltaSubscription::serveHeartbeat() {
   if (md.has_value()) {
     delta.metadata() = md.value();
   }
-  return tryWrite(pipe_, delta, "delta.hb");
+  return tryWrite(
+      pipe_,
+      SubscriptionServeQueueElement<OperDelta>(std::move(delta)),
+      "delta.hb");
 }
 
 bool DeltaSubscription::isActive() const {
@@ -345,7 +351,8 @@ void ExtendedPathSubscription::allPublishersGone(
 }
 
 std::pair<
-    folly::coro::AsyncGenerator<typename ExtendedDeltaSubscription::gen_type&&>,
+    folly::coro::AsyncGenerator<SubscriptionServeQueueElement<
+        typename ExtendedDeltaSubscription::gen_type>&&>,
     std::shared_ptr<ExtendedDeltaSubscription>>
 ExtendedDeltaSubscription::create(
     SubscriptionIdentifier&& subscriber,
@@ -355,8 +362,8 @@ ExtendedDeltaSubscription::create(
     folly::EventBase* heartbeatEvb,
     std::chrono::milliseconds heartbeatInterval,
     int32_t pipeCapacity) {
-  auto [generator, pipe] =
-      folly::coro::BoundedAsyncPipe<gen_type>::create(pipeCapacity);
+  auto [generator, pipe] = folly::coro::BoundedAsyncPipe<
+      SubscriptionServeQueueElement<gen_type>>::create(pipeCapacity);
   auto subscription = std::make_shared<ExtendedDeltaSubscription>(
       std::move(subscriber),
       makeSimplePathMap(paths),
@@ -392,7 +399,10 @@ std::optional<FsdbErrorCode> ExtendedDeltaSubscription::flush(
 
   std::optional<gen_type> toServe;
   toServe.swap(buffered_);
-  return tryWrite(pipe_, std::move(toServe).value(), "ExtDelta.flush");
+  return tryWrite(
+      pipe_,
+      SubscriptionServeQueueElement<gen_type>(std::move(toServe).value()),
+      "ExtDelta.flush");
 }
 
 std::optional<FsdbErrorCode> ExtendedDeltaSubscription::serveHeartbeat() {
@@ -461,7 +471,8 @@ bool PatchSubscription::isActive() const {
 }
 
 std::pair<
-    folly::coro::AsyncGenerator<ExtendedPatchSubscription::gen_type&&>,
+    folly::coro::AsyncGenerator<
+        SubscriptionServeQueueElement<ExtendedPatchSubscription::gen_type>&&>,
     std::unique_ptr<ExtendedPatchSubscription>>
 ExtendedPatchSubscription::create(
     SubscriptionIdentifier&& subscriber,
@@ -484,7 +495,8 @@ ExtendedPatchSubscription::create(
 }
 
 std::pair<
-    folly::coro::AsyncGenerator<ExtendedPatchSubscription::gen_type&&>,
+    folly::coro::AsyncGenerator<
+        SubscriptionServeQueueElement<ExtendedPatchSubscription::gen_type>&&>,
     std::unique_ptr<ExtendedPatchSubscription>>
 ExtendedPatchSubscription::create(
     SubscriptionIdentifier&& subscriber,
@@ -514,7 +526,8 @@ ExtendedPatchSubscription::create(
 }
 
 std::pair<
-    folly::coro::AsyncGenerator<ExtendedPatchSubscription::gen_type&&>,
+    folly::coro::AsyncGenerator<
+        SubscriptionServeQueueElement<ExtendedPatchSubscription::gen_type>&&>,
     std::unique_ptr<ExtendedPatchSubscription>>
 ExtendedPatchSubscription::create(
     SubscriptionIdentifier&& subscriber,
@@ -524,8 +537,8 @@ ExtendedPatchSubscription::create(
     folly::EventBase* heartbeatEvb,
     std::chrono::milliseconds heartbeatInterval,
     int32_t pipeCapacity) {
-  auto [generator, pipe] =
-      folly::coro::BoundedAsyncPipe<gen_type>::create(pipeCapacity);
+  auto [generator, pipe] = folly::coro::BoundedAsyncPipe<
+      SubscriptionServeQueueElement<gen_type>>::create(pipeCapacity);
   auto subscription = std::make_unique<ExtendedPatchSubscription>(
       std::move(subscriber),
       std::move(paths),
@@ -572,7 +585,10 @@ std::optional<FsdbErrorCode> ExtendedPatchSubscription::flush(
   if (auto chunk = moveCurChunk(metadataServer)) {
     SubscriberMessage msg;
     msg.set_chunk(std::move(*chunk));
-    return tryWrite(pipe_, std::move(msg), "ExtPatch.flush");
+    return tryWrite(
+        pipe_,
+        SubscriptionServeQueueElement<gen_type>(std::move(msg)),
+        "ExtPatch.flush");
   }
   return std::nullopt;
 }
@@ -584,7 +600,10 @@ std::optional<FsdbErrorCode> ExtendedPatchSubscription::serveHeartbeat() {
   if (md.has_value()) {
     msg.heartbeat()->metadata() = md.value();
   }
-  return tryWrite(pipe_, std::move(msg), "ExtPatch.hb");
+  return tryWrite(
+      pipe_,
+      SubscriptionServeQueueElement<gen_type>(std::move(msg)),
+      "ExtPatch.hb");
 }
 
 bool ExtendedPatchSubscription::isActive() const {
