@@ -2,12 +2,19 @@ diff --git a/Makefile.in b/Makefile.in
 index b77a41c..cbe71fe 100644
 --- a/Makefile.in
 +++ b/Makefile.in
-@@ -389,7 +389,7 @@ MULTIOSDIR = `$(CC) $(CFLAGS) -print-multi-os-directory`
+@@ -385,11 +385,13 @@ install_to_tooldir: all
+ # multilib subdirectory of $(libdir) rather than $(tooldir)/lib
+ # since it will be installed there anyway and might have a different multilib
+ # name.
+
+-MULTIOSDIR = `$(CC) $(CFLAGS) -print-multi-os-directory`
++# Use -print-multi-os-directory if supported (gcc), otherwise use . (clang)
++MULTIOSDIR = `$(CC) $(CFLAGS) -print-multi-os-directory 2>/dev/null || echo .`
  install_to_libdir: all
-        if test -n "${target_header_dir}"; then \
-                ${mkinstalldirs} $(DESTDIR)$(libdir)/$(MULTIOSDIR); \
--               $(INSTALL_DATA) $(TARGETLIB) $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB)n; \
-+               $(INSTALL_DATA) pic/$(TARGETLIB) $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB)n; \
-                ( cd $(DESTDIR)$(libdir)/$(MULTIOSDIR) ; chmod 644 $(TARGETLIB)n ;$(RANLIB) $(TARGETLIB)n ); \
-                mv -f $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB)n $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB); \
-                case "${target_header_dir}" in \
+ 	if test -n "${target_header_dir}"; then \
+ 		${mkinstalldirs} $(DESTDIR)$(libdir)/$(MULTIOSDIR); \
+-		$(INSTALL_DATA) $(TARGETLIB) $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB)n; \
++		if test -f pic/$(TARGETLIB); then $(INSTALL_DATA) pic/$(TARGETLIB) $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB)n; \
++		else $(INSTALL_DATA) $(TARGETLIB) $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB)n; fi; \
+ 		( cd $(DESTDIR)$(libdir)/$(MULTIOSDIR) ; chmod 644 $(TARGETLIB)n ;$(RANLIB) $(TARGETLIB)n ); \
+ 		mv -f $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB)n $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB); \

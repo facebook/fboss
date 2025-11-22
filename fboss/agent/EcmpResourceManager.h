@@ -13,11 +13,11 @@
 #include <ostream>
 #include "fboss/agent/EcmpResourceManagerConfig.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
 
 namespace facebook::fboss {
-class StateDelta;
 class SwitchState;
 class SwitchStats;
 class NextHopGroupInfo;
