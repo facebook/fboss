@@ -180,4 +180,13 @@ service FbossHwCtrl {
    * on a box
    */
   string getHwDebugDump();
+
+  /*
+   * Get the current programmed switch state from HwAgent.
+   * This returns the in-memory state that HwAgent maintains,
+   * which can be used for SW Agent warmboot recovery.
+   */
+  switch_state.SwitchState getProgrammedState() throws (
+    1: fboss.FbossBaseError error,
+  );
 }
