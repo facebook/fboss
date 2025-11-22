@@ -479,7 +479,9 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
       getPublisherRoot(path.begin(), path.end()),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
       heartbeatInterval,
-      params_.defaultSubscriptionServeQueueSize_);
+      params_.defaultSubscriptionServeQueueSize_,
+      params_.deltaSubscriptionQueueMemoryLimit_,
+      params_.deltaSubscriptionQueueFullMinSize_);
   auto sharedStreamInfo = subscription->getSharedStreamInfo();
   subMgr().registerSubscription(std::move(subscription));
   return SubscriptionStreamReader<SubscriptionServeQueueElement<OperDelta>>{
@@ -532,7 +534,9 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
       protocol,
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
       heartbeatInterval,
-      params_.defaultSubscriptionServeQueueSize_);
+      params_.defaultSubscriptionServeQueueSize_,
+      params_.deltaSubscriptionQueueMemoryLimit_,
+      params_.deltaSubscriptionQueueFullMinSize_);
   auto sharedStreamInfo = subscription->getSharedStreamInfo();
   subMgr().registerExtendedSubscription(std::move(subscription));
   return SubscriptionStreamReader<
@@ -562,7 +566,9 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
       std::move(root),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
       heartbeatInterval,
-      params_.defaultSubscriptionServeQueueSize_);
+      params_.defaultSubscriptionServeQueueSize_,
+      params_.deltaSubscriptionQueueMemoryLimit_,
+      params_.deltaSubscriptionQueueFullMinSize_);
   auto sharedStreamInfo = subscription->getSharedStreamInfo();
   subMgr().registerExtendedSubscription(std::move(subscription));
   return SubscriptionStreamReader<
@@ -592,7 +598,9 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
       std::move(root),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
       heartbeatInterval,
-      params_.defaultSubscriptionServeQueueSize_);
+      params_.defaultSubscriptionServeQueueSize_,
+      params_.deltaSubscriptionQueueMemoryLimit_,
+      params_.deltaSubscriptionQueueFullMinSize_);
   auto sharedStreamInfo = subscription->getSharedStreamInfo();
   subMgr().registerExtendedSubscription(std::move(subscription));
   return SubscriptionStreamReader<

@@ -115,7 +115,9 @@ DeltaSubscription::create(
     std::optional<std::string> publisherRoot,
     folly::EventBase* heartbeatEvb,
     std::chrono::milliseconds heartbeatInterval,
-    int32_t pipeCapacity) {
+    int32_t pipeCapacity,
+    size_t subscriptionQueueMemoryLimit,
+    int32_t subscriptionQueueFullMinSize) {
   auto [generator, pipe] = folly::coro::BoundedAsyncPipe<
       SubscriptionServeQueueElement<OperDelta>>::create(pipeCapacity);
   std::vector<std::string> path(begin, end);
@@ -126,7 +128,9 @@ DeltaSubscription::create(
       std::move(protocol),
       std::move(publisherRoot),
       std::move(heartbeatEvb),
-      std::move(heartbeatInterval));
+      std::move(heartbeatInterval),
+      subscriptionQueueMemoryLimit,
+      subscriptionQueueFullMinSize);
   return std::make_pair(std::move(generator), std::move(subscription));
 }
 
@@ -137,6 +141,28 @@ std::optional<FsdbErrorCode> DeltaSubscription::flush(
   auto delta = moveFromCurrDelta(metadataServer);
   if (delta) {
     auto size = getUpdateSize(*delta);
+    if (subscriptionQueueMemoryLimit_ > 0) {
+      auto queuedChunks = pipe_.getOccupiedSpace();
+      if (queuedChunks > subscriptionQueueFullMinSize_) {
+        auto streamInfo = getSharedStreamInfo();
+        size_t queuedSize = streamInfo->enqueuedDataSize.load() -
+            streamInfo->servedDataSize.load();
+        if ((queuedSize + size) > subscriptionQueueMemoryLimit_) {
+          auto disconnectReason = FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL;
+          std::string msg = fmt::format(
+              "Subscription serve queue memory limit reached: "
+              " subscriber: {}, sizeInQueue: {}, nextChunkSize: {}, limit: {}",
+              subscriberId(),
+              queuedSize,
+              size,
+              subscriptionQueueMemoryLimit_);
+          XLOG(ERR) << msg;
+          tryWrite(
+              pipe_, Utils::createFsdbException(disconnectReason, msg), 0, "");
+          return disconnectReason;
+        }
+      }
+    }
     ret = tryWrite(
         pipe_,
         SubscriptionServeQueueElement<OperDelta>(std::move(*delta), size),
@@ -367,7 +393,9 @@ ExtendedDeltaSubscription::create(
     OperProtocol protocol,
     folly::EventBase* heartbeatEvb,
     std::chrono::milliseconds heartbeatInterval,
-    int32_t pipeCapacity) {
+    int32_t pipeCapacity,
+    size_t subscriptionQueueMemoryLimit,
+    int32_t subscriptionQueueFullMinSize) {
   auto [generator, pipe] = folly::coro::BoundedAsyncPipe<
       SubscriptionServeQueueElement<gen_type>>::create(pipeCapacity);
   auto subscription = std::make_shared<ExtendedDeltaSubscription>(
@@ -377,7 +405,9 @@ ExtendedDeltaSubscription::create(
       std::move(protocol),
       std::move(publisherRoot),
       std::move(heartbeatEvb),
-      std::move(heartbeatInterval));
+      std::move(heartbeatInterval),
+      subscriptionQueueMemoryLimit,
+      subscriptionQueueFullMinSize);
   return std::make_pair(std::move(generator), std::move(subscription));
 }
 
@@ -406,6 +436,28 @@ std::optional<FsdbErrorCode> ExtendedDeltaSubscription::flush(
   std::optional<gen_type> toServe;
   toServe.swap(buffered_);
   size_t size = getUpdateSize(toServe.value());
+  if (subscriptionQueueMemoryLimit_ > 0) {
+    auto queuedChunks = pipe_.getOccupiedSpace();
+    if (queuedChunks > subscriptionQueueFullMinSize_) {
+      auto streamInfo = getSharedStreamInfo();
+      size_t queuedSize = streamInfo->enqueuedDataSize.load() -
+          streamInfo->servedDataSize.load();
+      if ((queuedSize + size) > subscriptionQueueMemoryLimit_) {
+        auto disconnectReason = FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL;
+        std::string msg = fmt::format(
+            "Subscription serve queue memory limit reached: "
+            " subscriber: {}, sizeInQueue: {}, nextChunkSize: {}, limit: {}",
+            subscriberId(),
+            queuedSize,
+            size,
+            subscriptionQueueMemoryLimit_);
+        XLOG(ERR) << msg;
+        tryWrite(
+            pipe_, Utils::createFsdbException(disconnectReason, msg), 0, "");
+        return disconnectReason;
+      }
+    }
+  }
   return tryWrite(
       pipe_,
       SubscriptionServeQueueElement<gen_type>(std::move(toServe).value(), size),
@@ -490,7 +542,9 @@ ExtendedPatchSubscription::create(
     std::optional<std::string> publisherRoot,
     folly::EventBase* heartbeatEvb,
     std::chrono::milliseconds heartbeatInterval,
-    int32_t pipeCapacity) {
+    int32_t pipeCapacity,
+    size_t subscriptionQueueMemoryLimit,
+    int32_t subscriptionQueueFullMinSize) {
   RawOperPath p;
   p.path() = std::move(path);
   return create(
@@ -500,7 +554,9 @@ ExtendedPatchSubscription::create(
       std::move(publisherRoot),
       std::move(heartbeatEvb),
       std::move(heartbeatInterval),
-      pipeCapacity);
+      pipeCapacity,
+      subscriptionQueueMemoryLimit,
+      subscriptionQueueFullMinSize);
 }
 
 std::pair<
@@ -514,7 +570,9 @@ ExtendedPatchSubscription::create(
     std::optional<std::string> publisherRoot,
     folly::EventBase* heartbeatEvb,
     std::chrono::milliseconds heartbeatInterval,
-    int32_t pipeCapacity) {
+    int32_t pipeCapacity,
+    size_t subscriptionQueueSizeLimit,
+    int32_t subscriptionQueueFullMinSize) {
   std::map<SubscriptionKey, ExtendedOperPath> extendedPaths;
   for (auto& [key, path] : paths) {
     std::vector<OperPathElem> extendedPath;
@@ -531,7 +589,9 @@ ExtendedPatchSubscription::create(
       std::move(publisherRoot),
       std::move(heartbeatEvb),
       std::move(heartbeatInterval),
-      pipeCapacity);
+      pipeCapacity,
+      subscriptionQueueSizeLimit,
+      subscriptionQueueFullMinSize);
 }
 
 std::pair<
@@ -545,7 +605,9 @@ ExtendedPatchSubscription::create(
     std::optional<std::string> publisherRoot,
     folly::EventBase* heartbeatEvb,
     std::chrono::milliseconds heartbeatInterval,
-    int32_t pipeCapacity) {
+    int32_t pipeCapacity,
+    size_t subscriptionQueueSizeLimit,
+    int32_t subscriptionQueueFullMinSize) {
   auto [generator, pipe] = folly::coro::BoundedAsyncPipe<
       SubscriptionServeQueueElement<gen_type>>::create(pipeCapacity);
   auto subscription = std::make_unique<ExtendedPatchSubscription>(
@@ -555,7 +617,9 @@ ExtendedPatchSubscription::create(
       std::move(protocol),
       std::move(publisherRoot),
       std::move(heartbeatEvb),
-      std::move(heartbeatInterval));
+      std::move(heartbeatInterval),
+      subscriptionQueueSizeLimit,
+      subscriptionQueueFullMinSize);
   return std::make_pair(std::move(generator), std::move(subscription));
 }
 
@@ -593,6 +657,28 @@ std::optional<FsdbErrorCode> ExtendedPatchSubscription::flush(
   updateMetadata(metadataServer);
   if (auto chunk = moveCurChunk(metadataServer)) {
     size_t size = getUpdateSize(*chunk);
+    if (subscriptionQueueMemoryLimit_ > 0) {
+      auto queuedChunks = pipe_.getOccupiedSpace();
+      if (queuedChunks > subscriptionQueueFullMinSize_) {
+        auto streamInfo = getSharedStreamInfo();
+        size_t queuedSize = streamInfo->enqueuedDataSize.load() -
+            streamInfo->servedDataSize.load();
+        if ((queuedSize + size) > subscriptionQueueMemoryLimit_) {
+          auto disconnectReason = FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL;
+          std::string msg = fmt::format(
+              "Subscription serve queue memory limit reached: "
+              " subscriber: {}, sizeInQueue: {}, nextChunkSize: {}, limit: {}",
+              subscriberId(),
+              queuedSize,
+              size,
+              subscriptionQueueMemoryLimit_);
+          XLOG(ERR) << msg;
+          tryWrite(
+              pipe_, Utils::createFsdbException(disconnectReason, msg), 0, "");
+          return disconnectReason;
+        }
+      }
+    }
     SubscriberMessage msg;
     msg.set_chunk(std::move(*chunk));
     return tryWrite(

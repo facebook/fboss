@@ -79,6 +79,26 @@ class NaivePeriodicSubscribableStorageBase {
       return *this;
     }
 
+    StorageParams& setDeltaSubscriptionQueueMemoryLimit(size_t val) {
+      deltaSubscriptionQueueMemoryLimit_ = val;
+      return *this;
+    }
+
+    /*
+     * deltaSubscriptionQueueMemoryLimit_ will be checked only if there
+     * are atleast deltaSubscriptionQueueFullMinSize_ number of pending
+     * updates for the subscription in queue.
+     * The reason for checking for number of updates in conjunction with
+     * total memory for updates is to prune scenarios where there is just
+     * 1-2 large update enqueued and subscriber is taking a while to process
+     * it. In such scenarios, fsdb can detect a genuinely slow subscriber
+     * by deferring the slow subscriber detection till next updates.
+     */
+    StorageParams& setDeltaSubscriptionQueueFullMinSize(size_t val) {
+      deltaSubscriptionQueueFullMinSize_ = val;
+      return *this;
+    }
+
     const std::chrono::milliseconds subscriptionServeInterval_;
     const std::chrono::milliseconds subscriptionHeartbeatInterval_;
     const bool trackMetadata_;
@@ -89,6 +109,8 @@ class NaivePeriodicSubscribableStorageBase {
     bool serveGetRequestsWithLastPublishedState_;
     const int32_t pathSubscriptionServeQueueSize_;
     const int32_t defaultSubscriptionServeQueueSize_;
+    size_t deltaSubscriptionQueueMemoryLimit_{0};
+    size_t deltaSubscriptionQueueFullMinSize_{0};
   };
 
   explicit NaivePeriodicSubscribableStorageBase(

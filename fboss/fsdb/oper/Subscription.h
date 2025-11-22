@@ -498,7 +498,9 @@ class DeltaSubscription : public BaseDeltaSubscription,
       std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
       std::chrono::milliseconds heartbeatInterval,
-      int32_t pipeCapacity);
+      int32_t pipeCapacity,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0);
 
   DeltaSubscription(
       SubscriptionIdentifier&& subscriber,
@@ -508,7 +510,9 @@ class DeltaSubscription : public BaseDeltaSubscription,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot,
       folly::EventBase* heartbeatEvb,
-      std::chrono::milliseconds heartbeatInterval)
+      std::chrono::milliseconds heartbeatInterval,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0)
       : BaseDeltaSubscription(
             std::move(subscriber),
             std::move(path),
@@ -516,7 +520,9 @@ class DeltaSubscription : public BaseDeltaSubscription,
             std::move(publisherTreeRoot),
             heartbeatEvb,
             std::move(heartbeatInterval)),
-        pipe_(std::move(pipe)) {}
+        pipe_(std::move(pipe)),
+        subscriptionQueueMemoryLimit_(subscriptionQueueMemoryLimit),
+        subscriptionQueueFullMinSize_(subscriptionQueueFullMinSize) {}
 
   size_t getUpdateSize(const OperDelta& val) {
     return getOperDeltaSize(val);
@@ -526,6 +532,8 @@ class DeltaSubscription : public BaseDeltaSubscription,
 
  private:
   folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<OperDelta>> pipe_;
+  size_t subscriptionQueueMemoryLimit_;
+  int32_t subscriptionQueueFullMinSize_;
 };
 
 class ExtendedPathSubscription;
@@ -696,7 +704,9 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
       OperProtocol protocol,
       folly::EventBase* heartbeatEvb,
       std::chrono::milliseconds heartbeatInterval,
-      int32_t pipeCapacity);
+      int32_t pipeCapacity,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0);
 
   void buffer(TaggedOperDelta&& newVal);
 
@@ -722,7 +732,9 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot,
       folly::EventBase* heartbeatEvb,
-      std::chrono::milliseconds heartbeatInterval)
+      std::chrono::milliseconds heartbeatInterval,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0)
       : ExtendedSubscription(
             std::move(subscriber),
             std::move(paths),
@@ -730,7 +742,9 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
             std::move(publisherTreeRoot),
             std::move(heartbeatEvb),
             std::move(heartbeatInterval)),
-        pipe_(std::move(pipe)) {}
+        pipe_(std::move(pipe)),
+        subscriptionQueueMemoryLimit_(subscriptionQueueMemoryLimit),
+        subscriptionQueueFullMinSize_(subscriptionQueueFullMinSize) {}
 
   size_t getUpdateSize(const gen_type& val) {
     return getExtendedDeltaSize(val);
@@ -739,6 +753,8 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
  private:
   folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<gen_type>> pipe_;
   std::optional<gen_type> buffered_;
+  size_t subscriptionQueueMemoryLimit_;
+  int32_t subscriptionQueueFullMinSize_;
 };
 
 class ExtendedPatchSubscription;
@@ -800,7 +816,9 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
       std::chrono::milliseconds heartbeatInterval,
-      int32_t pipeCapacity);
+      int32_t pipeCapacity,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0);
 
   // Multipath
   static std::pair<
@@ -813,7 +831,9 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
       std::chrono::milliseconds heartbeatInterval,
-      int32_t pipeCapacity);
+      int32_t pipeCapacity,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0);
 
   // Extended paths
   static std::pair<
@@ -826,7 +846,9 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
       std::chrono::milliseconds heartbeatInterval,
-      int32_t pipeCapacity);
+      int32_t pipeCapacity,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0);
 
   ExtendedPatchSubscription(
       SubscriptionIdentifier&& subscriber,
@@ -836,7 +858,9 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot,
       folly::EventBase* heartbeatEvb,
-      std::chrono::milliseconds heartbeatInterval)
+      std::chrono::milliseconds heartbeatInterval,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0)
       : ExtendedSubscription(
             std::move(subscriber),
             std::move(paths),
@@ -844,7 +868,9 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
             std::move(publisherTreeRoot),
             std::move(heartbeatEvb),
             std::move(heartbeatInterval)),
-        pipe_(std::move(pipe)) {}
+        pipe_(std::move(pipe)),
+        subscriptionQueueMemoryLimit_(subscriptionQueueMemoryLimit),
+        subscriptionQueueFullMinSize_(subscriptionQueueFullMinSize) {}
 
   PubSubType type() const override {
     return PubSubType::PATCH;
@@ -882,6 +908,8 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
 
   std::map<SubscriptionKey, std::vector<Patch>> buffered_;
   folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<gen_type>> pipe_;
+  size_t subscriptionQueueMemoryLimit_;
+  int32_t subscriptionQueueFullMinSize_;
 };
 
 } // namespace facebook::fboss::fsdb
