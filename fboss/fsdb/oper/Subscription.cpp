@@ -136,9 +136,11 @@ std::optional<FsdbErrorCode> DeltaSubscription::flush(
   std::optional<FsdbErrorCode> ret;
   auto delta = moveFromCurrDelta(metadataServer);
   if (delta) {
+    auto size = getUpdateSize(*delta);
     ret = tryWrite(
         pipe_,
-        SubscriptionServeQueueElement<OperDelta>(std::move(*delta)),
+        SubscriptionServeQueueElement<OperDelta>(std::move(*delta), size),
+        size,
         "delta.flush");
   }
   return ret;
@@ -153,6 +155,7 @@ std::optional<FsdbErrorCode> DeltaSubscription::serveHeartbeat() {
   return tryWrite(
       pipe_,
       SubscriptionServeQueueElement<OperDelta>(std::move(delta)),
+      0 /* updateSize */,
       "delta.hb");
 }
 
@@ -166,6 +169,7 @@ void DeltaSubscription::allPublishersGone(
   tryWrite(
       pipe_,
       Utils::createFsdbException(disconnectReason, msg),
+      0 /* updateSize */,
       "delta.pubsGone");
 }
 
@@ -348,6 +352,7 @@ void ExtendedPathSubscription::allPublishersGone(
   tryWrite(
       pipe_,
       Utils::createFsdbException(disconnectReason, msg),
+      0 /* updateSize */,
       "ExtPath.pubsGone");
 }
 
@@ -400,9 +405,11 @@ std::optional<FsdbErrorCode> ExtendedDeltaSubscription::flush(
 
   std::optional<gen_type> toServe;
   toServe.swap(buffered_);
+  size_t size = getUpdateSize(toServe.value());
   return tryWrite(
       pipe_,
-      SubscriptionServeQueueElement<gen_type>(std::move(toServe).value()),
+      SubscriptionServeQueueElement<gen_type>(std::move(toServe).value(), size),
+      size,
       "ExtDelta.flush");
 }
 
@@ -420,6 +427,7 @@ void ExtendedDeltaSubscription::allPublishersGone(
   tryWrite(
       pipe_,
       Utils::createFsdbException(disconnectReason, msg),
+      0 /* updateSize */,
       "ExtDelta.pubsGone");
 }
 
@@ -584,11 +592,13 @@ std::optional<FsdbErrorCode> ExtendedPatchSubscription::flush(
     const SubscriptionMetadataServer& metadataServer) {
   updateMetadata(metadataServer);
   if (auto chunk = moveCurChunk(metadataServer)) {
+    size_t size = getUpdateSize(*chunk);
     SubscriberMessage msg;
     msg.set_chunk(std::move(*chunk));
     return tryWrite(
         pipe_,
-        SubscriptionServeQueueElement<gen_type>(std::move(msg)),
+        SubscriptionServeQueueElement<gen_type>(std::move(msg), size),
+        size,
         "ExtPatch.flush");
   }
   return std::nullopt;
@@ -604,6 +614,7 @@ std::optional<FsdbErrorCode> ExtendedPatchSubscription::serveHeartbeat() {
   return tryWrite(
       pipe_,
       SubscriptionServeQueueElement<gen_type>(std::move(msg)),
+      0 /* updateSize */,
       "ExtPatch.hb");
 }
 
@@ -617,6 +628,7 @@ void ExtendedPatchSubscription::allPublishersGone(
   tryWrite(
       pipe_,
       Utils::createFsdbException(disconnectReason, msg),
+      0 /* updateSize */,
       "ExtPatch.pubsGone");
 }
 

@@ -143,6 +143,7 @@ class BaseSubscription {
   std::optional<FsdbErrorCode> tryWrite(
       folly::coro::BoundedAsyncPipe<T>& pipe,
       V&& val,
+      size_t updateSize,
       const std::string& /* dbgStr */) {
     std::optional<FsdbErrorCode> ret{std::nullopt};
     queueWatermark_.withWLock([&](auto& queueWatermark) {
@@ -171,6 +172,8 @@ class BaseSubscription {
                     << " pipe full, update dropped!";
         }
       }
+    } else {
+      streamInfo_->enqueuedDataSize.fetch_add(updateSize);
     }
     return ret;
   }
@@ -317,6 +320,11 @@ class BasePathSubscription : public Subscription {
   PubSubType type() const override {
     return PubSubType::PATH;
   }
+
+  size_t getUpdateSize(const auto& /* val */) {
+    // we don't track update sizes for path subscriptions
+    return 0;
+  }
 };
 
 class PathSubscription : public BasePathSubscription,
@@ -373,6 +381,7 @@ class PathSubscription : public BasePathSubscription,
     tryWrite(
         pipe_,
         Utils::createFsdbException(disconnectReason, msg),
+        0 /* updateSize */,
         "path.pubsGone");
   }
 
@@ -394,7 +403,7 @@ class PathSubscription : public BasePathSubscription,
     if (md.has_value()) {
       t.newVal->metadata() = md.value();
     }
-    return tryWrite(pipe_, std::move(t), "path.hb");
+    return tryWrite(pipe_, std::move(t), 0 /* updateSize */, "path.hb");
   }
 
   PathSubscription(
@@ -501,6 +510,10 @@ class DeltaSubscription : public BaseDeltaSubscription,
             std::move(heartbeatInterval)),
         pipe_(std::move(pipe)) {}
 
+  size_t getUpdateSize(const OperDelta& val) {
+    return getOperDeltaSize(val);
+  }
+
   std::optional<FsdbErrorCode> serveHeartbeat() override;
 
  private:
@@ -555,7 +568,7 @@ class ExtendedPathSubscription : public ExtendedSubscription,
       const SubscriptionMetadataServer& metadataServer) override;
 
   std::optional<FsdbErrorCode> serveHeartbeat() override {
-    return tryWrite(pipe_, gen_type(), "ExtPath.hb");
+    return tryWrite(pipe_, gen_type(), 0 /* updateSize */, "ExtPath.hb");
   }
 
   PubSubType type() const override {
@@ -603,6 +616,11 @@ class ExtendedPathSubscription : public ExtendedSubscription,
             std::move(heartbeatEvb),
             std::move(heartbeatInterval)),
         pipe_(std::move(pipe)) {}
+
+  size_t getUpdateSize(const auto& /* val */) {
+    // we don't track update sizes for path subscriptions
+    return 0;
+  }
 
  private:
   folly::coro::BoundedAsyncPipe<gen_type> pipe_;
@@ -705,6 +723,10 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
             std::move(heartbeatEvb),
             std::move(heartbeatInterval)),
         pipe_(std::move(pipe)) {}
+
+  size_t getUpdateSize(const gen_type& val) {
+    return getExtendedDeltaSize(val);
+  }
 
  private:
   folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<gen_type>> pipe_;
@@ -835,6 +857,16 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
 
   void allPublishersGone(FsdbErrorCode disconnectReason, const std::string& msg)
       override;
+
+  size_t getUpdateSize(const SubscriberChunk& val) {
+    size_t totalSize = 0;
+    for (const auto& [key, patchList] : *val.patchGroups()) {
+      for (const auto& patch : patchList) {
+        totalSize += getPatchNodeSize(*patch.patch());
+      }
+    }
+    return totalSize;
+  }
 
  private:
   std::optional<SubscriberChunk> moveCurChunk(
