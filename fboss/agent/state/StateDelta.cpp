@@ -251,6 +251,11 @@ MultiSwitchForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
       old_->getFibs().get(), new_->getFibs().get());
 }
 
+MultiSwitchFibInfoMapDelta StateDelta::getFibsInfoDelta() const {
+  return MultiSwitchFibInfoMapDelta(
+      old_->getFibsInfoMap().get(), new_->getFibsInfoMap().get());
+}
+
 ThriftMapDelta<MultiSwitchSettings> StateDelta::getSwitchSettingsDelta() const {
   return ThriftMapDelta<MultiSwitchSettings>(
       old_->getSwitchSettings().get(), new_->getSwitchSettings().get());

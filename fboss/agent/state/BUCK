@@ -116,6 +116,7 @@ cpp_library(
     ],
     headers = [
         "FibDeltaHelpers.h",
+        "FibInfoDelta.h",
         "LabelForwardingEntry.h",
         "NeighborEntry.h",
         "NeighborEntry-defs.h",
