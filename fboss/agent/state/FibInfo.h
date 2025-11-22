@@ -53,6 +53,9 @@ class FibInfo : public ThriftStructNode<FibInfo, state::FibInfoFields> {
     return fibsMap->getFibContainerIf(vrf);
   }
 
+  // Get route count (v4, v6)
+  std::pair<uint64_t, uint64_t> getRouteCount() const;
+
  private:
   // Inherit constructors required for clone()
   using Base::Base;

@@ -33,6 +33,14 @@ FibInfo* FibInfo::modify(std::shared_ptr<SwitchState>* state) {
   throw FbossError("FibInfo not found in FibInfoMap");
 }
 
+std::pair<uint64_t, uint64_t> FibInfo::getRouteCount() const {
+  auto fibsMap = getfibsMap();
+  if (!fibsMap) {
+    return {0, 0};
+  }
+  return fibsMap->getRouteCount();
+}
+
 void FibInfo::updateFibContainer(
     const std::shared_ptr<ForwardingInformationBaseContainer>& fibContainer,
     std::shared_ptr<SwitchState>* state) {

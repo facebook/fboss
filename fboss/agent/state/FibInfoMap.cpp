@@ -39,4 +39,14 @@ void MultiSwitchFibInfoMap::updateFibInfo(
   }
 }
 
+std::pair<uint64_t, uint64_t> MultiSwitchFibInfoMap::getRouteCount() const {
+  uint64_t v4Count{0}, v6Count{0};
+  for (const auto& [_, fibInfo] : std::as_const(*this)) {
+    auto [v4, v6] = fibInfo->getRouteCount();
+    v4Count += v4;
+    v6Count += v6;
+  }
+  return {v4Count, v6Count};
+}
+
 } // namespace facebook::fboss

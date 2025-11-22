@@ -84,6 +84,9 @@ class MultiSwitchFibInfoMap
       const std::shared_ptr<FibInfo>& fibInfo,
       const HwSwitchMatcher& matcher);
 
+  // Get total route count across all FibInfo objects (v4, v6)
+  std::pair<uint64_t, uint64_t> getRouteCount() const;
+
   MultiSwitchFibInfoMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:
