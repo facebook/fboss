@@ -125,6 +125,10 @@ class BaseSubscription {
     return *chunksCoalesced_.rlock();
   }
 
+  std::shared_ptr<SubscriptionStreamInfo> getSharedStreamInfo() {
+    return streamInfo_;
+  }
+
   void stop();
 
  protected:
@@ -210,6 +214,7 @@ class BaseSubscription {
   folly::Synchronized<uint32_t> chunksCoalesced_{0};
   std::optional<FsdbErrorCode> pruneReason_{std::nullopt};
   std::optional<OperMetadata> lastServedMetadata_;
+  std::shared_ptr<SubscriptionStreamInfo> streamInfo_;
 };
 
 class Subscription : public BaseSubscription {

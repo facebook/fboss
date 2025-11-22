@@ -42,7 +42,8 @@ BaseSubscription::BaseSubscription(
       protocol_(protocol),
       publisherTreeRoot_(std::move(publisherRoot)),
       heartbeatEvb_(heartbeatEvb),
-      heartbeatInterval_(heartbeatInterval) {
+      heartbeatInterval_(heartbeatInterval),
+      streamInfo_(std::make_shared<SubscriptionStreamInfo>()) {
   if (heartbeatEvb_) {
     backgroundScope_.add(co_withExecutor(heartbeatEvb_, heartbeatLoop()));
   }

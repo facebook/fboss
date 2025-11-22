@@ -480,9 +480,10 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
       heartbeatInterval,
       params_.defaultSubscriptionServeQueueSize_);
+  auto sharedStreamInfo = subscription->getSharedStreamInfo();
   subMgr().registerSubscription(std::move(subscription));
   return SubscriptionStreamReader<SubscriptionServeQueueElement<OperDelta>>{
-      std::move(gen), nullptr};
+      std::move(gen), std::move(sharedStreamInfo)};
 }
 
 folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
@@ -532,10 +533,11 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
       heartbeatInterval,
       params_.defaultSubscriptionServeQueueSize_);
+  auto sharedStreamInfo = subscription->getSharedStreamInfo();
   subMgr().registerExtendedSubscription(std::move(subscription));
   return SubscriptionStreamReader<
       SubscriptionServeQueueElement<std::vector<TaggedOperDelta>>>{
-      std::move(gen), nullptr};
+      std::move(gen), std::move(sharedStreamInfo)};
 }
 
 SubscriptionStreamReader<SubscriptionServeQueueElement<SubscriberMessage>>
@@ -561,10 +563,11 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
       heartbeatInterval,
       params_.defaultSubscriptionServeQueueSize_);
+  auto sharedStreamInfo = subscription->getSharedStreamInfo();
   subMgr().registerExtendedSubscription(std::move(subscription));
   return SubscriptionStreamReader<
       SubscriptionServeQueueElement<SubscriberMessage>>{
-      std::move(gen), nullptr};
+      std::move(gen), std::move(sharedStreamInfo)};
 }
 
 SubscriptionStreamReader<SubscriptionServeQueueElement<SubscriberMessage>>
@@ -590,10 +593,11 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
       heartbeatInterval,
       params_.defaultSubscriptionServeQueueSize_);
+  auto sharedStreamInfo = subscription->getSharedStreamInfo();
   subMgr().registerExtendedSubscription(std::move(subscription));
   return SubscriptionStreamReader<
       SubscriptionServeQueueElement<SubscriberMessage>>{
-      std::move(gen), nullptr};
+      std::move(gen), std::move(sharedStreamInfo)};
 }
 
 } // namespace facebook::fboss::fsdb
