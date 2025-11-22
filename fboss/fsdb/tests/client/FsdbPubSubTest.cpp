@@ -46,6 +46,8 @@ class FsdbPubSubTest : public ::testing::Test {
     folly::LoggerDB::get().setLevel("fboss.thrift_cow", folly::LogLevel::DBG4);
     folly::LoggerDB::get().setLevel("fboss.fsdb", folly::LogLevel::DBG4);
     auto config = getFsdbConfig();
+    FLAGS_deltaSubscriptionQueueFullMinSize = 4;
+    FLAGS_deltaSubscriptionQueueMemoryLimit_mb = 1;
     fsdbTestServer_ = std::make_unique<FsdbTestServer>(
         std::move(config),
         0,
@@ -1021,6 +1023,105 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, slowSubscriberDisconnectThreshold) {
   std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
 
   // resume subscriber data callback after all updates are published
+  resumeDataCb.post();
+
+  waitForDisconnect.wait();
+  info = slowSub->getInfo();
+  ASSERT_EQ(
+      info.disconnectReason, FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL);
+
+  WITH_RETRIES_N(90, {
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    auto counterName = folly::sformat(
+        "{}.subscriber.{}.disconnects.slow_subscriber.count",
+        this->pubSubStats() ? "stats" : "fsdb",
+        "unspecified");
+    EXPECT_EVENTUALLY_GT(fb303::ServiceData::get()->getCounter(counterName), 0);
+  });
+
+  resumeReconnect.post();
+}
+
+TYPED_TEST(FsdbSlowDeltaSubscriberTest, memoryAwareDisconnect) {
+  // verify memory-based threshold for subscription disconnect
+
+  uint32_t updatesPublished = 100;
+  uint32_t subscriptionServeIntervalMs =
+      this->pubSubStats() ? kStatsServeIntervalMs : kStateServeIntervalMs;
+  uint32_t publishIntervalMs = subscriptionServeIntervalMs + 20;
+  this->setupConnection(*this->publisher_, false);
+  this->checkPublishing({this->publisher_->clientId()});
+
+  // pause subscriber on initial sync long enough for all updates to be
+  // published and served so that queue builds up.
+  folly::Baton<> waitForInitialSync, waitForDisconnect;
+  folly::Baton<> resumeDataCb, resumeReconnect;
+  bool initialSyncOnce{false}, disconnectOnce{false};
+  auto slowSub = this->createSubscriber(
+      "fsdb_slow_subscriber",
+      [&waitForInitialSync, &resumeDataCb, &initialSyncOnce]() {
+        if (!initialSyncOnce) {
+          initialSyncOnce = true;
+          waitForInitialSync.post();
+          resumeDataCb.wait();
+        }
+      },
+      [&waitForDisconnect, &resumeReconnect, &disconnectOnce]() {
+        if (!disconnectOnce) {
+          disconnectOnce = true;
+          waitForDisconnect.post();
+          resumeReconnect.wait();
+        }
+      });
+  this->setupConnection(*slowSub);
+  this->checkSubscribed({slowSub->clientId()});
+  int updateNum{0};
+  for (; updateNum <= updatesPublished; updateNum++) {
+    if (this->pubSubStats()) {
+      this->publishPortStats(makePortStats(updateNum));
+    } else {
+      std::string testStr = folly::to<std::string>("bar", updateNum);
+      this->publishAgentConfig(makeAgentConfig({{"foo", testStr}}));
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
+  }
+
+  // post large update to build up queue memory
+  int updateSize = (1024 * 1024 * FLAGS_deltaSubscriptionQueueMemoryLimit_mb);
+  if (this->pubSubStats()) {
+    int statsUpdateSize = 25;
+    this->publishPortStats(makeLargePortStats(updateNum, statsUpdateSize));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  } else {
+    char val = 'a';
+    this->publishAgentConfig(makeLargeAgentConfig("foo", updateSize, val));
+  }
+  updateNum++;
+  std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
+
+  // validate server does not disconnect subscriber yet
+  waitForInitialSync.wait();
+  SubscriptionInfo info = slowSub->getInfo();
+  ASSERT_EQ(
+      info.state, FsdbStreamClient::ReconnectingThriftClient::State::CONNECTED);
+
+  // trigger memory-based queue full detection
+  for (int i = 0; i < FLAGS_deltaSubscriptionQueueFullMinSize; i++) {
+    if (this->pubSubStats()) {
+      int statsUpdateSize = 25;
+      this->publishPortStats(makePortStats(updateNum + i));
+      this->publishPortStats(makeLargePortStats(updateNum, statsUpdateSize));
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    } else {
+      std::string testStr = folly::to<std::string>("bar", updateNum + i);
+      this->publishAgentConfig(makeAgentConfig({{"foo", testStr}}));
+    }
+    updateNum++;
+    std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
+  }
+
+  // resume subscriber data callback after all updates are published
+  // and validate that server disconnects the slow subscriber
   resumeDataCb.post();
 
   waitForDisconnect.wait();

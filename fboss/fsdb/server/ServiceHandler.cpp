@@ -64,6 +64,16 @@ DEFINE_int32(
     5,
     "Interval at which heartbeats are sent for state subscribers");
 
+DEFINE_int32(
+    deltaSubscriptionQueueFullMinSize,
+    5,
+    "minimum number of pending updates to trigger memory-based subscription queue full detection");
+
+DEFINE_int32(
+    deltaSubscriptionQueueMemoryLimit_mb,
+    0,
+    "total memory size of queued updates for delta subscription at which memory-based subscription queue full detection is triggered (0 to disable)");
+
 DEFINE_bool(
     checkSubscriberConfig,
     true,
@@ -272,7 +282,11 @@ ServiceHandler::ServiceHandler(
               "fsdb",
               options_.serveIdPathSubs,
               true,
-              true)),
+              true)
+              .setDeltaSubscriptionQueueFullMinSize(
+                  FLAGS_deltaSubscriptionQueueFullMinSize)
+              .setDeltaSubscriptionQueueMemoryLimit(
+                  FLAGS_deltaSubscriptionQueueMemoryLimit_mb * 1024 * 1024)),
       operStatsStorage_(
           {},
           NaivePeriodicSubscribableStorageBase::StorageParams(
@@ -284,8 +298,12 @@ ServiceHandler::ServiceHandler(
               true,
               true,
               true /* serveGetRequestsWithLastPublishedState */,
-              FLAGS_statsSubscriptionServeQueueSize /* pathSubscriptionServeQueueSize */,
-              FLAGS_statsSubscriptionServeQueueSize /* defaultSubscriptionServeQueueSize */)) {
+              FLAGS_statsSubscriptionServeQueueSize,
+              FLAGS_statsSubscriptionServeQueueSize)
+              .setDeltaSubscriptionQueueFullMinSize(
+                  FLAGS_deltaSubscriptionQueueFullMinSize)
+              .setDeltaSubscriptionQueueMemoryLimit(
+                  FLAGS_deltaSubscriptionQueueMemoryLimit_mb * 1024 * 1024)) {
   num_instances_.incrementValue(1);
 
   initPerStreamCounters();

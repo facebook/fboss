@@ -20,6 +20,8 @@
 #include "re2/re2.h"
 
 DECLARE_int32(statsSubscriptionServeQueueSize);
+DECLARE_int32(deltaSubscriptionQueueFullMinSize);
+DECLARE_int32(deltaSubscriptionQueueMemoryLimit_mb);
 
 DECLARE_bool(checkSubscriberConfig);
 DECLARE_bool(enforceSubscriberConfig);
