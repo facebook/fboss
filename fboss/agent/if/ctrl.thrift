@@ -254,6 +254,9 @@ struct InterfaceDetail {
   // PortId populated only for interfaces of type PORT
   11: i32 portId;
   12: optional string desiredPeerAddressIPv6;
+  13: switch_config.InterfaceType interfaceType;
+  // used in CLI display
+  14: list<string> portNames;
 }
 
 /*

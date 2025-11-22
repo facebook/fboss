@@ -898,11 +898,40 @@ void ThriftHandler::updateUnicastRoutesImpl(
 
 static void populateInterfaceDetail(
     InterfaceDetail& interfaceDetail,
-    const std::shared_ptr<Interface> intf) {
+    const std::shared_ptr<Interface> intf,
+    const std::shared_ptr<SwitchState> state) {
   *interfaceDetail.interfaceName() = intf->getName();
   *interfaceDetail.interfaceId() = intf->getID();
   if (intf->getVlanIDIf().has_value()) {
     *interfaceDetail.vlanId() = intf->getVlanID();
+  }
+  switch (intf->getType()) {
+    case cfg::InterfaceType::PORT: {
+      auto port = state->getPorts()->getNode(intf->getPortID());
+      interfaceDetail.portNames()->emplace_back(port->getName());
+    } break;
+    case cfg::InterfaceType::VLAN: {
+      auto vlan = state->getVlans()->getNodeIf(intf->getVlanID());
+      if (!intf->isVirtual() && vlan != nullptr) {
+        auto members = vlan->getPorts();
+        for (auto member : members) {
+          auto port = state->getPorts()->getNode(PortID(member.first));
+          interfaceDetail.portNames()->emplace_back(port->getName());
+        }
+      }
+    } break;
+    case cfg::InterfaceType::SYSTEM_PORT: {
+      auto sysPortID = intf->getSystemPortID();
+      if (!sysPortID) {
+        throw FbossError(
+            "System port interface ", intf->getID(), " has no system port");
+      }
+      if (state->getSystemPorts()->getNodeIf(*sysPortID)) {
+        auto portID = getPortID(*sysPortID, state);
+        auto port = state->getPorts()->getNode(portID);
+        interfaceDetail.portNames()->emplace_back(port->getName());
+      }
+    } break;
   }
   if (intf->getType() == cfg::InterfaceType::PORT) {
     *interfaceDetail.portId() = intf->getPortID();
@@ -935,6 +964,7 @@ static void populateInterfaceDetail(
     interfaceDetail.desiredPeerAddressIPv6() =
         intf->getDesiredPeerAddressIPv6().value();
   }
+  interfaceDetail.interfaceType() = intf->getType();
 }
 
 void ThriftHandler::getAllInterfaces(
@@ -942,18 +972,19 @@ void ThriftHandler::getAllInterfaces(
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
-  auto getAllInterfacesHelper = [&interfaces](const auto& interfaceMap) {
+  auto state = sw_->getState();
+  auto getAllInterfacesHelper = [&interfaces, state](const auto& interfaceMap) {
     for (const auto& [_, intfs] : std::as_const(*interfaceMap)) {
       for (const auto& iter : std::as_const(*intfs)) {
         const auto& intf = iter.second;
         auto& interfaceDetail = interfaces[intf->getID()];
-        populateInterfaceDetail(interfaceDetail, intf);
+        populateInterfaceDetail(interfaceDetail, intf, state);
       }
     }
   };
 
-  getAllInterfacesHelper(sw_->getState()->getInterfaces());
-  getAllInterfacesHelper(sw_->getState()->getRemoteInterfaces());
+  getAllInterfacesHelper(state->getInterfaces());
+  getAllInterfacesHelper(state->getRemoteInterfaces());
 }
 
 void ThriftHandler::getInterfaceList(std::vector<std::string>& interfaceList) {
@@ -973,13 +1004,13 @@ void ThriftHandler::getInterfaceDetail(
     int32_t interfaceId) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
-  const auto intf =
-      sw_->getState()->getInterfaces()->getNodeIf(InterfaceID(interfaceId));
+  auto state = sw_->getState();
+  const auto intf = state->getInterfaces()->getNodeIf(InterfaceID(interfaceId));
 
   if (!intf) {
     throw FbossError("no such interface ", interfaceId);
   }
-  populateInterfaceDetail(interfaceDetail, intf);
+  populateInterfaceDetail(interfaceDetail, intf, state);
 }
 
 // NOTE : pass by value of state is deliberate. We want to bump
