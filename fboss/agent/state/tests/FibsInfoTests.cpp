@@ -264,4 +264,54 @@ TEST_F(MultiSwitchFibInfoMapTest, MultipleNodesAndEmptyMapTest) {
   EXPECT_EQ(fibInfoMap->getFibInfo(matcher3), fibInfo3);
 }
 
+TEST_F(MultiSwitchFibInfoMapTest, GetRouteCount) {
+  auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+
+  // Verify initial route count is 0 for empty map
+  auto [emptyV4Count, emptyV6Count] = fibInfoMap->getRouteCount();
+  EXPECT_EQ(emptyV4Count, 0);
+  EXPECT_EQ(emptyV6Count, 0);
+
+  // Create FibInfo with RouterID(0)
+  auto fibInfo = std::make_shared<FibInfo>();
+  auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
+  auto fibContainer =
+      std::make_shared<ForwardingInformationBaseContainer>(RouterID(0));
+
+  // Create and add 2 IPv4 routes
+  ForwardingInformationBaseV4 fibV4;
+  RouteFields<folly::IPAddressV4> routeV4_1(
+      RoutePrefixV4{folly::IPAddressV4("10.0.0.0"), 24});
+  RouteFields<folly::IPAddressV4> routeV4_2(
+      RoutePrefixV4{folly::IPAddressV4("192.168.1.0"), 24});
+  fibV4.addNode(std::make_shared<RouteV4>(routeV4_1.toThrift()));
+  fibV4.addNode(std::make_shared<RouteV4>(routeV4_2.toThrift()));
+  fibContainer->setFib(fibV4.clone());
+
+  // Create and add 3 IPv6 routes
+  ForwardingInformationBaseV6 fibV6;
+  RouteFields<folly::IPAddressV6> routeV6_1(
+      RoutePrefixV6{folly::IPAddressV6("2001:db8::1"), 64});
+  RouteFields<folly::IPAddressV6> routeV6_2(
+      RoutePrefixV6{folly::IPAddressV6("2001:db8:1::"), 64});
+  RouteFields<folly::IPAddressV6> routeV6_3(
+      RoutePrefixV6{folly::IPAddressV6("2001:db8:2::"), 64});
+  fibV6.addNode(std::make_shared<RouteV6>(routeV6_1.toThrift()));
+  fibV6.addNode(std::make_shared<RouteV6>(routeV6_2.toThrift()));
+  fibV6.addNode(std::make_shared<RouteV6>(routeV6_3.toThrift()));
+  fibContainer->setFib(fibV6.clone());
+
+  fibsMap->updateForwardingInformationBaseContainer(fibContainer);
+  fibInfo->ref<switch_state_tags::fibsMap>() = fibsMap;
+
+  // Add FibInfo to FibInfoMap
+  auto matcher = createMatcher(10);
+  fibInfoMap->updateFibInfo(fibInfo, matcher);
+
+  // Verify route count after adding routes: 2 IPv4 and 3 IPv6
+  auto [v4Count, v6Count] = fibInfoMap->getRouteCount();
+  EXPECT_EQ(v4Count, 2);
+  EXPECT_EQ(v6Count, 3);
+}
+
 } // namespace facebook::fboss
