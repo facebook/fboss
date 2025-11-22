@@ -314,4 +314,40 @@ TEST_F(MultiSwitchFibInfoMapTest, GetRouteCount) {
   EXPECT_EQ(v6Count, 3);
 }
 
+TEST_F(MultiSwitchFibInfoMapTest, GetAllFibNodes) {
+  auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+
+  // Test empty map returns empty merged map
+  auto emptyMergedMap = fibInfoMap->getAllFibNodes();
+  EXPECT_NE(emptyMergedMap, nullptr);
+  EXPECT_EQ(emptyMergedMap->size(), 0);
+
+  // Create FibInfo objects for different switches with different RouterIDs
+  auto fibInfo1 = createFibInfo(RouterID(0));
+  auto fibInfo2 = createFibInfo(RouterID(1));
+  auto fibInfo3 = createFibInfo(RouterID(2));
+
+  // Add FibInfos to the map
+  auto matcher1 = createMatcher(10);
+  auto matcher2 = createMatcher(20);
+  auto matcher3 = createMatcher(30);
+  fibInfoMap->updateFibInfo(fibInfo1, matcher1);
+  fibInfoMap->updateFibInfo(fibInfo2, matcher2);
+  fibInfoMap->updateFibInfo(fibInfo3, matcher3);
+
+  // Get merged map and verify it contains all FibContainers from all switches
+  auto mergedMap = fibInfoMap->getAllFibNodes();
+  EXPECT_EQ(mergedMap->size(), 3);
+
+  // Verify all FibContainers are present in the merged map
+  auto mergedContainer0 = mergedMap->getFibContainerIf(RouterID(0));
+  EXPECT_EQ(mergedContainer0->getID(), RouterID(0));
+
+  auto mergedContainer1 = mergedMap->getFibContainerIf(RouterID(1));
+  EXPECT_EQ(mergedContainer1->getID(), RouterID(1));
+
+  auto mergedContainer2 = mergedMap->getFibContainerIf(RouterID(2));
+  EXPECT_EQ(mergedContainer2->getID(), RouterID(2));
+}
+
 } // namespace facebook::fboss
