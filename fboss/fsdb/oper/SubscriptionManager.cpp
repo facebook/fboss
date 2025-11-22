@@ -50,6 +50,8 @@ std::vector<OperSubscriberInfo> SubscriptionManagerBase::getSubscriptions()
     info.subscriptionUid() = subscription->subscriptionUid();
     info.subscriptionQueueWatermark() = subscription->getQueueWatermark();
     info.subscriptionChunksCoalesced() = subscription->getChunksCoalesced();
+    info.enqueuedDataSize() = subscription->getEnqueuedDataSize();
+    info.servedDataSize() = subscription->getServedDataSize();
     toRet.push_back(std::move(info));
   }
   for (auto& [id, subscription] : store->extendedSubscriptions()) {
@@ -69,6 +71,8 @@ std::vector<OperSubscriberInfo> SubscriptionManagerBase::getSubscriptions()
     info.subscriptionUid() = subscription->subscriptionUid();
     info.subscriptionQueueWatermark() = subscription->getQueueWatermark();
     info.subscriptionChunksCoalesced() = subscription->getChunksCoalesced();
+    info.enqueuedDataSize() = subscription->getEnqueuedDataSize();
+    info.servedDataSize() = subscription->getServedDataSize();
     toRet.push_back(std::move(info));
   }
   return toRet;

@@ -1647,6 +1647,12 @@ void mergeOperSubscriberInfo(
             sub.subscriptionChunksCoalesced() =
                 *subInfo.subscriptionChunksCoalesced();
           }
+          if (subInfo.enqueuedDataSize().has_value()) {
+            sub.enqueuedDataSize() = *subInfo.enqueuedDataSize();
+          }
+          if (subInfo.servedDataSize().has_value()) {
+            sub.servedDataSize() = *subInfo.servedDataSize();
+          }
         }
       }
     }

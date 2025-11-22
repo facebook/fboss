@@ -550,8 +550,8 @@ TYPED_TEST(FsdbPubSubTest, publishToMultipleSubscribers) {
   this->setupConnections();
   auto subscriber2 = this->createSubscriber("fsdb_test_subscriber2");
   this->setupConnection(*subscriber2);
-  this->checkSubscribed(
-      {this->subscriber_->clientId(), subscriber2->clientId()});
+  auto subscribers = {this->subscriber_->clientId(), subscriber2->clientId()};
+  this->checkSubscribed(subscribers);
   if (this->pubSubStats()) {
     this->publishPortStats(makePortStats(1));
   } else {
@@ -560,6 +560,29 @@ TYPED_TEST(FsdbPubSubTest, publishToMultipleSubscribers) {
   // Initial sync only after first publish
   this->subscriber_->assertQueue(1, this->kRetries);
   subscriber2->assertQueue(1, this->kRetries);
+  // check subscription serve queue data stats
+  WITH_RETRIES({
+    auto subscriberToInfo = folly::coro::blockingWait(
+        this->fsdbTestServer_->getClient()->co_getOperSubscriberInfos(
+            subscribers));
+    for (auto subscriber : subscribers) {
+      auto sitr = subscriberToInfo.find(subscriber);
+      ASSERT_EVENTUALLY_NE(sitr, subscriberToInfo.end());
+      if (sitr != subscriberToInfo.end()) {
+        OperSubscriberInfo expectedInfo = sitr->second[0];
+        ASSERT_EQ(expectedInfo.enqueuedDataSize().has_value(), true);
+        ASSERT_EQ(expectedInfo.servedDataSize().has_value(), true);
+        if (this->isPath()) {
+          // for path subscriptions, queue data size is not tracked
+          ASSERT_EQ(*expectedInfo.enqueuedDataSize(), 0);
+          ASSERT_EQ(*expectedInfo.servedDataSize(), 0);
+        } else {
+          ASSERT_GT(*expectedInfo.enqueuedDataSize(), 0);
+          ASSERT_GT(*expectedInfo.servedDataSize(), 0);
+        }
+      }
+    }
+  });
 }
 
 TYPED_TEST(FsdbPubSubTest, publisherDropCausesSubscribersReset) {
@@ -1133,6 +1156,8 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, slowSubscriberQueueWatermark) {
       if (expectedInfo.subscriptionQueueWatermark().has_value()) {
         ASSERT_EVENTUALLY_GT(*expectedInfo.subscriptionQueueWatermark(), 0);
       }
+      ASSERT_EQ(expectedInfo.enqueuedDataSize().has_value(), true);
+      ASSERT_EVENTUALLY_GT(*expectedInfo.enqueuedDataSize(), 0);
     }
     // Also validate fb303 counter for subscription serve queue watermark
     // In tests, we don't start the publisher threads

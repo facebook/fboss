@@ -125,6 +125,14 @@ class BaseSubscription {
     return *chunksCoalesced_.rlock();
   }
 
+  uint64_t getEnqueuedDataSize() const {
+    return streamInfo_->enqueuedDataSize.load();
+  }
+
+  uint64_t getServedDataSize() const {
+    return streamInfo_->servedDataSize.load();
+  }
+
   std::shared_ptr<SubscriptionStreamInfo> getSharedStreamInfo() {
     return streamInfo_;
   }

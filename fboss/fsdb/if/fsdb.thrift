@@ -47,6 +47,8 @@ struct OperSubscriberInfo {
   8: optional i64 subscriptionUid;
   9: optional i32 subscriptionQueueWatermark;
   10: optional i32 subscriptionChunksCoalesced;
+  11: optional i64 enqueuedDataSize;
+  12: optional i64 servedDataSize;
 }
 
 @cpp.Type{template = "folly::F14FastMap"}
