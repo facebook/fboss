@@ -12,6 +12,7 @@ cpp_unittest(
         "BufferPoolConfigTests.cpp",
         "ControlPlaneTests.cpp",
         "DsfNodeTests.cpp",
+        "FibsInfoDeltaTests.cpp",
         "FibsInfoTests.cpp",
         "FlowletSwitchingTests.cpp",
         "ForwardingInformationBaseTests.cpp",
