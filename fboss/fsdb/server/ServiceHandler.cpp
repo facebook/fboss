@@ -916,7 +916,7 @@ ServiceHandler::makeExtendedStateStreamGenerator(
                        subscriptionParams);
 }
 
-folly::coro::AsyncGenerator<SubscriptionServeQueueElement<SubscriberMessage>&&>
+SubscriptionStreamReader<SubscriptionServeQueueElement<SubscriberMessage>>
 ServiceHandler::makePatchStreamGenerator(
     std::unique_ptr<SubRequest> request,
     bool isStats,
@@ -933,7 +933,7 @@ ServiceHandler::makePatchStreamGenerator(
               std::move(subId), *request->paths(), subscriptionParams)
         : operStorage_.subscribe_patch(
               std::move(subId), *request->paths(), subscriptionParams);
-    return std::move(streamReader.generator_);
+    return streamReader;
   } else {
     CHECK_GT(request->extPaths()->size(), 0);
     auto streamReader = isStats
@@ -941,7 +941,7 @@ ServiceHandler::makePatchStreamGenerator(
               std::move(subId), *request->extPaths(), subscriptionParams)
         : operStorage_.subscribe_patch_extended(
               std::move(subId), *request->extPaths(), subscriptionParams);
-    return std::move(streamReader.generator_);
+    return streamReader;
   }
 }
 
@@ -1027,7 +1027,7 @@ ServiceHandler::co_subscribeOperStatsPath(
           })};
 }
 
-folly::coro::AsyncGenerator<SubscriptionServeQueueElement<OperDelta>&&>
+SubscriptionStreamReader<SubscriptionServeQueueElement<OperDelta>>
 ServiceHandler::makeDeltaStreamGenerator(
     std::unique_ptr<OperSubRequest> request,
     bool isStats,
@@ -1050,10 +1050,11 @@ ServiceHandler::makeDeltaStreamGenerator(
                                     request->path()->raw()->end(),
                                     *request->protocol(),
                                     subscriptionParams);
-  return std::move(streamReader.generator_);
+  return streamReader;
 }
 
-folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
+SubscriptionStreamReader<
+    SubscriptionServeQueueElement<std::vector<TaggedOperDelta>>>
 ServiceHandler::makeExtendedDeltaStreamGenerator(
     std::unique_ptr<OperSubRequestExtended> request,
     bool isStats,
@@ -1074,12 +1075,7 @@ ServiceHandler::makeExtendedDeltaStreamGenerator(
                                     *request->paths(),
                                     *request->protocol(),
                                     subscriptionParams);
-  auto generator = std::move(streamReader.generator_);
-
-  while (auto item = co_await generator.next()) {
-    auto&& element = *item;
-    co_yield std::move(element.val);
-  }
+  return streamReader;
 }
 
 folly::coro::Task<
@@ -1106,10 +1102,12 @@ ServiceHandler::co_subscribeOperStateDelta(
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
               -> folly::coro::AsyncGenerator<OperDelta&&> {
-            auto generator = makeDeltaStreamGenerator(
+            auto streamReader = makeDeltaStreamGenerator(
                 std::move(request), false, std::move(subId));
-            while (auto item = co_await generator.next()) {
-              // got value
+            while (auto item = co_await streamReader.generator_.next()) {
+              // Update served data size and then yield
+              streamReader.streamInfo_->servedDataSize.fetch_add(
+                  (*item).allocatedBytes, std::memory_order_relaxed);
               co_yield std::move((*item).val);
             }
           })};
@@ -1190,11 +1188,14 @@ ServiceHandler::co_subscribeOperStateDeltaExtended(
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
               -> folly::coro::AsyncGenerator<OperSubDeltaUnit&&> {
-            auto generator = makeExtendedDeltaStreamGenerator(
+            auto streamReader = makeExtendedDeltaStreamGenerator(
                 std::move(request), false, std::move(subId));
-            while (auto item = co_await generator.next()) {
-              // got item
-              auto&& delta = *item;
+            while (auto item = co_await streamReader.generator_.next()) {
+              // Update served data size and then yield
+              streamReader.streamInfo_->servedDataSize.fetch_add(
+                  item->allocatedBytes, std::memory_order_relaxed);
+
+              auto&& delta = std::move(item->val);
 
               OperSubDeltaUnit unit;
 
@@ -1229,10 +1230,12 @@ ServiceHandler::co_subscribeOperStatsDelta(
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
               -> folly::coro::AsyncGenerator<OperDelta&&> {
-            auto generator = makeDeltaStreamGenerator(
+            auto streamReader = makeDeltaStreamGenerator(
                 std::move(request), true, std::move(subId));
-            while (auto item = co_await generator.next()) {
-              // got value
+            while (auto item = co_await streamReader.generator_.next()) {
+              // Update served data size and then yield
+              streamReader.streamInfo_->servedDataSize.fetch_add(
+                  (*item).allocatedBytes, std::memory_order_relaxed);
               co_yield std::move((*item).val);
             }
           })};
@@ -1313,11 +1316,13 @@ ServiceHandler::co_subscribeOperStatsDeltaExtended(
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
               -> folly::coro::AsyncGenerator<OperSubDeltaUnit&&> {
-            auto generator = makeExtendedDeltaStreamGenerator(
+            auto streamReader = makeExtendedDeltaStreamGenerator(
                 std::move(request), true, std::move(subId));
-            while (auto item = co_await generator.next()) {
-              // got item
-              auto&& delta = *item;
+            while (auto item = co_await streamReader.generator_.next()) {
+              // Update served data size and then yield
+              streamReader.streamInfo_->servedDataSize.fetch_add(
+                  item->allocatedBytes, std::memory_order_relaxed);
+              auto&& delta = std::move(item->val);
 
               OperSubDeltaUnit unit;
 
@@ -1362,9 +1367,12 @@ ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
        subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        auto generator = makePatchStreamGenerator(
+        auto streamReader = makePatchStreamGenerator(
             std::move(request), false, std::move(subId));
-        while (auto item = co_await generator.next()) {
+        while (auto item = co_await streamReader.generator_.next()) {
+          // Update served data size and then yield
+          streamReader.streamInfo_->servedDataSize.fetch_add(
+              (*item).allocatedBytes, std::memory_order_relaxed);
           co_yield std::move((*item).val);
         }
       });
@@ -1406,9 +1414,12 @@ ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
        subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        auto generator = makePatchStreamGenerator(
+        auto streamReader = makePatchStreamGenerator(
             std::move(request), true, std::move(subId));
-        while (auto item = co_await generator.next()) {
+        while (auto item = co_await streamReader.generator_.next()) {
+          // Update served data size and then yield
+          streamReader.streamInfo_->servedDataSize.fetch_add(
+              (*item).allocatedBytes, std::memory_order_relaxed);
           co_yield std::move((*item).val);
         }
       });
@@ -1452,9 +1463,12 @@ ServiceHandler::co_subscribeStateExtended(std::unique_ptr<SubRequest> request) {
        subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        auto generator = makePatchStreamGenerator(
+        auto streamReader = makePatchStreamGenerator(
             std::move(request), false, std::move(subId));
-        while (auto item = co_await generator.next()) {
+        while (auto item = co_await streamReader.generator_.next()) {
+          // Update served data size and then yield
+          streamReader.streamInfo_->servedDataSize.fetch_add(
+              (*item).allocatedBytes, std::memory_order_relaxed);
           co_yield std::move((*item).val);
         }
       });
@@ -1498,9 +1512,12 @@ ServiceHandler::co_subscribeStatsExtended(std::unique_ptr<SubRequest> request) {
        subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        auto generator = makePatchStreamGenerator(
+        auto streamReader = makePatchStreamGenerator(
             std::move(request), true, std::move(subId));
-        while (auto item = co_await generator.next()) {
+        while (auto item = co_await streamReader.generator_.next()) {
+          // Update served data size and then yield
+          streamReader.streamInfo_->servedDataSize.fetch_add(
+              (*item).allocatedBytes, std::memory_order_relaxed);
           co_yield std::move((*item).val);
         }
       });
