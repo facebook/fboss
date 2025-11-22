@@ -15,4 +15,5 @@ struct RifEntry {
   8: string remoteInterfaceType;
   9: string remoteInterfaceLivenessStatus;
   10: string scope;
+  11: list<string> portNames;
 }
