@@ -49,4 +49,22 @@ std::pair<uint64_t, uint64_t> MultiSwitchFibInfoMap::getRouteCount() const {
   return {v4Count, v6Count};
 }
 
+std::shared_ptr<ForwardingInformationBaseMap>
+MultiSwitchFibInfoMap::getAllFibNodes() const {
+  auto mergedMap = std::make_shared<ForwardingInformationBaseMap>();
+
+  // Iterate through all switches
+  for (const auto& [_, fibInfo] : std::as_const(*this)) {
+    // Get the ForwardingInformationBaseMap for this switch
+    auto fibsMap = fibInfo->getfibsMap();
+
+    // Merge all FibContainers from this switch's map
+    for (const auto& [routerId, fibContainer] : std::as_const(*fibsMap)) {
+      mergedMap->updateForwardingInformationBaseContainer(fibContainer);
+    }
+  }
+
+  return mergedMap;
+}
+
 } // namespace facebook::fboss

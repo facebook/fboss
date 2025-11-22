@@ -84,6 +84,11 @@ class MultiSwitchFibInfoMap
       const std::shared_ptr<FibInfo>& fibInfo,
       const HwSwitchMatcher& matcher);
 
+  // Merge FibContainers from all switches into a single
+  // ForwardingInformationBaseMap, This mirrors
+  // MultiSwitchForwardingInformationBaseMap::getAllNodes() behavior
+  std::shared_ptr<ForwardingInformationBaseMap> getAllFibNodes() const;
+
   // Get total route count across all FibInfo objects (v4, v6)
   std::pair<uint64_t, uint64_t> getRouteCount() const;
 
