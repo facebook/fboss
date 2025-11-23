@@ -892,16 +892,20 @@ TYPED_TEST(AgentErspanIngressSamplingTest, ErspanIngressSampling) {
     auto trafficPortPktsBefore = *trafficPortPktStatsBefore.outUnicastPkts_();
     auto mirroredPortPktsBefore = *mirrorPortPktStatsBefore.outUnicastPkts_();
 
-    this->sendPackets(3 * kSampleRate, 1000);
+    auto totalPackets = 300 * kSampleRate;
+    this->sendPackets(totalPackets, 64);
 
+    //  The probability that there are less than 200 packets with 300000 packets
+    //  sampled at 1/1000. is 3*10^-10, and the probability that there are more
+    //  than 400 packets is 1.6*10^-8.
     WITH_RETRIES({
       auto trafficPortPktStatsAfter = this->getLatestPortStats(trafficPort);
       auto trafficPortPktsAfter = *trafficPortPktStatsAfter.outUnicastPkts_();
       EXPECT_EVENTUALLY_EQ(
-          3 * kSampleRate, trafficPortPktsAfter - trafficPortPktsBefore);
+          totalPackets, trafficPortPktsAfter - trafficPortPktsBefore);
     });
 
-    auto expectedMirrorPackets = 2; /* expect at least 2 packets */
+    auto expectedMirrorPackets = 200; /* expect at least 200 packets */
     WITH_RETRIES({
       auto mirrorPortPktStatsAfter = this->getLatestPortStats(mirrorToPort);
       auto mirroredPortPktsAfter = *mirrorPortPktStatsAfter.outUnicastPkts_();
