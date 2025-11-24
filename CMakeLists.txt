@@ -1026,7 +1026,6 @@ add_dependencies(fboss_platform_services
   sensor_service_sw_test
   sensor_service_utils_test
   rackmon_test
-  bsp_tests
   fan_service_sw_test
   data_corral_service_hw_test
   fan_service_hw_test
