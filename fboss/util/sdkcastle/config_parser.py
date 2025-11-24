@@ -12,6 +12,7 @@ import logging
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 from .config import (
+    AgentScaleTestsSpec,
     AgentTestsSpec,
     AsicTestOptions,
     BassetQuery,
@@ -90,6 +91,9 @@ class ConfigParser:
             agent_tests=self._parse_test_list(
                 data.get("agentTests", []), self._parse_agent_tests_spec
             ),
+            agent_scale_tests=self._parse_test_list(
+                data.get("agentScaleTests", []), self._parse_agent_scale_tests_spec
+            ),
             n_warmboot_tests=self._parse_test_list(
                 data.get("nWarmbootTests", []), self._parse_n_warmboot_tests_spec
             ),
@@ -120,6 +124,17 @@ class ConfigParser:
     def _parse_agent_tests_spec(self, data: Dict[str, Any]) -> AgentTestsSpec:
         """Parse AgentTestsSpec from dictionary"""
         return AgentTestsSpec(
+            test_name=data["testName"],
+            common_test_spec=self._parse_common_test_spec(data["commonTestSpec"]),
+            npu_mode=self._string_to_enum(data.get("npuMode"), NpuMode),
+            multi_stage=self._string_to_enum(data.get("multiStage"), MultiStage),
+        )
+
+    def _parse_agent_scale_tests_spec(
+        self, data: Dict[str, Any]
+    ) -> AgentScaleTestsSpec:
+        """Parse AgentScaleTestsSpec from dictionary"""
+        return AgentScaleTestsSpec(
             test_name=data["testName"],
             common_test_spec=self._parse_common_test_spec(data["commonTestSpec"]),
             npu_mode=self._string_to_enum(data.get("npuMode"), NpuMode),

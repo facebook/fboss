@@ -72,6 +72,16 @@ class AgentTestsSpec:
 
 
 @dataclass
+class AgentScaleTestsSpec:
+    """Agent scale tests specification"""
+
+    test_name: str
+    common_test_spec: CommonTestSpec
+    npu_mode: Optional[NpuMode] = None
+    multi_stage: Optional[MultiStage] = None
+
+
+@dataclass
 class NWarmbootTestsSpec:
     """N-warmboot tests specification"""
 
@@ -112,6 +122,7 @@ class TestSpec:
 
     hw_tests: Optional[List[HwTestsSpec]] = None
     agent_tests: Optional[List[AgentTestsSpec]] = None
+    agent_scale_tests: Optional[List[AgentScaleTestsSpec]] = None
     n_warmboot_tests: Optional[List[NWarmbootTestsSpec]] = None
     link_tests: Optional[List[LinkTestsSpec]] = None
     config_tests: Optional[List[SpecTestsSpec]] = None

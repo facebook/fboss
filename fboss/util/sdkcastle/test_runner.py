@@ -8,9 +8,12 @@
 # pyre-unsafe
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
+
+from pyre_extensions import none_throws
 
 from .config import (
+    AgentScaleTestsSpec,
     AgentTestsSpec,
     AsicTestOptions,
     BenchmarkTestsSpec,
@@ -45,6 +48,16 @@ class BaseTestRunner(ABC):
         asic_options: AsicTestOptions,
     ) -> List[Tuple[List[str], str]]:
         """Build agent test commands"""
+        pass
+
+    @abstractmethod
+    def build_agent_scale_test_commands(
+        self,
+        agent_scale_test: AgentScaleTestsSpec,
+        asic_type: AsicType,
+        asic_options: AsicTestOptions,
+    ) -> List[Tuple[List[str], str]]:
+        """Build agent scale test commands"""
         pass
 
     @abstractmethod
@@ -96,7 +109,7 @@ class NetcastleTestRunner(BaseTestRunner):
         test_type: str,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-        agent_test: Optional[AgentTestsSpec] = None,  # type: ignore
+        agent_test: Optional[Union[AgentTestsSpec, AgentScaleTestsSpec]] = None,  # type: ignore
         n_warmboot_test: Optional[NWarmbootTestsSpec] = None,  # type: ignore
         benchmark_test: Optional[BenchmarkTestsSpec] = None,  # type: ignore
     ) -> Tuple[List[str], str, str, Optional[str], Optional[str]]:
@@ -131,26 +144,26 @@ class NetcastleTestRunner(BaseTestRunner):
         # Get NPU mode
         npu_mode = None
         if agent_test and hasattr(agent_test, "npu_mode") and agent_test.npu_mode:
-            npu_mode = agent_test.npu_mode.value
+            npu_mode = none_throws(agent_test.npu_mode).value
 
         if (
             n_warmboot_test
             and hasattr(n_warmboot_test, "npu_mode")
             and n_warmboot_test.npu_mode
         ):
-            npu_mode = n_warmboot_test.npu_mode.value
+            npu_mode = none_throws(n_warmboot_test.npu_mode).value
 
         if (
             benchmark_test
             and hasattr(benchmark_test, "npu_mode")
             and benchmark_test.npu_mode
         ):
-            npu_mode = benchmark_test.npu_mode.value
+            npu_mode = none_throws(benchmark_test.npu_mode).value
 
         # Get multi_stage
         multi_stage = None
         if agent_test and hasattr(agent_test, "multi_stage") and agent_test.multi_stage:
-            multi_stage = agent_test.multi_stage.value
+            multi_stage = none_throws(agent_test.multi_stage).value
 
         # Get ASIC string
         asic_str = asic_type.value
@@ -199,7 +212,7 @@ class NetcastleTestRunner(BaseTestRunner):
 
         multi_stage = None
         if agent_test and hasattr(agent_test, "multi_stage") and agent_test.multi_stage:
-            multi_stage = agent_test.multi_stage.value
+            multi_stage = none_throws(agent_test.multi_stage).value
             cmd.extend(["--multistage-role", multi_stage])
 
         if n_warmboot_test:
@@ -231,6 +244,12 @@ class NetcastleTestRunner(BaseTestRunner):
                 f"{asic}_{sdk_project_version}_agent_{npu_mode}.log"
                 if multi_stage is None
                 else f"{asic}_{sdk_project_version}_agent_{npu_mode}_{multi_stage}.log"
+            )
+        elif test_type == "agent-scale":
+            return (
+                f"{asic}_{sdk_project_version}_agent_scale_{npu_mode}.log"
+                if multi_stage is None
+                else f"{asic}_{sdk_project_version}_agent_scale_{npu_mode}_{multi_stage}.log"
             )
         elif test_type == "n-warmboot":
             return f"{asic}_{sdk_project_version}_n_wb.log"
@@ -269,6 +288,23 @@ class NetcastleTestRunner(BaseTestRunner):
         )
         log_filename = self._generate_log_filename(
             "agent", asic, sdk_project_version, npu_mode, multi_stage
+        )
+        return [(cmd, log_filename)]
+
+    def build_agent_scale_test_commands(
+        self,
+        agent_scale_test: AgentScaleTestsSpec,
+        asic_type: AsicType,
+        asic_options: AsicTestOptions,
+    ) -> List[Tuple[List[str], str]]:
+        """Build agent scale test commands"""
+        cmd, asic, sdk_project_version, npu_mode, multi_stage = (
+            self._build_netcastle_command(
+                "agent-scale", asic_type, asic_options, agent_test=agent_scale_test
+            )
+        )
+        log_filename = self._generate_log_filename(
+            "agent-scale", asic, sdk_project_version, npu_mode, multi_stage
         )
         return [(cmd, log_filename)]
 
@@ -416,6 +452,30 @@ class OSSTestRunner(BaseTestRunner):
             cmd.extend(["--multi-stage", agent_test.multi_stage.value])
 
         log_filename = f"{asic_type.value}_agent_{npu_mode}.log"
+        return [(cmd, log_filename)]
+
+    def build_agent_scale_test_commands(
+        self,
+        agent_scale_test: AgentScaleTestsSpec,
+        asic_type: AsicType,
+        asic_options: AsicTestOptions,
+    ) -> List[Tuple[List[str], str]]:
+        """Build agent scale test commands"""
+        cmd = self._build_oss_command(
+            agent_scale_test.common_test_spec.test_team, asic_options
+        )
+        cmd.extend(["--test-type", "agent-scale"])
+
+        npu_mode = "mono"
+        if hasattr(agent_scale_test, "npu_mode") and agent_scale_test.npu_mode:
+            npu_mode_value = agent_scale_test.npu_mode.value
+            cmd.extend(["--npu-mode", npu_mode_value])
+            npu_mode = npu_mode_value
+
+        if hasattr(agent_scale_test, "multi_stage") and agent_scale_test.multi_stage:
+            cmd.extend(["--multi-stage", agent_scale_test.multi_stage.value])
+
+        log_filename = f"{asic_type.value}_agent_scale_{npu_mode}.log"
         return [(cmd, log_filename)]
 
     def build_link_test_commands(

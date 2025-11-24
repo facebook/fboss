@@ -17,6 +17,7 @@ BRCM_DNX_ASICS = ["jericho3", "ramon3"]
 TEST_TYPE_TEAM_MAPPING = {
     "hw": "sai_test",
     "agent": "sai_agent_test",
+    "agent-scale": "sai_agent_scale_test",
     "link": "fboss_link",
     "benchmark": "sai_bench",
     "n-warmboot": "sai_agent_test",
