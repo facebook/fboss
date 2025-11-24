@@ -117,11 +117,13 @@ Special flags:
 
 ```
 # Run LinkTest.asicLinkFlap for meru400bia using non-default platform mapping configs.
-./bin/run_test.py link --config share/link_test_configs/meru400bia.materialized_JSON --qsfp-config share/qsfp_test_configs/meru400bia.materialized_JSON --filter=LinkTest.asicLinkFlap --platform_mapping_override_path /path/to/something --bsp_platform_mapping_override_path /path/to/something/else
+# NOTE: We recommend using mono mode to run link tests on a single ASIC platform.
+./bin/run_test.py link --agent-run-mode mono --config share/link_test_configs/meru400bia.materialized_JSON --qsfp-config /opt/fboss/share/qsfp_test_configs/meru400bia.materialized_JSON --filter=LinkTest.asicLinkFlap --platform_mapping_override_path /path/to/something --bsp_platform_mapping_override_path /path/to/something/else
 ```
 
 Special flags:
 
 1. `--filter`: FBOSS uses GTEST for it's test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
+1. `--agent-run-mode`: the agent run mode to use. This value is passed through to the link tests. Currently it supports "mono" and "legacy" modes. If not specified, it will use "legacy" mode.
 1. `--bsp_platform_mapping_override_path`: an optional flag to override the BSP platform mapping. This value is passed through to the QSFP service binary.
 1. `--platform_mapping_override_path`: an optional flag to override the ASIC platform mapping. This value is passed through to the QSFP service binary and the link tests binary.

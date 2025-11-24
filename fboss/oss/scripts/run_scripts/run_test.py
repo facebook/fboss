@@ -183,6 +183,11 @@ SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
 SUB_CMD_LINK = "link"
 SUB_CMD_SAI_AGENT = "sai_agent"
+SUB_ARG_AGENT_RUN_MODE = "--agent-run-mode"
+SUB_ARG_AGENT_RUN_MODE_MONO = "mono"
+# Multi is not supported for now
+# SUB_ARG_AGENT_RUN_MODE_MULTI = "multi"
+SUB_ARG_AGENT_RUN_MODE_LEGACY = "legacy"
 
 SAI_HW_KNOWN_BAD_TESTS = (
     "./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON"
@@ -958,13 +963,23 @@ class LinkTestRunner(TestRunner):
             help="A file path to a platform mapping JSON file to be used.",
             default=None,
         )
-
         sub_parser.add_argument(
             OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH,
             nargs="?",
             type=str,
             help="A file path to a BSP platform mapping JSON file to be used.",
             default=None,
+        )
+        sub_parser.add_argument(
+            SUB_ARG_AGENT_RUN_MODE,
+            choices=[
+                SUB_ARG_AGENT_RUN_MODE_MONO,
+                # SUB_ARG_AGENT_RUN_MODE_MULTI,
+                SUB_ARG_AGENT_RUN_MODE_LEGACY,
+            ],
+            nargs="?",
+            default=SUB_ARG_AGENT_RUN_MODE_LEGACY,
+            help="Specify agent run mode. Default is legacy mode.",
         )
 
     def _get_config_path(self):
@@ -977,7 +992,14 @@ class LinkTestRunner(TestRunner):
         return ""
 
     def _get_test_binary_name(self):
-        return args.sai_bin if args.sai_bin else "sai_link_test-sai_impl"
+        if args.sai_bin:
+            return args.sai_bin
+        if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
+            return "sai_mono_link_test-sai_impl"
+        # if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
+        # return "sai_multi_link_test-sai_impl"
+        # Deprecate legacy mode when we finish testing mono mode on all platforms
+        return "sai_link_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_logging_dir, test_prefix, test_to_run

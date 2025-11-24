@@ -123,13 +123,15 @@ feel free to run all tests and work through them however you please.
 `run_test.py`:
 ```bash
 ./bin/run_test.py link \
---filter_file=./share/hw_sanity_tests/t0_link_tests.conf \
+--agent-run-mode mono \
+--filter_file ./share/hw_sanity_tests/t0_ensemble_link_tests.conf \
 --config ./share/link_test_configs/$CONFIG \
---known-bad-tests-file ./share/link_known_bad_tests/fboss_link_known_bad_tests.materialized_JSON \
+--qsfp-config /opt/fboss/share/qsfp_test_configs/$QSFP_CONFIG \
+--known-bad-tests-file ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON \
 --skip-known-bad-tests $KEY # $KEY can be found in known bad test file
 ```
 
-```bash file=../fboss/oss/hw_sanity_tests/t0_link_tests.conf
+```bash file=../fboss/oss/hw_sanity_tests/t0_ensemble_link_tests.conf
 ```
 
 
@@ -138,13 +140,15 @@ feel free to run all tests and work through them however you please.
 `run_test.py`:
 ```bash
 ./bin/run_test.py link \
---filter_file=./share/hw_sanity_tests/t0_link_tests_without_transceivers.conf \
+--agent-run-mode mono \
+--filter_file ./share/hw_sanity_tests/t0_ensemble_link_tests_without_transceivers.conf \
 --config ./share/link_test_configs/$CONFIG \
---known-bad-tests-file ./share/link_known_bad_tests/fboss_link_known_bad_tests.materialized_JSON \
+--qsfp-config /opt/fboss/share/qsfp_test_configs/$QSFP_CONFIG \
+--known-bad-tests-file ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON \
 --skip-known-bad-tests $KEY # $KEY can be found in known bad test file
 ```
 
-```bash file=../fboss/oss/hw_sanity_tests/t0_link_tests_without_transceivers.conf
+```bash file=../fboss/oss/hw_sanity_tests/t0_ensemble_link_tests_without_transceivers.conf
 ```
 
 ### BSP Tests
