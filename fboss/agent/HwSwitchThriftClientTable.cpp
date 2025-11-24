@@ -236,4 +236,18 @@ prbs::InterfacePrbsState HwSwitchThriftClientTable::getPortPrbsState(
   return prbsState;
 }
 
+state::SwitchState HwSwitchThriftClientTable::getProgrammedState(
+    const SwitchID& switchId) {
+  state::SwitchState hwSwitchState;
+  auto client = getClient(switchId);
+  try {
+    client->sync_getProgrammedState(hwSwitchState);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get programmed switch state for switch : "
+              << switchId << " error: " << ex.what();
+    throw;
+  }
+  return hwSwitchState;
+}
+
 } // namespace facebook::fboss
