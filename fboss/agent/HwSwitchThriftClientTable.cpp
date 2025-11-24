@@ -250,4 +250,18 @@ state::SwitchState HwSwitchThriftClientTable::getProgrammedState(
   return hwSwitchState;
 }
 
+SwitchRunState HwSwitchThriftClientTable::getHwSwitchRunState(
+    const SwitchID& switchId) {
+  SwitchRunState runState;
+  auto client = getClient(switchId);
+  try {
+    runState = client->sync_getHwSwitchRunState();
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get hw switch run state for switch : " << switchId
+              << " error: " << ex.what();
+    throw;
+  }
+  return runState;
+}
+
 } // namespace facebook::fboss
