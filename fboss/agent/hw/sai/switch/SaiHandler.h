@@ -124,6 +124,8 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
       std::vector<prbs::PrbsPolynomial>& prbsPolynomials,
       int32_t portId) override;
 
+  void getProgrammedState(state::SwitchState& state) override;
+
  private:
   SaiSwitch* hw_;
   StreamingDiagShellServer diagShell_;

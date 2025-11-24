@@ -453,4 +453,12 @@ void SaiHandler::getPortPrbsPolynomials(
   prbsPolynomials = hw_->getPortPrbsPolynomials(PortID(portId));
 }
 
+void SaiHandler::getProgrammedState(state::SwitchState& switchState) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+  auto state = hw_->getProgrammedState();
+  CHECK(state);
+  switchState = state->toThrift();
+}
+
 } // namespace facebook::fboss
