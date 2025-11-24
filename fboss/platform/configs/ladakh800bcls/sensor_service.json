@@ -5485,13 +5485,19 @@
   ],
   "temperatureConfigs": [
     {
-      "name": "ASIC",
+      "name": "ASIC1",
       "temperatureSensorNames": [
-        "SMB_L_U29_LEFT_TMP432_1_TEMP1",
         "SMB_L_U29_LEFT_TMP432_1_TEMP2",
         "SMB_L_U29_LEFT_TMP432_1_TEMP3",
-        "SMB_L_U30_RIGHT_TMP432_2_TEMP1",
         "SMB_L_U30_RIGHT_TMP432_2_TEMP2"
+      ]
+    },
+    {
+      "name": "ASIC2",
+      "temperatureSensorNames": [
+        "SMB_R_U29_LEFT_TMP432_1_TEMP2",
+        "SMB_R_U29_LEFT_TMP432_1_TEMP3",
+        "SMB_R_U30_RIGHT_TMP432_2_TEMP2"
       ]
     }
   ]
