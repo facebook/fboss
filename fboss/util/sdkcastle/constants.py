@@ -7,6 +7,9 @@
 
 # pyre-unsafe
 
+# J3AI Rev non-A0 ASIC string
+J3AI_REV_NOT_A0 = "asic_rev_not_A0=yes"
+
 # List of ASICs for BRCM DNX platforms
 BRCM_DNX_ASICS = ["jericho3", "ramon3"]
 

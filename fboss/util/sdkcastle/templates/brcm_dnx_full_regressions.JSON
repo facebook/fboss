@@ -33,7 +33,8 @@
                 "devicePool": "fboss.autotest",
                 "asic": "ramon3"
               },
-              "numJobs": 1
+              "numJobs": 1,
+              "regex": "HwParityErrorTest"
             }
           }
         }
@@ -163,6 +164,44 @@
         "multiStage": "fe13"
       }
     ],
+    "benchmarkTests": [
+      {
+        "testName": "jericho3BenchmarkTests",
+        "commonTestSpec": {
+          "testTeam": "sai_bench",
+          "asicTestOptions": {
+            "jericho3": {
+              "asicTestName": "j3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "jericho3"
+              },
+              "numJobs": 1,
+              "regex": "RxSlowPathBenchmark|runTxSlowPathBenchmark|HwStatsCollection|HwVoqStatsCollection|HwVoqScaleRouteAddBenchmark|HwVoqScaleRouteDelBenchmark|HwVoqRemoteNeighborAdd|HwVoqRemoteNeighborDel|HwVoqRemoteSysPortAndIntfAdd|HwVoqRemoteSysPortAndIntfDel|HwVoqSysPortProgramming|HwInitAndExitVoqBenchmark|HwVoqScale2kWideEcmpRouteAddBenchmark|HwVoqScale2kWideEcmpRouteDelBenchmark|HwVoqScale2kWideEcmpCompressionRouteAddBenchmark|HwVoqScale2kWideEcmpCompressionRouteDelBenchmark|HwVoqScale2kWideEcmpCompressionReconstructState"
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "ramon3BenchmarkTests",
+        "commonTestSpec": {
+          "testTeam": "sai_bench",
+          "asicTestOptions": {
+            "ramon3": {
+              "asicTestName": "r3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "ramon3"
+              },
+              "numJobs": 1,
+              "regex": "HwStatsCollection|HwInitAndExitFabricBenchmark"
+            }
+          }
+        },
+        "npuMode": "multi_switch"
+      }
+    ],
     "nWarmbootTests": [
       {
         "testName": "jericho3nWarmbootTests",
@@ -192,7 +231,7 @@
               "asicTestName": "r3",
               "bassetQuery": {
                 "devicePool": "fboss.autotest",
-                "asic": "jericho3"
+                "asic": "ramon3"
               },
               "numJobs": 1,
               "regex": "AgentFabricSwitchTest.init"

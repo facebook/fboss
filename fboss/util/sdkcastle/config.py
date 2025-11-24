@@ -103,6 +103,7 @@ class BenchmarkTestsSpec:
 
     test_name: str
     common_test_spec: CommonTestSpec
+    npu_mode: Optional[NpuMode] = None
 
 
 @dataclass

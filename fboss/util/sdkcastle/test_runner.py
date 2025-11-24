@@ -20,7 +20,7 @@ from .config import (
     SdkcastleSpec,
     SpecTestsSpec,
 )
-from .constants import BRCM_DNX_ASICS, TEST_TYPE_TEAM_MAPPING
+from .constants import BRCM_DNX_ASICS, J3AI_REV_NOT_A0, TEST_TYPE_TEAM_MAPPING
 from .enums import AsicType, TestRunnerMode
 
 
@@ -98,6 +98,7 @@ class NetcastleTestRunner(BaseTestRunner):
         asic_options: AsicTestOptions,
         agent_test: Optional[AgentTestsSpec] = None,  # type: ignore
         n_warmboot_test: Optional[NWarmbootTestsSpec] = None,  # type: ignore
+        benchmark_test: Optional[BenchmarkTestsSpec] = None,  # type: ignore
     ) -> Tuple[List[str], str, str, Optional[str], Optional[str]]:
         """Build netcastle command and return command, asic, sdk_project_version, npu_mode, multi_stage"""
         team = TEST_TYPE_TEAM_MAPPING.get(test_type, "sai_agent_test")
@@ -127,9 +128,11 @@ class NetcastleTestRunner(BaseTestRunner):
         if vendor == "brcm" and asic_type.value in BRCM_DNX_ASICS:
             sdk_project_version = sdk_project_version.replace("odp", "dnx_odp")
 
+        # Get NPU mode
         npu_mode = None
         if agent_test and hasattr(agent_test, "npu_mode") and agent_test.npu_mode:
             npu_mode = agent_test.npu_mode.value
+
         if (
             n_warmboot_test
             and hasattr(n_warmboot_test, "npu_mode")
@@ -137,14 +140,39 @@ class NetcastleTestRunner(BaseTestRunner):
         ):
             npu_mode = n_warmboot_test.npu_mode.value
 
+        if (
+            benchmark_test
+            and hasattr(benchmark_test, "npu_mode")
+            and benchmark_test.npu_mode
+        ):
+            npu_mode = benchmark_test.npu_mode.value
+
+        # Get multi_stage
+        multi_stage = None
+        if agent_test and hasattr(agent_test, "multi_stage") and agent_test.multi_stage:
+            multi_stage = agent_test.multi_stage.value
+
+        # Get ASIC string
+        asic_str = asic_type.value
+
+        # Build SDK version string for the test config
+        if benchmark_test:
+            sdk_version_str = sdk_project_version
+        else:
+            sdk_version_str = f"{sdk_project_version}/{sdk_project_version}"
+
         # Build test-config: <vendor>/<sdkProjectVersion>/<sdkProjectVersion>/<asic>
         if npu_mode is not None:
-            test_config = f"{vendor}/{sdk_project_version}/{sdk_project_version}/{asic_type.value}/{npu_mode}"
+            test_config = f"{vendor}/{sdk_version_str}/{asic_str}/{npu_mode}"
         else:
-            test_config = f"{vendor}/{sdk_project_version}/{sdk_project_version}/{asic_type.value}"
+            test_config = f"{vendor}/{sdk_version_str}/{asic_str}"
+
+        # Build ASIC string
+        if asic_str == "jericho3" and (benchmark_test or multi_stage):
+            asic_str = f"{asic_str},{J3AI_REV_NOT_A0}"
 
         # Build basset-query: <devicePool>/asic=<asic>
-        basset_query = f"{asic_options.basset_query.device_pool}/asic={asic_type.value}"
+        basset_query = f"{asic_options.basset_query.device_pool}/asic={asic_str}"
 
         num_jobs = asic_options.num_jobs
 
@@ -211,7 +239,7 @@ class NetcastleTestRunner(BaseTestRunner):
         elif test_type == "config":
             return f"{asic}_{sdk_project_version}_config.log"
         elif test_type == "benchmark":
-            return f"{asic}_{sdk_project_version}_bench.log"
+            return f"{asic}_{sdk_project_version}_bench_{npu_mode}.log"
         else:
             return f"{asic}_{sdk_project_version}_hw.log"
 
@@ -299,10 +327,12 @@ class NetcastleTestRunner(BaseTestRunner):
     ) -> List[Tuple[List[str], str]]:
         """Build benchmark test commands"""
         cmd, asic, sdk_project_version, npu_mode, multi_stage = (
-            self._build_netcastle_command("benchmark", asic_type, asic_options)
+            self._build_netcastle_command(
+                "benchmark", asic_type, asic_options, benchmark_test=benchmark_test
+            )
         )
         log_filename = self._generate_log_filename(
-            "benchmark", asic, sdk_project_version, npu_mode
+            "benchmark", asic, sdk_project_version, npu_mode, multi_stage
         )
         return [(cmd, log_filename)]
 

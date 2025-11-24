@@ -138,22 +138,23 @@ class ConfigParser:
     def _parse_link_tests_spec(self, data: Dict[str, Any]) -> LinkTestsSpec:
         """Parse LinkTestsSpec from dictionary"""
         return LinkTestsSpec(
-            test_name=data["test_name"],
-            common_test_spec=self._parse_common_test_spec(data["common_test_spec"]),
+            test_name=data["testName"],
+            common_test_spec=self._parse_common_test_spec(data["commonTestSpec"]),
         )
 
     def _parse_spec_tests_spec(self, data: Dict[str, Any]) -> SpecTestsSpec:
         """Parse SpecTestsSpec from dictionary"""
         return SpecTestsSpec(
-            test_name=data["test_name"],
-            common_test_spec=self._parse_common_test_spec(data["common_test_spec"]),
+            test_name=data["testName"],
+            common_test_spec=self._parse_common_test_spec(data["commonTestSpec"]),
         )
 
     def _parse_benchmark_tests_spec(self, data: Dict[str, Any]) -> BenchmarkTestsSpec:
         """Parse BenchmarkTestsSpec from dictionary"""
         return BenchmarkTestsSpec(
-            test_name=data["test_name"],
-            common_test_spec=self._parse_common_test_spec(data["common_test_spec"]),
+            test_name=data["testName"],
+            common_test_spec=self._parse_common_test_spec(data["commonTestSpec"]),
+            npu_mode=self._string_to_enum(data.get("npuMode"), NpuMode),
         )
 
     def _parse_common_test_spec(self, data: Dict[str, Any]) -> CommonTestSpec:
