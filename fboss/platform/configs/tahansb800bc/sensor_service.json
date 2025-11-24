@@ -4135,10 +4135,8 @@
     {
       "name": "ASIC",
       "temperatureSensorNames": [
-        "SMB_U29_LEFT_TMP432_1_TEMP1",
         "SMB_U29_LEFT_TMP432_1_TEMP2",
         "SMB_U29_LEFT_TMP432_1_TEMP3",
-        "SMB_U30_RIGHT_TMP432_2_TEMP1",
         "SMB_U30_RIGHT_TMP432_2_TEMP2"
       ]
     }
