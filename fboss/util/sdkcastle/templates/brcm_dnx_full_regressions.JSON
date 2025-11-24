@@ -164,6 +164,43 @@
         "multiStage": "fe13"
       }
     ],
+    "agentScaleTests": [
+      {
+        "testName": "jericho3AgentScaleTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_scale_test",
+          "asicTestOptions": {
+            "jericho3": {
+              "asicTestName": "j3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "jericho3"
+              },
+              "numJobs": 2
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "jericho3AgentScaleTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_scale_test",
+          "asicTestOptions": {
+            "jericho3": {
+              "asicTestName": "j3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "jericho3"
+              },
+              "numJobs": 2
+            }
+          }
+        },
+        "npuMode": "mono",
+        "multiStage": "fap"
+      }
+    ],
     "benchmarkTests": [
       {
         "testName": "jericho3BenchmarkTests",
