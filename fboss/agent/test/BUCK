@@ -677,6 +677,7 @@ cpp_library(
         "//fboss/agent:fboss_common_init",
         "//fboss/agent:fboss_init_h",
         "//fboss/agent:handler",
+        "//fboss/agent:hw_switch_thrift_client_table",
         "//fboss/agent:hwswitchcallback",
         "//fboss/agent:load_agent_config",
         "//fboss/agent:main-common",

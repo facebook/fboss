@@ -804,6 +804,28 @@ cpp_library(
 )
 
 cpp_library(
+    name = "hw_switch_thrift_client_table",
+    srcs = [
+        "HwSwitchThriftClientTable.cpp",
+    ],
+    headers = [
+        "HwSwitchThriftClientTable.h",
+    ],
+    exported_deps = [
+        ":fboss-error",
+        ":fboss-types",
+        "//fboss/agent/if:hw_ctrl-cpp2-services",
+        "//folly/io/async:async_base",
+        "//folly/io/async:scoped_event_base_thread",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/async:pooled_request_channel",
+        "//thrift/lib/cpp2/async:reconnecting_request_channel",
+        "//thrift/lib/cpp2/async:retrying_request_channel",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",
@@ -824,7 +846,6 @@ cpp_library(
         "FsdbSyncer.cpp",
         "HwAsicTable.cpp",
         "HwSwitchConnectionStatusTable.cpp",
-        "HwSwitchThriftClientTable.cpp",
         "IPHeaderV4.cpp",
         "IPv4Handler.cpp",
         "IPv6Handler.cpp",
@@ -879,7 +900,6 @@ cpp_library(
         "FsdbSyncer.h",
         "HwAsicTable.h",
         "HwSwitchConnectionStatusTable.h",
-        "HwSwitchThriftClientTable.h",
         "LockPolicy.h",
         "MultiSwitchFb303Stats.h",
         "MultiSwitchPacketStreamMap.h",
@@ -917,6 +937,7 @@ cpp_library(
         ":fib_helpers",
         ":fsdb_adapted_sub_manager",
         ":hw_switch_handler",
+        ":hw_switch_thrift_client_table",
         ":hwswitchcallback",
         ":l2learn_event_observer",
         ":load_agent_config",
@@ -1037,11 +1058,7 @@ cpp_library(
         "//scribe/client:scribe_client_no_sr",
         "//servicerouter/client/cpp2:cpp2",
         "//thrift/lib/cpp/util:enum_utils",
-        "//thrift/lib/cpp2/async:pooled_request_channel",
-        "//thrift/lib/cpp2/async:reconnecting_request_channel",
         "//thrift/lib/cpp2/async:request_channel",
-        "//thrift/lib/cpp2/async:retrying_request_channel",
-        "//thrift/lib/cpp2/async:rocket_client_channel",
         "//thrift/lib/cpp2/protocol:protocol",
         "//thrift/lib/cpp2/util:util",
     ],
@@ -1069,6 +1086,7 @@ cpp_library(
         ":fboss_event_base",
         ":fib_helpers",
         ":hw_asic_table",
+        ":hw_switch_thrift_client_table",
         ":packet",
         ":stats",
         ":switch_config-cpp2-types",

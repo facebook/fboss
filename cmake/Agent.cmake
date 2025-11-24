@@ -244,6 +244,18 @@ target_link_libraries(fsdb_adapted_sub_manager
   cow_storage
 )
 
+add_library(hw_switch_thrift_client_table
+  fboss/agent/HwSwitchThriftClientTable.cpp
+)
+
+target_link_libraries(hw_switch_thrift_client_table
+  error
+  fboss_types
+  hw_ctrl_cpp2
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
 add_library(core
   fboss/agent/AclNexthopHandler.cpp
   fboss/agent/ApplyThriftConfig.cpp
@@ -264,7 +276,6 @@ add_library(core
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
   fboss/agent/HwSwitchConnectionStatusTable.cpp
-  fboss/agent/HwSwitchThriftClientTable.cpp
   fboss/agent/IPHeaderV4.cpp
   fboss/agent/IPv4Handler.cpp
   fboss/agent/IPv6Handler.cpp
@@ -403,6 +414,7 @@ set(core_libs
   shel_manager
   state_delta_logger
   dsfnode_utils
+  hw_switch_thrift_client_table
 )
 
 target_link_libraries(core ${core_libs})
@@ -437,6 +449,7 @@ target_link_libraries(handler
   log_thrift_call
   Folly::folly
   thrifthandler_utils
+  hw_switch_thrift_client_table
 )
 
 add_library(setup_thrift_prod
