@@ -33,5 +33,13 @@
         }
       ]
     }
+  ],
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "ASIC_SENSOR"
+      ]
+    }
   ]
 }

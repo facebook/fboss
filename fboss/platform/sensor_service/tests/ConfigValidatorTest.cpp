@@ -41,6 +41,14 @@ PowerConfig createPowerConfig(
   config.inputVoltageSensors() = inputVoltageSensors;
   return config;
 }
+TemperatureConfig createTemperatureConfig(
+    const std::string& name,
+    const std::vector<std::string>& temperatureSensorNames) {
+  TemperatureConfig config;
+  config.name() = name;
+  config.temperatureSensorNames() = temperatureSensorNames;
+  return config;
+}
 
 SensorConfig createBasicSensorConfig() {
   SensorConfig config;
@@ -50,19 +58,14 @@ SensorConfig createBasicSensorConfig() {
   pmUnitSensors.sensors() = {
       createPmSensor("VOLTAGE_SENSOR", "/run/devmap/sensors/VOLTAGE"),
       createPmSensor("CURRENT_SENSOR", "/run/devmap/sensors/CURRENT"),
-      createPmSensor("POWER_SENSOR", "/run/devmap/sensors/POWER")};
+      createPmSensor("POWER_SENSOR", "/run/devmap/sensors/POWER"),
+      createPmSensor("TEMP_SENSOR", "/run/devmap/sensors/TEMP")};
   config.pmUnitSensorsList() = {pmUnitSensors};
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC", {"TEMP_SENSOR"})};
   return config;
 }
 
-TemperatureConfig createTemperatureConfig(
-    const std::string& name,
-    const std::vector<std::string>& temperatureSensorNames) {
-  TemperatureConfig config;
-  config.name() = name;
-  config.temperatureSensorNames() = temperatureSensorNames;
-  return config;
-}
 } // namespace
 
 TEST(ConfigValidatorTest, ValidConfig) {
@@ -75,23 +78,24 @@ TEST(ConfigValidatorTest, ValidConfig) {
   pmUnitSensors2.sensors() = {
       createPmSensor("SENSOR2", "/run/devmap/sensors/BCB_FAN_CPLD")};
   config.pmUnitSensorsList() = {pmUnitSensors1, pmUnitSensors2};
+  config.temperatureConfigs() = {createTemperatureConfig("ASIC", {"SENSOR1"})};
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, SlotPaths) {
   // Valid (SlotPath,PmUnitName) pairing.
-  SensorConfig config;
   PmUnitSensors pmUnitSensors1, pmUnitSensors2;
   pmUnitSensors1.slotPath() = "/BCB_SLOT@0";
   pmUnitSensors1.pmUnitName() = "BCB";
   pmUnitSensors2.slotPath() = "/BCB_SLOT@0";
   pmUnitSensors2.pmUnitName() = "BCB2";
-  config.pmUnitSensorsList() = {pmUnitSensors1, pmUnitSensors2};
-  EXPECT_TRUE(ConfigValidator().isValid(config));
+  std::vector<PmUnitSensors> pmUnitSensorsList = {
+      pmUnitSensors1, pmUnitSensors2};
+  EXPECT_TRUE(ConfigValidator().isValidPmUnitSensorsList(pmUnitSensorsList));
   // Duplicate (SlotPath, PmUnitName) pairing
   pmUnitSensors2.pmUnitName() = "BCB";
-  config.pmUnitSensorsList() = {pmUnitSensors1, pmUnitSensors2};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
+  pmUnitSensorsList = {pmUnitSensors1, pmUnitSensors2};
+  EXPECT_FALSE(ConfigValidator().isValidPmUnitSensorsList(pmUnitSensorsList));
 }
 
 TEST(ConfigValidatorTest, InvalidPmSensors) {
@@ -380,7 +384,6 @@ TEST(ConfigValidatorTest, AsicCommandWithVersionedSensors) {
   PmUnitSensors pmUnitSensors;
   pmUnitSensors.slotPath() = "/BCB_SLOT@0";
   pmUnitSensors.pmUnitName() = "BCB";
-
   pmUnitSensors.sensors() = {
       createPmSensor("BASE_SENSOR", "/run/devmap/sensors/BASE")};
 
@@ -399,12 +402,12 @@ TEST(ConfigValidatorTest, AsicCommandWithVersionedSensors) {
   asicCommand.cmd() = "echo 42";
   asicCommand.sensorType() = SensorType::TEMPERTURE;
   config.asicCommand() = asicCommand;
-  EXPECT_FALSE(ConfigValidator().isValid(config));
+  EXPECT_FALSE(ConfigValidator().isValidAsicCommand(config));
 
   // Non-conflicting name should work
   asicCommand.sensorName() = "ASIC_CMD_SENSOR";
   config.asicCommand() = asicCommand;
-  EXPECT_TRUE(ConfigValidator().isValid(config));
+  EXPECT_TRUE(ConfigValidator().isValidAsicCommand(config));
 }
 
 TEST(ConfigValidatorTest, ValidTemperatureConfig) {
@@ -442,6 +445,13 @@ TEST(ConfigValidatorTest, ValidTemperatureConfig) {
   config.temperatureConfigs() = {
       createTemperatureConfig("ASIC100", {"TEMP_SENSOR_1"})};
   EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidTemperatureConfigEmpty) {
+  auto config = createBasicSensorConfig();
+  // Test: Empty temperatureConfigs should be invalid
+  config.temperatureConfigs() = {};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, InvalidTemperatureConfigNaming) {
@@ -636,60 +646,45 @@ TEST(ConfigValidatorTest, IsValidSensorName) {
 
 // Test sensor name uppercase validation
 TEST(ConfigValidatorTest, isValidPmSensor) {
-  SensorConfig config;
-  PmUnitSensors pmUnitSensors;
-  pmUnitSensors.slotPath() = "/BCB_SLOT@0";
-  pmUnitSensors.pmUnitName() = "BCB";
-
   // Test 1: empty sensor name - should fail
-  pmUnitSensors.sensors() = {createPmSensor("", "/run/devmap/sensors/SENSOR1")};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
+  auto pmSensor = createPmSensor("", "/run/devmap/sensors/SENSOR1");
+  EXPECT_FALSE(ConfigValidator().isValidPmSensor(pmSensor));
 
   // Test 2: empty sysfsPath - should fail
-  pmUnitSensors.sensors() = {createPmSensor("SENSOR_1", "")};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
+  pmSensor = createPmSensor("SENSOR_NAME", "");
+  EXPECT_FALSE(ConfigValidator().isValidPmSensor(pmSensor));
 
   // Test 3: lowercase sensor name - should fail
-  pmUnitSensors.sensors() = {
-      createPmSensor("lowercase_sensor", "/run/devmap/sensors/SENSOR1")};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
+  pmSensor = createPmSensor("lowercase_sensor", "/run/devmap/sensors/SENSOR1");
+  EXPECT_FALSE(ConfigValidator().isValidPmSensor(pmSensor));
 
   // Test 4: mixed case sensor name - should fail
-  pmUnitSensors.sensors() = {
-      createPmSensor("MixedCase_Sensor", "/run/devmap/sensors/SENSOR1")};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
+  pmSensor = createPmSensor("MixedCase_Sensor", "/run/devmap/sensors/SENSOR1");
+  EXPECT_FALSE(ConfigValidator().isValidPmSensor(pmSensor));
 
   // Test 5: hyphen instead of underscore - should fail
-  pmUnitSensors.sensors() = {
-      createPmSensor("SENSOR-NAME", "/run/devmap/sensors/SENSOR1")};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
+  pmSensor = createPmSensor("SENSOR-NAME", "/run/devmap/sensors/SENSOR1");
+  EXPECT_FALSE(ConfigValidator().isValidPmSensor(pmSensor));
 
   // Test 6: space in name - should fail
-  pmUnitSensors.sensors() = {
-      createPmSensor("SENSOR NAME", "/run/devmap/sensors/SENSOR1")};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
+  pmSensor = createPmSensor("SENSOR NAME", "/run/devmap/sensors/SENSOR1");
+  EXPECT_FALSE(ConfigValidator().isValidPmSensor(pmSensor));
 
   // Test 7: dot in name - should fail (dots are not allowed)
-  pmUnitSensors.sensors() = {
-      createPmSensor("SENSOR.NAME", "/run/devmap/sensors/SENSOR1")};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
+  pmSensor = createPmSensor("SENSOR.NAME", "/run/devmap/sensors/SENSOR1");
+  EXPECT_FALSE(ConfigValidator().isValidPmSensor(pmSensor));
 
   // Test 8: multiple sensors with one lowercase - should fail
-  pmUnitSensors.sensors() = {
+  std::vector<PmSensor> pmSensors8 = {
       createPmSensor("SENSOR_1", "/run/devmap/sensors/SENSOR1"),
       createPmSensor("SENSOR_2", "/run/devmap/sensors/SENSOR2"),
       createPmSensor("lowercase", "/run/devmap/sensors/SENSOR3")};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
+  EXPECT_FALSE(ConfigValidator().isValidPmSensors(pmSensors8));
 
   // Test 9: versioned sensor with lowercase name - should fail
+  PmUnitSensors pmUnitSensors;
+  pmUnitSensors.slotPath() = "/BCB_SLOT@0";
+  pmUnitSensors.pmUnitName() = "BCB";
   pmUnitSensors.sensors() = {
       createPmSensor("BASE_SENSOR", "/run/devmap/sensors/BASE")};
   VersionedPmSensor versionedSensor;
@@ -697,40 +692,30 @@ TEST(ConfigValidatorTest, isValidPmSensor) {
   versionedSensor.sensors() = {
       createPmSensor("versioned_sensor", "/run/devmap/sensors/VERSIONED")};
   pmUnitSensors.versionedSensors() = {versionedSensor};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
+  EXPECT_FALSE(ConfigValidator().isValidPmUnitSensorsList({pmUnitSensors}));
 
   // Test 10: uppercase with numbers - should pass
-  pmUnitSensors.sensors() = {
-      createPmSensor("SENSOR_123", "/run/devmap/sensors/SENSOR1")};
-  pmUnitSensors.versionedSensors() = {};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  EXPECT_TRUE(ConfigValidator().isValid(config));
+  pmSensor = createPmSensor("SENSOR_123", "/run/devmap/sensors/SENSOR1");
+  EXPECT_TRUE(ConfigValidator().isValidPmSensor(pmSensor));
 
   // Test 11: all uppercase - should pass
-  pmUnitSensors.sensors() = {
-      createPmSensor("UPPERCASE_SENSOR", "/run/devmap/sensors/SENSOR1")};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  EXPECT_TRUE(ConfigValidator().isValid(config));
+  pmSensor = createPmSensor("UPPERCASE_SENSOR", "/run/devmap/sensors/SENSOR1");
+  EXPECT_TRUE(ConfigValidator().isValidPmSensor(pmSensor));
 
   // Test 12: only underscores and uppercase - should pass
-  pmUnitSensors.sensors() = {
-      createPmSensor("SENSOR_NAME_TEST", "/run/devmap/sensors/SENSOR1")};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  EXPECT_TRUE(ConfigValidator().isValid(config));
+  pmSensor = createPmSensor("SENSOR_NAME_TEST", "/run/devmap/sensors/SENSOR1");
+  EXPECT_TRUE(ConfigValidator().isValidPmSensor(pmSensor));
 
   // Test 13: multiple uppercase sensors - should pass
-  pmUnitSensors.sensors() = {
+  std::vector<PmSensor> pmSensors13 = {
       createPmSensor("SENSOR_1", "/run/devmap/sensors/SENSOR1"),
       createPmSensor("SENSOR_2", "/run/devmap/sensors/SENSOR2"),
       createPmSensor("SENSOR_3", "/run/devmap/sensors/SENSOR3")};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  EXPECT_TRUE(ConfigValidator().isValid(config));
+  EXPECT_TRUE(ConfigValidator().isValidPmSensors(pmSensors13));
 
   // Test 14: versioned sensor with uppercase name - should pass
   versionedSensor.sensors() = {
       createPmSensor("VERSIONED_SENSOR", "/run/devmap/sensors/VERSIONED")};
   pmUnitSensors.versionedSensors() = {versionedSensor};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  EXPECT_TRUE(ConfigValidator().isValid(config));
+  EXPECT_TRUE(ConfigValidator().isValidPmUnitSensorsList({pmUnitSensors}));
 }

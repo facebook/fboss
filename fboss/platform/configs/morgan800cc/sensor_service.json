@@ -1654,5 +1654,14 @@
         "powerSensorName": "PSU1_PIN_MN"
       }
     ]
-  }
+  },
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "__comment__": "A placeholder till we get an accurate sensor for this platform",
+      "temperatureSensorNames": [
+        "SMB_NP_CVDDC2_K2EXT"
+      ]
+    }
+  ]
 }
