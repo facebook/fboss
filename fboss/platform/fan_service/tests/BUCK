@@ -11,6 +11,7 @@ cpp_unittest(
         "FsdbSensorSubscriberTests.cpp",
         "OvertempTests.cpp",
         "PidLogicTests.cpp",
+        "SensorDataTests.cpp",
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
