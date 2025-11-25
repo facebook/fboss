@@ -39,7 +39,6 @@ add_library(qsfp_module
   fboss/qsfp_service/module/oss/SffModule.cpp
   fboss/qsfp_service/module/cmis/CmisFieldInfo.cpp
   fboss/qsfp_service/module/cmis/CmisModule.cpp
-  fboss/qsfp_service/module/cmis/oss/CmisModule.cpp
 )
 
 target_link_libraries(qsfp_module
