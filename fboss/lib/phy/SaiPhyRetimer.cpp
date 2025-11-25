@@ -195,6 +195,10 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
   std::optional<SaiSwitchTraits::Attributes::SwitchType> switchType(
       SAI_SWITCH_TYPE_PHY);
 
+  // Set profile ID to XPHY ID so each retimer gets unique profile id
+  std::optional<SaiSwitchTraits::Attributes::SwitchProfileId> profileId(
+      static_cast<uint32_t>(xphyID_));
+
   // Mandatory attributes for Sai
   std::optional<SaiSwitchTraits::Attributes::SwitchId> switchId(0);
   std::optional<SaiSwitchTraits::Attributes::MaxSystemCores> maxSysCores(0);
@@ -234,7 +238,7 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
       fwLoadType, // Firmware load type
       hwAccessBus, // Hardware access bus
       context, // Platform context
-      std::nullopt, // Switch profile id
+      profileId, // Switch profile id (set to XPHY ID)
       switchId, // Switch id
       maxSysCores, // Max system cores
       sysPortConfigList, // System port config list
