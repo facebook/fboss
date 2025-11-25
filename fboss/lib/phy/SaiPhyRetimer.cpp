@@ -153,7 +153,15 @@ void* SaiPhyRetimer::getRegisterWriteFuncPtr() {
 SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
   SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
 
-  std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo = std::nullopt;
+  // Set HwInfo as XPHY ID
+  // Encoding as 4-byte little-endian integer
+  std::vector<int8_t> hwInfoVec(4);
+  uint32_t phyId = static_cast<uint32_t>(xphyID_);
+  hwInfoVec[0] = phyId & 0xFF;
+  hwInfoVec[1] = (phyId >> 8) & 0xFF;
+  hwInfoVec[2] = (phyId >> 16) & 0xFF;
+  hwInfoVec[3] = (phyId >> 24) & 0xFF;
+  std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo(hwInfoVec);
 
   // Pass the static register read function
   std::optional<SaiSwitchTraits::Attributes::RegisterReadFn> regReadFn(
