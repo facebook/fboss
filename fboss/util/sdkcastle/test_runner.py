@@ -17,11 +17,11 @@ from .config import (
     AgentTestsSpec,
     AsicTestOptions,
     BenchmarkTestsSpec,
+    ConfigTestsSpec,
     HwTestsSpec,
     LinkTestsSpec,
     NWarmbootTestsSpec,
     SdkcastleSpec,
-    SpecTestsSpec,
 )
 from .constants import BRCM_DNX_ASICS, J3AI_REV_NOT_A0, TEST_TYPE_TEAM_MAPPING
 from .enums import AsicType, TestRunnerMode
@@ -83,7 +83,7 @@ class BaseTestRunner(ABC):
     @abstractmethod
     def build_config_test_commands(
         self,
-        config_test: SpecTestsSpec,
+        config_test: ConfigTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
     ) -> List[Tuple[List[str], str]]:
@@ -342,7 +342,7 @@ class NetcastleTestRunner(BaseTestRunner):
 
     def build_config_test_commands(
         self,
-        config_test: SpecTestsSpec,
+        config_test: ConfigTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
     ) -> List[Tuple[List[str], str]]:
@@ -508,7 +508,7 @@ class OSSTestRunner(BaseTestRunner):
 
     def build_config_test_commands(
         self,
-        config_test: SpecTestsSpec,
+        config_test: ConfigTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
     ) -> List[Tuple[List[str], str]]:
