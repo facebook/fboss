@@ -186,11 +186,12 @@ TEST_F(StreamPublisherTest, pipeResetWhenServeStreamStuck) {
 #endif
 }
 
-class TestPathPublisher : public FsdbStatePublisher {
+template <typename PublisherT>
+class TestPublisher : public PublisherT {
  public:
   static constexpr size_t publishQueueSize = 4;
-  TestPathPublisher(folly::EventBase* streamEvb, folly::EventBase* timerEvb)
-      : FsdbStatePublisher(
+  TestPublisher(folly::EventBase* streamEvb, folly::EventBase* timerEvb)
+      : PublisherT(
             "test_fsdb_client",
             {"agent"},
             streamEvb,
@@ -199,16 +200,17 @@ class TestPathPublisher : public FsdbStatePublisher {
             [](State /*old*/, State /*newState*/) {},
             publishQueueSize) {}
 
-  ~TestPathPublisher() override {
+  ~TestPublisher() override {
     this->cancel();
   }
 
 #if FOLLY_HAS_COROUTINES
-  folly::coro::Task<StreamT> setupStream() override {
-    co_return StreamT();
+  folly::coro::Task<typename PublisherT::StreamT> setupStream() override {
+    co_return typename PublisherT::StreamT();
   }
 
-  folly::coro::Task<void> serveStream(StreamT&& /* stream */) override {
+  folly::coro::Task<void> serveStream(
+      typename PublisherT::StreamT&& /* stream */) override {
     auto gen = this->createGenerator();
     generatorStart_.wait();
     while (auto pubUnit = co_await gen.next()) {
@@ -219,8 +221,8 @@ class TestPathPublisher : public FsdbStatePublisher {
         XLOG(DBG2) << " Detected cancellation";
         break;
       }
-      if (!initialSyncComplete_) {
-        initialSyncComplete_ = true;
+      if (!PublisherT::initialSyncComplete_) {
+        PublisherT::initialSyncComplete_ = true;
       }
     }
     co_return;
@@ -253,7 +255,7 @@ class PathPublisherTest : public ::testing::Test {
   void SetUp() override {
     streamEvbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
     connRetryEvbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
-    streamPublisher_ = std::make_unique<TestPathPublisher>(
+    streamPublisher_ = std::make_unique<TestPublisher<FsdbStatePublisher>>(
         streamEvbThread_->getEventBase(), connRetryEvbThread_->getEventBase());
   }
 
@@ -266,7 +268,7 @@ class PathPublisherTest : public ::testing::Test {
  protected:
   std::unique_ptr<folly::ScopedEventBaseThread> streamEvbThread_;
   std::unique_ptr<folly::ScopedEventBaseThread> connRetryEvbThread_;
-  std::unique_ptr<TestPathPublisher> streamPublisher_;
+  std::unique_ptr<TestPublisher<FsdbStatePublisher>> streamPublisher_;
 };
 
 TEST_F(PathPublisherTest, coalesceOnPublishQueueBuildup) {
@@ -338,7 +340,8 @@ TEST_F(PathPublisherTest, verifyHeartbeatDisconnect) {
   // write some updates, which will get coalesced and should not trigger
   // queue full disconnect
   int waitIntervals{0};
-  for (auto i = 0; i < TestPathPublisher::publishQueueSize; ++i) {
+  for (auto i = 0; i < TestPublisher<FsdbStatePublisher>::publishQueueSize;
+       ++i) {
     streamPublisher_->write(OperState{});
     if ((i % 2) == 0) {
       // sleep for half of heartbeat intervals
@@ -351,7 +354,9 @@ TEST_F(PathPublisherTest, verifyHeartbeatDisconnect) {
   EXPECT_EQ(this->streamPublisher_->isPipeClosed(), false);
 
   // wait for heartbeat to trigger disconnect
-  for (int i = waitIntervals; i <= TestPathPublisher::publishQueueSize; ++i) {
+  for (int i = waitIntervals;
+       i <= TestPublisher<FsdbStatePublisher>::publishQueueSize;
+       ++i) {
     std::this_thread::sleep_for(
         std::chrono::seconds(FLAGS_fsdb_publisher_heartbeat_interval_secs));
   }
