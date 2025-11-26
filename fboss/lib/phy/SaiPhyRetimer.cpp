@@ -20,7 +20,6 @@
 namespace facebook::fboss::phy {
 
 namespace {
-constexpr uint32_t kPmdDeviceAddr = 1;
 /*
  * This is a static function for reading a Phy register. This function will be
  * passed to the SAI layer. The SAI driver will use this function to read a
@@ -32,16 +31,10 @@ constexpr uint32_t kPmdDeviceAddr = 1;
  */
 sai_status_t saiPhyRetimerSwitchRegisterRead(
     uint64_t platform_context,
-    uint32_t device_addr,
+    uint32_t /*device_addr*/,
     uint32_t start_reg_addr,
     uint32_t number_of_registers,
     uint32_t* reg_val) {
-  if (device_addr != kPmdDeviceAddr) {
-    XLOG(ERR)
-        << "saiPhyRetimerSwitchRegisterRead failed, bad device address passed";
-    return SAI_STATUS_INVALID_PARAMETER;
-  }
-
   SaiPhyRetimer* retimerObj =
       reinterpret_cast<SaiPhyRetimer*>(platform_context);
   CHECK(retimerObj);
@@ -69,16 +62,10 @@ sai_status_t saiPhyRetimerSwitchRegisterRead(
  */
 sai_status_t saiPhyRetimerSwitchRegisterWrite(
     uint64_t platform_context,
-    uint32_t device_addr,
+    uint32_t /*device_addr*/,
     uint32_t start_reg_addr,
     uint32_t number_of_registers,
     const uint32_t* reg_val) {
-  if (device_addr != kPmdDeviceAddr) {
-    XLOG(ERR)
-        << "saiPhyRetimerSwitchRegisterWrite failed, bad device address passed";
-    return SAI_STATUS_INVALID_PARAMETER;
-  }
-
   // Find the SaiPhyRetimer object from platform context passed by SAI
   SaiPhyRetimer* retimerObj =
       reinterpret_cast<SaiPhyRetimer*>(platform_context);
