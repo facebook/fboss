@@ -13,6 +13,7 @@ python_library(
         "__init__.py",
         "cli.py",
         "conveyor_api.py",
+        "parser.py",
     ],
     typing = True,
     deps = [
@@ -31,8 +32,8 @@ python_binary(
 )
 
 python_unittest(
-    name = "test_conveyor_api",
-    srcs = ["tests/test_conveyor_api.py"],
+    name = "test_parser",
+    srcs = ["tests/test_parser.py"],
     typing = True,
     deps = [
         ":conveyor_analyzer_lib",
