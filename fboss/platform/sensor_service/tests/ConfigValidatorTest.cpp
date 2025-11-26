@@ -63,6 +63,8 @@ SensorConfig createBasicSensorConfig() {
   config.pmUnitSensorsList() = {pmUnitSensors};
   config.temperatureConfigs() = {
       createTemperatureConfig("ASIC", {"TEMP_SENSOR"})};
+  config.powerConfig() = createPowerConfig({createPerSlotPowerConfig(
+      "PSU1", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")});
   return config;
 }
 
@@ -73,12 +75,15 @@ TEST(ConfigValidatorTest, ValidConfig) {
   PmUnitSensors pmUnitSensors1, pmUnitSensors2;
   pmUnitSensors1.slotPath() = "/";
   pmUnitSensors1.sensors() = {
-      createPmSensor("SENSOR1", "/run/devmap/sensors/CPU_CORE_TEMP")};
+      createPmSensor("SENSOR1", "/run/devmap/sensors/CPU_CORE_TEMP"),
+      createPmSensor("POWER_SENSOR", "/run/devmap/sensors/POWER")};
   pmUnitSensors2.slotPath() = "/BCB_SLOT@0";
   pmUnitSensors2.sensors() = {
       createPmSensor("SENSOR2", "/run/devmap/sensors/BCB_FAN_CPLD")};
   config.pmUnitSensorsList() = {pmUnitSensors1, pmUnitSensors2};
   config.temperatureConfigs() = {createTemperatureConfig("ASIC", {"SENSOR1"})};
+  config.powerConfig() =
+      createPowerConfig({createPerSlotPowerConfig("PSU1", "POWER_SENSOR")});
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
@@ -141,6 +146,14 @@ TEST(ConfigValidatorTest, ValidPowerConfig) {
   config.powerConfig() = createPowerConfig({createPerSlotPowerConfig(
       "HSC", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")});
   EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidPowerConfigMissingPerSlotPowerConfigs) {
+  auto config = createBasicSensorConfig();
+
+  // Test 1: PowerConfig with no perSlotPowerConfigs (empty vector)
+  config.powerConfig() = createPowerConfig({});
+  EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, InvalidPowerConfigNaming) {
@@ -566,7 +579,8 @@ TEST(ConfigValidatorTest, InvalidTemperatureConfigWithVersionedSensors) {
 
   // Add base sensor
   pmUnitSensors.sensors() = {
-      createPmSensor("BASE_TEMP", "/run/devmap/sensors/BASE_TEMP")};
+      createPmSensor("BASE_TEMP", "/run/devmap/sensors/BASE_TEMP"),
+      createPmSensor("POWER_SENSOR", "/run/devmap/sensors/POWER")};
 
   // Add versioned sensor
   VersionedPmSensor versionedPmSensor;
@@ -575,6 +589,8 @@ TEST(ConfigValidatorTest, InvalidTemperatureConfigWithVersionedSensors) {
   pmUnitSensors.versionedSensors() = {versionedPmSensor};
 
   config.pmUnitSensorsList() = {pmUnitSensors};
+  config.powerConfig() =
+      createPowerConfig({createPerSlotPowerConfig("PSU1", "POWER_SENSOR")});
 
   // Test 1: Valid config with base sensor
   config.temperatureConfigs() = {
