@@ -270,7 +270,9 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       std::nullopt, // ArsProfile
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       std::nullopt, // Port PTP mode
+#endif
       std::nullopt, // Reachability Group List
       std::nullopt, // Delay Drop Cong Threshold
       std::nullopt, // Fabric link level control threshold
