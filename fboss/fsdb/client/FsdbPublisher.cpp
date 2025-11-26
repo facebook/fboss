@@ -16,6 +16,16 @@ DEFINE_int32(
     1,
     "Heartbeat interval for publisher");
 
+DEFINE_int32(
+    publish_queue_memory_limit_mb,
+    0,
+    "Limit in MB for total size of pending updates in FSDB Publisher queue (0 to disable)");
+
+DEFINE_int32(
+    publish_queue_full_min_updates,
+    5,
+    "minimum number of pending updates to trigger FSDB Publisher queue memory limit check");
+
 namespace facebook::fboss::fsdb {
 
 template <typename PubUnit>
@@ -52,12 +62,15 @@ void FsdbPublisher<PubUnit>::handleStateChange(
     // reconnect, so there is no point storing previous states.
     pipeWPtr->reset();
     queueSize_ = 0;
+    enqueuedDataSize_.store(0);
+    servedDataSize_.store(0);
   } else {
     *pipeWPtr = makePipe();
     scheduleHeartbeatLoop();
   }
 #endif
 }
+
 template <typename PubUnit>
 bool FsdbPublisher<PubUnit>::write(PubUnit&& pubUnit) {
   pubUnit.metadata().ensure();
@@ -75,21 +88,48 @@ bool FsdbPublisher<PubUnit>::write(PubUnit&& pubUnit) {
   }
 
 #if FOLLY_HAS_COROUTINES
+  bool writeOk{true};
+  size_t pubUnitSize{0};
+
   auto pipeUPtr = asyncPipe_.ulock();
-  if (!(*pipeUPtr) || !tryWrite((*pipeUPtr)->second, std::move(pubUnit))) {
+  if (!(*pipeUPtr)) {
     XLOG(ERR) << "Could not enqueue pub unit";
-    if (*pipeUPtr) {
+    writeOk = false;
+  } else if (publishQueueMemoryLimit_ > 0) {
+    pubUnitSize = getPubUnitSize(pubUnit);
+    auto queuedChunks = (*pipeUPtr)->second.getOccupiedSpace();
+    if (queuedChunks > FLAGS_publish_queue_full_min_updates) {
+      size_t queuedSize = enqueuedDataSize_.load() - servedDataSize_.load();
+      if ((queuedSize + pubUnitSize) > publishQueueMemoryLimit_) {
+        XLOG(ERR)
+            << "Publish queue at memory limit, resetting stream. Data enqueued: "
+            << queuedSize << " new data size: " << pubUnitSize
+            << " memory limit: " << publishQueueMemoryLimit_ << " bytes";
+        writeOk = false;
+      }
+    }
+  }
+  if (writeOk) {
+    if (tryWrite((*pipeUPtr)->second, std::move(pubUnit))) {
+      enqueuedDataSize_.fetch_add(pubUnitSize);
+    } else {
       XLOG(ERR) << "Queue overflow, reset queue pointer";
+      writeOk = false;
+    }
+  }
+  if (!writeOk) {
+    if (*pipeUPtr) {
       // Reset queue pointer so the service loop breaks and we fall
       // back to full sync protocol
       pipeUPtr.moveFromUpgradeToWrite()->reset();
       queueSize_ = 0;
+      enqueuedDataSize_.store(0);
+      servedDataSize_.store(0);
     }
     writeErrors_.addValue(1);
-    return false;
   }
 #endif
-  return true;
+  return writeOk;
 }
 
 template <typename PubUnit>

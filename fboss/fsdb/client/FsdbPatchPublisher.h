@@ -14,6 +14,9 @@ class FsdbPatchPublisher : public FsdbPublisher<Patch> {
     cancel();
   }
 
+ protected:
+  size_t getPubUnitSize(const Patch& patch) override;
+
  private:
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<StreamT> setupStream() override;

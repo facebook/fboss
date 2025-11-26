@@ -4,6 +4,7 @@
 #include "fboss/fsdb/client/FsdbDeltaPublisher.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/client/FsdbStatePublisher.h"
+#include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/coro/AsyncGenerator.h>
@@ -363,6 +364,83 @@ TEST_F(PathPublisherTest, verifyHeartbeatDisconnect) {
   streamPublisher_->unblockStream();
   EXPECT_EQ(this->streamPublisher_->isPipeClosed(), true);
 
+#endif
+}
+
+class DeltaPublisherTest : public ::testing::Test {
+ public:
+  void SetUp() override {
+    FLAGS_publish_queue_full_min_updates =
+        (TestPublisher<FsdbDeltaPublisher>::publishQueueSize - 4);
+    FLAGS_publish_queue_memory_limit_mb = 1;
+    streamEvbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
+    connRetryEvbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
+    streamPublisher_ = std::make_unique<TestPublisher<FsdbDeltaPublisher>>(
+        streamEvbThread_->getEventBase(), connRetryEvbThread_->getEventBase());
+  }
+
+  void TearDown() override {
+    streamPublisher_.reset();
+    streamEvbThread_.reset();
+    connRetryEvbThread_.reset();
+  }
+
+  OperDelta
+  makeLargeUpdate(const std::string& argName, uint32_t bytes, char val = 'a') {
+    return makeDelta(makeLargeAgentConfig(argName, bytes, val));
+  }
+
+ protected:
+  std::unique_ptr<folly::ScopedEventBaseThread> streamEvbThread_;
+  std::unique_ptr<folly::ScopedEventBaseThread> connRetryEvbThread_;
+  std::unique_ptr<TestPublisher<FsdbDeltaPublisher>> streamPublisher_;
+};
+
+TEST_F(DeltaPublisherTest, publisherQueueMemoryLimit) {
+  auto counterPrefix = streamPublisher_->getCounterPrefix();
+  EXPECT_EQ(counterPrefix, "fsdbDeltaStatePublisher_agent");
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 0);
+
+  streamPublisher_->markConnecting();
+  WITH_RETRIES(
+      { EXPECT_EVENTUALLY_TRUE(streamPublisher_->isConnectedToServer()); });
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 1);
+
+#if FOLLY_HAS_COROUTINES
+  // Start the generator so serveStream begins consuming
+  streamPublisher_->startGenerator();
+
+  // verify initial update is written
+  streamPublisher_->write(OperDelta{});
+  WITH_RETRIES({
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    EXPECT_EVENTUALLY_EQ(
+        fb303::ServiceData::get()->getCounter(
+            counterPrefix + ".chunksWritten.sum"),
+        1);
+  });
+
+  // Block serveStream after initial consumption to simulate stuck processing
+  streamPublisher_->blockStream();
+
+  // post large update to build up queue memory
+  int updateSize = (1024 * 1024 * FLAGS_publish_queue_memory_limit_mb + 1);
+  streamPublisher_->write(makeLargeUpdate("foo", updateSize));
+
+  // validate that pipe is not reset yet
+  EXPECT_EQ(this->streamPublisher_->isPipeClosed(), false);
+
+  // trigger memory-based queue full detection
+  for (int i = 0; i <= FLAGS_publish_queue_full_min_updates + 1; i++) {
+    streamPublisher_->write(OperDelta{});
+  }
+
+  // validate that pipe is reset
+  EXPECT_EQ(this->streamPublisher_->isPipeClosed(), true);
+
+  streamPublisher_->unblockStream();
 #endif
 }
 
