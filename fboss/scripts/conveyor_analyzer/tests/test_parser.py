@@ -4,6 +4,7 @@
 
 import unittest
 from datetime import datetime
+from typing import Any, Dict
 
 from ..parser import NodeRun, Release
 
@@ -400,3 +401,99 @@ class ReleaseGetDistanceFromQualificationTest(unittest.TestCase):
 
         # Assert: Verify distance is 1 (only the failed node counts)
         self.assertEqual(distance, 1)
+
+
+class ParseTimestampTest(unittest.TestCase):
+    """Tests for parse_timestamp function."""
+
+    def test_parse_timestamp_with_valid_timestamp(self) -> None:
+        """Test parse_timestamp converts valid timestamp dict to datetime."""
+        # Setup: Create a valid timestamp dict
+        from ..parser import parse_timestamp
+
+        time_dict = {"secs": 1700000000}
+
+        # Execute: Call parse_timestamp
+        result = parse_timestamp(time_dict)
+
+        # Assert: Verify datetime object is returned with correct timestamp
+        self.assertIsInstance(result, datetime)
+        self.assertEqual(result, datetime.fromtimestamp(1700000000))
+
+    def test_parse_timestamp_with_none_input(self) -> None:
+        """Test parse_timestamp returns None when given None input."""
+        # Setup: None input
+        from ..parser import parse_timestamp
+
+        # Execute: Call parse_timestamp with None
+        result = parse_timestamp(None)
+
+        # Assert: Verify None is returned
+        self.assertIsNone(result)
+
+    def test_parse_timestamp_with_missing_secs_key(self) -> None:
+        """Test parse_timestamp returns None when 'secs' key is missing."""
+        # Setup: Create timestamp dict without 'secs' key
+        from ..parser import parse_timestamp
+
+        time_dict = {"other_key": 12345}
+
+        # Execute: Call parse_timestamp
+        result = parse_timestamp(time_dict)
+
+        # Assert: Verify None is returned
+        self.assertIsNone(result)
+
+    def test_parse_timestamp_with_zero_secs(self) -> None:
+        """Test parse_timestamp returns None when secs is 0."""
+        # Setup: Create timestamp dict with secs = 0
+        from ..parser import parse_timestamp
+
+        time_dict = {"secs": 0}
+
+        # Execute: Call parse_timestamp
+        result = parse_timestamp(time_dict)
+
+        # Assert: Verify None is returned (0 represents no timestamp)
+        self.assertIsNone(result)
+
+    def test_parse_timestamp_with_empty_dict(self) -> None:
+        """Test parse_timestamp returns None when given empty dict."""
+        # Setup: Empty dict
+        from ..parser import parse_timestamp
+
+        time_dict: Dict[str, Any] = {}
+
+        # Execute: Call parse_timestamp
+        result = parse_timestamp(time_dict)
+
+        # Assert: Verify None is returned
+        self.assertIsNone(result)
+
+    def test_parse_timestamp_with_negative_timestamp(self) -> None:
+        """Test parse_timestamp handles negative timestamps correctly."""
+        # Setup: Create timestamp dict with negative secs (pre-epoch)
+        from ..parser import parse_timestamp
+
+        time_dict = {"secs": -100000}
+
+        # Execute: Call parse_timestamp
+        result = parse_timestamp(time_dict)
+
+        # Assert: Verify datetime object is returned for pre-epoch time
+        self.assertIsInstance(result, datetime)
+        self.assertEqual(result, datetime.fromtimestamp(-100000))
+
+    def test_parse_timestamp_with_future_timestamp(self) -> None:
+        """Test parse_timestamp handles future timestamps correctly."""
+        # Setup: Create timestamp dict with future secs
+        from ..parser import parse_timestamp
+
+        time_dict = {"secs": 2000000000}
+
+        # Execute: Call parse_timestamp
+        result = parse_timestamp(time_dict)
+
+        # Assert: Verify datetime object is returned for future time
+        self.assertIsInstance(result, datetime)
+        self.assertEqual(result, datetime.fromtimestamp(2000000000))

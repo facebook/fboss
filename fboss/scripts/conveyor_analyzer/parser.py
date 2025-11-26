@@ -2,10 +2,9 @@
 
 # pyre-strict
 
-import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -83,3 +82,15 @@ class Release:
         """Calculate how many failures away from qualification."""
         counts = self.get_status_counts()
         return counts["FAILED"] + counts["CANCELLED"] + counts["NOT_RUN"]
+
+
+def parse_timestamp(time_dict: Optional[Dict[str, Any]]) -> Optional[datetime]:
+    """Parse timestamp dict to datetime object."""
+    if not time_dict or "secs" not in time_dict:
+        return None
+
+    secs = time_dict["secs"]
+    if secs == 0:
+        return None
+
+    return datetime.fromtimestamp(secs)
