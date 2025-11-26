@@ -17,6 +17,8 @@
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/NodeMap.h"
 
+#include <folly/debugging/symbolizer/Symbolizer.h>
+
 #include "common/network/if/gen-cpp2/Address_types.h"
 
 #include "fboss/agent/gen-cpp2/switch_state_fatal.h"
@@ -457,6 +459,10 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
       const typename InnerMap::Traits::KeyType& key) const {
     auto node = getNodeIf(key);
     if (!node) {
+      auto stackTrace = folly::symbolizer::getStackTraceStr(true);
+      XLOG(ERR) << "Node to get not found: " << folly::to<std::string>(key)
+                << "\nBacktrace:\n"
+                << stackTrace;
       throw FbossError("Node to get not found: ", key);
     }
     return node;

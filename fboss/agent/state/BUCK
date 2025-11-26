@@ -162,6 +162,7 @@ cpp_library(
         "//folly:network_address",
         "//folly:poly",
         "//folly:range",
+        "//folly/debugging/symbolizer:symbolizer",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//folly/poly:basic_interfaces",
