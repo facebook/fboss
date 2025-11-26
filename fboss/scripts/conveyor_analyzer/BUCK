@@ -3,6 +3,7 @@
 # pyre-strict
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
 
 oncall("fboss_agent_push")
 
@@ -11,6 +12,7 @@ python_library(
     srcs = [
         "__init__.py",
         "cli.py",
+        "conveyor_api.py",
     ],
     typing = True,
     deps = [
@@ -22,6 +24,15 @@ python_binary(
     name = "fboss_conveyor",
     srcs = ["fboss_conveyor.py"],
     main_function = "fboss.scripts.conveyor_analyzer.cli.main",
+    typing = True,
+    deps = [
+        ":conveyor_analyzer_lib",
+    ],
+)
+
+python_unittest(
+    name = "test_conveyor_api",
+    srcs = ["tests/test_conveyor_api.py"],
     typing = True,
     deps = [
         ":conveyor_analyzer_lib",
