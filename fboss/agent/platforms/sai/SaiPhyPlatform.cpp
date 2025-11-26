@@ -13,6 +13,11 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/Agera3PhyAsic.h"
 
+DEFINE_string(
+    phy_config_file,
+    "/lib/firmware/fboss/phy_config",
+    "Path to the PHY configuration file");
+
 namespace facebook::fboss {
 
 namespace {
@@ -21,6 +26,7 @@ std::unordered_map<std::string, std::string> kSaiProfileValues;
 
 auto constexpr sdkWarmBootStateFile = "sdk_warm_boot_state";
 static auto constexpr kSaiBootType = "SAI_BOOT_TYPE";
+static auto constexpr kSaiInitConfigFile = "SAI_INIT_CONFIG_FILE";
 
 static auto constexpr kSaiWarmBootReadFile = "SAI_WARM_BOOT_READ_FILE";
 static auto constexpr kSaiWarmBootWriteFile = "SAI_WARM_BOOT_WRITE_FILE";
@@ -129,6 +135,9 @@ const std::set<sai_api_t>& SaiPhyPlatform::getSupportedApiList() const {
 void SaiPhyPlatform::initSaiProfileValues(bool warmboot) {
   auto sdkWarmBootStatePath =
       FLAGS_volatile_state_dir_phy + "/" + sdkWarmBootStateFile;
+
+  kSaiProfileValues.insert(
+      std::make_pair(kSaiInitConfigFile, FLAGS_phy_config_file));
 
   kSaiProfileValues.insert(
       std::make_pair(kSaiWarmBootReadFile, sdkWarmBootStatePath));
