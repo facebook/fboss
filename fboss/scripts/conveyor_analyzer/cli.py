@@ -2,6 +2,8 @@
 
 
 # pyre-strict
+from typing import Optional
+
 import click
 
 
@@ -13,13 +15,19 @@ def cli() -> None:
     pass
 
 
-@cli.command(name="analyze")
+@click.command(name="analyze")
 @click.option("--conveyor", required=True, help="Conveyor ID")
-def analyze(conveyor: str) -> None:
+@click.option("--release", required=False, help="Release Instance (eg: R1112.3)")
+def analyze(
+    conveyor: str,
+    release: Optional[str],
+) -> None:
     """
     Analyze conveyor releases and nodes
     """
     print("Conveyor parsed: ", conveyor)
+    if release:
+        print("Release parsed: ", release)
 
 
 def main() -> None:
