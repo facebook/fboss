@@ -12,6 +12,7 @@ python_library(
         "__init__.py",
         "cli.py",
     ],
+    deps = ["fbsource//third-party/pypi/click:click"],
 )
 
 python_binary(
