@@ -824,8 +824,12 @@ TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
     this->subscription_->queueDsfUpdate(std::move(update));
   };
 
+  auto beforeNumSysPorts = this->getRemoteSystemPorts()->size();
+  auto beforeNumRifs = this->getRemoteInterfaces()->size();
+  auto numSysPorts = 2;
+
   // Step 1: First queueDsfUpdate call - should queue one event
-  queueSysPortUpdate(1 /* numSysPorts */);
+  queueSysPortUpdate(numSysPorts);
 
   // Verify one event was queued
   auto queueSizeAfterFirst =
@@ -843,7 +847,7 @@ TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
   // Step 3: Second queueDsfUpdate call - should ideally queue a third event,
   // but due to the race condition, it will only update nextDsfUpdate_ and
   // NOT queue a third event
-  queueSysPortUpdate(2 /* numSysPorts */);
+  queueSysPortUpdate(numSysPorts);
 
   // Verify the fix of race condition: there should be only 3 events in the
   // queue. The GR expiry should not be the last event.
@@ -855,6 +859,20 @@ TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
   WITH_RETRIES({
     ASSERT_EVENTUALLY_EQ(
         this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  WITH_RETRIES({
+    auto remoteRifs = this->getRemoteInterfaces();
+    EXPECT_EVENTUALLY_EQ(
+        remoteRifs->size(),
+        beforeNumRifs + (this->kNumRemoteSwitchAsics * numSysPorts));
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(),
+        beforeNumSysPorts + (this->kNumRemoteSwitchAsics * numSysPorts));
+    for (const auto [_, rif] : std::as_const(*remoteRifs)) {
+      EXPECT_EVENTUALLY_EQ(rif->getNdpTable()->size(), 1);
+      EXPECT_EVENTUALLY_EQ(rif->getArpTable()->size(), 1);
+    }
   });
 }
 
