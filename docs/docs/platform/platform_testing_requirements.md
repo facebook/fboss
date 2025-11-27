@@ -90,8 +90,8 @@ platform development.
 |  | fbobmc.ipmi.sel.list.from.userver | Login uServer and run "ipmitool sel list": make sure the command can return successfully. |
 |  | fbobmc.ipmi.sel.injection.from.userver | Login uServer and make sure SEL entries can be added manually. For example, "ipmitool raw 0x0a 0x44 0x01 0x00 0x02 0xab 0xcd 0xef 0x00 0x01 0x00 0x04 0x01 0x17 0x00 0xa0 0x04 0x07 01 00" and then "ipmitool sel list". |
 | **Recover Path** | fbobmc.bios.deselected.by.default | Login OpenBMC and make sure the BIOS chip is not reachable (deselected) by default. |
-|  | fbobmc.recover.bios | Login OpenBMC and make sure the BIOS chip can be upgraded by "bios_util" command successfully. |
-|  | fbobmc.recover.bios.in.parallel | Login OpenBMC and run "bios_util" from multiple terminals at the same time: make sure the first instance can upgrade BIOS successfully, and all the following "bios_util" instances fail with "Error: another instance is running". |
+|  | fbobmc.recover.bios | Login OpenBMC and make sure the BIOS chip can be upgraded by "spi_util.sh" command successfully. |
+|  | fbobmc.recover.bios.in.parallel | Login OpenBMC and run "spi_util.sh" from multiple terminals at the same time: make sure the first instance can upgrade BIOS successfully, and all the following "spi_util.sh" instances fail with "Error: another instance is running". |
 | **Misc** | fbobmc.ssh.to.userver.via.usb0 | Login OpenBMC and make sure people can ssh to the userver by running "ssh root@fe80::2%usb0". |
 |  | fbobmc.ssh.to.bmc.via.usb0 | Login uServer and make sure people can ssh to the OpenBMC by running "ssh root@fe80::1%usb0" |
 |  | fbobmc.tpm | Login OpenBMC and make sure "/dev/tpm0" device is created successfully. |
