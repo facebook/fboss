@@ -581,6 +581,28 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
         state->getVlans().get() /* to */);
   }
 
+  /*
+   * FIB Migration: Four-stage transition from fibsMap to fibsInfoMap
+   *
+   * Stage 1 (Current): Rollback safety - Clear fibsInfoMap when deserializing
+   * to handle rollback from Stage 2 where both FIBs are
+   * populated during warm boot exit.
+   *
+   * Stage 2: Migrate clients to new FIB while populating
+   * both structures during warm boot exit. Forward migration (Stage
+   * 2→3) clears fibsMap on init; rollback (Stage 2→1) clears fibsInfoMap during
+   * init of stage 1.
+   *
+   * Stage 3: New FIB primary - All clients use fibsInfoMap, but both FIBs still
+   * populated during warm boot exit to support direct Stage 1→3
+   * transitions.
+   *
+   * Stage 4: Complete migration - Remove fibsMap entirely from codebase.
+   */
+  if (state->getFibsInfoMap() && !state->getFibsInfoMap()->empty()) {
+    state->resetFibsInfoMap(std::make_shared<MultiSwitchFibInfoMap>());
+  }
+
   return state;
 }
 
