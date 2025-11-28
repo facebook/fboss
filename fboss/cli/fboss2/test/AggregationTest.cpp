@@ -5,9 +5,9 @@
 
 #include <fboss/cli/fboss2/CmdGlobalOptions.h>
 #include <fboss/cli/fboss2/utils/FilterOp.h>
+#include <thrift/lib/cpp2/reflection/testing.h>
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
 
 using namespace ::testing;
 namespace facebook::fboss {

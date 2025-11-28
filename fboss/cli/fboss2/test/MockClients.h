@@ -14,11 +14,15 @@
 #include "fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#ifndef IS_OSS
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
+#endif
 
 namespace facebook::fboss {
 
+#ifndef IS_OSS
 using namespace facebook::neteng::fboss::bgp::thrift;
+#endif
 extern std::vector<facebook::fboss::ArpEntryThrift> createArpEntries();
 
 class MockAgentCounters : public AgentCountersIf {
@@ -113,6 +117,7 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
       void,
       getAllEcmpDetails,
       (std::vector<facebook::fboss::EcmpDetails>&));
+  MOCK_METHOD(void, getConfigAppliedInfo, (ConfigAppliedInfo&));
 };
 
 class MockFbossQsfpService : public QsfpServiceSvIf {
@@ -129,6 +134,15 @@ class MockFbossQsfpService : public QsfpServiceSvIf {
           std::unique_ptr<std::vector<int32_t>>,
           bool));
 };
+
+#ifdef IS_OSS
+class TBgpServiceSvIf {
+  // Stub because the Thrift model for BgpService is not open source yet.
+ public:
+  virtual ~TBgpServiceSvIf() {}
+  virtual void getRunningConfig(std::string&) = 0;
+};
+#endif
 
 class MockFbossBgpService : public TBgpServiceSvIf {
  public:

@@ -24,6 +24,7 @@ const std::map<std::string, std::string>& kSupportedVerbs() {
   static const std::map<std::string, std::string> supportedVerbs = {
       {"show", "Show object info"},
       {"clear", "Clear object info"},
+      {"config", "Configuration commands"},
       {"create", "Create object"},
       {"delete", "Delete object"},
       {"debug", "Debug object"},
@@ -216,6 +217,16 @@ CLI::App* CmdSubcommands::addCommand(
           break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_FAN_PWM:
           subCmd->add_option("pwm", args, "Fan PWM (0..100) or 'disable'");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_MTU:
+          subCmd->add_option("mtu", args, "MTU value (68-9216)");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_INTERFACE_LIST:
+          subCmd->add_option("interfaces", args, "Interface(s)");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_REVISION_LIST:
+          subCmd->add_option(
+              "revisions", args, "Revision(s) in the form 'rN' or 'current'");
           break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
