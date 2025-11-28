@@ -180,6 +180,8 @@ struct I2cRegData {
 //
 // `isEeprom`: Whether this I2C Device is an EEPROM device
 //
+// `eepromOffset`: EEPROM offset
+//
 // For example, the three i2c devices in the below Sample PmUnit will be modeled
 // as follows
 //
@@ -219,6 +221,7 @@ struct I2cDeviceConfig {
   11: optional list<I2cRegData> initRegSettings;
   12: bool isWatchdog;
   13: bool isEeprom;
+  14: optional i32 eepromOffset;
 }
 
 // Configs for sensors which are embedded (eg within CPU).
