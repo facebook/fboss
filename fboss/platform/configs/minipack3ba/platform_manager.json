@@ -120,6 +120,48 @@
     "SMBus I801 adapter at 5000",
     "SMBus iSMT adapter at 20fffa7b000"
   ],
+  "versionedPmUnitConfigs": {
+    "NETLAKE": [
+      {
+        "pmUnitConfig": {
+          "pluggedInSlotType": "COMESE_SLOT",
+          "i2cDeviceConfigs": [
+            {
+              "busName": "INCOMING@0",
+              "address": "0x11",
+              "kernelDeviceName": "tda38640",
+              "pmUnitScopedName": "COME_VOLTAGE_MONITOR1"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x22",
+              "kernelDeviceName": "tda38640",
+              "pmUnitScopedName": "COME_VOLTAGE_MONITOR2"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x45",
+              "kernelDeviceName": "tda38640",
+              "pmUnitScopedName": "COME_VOLTAGE_MONITOR3"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x66",
+              "kernelDeviceName": "tda38640",
+              "pmUnitScopedName": "COME_VOLTAGE_MONITOR4"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x76",
+              "kernelDeviceName": "xdpe15284",
+              "pmUnitScopedName": "COME_VOLTAGE_MONITOR5"
+            }
+          ]
+        },
+        "productSubVersion": 1
+      }
+    ]
+  },
   "pmUnitConfigs": {
     "MINIPACK3BA_MCB": {
       "pluggedInSlotType": "MCB_SLOT",
