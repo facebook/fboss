@@ -21,7 +21,7 @@
 
     <preferences profiles="FBOSS">
         <type image="oem"
-            installpxe="true" 
+            installpxe="true"
             bootprofile="uefi"
             filesystem="btrfs"
             firmware="uefi"
@@ -37,7 +37,7 @@
             <oemconfig>
                 <!-- The oem-resize element should be false for a fixed-size disk -->
                 <oem-resize>true</oem-resize>
-                <oem-unattended>true</oem-unattended> 
+                <oem-unattended>true</oem-unattended>
                 <oem-skip-verify>true</oem-skip-verify>
             </oemconfig>
         </type>

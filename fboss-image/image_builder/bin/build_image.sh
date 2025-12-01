@@ -91,24 +91,24 @@ ORIGINAL_ARGS=("$0" "$@")
             exit 0
             ;;
 
-        # Stop parsing command line arguments, any thing after the -- is 
+        # Stop parsing command line arguments, any thing after the -- is
         # passed directly to the child process scripts
         --)
             shift 1;
             break
             ;;
-        *)  
+        *)
             echo "Unrecognized command option: '${1}'"
             print_help
             exit 1
-            ;;  
+            ;;
     esac
 done
 
 CHILD_SCRIPT_ARGS=()
 if (( "$#" > 0 )); then
     # Store the remaining arguments (for child process scripts) in an array
-    CHILD_SCRIPT_ARGS=("$@") 
+    CHILD_SCRIPT_ARGS=("$@")
 fi
 
 # Log everything for posterity ;-)
@@ -153,7 +153,7 @@ if [ "${BUILD_DOCKER_IMAGE}" = "yes" ] ; then
     IMAGEID=$(docker images -q ${DOCKER_IMAGE_NAME})
     if [ -n "${IMAGEID}" ] ; then
         dprint "Docker image: ${DOCKER_IMAGE_NAME} already exists, skipping build..."
-    else 
+    else
         dprint "Building docker image: ${DOCKER_IMAGE_NAME}"
         DOCKER_BUILD_ARGS="  "
         if [ "${USE_DOCKER_CACHE}" = "no" ] ; then
