@@ -18,6 +18,7 @@ BspPhyIO::BspPhyIO(int pimID, BspPhyIOControllerInfo& controllerInfo)
   auto controllerId = *controllerInfo.controllerId();
   mdioController_ = std::make_unique<BspDeviceMdioController>(
       controllerId, pimID, controllerId, mdioDevName);
+  mdioController_->init();
   controllerInfo_ = controllerInfo;
   XLOG(DBG5) << fmt::format(
       "BspPhyIOTrace: BspPhyIO() successfully opened mdio {:d}, {}",
