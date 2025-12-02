@@ -199,6 +199,16 @@ class HwAsic {
     // Thus, remove after migration to SaiSwitch is completed.
     WEIGHTED_NEXTHOPGROUP_MEMBER,
 
+    // Set to true if the ASIC or SAI implementation supports Native UCMP.
+    // In either case, FBOSS need not implement replication.
+    // Only used by SaiSwitch.
+    // TODO:
+    //  - Candidate for removal: YES, enabled everywhere except Fake, Trident2.
+    //    Remove Trident2 support (no longer needed), fix Fake support, then
+    //    remove.
+    //  - Rename to carry ECMP_ prefix.
+    SAI_WEIGHTED_NEXTHOPGROUP_MEMBER,
+
     HASH_FIELDS_CUSTOMIZATION,
     TRAFFIC_HASHING,
     ECMP_HASH_V4,
@@ -208,7 +218,6 @@ class HwAsic {
     SAI_ECMP_HASH_ALGORITHM,
     SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
     BULK_CREATE_ECMP_MEMBER,
-    SAI_WEIGHTED_NEXTHOPGROUP_MEMBER,
     MPLS_ECMP,
     ECMP_DLB_OFFSET,
 
