@@ -1441,7 +1441,14 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
     // SNR value are LSB.
     uint16_t value = data[1] << 8 | data[0];
     channel.sensors()->rxSnr() = Sensor();
-    channel.sensors()->rxSnr()->value() = CmisFieldInfo::getSnr(value);
+
+    // Compute SNR value from raw value
+    double snrValue = CmisFieldInfo::getSnr(value);
+
+    // Apply Rx-SNR correction (returns corrected value)
+    snrValue = applyRxSnrCorrection(value, snrValue);
+
+    channel.sensors()->rxSnr()->value() = snrValue;
     data += 2;
     length--;
   }
@@ -1516,7 +1523,7 @@ SignalFlags CmisModule::getSignalFlagInfo() {
  * location (page, offset and length). These config could be module based config
  * or lane/datapath based config. The function updates the lowest offset of the
  * corresponding VDM data value. For config present in VDM page 0x20-23, the
- * coresponding data is present in VDM pages 0x24-27
+ * corresponding data is present in VDM pages 0x24-27
  */
 void CmisModule::updateVdmDiagsValLocation() {
   if (!cacheIsValid() || !isVdmSupported()) {
@@ -4193,7 +4200,7 @@ uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
       }
     } else {
       QSFP_LOG(ERR, this) << fmt::format(
-          "Datapath max {:s} time unable to retreive from val map spec {:x}",
+          "Datapath max {:s} time unable to retrieve from val map spec {:x}",
           init ? "init" : "deinit",
           spec);
     }

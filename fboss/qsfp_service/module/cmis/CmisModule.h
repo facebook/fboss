@@ -672,6 +672,9 @@ class CmisModule : public QsfpModule {
   // Check if module should be kept in low power mode for AppSel programming.
   bool programAppSelInLowPowerMode() const;
 
+  // Apply Rx-SNR correction and return the corrected value
+  double applyRxSnrCorrection(uint16_t rawValue, double snrValue) const;
+
   // Private functions to extract and fill in VDM performance monitoring stats
   bool fillVdmPerfMonitorSnr(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorBer(VdmPerfMonitorStats& vdmStats);
