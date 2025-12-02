@@ -213,11 +213,18 @@ class HwAsic {
     // of 2) is supported by the ASIC.
     WIDE_ECMP,
 
+    // Set to true if the SAI implementation supports querying the number of
+    // ECMP members supported across all nexthop groups of the switch.
+    // This maps to SAI_SWITCH_ATTR_MAX_ECMP_MEMBER_COUNT.
+    // TODO:
+    //  - Candidate for removal: YES, enabled everywhere except Chenab.
+    //  - Collaborate to add this support on Chenab, then remove.
+    ECMP_MEMBER_WIDTH_INTROSPECTION,
+
     HASH_FIELDS_CUSTOMIZATION,
     TRAFFIC_HASHING,
     ECMP_HASH_V4,
     ECMP_HASH_V6,
-    ECMP_MEMBER_WIDTH_INTROSPECTION,
     SAI_ECMP_HASH_ALGORITHM,
     SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
     BULK_CREATE_ECMP_MEMBER,
