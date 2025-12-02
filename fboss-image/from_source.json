@@ -1,6 +1,7 @@
 {
   "distribution_formats": {
-    "usb": "fboss-distro-image_usb.iso"
+    "usb": "fboss-distro-image_usb.iso",
+    "pxe": "fboss-distro-image_pxe.tar"
   },
   "kernel": {
   },
