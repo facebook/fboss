@@ -39,6 +39,12 @@ sai_status_t saiPhyRetimerSwitchRegisterRead(
       reinterpret_cast<SaiPhyRetimer*>(platform_context);
   CHECK(retimerObj);
 
+  XLOG(DBG5) << __func__ << ":"
+             << " phyAddr=" << retimerObj->getPhyAddr()
+             << " deviceAddr=" << SaiPhyRetimer::getDeviceAddress()
+             << " start_reg_addr=" << start_reg_addr
+             << " number_of_registers=" << number_of_registers;
+
   // Finally call that object's XphyIO read register function
   for (uint32_t i = 0; i < number_of_registers; i++) {
     uint16_t value = retimerObj->getXphyIO()->readRegister(
@@ -71,6 +77,11 @@ sai_status_t saiPhyRetimerSwitchRegisterWrite(
       reinterpret_cast<SaiPhyRetimer*>(platform_context);
   CHECK(retimerObj);
 
+  XLOG(DBG5) << __func__ << ":"
+             << " phyAddr=" << retimerObj->getPhyAddr()
+             << " deviceAddr=" << SaiPhyRetimer::getDeviceAddress()
+             << " start_reg_addr=" << start_reg_addr
+             << " number_of_registers=" << number_of_registers;
   // Finally call that object's XphyIO write register function
   for (uint32_t i = 0; i < number_of_registers; i++) {
     retimerObj->getXphyIO()->writeRegister(
@@ -130,14 +141,18 @@ PhyFwVersion SaiPhyRetimer::fwVersionImpl() const {
 }
 
 void* SaiPhyRetimer::getRegisterReadFuncPtr() {
+  XLOG(DBG5) << __func__ << ": Returning read function pointer";
   return reinterpret_cast<void*>(saiPhyRetimerSwitchRegisterRead);
 }
 
 void* SaiPhyRetimer::getRegisterWriteFuncPtr() {
+  XLOG(DBG5) << __func__ << ": Returning write function pointer";
   return reinterpret_cast<void*>(saiPhyRetimerSwitchRegisterWrite);
 }
 
 SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
+  XLOG(DBG5) << __func__ << ": Starting for xphyID=" << xphyID_;
+
   SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
 
   // Set HwInfo as XPHY ID
@@ -148,6 +163,7 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
   hwInfoVec[1] = (phyId >> 8) & 0xFF;
   hwInfoVec[2] = (phyId >> 16) & 0xFF;
   hwInfoVec[3] = (phyId >> 24) & 0xFF;
+  XLOG(DBG2) << __func__ << ": Encoded phyId=" << phyId << " into hwInfoVec";
   std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo(hwInfoVec);
 
   // Pass the static register read function
@@ -183,8 +199,10 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
       SAI_SWITCH_TYPE_PHY);
 
   // Set profile ID to XPHY ID so each retimer gets unique profile id
+  uint32_t profileIdValue = static_cast<uint32_t>(xphyID_);
+  XLOG(DBG5) << __func__ << ": Setting profileId=" << profileIdValue;
   std::optional<SaiSwitchTraits::Attributes::SwitchProfileId> profileId(
-      static_cast<uint32_t>(xphyID_));
+      profileIdValue);
 
   // Mandatory attributes for Sai
   std::optional<SaiSwitchTraits::Attributes::SwitchId> switchId(0);
