@@ -221,13 +221,19 @@ class HwAsic {
     //  - Collaborate to add this support on Chenab, then remove.
     ECMP_MEMBER_WIDTH_INTROSPECTION,
 
+    // Set to true if the SAI implementation supports bulk add and
+    // remove of the nexthop group members.
+    // Bulk add/remove is signifacntly faster than individual member add/remove.
+    // TODO:
+    //  - Rename to carry ECMP_ prefix.
+    BULK_CREATE_ECMP_MEMBER,
+
     HASH_FIELDS_CUSTOMIZATION,
     TRAFFIC_HASHING,
     ECMP_HASH_V4,
     ECMP_HASH_V6,
     SAI_ECMP_HASH_ALGORITHM,
     SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
-    BULK_CREATE_ECMP_MEMBER,
     MPLS_ECMP,
     ECMP_DLB_OFFSET,
 
