@@ -250,11 +250,15 @@ class HwAsic {
     //    of hash configuraton supported.
     ECMP_HASH_V6,
 
+    // Set to true if ECMP configuration is supported with MPLS.
+    // TODO:
+    //  - Rename to carry ECMP_ prefix.
+    MPLS_ECMP,
+
     HASH_FIELDS_CUSTOMIZATION,
     TRAFFIC_HASHING,
     SAI_ECMP_HASH_ALGORITHM,
     SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
-    MPLS_ECMP,
     ECMP_DLB_OFFSET,
 
     // Other features
