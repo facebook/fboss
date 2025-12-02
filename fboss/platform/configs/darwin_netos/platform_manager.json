@@ -526,6 +526,8 @@
     "/run/devmap/i2c-busses/SCD_SMBUS6_CH5": "/[SCD_SMBUS6@5]",
     "/run/devmap/i2c-busses/SCD_SMBUS6_CH6": "/[SCD_SMBUS6@6]",
     "/run/devmap/i2c-busses/SCD_SMBUS6_CH7": "/[SCD_SMBUS6@7]",
+    "/run/devmap/eeproms/RACKMON_EEPROM": "/RACKMON_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/PEM_EEPROM": "/PEM_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/CPU_BOARD_TEMP_MAX6658": "/[CPU_BOARD_TEMP_MAX6658]",
     "/run/devmap/sensors/CPU_FP_TEMP_LM73": "/[CPU_FP_TEMP_LM73]",
     "/run/devmap/sensors/CPU_MPS1_PMBUS": "/[CPU_MPS1_PMBUS]",
@@ -606,10 +608,8 @@
     "/run/devmap/xcvrs/xcvr_ctrl_31": "/[QSFP_XCVR_CTRL_PORT_31]",
     "/run/devmap/xcvrs/xcvr_io_32": "/[SCD_SMBUS5@7]",
     "/run/devmap/xcvrs/xcvr_ctrl_32": "/[QSFP_XCVR_CTRL_PORT_32]",
-    "/run/devmap/eeproms/RACKMON_EEPROM": "/RACKMON_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/FS_FAN_SLG4F4527": "/RACKMON_SLOT@0/[FS_FAN_SLG4F4527]",
     "/run/devmap/gpiochips/RACKMON_PLS": "/RACKMON_SLOT@0/[RACKMON_PLS]",
-    "/run/devmap/eeproms/PEM_EEPROM": "/PEM_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/PEM_ECB_MAX5970": "/PEM_SLOT@0/[PEM_ECB_MAX5970]",
     "/run/devmap/sensors/PEM_ADC_MAX11645": "/PEM_SLOT@0/[PEM_ADC_MAX11645]",
     "/run/devmap/sensors/PEM_TEMP_MAX6658": "/PEM_SLOT@0/[PEM_TEMP_MAX6658]"
@@ -618,6 +618,7 @@
   "bspKmodsRpmName": "arista_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.16-1",
   "requiredKmodsToLoad": [
+    "spidev",
     "i2c_i801",
     "scd",
     "ledtrig_timer"
