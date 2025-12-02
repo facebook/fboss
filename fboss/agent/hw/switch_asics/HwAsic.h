@@ -209,11 +209,14 @@ class HwAsic {
     //  - Rename to carry ECMP_ prefix.
     SAI_WEIGHTED_NEXTHOPGROUP_MEMBER,
 
+    // Set to true if Wide ECMP (possibly with some restriction like fixed power
+    // of 2) is supported by the ASIC.
+    WIDE_ECMP,
+
     HASH_FIELDS_CUSTOMIZATION,
     TRAFFIC_HASHING,
     ECMP_HASH_V4,
     ECMP_HASH_V6,
-    WIDE_ECMP,
     ECMP_MEMBER_WIDTH_INTROSPECTION,
     SAI_ECMP_HASH_ALGORITHM,
     SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
