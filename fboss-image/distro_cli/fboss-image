@@ -6,49 +6,28 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
-import argparse
-import json
-import shutil
-import subprocess
+"""FBOSS Image Builder CLI"""
+
 import sys
 from pathlib import Path
 
-def cmd_build(args):
-    with open(args.manifest) as f:
-        manifest = json.load(f)
+sys.path.insert(0, str(Path(__file__).parent))
 
-    if "distribution_formats" not in manifest:
-        print("No distribution formats specified in manifest")
-        return 1
+from cmds.build import setup_build_command
+from cmds.device import setup_device_commands
+from lib.cli import CLI
+from lib.logger import setup_logging
 
-    if "usb" not in manifest["distribution_formats"]:
-        print("USB distribution format not specified in manifest")
-        return 1
-
-    image_buildir_dir = Path(__file__).parent.parent / "image_builder"
-    subprocess.run([image_buildir_dir / "bin" / "build_image.sh", "-b"], check=True)
-
-    usb_image = manifest["distribution_formats"]["usb"]
-    shutil.move(image_buildir_dir / "output" / "FBOSS-Distro-Image.x86_64-1.0.install.iso", usb_image)
-    return 0
 
 def main():
-    parser = argparse.ArgumentParser(
-            prog="fboss-image",
-            description="FBOSS Distro CLI tool")
-    subparsers = parser.add_subparsers(required=True, dest="command")
+    """Main entry point for fboss-image CLI"""
+    cli = CLI(description="FBOSS Distro Image CLI")
 
-    parser_build = subparsers.add_parser("build", help="Build the Distro Image")
-    parser_build.add_argument("manifest", help="The image manifest file to use",
-                              metavar="image_manifest.json")
+    setup_build_command(cli)
+    setup_device_commands(cli)
 
-    args = parser.parse_args()
+    return cli.run(setup_logging_func=setup_logging)
 
-    if args.command != "build":
-        print('Unknown command: {}'.format(args.command))
-        return 1
 
-    return cmd_build(args)
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
