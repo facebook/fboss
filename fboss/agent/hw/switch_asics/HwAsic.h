@@ -170,6 +170,29 @@ class HwAsic {
 
     // ECMP, Hashing Feature::
     // =======================
+    //
+    // ECMP (Equal Cost Multi Path):
+    //  - Routing technique to efficiently utilize multiple paths
+    //    between two endpoints when those paths have the same cost.
+    //
+    // UCMP (Unequal Cost Multi Path):
+    //  - Routing technique to distribute traffic across multiple paths
+    //    with different costs, in proportion to their assigned weights.
+    //  - Native UCMP: Can program weights directly to hardware.
+    //  - Legacy UCMP: Replicate ECMP members in proportion to their weights.
+    //
+    // Hash Algorithm:
+    //  - Acts on a set of configured fields (L4 src/dst port, src/dst IP etc.)
+    //    and computes a hash value. The value is used to select a path.
+    //
+    // ECMP Width:
+    //  - Number of next hops (paths) in a ECMP group.
+    //  - Property of ASIC/SAI implementation.
+    //
+    // Wide ECMP:
+    //  - Some ASICs support every ECMP width value [0, ecmp_width]
+    //  - For > ecmp_width, they only support fixed values.
+    //  - e.g. TH4 ECMP widths: [1-512], 1K, 2K, 4K
     HASH_FIELDS_CUSTOMIZATION,
     TRAFFIC_HASHING,
     ECMP_HASH_V4,
