@@ -228,9 +228,19 @@ class HwAsic {
     //  - Rename to carry ECMP_ prefix.
     BULK_CREATE_ECMP_MEMBER,
 
+    // Set to true if the SAI implementation supports associating a specific
+    // hashing policy for IPv4 packets.
+    // This maps to SAI_SWITCH_ATTR_ECMP_HASH_IPV4.
+    // Some ASICs support hashing natively and thus do not support this
+    // configuration.
+    // TODO:
+    //  - Candidate for removal: YES, but non-trivial.
+    //  - Extend SAI spec to introduce sai_hash_capability_t to return the list
+    //    of hash configuraton supported.
+    ECMP_HASH_V4,
+
     HASH_FIELDS_CUSTOMIZATION,
     TRAFFIC_HASHING,
-    ECMP_HASH_V4,
     ECMP_HASH_V6,
     SAI_ECMP_HASH_ALGORITHM,
     SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
