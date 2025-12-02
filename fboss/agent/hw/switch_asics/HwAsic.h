@@ -193,6 +193,12 @@ class HwAsic {
     //  - Some ASICs support every ECMP width value [0, ecmp_width]
     //  - For > ecmp_width, they only support fixed values.
     //  - e.g. TH4 ECMP widths: [1-512], 1K, 2K, 4K
+
+    // Set to true if the ASIC supports Native UCMP.
+    // Only used by BcmSwitch.
+    // Thus, remove after migration to SaiSwitch is completed.
+    WEIGHTED_NEXTHOPGROUP_MEMBER,
+
     HASH_FIELDS_CUSTOMIZATION,
     TRAFFIC_HASHING,
     ECMP_HASH_V4,
@@ -202,7 +208,6 @@ class HwAsic {
     SAI_ECMP_HASH_ALGORITHM,
     SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
     BULK_CREATE_ECMP_MEMBER,
-    WEIGHTED_NEXTHOPGROUP_MEMBER,
     SAI_WEIGHTED_NEXTHOPGROUP_MEMBER,
     MPLS_ECMP,
     ECMP_DLB_OFFSET,
