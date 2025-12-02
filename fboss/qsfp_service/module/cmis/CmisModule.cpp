@@ -3638,45 +3638,6 @@ void CmisModule::setDiagsCapability() {
         vdmSupportedGroupsMax_ = (data & VDM_GROUPS_SUPPORT_MASK) + 1;
       }
 
-      if (*diags.cdb()) {
-        CdbCommandBlock commandBlockBuf;
-        // CdbCommandBlock* commandBlock = &commandBlockBuf;
-
-        // Get FW download, FW readback, EPL capability
-        commandBlockBuf.createCdbCmdGetFwFeatureInfo();
-        // Run the CDB command
-        bool status = commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
-
-        // If the CDB command is successfull then the return info is in LPL
-        // memory offset 141, 142. The LPL base offset is 136.
-        if (status && commandBlockBuf.getCdbRlplLength() >= 3) {
-          diags.cdbFirmwareUpgrade() =
-              commandBlockBuf.getCdbLplFlatMemory()[5] != 0;
-          diags.cdbEplMemorySupported() =
-              commandBlockBuf.getCdbLplFlatMemory()[5] ==
-                  CDB_FW_DOWNLOAD_EPL_SUPPORTED ||
-              commandBlockBuf.getCdbLplFlatMemory()[5] ==
-                  CDB_FW_DOWNLOAD_LPL_EPL_SUPPORTED;
-          diags.cdbFirmwareReadback() =
-              commandBlockBuf.getCdbLplFlatMemory()[6] != 0;
-        }
-
-        // Check CDB symbol error histogram command support. If command does
-        // not fail then it is implemented
-        commandBlockBuf.createCdbCmdSymbolErrorHistogram(0, true);
-        diags.cdbSymbolErrorHistogramLine() =
-            commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
-        commandBlockBuf.createCdbCmdSymbolErrorHistogram(0, false);
-        diags.cdbSymbolErrorHistogramSystem() =
-            commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
-        // CDB Rx error histogram
-        commandBlockBuf.createCdbCmdRxErrorHistogram(0, true);
-        diags.cdbRxErrorHistogramLine() =
-            commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
-        commandBlockBuf.createCdbCmdRxErrorHistogram(0, false);
-        diags.cdbRxErrorHistogramSystem() =
-            commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
-      }
       *diagsCapability = diags;
     }
   }
