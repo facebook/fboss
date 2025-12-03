@@ -258,11 +258,54 @@ class CmisModule : public QsfpModule {
       const cfg::OpticalChannelConfig& opticalChannelConfig);
   /*
    * Set appropriate application code for PortSpeed, if supported
+   * if newAppSelCode is provided, use that directly instead of deriving
    */
   void setApplicationCodeLocked(
       cfg::PortSpeed speed,
       uint8_t startHostLane,
       uint8_t numHostLanesForPort);
+
+  /*
+   * Helper function to discover and return the appropriate application
+   * capability based on module capabilities and speed requirements. Returns
+   * the full ApplicationAdvertisingField if a suitable application is found,
+   * or std::nullopt if no matching application is available or if the current
+   * config already matches.
+   */
+  std::optional<ApplicationAdvertisingField> getAppSelCodeForSpeed(
+      cfg::PortSpeed speed,
+      uint8_t startHostLane,
+      uint8_t numHostLanesForPort,
+      uint8_t newAppSelCode = 0);
+
+  /*
+   * Helper function to program a given AppSel code to the module.
+   * This contains the common logic for resetting datapath, programming,
+   * and verifying the application code.
+   *
+   * If appSelectFunc is provided, it will be used for programming.
+   * Otherwise, the default setApplicationSelectCode will be used.
+   */
+  void programApplicationSelectCode(
+      uint8_t appSelCode,
+      uint8_t moduleMediaInterfaceCode,
+      uint8_t startHostLane,
+      uint8_t numHostLanes,
+      std::optional<std::function<void()>> appSelectFunc = std::nullopt);
+
+  /*
+   * Helper function to read an interface code (host or media) for a given
+   * AppSel code from the EEPROM based on the byte offset.
+   * - For media interface code, use byteOffset = kMediaInterfaceCodeOffset (1)
+   * - For host interface code, use byteOffset = kHostInterfaceCodeOffset (0)
+   */
+  uint8_t getInterfaceCodeForAppSel(uint8_t appSelCode, int byteOffset);
+
+  /*
+   * Helper function to read the current application select code for a given
+   * lane.
+   */
+  uint8_t getCurrentAppSelCode(uint8_t startHostLane);
   /*
    * returns individual sensor values after scaling
    */
