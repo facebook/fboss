@@ -901,6 +901,8 @@ class TransceiverManager {
 
   TcvrIdToTcvrNameMap tcvrIdToTcvrName_;
 
+  folly::Synchronized<std::unordered_set<TransceiverID>> erroredTransceivers_;
+
   struct SwPortInfo {
     std::optional<TransceiverID> tcvrID;
     std::string name;

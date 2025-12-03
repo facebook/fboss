@@ -62,6 +62,7 @@ cpp_unittest(
     deps = [
         ":transceiver_manager_test_helper",
         "//fboss/lib:common_file_utils",
+        "//fboss/qsfp_service/module/tests:mock-headers",
     ],
 )
 

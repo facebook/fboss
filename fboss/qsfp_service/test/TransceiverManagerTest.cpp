@@ -3,6 +3,7 @@
 #include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
 
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
 
 namespace facebook::fboss {
 
@@ -364,6 +365,76 @@ TEST_F(TransceiverManagerTest, areAllPortsDownWithEmptyPortInfo) {
   // Reset flag to default
   gflags::SetCommandLineOptionWithMode(
       "port_manager_mode", "0", gflags::SET_FLAGS_DEFAULT);
+}
+
+TEST_F(TransceiverManagerTest, exceptionInRefresh) {
+  auto tcvrOneID = TransceiverID(0);
+  auto tcvrTwoID = TransceiverID(1);
+
+  auto transceiverImpl1 =
+      std::make_unique<::testing::NiceMock<MockTransceiverImpl>>();
+  EXPECT_CALL(*transceiverImpl1, detectTransceiver())
+      .WillRepeatedly(::testing::Return(true));
+  EXPECT_CALL(*transceiverImpl1, getNum())
+      .WillRepeatedly(::testing::Return(static_cast<int>(tcvrOneID)));
+  qsfpImpls_.push_back(std::move(transceiverImpl1));
+
+  transceiverManager_->overrideTransceiverForTesting(
+      tcvrOneID,
+      std::make_unique<MockSffModule>(
+          transceiverManager_->getPortNames(tcvrOneID),
+          qsfpImpls_.back().get(),
+          tcvrConfig_,
+          transceiverManager_->getTransceiverName(tcvrOneID)));
+
+  auto transceiverImpl2 =
+      std::make_unique<::testing::NiceMock<MockTransceiverImpl>>();
+  EXPECT_CALL(*transceiverImpl2, detectTransceiver())
+      .WillRepeatedly(::testing::Return(true));
+  EXPECT_CALL(*transceiverImpl2, getNum())
+      .WillRepeatedly(::testing::Return(static_cast<int>(tcvrTwoID)));
+  qsfpImpls_.push_back(std::move(transceiverImpl2));
+
+  auto tcvrTwo = static_cast<MockSffModule*>(
+      transceiverManager_->overrideTransceiverForTesting(
+          tcvrTwoID,
+          std::make_unique<MockSffModule>(
+              transceiverManager_->getPortNames(tcvrTwoID),
+              qsfpImpls_.back().get(),
+              tcvrConfig_,
+              transceiverManager_->getTransceiverName(tcvrTwoID))));
+
+  // Initialize and refresh to get transceivers into a known state
+  transceiverManager_->refreshStateMachines();
+
+  // Verify both transceivers start without communication errors
+  std::map<int32_t, TransceiverInfo> tcvrInfoBefore;
+  transceiverManager_->getTransceiversInfo(
+      tcvrInfoBefore, std::make_unique<std::vector<int32_t>>());
+  EXPECT_FALSE(*tcvrInfoBefore[static_cast<int>(tcvrOneID)]
+                    .tcvrState()
+                    ->communicationError());
+  EXPECT_FALSE(*tcvrInfoBefore[static_cast<int>(tcvrTwoID)]
+                    .tcvrState()
+                    ->communicationError());
+
+  // Make tcvrTwo throw an exception during refresh
+  ON_CALL(*tcvrTwo, updateQsfpData(::testing::_))
+      .WillByDefault(ThrowFbossError());
+
+  transceiverManager_->refreshStateMachines();
+  // tcvrOne should NOT have communication error (successful refresh)
+  // tcvrTwo SHOULD have communication error (failed refresh)
+  std::map<int32_t, TransceiverInfo> tcvrInfoAfter;
+  transceiverManager_->getTransceiversInfo(
+      tcvrInfoAfter, std::make_unique<std::vector<int32_t>>());
+
+  EXPECT_FALSE(*tcvrInfoAfter[static_cast<int>(tcvrOneID)]
+                    .tcvrState()
+                    ->communicationError());
+  EXPECT_TRUE(*tcvrInfoAfter[static_cast<int>(tcvrTwoID)]
+                   .tcvrState()
+                   ->communicationError());
 }
 
 } // namespace facebook::fboss
