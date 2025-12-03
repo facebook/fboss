@@ -42,6 +42,94 @@ namespace {
 
 constexpr size_t kFabricLinkMonitoringPacketSize = 480;
 
+// Helper function to add a DSF node to config
+void addDsfNode(
+    cfg::SwitchConfig& config,
+    int64_t switchId,
+    const std::string& name,
+    cfg::DsfNodeType nodeType,
+    std::optional<int> fabricLevel = std::nullopt,
+    std::optional<PlatformType> platformType = std::nullopt) {
+  cfg::DsfNode node;
+  node.switchId() = switchId;
+  node.name() = name;
+  node.type() = nodeType;
+  if (fabricLevel.has_value()) {
+    node.fabricLevel() = *fabricLevel;
+  }
+  if (platformType.has_value()) {
+    node.platformType() = *platformType;
+  } else {
+    node.platformType() = PlatformType::PLATFORM_MERU400BIU;
+  }
+  (*config.dsfNodes())[switchId] = node;
+}
+
+// Helper function to add a fabric port with expected neighbor
+void addFabricPort(
+    cfg::SwitchConfig& config,
+    int portId,
+    const std::string& portName,
+    const std::string& neighborSwitch,
+    const std::string& neighborPort) {
+  cfg::Port port;
+  port.logicalID() = portId;
+  port.name() = portName;
+  port.portType() = cfg::PortType::FABRIC_PORT;
+  port.expectedNeighborReachability() = std::vector<cfg::PortNeighbor>();
+
+  cfg::PortNeighbor neighbor;
+  neighbor.remoteSystem() = neighborSwitch;
+  neighbor.remotePort() = neighborPort;
+  port.expectedNeighborReachability()->push_back(neighbor);
+
+  config.ports()->push_back(port);
+}
+
+// Helper to create a realistic VoQ config with 160 fabric ports
+cfg::SwitchConfig createVoqConfig() {
+  cfg::SwitchConfig config;
+  int64_t switchId{0};
+  config.switchSettings() = cfg::SwitchSettings();
+  config.switchSettings()->switchId() = switchId;
+  config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
+  config.dsfNodes() = std::map<int64_t, cfg::DsfNode>();
+  config.ports() = std::vector<cfg::Port>();
+
+  // Add VoQ switch as interface node
+  addDsfNode(config, switchId, "voq0", cfg::DsfNodeType::INTERFACE_NODE);
+
+  // Add 40 fabric switches (switchIds: 4, 8, 12, ..., 160)
+  for (int i = 1; i <= 40; i++) {
+    int64_t fabricSwitchId = i * 4;
+    addDsfNode(
+        config,
+        fabricSwitchId,
+        "fabric" + std::to_string(fabricSwitchId),
+        cfg::DsfNodeType::FABRIC_NODE,
+        1);
+  }
+
+  // Add 160 ports: 4 ports per fabric switch
+  int portId = 1;
+  for (int i = 1; i <= 40; i++) {
+    int64_t fabricSwitchId = i * 4;
+    std::string fabricSwitchName = "fabric" + std::to_string(fabricSwitchId);
+
+    for (int portOffset = 0; portOffset < 4; portOffset++) {
+      addFabricPort(
+          config,
+          portId,
+          "fab1/" + std::to_string(i) + "/" + std::to_string(portOffset + 1),
+          fabricSwitchName,
+          "fab1/1/" + std::to_string(portOffset + 1));
+      portId++;
+    }
+  }
+
+  return config;
+}
+
 unique_ptr<HwTestHandle> setupTestHandle() {
   auto state = testStateAWithPortsUp();
   addSwitchInfo(
