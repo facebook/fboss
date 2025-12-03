@@ -577,6 +577,8 @@ class CmisModule : public QsfpModule {
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
   CmisModule& operator=(CmisModule const&) = delete;
+  CmisModule(CmisModule&&) = delete;
+  CmisModule& operator=(CmisModule&&) = delete;
 
   // VDM data location of each VDM config types
   std::map<VdmConfigType, VdmDiagsLocationStatus> vdmConfigDataLocations_;
