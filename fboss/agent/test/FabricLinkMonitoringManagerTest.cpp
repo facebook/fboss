@@ -151,6 +151,92 @@ unique_ptr<HwTestHandle> setupTestHandle() {
   return createTestHandle(state);
 }
 
+void setupL1FabricSwitch(
+    std::shared_ptr<SwitchState>& state,
+    int64_t l1SwitchId) {
+  addSwitchInfo(
+      state,
+      cfg::SwitchType::FABRIC,
+      l1SwitchId,
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      1, // fabricLevel = 1 for L1 fabric node
+      std::nullopt,
+      std::nullopt,
+      MockPlatform::getMockLocalMac().toString());
+}
+
+void setupDsfNodesForDualStage(
+    std::shared_ptr<SwitchState>& state,
+    int64_t l1SwitchId) {
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
+
+  // Add L1 fabric switch as a DSF node
+  auto l1Node = std::make_shared<DsfNode>(SwitchID(l1SwitchId));
+  auto l1NodeCfg = makeDsfNodeCfg(
+      l1SwitchId,
+      cfg::DsfNodeType::FABRIC_NODE,
+      std::nullopt /* clusterId */,
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      1 /* fabricLevel */);
+  l1NodeCfg.name() = "fabric_l1_0";
+  l1NodeCfg.platformType() = PlatformType::PLATFORM_MERU400BIU;
+  l1Node->fromThrift(l1NodeCfg);
+  dsfNodeMap->addNode(l1Node, HwSwitchMatcher());
+
+  // Add L2 fabric switches as DSF nodes
+  for (int i = 0; i < 5; i++) {
+    int64_t l2SwitchId = 200 + i;
+    auto l2Node = std::make_shared<DsfNode>(SwitchID(l2SwitchId));
+    auto l2NodeCfg = makeDsfNodeCfg(
+        l2SwitchId,
+        cfg::DsfNodeType::FABRIC_NODE,
+        std::nullopt /* clusterId */,
+        cfg::AsicType::ASIC_TYPE_MOCK,
+        2 /* fabricLevel */);
+    l2NodeCfg.name() = "fabric_l2_" + std::to_string(l2SwitchId);
+    l2NodeCfg.platformType() = PlatformType::PLATFORM_MERU400BIU;
+    l2Node->fromThrift(l2NodeCfg);
+    dsfNodeMap->addNode(l2Node, HwSwitchMatcher());
+  }
+
+  state->resetDsfNodes(dsfNodeMap);
+}
+
+void setupFabricPortsWithL2Neighbors(std::shared_ptr<SwitchState>& state) {
+  int portIndex = 0;
+  for (auto& portMap : std::as_const(*state->getPorts())) {
+    for (auto& port : std::as_const(*portMap.second)) {
+      auto newPort = port.second->modify(&state);
+      newPort->setPortType(cfg::PortType::FABRIC_PORT);
+
+      // Set expected neighbor to one of the L2 switches
+      int l2Index = portIndex % 5;
+      std::string expectedNeighbor =
+          "fabric_l2_" + std::to_string(200 + l2Index);
+      cfg::PortNeighbor neighbor;
+      neighbor.remoteSystem() = expectedNeighbor;
+      neighbor.remotePort() = "port" + std::to_string(portIndex);
+      newPort->setExpectedNeighborReachability({neighbor});
+
+      portIndex++;
+    }
+  }
+}
+
+// Setup for dual-stage FABRIC switch (L1 fabric node with L2 connections)
+unique_ptr<HwTestHandle> setupDualStageFabricTestHandle() {
+  auto state = testStateAWithPortsUp();
+  int64_t l1SwitchId = 0;
+
+  setupL1FabricSwitch(state, l1SwitchId);
+  setupDsfNodesForDualStage(state, l1SwitchId);
+  setupFabricPortsWithL2Neighbors(state);
+
+  return createTestHandle(state);
+}
+
 TxMatchFn checkFabricMonitoringPacket() {
   return [=](const TxPacket* pkt) {
     const auto* buf = pkt->buf();
