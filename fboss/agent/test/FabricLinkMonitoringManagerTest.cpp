@@ -168,7 +168,7 @@ TEST(FabricLinkMonitoringManagerTest, PacketPayloadValidation) {
   // Get initial stats
   auto statsBefore = manager->getFabricLinkMonPortStats(testPort);
 
-  auto rxPkt = createFabricMonitoringRxPacket(sw, testPort, 0);
+  auto rxPkt = createFabricMonitoringRxPacket(sw, testPort, 1);
   Cursor cursor(rxPkt->buf());
 
   EXPECT_NO_THROW(manager->handlePacket(std::move(rxPkt), std::move(cursor)));

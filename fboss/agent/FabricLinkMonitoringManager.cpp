@@ -280,8 +280,6 @@ void FabricLinkMonitoringManager::sendPacketsForPortGroup(int portGroupId) {
         lastTxedPortIndex = currentIndex;
       }
     }
-    // TODO(nivinl): The API below is not yet using the shouldSendPacket
-    // param, this will be addressed in a subsequent commit.
     packetSendAndOutstandingHandling(port, portGroupId, shouldSendPacket);
   }
 
@@ -300,51 +298,58 @@ void FabricLinkMonitoringManager::sendPacketsForPortGroup(int portGroupId) {
 // Increments TX count, creates monitoring packet with port ID and seq
 // number, sends packet through SwSwitch with FABRIC_LINK_MONITORING
 // type, adds sequence number to pending queue, and updates outstanding
-// packet count. Implements drop detection when pending queue exceeds
-// limit - oldest sequence number is removed and marked as dropped
-// considering the packet as timed out given the delay involved.
+// packet count. Even if pkt tx is not desired, make sure to keep
+// dropping pending pkts based on offset from current sequence number.
+// This is to ensure that outstanding count can be kept in control in
+// case some ports are never getting packets. Implements drop detection
+// when pending queue exceeds limit - oldest sequence number is removed
+// and marked as dropped considering the packet as timed out given the
+// delay involved.
 void FabricLinkMonitoringManager::packetSendAndOutstandingHandling(
     const std::shared_ptr<Port>& port,
     int portGroupId,
-    bool /*shouldSendPacket*/) {
+    bool shouldSendPacket) {
   PortID portId = port->getID();
-  uint64_t sequenceNumber;
   int changeToOutstandingPacketCount{0};
   {
-    // Get the next sequence number from stats and increment
     auto stats = portStats_.wlock()->at(portId).wlock();
-    sequenceNumber = *stats->sequenceNumber();
-    stats->sequenceNumber() = sequenceNumber + 1;
-    stats->txCount() = *stats->txCount() + 1;
-
-    auto pkt = createMonitoringPacket(portId, sequenceNumber);
-    if (!pkt) {
-      XLOG(DBG4)
-          << "FabricLinkMonitoring: Failed to create monitoring packet for port "
-          << portId;
-      return;
-    }
-
-    sw_->sendPacketOutOfPortSyncForPktType(
-        std::move(pkt), portId, TxPacketType::FABRIC_LINK_MONITORING);
-
-    // Track pending sequence numbers
     auto pendingSeqNumsLocked = portPendingSequenceNumbers_.wlock();
     auto& pendingSeqNums = (*pendingSeqNumsLocked)[portId];
-    pendingSeqNums.push_back(sequenceNumber);
-    // Increment outstanding packet count.
-    changeToOutstandingPacketCount += 1;
+    // Get the next sequence number from stats and increment
+    uint64_t sequenceNumber = *stats->sequenceNumber() + 1;
+    stats->sequenceNumber() = sequenceNumber;
+
+    if (shouldSendPacket) {
+      auto pkt = createMonitoringPacket(portId, sequenceNumber);
+      if (!pkt) {
+        XLOG(DBG4)
+            << "FabricLinkMonitoring: Failed to create monitoring packet for port "
+            << portId;
+      } else {
+        sw_->sendPacketOutOfPortSyncForPktType(
+            std::move(pkt), portId, TxPacketType::FABRIC_LINK_MONITORING);
+        // Track pending sequence numbers
+        pendingSeqNums.push_back(sequenceNumber);
+        // Increment outstanding packet count.
+        changeToOutstandingPacketCount += 1;
+        XLOG(DBG4) << "FabricLinkMonitoring: Sent packet on port " << portId
+                   << " with sequence number " << sequenceNumber;
+        stats->txCount() = *stats->txCount() + 1;
+      }
+    }
 
     // Ideally, if packets are being received for the port, pending sequence
     // numbers should get cleared. But in case receive is not happening, we
     // need to clear the pending sequence numbers assuming those packets are
     // dropped as we have not received those in the interval needed to send
     // FLAGS_fabric_link_monitoring_max_pending_seq_numbers packets.
-    if (pendingSeqNums.size() >
-        FLAGS_fabric_link_monitoring_max_pending_seq_numbers) {
+    if (pendingSeqNums.size() &&
+        (pendingSeqNums.front() +
+             FLAGS_fabric_link_monitoring_max_pending_seq_numbers <
+         sequenceNumber)) {
       uint64_t droppedSeqNum = pendingSeqNums.front();
       pendingSeqNums.pop_front();
-      *stats->droppedCount() = *stats->droppedCount() + 1;
+      stats->droppedCount() = *stats->droppedCount() + 1;
       // We decided to consider one of the outstanding packets as dropped,
       // which means we should not expect to see this packet anymore and
       // should decrement the outstanding packet count.
@@ -356,9 +361,6 @@ void FabricLinkMonitoringManager::packetSendAndOutstandingHandling(
                  << FLAGS_fabric_link_monitoring_max_pending_seq_numbers
                  << " subsequent packets)";
     }
-
-    XLOG(DBG4) << "FabricLinkMonitoring: Sent packet on port " << portId
-               << " with sequence number " << sequenceNumber;
   }
 
   // If the outstanding packet count has changed, update the group stats.
