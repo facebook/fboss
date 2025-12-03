@@ -281,7 +281,7 @@ void FabricLinkMonitoringManager::sendPacketsForPortGroup(int portGroupId) {
       break;
     }
 
-    sendPacketOnPort(port, portGroupId);
+    packetSendAndOutstandingHandling(port, portGroupId, true);
     portsSent++;
   }
 
@@ -296,16 +296,17 @@ void FabricLinkMonitoringManager::sendPacketsForPortGroup(int portGroupId) {
   }
 }
 
-// Send a single monitoring packet on a specific port. Increments TX
-// count, creates monitoring packet with port ID and sequence number,
-// sends packet through SwSwitch with FABRIC_LINK_MONITORING type,
-// adds sequence number to pending queue, and updates outstanding
+// Send a single monitoring packet on a port as specified in the params.
+// Increments TX count, creates monitoring packet with port ID and seq
+// number, sends packet through SwSwitch with FABRIC_LINK_MONITORING
+// type, adds sequence number to pending queue, and updates outstanding
 // packet count. Implements drop detection when pending queue exceeds
 // limit - oldest sequence number is removed and marked as dropped
 // considering the packet as timed out given the delay involved.
-void FabricLinkMonitoringManager::sendPacketOnPort(
+void FabricLinkMonitoringManager::packetSendAndOutstandingHandling(
     const std::shared_ptr<Port>& port,
-    int portGroupId) {
+    int portGroupId,
+    bool /*shouldSendPacket*/) {
   PortID portId = port->getID();
   uint64_t sequenceNumber;
   int changeToOutstandingPacketCount{0};

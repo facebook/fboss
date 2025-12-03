@@ -67,7 +67,10 @@ class FabricLinkMonitoringManager : private folly::AsyncTimeout {
   void timeoutExpired() noexcept override;
   void sendPacketsOnAllFabricPorts();
   void sendPacketsForPortGroup(int portGroupId);
-  void sendPacketOnPort(const std::shared_ptr<Port>& port, int portGroupId);
+  void packetSendAndOutstandingHandling(
+      const std::shared_ptr<Port>& port,
+      int portGroupId,
+      bool shouldSendPacket);
   std::unique_ptr<TxPacket> createMonitoringPacket(
       const PortID& portId,
       uint64_t sequenceNumber);
