@@ -63,6 +63,10 @@ class FabricLinkMonitoringManager : private folly::AsyncTimeout {
   // Get pending sequence numbers for a specific port (for testing)
   std::vector<uint64_t> getPendingSequenceNumbers(const PortID& portId) const;
 
+  // Test-only methods to enable/check test mode
+  static void setTestMode(bool enabled);
+  static bool isTestMode();
+
  private:
   void timeoutExpired() noexcept override;
   void sendPacketsOnAllFabricPorts();

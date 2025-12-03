@@ -39,6 +39,20 @@ constexpr int kFabricLinkMonitoringPacketSize{480};
 constexpr int kMaxOutstandingPacketsVoqSwitch{160};
 constexpr int kMaxOutstandingPacketsFabricSwitch{40};
 
+namespace {
+// Static flag for test mode
+std::atomic<bool> testModeEnabled{false};
+} // namespace
+
+// Test-only function to enable test mode
+void FabricLinkMonitoringManager::setTestMode(bool enabled) {
+  testModeEnabled.store(enabled);
+}
+
+bool FabricLinkMonitoringManager::isTestMode() {
+  return testModeEnabled.load();
+}
+
 // Initialize the FabricLinkMonitoringManager with a reference to SwSwitch and
 // configure the monitoring interval. Automatically determines the maximum
 // outstanding packets based on switch type (VOQ switches: 160 packets per port
@@ -138,6 +152,11 @@ void FabricLinkMonitoringManager::timeoutExpired() noexcept {
 // (VD) ID for outstanding packet management. For switches without virtual
 // devices, all ports are considered to be in group 0.
 int FabricLinkMonitoringManager::getPortGroup(PortID portId) const {
+  if (isTestMode()) {
+    // In unit test cases, avoid dependency on platform mapping
+    return static_cast<int>(portId) % 4;
+  }
+
   int portGroup = 0;
   const auto& pPort = sw_->getPlatformMapping()->getPlatformPort(portId);
   if (pPort.mapping()->virtualDeviceId().has_value()) {
