@@ -15,17 +15,14 @@
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
-#include "gmock/gmock.h"
 
 using ::testing::_;
 using ::testing::AtLeast;
@@ -207,6 +204,92 @@ std::unique_ptr<RxPacket> createFabricMonitoringRxPacket(
   auto rxPkt = std::make_unique<MockRxPacket>(std::move(buf));
   rxPkt->setSrcPort(portId);
   return rxPkt;
+}
+
+// Helper function to setup VOQ switch state with fabric ports
+std::shared_ptr<SwitchState> setupVoqSwitchState(
+    const cfg::SwitchConfig& config) {
+  auto state = std::make_shared<SwitchState>();
+  addSwitchInfo(
+      state,
+      cfg::SwitchType::VOQ,
+      0,
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      0,
+      std::nullopt,
+      std::nullopt,
+      MockPlatform::getMockLocalMac().toString());
+
+  auto portMap = std::make_shared<MultiSwitchPortMap>();
+  for (const auto& cfgPort : *config.ports()) {
+    auto portId = PortID(*cfgPort.logicalID());
+    auto port = std::make_shared<Port>(portId, *cfgPort.name());
+    port->setPortType(*cfgPort.portType());
+    port->setOperState(true);
+    port->setAdminState(cfg::PortState::ENABLED);
+    portMap->addNode(port, HwSwitchMatcher());
+  }
+
+  state->resetPorts(portMap);
+  return state;
+}
+
+// Helper function to count fabric ports in state
+int countFabricPorts(SwSwitch* sw) {
+  int numFabricPorts = 0;
+  for (const auto& portMap : std::as_const(*sw->getState()->getPorts())) {
+    for (const auto& [portId, port] : std::as_const(*portMap.second)) {
+      (void)portId;
+      if (port->getPortType() == cfg::PortType::FABRIC_PORT &&
+          port->isPortUp()) {
+        numFabricPorts++;
+      }
+    }
+  }
+  return numFabricPorts;
+}
+
+// Helper function to setup packet tracking expectations
+void setupPacketTrackingExpectations(
+    SwSwitch* sw,
+    std::atomic<int>& totalPacketsSent,
+    int expectedFabricPorts) {
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortSyncForPktType_(
+          TxPacketMatcher::createMatcher(
+              "Fabric Monitoring Packet",
+              [&totalPacketsSent](const TxPacket* /*pkt*/) {
+                totalPacketsSent++;
+              }),
+          _,
+          _))
+      .Times(AtLeast(expectedFabricPorts));
+}
+
+// Helper function to verify transmission invariants
+void verifyTransmissionInvariants(
+    FabricLinkMonitoringManager* manager,
+    int expectedFabricPorts) {
+  WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+    int portsWithTx = 0;
+    int portsWithPending = 0;
+    auto allStats = manager->getAllFabricLinkMonPortStats();
+    for (const auto& [portId, stats] : allStats) {
+      if (*stats.txCount() > 2) {
+        portsWithTx++;
+      }
+      if (manager->getPendingSequenceNumbers(portId).size() >= 1) {
+        portsWithPending++;
+      }
+      EXPECT_EQ(*stats.rxCount(), 0);
+    }
+
+    EXPECT_EVENTUALLY_EQ(portsWithTx, expectedFabricPorts);
+    EXPECT_EVENTUALLY_EQ(portsWithPending, expectedFabricPorts);
+  });
 }
 
 } // namespace
