@@ -117,7 +117,7 @@ class NaivePeriodicSubscribableStorageBase {
       StorageParams params,
       std::optional<OperPathToPublisherRoot> pathToRootHelper = std::nullopt);
 
-  virtual ~NaivePeriodicSubscribableStorageBase() {}
+  virtual ~NaivePeriodicSubscribableStorageBase() = default;
 
   const StorageParams& params() const {
     return params_;
@@ -330,6 +330,10 @@ class NaivePeriodicSubscribableStorageBase {
       NaivePeriodicSubscribableStorageBase const&) = delete;
   NaivePeriodicSubscribableStorageBase& operator=(
       NaivePeriodicSubscribableStorageBase const&) = delete;
+  NaivePeriodicSubscribableStorageBase(NaivePeriodicSubscribableStorageBase&&) =
+      delete;
+  NaivePeriodicSubscribableStorageBase& operator=(
+      NaivePeriodicSubscribableStorageBase&&) = delete;
 };
 
 } // namespace facebook::fboss::fsdb
