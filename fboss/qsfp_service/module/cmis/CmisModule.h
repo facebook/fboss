@@ -94,6 +94,7 @@ class CmisModule : public QsfpModule {
   static constexpr int kHostInterfaceCodeOffset = 0;
   static constexpr int kMediaInterfaceCodeOffset = 1;
   static constexpr int32_t kDefaultFrequencyMhz = 193100000;
+  static constexpr uint8_t kInvalidApplication = 0;
 
   using ApplicationAdvertisingFields = std::vector<ApplicationAdvertisingField>;
 
@@ -263,7 +264,8 @@ class CmisModule : public QsfpModule {
   void setApplicationCodeLocked(
       cfg::PortSpeed speed,
       uint8_t startHostLane,
-      uint8_t numHostLanesForPort);
+      uint8_t numHostLanesForPort,
+      uint8_t newAppSelCode);
 
   /*
    * Helper function to discover and return the appropriate application
@@ -275,8 +277,7 @@ class CmisModule : public QsfpModule {
   std::optional<ApplicationAdvertisingField> getAppSelCodeForSpeed(
       cfg::PortSpeed speed,
       uint8_t startHostLane,
-      uint8_t numHostLanesForPort,
-      uint8_t newAppSelCode = 0);
+      uint8_t numHostLanesForPort);
 
   /*
    * Helper function to program a given AppSel code to the module.
