@@ -773,3 +773,32 @@ TEST(FabricLinkMonitoringManagerTest, HandlePacketWithNoPendingSequence) {
 
   manager->stop();
 }
+
+TEST(
+    FabricLinkMonitoringManagerTest,
+    VoqSwitchWith160FabricPortsContinuesSendingWithoutResponses) {
+  FabricLinkMonitoringManager::setTestMode(true);
+
+  auto config = createVoqConfig();
+  EXPECT_EQ(config.ports()->size(), 160);
+
+  auto state = setupVoqSwitchState(config);
+  auto handle = createTestHandle(state);
+  auto sw = handle->getSw();
+
+  constexpr int kExpectedFabricPorts = 160;
+  int numFabricPorts = countFabricPorts(sw);
+  XLOG(INFO) << "Testing with " << numFabricPorts << " fabric ports";
+  EXPECT_EQ(numFabricPorts, kExpectedFabricPorts);
+
+  std::atomic<int> totalPacketsSent{0};
+  setupPacketTrackingExpectations(sw, totalPacketsSent, kExpectedFabricPorts);
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  verifyTransmissionInvariants(manager.get(), kExpectedFabricPorts);
+
+  manager->stop();
+  FabricLinkMonitoringManager::setTestMode(false);
+}
