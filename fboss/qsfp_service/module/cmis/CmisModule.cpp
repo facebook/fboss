@@ -1259,6 +1259,60 @@ PowerControlState CmisModule::getPowerControlValue(bool readFromCache) {
   }
 }
 
+PowerControlState CmisModule::getCurrentPowerControlState() {
+  uint8_t currentModuleControl;
+  readCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
+
+  if (currentModuleControl & POWER_CONTROL_MASK) {
+    QSFP_LOG(INFO, this)
+        << "getCurrentPowerControlState: Current power state is LOW POWER MODE (LP bit set)";
+    return PowerControlState::POWER_LPMODE;
+  } else {
+    QSFP_LOG(INFO, this)
+        << "getCurrentPowerControlState: Current power state is HIGH POWER MODE";
+    return PowerControlState::HIGH_POWER_OVERRIDE;
+  }
+}
+
+bool CmisModule::isModuleInReadyState() {
+  uint8_t moduleStatus;
+  readCmisField(CmisField::MODULE_STATE, &moduleStatus);
+  const bool isReady =
+      ((CmisModuleState)((moduleStatus & MODULE_STATUS_MASK) >>
+                         MODULE_STATUS_BITSHIFT) == CmisModuleState::READY);
+
+  if (isReady) {
+    QSFP_LOG(INFO, this) << "isModuleInReadyState: Module is in READY state";
+  } else {
+    QSFP_LOG(INFO, this)
+        << "isModuleInReadyState: Module is not ready yet - need more time to be ready";
+  }
+
+  return isReady;
+}
+
+bool CmisModule::moduleReadyStatePoll() {
+  auto retries = 0;
+  constexpr int kUsecModuleReadyStateUpdateTimeMax = 5000000; // 5 seconds
+  constexpr int kUsecModuleReadyStatePollTime = 100000; // 100 ms
+  auto maxRetriesReady =
+      kUsecModuleReadyStateUpdateTimeMax / kUsecModuleReadyStatePollTime;
+
+  while (retries++ < maxRetriesReady) {
+    /* sleep override */
+    usleep(kUsecModuleReadyStatePollTime);
+    if (isModuleInReadyState()) {
+      return true;
+    }
+  }
+  if (retries >= maxRetriesReady) {
+    QSFP_LOG(ERR, this) << folly::sformat(
+        "Module not ready even after waiting {:d} uSec",
+        kUsecModuleReadyStateUpdateTimeMax);
+  }
+  return false;
+}
+
 /*
  * For the specified field, collect alarm and warning flags for the channel.
  */
@@ -2972,9 +3026,14 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
    * This must be called with a lock held on qsfpModuleMutex_
    */
   if (customizationSupported()) {
-    // We want this on regardless of speed
-    setPowerOverrideIfSupportedLocked(
-        getPowerControlValue(false /* readFromCache */));
+    if (!programAppSelInLowPowerMode()) {
+      // We want this on regardless of speed
+      setPowerOverrideIfSupportedLocked(
+          getPowerControlValue(false /* readFromCache */));
+    } else {
+      QSFP_LOG(INFO, this)
+          << "Module is kept in low power mode for AppSel programming and skipping power override";
+    }
 
     if (isTunableOptics()) {
       if (portState.opticalChannelConfig.has_value()) {
@@ -2999,6 +3058,29 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
     }
     // Set the FEC sampling if applicable.
     setMaxFecSamplingLocked();
+    // Handle vendor-specific low power mode clearing after AppSel programming
+    if (programAppSelInLowPowerMode()) {
+      const PowerControlState powerState = getCurrentPowerControlState();
+      if (powerState == PowerControlState::HIGH_POWER_OVERRIDE &&
+          isModuleInReadyState()) {
+        QSFP_LOG(INFO, this) << "Module already in high power and ready state";
+      } else {
+        uint8_t currentModuleControl;
+        readCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
+        uint8_t newModuleControl = currentModuleControl & ~LOW_PWR_BIT;
+        QSFP_LOG(INFO, this) << folly::sformat(
+            "Clearing low power bit to enable high power mode: {:#x} currentModuleControl: {:#x})",
+            newModuleControl,
+            currentModuleControl);
+        writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
+
+        getCurrentPowerControlState();
+
+        if (!moduleReadyStatePoll()) {
+          QSFP_LOG(ERR, this) << "Module not in ready state";
+        }
+      }
+    }
   } else {
     QSFP_LOG(DBG1, this) << "Customization not supported";
   }
@@ -3155,40 +3237,14 @@ bool CmisModule::ensureTransceiverReadyLocked() {
 
   // Read the current power configuration values. Don't depend on refresh
   // because that may be delayed
-  uint8_t currentModuleControl;
-  PowerControlState powerState;
-  readCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
-
-  if (currentModuleControl & POWER_CONTROL_MASK) {
-    powerState = PowerControlState::POWER_LPMODE;
-    QSFP_LOG(INFO, this)
-        << "ensureTransceiverReadyLocked: Current power state is LOW POWER MODE (LP bit set)";
-  } else {
-    powerState = PowerControlState::HIGH_POWER_OVERRIDE;
-    QSFP_LOG(INFO, this)
-        << "ensureTransceiverReadyLocked: Current power state is HIGH POWER MODE";
-  }
+  const PowerControlState powerState = getCurrentPowerControlState();
 
   // If Optics current power configuration is High Power then the config is
   // correct. We need to check if the Module's current status is READY then
   // return true else return false as the optics state machine might be in
   // transition and need more time to be ready
   if (powerState == PowerControlState::HIGH_POWER_OVERRIDE) {
-    uint8_t moduleStatus;
-    readCmisField(CmisField::MODULE_STATE, &moduleStatus);
-    bool isReady =
-        ((CmisModuleState)((moduleStatus & MODULE_STATUS_MASK) >>
-                           MODULE_STATUS_BITSHIFT) == CmisModuleState::READY);
-
-    if (isReady) {
-      QSFP_LOG(INFO, this)
-          << "ensureTransceiverReadyLocked: Module is in high power and READY state";
-    } else {
-      QSFP_LOG(INFO, this)
-          << "ensureTransceiverReadyLocked: Module in high power but not ready yet - need more time to be ready";
-    }
-
-    return isReady;
+    return isModuleInReadyState();
   }
 
   // If the optics current power configuration is Low Power then set the LP
@@ -3243,13 +3299,21 @@ bool CmisModule::ensureTransceiverReadyLocked() {
   }
 
   // Clear low power bit (set to 0x20)
-  newModuleControl = SQUELCH_CONTROL;
-  QSFP_LOG(INFO, this) << folly::sformat(
-      "ensureTransceiverReadyLocked: Clearing low power bit to enable high power mode: {:#x}",
-      newModuleControl);
+  if (!programAppSelInLowPowerMode()) {
+    newModuleControl = SQUELCH_CONTROL;
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "ensureTransceiverReadyLocked: Clearing low power bit to enable high power mode: {:#x}",
+        newModuleControl);
 
-  writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
-  return false;
+    writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
+    return false;
+  } else {
+    // Maintaining the optics to low power mode until AppSel programming
+    // completion
+    QSFP_LOG(INFO, this)
+        << "ensureTransceiverReadyLocked: Optics in low power mode for AppSel programming";
+    return true;
+  }
 }
 
 /*
