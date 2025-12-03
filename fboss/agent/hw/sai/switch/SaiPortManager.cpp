@@ -597,6 +597,11 @@ SaiPortManager::SaiPortManager(
 }
 
 SaiPortHandle::~SaiPortHandle() {
+#if CHENAB_SAI_SDK
+  // disable PRBS before deleting port or port serdes
+  port->setOptionalAttribute(
+      SaiPortTraits::Attributes::PrbsConfig(SAI_PORT_PRBS_CONFIG_DISABLE));
+#endif
   if (ingressSamplePacket) {
     port->setOptionalAttribute(
         SaiPortTraits::Attributes::IngressSamplePacketEnable{
