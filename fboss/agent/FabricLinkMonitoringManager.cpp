@@ -250,6 +250,10 @@ void FabricLinkMonitoringManager::sendPacketsForPortGroup(int portGroupId) {
   std::shared_ptr<SwitchState> state = sw_->getState();
   size_t portsSent = 0;
   size_t currentIndex = 0;
+  // Send and receive happen in different threads, so check the
+  // outstanding packet count to decide when to stop sending.
+  bool shouldSendPacket = true;
+  size_t lastTxedPortIndex = startIndex;
 
   for (size_t i = 0; i < fabricPortIds.size(); ++i) {
     currentIndex = (startIndex + i) % fabricPortIds.size();
@@ -260,39 +264,35 @@ void FabricLinkMonitoringManager::sendPacketsForPortGroup(int portGroupId) {
       continue;
     }
 
-    // Send and receive happen in different threads, so check the
-    // outstanding packet count to decide when to stop sending.
-    bool shouldStop = false;
-    {
+    if (shouldSendPacket) {
       auto lockedStats = portGroupStats_.wlock();
       auto& groupStats = (*lockedStats)[portGroupId];
       if (groupStats.outstandingPackets >=
           FLAGS_fabric_link_monitoring_max_outstanding_packets) {
-        shouldStop = true;
+        shouldSendPacket = false;
+        XLOG(DBG4) << "Port group " << portGroupId
+                   << " has reached max outstanding packets ("
+                   << FLAGS_fabric_link_monitoring_max_outstanding_packets
+                   << "), stopping at port index " << currentIndex
+                   << " after sending on " << portsSent << " ports!";
+      } else {
+        portsSent++;
+        lastTxedPortIndex = currentIndex;
       }
     }
-
-    if (shouldStop) {
-      XLOG(DBG4) << "Port group " << portGroupId
-                 << " has reached max outstanding packets ("
-                 << FLAGS_fabric_link_monitoring_max_outstanding_packets
-                 << "), stopping at port index " << currentIndex
-                 << " after sending on " << portsSent << " ports!";
-      break;
-    }
-
-    packetSendAndOutstandingHandling(port, portGroupId, true);
-    portsSent++;
+    // TODO(nivinl): The API below is not yet using the shouldSendPacket
+    // param, this will be addressed in a subsequent commit.
+    packetSendAndOutstandingHandling(port, portGroupId, shouldSendPacket);
   }
 
-  // We just looped through from the starting index for the size
-  // of port IDs available. So, need to update the last port we
-  // visited so that we can start at the next port in sequence
-  // for the next iteration.
-  {
+  // Update the last port we transmitted packet on so that we can start at
+  // the next port in sequence for the next iteration. Only update if we
+  // actually sent packets, otherwise keep the previous startIndex.
+  if (portsSent > 0) {
     auto lockedStats = portGroupStats_.wlock();
     auto& groupStats = (*lockedStats)[portGroupId];
-    groupStats.lastPortIndex = currentIndex;
+    // Start from the next port after the last transmitted port
+    groupStats.lastPortIndex = (lastTxedPortIndex + 1) % fabricPortIds.size();
   }
 }
 
