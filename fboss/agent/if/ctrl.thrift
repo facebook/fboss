@@ -283,6 +283,7 @@ struct FabricLinkMonPortStats {
   3: i64 droppedCount;
   4: i64 invalidPayloadCount;
   5: i64 noPendingSeqNumCount;
+  6: i64 sequenceNumber;
 }
 
 /*

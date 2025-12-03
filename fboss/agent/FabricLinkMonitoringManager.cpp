@@ -310,9 +310,11 @@ void FabricLinkMonitoringManager::sendPacketOnPort(
   uint64_t sequenceNumber;
   int changeToOutstandingPacketCount{0};
   {
+    // Get the next sequence number from stats and increment
     auto stats = portStats_.wlock()->at(portId).wlock();
-    sequenceNumber = *stats->txCount();
-    stats->txCount() = sequenceNumber + 1;
+    sequenceNumber = *stats->sequenceNumber();
+    stats->sequenceNumber() = sequenceNumber + 1;
+    stats->txCount() = *stats->txCount() + 1;
 
     auto pkt = createMonitoringPacket(portId, sequenceNumber);
     if (!pkt) {
