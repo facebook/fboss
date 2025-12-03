@@ -127,11 +127,12 @@ cfg::SwitchConfig createVoqConfig() {
   return config;
 }
 
+// Setup for VOQ switch with fabric ports
 unique_ptr<HwTestHandle> setupTestHandle() {
   auto state = testStateAWithPortsUp();
   addSwitchInfo(
       state,
-      cfg::SwitchType::FABRIC,
+      cfg::SwitchType::VOQ,
       0,
       cfg::AsicType::ASIC_TYPE_MOCK,
       cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
@@ -858,6 +859,37 @@ TEST(FabricLinkMonitoringManagerTest, HandlePacketWithNoPendingSequence) {
   EXPECT_GT(*statsAfter.noPendingSeqNumCount(), 0);
 
   manager->stop();
+}
+
+TEST(
+    FabricLinkMonitoringManagerTest,
+    DualStageFabricSwitchSendsPacketsToL2Ports) {
+  auto handle = setupDualStageFabricTestHandle();
+  auto sw = handle->getSw();
+
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortSyncForPktType_(
+          TxPacketMatcher::createMatcher(
+              "Fabric Monitoring Packet", checkFabricMonitoringPacket()),
+          _,
+          _))
+      .Times(AtLeast(1));
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  waitForStateUpdates(sw);
+  waitForBackgroundThread(sw);
+
+  manager->stop();
+
+  // Verify that packets were sent on the L2-connected fabric ports
+  auto allStats = manager->getAllFabricLinkMonPortStats();
+  EXPECT_GT(allStats.size(), 0);
+  for (const auto& [portId, stats] : allStats) {
+    EXPECT_GT(*stats.txCount(), 0);
+  }
 }
 
 TEST(
