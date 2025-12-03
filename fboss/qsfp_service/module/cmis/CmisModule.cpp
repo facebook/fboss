@@ -2549,6 +2549,232 @@ void CmisModule::setMaxFecSamplingLocked() {
 }
 
 /*
+ * programApplicationSelectCode
+ *
+ * Helper function to program a given AppSel code to the module. This contains
+ * the common logic for resetting datapath, programming the AppSel code,
+ * waiting for the module to process, and verifying the configuration.
+ *
+ * If appSelectFunc is provided, it will be used. Otherwise, the default
+ * setApplicationSelectCode will be used.
+ */
+void CmisModule::programApplicationSelectCode(
+    uint8_t appSelCode,
+    uint8_t moduleMediaInterfaceCode,
+    uint8_t startHostLane,
+    uint8_t numHostLanes,
+    std::optional<std::function<void()>> appSelectFunc) {
+  uint8_t hostLaneMask = laneMask(startHostLane, numHostLanes);
+
+  // Use provided function or create default one
+  if (!appSelectFunc) {
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "Programming App sel on lanes {:#x}", hostLaneMask);
+
+    appSelectFunc = std::bind(
+        &CmisModule::setApplicationSelectCode,
+        this,
+        appSelCode,
+        moduleMediaInterfaceCode,
+        startHostLane,
+        numHostLanes,
+        hostLaneMask);
+  }
+
+  resetDataPathWithFunc(appSelectFunc, hostLaneMask);
+
+  datapathResetPendingMask_ &= ~hostLaneMask;
+
+  // Certain OSFP Modules require a long time to finish application
+  // programming. The modules say config is accepted and applied, but
+  // internally the module will still be processing the config. If we don't
+  // have a delay here, the next application programming on a different lane
+  // gets rejected.
+  /* sleep override */
+  usleep(kUsecAfterAppProgramming);
+
+  // Check if the config has been applied correctly or not
+  // TODO: This is a failure scenario. We should Fail somehow !
+  if (!checkLaneConfigError(startHostLane, numHostLanes)) {
+    QSFP_LOG(ERR, this) << folly::sformat(
+        "application {:#x} could not be set", moduleMediaInterfaceCode);
+  }
+}
+
+/*
+ * getInterfaceCodeForAppSel
+ *
+ * Helper function to read an interface code (host or media) for a given AppSel
+ * code from the EEPROM based on the byte offset.
+ * - For media interface code, use byteOffset = kMediaInterfaceCodeOffset (1)
+ * - For host interface code, use byteOffset = kHostInterfaceCodeOffset (0)
+ */
+uint8_t CmisModule::getInterfaceCodeForAppSel(
+    uint8_t appSelCode,
+    int byteOffset) {
+  if (appSelCode == 0 || appSelCode > 15) {
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "Invalid appSelCode {:#x}, returning 0", appSelCode);
+    return 0;
+  }
+
+  uint8_t interfaceCode = 0;
+  int offset;
+  int length;
+  int dataAddress;
+
+  if (appSelCode >= 1 && appSelCode <= 8) {
+    getQsfpFieldAddress(
+        CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
+    offset += (appSelCode - 1) * length + byteOffset;
+    getQsfpValue(dataAddress, offset, 1, &interfaceCode);
+  } else if (appSelCode >= 9 && appSelCode <= 15) {
+    getQsfpFieldAddress(
+        CmisField::APPLICATION_ADVERTISING2, dataAddress, offset, length);
+    offset += (appSelCode - 9) * length + byteOffset;
+    getQsfpValue(dataAddress, offset, 1, &interfaceCode);
+  }
+
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "interfaceCode: {:#x} for appSelCode {:#x} byteOffset {}",
+      interfaceCode,
+      appSelCode,
+      byteOffset);
+
+  return interfaceCode;
+}
+
+/*
+ * getCurrentAppSelCode
+ *
+ * Helper function to read the current application select code for a given lane.
+ */
+uint8_t CmisModule::getCurrentAppSelCode(uint8_t startHostLane) {
+  uint8_t currentApplicationSel =
+      getSettingsValue(laneToActiveCtrlField[startHostLane], APP_SEL_MASK);
+  return currentApplicationSel >> APP_SEL_BITSHIFT;
+}
+
+/*
+ * getAppSelCodeForSpeed
+ *
+ * Helper function that discovers and returns the appropriate application
+ * capability based on module capabilities and speed requirements. Returns
+ * the full ApplicationAdvertisingField if a suitable application is found,
+ * or std::nullopt if no matching application is available or if the current
+ * config already matches.
+ */
+std::optional<CmisModule::ApplicationAdvertisingField>
+CmisModule::getAppSelCodeForSpeed(
+    cfg::PortSpeed speed,
+    uint8_t startHostLane,
+    uint8_t numHostLanesForPort,
+    uint8_t newAppSelCode) {
+  std::vector<uint8_t> appCodes;
+
+  if (isAecModule()) {
+    appCodes = CmisHelper::getInterfaceCode<ActiveCuHostInterfaceCode>(
+        speed, CmisHelper::getActiveSpeedApplication());
+  } else {
+    appCodes = CmisHelper::getInterfaceCode<SMFMediaInterfaceCode>(
+        speed, CmisHelper::getSmfSpeedApplicationMapping());
+  }
+
+  if (appCodes.empty()) {
+    QSFP_LOG(INFO, this) << "Unsupported Speed.";
+    throw FbossError(
+        folly::to<std::string>(
+            "Transceiver: ",
+            qsfpImpl_->getName(),
+            " Unsupported speed: ",
+            apache::thrift::util::enumNameSafe(speed)));
+  }
+
+  QSFP_LOG(INFO, this) << "Application codes supporting current speed: "
+                       << folly::join(",", appCodes);
+
+  // Currently we will have the same application across all the lanes. So here
+  // we only take one of them to look at.
+  uint8_t currentApplicationSel = getCurrentAppSelCode(startHostLane);
+
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "currentApplicationSel: {:#x} speed {:s} startHostLane {:d} numHostLanesForPort {:d}",
+      currentApplicationSel,
+      apache::thrift::util::enumNameSafe(speed),
+      startHostLane,
+      numHostLanesForPort);
+
+  // We use the module Media Interface ID for Optical modules, which is located
+  // at the second byte of the field (byteOffset = 1), as Application ID here.
+  // If we have an AEC cable, we use the module host interface ID which has a
+  // byteOffset of 0. This is in page 00h app sel advertising (starting at
+  // offset 86 for page)
+  int byteOffset =
+      isAecModule() ? kHostInterfaceCodeOffset : kMediaInterfaceCodeOffset;
+
+  // Get the current application interface code based on module type
+  uint8_t currentApplication = 0;
+  if (currentApplicationSel >= 1 && currentApplicationSel <= 15) {
+    currentApplication =
+        getInterfaceCodeForAppSel(currentApplicationSel, byteOffset);
+  } else {
+    QSFP_LOG(INFO, this) << "currentApplication: not selected yet";
+  }
+
+  // Loop through all the applications that we support for the given speed and
+  // check if any of those are present in the moduleCapabilities. We configure
+  // the first application that both we support and the module supports
+  for (auto application : appCodes) {
+    auto capability = getApplicationField(application, startHostLane);
+
+    // Check if the module supports the application
+    if (!capability) {
+      continue;
+    }
+
+    auto numHostLanes = capability->hostLaneCount;
+    // We could support 100G-1 or 100G-4, 200G-1, 200G-2 or 200G-4, 400G-2 or
+    // 400G-4. Thus compare both speed and number of host lanes
+    if ((speed == cfg::PortSpeed::HUNDREDG ||
+         speed == cfg::PortSpeed::TWOHUNDREDG ||
+         speed == cfg::PortSpeed::FOURHUNDREDG) &&
+        numHostLanesForPort != numHostLanes) {
+      continue;
+    }
+
+    // If the currently configured application is the same as what we are trying
+    // to configure, then skip the configuration
+    if (application == currentApplication) {
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "Speed matches: currentApplication {:#x}. Doing nothing",
+          currentApplication);
+      // Make sure the datapath is initialized, otherwise initialize it before
+      // returning
+      uint8_t hostLaneMask = laneMask(startHostLane, numHostLanes);
+      if (datapathResetPendingMask_ & hostLaneMask) {
+        resetDataPathWithFunc(std::nullopt, hostLaneMask);
+        datapathResetPendingMask_ &= ~hostLaneMask;
+        QSFP_LOG(INFO, this) << folly::sformat(
+            "Reset datapath for lane mask {:#x} before returning",
+            hostLaneMask);
+      }
+      return std::nullopt;
+    }
+
+    // Found a matching application - return the full capability
+    return *capability;
+  }
+
+  // We didn't find an application that both we support and the module supports
+  QSFP_LOG(INFO, this) << "Unsupported Application";
+  throw FbossError(
+      folly::to<std::string>(
+          "Port: ",
+          qsfpImpl_->getName(),
+          " Unsupported Application by the module: "));
+}
+
+/*
  * setApplicationCodeLocked
  *
  * This function programs the application select code for a port using the speed
