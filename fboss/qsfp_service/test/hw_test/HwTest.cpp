@@ -308,8 +308,8 @@ TEST_F(HwTest, CheckTcvrNameAndInterfaces) {
     EXPECT_EQ(tcvrStateName, tcvrStatsName);
     EXPECT_TRUE(
         tcvrStateName.starts_with("eth") || tcvrStateName.starts_with("fab"));
-    auto portName = wedgeManager->getPortName(TransceiverID(id));
-    EXPECT_EQ(tcvrStateName + "/1", portName);
+    auto tcvrPortName = wedgeManager->getPortName(TransceiverID(id));
+    EXPECT_EQ(tcvrStateName + "/1", tcvrPortName);
 
     auto ports = wedgeManager->getPortNames(TransceiverID(id));
     EXPECT_FALSE(ports.empty());
