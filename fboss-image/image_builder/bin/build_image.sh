@@ -155,7 +155,7 @@ if [ "${BUILD_DOCKER_IMAGE}" = "yes" ] ; then
         dprint "Docker image: ${DOCKER_IMAGE_NAME} already exists, skipping build..."
     else
         dprint "Building docker image: ${DOCKER_IMAGE_NAME}"
-        DOCKER_BUILD_ARGS="  "
+        DOCKER_BUILD_ARGS="--network=host"
         if [ "${USE_DOCKER_CACHE}" = "no" ] ; then
             DOCKER_BUILD_ARGS="--no-cache ${DOCKER_BUILD_ARGS} "
         fi
@@ -169,7 +169,7 @@ if [ "${BUILD_DOCKER_IMAGE}" = "yes" ] ; then
 fi
 
 # Main stuff happens here, either we enter the docker in a shell or build images inside it
-DOCKER_ARGS=" --privileged --cap-add SYS_ADMIN -v ${WSROOT}:/${IMAGE_BUILDER_DIR} -v /dev:/dev --name ${DOCKER_INSTANCE_NAME}"
+DOCKER_ARGS=" --privileged --cap-add SYS_ADMIN -v ${WSROOT}:/${IMAGE_BUILDER_DIR} -v /dev:/dev --name ${DOCKER_INSTANCE_NAME} --network=host"
 
 if [ "${ENTER_SHELL}" = "yes" ] ; then
     dprint "Starting bash in docker container: ${DOCKER_INSTANCE_NAME}"
