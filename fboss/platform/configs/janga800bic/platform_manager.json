@@ -844,116 +844,6 @@
               ]
             }
           ],
-          "ledCtrlConfigs": [
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_42_LED_1",
-                "deviceName": "port_led",
-                "csrOffset": "0x850"
-              },
-              "portNumber": 42,
-              "ledId": 1
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_43_LED_1",
-                "deviceName": "port_led",
-                "csrOffset": "0x858"
-              },
-              "portNumber": 43,
-              "ledId": 1
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_45_LED_1",
-                "deviceName": "port_led",
-                "csrOffset": "0x860"
-              },
-              "portNumber": 45,
-              "ledId": 1
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_46_LED_1",
-                "deviceName": "port_led",
-                "csrOffset": "0x868"
-              },
-              "portNumber": 46,
-              "ledId": 1
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_41_LED_1",
-                "deviceName": "port_led",
-                "csrOffset": "0x870"
-              },
-              "portNumber": 41,
-              "ledId": 1
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_44_LED_1",
-                "deviceName": "port_led",
-                "csrOffset": "0x878"
-              },
-              "portNumber": 44,
-              "ledId": 1
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_42_LED_2",
-                "deviceName": "port_led",
-                "csrOffset": "0x854"
-              },
-              "portNumber": 42,
-              "ledId": 2
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_43_LED_2",
-                "deviceName": "port_led",
-                "csrOffset": "0x85c"
-              },
-              "portNumber": 43,
-              "ledId": 2
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_45_LED_2",
-                "deviceName": "port_led",
-                "csrOffset": "0x864"
-              },
-              "portNumber": 45,
-              "ledId": 2
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_46_LED_2",
-                "deviceName": "port_led",
-                "csrOffset": "0x86c"
-              },
-              "portNumber": 46,
-              "ledId": 2
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_41_LED_2",
-                "deviceName": "port_led",
-                "csrOffset": "0x874"
-              },
-              "portNumber": 41,
-              "ledId": 2
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_44_LED_2",
-                "deviceName": "port_led",
-                "csrOffset": "0x87c"
-              },
-              "portNumber": 44,
-              "ledId": 2
-            }
-          ],
           "ledCtrlBlockConfigs": [
             {
               "pmUnitScopedNamePrefix": "SMB_LED",
@@ -966,10 +856,42 @@
             {
               "pmUnitScopedNamePrefix": "SMB_LED",
               "deviceName": "port_led",
-              "csrOffsetCalc": "0x810+ ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+              "csrOffsetCalc": "0x810 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
               "numPorts": 8,
               "ledPerPort": 2,
               "startPort": 33
+            },
+            {
+              "pmUnitScopedNamePrefix": "SMB_LED",
+              "deviceName": "port_led",
+              "csrOffsetCalc": "0x870 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+              "numPorts": 1,
+              "ledPerPort": 2,
+              "startPort": 41
+            },
+            {
+              "pmUnitScopedNamePrefix": "SMB_LED",
+              "deviceName": "port_led",
+              "csrOffsetCalc": "0x850 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+              "numPorts": 2,
+              "ledPerPort": 2,
+              "startPort": 42
+            },
+            {
+              "pmUnitScopedNamePrefix": "SMB_LED",
+              "deviceName": "port_led",
+              "csrOffsetCalc": "0x878 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+              "numPorts": 1,
+              "ledPerPort": 2,
+              "startPort": 44
+            },
+            {
+              "pmUnitScopedNamePrefix": "SMB_LED",
+              "deviceName": "port_led",
+              "csrOffsetCalc": "0x860 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+              "numPorts": 2,
+              "ledPerPort": 2,
+              "startPort": 45
             }
           ],
           "xcvrCtrlBlockConfigs": [
@@ -986,56 +908,34 @@
               "csrOffsetCalc": "0x1000 + ({portNum} - {startPort})*0x4",
               "numPorts": 8,
               "startPort": 33
-            }
-          ],
-          "xcvrCtrlConfigs": [
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_42",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1020"
-              },
-              "portNumber": 42
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_43",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1024"
-              },
-              "portNumber": 43
+              "pmUnitScopedNamePrefix": "SMB_DOM",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x1030 + ({portNum} - {startPort})*0x4",
+              "numPorts": 1,
+              "startPort": 41
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_45",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1028"
-              },
-              "portNumber": 45
+              "pmUnitScopedNamePrefix": "SMB_DOM",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x1020 + ({portNum} - {startPort})*0x4",
+              "numPorts": 2,
+              "startPort": 42
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_46",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x102c"
-              },
-              "portNumber": 46
+              "pmUnitScopedNamePrefix": "SMB_DOM",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x1034 + ({portNum} - {startPort})*0x4",
+              "numPorts": 1,
+              "startPort": 44
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_41",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1030"
-              },
-              "portNumber": 41
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_44",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1034"
-              },
-              "portNumber": 44
+              "pmUnitScopedNamePrefix": "SMB_DOM",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x1028 + ({portNum} - {startPort})*0x4",
+              "numPorts": 2,
+              "startPort": 45
             }
           ],
           "infoRomConfigs": [
