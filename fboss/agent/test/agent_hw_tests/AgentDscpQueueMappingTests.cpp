@@ -39,7 +39,7 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
         vlanId,
@@ -99,6 +99,13 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
     return 2;
   }
 
+  PortID portIdToTest() {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds()[0];
+    }
+    return masterLogicalInterfacePortIds()[0];
+  }
+
   static inline constexpr auto kEcmpWidth = 1;
   const VlanID kVlanID{utility::kBaseVlanId};
   const InterfaceID kIntfID{utility::kBaseVlanId};
@@ -136,7 +143,7 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
   void dscpMappingVerifyHelper(int kQueueId, int16_t kDscp) {
     for (bool frontPanel : {false, true}) {
       auto beforeQueueOutPkts =
-          folly::copy(getLatestPortStats(masterLogicalInterfacePortIds()[0])
+          folly::copy(getLatestPortStats(this->portIdToTest())
                           .queueOutPackets_()
                           .value())
               .at(kQueueId);
@@ -144,10 +151,9 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
       sendPacket(frontPanel, kDscp);
 
       WITH_RETRIES({
-        auto afterQueueOutPkts =
-            getLatestPortStats(masterLogicalInterfacePortIds()[0])
-                .get_queueOutPackets_()
-                .at(kQueueId);
+        auto afterQueueOutPkts = getLatestPortStats(this->portIdToTest())
+                                     .get_queueOutPackets_()
+                                     .at(kQueueId);
 
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched")
@@ -249,7 +255,7 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched");
         auto beforeQueueOutPkts =
-            folly::copy(getLatestPortStats(masterLogicalInterfacePortIds()[0])
+            folly::copy(getLatestPortStats(this->portIdToTest())
                             .queueOutPackets_()
                             .value())
                 .at(kQueueId());
@@ -262,10 +268,9 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
         sendPacket(frontPanel, kDscp(), 255 /* ttl, > 127 to match ACL */);
 
         WITH_RETRIES({
-          auto afterQueueOutPkts =
-              getLatestPortStats(masterLogicalInterfacePortIds()[0])
-                  .get_queueOutPackets_()
-                  .at(kQueueId());
+          auto afterQueueOutPkts = getLatestPortStats(this->portIdToTest())
+                                       .get_queueOutPackets_()
+                                       .at(kQueueId());
           auto afterAclInOutPkts =
               utility::getAclInOutPackets(getSw(), kCounterName());
 
@@ -320,12 +325,12 @@ class AgentAclConflictAndDscpQueueMappingTest
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched");
         auto beforeQueueOutPktsAcl =
-            folly::copy(getLatestPortStats(masterLogicalInterfacePortIds()[0])
+            folly::copy(getLatestPortStats(this->portIdToTest())
                             .queueOutPackets_()
                             .value())
                 .at(kQueueIdAcl());
         auto beforeQueueOutPktsQosMap =
-            folly::copy(getLatestPortStats(masterLogicalInterfacePortIds()[0])
+            folly::copy(getLatestPortStats(this->portIdToTest())
                             .queueOutPackets_()
                             .value())
                 .at(kQueueIdQosMap());
@@ -339,12 +344,11 @@ class AgentAclConflictAndDscpQueueMappingTest
         sendPacket(frontPanel, kDscp());
 
         WITH_RETRIES({
-          auto afterQueueOutPktsAcl =
-              getLatestPortStats(masterLogicalInterfacePortIds()[0])
-                  .get_queueOutPackets_()
-                  .at(kQueueIdAcl());
+          auto afterQueueOutPktsAcl = getLatestPortStats(this->portIdToTest())
+                                          .get_queueOutPackets_()
+                                          .at(kQueueIdAcl());
           auto afterQueueOutPktsQosMap =
-              getLatestPortStats(masterLogicalInterfacePortIds()[0])
+              getLatestPortStats(this->portIdToTest())
                   .get_queueOutPackets_()
                   .at(kQueueIdQosMap());
 

@@ -1,12 +1,30 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/FabricLinkMonitoring.h"
+#include "fboss/agent/AgentFeatures.h"
 
+#include <atomic>
+
+#include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
+
+namespace {
+// Static flag for test mode
+std::atomic<bool> testModeEnabled{false};
+} // namespace
+
+// Test-only function to enable test mode
+void FabricLinkMonitoring::setTestMode(bool enabled) {
+  testModeEnabled.store(enabled);
+}
+
+bool FabricLinkMonitoring::isTestMode() {
+  return testModeEnabled.load();
+}
 
 // Constructor initializes the fabric link monitoring system by processing
 // DSF nodes and link information from the switch configuration
@@ -28,7 +46,8 @@ FabricLinkMonitoring::getPort2LinkSwitchIdMapping() const {
 SwitchID FabricLinkMonitoring::getSwitchIdForPort(const PortID& portId) const {
   const auto& portIter = portId2LinkSwitchId_.find(portId);
   CHECK(portIter != portId2LinkSwitchId_.end())
-      << "Port ID " << portId << " not found in the port ID to switch ID map!";
+      << "FabricLinkMon: Port ID " << portId
+      << " not found in the port ID to switch ID map!";
   return portIter->second;
 }
 
@@ -51,22 +70,23 @@ int FabricLinkMonitoring::calculateParallelLinkOffset(
   const auto remoteSwitch2VdIter =
       remoteSwitchId2Vd2Ports_.find(remoteSwitchId);
   CHECK(remoteSwitch2VdIter != remoteSwitchId2Vd2Ports_.end())
-      << "Remote switch VD mapping not found for switch: " << remoteSwitchId;
+      << "FabricLinkMon: Remote switch VD mapping not found for switch: "
+      << remoteSwitchId;
 
   const auto vd2PortsIter = remoteSwitch2VdIter->second.find(vd);
   CHECK(vd2PortsIter != remoteSwitch2VdIter->second.end())
-      << "VD port mapping not found for VD: " << vd;
+      << "FabricLinkMon: VD port mapping not found for VD: " << vd;
 
   // Find this port's position in the ordered list
   CHECK(port.name().has_value())
-      << "Missing port name in parallel link offset compuration for port ID: "
+      << "FabricLinkMon: Missing port name in parallel link offset compuration for port ID: "
       << *port.logicalID();
   const auto& portName = *port.name();
 
   const auto& portList = vd2PortsIter->second;
   const auto portIt = std::find(portList.begin(), portList.end(), portName);
   CHECK(portIt != portList.end())
-      << "Port not found in VD port list for VD: " << vd
+      << "FabricLinkMon: Port not found in VD port list for VD: " << vd
       << ", port: " << portName;
 
   return static_cast<int>(std::distance(portList.begin(), portIt));
@@ -117,8 +137,9 @@ int FabricLinkMonitoring::getSwitchIdOffset(
 void FabricLinkMonitoring::allocateSwitchIdForPorts(
     const cfg::SwitchConfig* config) {
   CHECK(config->switchSettings()->switchId().has_value())
-      << "Local switch ID missing in switch settings!";
+      << "FabricLinkMon: Local switch ID missing in switch settings!";
   SwitchID localSwitchId = SwitchID(*config->switchSettings()->switchId());
+  bool isDualStageNetwork = utility::isDualStage(*config);
 
   for (const auto& port : *config->ports()) {
     if (*port.portType() != cfg::PortType::FABRIC_PORT ||
@@ -140,29 +161,54 @@ void FabricLinkMonitoring::allocateSwitchIdForPorts(
     int vd = portVdIter->second;
 
     int switchIdBase;
+    int maxNumSwitchIds;
     int linksAtLevel;
     int maxParallelLinks;
     int switchIdOffset;
     if (isVoqSwitch_ || isConnectedToVoqSwitch(config, remoteSwitchId)) {
-      // Port connecting a VoQ switch and L1 fabric
-      switchIdBase = kFabricLinkMonitoringLeafBaseSwitchId;
-      linksAtLevel = numLeafToL1Links_;
+      // This is for a port connecting a VoQ switch and L1 fabric.
+      // Identify a base switchID such that the max possible switch ID
+      // will still fall within the allowed limit.
+      if (isDualStageNetwork) {
+        maxNumSwitchIds = kDualStageMaxLeafL1FabricLinkMonitoringSwitchIds;
+        switchIdBase = kMaxUsableVoqSwitchId - maxNumSwitchIds;
+        CHECK_GT(switchIdBase, kDualStageMaxGlobalSwitchId)
+            << "FabricLinkMon: Fabric link monitoring base switch ID should be > "
+            << kDualStageMaxGlobalSwitchId;
+      } else {
+        maxNumSwitchIds = kSingleStageMaxLeafL1FabricLinkMonitoringSwitchIds;
+        switchIdBase = kMaxUsableVoqSwitchId - maxNumSwitchIds;
+        CHECK_GE(switchIdBase, kSingleStageMaxGlobalSwitchId)
+            << "FabricLinkMon: Fabric link monitoring base switch ID should be >= "
+            << kSingleStageMaxGlobalSwitchId;
+      }
       maxParallelLinks = maxParallelLeafToL1Links_;
       switchIdOffset = getSwitchIdOffset(localSwitchId, remoteSwitchId);
+      // Just pick the first VDs link count as all VDs should have the same link
+      // count
+      linksAtLevel = numLeafL1Links_.begin()->second;
     } else {
-      // Port connecting L1 and L2 fabric
-      switchIdBase = kFabricLinkMonitoringLevel2BaseSwitchId;
-      linksAtLevel = numL1ToL2Links_;
+      // This is for a port connecting L1 and L2 fabric
+      switchIdBase = kFabricLinkMonitoringL1L2BaseSwitchId;
+      maxNumSwitchIds = kDualStageMaxL1L2FabricLinkMonitoringSwitchIds;
       maxParallelLinks = maxParallelL1ToL2Links_;
       switchIdOffset = getSwitchIdOffset(localSwitchId, remoteSwitchId);
+      // Just pick the first VDs link count as all VDs should have the same link
+      // count
+      linksAtLevel = numL1L2Links_.begin()->second;
     }
     int parallelLinkOffset =
         calculateParallelLinkOffset(port, remoteSwitchId, vd, maxParallelLinks);
     int offset = switchIdOffset * maxParallelLinks + vd + parallelLinkOffset;
-    // SwitchID allocated should be in the specific range bounded by the number
-    // of links at that layer.
-    portId2LinkSwitchId_[portId] = switchIdBase + (offset % linksAtLevel);
-    XLOG(DBG3) << "Fabric Link Mon: Port ID:" << portId
+    // SwitchID allocated should be in the specific range bounded by the maximum
+    // number of switchIDs possible for the 2 roles connected by the port/link.
+    CHECK_LE(linksAtLevel, maxNumSwitchIds)
+        << "FabricLinkMon: Fabric link monitoring links: " << linksAtLevel
+        << " should be <= the max switch IDs available for link monitoring: "
+        << maxNumSwitchIds;
+    portId2LinkSwitchId_[portId] = switchIdBase + (offset % maxNumSwitchIds);
+    XLOG(DBG3) << "FabricLinkMon: Fabric Link Mon - Port name:"
+               << port.name().value_or("Unknown") << " Port ID:" << portId
                << " Link Switch ID:" << portId2LinkSwitchId_[portId]
                << " localSwitchId:" << localSwitchId
                << " remoteSwitchId:" << remoteSwitchId
@@ -170,6 +216,7 @@ void FabricLinkMonitoring::allocateSwitchIdForPorts(
                << " switchIdOffset:" << switchIdOffset
                << " maxParallelLinks:" << maxParallelLinks << " vd:" << vd
                << " parallelLinkOffset:" << parallelLinkOffset
+               << " maxNumSwitchIds:" << maxNumSwitchIds << " offset:" << offset
                << " linksAtLevel:" << linksAtLevel;
   }
 }
@@ -213,7 +260,7 @@ void FabricLinkMonitoring::updateLowestSwitchIds(
       lowestL2SwitchId_ = std::min(nodeSwitchId, lowestL2SwitchId_);
     } else {
       throw FbossError(
-          "DSF node should be one of interface node, l1 or l2 fabric switch!");
+          "FabricLinkMon: DSF node should be one of interface node, l1 or l2 fabric switch!");
     }
   }
 }
@@ -245,15 +292,16 @@ void FabricLinkMonitoring::processLinkInfo(const cfg::SwitchConfig* config) {
 
     const auto remoteSwitchId = remoteSwitchIt->second;
 
-    // Find the number of links at each network layer
-    updateLinkCounts(config, remoteSwitchId);
-
     // Keep track of the mapping from PortID to VD
     auto vd = getVirtualDeviceIdForLink(config, port, remoteSwitchId);
     portId2Vd_[PortID(*port.logicalID())] = vd;
 
+    // Find the number of links at each network layer
+    updateLinkCounts(config, remoteSwitchId, vd);
+
     CHECK(port.name().has_value())
-        << "Missing port name for port with ID: " << *port.logicalID();
+        << "FabricLinkMon: Missing port name for port with ID: "
+        << *port.logicalID();
     // Keep track of local/remote port per VD for each remote SwitchID
     const auto& localPortName = *port.name();
     remoteSwitchId2Vd2PortNamePairs[remoteSwitchId][vd].emplace_back(
@@ -271,26 +319,73 @@ void FabricLinkMonitoring::processLinkInfo(const cfg::SwitchConfig* config) {
 // also between L1 and L2 in the network.
 void FabricLinkMonitoring::updateLinkCounts(
     const cfg::SwitchConfig* config,
-    const SwitchID& neighborSwitchId) {
+    const SwitchID& neighborSwitchId,
+    const int vd) {
   if (isVoqSwitch_ || isConnectedToVoqSwitch(config, neighborSwitchId)) {
-    ++numLeafToL1Links_;
+    numLeafL1Links_[vd] = numLeafL1Links_[vd] + 1;
   } else {
-    ++numL1ToL2Links_;
+    numL1L2Links_[vd] = numL1L2Links_[vd] + 1;
   }
 }
 
 // Switch IDs for links are limited and hence need to ensure that the
 // num links between leaf-L1 and L1-L2 are within the expected bounds.
 void FabricLinkMonitoring::validateLinkLimits() const {
-  if (numLeafToL1Links_ > kFabricLinkMonitoringMaxLeafSwitchIds) {
-    throw FbossError(
-        "Too many leaf to L1 links, max expected ",
-        kFabricLinkMonitoringMaxLeafSwitchIds);
+  auto throwExceededMaxExpectedLinkCount =
+      [](int linkCount, int maxLinkCount, const std::string& linkTypeStr) {
+        throw FbossError(
+            "FabricLinkMon: Too many ",
+            linkTypeStr,
+            " links - ",
+            linkCount,
+            ", max expected ",
+            maxLinkCount);
+      };
+  int leafL1Links =
+      numLeafL1Links_.size() ? numLeafL1Links_.begin()->second : 0;
+  if (isVoqSwitch_) {
+    // RDSW / EDSW to FDSW link count is fixed in all deployments.
+    // However, this is not applicable for the reverse direction.
+    if (leafL1Links > kDsfMaxLeafFabricLinksPerVd) {
+      throwExceededMaxExpectedLinkCount(
+          leafL1Links, kDsfMaxLeafFabricLinksPerVd, "leaf to L1");
+    }
+  } else if (leafL1Links) {
+    // Dual stage network will have some L1 to L2 links
+    bool isDualStageNetwork = numL1L2Links_.size() > 0;
+
+    // FDSW side of RDSW / EDSW  -> FDSW links. The number of links
+    // here depends on the type of deployment.
+    if (FLAGS_dsf_single_stage_r192_f40_e32 &&
+        (leafL1Links > kDsfR192F40E32MaxL1ToLeafLinksPerVd)) {
+      throwExceededMaxExpectedLinkCount(
+          leafL1Links, kDsfR192F40E32MaxL1ToLeafLinksPerVd, "L1 to leaf");
+    } else if (
+        FLAGS_dsf_single_stage_r128_f40_e16_8k_sys_ports &&
+        (leafL1Links > kDsfR128F40E16MaxL1ToLeafLinksPerVd)) {
+      throwExceededMaxExpectedLinkCount(
+          leafL1Links, kDsfR128F40E16MaxL1ToLeafLinksPerVd, "L1 to leaf");
+    } else if (
+        FLAGS_type_dctype1_janga &&
+        (leafL1Links > kDsfMtiaMaxL1ToLeafLinksPerVd)) {
+      throwExceededMaxExpectedLinkCount(
+          leafL1Links, kDsfMtiaMaxL1ToLeafLinksPerVd, "L1 to leaf");
+    } else if (
+        isDualStageNetwork &&
+        (leafL1Links > kDsfDualStageMaxL1ToLeafLinksPerVd)) {
+      throwExceededMaxExpectedLinkCount(
+          leafL1Links, kDsfDualStageMaxL1ToLeafLinksPerVd, "L1 to leaf");
+    }
   }
-  if (numL1ToL2Links_ > kFabricLinkMonitoringMaxLevel2SwitchIds) {
-    throw FbossError(
-        "Too many L1 to L2 links, max expected ",
-        kFabricLinkMonitoringMaxLevel2SwitchIds);
+  int l1L2Links = numL1L2Links_.size() ? numL1L2Links_.begin()->second : 0;
+  if (leafL1Links && l1L2Links > kDsfMaxL1ToL2SwitchLinksPerVd) {
+    // FDSW side of FDSW -> SDSW links
+    throwExceededMaxExpectedLinkCount(
+        l1L2Links, kDsfMaxL1ToL2SwitchLinksPerVd, "L1 to L2");
+  } else if (!leafL1Links && l1L2Links > kDsfMaxL2ToL1SwitchLinksPerVd) {
+    // SDSW side of SDSW -> FDSW links
+    throwExceededMaxExpectedLinkCount(
+        l1L2Links, kDsfMaxL2ToL1SwitchLinksPerVd, "L2 to L1");
   }
 }
 
@@ -298,36 +393,53 @@ void FabricLinkMonitoring::validateLinkLimits() const {
 // 1. VoQ switches dont have VD, so use the VD associated with
 //    the remote fabric port on the link.
 // 2. For non-VoQ switch, each fabric port is associated with a VD.
-//    These switch links are such that VD0 connects to VD0, VD1 to
-//    VD1 etc., so both side of a link are guaranteed to be in the
-//    same VD.
+//    Given VDs could be different on the 2 sides of a link, use the
+//    VD from the L1 fabric switch so that both sides can use the
+//    same VD id in computations.
 int32_t FabricLinkMonitoring::getVirtualDeviceIdForLink(
     const cfg::SwitchConfig* config,
     const cfg::Port& port,
     const SwitchID& neighborSwitchId) {
   CHECK(config->switchSettings()->switchId().has_value())
-      << "Local switch ID missing in switch settings!";
+      << "FabricLinkMon: Local switch ID missing in switch settings!";
   CHECK(*port.portType() == cfg::PortType::FABRIC_PORT)
-      << "Virtual device is applicable only for fabric ports, "
-      << "not for port with ID " << *port.logicalID() << " of type "
+      << "FabricLinkMon: Virtual device is applicable only for fabric "
+      << "port, not for port with ID " << *port.logicalID() << " of type "
       << apache::thrift::util::enumNameSafe(*port.portType());
-  auto dsfNodeIter = isVoqSwitch_
-      ? config->dsfNodes()->find(neighborSwitchId)
+
+  if (isTestMode()) {
+    // In unit test cases, avoid dependency on platform mapping
+    return *port.logicalID() % 4;
+  }
+
+  // Find the neighbor DSF node in case of VoQ switch or in case
+  // of L2 switch.
+  auto neighborSwitchIter = config->dsfNodes()->find(neighborSwitchId);
+  CHECK(neighborSwitchIter != config->dsfNodes()->end())
+      << "FabricLinkMon: DSF node missing for switchId: " << neighborSwitchId;
+  bool useNeighborSwitchVd = isVoqSwitch_ ||
+      (neighborSwitchIter->second.fabricLevel().has_value() &&
+       *neighborSwitchIter->second.fabricLevel() == 2);
+  auto dsfNodeIter = useNeighborSwitchVd
+      ? neighborSwitchIter
       : config->dsfNodes()->find(*config->switchSettings()->switchId());
   CHECK(port.name().has_value())
-      << "Missing port name for port with ID: " << *port.logicalID();
-  std::string portName =
-      isVoqSwitch_ ? getExpectedNeighborAndPortName(port).second : *port.name();
+      << "FabricLinkMon: Missing port name for port with ID: "
+      << *port.logicalID();
+  std::string portName = useNeighborSwitchVd
+      ? getExpectedNeighborAndPortName(port).second
+      : *port.name();
 
   auto platformType = *dsfNodeIter->second.platformType();
   const auto platformMapping = getPlatformMappingForPlatformType(platformType);
   if (!platformMapping) {
-    throw FbossError("Unable to find platform mapping!");
+    throw FbossError("FabricLinkMon: Unable to find platform mapping!");
   }
 
   auto virtualDeviceId = platformMapping->getVirtualDeviceID(portName);
   if (!virtualDeviceId.has_value()) {
-    throw FbossError("Unable to find virtual device id for port: ", portName);
+    throw FbossError(
+        "FabricLinkMon: Unable to find virtual device id for port: ", portName);
   }
 
   return *virtualDeviceId;
@@ -338,7 +450,7 @@ void FabricLinkMonitoring::updateMaxParallelLinks(
   auto updateParallelLinkCounts = [](int& currentCount, int newCount) {
     if (currentCount != 0 && newCount != currentCount) {
       XLOG(WARN)
-          << "Asymmetric topology with different number of parallel links between nodes";
+          << "FabricLinkMon: Asymmetric topology with different number of parallel links between nodes";
     }
     if (newCount > currentCount) {
       currentCount = newCount;

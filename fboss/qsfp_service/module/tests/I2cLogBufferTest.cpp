@@ -63,8 +63,9 @@ class I2cLogBufferTest : public ::testing::Test {
     std::unordered_set<std::string> expectedWords{ports.begin(), ports.end()};
     for (const auto& field : fields) {
       // Expect field name up to kI2cFieldNameLength characters.
-      expectedWords.insert(apache::thrift::util::enumNameSafe(field).substr(
-          0, kI2cFieldNameLength));
+      expectedWords.insert(
+          apache::thrift::util::enumNameSafe(field).substr(
+              0, kI2cFieldNameLength));
     }
     // Check that we have unique words.
     CHECK_EQ(expectedWords.size(), ports.size() + fields.size());
@@ -343,6 +344,35 @@ TEST_F(I2cLogBufferTest, testOnlyWrite) {
   EXPECT_EQ(count.totalEntries, 4);
 }
 
+TEST_F(I2cLogBufferTest, testOnlyPresenceAndReset) {
+  I2cLogBuffer logBuffer =
+      createBuffer(kFullBuffer, /*read*/ false, /*write*/ false);
+  // insert 3 presence
+  for (int i = 0; i < 3; i++) {
+    logBuffer.log(
+        TransceiverAccessParameter(0, 0, 0),
+        kField,
+        data_.data(),
+        I2cLogBuffer::Operation::Presence);
+  }
+  // insert 3 reset
+  for (int i = 0; i < 3; i++) {
+    logBuffer.log(
+        TransceiverAccessParameter(0, 0, 0),
+        kField,
+        data_.data(),
+        I2cLogBuffer::Operation::Reset);
+  }
+  // insert 4 elements write (should not log)
+  for (int i = 0; i < 4; i++) {
+    logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Write);
+  }
+  std::vector<I2cLogBuffer::I2cLogEntry> entries;
+  auto count = logBuffer.dump(entries);
+  EXPECT_EQ(count.totalEntries, 6);
+  EXPECT_EQ(count.bufferEntries, 6);
+}
+
 TEST_F(I2cLogBufferTest, testDisableOnFail) {
   I2cLogBuffer logBuffer = createBuffer(
       kFullBuffer, /*read*/ true, /*write*/ true, /*disableOnFail*/ true);
@@ -534,27 +564,27 @@ TEST_F(I2cLogBufferTest, testReplayScenarios) {
   // insert kFullBuffer Logs
   std::vector<std::array<uint8_t, kMaxI2clogDataSize>> allData(kFullBuffer);
   std::array<TransceiverAccessParameter, kFullBuffer> allParam = {
+      TransceiverAccessParameter(0, 0, 0),
       TransceiverAccessParameter(0, 0, 1),
+      TransceiverAccessParameter(0, 0, 0),
       TransceiverAccessParameter(0, 0, 10),
       TransceiverAccessParameter(0, 10, 20),
       TransceiverAccessParameter(0, 10, 32),
       TransceiverAccessParameter(10, 0, 20),
       TransceiverAccessParameter(10, 0, 10),
       TransceiverAccessParameter(10, 10, 10),
-      TransceiverAccessParameter(10, 10, 10),
-      TransceiverAccessParameter(0, 0, 10, 10),
       TransceiverAccessParameter(10, 10, 10, 10),
   };
   std::array<I2cLogBuffer::Operation, kFullBuffer> allOps = {
+      I2cLogBuffer::Operation::Reset,
       I2cLogBuffer::Operation::Read,
+      I2cLogBuffer::Operation::Presence,
       I2cLogBuffer::Operation::Write,
       I2cLogBuffer::Operation::Write,
       I2cLogBuffer::Operation::Read,
       I2cLogBuffer::Operation::Read,
       I2cLogBuffer::Operation::Write,
       I2cLogBuffer::Operation::Read,
-      I2cLogBuffer::Operation::Read,
-      I2cLogBuffer::Operation::Write,
       I2cLogBuffer::Operation::Read,
   };
 

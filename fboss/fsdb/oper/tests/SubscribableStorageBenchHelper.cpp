@@ -14,12 +14,13 @@ StorageBenchmarkHelper::StorageBenchmarkHelper(
     Params params)
     : gen_(gen),
       params_(params),
-      storage_(NaivePeriodicSubscribableCowStorage<RootType>(
-          {},
-          NaivePeriodicSubscribableStorageBase::StorageParams(
-              std::chrono::milliseconds(kSubscriptionServeIntervalMsec))
-              .setServeGetRequestsWithLastPublishedState(
-                  params_.serveGetRequestsWithLastPublishedState))) {
+      storage_(
+          NaivePeriodicSubscribableCowStorage<RootType>(
+              {},
+              NaivePeriodicSubscribableStorageBase::StorageParams(
+                  std::chrono::milliseconds(kSubscriptionServeIntervalMsec))
+                  .setServeGetRequestsWithLastPublishedState(
+                      params_.serveGetRequestsWithLastPublishedState))) {
   storage_.setConvertToIDPaths(true);
   // initialize test data versions
   testData_.emplace_back(gen_.getStateUpdate(0, false));
@@ -76,8 +77,9 @@ auto makeConsumer(
           onDataReceived = onDataReceived,
           nextSubscribedValue]() mutable {
     while (nExpectedValues-- > 0) {
-      auto val = folly::coro::blockingWait(folly::coro::timeout(
-          nextSubscribedValue(generator), std::chrono::seconds(5)));
+      auto val = folly::coro::blockingWait(
+          folly::coro::timeout(
+              nextSubscribedValue(generator), std::chrono::seconds(5)));
       if (onDataReceived.has_value()) {
         onDataReceived.value()();
       }
@@ -103,8 +105,9 @@ folly::coro::Task<void> StorageBenchmarkHelper::addDeltaSubscription(
     int nExpectedValues,
     std::optional<std::function<void()>> onDataReceived) {
   std::vector<std::string> path = getSubscriptionPath();
-  auto generator = storage_.subscribe_delta(
+  auto streamReader = storage_.subscribe_delta(
       std::move(subscriberId), path, OperProtocol::COMPACT);
+  auto generator = std::move(streamReader.generator_);
   auto consumer = makeConsumer(generator, nExpectedValues, onDataReceived);
   consumer();
   co_return;
@@ -115,7 +118,8 @@ folly::coro::Task<void> StorageBenchmarkHelper::addPatchSubscription(
     int nExpectedValues,
     std::optional<std::function<void()>> onDataReceived) {
   std::vector<std::string> path = getSubscriptionPath();
-  auto generator = storage_.subscribe_patch(std::move(subscriberId), path);
+  auto streamReader = storage_.subscribe_patch(std::move(subscriberId), path);
+  auto generator = std::move(streamReader.generator_);
   auto consumer = makeConsumer(generator, nExpectedValues, onDataReceived);
   consumer();
   co_return;

@@ -29,6 +29,8 @@ class Icetea800bcLedManager : public BspLedManager {
   // Forbidden copy constructor and assignment operator
   Icetea800bcLedManager(Icetea800bcLedManager const&) = delete;
   Icetea800bcLedManager& operator=(Icetea800bcLedManager const&) = delete;
+  Icetea800bcLedManager(Icetea800bcLedManager&&) = delete;
+  Icetea800bcLedManager& operator=(Icetea800bcLedManager&&) = delete;
 };
 
 } // namespace facebook::fboss

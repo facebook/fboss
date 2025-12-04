@@ -20,7 +20,7 @@ void restartQsfpService(bool coldboot);
 void getAllTransceiverConfigValidationStatuses(
     const std::set<TransceiverID>& cabledTransceivers);
 void waitForAllTransceiverStates(
-    bool up,
+    bool enabled,
     const std::set<TransceiverID>& cabledTransceivers,
     uint32_t retries = 60,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
@@ -33,6 +33,12 @@ void waitForStateMachineState(
 void includeLpoTransceivers(
     std::map<int32_t, TransceiverInfo>& infos,
     bool includeLpo);
+void waitForPortStateMachineState(
+    bool enabled,
+    const std::vector<PortID>& portsToCheck,
+    uint32_t retries = 60,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+        std::chrono::milliseconds(1000));
 std::map<int32_t, TransceiverInfo> waitForTransceiverInfo(
     std::vector<int32_t> transceiverIds,
     bool includeLpo = true,

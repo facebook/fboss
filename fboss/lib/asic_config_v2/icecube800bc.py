@@ -1,5 +1,5 @@
 # pyre-strict
-import neteng.fboss.asic_config_v2.thrift_types as asic_config_thrift
+import neteng.fboss.asic_config_v2.ttypes as asic_config_thrift
 import neteng.fboss.platform_mapping_config.ttypes as pm_types
 from fboss.lib.asic_config_v2.tomahawk6 import Tomahawk6AsicConfig
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
@@ -82,13 +82,9 @@ class Icecube800bcAsicConfig(Tomahawk6AsicConfig):
         self.generate_asic_vendor_config()
 
 
-def gen_icecube800bc_asic_config() -> Icecube800bcAsicConfig:
-    asic_config_params = asic_config_thrift.AsicConfigParameters(
-        configType=asic_config_thrift.AsicConfigType.YAML_CONFIG,
-        exactMatch=False,
-        mmuLossless=False,
-        configGenType=asic_config_thrift.AsicConfigGenType.DEFAULT,
-    )
+def gen_icecube800bc_asic_config(
+    asic_config_params: asic_config_thrift.AsicConfigParameters,
+) -> Icecube800bcAsicConfig:
     cfg = Icecube800bcAsicConfig(asic_config_params)
     cfg.generate_asic_config()
     return cfg

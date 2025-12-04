@@ -150,12 +150,13 @@ void HwProdInvariantHelper::verifyDscpToQueueMapping() {
   };
 
   auto q2dscpMap = utility::getOlympicQosMaps(initialConfig());
-  EXPECT_TRUE(utility::verifyQueueMappingsInvariantEcmpHelper(
-      q2dscpMap,
-      ensemble_->getHwSwitch(),
-      getProgrammedState(),
-      getPortStats,
-      getEcmpPortIds()));
+  EXPECT_TRUE(
+      utility::verifyQueueMappingsInvariantEcmpHelper(
+          q2dscpMap,
+          ensemble_->getHwSwitch(),
+          getProgrammedState(),
+          getPortStats,
+          getEcmpPortIds()));
 }
 
 void HwProdInvariantHelper::verifySafeDiagCmds() {
@@ -168,6 +169,7 @@ void HwProdInvariantHelper::verifySafeDiagCmds() {
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:

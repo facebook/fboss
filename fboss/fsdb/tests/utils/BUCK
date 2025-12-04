@@ -7,17 +7,16 @@ cpp_library(
     name = "fsdb_test_server",
     srcs = [
         "FsdbTestServer.cpp",
+        "facebook/FsdbTestServer.cpp",
     ],
     headers = [
         "FsdbTestServer.h",
     ],
     exported_deps = [
-        "//common/init:init",
         "//common/services/cpp:light",
         "//common/strings:uuid",
         "//fboss/fsdb/oper:path_helpers",
         "//fboss/fsdb/server:handler",
-        "//folly/testing:test_util",
         "//thrift/lib/cpp2:server",
         "//thrift/lib/cpp2/util:util",
     ],

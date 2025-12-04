@@ -30,6 +30,8 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, PortVlanId),
     SAI_ATTR_MAP(Port, Mtu),
     SAI_ATTR_MAP(Port, QosDscpToTcMap),
+    SAI_ATTR_MAP(Port, QosDot1pToTcMap),
+    SAI_ATTR_MAP(Port, QosTcAndColorToDot1pMap),
     SAI_ATTR_MAP(Port, QosTcToQueueMap),
     SAI_ATTR_MAP(Port, DisableTtlDecrement),
     SAI_ATTR_MAP(Port, QosNumberOfQueues),
@@ -191,6 +193,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, PgDropStatus)
   SAI_EXT_ATTR_MAP(Port, FabricSystemPort)
   SAI_EXT_ATTR_MAP(Port, StaticModuleId)
+  SAI_EXT_ATTR_MAP(Port, PfcMonitorDirection)
 #if defined(BRCM_SAI_SDK_GTE_13_0)
   SAI_EXT_ATTR_MAP(PortSerdes, Dco)
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)

@@ -25,7 +25,6 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
     case HwAsic::Feature::PKTIO:
-    case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
     case HwAsic::Feature::OBM_COUNTERS:
     case HwAsic::Feature::BUFFER_POOL:
@@ -120,6 +119,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
+    case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -218,12 +218,12 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
     case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
-    case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
     case HwAsic::Feature::TECH_SUPPORT:
     case HwAsic::Feature::DRAM_QUARANTINED_BUFFER_STATS:
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
+    case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
       return false;
   }
   return false;
@@ -270,12 +270,16 @@ Tomahawk5Asic::desiredLoopbackModes() const {
 }
 
 std::optional<uint32_t> Tomahawk5Asic::getMaxArsGroups() const {
-  // BRCM SDK utilizes 200000 internally
-  // ARS offset also starts at 200000
-  return FLAGS_enable_th5_ars_scale_mode ? 256 : 127;
+  return FLAGS_enable_th5_ars_scale_mode ? 256 : 128;
 }
 
 std::optional<uint32_t> Tomahawk5Asic::getArsBaseIndex() const {
-  return getMaxEcmpGroups().value() - getMaxArsGroups().value();
+  // ideally this needs to be dynamic based on getMaxArsGroups
+  // getMaxEcmpGroups().value() - getMaxArsGroups().value();
+  //
+  // BRCM SAI SDK has this hard-coded for TH5 to not allow base index
+  // >(4096-256)
+  // So setting default start index as 3840
+  return getMaxEcmpGroups().value() - 256;
 }
 } // namespace facebook::fboss

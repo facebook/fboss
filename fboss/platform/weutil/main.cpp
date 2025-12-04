@@ -1,6 +1,5 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include <string.h>
 #include <sysexits.h>
 #include <unistd.h>
 #include <iostream>
@@ -12,11 +11,13 @@
 #include <folly/logging/xlog.h>
 
 #include "fboss/platform/helpers/InitCli.h"
+#include "fboss/platform/weutil/ConfigUtils.h"
 #include "fboss/platform/weutil/Weutil.h"
 
-using namespace facebook::fboss::platform;
-using namespace facebook::fboss;
 using namespace facebook;
+using namespace facebook::fboss;
+using namespace facebook::fboss::platform;
+using namespace facebook::fboss::platform::weutil;
 
 FOLLY_INIT_LOGGING_CONFIG(".=FATAL; default:async=true");
 
@@ -66,28 +67,32 @@ int main(int argc, char* argv[]) {
   }
 
   if (FLAGS_list) {
-    auto config = getWeUtilConfig();
-    for (const auto& [eepromName, eepromConfig] : *config.fruEepromList()) {
+    for (const auto& [eepromName, eepromConfig] :
+         ConfigUtils().getFruEepromList()) {
       std::string fruName = eepromName;
       std::transform(
           fruName.begin(), fruName.end(), fruName.begin(), ::toupper);
       std::cout << fmt::format(
                        "Name:{} Path:{} Offset:{}",
                        fruName,
-                       *eepromConfig.path(),
-                       *eepromConfig.offset())
+                       eepromConfig.path,
+                       eepromConfig.offset)
                 << std::endl;
     }
     return 0;
   }
 
   if (FLAGS_all) {
-    auto config = getWeUtilConfig();
-    for (const auto& [eepromName, _] : *config.fruEepromList()) {
+    for (const auto& [eepromName, _] : ConfigUtils().getFruEepromList()) {
       std::cout << fmt::format("#### Reading EEPROM: {} ####", eepromName)
                 << std::endl;
-      auto weutilInstance = createWeUtilIntf(eepromName, "", 0);
-      weutilInstance->printInfo();
+      try {
+        auto weutilInstance = createWeUtilIntf(eepromName, "", 0);
+        weutilInstance->printInfo();
+      } catch (const std::exception& ex) {
+        std::cout << ex.what() << std::endl;
+        std::cout << "ERROR: weutil finished with an exception." << std::endl;
+      }
       std::cout << std::endl;
     }
     return 0;

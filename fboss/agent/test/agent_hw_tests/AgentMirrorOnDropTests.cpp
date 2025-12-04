@@ -105,6 +105,9 @@ class AgentMirrorOnDropTest
   const int kL3DropTrapId = 0x1B;
   const int kAclDropTrapId = 0x1C;
   const int kNoDestFoundTrapId = 0xB5;
+  const int kHyperPortL3DropTrapId = 0x1A;
+  const int kHyperPortAclDropTrapId = 0x2F;
+  const int kHyperPortNoDestFoundTrapId = 0x1C;
 
   // Test constants. We switch the event IDs around to get test coverage.
   const int kL3DropEventId = 0;
@@ -304,17 +307,14 @@ class AgentMirrorOnDropTest
   template <typename T = folly::IPAddressV6>
   void resolveRouteForMirrorDestination(
       PortID mirrorDestinationPort,
-      cfg::PortType portType) {
+      std::set<cfg::PortType> portTypes) {
     boost::container::flat_set<PortDescriptor> nhopPorts{
         PortDescriptor(mirrorDestinationPort)};
 
     applyNewState(
         [&](const std::shared_ptr<SwitchState>& state) {
           utility::EcmpSetupTargetedPorts<T> ecmpHelper(
-              state,
-              getSw()->needL2EntryForNeighbor(),
-              RouterID(0),
-              {portType});
+              state, getSw()->needL2EntryForNeighbor(), RouterID(0), portTypes);
           auto newState = ecmpHelper.resolveNextHops(state, nhopPorts);
           return newState;
         },
@@ -328,7 +328,7 @@ class AgentMirrorOnDropTest
         getProgrammedState(),
         getSw()->needL2EntryForNeighbor(),
         RouterID(0),
-        {portType});
+        portTypes);
 
     ecmpHelper.programRoutes(
         getAgentEnsemble()->getRouteUpdaterWrapper(), nhopPorts, {prefix});
@@ -446,7 +446,10 @@ class AgentMirrorOnDropTest
     int truncateSize = kTruncateSize;
     if (portType == cfg::PortType::EVENTOR_PORT) {
       truncateSize = kEventorPayloadSize;
-      cursor.skip(12); // eventor sequence number, timestamp, sample
+      if (!FLAGS_hyper_port) {
+        XLOG(DBG2) << "eventor port, exclude 12 byte eventor header";
+        cursor.skip(12); // eventor sequence number, timestamp, sample
+      }
     }
 
     // Validate MoD header
@@ -514,6 +517,13 @@ class AgentMirrorOnDropTest
       }
     });
   }
+
+  std::vector<PortID> portIdsToTest() {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds();
+    }
+    return masterLogicalInterfacePortIds();
+  }
 };
 
 class AgentMirrorOnDropMtuTest : public AgentMirrorOnDropTest {
@@ -522,7 +532,8 @@ class AgentMirrorOnDropMtuTest : public AgentMirrorOnDropTest {
     auto config = AgentMirrorOnDropTest::initialConfig(ensemble);
     config = addCoppConfig(ensemble, config);
     for (auto& port : *config.ports()) {
-      if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+      if (port.portType() == cfg::PortType::INTERFACE_PORT ||
+          port.portType() == cfg::PortType::HYPER_PORT) {
         // Prod MTU is 9412, but there seems to be some limit in the maximum
         // allowed payload length, so use 9000 instead.
         port.maxFrameSize() = 9000;
@@ -544,7 +555,7 @@ class AgentMirrorOnDropMtuTest : public AgentMirrorOnDropTest {
 // normal operations of the MTU trap.
 TEST_F(AgentMirrorOnDropMtuTest, MtuTrapStillWorks) {
   auto mirrorPortId = findRecirculationPort(cfg::PortType::RECYCLE_PORT);
-  auto egressPortId = masterLogicalInterfacePortIds()[0];
+  auto egressPortId = portIdsToTest()[0];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
   XLOG(DBG3) << "Egress port: " << portDesc(egressPortId);
 
@@ -570,7 +581,7 @@ TEST_F(AgentMirrorOnDropMtuTest, MtuTrapStillWorks) {
   auto verify = [&]() {
     // Send > MTU packets from all NIF ports to a destination. This will
     // trigger MTU traps on all the cores.
-    for (const auto& portId : masterLogicalInterfacePortIds()) {
+    for (const auto& portId : portIdsToTest()) {
       auto pkt = utility::makeUDPTxPacket(
           getSw(),
           getVlanIDForTx(),
@@ -595,7 +606,7 @@ TEST_F(AgentMirrorOnDropMtuTest, MtuTrapStillWorks) {
         pkts += utility::getCpuQueueInPackets(
             getSw(), switchId, utility::kCoppLowPriQueueId);
       }
-      EXPECT_EVENTUALLY_GE(pkts, masterLogicalInterfacePortIds().size());
+      EXPECT_EVENTUALLY_GE(pkts, portIdsToTest().size());
     });
   };
 
@@ -625,7 +636,7 @@ class AgentMirrorOnDropDestMacTest : public AgentMirrorOnDropTest {
 // 5. We expect the packet to be sent out of NIF port 1 with the correct
 //    neighbor dest MAC (instead of, say, using the old MOD dest MAC).
 TEST_F(AgentMirrorOnDropDestMacTest, ModOnInterfacePortCleanup) {
-  auto mirrorPortId = masterLogicalInterfacePortIds()[0];
+  auto mirrorPortId = portIdsToTest()[0];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
 
   const folly::IPAddressV6 kDestIp{"2401:4444:4444:4444:4444:4444:4444:4444"};
@@ -696,7 +707,7 @@ INSTANTIATE_TEST_SUITE_P(
 // 3. Check that recycle/eventor port stats increase by at most 2 packets.
 TEST_P(AgentMirrorOnDropTest, NoInfiniteLoopRecirculated) {
   auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
-  auto injectionPortId = masterLogicalInterfacePortIds()[0];
+  auto injectionPortId = portIdsToTest()[0];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
   XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
 
@@ -796,8 +807,8 @@ TEST_P(AgentMirrorOnDropTest, ConfigChangePostWarmboot) {
 // (CS00012385636).
 TEST_P(AgentMirrorOnDropTest, ModWithSflowMirrorPresent) {
   auto mirrorPortId = findRecirculationPort(GetParam());
-  auto sampledPortId = masterLogicalInterfacePortIds()[1];
-  auto sflowPortId = masterLogicalInterfacePortIds()[2];
+  auto sampledPortId = portIdsToTest()[1];
+  auto sflowPortId = portIdsToTest()[2];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
   XLOG(DBG3) << "Sampled port: " << portDesc(sampledPortId);
   XLOG(DBG3) << "sFlow destination port: " << portDesc(sflowPortId);
@@ -817,7 +828,8 @@ TEST_P(AgentMirrorOnDropTest, ModWithSflowMirrorPresent) {
                    INGRESS_PACKET_PROCESSING_DISCARDS})}});
     applyNewConfig(config);
     resolveRouteForMirrorDestination(
-        sflowPortId, cfg::PortType::INTERFACE_PORT);
+        sflowPortId,
+        {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
 
     config.mirrorOnDropReports()->clear();
     applyNewConfig(config);
@@ -838,7 +850,7 @@ uint64_t updateStats(
 
 TEST_P(AgentMirrorOnDropTest, ModWithMultipleMirrors) {
   auto mirrorPortId = findRecirculationPort(GetParam());
-  auto collectorPortId = masterLogicalInterfacePortIds()[0];
+  auto collectorPortId = portIdsToTest()[0];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
   XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
 
@@ -848,12 +860,14 @@ TEST_P(AgentMirrorOnDropTest, ModWithMultipleMirrors) {
     folly::IPAddressV6 dstIp;
   };
   std::vector<TrafficLoop> trafficLoops;
-  for (int i = 0; i < FLAGS_mod_num_mirrors; ++i) {
+  for (int i = 0;
+       i < FLAGS_mod_num_mirrors && (i * 2 + 2) < portIdsToTest().size();
+       ++i) {
     auto dstIpArray = kDropDestIp.toByteArray();
     dstIpArray[15] = i;
     trafficLoops.push_back(
-        {.injectionPortId = masterLogicalInterfacePortIds()[i * 2 + 1],
-         .mirrorDestPortId = masterLogicalInterfacePortIds()[i * 2 + 2],
+        {.injectionPortId = portIdsToTest()[i * 2 + 1],
+         .mirrorDestPortId = portIdsToTest()[i * 2 + 2],
          .dstIp = folly::IPAddressV6(dstIpArray)});
     XLOG(DBG3) << "Injection port " << i << ": "
                << portDesc(trafficLoops[i].injectionPortId);
@@ -965,8 +979,8 @@ TEST_P(AgentMirrorOnDropTest, ModWithMultipleMirrors) {
 //    truncated version of the original packet.
 TEST_P(AgentMirrorOnDropTest, PacketProcessingDefaultRouteDrop) {
   auto mirrorPortId = findRecirculationPort(GetParam());
-  auto injectionPortId = masterLogicalInterfacePortIds()[0];
-  auto collectorPortId = masterLogicalInterfacePortIds()[1];
+  auto injectionPortId = portIdsToTest()[0];
+  auto collectorPortId = portIdsToTest()[1];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
   XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
   XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
@@ -1002,7 +1016,8 @@ TEST_P(AgentMirrorOnDropTest, PacketProcessingDefaultRouteDrop) {
         GetParam(),
         kL3DropEventId,
         makeSSPA(injectionPortId),
-        makeTrapDSPA(kL3DropTrapId));
+        makeTrapDSPA(
+            FLAGS_hyper_port ? kHyperPortL3DropTrapId : kL3DropTrapId));
 
     // See if ACL counters increased.
     auto [maxRetryCount, sleepTimeMsecs] =
@@ -1027,8 +1042,8 @@ TEST_P(AgentMirrorOnDropTest, PacketProcessingDefaultRouteDrop) {
 //    truncated version of the original packet.
 TEST_P(AgentMirrorOnDropTest, PacketProcessingNullRouteDrop) {
   PortID mirrorPortId = findRecirculationPort(GetParam());
-  PortID injectionPortId = masterLogicalInterfacePortIds()[0];
-  PortID collectorPortId = masterLogicalInterfacePortIds()[1];
+  PortID injectionPortId = portIdsToTest()[0];
+  PortID collectorPortId = portIdsToTest()[1];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
   XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
   XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
@@ -1076,7 +1091,9 @@ TEST_P(AgentMirrorOnDropTest, PacketProcessingNullRouteDrop) {
         GetParam(),
         kNullRouteDropEventId,
         makeSSPA(injectionPortId),
-        makeTrapDSPA(kNoDestFoundTrapId));
+        makeTrapDSPA(
+            FLAGS_hyper_port ? kHyperPortNoDestFoundTrapId
+                             : kNoDestFoundTrapId));
 
     auto [maxRetryCount, sleepTimeMsecs] =
         utility::getRetryCountAndDelay(getSw()->getHwAsicTable());
@@ -1098,8 +1115,8 @@ TEST_P(AgentMirrorOnDropTest, PacketProcessingNullRouteDrop) {
 //    truncated version of the original packet.
 TEST_P(AgentMirrorOnDropTest, PacketProcessingAclDrop) {
   auto mirrorPortId = findRecirculationPort(GetParam());
-  auto injectionPortId = masterLogicalInterfacePortIds()[0];
-  auto collectorPortId = masterLogicalInterfacePortIds()[1];
+  auto injectionPortId = portIdsToTest()[0];
+  auto collectorPortId = portIdsToTest()[1];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
   XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
   XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
@@ -1131,7 +1148,8 @@ TEST_P(AgentMirrorOnDropTest, PacketProcessingAclDrop) {
         GetParam(),
         kAclDropEventId,
         makeSSPA(injectionPortId),
-        makeTrapDSPA(kAclDropTrapId));
+        makeTrapDSPA(
+            FLAGS_hyper_port ? kHyperPortAclDropTrapId : kAclDropTrapId));
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1142,8 +1160,8 @@ TEST_P(AgentMirrorOnDropTest, PacketProcessingAclDrop) {
 // PacketProcessingDefaultRouteDrop. We expect everything to still work.
 TEST_P(AgentMirrorOnDropTest, MultipleEventIDs) {
   auto mirrorPortId = findRecirculationPort(GetParam());
-  auto injectionPortId = masterLogicalInterfacePortIds()[0];
-  auto collectorPortId = masterLogicalInterfacePortIds()[1];
+  auto injectionPortId = portIdsToTest()[0];
+  auto collectorPortId = portIdsToTest()[1];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
   XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
   XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
@@ -1197,7 +1215,8 @@ TEST_P(AgentMirrorOnDropTest, MultipleEventIDs) {
         GetParam(),
         1, // for INGRESS_PACKET_PROCESSING_DISCARDS
         makeSSPA(injectionPortId),
-        makeTrapDSPA(kL3DropTrapId));
+        makeTrapDSPA(
+            FLAGS_hyper_port ? kHyperPortL3DropTrapId : kL3DropTrapId));
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1214,8 +1233,8 @@ TEST_P(AgentMirrorOnDropTest, MultipleEventIDs) {
 //    truncated version of the original packet.
 TEST_P(AgentMirrorOnDropTest, VoqReject) {
   auto mirrorPortId = findRecirculationPort(GetParam());
-  auto collectorPortId = masterLogicalInterfacePortIds()[0];
-  auto ingressPortId = masterLogicalInterfacePortIds()[1];
+  auto collectorPortId = portIdsToTest()[0];
+  auto ingressPortId = portIdsToTest()[1];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
   XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
   XLOG(DBG3) << "Ingress port: " << portDesc(ingressPortId);
@@ -1312,9 +1331,9 @@ TEST_P(AgentMirrorOnDropTest, VoqReject) {
 //    truncated version of the original packet.
 TEST_P(AgentMirrorOnDropTest, VsqReject) {
   auto mirrorPortId = findRecirculationPort(GetParam());
-  auto collectorPortId = masterLogicalInterfacePortIds()[0];
-  auto injectionPortId = masterLogicalInterfacePortIds()[1];
-  auto txOffPortId = masterLogicalInterfacePortIds()[2];
+  auto collectorPortId = portIdsToTest()[0];
+  auto injectionPortId = portIdsToTest()[1];
+  auto txOffPortId = portIdsToTest()[2];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
   XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
   XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
@@ -1382,8 +1401,8 @@ TEST_P(AgentMirrorOnDropTest, VsqReject) {
 
 TEST_P(AgentMirrorOnDropTest, PrecedenceDrop) {
   auto mirrorPortId = findRecirculationPort(GetParam());
-  auto collectorPortId = masterLogicalInterfacePortIds()[0];
-  auto injectionPortId = masterLogicalInterfacePortIds()[1];
+  auto collectorPortId = portIdsToTest()[0];
+  auto injectionPortId = portIdsToTest()[1];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
   XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
   XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
@@ -1485,7 +1504,7 @@ class AgentMirrorOnDropReconfigTest : public AgentMirrorOnDropTest {
 TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
   auto modFromPortId = PortID(FLAGS_mod_from_port_id);
   auto modToPortId = PortID(FLAGS_mod_to_port_id);
-  auto collectorPortId = masterLogicalInterfacePortIds()[0];
+  auto collectorPortId = portIdsToTest()[0];
   XLOG(DBG3) << "MoD port (from): " << portDesc(modFromPortId);
   XLOG(DBG3) << "MoD port (to): " << portDesc(modToPortId);
   XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
@@ -1524,8 +1543,9 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
     // Ports 1..FLAGS_mod_num_sflow are for mirroring to sFlow.
     std::vector<PortID> sflowSrcPorts;
     configureSflowMirror(config);
-    for (int i = 1; i <= FLAGS_mod_num_sflow; ++i) {
-      PortID injectionPortId = masterLogicalInterfacePortIds()[i];
+    for (int i = 1; i <= FLAGS_mod_num_sflow && i < portIdsToTest().size();
+         ++i) {
+      PortID injectionPortId = portIdsToTest()[i];
       XLOG(DBG3) << "sFlow source port " << i << ": "
                  << portDesc(injectionPortId);
 
@@ -1545,8 +1565,11 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
     constexpr auto numPacketDropLoops = 1;
     for (int i = 0; i < numPacketDropLoops; ++i) {
       int idx = FLAGS_mod_num_sflow + i * 2 + 1;
-      PortID injectionPortId = masterLogicalInterfacePortIds()[idx];
-      PortID mirrorDestPortId = masterLogicalInterfacePortIds()[idx + 1];
+      if (idx + 1 >= portIdsToTest().size()) {
+        break;
+      }
+      PortID injectionPortId = portIdsToTest()[idx];
+      PortID mirrorDestPortId = portIdsToTest()[idx + 1];
       XLOG(DBG3) << "Injection port " << (i + 1) << ": "
                  << portDesc(injectionPortId);
       XLOG(DBG3) << "Mirror destination port " << (i + 1) << ": "
@@ -1568,7 +1591,7 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
 
     // Pump traffic into all traffic loops and verify that they are working.
     for (int i : injectionPortIndices) {
-      PortID portId = masterLogicalInterfacePortIds()[i];
+      PortID portId = portIdsToTest()[i];
       sendPackets(
           getAgentEnsemble()->getMinPktsForLineRate(portId), portId, loopIp(i));
 

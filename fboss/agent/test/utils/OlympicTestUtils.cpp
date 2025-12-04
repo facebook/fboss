@@ -649,6 +649,49 @@ void addOlympicQosMaps(
   addQosMapsHelper(cfg, kOlympicQueueToDscp(), "olympic", asics);
 }
 
+void addOlympicQosMapsForDot1p(
+    cfg::SwitchConfig& cfg,
+    const std::map<int, std::vector<uint8_t>>& queueToPcpMap,
+    const std::vector<const HwAsic*>& asics) {
+  auto hwAsic = checkSameAndGetAsic(asics);
+  cfg::QosMap qosMap;
+  qosMap.pcpMaps() = std::vector<cfg::PcpQosMap>();
+  qosMap.pcpMaps()->resize(queueToPcpMap.size());
+  ssize_t qosMapIdx = 0;
+  for (const auto& q2pcps : queueToPcpMap) {
+    auto [q, pcps] = q2pcps;
+    *(*qosMap.pcpMaps())[qosMapIdx].internalTrafficClass() = q;
+    for (auto pcp : pcps) {
+      (*qosMap.pcpMaps())[qosMapIdx].fromPcpToTrafficClass()->push_back(pcp);
+    }
+    (*qosMap.pcpMaps())[qosMapIdx].fromTrafficClassToPcp() = pcps[0];
+    ++qosMapIdx;
+  }
+  for (const auto& q2pcps : queueToPcpMap) {
+    auto [q, pcps] = q2pcps;
+    qosMap.trafficClassToQueueId()->emplace(
+        q, getTrafficClassToEgressQueueId(hwAsic, q));
+  }
+  cfg.qosPolicies()->resize(1);
+  *cfg.qosPolicies()[0].name() = "olympic";
+  cfg.qosPolicies()[0].qosMap() = qosMap;
+
+  cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
+  dataPlaneTrafficPolicy.defaultQosPolicy() = "olympic";
+  cfg.dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
+  cfg::CPUTrafficPolicyConfig cpuConfig;
+  if (cfg.cpuTrafficPolicy()) {
+    cpuConfig = *cfg.cpuTrafficPolicy();
+  }
+  cfg::TrafficPolicyConfig cpuTrafficPolicy;
+  if (cpuConfig.trafficPolicy()) {
+    cpuTrafficPolicy = *cpuConfig.trafficPolicy();
+  }
+  cpuTrafficPolicy.defaultQosPolicy() = "olympic";
+  cpuConfig.trafficPolicy() = cpuTrafficPolicy;
+  cfg.cpuTrafficPolicy() = cpuConfig;
+}
+
 void addOlympicV2QosMaps(
     cfg::SwitchConfig& cfg,
     const std::vector<const HwAsic*>& asics,

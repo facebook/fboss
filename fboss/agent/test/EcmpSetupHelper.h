@@ -257,15 +257,23 @@ class EcmpSetupTargetedPorts
       const boost::container::flat_set<PortDescriptor>& nhops,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
-      std::optional<RouteCounterID> counterID = std::nullopt) const {
-    programRoutes(wrapper.get(), nhops, prefixes, weights, counterID);
+      std::optional<RouteCounterID> counterID = std::nullopt,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const {
+    programRoutes(
+        wrapper.get(),
+        nhops,
+        prefixes,
+        weights,
+        counterID,
+        disableTTLDecrement);
   }
   void programRoutes(
       RouteUpdateWrapper* wrapper,
       const boost::container::flat_set<PortDescriptor>& nhops,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
-      std::optional<RouteCounterID> counterID = std::nullopt) const;
+      std::optional<RouteCounterID> counterID = std::nullopt,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const;
 
   void programRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
@@ -273,8 +281,15 @@ class EcmpSetupTargetedPorts
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<std::vector<NextHopWeight>>& weights =
           std::vector<std::vector<NextHopWeight>>(),
-      std::optional<RouteCounterID> counterID = std::nullopt) const {
-    programRoutes(wrapper.get(), nhops, prefixes, weights, counterID);
+      std::optional<RouteCounterID> counterID = std::nullopt,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const {
+    programRoutes(
+        wrapper.get(),
+        nhops,
+        prefixes,
+        weights,
+        counterID,
+        disableTTLDecrement);
   }
   void programRoutes(
       RouteUpdateWrapper* wrapper,
@@ -282,7 +297,8 @@ class EcmpSetupTargetedPorts
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<std::vector<NextHopWeight>>& weights =
           std::vector<std::vector<NextHopWeight>>(),
-      std::optional<RouteCounterID> counterID = std::nullopt) const;
+      std::optional<RouteCounterID> counterID = std::nullopt,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const;
 
   void programMplsRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
@@ -328,7 +344,8 @@ class EcmpSetupTargetedPorts
       const boost::container::flat_set<PortDescriptor>& nhops,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
-      const std::optional<RouteCounterID>& counterID = std::nullopt) const;
+      const std::optional<RouteCounterID>& counterID = std::nullopt,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const;
 
   RouterID routerId_;
 };
@@ -496,17 +513,19 @@ class EcmpSetupAnyNPorts {
       std::unique_ptr<RouteUpdateWrapper> updater,
       const boost::container::flat_set<PortDescriptor>& portDescs,
       const std::vector<RouteT>& prefixes,
-      const std::vector<NextHopWeight>& weights =
-          std::vector<NextHopWeight>()) const {
-    programRoutes(updater.get(), portDescs, prefixes, weights);
+      const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const {
+    programRoutes(
+        updater.get(), portDescs, prefixes, weights, disableTTLDecrement);
   }
 
   void programRoutes(
       RouteUpdateWrapper* updater,
       const boost::container::flat_set<PortDescriptor>& portDescs,
       const std::vector<RouteT>& prefixes,
-      const std::vector<NextHopWeight>& weights =
-          std::vector<NextHopWeight>()) const;
+      const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const;
+
   void programIp2MplsRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
       size_t width,

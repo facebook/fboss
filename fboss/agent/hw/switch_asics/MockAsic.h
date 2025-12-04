@@ -193,6 +193,7 @@ class MockAsic : public HwAsic {
         return 1;
       case cfg::MMUScalingFactor::FOUR:
         return 2;
+      case cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT:
       case cfg::MMUScalingFactor::ONE_32768TH:
         // Unsupported
         throw FbossError(
@@ -231,6 +232,10 @@ class MockAsic : public HwAsic {
   }
   std::optional<uint32_t> getArsBaseIndex() const override {
     return std::nullopt;
+  }
+  const std::set<uint16_t>& getL1FabricPortsToConnectToL2() const override {
+    static const std::set<uint16_t> l1FabricPortsToConnectToL2{};
+    return l1FabricPortsToConnectToL2;
   }
 };
 

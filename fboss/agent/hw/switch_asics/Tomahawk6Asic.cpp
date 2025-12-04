@@ -22,7 +22,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
     case HwAsic::Feature::PKTIO:
-    case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
     case HwAsic::Feature::OBM_COUNTERS:
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
@@ -49,8 +48,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
     case HwAsic::Feature::SAI_LAG_HASH:
-    case HwAsic::Feature::PMD_RX_LOCK_STATUS:
-    case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::SAI_ECN_WRED:
@@ -104,6 +101,8 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
     case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::SAI_PORT_ERR_STATUS:
+    case HwAsic::Feature::RX_FREQUENCY_PPM:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -135,8 +134,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
-    case HwAsic::Feature::SAI_PORT_ERR_STATUS:
-    case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::FABRIC_PORTS:
 
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
@@ -223,6 +220,9 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
+    case HwAsic::Feature::PMD_RX_LOCK_STATUS: // CS00012426349
+    case HwAsic::Feature::PMD_RX_SIGNAL_DETECT: // CS00012426349
+    case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
       return false;
   }
   return false;

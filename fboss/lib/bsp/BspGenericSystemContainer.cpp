@@ -6,6 +6,7 @@
 #include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
+#include "fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
@@ -16,6 +17,8 @@
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahansb800bc/Tahansb800bcBspPlatformMapping.h"
+#include "fboss/lib/bsp/wedge800bact/Wedge800BACTBspPlatformMapping.h"
+#include "fboss/lib/bsp/wedge800cact/Wedge800CACTBspPlatformMapping.h"
 
 DEFINE_string(
     bsp_platform_mapping_override_path,
@@ -162,6 +165,33 @@ template <>
 std::shared_ptr<Tahansb800bcSystemContainer>
 Tahansb800bcSystemContainer::getInstance() {
   return _tahansb800bcSystemContainer.try_get();
+}
+
+using Wedge800BACTSystemContainer =
+    BspGenericSystemContainer<Wedge800BACTBspPlatformMapping>;
+folly::Singleton<Wedge800BACTSystemContainer> _wedge800bactSystemContainer;
+template <>
+std::shared_ptr<Wedge800BACTSystemContainer>
+Wedge800BACTSystemContainer::getInstance() {
+  return _wedge800bactSystemContainer.try_get();
+}
+
+using Wedge800CACTSystemContainer =
+    BspGenericSystemContainer<Wedge800CACTBspPlatformMapping>;
+folly::Singleton<Wedge800CACTSystemContainer> _wedge800cactSystemContainer;
+template <>
+std::shared_ptr<Wedge800CACTSystemContainer>
+Wedge800CACTSystemContainer::getInstance() {
+  return _wedge800cactSystemContainer.try_get();
+}
+
+using Ladakh800bclsSystemContainer =
+    BspGenericSystemContainer<Ladakh800bclsBspPlatformMapping>;
+folly::Singleton<Ladakh800bclsSystemContainer> _Ladakh800bclsSystemContainer;
+template <>
+std::shared_ptr<Ladakh800bclsSystemContainer>
+Ladakh800bclsSystemContainer::getInstance() {
+  return _Ladakh800bclsSystemContainer.try_get();
 }
 
 } // namespace fboss

@@ -316,6 +316,11 @@ const std::shared_ptr<MultiSwitchQosPolicyMap>& SwitchState::getQosPolicies()
   return safe_cref<switch_state_tags::qosPolicyMaps>();
 }
 
+const std::shared_ptr<MultiSwitchFibInfoMap>& SwitchState::getFibsInfoMap()
+    const {
+  return safe_cref<switch_state_tags::fibsInfoMap>();
+}
+
 const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>&
 SwitchState::getFibs() const {
   return safe_cref<switch_state_tags::fibsMap>();
@@ -338,6 +343,11 @@ void SwitchState::resetLabelForwardingInformationBase(
 void SwitchState::resetForwardingInformationBases(
     std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs) {
   ref<switch_state_tags::fibsMap>() = fibs;
+}
+
+void SwitchState::resetFibsInfoMap(
+    std::shared_ptr<MultiSwitchFibInfoMap> fibsInfoMap) {
+  ref<switch_state_tags::fibsInfoMap>() = fibsInfoMap;
 }
 
 void SwitchState::resetTransceivers(
@@ -571,6 +581,28 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
         state->getVlans().get() /* to */);
   }
 
+  /*
+   * FIB Migration: Four-stage transition from fibsMap to fibsInfoMap
+   *
+   * Stage 1 (Current): Rollback safety - Clear fibsInfoMap when deserializing
+   * to handle rollback from Stage 2 where both FIBs are
+   * populated during warm boot exit.
+   *
+   * Stage 2: Migrate clients to new FIB while populating
+   * both structures during warm boot exit. Forward migration (Stage
+   * 2→3) clears fibsMap on init; rollback (Stage 2→1) clears fibsInfoMap during
+   * init of stage 1.
+   *
+   * Stage 3: New FIB primary - All clients use fibsInfoMap, but both FIBs still
+   * populated during warm boot exit to support direct Stage 1→3
+   * transitions.
+   *
+   * Stage 4: Complete migration - Remove fibsMap entirely from codebase.
+   */
+  if (state->getFibsInfoMap() && !state->getFibsInfoMap()->empty()) {
+    state->resetFibsInfoMap(std::make_shared<MultiSwitchFibInfoMap>());
+  }
+
   return state;
 }
 
@@ -717,6 +749,10 @@ InterfaceID SwitchState::getInterfaceIDForPort(
   switch (port.type()) {
     case PortDescriptor::PortType::PHYSICAL: {
       auto physicalPort = getPorts()->getNode(port.phyPortID());
+      if (physicalPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) {
+        // no L3 interface configured on hyper port members
+        return InterfaceID(0);
+      }
       // On VOQ/Fabric switches, port and interface have 1:1 relation.
       // For non VOQ/Fabric switches, in practice, a port is always part of a
       // single VLAN (and thus single interface).

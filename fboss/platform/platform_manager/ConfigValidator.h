@@ -17,6 +17,8 @@ class ConfigValidator {
   bool isValidSlotConfig(const SlotConfig& slotConfig);
   bool isValidFpgaIpBlockConfig(const FpgaIpBlockConfig& fpgaIpBlockConfig);
   bool isValidLedCtrlBlockConfig(const LedCtrlBlockConfig& ledCtrlBlockConfig);
+  bool isValidXcvrCtrlBlockConfig(
+      const XcvrCtrlBlockConfig& xcvrCtrlBlockConfig);
   bool isValidPciDeviceConfig(const PciDeviceConfig& pciDeviceConfig);
   bool isValidI2cDeviceConfig(const I2cDeviceConfig& i2cDeviceConfig);
   bool isValidDevicePath(
@@ -28,19 +30,29 @@ class ConfigValidator {
       const std::vector<SpiDeviceConfig>& spiDeviceConfig);
   bool isValidBspKmodsRpmVersion(const std::string& bspKmodsRpmVersion);
   bool isValidBspKmodsRpmName(const std::string& bspKmodsRpmName);
-  bool isValidVersionedPmConfigs(
-      const std::map<std::string, std::vector<VersionedPmUnitConfig>>&
-          versionedPmUnitConfigs);
+  bool isValidVersionedPmUnitConfig(
+      const std::string& pmUnitName,
+      const std::vector<VersionedPmUnitConfig>& versionedPmUnitConfigs,
+      const PmUnitConfig& defaultPmUnitConfig,
+      const std::map<std::string, SlotTypeConfig>& slotTypeConfigs);
   bool isValidXcvrSymlinks(
       int16_t numXcvrs,
       const std::vector<std::string>& symlinks);
   bool isValidCsrOffsetCalc(
       const std::string& csrOffsetCalc,
       const int16_t& portNum,
-      const int16_t& ledNum,
-      const int16_t& startPort);
+      const int16_t& startPort,
+      std::optional<int16_t> ledNum = std::nullopt);
+  bool isValidIobufOffsetCalc(
+      const std::string& iobufOffsetCalc,
+      const int16_t& portNum,
+      const int16_t& startPort,
+      std::optional<int16_t> ledNum = std::nullopt);
   bool isValidPortRanges(
-      const std::vector<LedCtrlBlockConfig>& ledCtrlBlockConfigs);
+      const std::vector<std::pair<int16_t, int16_t>>& startPortAndNumPorts);
+  bool isValidChassisEepromDevicePath(
+      const PlatformConfig& platformConfig,
+      const std::string& chassisEepromDevicePath);
 
   // Used by other platform services config validation.
   virtual bool isValidSlotPath(

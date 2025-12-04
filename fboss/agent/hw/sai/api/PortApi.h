@@ -136,6 +136,16 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    using QosDot1pToTcMap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_DOT1P_TO_TC_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using QosTcAndColorToDot1pMap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_TC_AND_COLOR_TO_DOT1P_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using QosTcToQueueMap = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP,
@@ -524,6 +534,13 @@ struct SaiPortTraits {
         std::vector<sai_object_id_t>,
         AttributeHyperPortMemberList,
         SaiObjectIdListDefault>;
+    struct AttributePfcMonitorDirection {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PfcMonitorDirection = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributePfcMonitorDirection,
+        SaiIntDefault<sai_int32_t>>;
   };
   using AdapterKey = PortSaiId;
 
@@ -645,7 +662,10 @@ struct SaiPortTraits {
       std::optional<Attributes::FabricSystemPort>,
       std::optional<Attributes::StaticModuleId>,
       std::optional<Attributes::IsHyperPortMember>,
-      std::optional<Attributes::HyperPortMemberList>>;
+      std::optional<Attributes::HyperPortMemberList>,
+      std::optional<Attributes::PfcMonitorDirection>,
+      std::optional<Attributes::QosDot1pToTcMap>,
+      std::optional<Attributes::QosTcAndColorToDot1pMap>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -697,6 +717,7 @@ struct SaiPortTraits {
   static const std::vector<sai_stat_id_t>& macTxDataQueueMaxWatermarkStats();
   static const std::vector<sai_stat_id_t>& fabricControlRxPacketStats();
   static const std::vector<sai_stat_id_t>& fabricControlTxPacketStats();
+  static const std::vector<sai_stat_id_t>& pfcXoffTotalDurationStats();
 };
 
 SAI_ATTRIBUTE_NAME(Port, HwLaneList)
@@ -718,6 +739,8 @@ SAI_ATTRIBUTE_NAME(Port, GlobalFlowControlMode)
 SAI_ATTRIBUTE_NAME(Port, PortVlanId)
 SAI_ATTRIBUTE_NAME(Port, Mtu)
 SAI_ATTRIBUTE_NAME(Port, QosDscpToTcMap)
+SAI_ATTRIBUTE_NAME(Port, QosDot1pToTcMap)
+SAI_ATTRIBUTE_NAME(Port, QosTcAndColorToDot1pMap)
 SAI_ATTRIBUTE_NAME(Port, QosTcToQueueMap)
 SAI_ATTRIBUTE_NAME(Port, DisableTtlDecrement)
 
@@ -816,6 +839,7 @@ SAI_ATTRIBUTE_NAME(Port, StaticModuleId)
 SAI_ATTRIBUTE_NAME(Port, PgDropStatus)
 SAI_ATTRIBUTE_NAME(Port, IsHyperPortMember)
 SAI_ATTRIBUTE_NAME(Port, HyperPortMemberList)
+SAI_ATTRIBUTE_NAME(Port, PfcMonitorDirection)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)

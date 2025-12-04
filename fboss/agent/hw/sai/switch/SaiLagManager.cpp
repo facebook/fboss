@@ -54,8 +54,9 @@ LagSaiId SaiLagManager::addLag(
   LagSaiId lagSaiId = lag->adapterKey();
   std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members;
   for (auto iter : folly::enumerate(aggregatePort->subportAndFwdState())) {
-    auto [subPort, fwdState] = *iter;
-    auto member = addMember(lag, aggregatePort->getID(), subPort, fwdState);
+    auto [currentSubPort, fwdState] = *iter;
+    auto member =
+        addMember(lag, aggregatePort->getID(), currentSubPort, fwdState);
     members.emplace(std::move(member));
   }
   concurrentIndices_->vlanIds.emplace(
@@ -72,7 +73,7 @@ LagSaiId SaiLagManager::addLag(
       aggregatePort->getID(), aggregatePort->getName());
   handles_.emplace(aggregatePort->getID(), std::move(handle));
   managerTable_->vlanManager().createVlanMember(
-      vlanID, SaiPortDescriptor(aggregatePort->getID()));
+      vlanID, SaiPortDescriptor(aggregatePort->getID()), false);
 
   return lagSaiId;
 }
@@ -225,7 +226,7 @@ SaiLagHandle* SaiLagManager::getLagHandle(
   throw FbossError("handle for aggregate port ", aggregatePortID, " not found");
 }
 
-bool SaiLagManager::isMinimumLinkMet(AggregatePortID aggregatePortID) const {
+bool SaiLagManager::isLagUp(const AggregatePortID& aggregatePortID) const {
   const auto* handle = getLagHandle(aggregatePortID);
   return handle->minimumLinkCount <= getActiveMemberCount(aggregatePortID);
 }

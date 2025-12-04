@@ -73,7 +73,7 @@ int getPerNodeSysPortsBlockSize(
     const HwAsic& asic,
     int remoteSwitchId,
     std::optional<PlatformType> platformType = std::nullopt) {
-  if (remoteSwitchId < getMaxRdsw() * asic.getNumCores()) {
+  if (remoteSwitchId < getMaxRdsw(platformType) * asic.getNumCores()) {
     return getRdswSysPortBlockSize(platformType);
   }
   return getEdswSysPortBlockSize();
@@ -87,11 +87,13 @@ int getSysPortIdsAllocated(
   auto portsConsumed = firstSwitchIdMin;
   auto deviceIndex = remoteSwitchId / asic.getNumCores();
   CHECK(asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3);
-  if (deviceIndex < getMaxRdsw()) {
+  if (deviceIndex < getMaxRdsw(platformType)) {
     portsConsumed += deviceIndex * getRdswSysPortBlockSize(platformType) - 1;
   } else {
-    portsConsumed += getMaxRdsw() * getRdswSysPortBlockSize(platformType) +
-        (deviceIndex - getMaxRdsw()) * getEdswSysPortBlockSize() - 1;
+    portsConsumed +=
+        getMaxRdsw(platformType) * getRdswSysPortBlockSize(platformType) +
+        (deviceIndex - getMaxRdsw(platformType)) * getEdswSysPortBlockSize() -
+        1;
   }
   return portsConsumed;
 }
@@ -119,6 +121,8 @@ const std::map<cfg::PortType, cfg::PortLoopbackMode>& kDefaultLoopbackMap() {
       {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::NONE},
       {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::NONE},
       {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::NONE},
+      {cfg::PortType::HYPER_PORT, cfg::PortLoopbackMode::NONE},
+      {cfg::PortType::HYPER_PORT_MEMBER, cfg::PortLoopbackMode::NONE},
       {cfg::PortType::EVENTOR_PORT, cfg::PortLoopbackMode::NONE}};
   return kLoopbackMap;
 }
@@ -407,8 +411,16 @@ void securePortsInConfig(
   }
 }
 
-int getMaxRdsw() {
-  return isDualStage3Q2QMode() ? 512 : 128;
+int getMaxRdsw(std::optional<PlatformType> platformType) {
+  if (isDualStage3Q2QMode()) {
+    return 512;
+  } else if (
+      platformType.has_value() &&
+      platformType.value() == PlatformType::PLATFORM_JANGA800BIC) {
+    return 256; // Janga gets 256 max RDSWs for single-stage
+  } else {
+    return 128; // Others get 128 for single-stage (default)
+  }
 }
 
 int getMaxEdsw() {
@@ -446,9 +458,10 @@ cfg::DsfNode dsfNodeConfig(
     }
     throw FbossError("Unexpected asic type: ", asic.getAsicTypeStr());
   };
-  auto getSystemPortRanges = [&platformType](
-                                 const HwAsic& fromAsic,
-                                 int64_t otherSwitchId) {
+  auto getSystemPortRanges = [](const HwAsic& fromAsic,
+                                int64_t otherSwitchId,
+                                std::optional<PlatformType> platformType =
+                                    std::nullopt) {
     cfg::SystemPortRanges sysPortRanges;
     CHECK(fromAsic.getSystemPortRanges().systemPortRanges()->size());
     CHECK(fromAsic.getSwitchId().has_value());
@@ -480,10 +493,12 @@ cfg::DsfNode dsfNodeConfig(
   dsfNode.switchId() = otherSwitchId;
   dsfNode.name() =
       folly::sformat("{}{}", switchNamePrefix, *dsfNode.switchId());
+  auto resolvedPlatformType = getPlatformType(firstAsic, platformType);
   switch (firstAsic.getSwitchType()) {
     case cfg::SwitchType::VOQ: {
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-      auto sysPortRanges = getSystemPortRanges(firstAsic, otherSwitchId);
+      auto sysPortRanges =
+          getSystemPortRanges(firstAsic, otherSwitchId, resolvedPlatformType);
       dsfNode.systemPortRanges() = sysPortRanges;
       dsfNode.localSystemPortOffset() = getLocalSystemPortOffset(sysPortRanges);
       // In single-stage sys port ranges, 0th port is reserved for CPU.
@@ -811,8 +826,8 @@ cfg::SwitchConfig genPortVlanCfg(
     cfg::Range64 portIdRange;
     portIdRange.minimum() =
         cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
-    portIdRange.maximum() =
-        cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
+    portIdRange.maximum() = cfg::switch_config_constants::
+        DEFAULT_DUAL_STAGE_3Q_2Q_PORT_ID_RANGE_MAX();
     switchInfo.portIdRange() = portIdRange;
     switchInfo.switchIndex() = 0;
     switchInfo.switchType() = switchType;
@@ -1368,8 +1383,9 @@ void configurePortGroup(
     auto supportedProfiles = *platPortEntry.supportedProfiles();
     auto profile = supportedProfiles.find(profileID.value());
     if (profile == supportedProfiles.end()) {
-      throw std::runtime_error(folly::to<std::string>(
-          "No profile ", profileID.value(), " found for port ", portID));
+      throw std::runtime_error(
+          folly::to<std::string>(
+              "No profile ", profileID.value(), " found for port ", portID));
     }
 
     cfgPort->profileID() = profileID.value();
@@ -1441,7 +1457,7 @@ void configurePortProfile(
     // iteration of the loop.
     auto cfgPort = findCfgPortIf(config, portID);
     if (cfgPort == config.ports()->end()) {
-      return;
+      continue;
     }
 
     const auto& platPortEntry = platformMapping->getPlatformPort(portID);
@@ -1637,10 +1653,11 @@ genInterfaceAddress(int ipDecimal, bool isV4, int host, int subnetMask) {
   auto ipDecimal1 = folly::sformat("{}", ipDecimal % 224);
   auto ipDecimal2 = folly::sformat("{}", ipDecimal / 224);
 
-  auto addr = isV4 ? folly::IPAddress(folly::sformat(
-                         "{}.{}.0.{}", ipDecimal1, ipDecimal2, host))
-                   : folly::IPAddress(folly::sformat(
-                         "{}:{}::{}", ipDecimal1, ipDecimal2, host));
+  auto addr = isV4
+      ? folly::IPAddress(
+            folly::sformat("{}.{}.0.{}", ipDecimal1, ipDecimal2, host))
+      : folly::IPAddress(
+            folly::sformat("{}:{}::{}", ipDecimal1, ipDecimal2, host));
   return folly::sformat("{}/{}", addr.str(), subnetMask);
 }
 } // namespace facebook::fboss::utility

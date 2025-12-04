@@ -164,7 +164,7 @@ void AgentVoqSwitchTest::sendLocalServiceDiscoveryMulticastPacket(
       utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   auto srcIp = folly::IPAddressV6("fe80::ff:fe00:f0b");
   auto dstIp = folly::IPAddressV6("ff15::efc0:988f");
-  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
   std::vector<uint8_t> serviceDiscoveryPayload = {
       0x42, 0x54, 0x2d, 0x53, 0x45, 0x41, 0x52, 0x43, 0x48, 0x20, 0x2a, 0x20,
       0x48, 0x54, 0x54, 0x50, 0x2f, 0x31, 0x2e, 0x31, 0x0d, 0x0a, 0x48, 0x6f,
@@ -332,8 +332,9 @@ TEST_F(AgentVoqSwitchTest, fdrRciAndCoreRciWatermarks) {
 
 TEST_F(AgentVoqSwitchTest, addRemoveNeighbor) {
   auto setup = [this]() {
-    const PortDescriptor kPortDesc(getAgentEnsemble()->masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[0]);
+    const PortDescriptor kPortDesc(
+        getAgentEnsemble()->masterLogicalPortIds(
+            {cfg::PortType::INTERFACE_PORT})[0]);
     // Add neighbor
     addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
     // Remove neighbor
@@ -485,6 +486,9 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
             if (asic->getAsicMode() != HwAsic::AsicMode::ASIC_MODE_SIM) {
               // Account for Ethernet FCS being counted in TX out bytes.
               extraByteOffset = utility::EthFrame::FCS_SIZE;
+              if (FLAGS_hyper_port) {
+                extraByteOffset += utility::EthFrame::HYPER_PORT_HEADER_SIZE;
+              }
             }
             EXPECT_EVENTUALLY_EQ(
                 afterOutBytes - txPacketSize - extraByteOffset, beforeOutBytes);
@@ -653,7 +657,11 @@ TEST_F(AgentVoqSwitchTest, localSystemPortEcmp) {
     for (auto& systemPortMap :
          std::as_const(*getProgrammedState()->getSystemPorts())) {
       for (auto& [_, localSysPort] : std::as_const(*systemPortMap.second)) {
-        localSysPorts.insert(PortDescriptor(localSysPort->getID()));
+        PortDescriptor portDesc = PortDescriptor(localSysPort->getID());
+        // no need to configure RIF interface for hyper port members
+        if (ecmpHelper.getInterface(portDesc, getProgrammedState())) {
+          localSysPorts.insert(portDesc);
+        }
       }
     }
     applyNewState([=](const std::shared_ptr<SwitchState>& in) {

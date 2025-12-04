@@ -112,11 +112,30 @@ struct fbiob_aux_data {
 };
 
 /*
- * Supported ioctl commands.
+ * The structure contains all the required information to initiate MDIO
+ * C45 transactions from user space.
+ */
+struct fb_mdio_xfer {
+	__u32 phy_addr;	/* 5-bit PHY address. */
+	__u32 dev_addr;	/* 5-bit device address. */
+	__u32 reg_addr;	/* 16-bit register address. */
+	__u32 reg_data;	/* 16-bit register value. */
+};
+
+/*
+ * ioctl commands for auxdev creation/deletion.
  */
 #define FBIOB_IOC_MAGIC		'F'
 #define FBIOB_IOC_NEW_DEVICE	_IOW(FBIOB_IOC_MAGIC, 1, struct fbiob_aux_data)
 #define FBIOB_IOC_DEL_DEVICE	_IOW(FBIOB_IOC_MAGIC, 2, struct fbiob_aux_data)
+
+/*
+ * ioctl commands for MDIO transactions.
+ * NOTE: each C45 transfer takes 2 steps (address phase and data phase),
+ * and FPGA/BSP will combine the 2 steps into an "atomic" operation.
+ */
+#define FBIOC_MDIO_C45_WRITE	_IOW(FBIOB_IOC_MAGIC, 1, struct fb_mdio_xfer)
+#define FBIOC_MDIO_C45_READ	_IOW(FBIOB_IOC_MAGIC, 2, struct fb_mdio_xfer)
 
 #ifdef __cplusplus
 }

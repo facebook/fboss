@@ -11,6 +11,7 @@
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 
 #include <folly/Format.h>
+#include "fboss/agent/FbossError.h"
 
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
@@ -48,6 +49,29 @@ static const std::unordered_map<int, std::vector<cfg::PortProfileID>>
          {
              cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
              cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+         }},
+};
+
+static const std::unordered_map<int, std::vector<cfg::PortProfileID>>
+    k4PortProfilesInGroupForMultiTcvr = {
+        {0,
+         {
+             cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER,
+             cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER,
+             cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_COPPER,
+         }},
+        {1,
+         {
+             cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_COPPER,
+         }},
+        {2,
+         {
+             cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER,
+             cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_COPPER,
+         }},
+        {3,
+         {
+             cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_COPPER,
          }},
 };
 
@@ -163,13 +187,46 @@ static const std::unordered_map<
              TransmitterTechnology::OPTICAL,
              phy::InterfaceMode::SFI,
              phy::InterfaceType::SFI)},
+        {cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER,
+         std::make_tuple(
+             cfg::PortSpeed::FOURHUNDREDG,
+             8,
+             phy::FecMode::RS544_2N,
+             TransmitterTechnology::COPPER,
+             phy::InterfaceMode::CAUI,
+             phy::InterfaceType::CAUI)},
+        {cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER,
+         std::make_tuple(
+             cfg::PortSpeed::TWOHUNDREDG,
+             4,
+             phy::FecMode::RS544_2N,
+             TransmitterTechnology::COPPER,
+             phy::InterfaceMode::CAUI,
+             phy::InterfaceType::CAUI)},
+        {cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER,
+         std::make_tuple(
+             cfg::PortSpeed::HUNDREDG,
+             2,
+             phy::FecMode::RS544_2N,
+             TransmitterTechnology::COPPER,
+             phy::InterfaceMode::CAUI,
+             phy::InterfaceType::CAUI)},
+        {cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_COPPER,
+         std::make_tuple(
+             cfg::PortSpeed::FIFTYG,
+             1,
+             phy::FecMode::RS544_2N,
+             TransmitterTechnology::COPPER,
+             phy::InterfaceMode::CAUI,
+             phy::InterfaceType::CAUI)},
 };
 } // namespace
 
 namespace facebook::fboss {
 FakeTestPlatformMapping::FakeTestPlatformMapping(
     std::vector<int> controllingPortIds,
-    int portsPerSlot)
+    int portsPerSlot,
+    bool twoTransceiversPerPort)
     : PlatformMapping(), controllingPortIds_(std::move(controllingPortIds)) {
   for (auto itProfile : kProfiles) {
     phy::PortProfileConfig profile;
@@ -198,6 +255,18 @@ FakeTestPlatformMapping::FakeTestPlatformMapping(
     mergePlatformSupportedProfile(configEntry);
   }
 
+  if (twoTransceiversPerPort) {
+    createDualTransceiverPlatformMapping(portsPerSlot);
+  } else {
+    createPlatformMapping(portsPerSlot);
+  }
+
+  // Each group has portsPerSlot ports regardless of configuration
+  CHECK_EQ(
+      getPlatformPorts().size(), controllingPortIds_.size() * portsPerSlot);
+}
+
+void FakeTestPlatformMapping::createPlatformMapping(int portsPerSlot) {
   for (int groupID = 0; groupID < controllingPortIds_.size(); groupID++) {
     auto portsInGroup = getPlatformPortEntriesByGroup(groupID, portsPerSlot);
     for (auto port : portsInGroup) {
@@ -222,9 +291,6 @@ FakeTestPlatformMapping::FakeTestPlatformMapping(
     *tcvr.physicalID() = groupID;
     setChip(*tcvr.name(), tcvr);
   }
-
-  CHECK_EQ(
-      getPlatformPorts().size(), controllingPortIds_.size() * portsPerSlot);
 }
 
 cfg::PlatformPortConfig FakeTestPlatformMapping::getPlatformPortConfig(
@@ -271,7 +337,8 @@ cfg::PlatformPortConfig FakeTestPlatformMapping::getPlatformPortConfig(
 std::vector<cfg::PlatformPortEntry>
 FakeTestPlatformMapping::getPlatformPortEntriesByGroup(
     int groupID,
-    int portsPerSlot) {
+    int portsPerSlot,
+    bool twoTransceiversPerPort) {
   std::unordered_map<int, std::vector<cfg::PortProfileID>> kPortProfilesInGroup;
   switch (portsPerSlot) {
     case 8:
@@ -282,6 +349,9 @@ FakeTestPlatformMapping::getPlatformPortEntriesByGroup(
       break;
     default:
       kPortProfilesInGroup = k4PortProfilesInGroup;
+  }
+  if (twoTransceiversPerPort) {
+    kPortProfilesInGroup = k4PortProfilesInGroupForMultiTcvr;
   }
 
   std::vector<cfg::PlatformPortEntry> platformPortEntries;
@@ -352,6 +422,134 @@ phy::RxSettings FakeTestPlatformMapping::getFakeRxSetting() {
   rx.afeTrim() = 110;
   rx.acCouplingBypass() = -111;
   return rx;
+}
+
+void FakeTestPlatformMapping::createDualTransceiverPlatformMapping(
+    int portsPerSlot) {
+  // PlatformMapping Structure
+  // Two controlling ports - one TransceiverId assigned to each
+  // First controlling port can subsume the lanes of the second transceiver, so
+  // will have one extra profile to accommodate this otherwise each transceiver
+  // is the same.
+
+  // This helper function is tied to a distinct use case of rev Y-cable, so we
+  // constrict the requirements on input args.
+  if (controllingPortIds_.size() != 2 || portsPerSlot != 4) {
+    throw FbossError(
+        folly::sformat(
+            "twoTransceiversPerPort is enabled, but controllingPortIds size is {} (expected 2) or portsPerSlot is {} (expected 4).",
+            controllingPortIds_.size(),
+            portsPerSlot));
+  }
+
+  auto addDualTransceiverProfile =
+      [](cfg::PlatformPortEntry& firstPort, int portsPerSlot, int groupID) {
+        // Custom logic for first port to subsume next port.
+        // Changing Static Mapping
+        auto firstPortId = *firstPort.mapping()->id();
+        std::vector<phy::PinConnection> dualTcvrPinConnections;
+        for (int i = 0; i < 4; i++) {
+          phy::PinConnection asicPinConnection;
+          asicPinConnection.a()->chip() = folly::sformat("core{}", groupID);
+          asicPinConnection.a()->lane() = i;
+
+          phy::PinID pinEnd1;
+          *pinEnd1.chip() = folly::sformat("eth1/{}", groupID + 1);
+          *pinEnd1.lane() = i;
+
+          phy::Pin zPin1;
+          zPin1.end() = pinEnd1;
+          asicPinConnection.z() = zPin1;
+          dualTcvrPinConnections.push_back(asicPinConnection);
+        }
+
+        // Second Tcvr Lanes
+        for (int i = 0; i < 4; i++) {
+          phy::PinConnection asicPinConnection;
+          asicPinConnection.a()->chip() = folly::sformat("core{}", groupID);
+          asicPinConnection.a()->lane() = i + 4;
+
+          phy::PinID pinEnd1;
+          *pinEnd1.chip() = folly::sformat("eth1/{}", groupID + 2);
+          *pinEnd1.lane() = i;
+
+          phy::Pin zPin1;
+          zPin1.end() = pinEnd1;
+          asicPinConnection.z() = zPin1;
+          dualTcvrPinConnections.push_back(asicPinConnection);
+        }
+
+        firstPort.mapping()->pins() = dualTcvrPinConnections;
+
+        // Adding new supported profile.
+        std::vector<phy::PinConfig> dualTcvrPinConfigsPhy;
+        for (int i = 0; i < 8; i++) {
+          phy::PinConfig iphy;
+          *iphy.id()->chip() = folly::sformat("core{}", groupID);
+          *iphy.id()->lane() = i;
+          iphy.tx() = getFakeTxSetting();
+          iphy.rx() = getFakeRxSetting();
+          dualTcvrPinConfigsPhy.push_back(iphy);
+        }
+
+        std::vector<phy::PinConfig> dualTcvrPinConfigsTcvr;
+        for (int i = 0; i < 4; i++) {
+          phy::PinConfig tcvr;
+          *tcvr.id()->chip() = folly::sformat("eth1/{}", groupID + 1);
+          *tcvr.id()->lane() = i;
+          dualTcvrPinConfigsTcvr.push_back(tcvr);
+        }
+        for (int i = 0; i < 4; i++) {
+          phy::PinConfig tcvr;
+          *tcvr.id()->chip() = folly::sformat("eth1/{}", groupID + 2);
+          *tcvr.id()->lane() = i;
+          dualTcvrPinConfigsTcvr.push_back(tcvr);
+        }
+
+        // Dual Transceiver Port Profile (Using all 8 lanes to same ASIC core)
+        cfg::PlatformPortConfig dualTcvrConfig;
+        std::vector<int> subsumedPorts;
+        for (int i = 1; i < portsPerSlot; i++) {
+          subsumedPorts.push_back(firstPortId + i);
+        }
+        dualTcvrConfig.subsumedPorts() = subsumedPorts;
+        dualTcvrConfig.pins()->iphy() = dualTcvrPinConfigsPhy;
+        dualTcvrConfig.pins()->transceiver() = dualTcvrPinConfigsTcvr;
+
+        firstPort.supportedProfiles()->emplace(
+            cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER,
+            dualTcvrConfig);
+      };
+
+  for (int groupID = 0; groupID < controllingPortIds_.size(); groupID++) {
+    auto portsInGroup =
+        getPlatformPortEntriesByGroup(groupID, portsPerSlot, true);
+
+    for (auto& port : portsInGroup) {
+      if (groupID == 0 && *port.mapping()->id() == 1) {
+        addDualTransceiverProfile(port, portsPerSlot, groupID);
+      }
+      setPlatformPort(*port.mapping()->id(), port);
+    }
+
+    phy::DataPlanePhyChip iphy;
+    *iphy.name() = folly::sformat("core{}", groupID);
+    *iphy.type() = phy::DataPlanePhyChipType::IPHY;
+    *iphy.physicalID() = groupID;
+    setChip(*iphy.name(), iphy);
+
+    phy::DataPlanePhyChip xphy;
+    xphy.name() = folly::sformat("XPHY{}", groupID);
+    xphy.type() = phy::DataPlanePhyChipType::XPHY;
+    xphy.physicalID() = groupID;
+    setChip(*xphy.name(), xphy);
+
+    phy::DataPlanePhyChip tcvr;
+    *tcvr.name() = folly::sformat("eth1/{}", groupID + 1);
+    *tcvr.type() = phy::DataPlanePhyChipType::TRANSCEIVER;
+    *tcvr.physicalID() = groupID;
+    setChip(*tcvr.name(), tcvr);
+  }
 }
 
 } // namespace facebook::fboss

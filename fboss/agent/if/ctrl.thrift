@@ -19,6 +19,7 @@ include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
 include "thrift/annotation/python.thrift"
 include "thrift/annotation/cpp.thrift"
+include "thrift/annotation/thrift.thrift"
 
 typedef common.fbbinary fbbinary
 typedef common.fbstring fbstring
@@ -252,6 +253,10 @@ struct InterfaceDetail {
   10: switch_config.Scope scope = switch_config.Scope.LOCAL;
   // PortId populated only for interfaces of type PORT
   11: i32 portId;
+  12: optional string desiredPeerAddressIPv6;
+  13: switch_config.InterfaceType interfaceType;
+  // used in CLI display
+  14: list<string> portNames;
 }
 
 /*
@@ -266,6 +271,32 @@ struct PortErrors {
 struct QueueStats {
   1: i64 congestionDiscards;
   2: i64 outBytes;
+}
+
+/*
+ * Fabric link monitoring statistics for tracking packet transmission
+ * and reception on fabric ports
+ */
+struct FabricLinkMonPortStats {
+  1: i64 txCount;
+  2: i64 rxCount;
+  3: i64 droppedCount;
+  4: i64 invalidPayloadCount;
+  5: i64 noPendingSeqNumCount;
+  6: i64 sequenceNumber;
+}
+
+/*
+ * Fabric monitoring detail for a single fabric port
+ */
+struct FabricMonitoringDetail {
+  1: string portName;
+  2: i32 portId;
+  3: string neighborSwitch;
+  4: string neighborPortName;
+  5: i32 virtualDevice;
+  6: i32 linkSwitchId;
+  7: string linkSystemPort;
 }
 
 /*
@@ -421,6 +452,7 @@ struct PortQueueFields {
   19: optional common.BufferPoolFields bufferPoolConfig;
 }
 
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
 struct SystemPortThrift {
   1: i64 portId;
   2: i64 switchId;
@@ -1514,6 +1546,20 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * Get SwitchID to SwitchInfo for all SwitchIDs.
    */
   map<i64, switch_config.SwitchInfo> getSwitchIdToSwitchInfo();
+
+  /*
+   * Get fabric link monitoring statistics for all fabric ports
+   */
+  map<i32, FabricLinkMonPortStats> getAllFabricLinkMonitoringStats() throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
+   * Get fabric monitoring details for all fabric ports
+   */
+  list<FabricMonitoringDetail> getFabricMonitoringDetails() throws (
+    1: fboss.FbossBaseError error,
+  );
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

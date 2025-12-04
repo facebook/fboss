@@ -28,6 +28,12 @@ class SaiPlatform;
 class StateUpdate;
 class Port;
 
+// Port ID range constants for Agera3 (Ladakh platform)
+// Ladakh has 2561 ports (port IDs 0-2560), so we need a larger range
+// than the default (0-2047). Using 0-8191 to provide sufficient headroom
+constexpr int64_t kAgera3PortIdRangeMin = 0;
+constexpr int64_t kAgera3PortIdRangeMax = 8191;
+
 class SaiPhyManager : public PhyManager {
  public:
   explicit SaiPhyManager(const PlatformMapping* platformMapping);
@@ -91,6 +97,9 @@ class SaiPhyManager : public PhyManager {
 
   template <typename platformT, typename xphychipT>
   void initializeSlotPhysImpl(PimID pimID, bool warmBoot);
+
+  template <typename platformT, typename xphychipT>
+  void initializeXphyImpl(PimID pimID, GlobalXphyID xphyID, bool warmBoot);
 
   PortOperState macsecGetPhyLinkInfo(PortID swPort);
   phy::PhyInfo getPhyInfo(PortID swPort) override;
@@ -226,6 +235,8 @@ class SaiPhyManager : public PhyManager {
 
   std::string getSaiPortInfo(PortID swPort);
 
+  void collectXphyStats(GlobalXphyID xphyID, PlatformInfo* platformInfo);
+
   // Due to SaiPhyManager usually has more than one phy, and each phy has its
   // own SaiPlatform, which needs a local mac address. As local mac address
   // will be the same mac address for the running system, all these phys and
@@ -248,33 +259,59 @@ class SaiPhyManager : public PhyManager {
 using namespace std::chrono;
 template <typename platformT, typename xphychipT>
 void SaiPhyManager::initializeSlotPhysImpl(PimID pimID, bool warmboot) {
+  // Simply loop through all xphys in this PIM and initialize each one
   if (const auto pimPhyMap = xphyMap_.find(pimID);
       pimPhyMap != xphyMap_.end()) {
     for (const auto& phy : pimPhyMap->second) {
-      auto saiPlatform = static_cast<platformT*>(getSaiPlatform(phy.first));
+      initializeXphyImpl<platformT, xphychipT>(pimID, phy.first, warmboot);
+    }
+  }
+}
 
-      XLOG(DBG2) << "About to initialize phy of global phyId:" << phy.first;
-      steady_clock::time_point begin = steady_clock::now();
-      // Create xphy sai switch
-      auto xphy = static_cast<xphychipT*>(getExternalPhy(phy.first));
-      // Set xphy's customized switch attributes before calling init
-      saiPlatform->setSwitchAttributes(xphy->getSwitchAttributes());
-      cfg::AgentConfig config;
-      cfg::SwitchInfo switchInfo;
-      switchInfo.switchType() = cfg::SwitchType::PHY;
-      switchInfo.asicType() = getPhyAsicType();
-      config.sw()->switchSettings()->switchIdToSwitchInfo() = {
-          std::make_pair(0, switchInfo)};
-      saiPlatform->init(
-          std::make_unique<AgentConfig>(config, ""),
-          0 /* No switch featured needed */,
-          0 /* switchIndex */);
+template <typename platformT, typename xphychipT>
+void SaiPhyManager::initializeXphyImpl(
+    PimID pimID,
+    GlobalXphyID xphyID,
+    bool warmboot) {
+  auto saiPlatform = static_cast<platformT*>(getSaiPlatform(xphyID));
 
-      // Now call HwSwitch to create the switch object in hardware
-      auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+  XLOG(DBG2) << "About to initialize phy of global phyId:" << xphyID;
+  steady_clock::time_point begin = steady_clock::now();
 
-      auto initSaiSwitch = [pimID, saiSwitch, xphy](
-                               std::shared_ptr<SwitchState> statePrev) {
+  // Create xphy sai switch
+  auto xphy = static_cast<xphychipT*>(getExternalPhy(xphyID));
+  // Set xphy's customized switch attributes before calling init
+  saiPlatform->setSwitchAttributes(xphy->getSwitchAttributes());
+  cfg::AgentConfig config;
+  cfg::SwitchInfo switchInfo;
+  switchInfo.switchType() = cfg::SwitchType::PHY;
+  switchInfo.asicType() = getPhyAsicType();
+
+  // For Agera3 (Ladakh platform), set larger portIdRange to support 2561 ports
+  // (port IDs up to 2560). Other XPHY platforms (eg: Elbert) will use the
+  // default range (0-2047).
+  if (getPhyAsicType() == cfg::AsicType::ASIC_TYPE_AGERA3) {
+    cfg::Range64 portIdRange;
+    portIdRange.minimum() = kAgera3PortIdRangeMin;
+    portIdRange.maximum() = kAgera3PortIdRangeMax;
+    switchInfo.portIdRange() = portIdRange;
+
+    XLOG(DBG2) << "Setting portIdRange=[" << kAgera3PortIdRangeMin << "-"
+               << kAgera3PortIdRangeMax << "] for ASIC_TYPE_AGERA3";
+  }
+
+  config.sw()->switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, switchInfo)};
+  saiPlatform->init(
+      std::make_unique<AgentConfig>(config, ""),
+      0 /* No switch featured needed */,
+      0 /* switchIndex */);
+
+  // Now call HwSwitch to create the switch object in hardware
+  auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+
+  auto initSaiSwitch =
+      [pimID, saiSwitch, xphy](std::shared_ptr<SwitchState> statePrev) {
         try {
           saiSwitch->init(xphy, statePrev, true /* failHwCallsOnWarmboot */);
         } catch (const std::exception& ex) {
@@ -284,25 +321,25 @@ void SaiPhyManager::initializeSlotPhysImpl(PimID pimID, bool warmboot) {
         }
       };
 
-      if (warmboot) {
-        auto wbState =
-            saiPlatform->getWarmBootHelper()->getWarmBootThriftState();
-        auto statePrev =
-            saiPlatform->getWarmBootHelper()->reconstructWarmBootThriftState(
-                wbState);
-        initSaiSwitch(statePrev);
-      } else {
-        initSaiSwitch(nullptr);
-      }
-
-      xphy->setSwitchId(saiSwitch->getSaiSwitchId());
-      xphy->dump();
-      XLOG(DBG2)
-          << "Finished initializing phy of global phyId:" << phy.first
-          << ", switchId:" << saiSwitch->getSaiSwitchId() << " took "
-          << duration_cast<milliseconds>(steady_clock::now() - begin).count()
-          << "ms";
-    }
+  if (warmboot) {
+    auto wbState = saiPlatform->getWarmBootHelper()->getWarmBootThriftState();
+    auto statePrev =
+        saiPlatform->getWarmBootHelper()->reconstructWarmBootThriftState(
+            wbState);
+    initSaiSwitch(statePrev);
+  } else {
+    initSaiSwitch(nullptr);
   }
+
+  xphy->setSwitchId(saiSwitch->getSaiSwitchId());
+  xphy->dump();
+  XLOG(DBG2) << "Finished initializing phy of global phyId:" << xphyID
+             << ", switchId:" << saiSwitch->getSaiSwitchId() << " took "
+             << duration_cast<milliseconds>(steady_clock::now() - begin).count()
+             << "ms";
+
+  // After initializing the external PHY, set its hwswitch's runstate to
+  // CONFIGURED
+  saiPlatform->getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
 }
 } // namespace facebook::fboss

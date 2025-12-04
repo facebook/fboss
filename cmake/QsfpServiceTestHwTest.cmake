@@ -27,9 +27,10 @@ target_link_libraries(hw_transceiver_utils
   error
   switch_config_cpp2
   transceiver_cpp2
+  transceiver_manager
 )
 
-add_executable(qsfp_hw_test
+set(QSFP_HW_TEST_SRCS
   fboss/qsfp_service/test/hw_test/EmptyHwTest.cpp
   fboss/qsfp_service/test/hw_test/HwXphyFirmwareTest.cpp
   fboss/qsfp_service/test/hw_test/HwPimTest.cpp
@@ -49,7 +50,7 @@ add_executable(qsfp_hw_test
   fboss/agent/test/oss/Main.cpp
 )
 
-target_link_libraries(qsfp_hw_test
+set(QSFP_HW_TEST_DEPS
   hw_qsfp_ensemble
   qsfp_module
   qsfp_lib
@@ -63,4 +64,12 @@ target_link_libraries(qsfp_hw_test
   qsfp_production_features_cpp2
 )
 
-install(TARGETS qsfp_hw_test)
+if(SAI_BRCM_PAI_IMPL)
+  BUILD_AND_INSTALL_WITH_XPHY_SDK_LIBS(
+    "qsfp_hw_test" QSFP_HW_TEST_SRCS QSFP_HW_TEST_DEPS "brcm_pai" XPHY_SDK_LIBS
+  )
+else()
+  BUILD_AND_INSTALL_WITH_XPHY_SDK_LIBS(
+    "qsfp_hw_test" QSFP_HW_TEST_SRCS QSFP_HW_TEST_DEPS "" ""
+  )
+endif()

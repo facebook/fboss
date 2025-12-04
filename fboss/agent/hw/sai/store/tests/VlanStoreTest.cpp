@@ -26,7 +26,7 @@ class VlanStoreTest : public SaiStoreTest {
       sai_object_id_t vlanId,
       sai_object_id_t bridgePortId) const {
     return saiApiTable->vlanApi().create<SaiVlanMemberTraits>(
-        {vlanId, bridgePortId}, 0);
+        {vlanId, bridgePortId, std::nullopt}, 0);
   }
 };
 
@@ -52,7 +52,7 @@ TEST_F(VlanStoreTest, loadVlanMember) {
   s.reload();
   auto& store = s.get<SaiVlanMemberTraits>();
 
-  auto got = store.get(SaiVlanMemberTraits::CreateAttributes{vlanId, 10});
+  auto got = store.get(SaiVlanMemberTraits::AdapterHostKey{vlanId, 10});
   EXPECT_EQ(got->adapterKey(), vlanMemberId);
 }
 
@@ -78,8 +78,9 @@ TEST_F(VlanStoreTest, vlanCreateCtor) {
 
 TEST_F(VlanStoreTest, vlanMemberCreateCtor) {
   auto vlanId = createVlan(42);
-  SaiVlanMemberTraits::CreateAttributes c{vlanId, 10};
-  auto obj = createObj<SaiVlanMemberTraits>(c, c, 0);
+  SaiVlanMemberTraits::CreateAttributes c{vlanId, 10, std::nullopt};
+  SaiVlanMemberTraits::AdapterHostKey k{vlanId, 10};
+  auto obj = createObj<SaiVlanMemberTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(VlanMember, VlanId, obj.attributes()), vlanId);
   EXPECT_EQ(GET_ATTR(VlanMember, BridgePortId, obj.attributes()), 10);
 }

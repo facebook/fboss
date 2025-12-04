@@ -157,12 +157,13 @@ class HwArsTest : public HwLinkStateDependentTest {
     for (int i = 0; i < numEcmp; i++) {
       auto currentIp = folly::IPAddress(folly::sformat("{}:{:x}::", kAddr3, i));
       folly::CIDRNetwork currentPrefix{currentIp, 64};
-      EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-          getHwSwitch(),
-          currentPrefix,
-          *cfg.flowletSwitchingConfig(),
-          portFlowletConfig,
-          true /* flowletEnable */));
+      EXPECT_TRUE(
+          utility::verifyEcmpForFlowletSwitching(
+              getHwSwitch(),
+              currentPrefix,
+              *cfg.flowletSwitchingConfig(),
+              portFlowletConfig,
+              true /* flowletEnable */));
     }
   }
 
@@ -352,8 +353,12 @@ class HwArsTest : public HwLinkStateDependentTest {
       bool enable = true) {
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::ARS_PORT_ATTRIBUTES)) {
-      EXPECT_TRUE(utility::validatePortFlowletQuality(
-          getHwSwitch(), masterLogicalPortIds()[0], portFlowletConfig, enable));
+      EXPECT_TRUE(
+          utility::validatePortFlowletQuality(
+              getHwSwitch(),
+              masterLogicalPortIds()[0],
+              portFlowletConfig,
+              enable));
     }
   }
 
@@ -364,14 +369,16 @@ class HwArsTest : public HwLinkStateDependentTest {
         getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
     verifyPortFlowletConfig(portFlowletConfig);
 
-    EXPECT_TRUE(utility::validateFlowletSwitchingEnabled(
-        getHwSwitch(), *cfg.flowletSwitchingConfig()));
-    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(),
-        kAddr1Prefix,
-        *cfg.flowletSwitchingConfig(),
-        portFlowletConfig,
-        true));
+    EXPECT_TRUE(
+        utility::validateFlowletSwitchingEnabled(
+            getHwSwitch(), *cfg.flowletSwitchingConfig()));
+    EXPECT_TRUE(
+        utility::verifyEcmpForFlowletSwitching(
+            getHwSwitch(),
+            kAddr1Prefix,
+            *cfg.flowletSwitchingConfig(),
+            portFlowletConfig,
+            true));
 
     if (!getHwSwitchEnsemble()->isSai()) {
       utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), kAclName);
@@ -399,8 +406,9 @@ class HwArsTest : public HwLinkStateDependentTest {
 
     EXPECT_TRUE(
         utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
-    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(), kAddr1Prefix, flowletCfg, portFlowletConfig, true));
+    EXPECT_TRUE(
+        utility::verifyEcmpForFlowletSwitching(
+            getHwSwitch(), kAddr1Prefix, flowletCfg, portFlowletConfig, true));
   }
 
   void verifyRemoveFlowletConfig() {
@@ -412,8 +420,9 @@ class HwArsTest : public HwLinkStateDependentTest {
         cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0, 0);
 
     EXPECT_TRUE(utility::validateFlowletSwitchingDisabled(getHwSwitch()));
-    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(), kAddr1Prefix, flowletCfg, portFlowletConfig, false));
+    EXPECT_TRUE(
+        utility::verifyEcmpForFlowletSwitching(
+            getHwSwitch(), kAddr1Prefix, flowletCfg, portFlowletConfig, false));
   }
 
   void validateEcmpDetails(const cfg::FlowletSwitchingConfig& flowletCfg) {
@@ -436,24 +445,31 @@ class HwArsTest : public HwLinkStateDependentTest {
         kDefaultScalingFactor(), kDefaultLoadWeight(), kDefaultQueueWeight());
     verifyPortFlowletConfig(portFlowletConfig, false);
 
-    EXPECT_TRUE(utility::validateFlowletSwitchingEnabled(
-        getHwSwitch(), *cfg.flowletSwitchingConfig()));
+    EXPECT_TRUE(
+        utility::validateFlowletSwitchingEnabled(
+            getHwSwitch(), *cfg.flowletSwitchingConfig()));
 
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::ARS_PORT_ATTRIBUTES)) {
       // verify the flowlet config is programmed in ECMP for TH4
-      EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-          getHwSwitch(),
-          kAddr1Prefix,
-          *cfg.flowletSwitchingConfig(),
-          portFlowletConfig,
-          true));
+      EXPECT_TRUE(
+          utility::verifyEcmpForFlowletSwitching(
+              getHwSwitch(),
+              kAddr1Prefix,
+              *cfg.flowletSwitchingConfig(),
+              portFlowletConfig,
+              true));
     } else {
       // verify the flowlet config is not programmed in ECMP for TH3
       auto flowletCfg = getFlowletSwitchingConfig(
           cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0, 0);
-      EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-          getHwSwitch(), kAddr1Prefix, flowletCfg, portFlowletConfig, false));
+      EXPECT_TRUE(
+          utility::verifyEcmpForFlowletSwitching(
+              getHwSwitch(),
+              kAddr1Prefix,
+              flowletCfg,
+              portFlowletConfig,
+              false));
     }
 
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), kAclName);
@@ -572,12 +588,13 @@ TEST_F(HwArsFlowletTest, ValidateFlowsetExceed) {
 
     // ensure that DLB is not programmed as we started with high flowset limits
     // we expect flowset size is zero
-    EXPECT_FALSE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(),
-        kAddr1Prefix,
-        *cfg.flowletSwitchingConfig(),
-        portFlowletConfig,
-        true /* flowletEnable */));
+    EXPECT_FALSE(
+        utility::verifyEcmpForFlowletSwitching(
+            getHwSwitch(),
+            kAddr1Prefix,
+            *cfg.flowletSwitchingConfig(),
+            portFlowletConfig,
+            true /* flowletEnable */));
 
     utility::validateFlowSetTable(
         getHwSwitch(), false /* expectFlowsetSizeZero */);
@@ -592,12 +609,13 @@ TEST_F(HwArsFlowletTest, ValidateFlowsetExceed) {
     cfg.flowletSwitchingConfig() = flowletCfg;
     applyNewConfig(cfg);
 
-    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(),
-        kAddr1Prefix,
-        *cfg.flowletSwitchingConfig(),
-        portFlowletConfig,
-        true /* flowletEnable */));
+    EXPECT_TRUE(
+        utility::verifyEcmpForFlowletSwitching(
+            getHwSwitch(),
+            kAddr1Prefix,
+            *cfg.flowletSwitchingConfig(),
+            portFlowletConfig,
+            true /* flowletEnable */));
 
     utility::validateFlowSetTable(
         getHwSwitch(), true /* expectFlowsetSizeZero */);
@@ -641,12 +659,13 @@ TEST_F(HwArsFlowletTest, ValidateFlowsetTableFull) {
     for (int i = 0; i < numEcmp; i++) {
       auto currentIp = folly::IPAddress(folly::sformat("{}:{:x}::", kAddr3, i));
       folly::CIDRNetwork currentPrefix{currentIp, 64};
-      EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-          getHwSwitch(),
-          currentPrefix, // second route
-          *cfg.flowletSwitchingConfig(),
-          portFlowletConfig,
-          true /* flowletEnable */));
+      EXPECT_TRUE(
+          utility::verifyEcmpForFlowletSwitching(
+              getHwSwitch(),
+              currentPrefix, // second route
+              *cfg.flowletSwitchingConfig(),
+              portFlowletConfig,
+              true /* flowletEnable */));
     }
     utility::validateFlowSetTable(
         getHwSwitch(), true /* expectFlowsetSizeZero */);
@@ -912,12 +931,13 @@ TEST_F(HwArsFlowletTest, VerifyEcmpFlowletSwitchingEnable) {
         getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
     updateFlowletConfigs(cfg);
 
-    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(),
-        kAddr1Prefix,
-        *cfg.flowletSwitchingConfig(),
-        portFlowletConfig,
-        false /* flowletEnable */));
+    EXPECT_TRUE(
+        utility::verifyEcmpForFlowletSwitching(
+            getHwSwitch(),
+            kAddr1Prefix,
+            *cfg.flowletSwitchingConfig(),
+            portFlowletConfig,
+            false /* flowletEnable */));
 
     // Modify the flowlet config to convert ECMP to DLB
     updatePortFlowletConfigName(cfg);
@@ -928,12 +948,13 @@ TEST_F(HwArsFlowletTest, VerifyEcmpFlowletSwitchingEnable) {
     // the ECMP for this route should be created as DLB
     resolveNextHopsAddRoute(
         {masterLogicalPortIds()[2], masterLogicalPortIds()[3]}, kAddr2);
-    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(),
-        kAddr2Prefix,
-        *cfg.flowletSwitchingConfig(),
-        portFlowletConfig,
-        true /* flowletEnable */));
+    EXPECT_TRUE(
+        utility::verifyEcmpForFlowletSwitching(
+            getHwSwitch(),
+            kAddr2Prefix,
+            *cfg.flowletSwitchingConfig(),
+            portFlowletConfig,
+            true /* flowletEnable */));
 
     // modify switchingMode to per_packet
     cfg = getDefaultConfig();
@@ -988,12 +1009,13 @@ TEST_F(HwArsFlowletTest, ValidateEcmpDetailsThread) {
     auto portFlowletConfig =
         getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
 
-    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(),
-        kAddr2Prefix, // second route
-        *cfg.flowletSwitchingConfig(),
-        portFlowletConfig,
-        true /* flowletEnable */));
+    EXPECT_TRUE(
+        utility::verifyEcmpForFlowletSwitching(
+            getHwSwitch(),
+            kAddr2Prefix, // second route
+            *cfg.flowletSwitchingConfig(),
+            portFlowletConfig,
+            true /* flowletEnable */));
 
     // start a new thread to poll the ecmp details
     std::atomic<bool> done{false};
@@ -1008,12 +1030,13 @@ TEST_F(HwArsFlowletTest, ValidateEcmpDetailsThread) {
     ecmpHelper_->unprogramRoutes(
         getRouteUpdater(), {RoutePrefixV6{kAddr1, 64}});
 
-    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(),
-        kAddr2Prefix, // second route
-        *cfg.flowletSwitchingConfig(),
-        portFlowletConfig,
-        true /* flowletEnable */));
+    EXPECT_TRUE(
+        utility::verifyEcmpForFlowletSwitching(
+            getHwSwitch(),
+            kAddr2Prefix, // second route
+            *cfg.flowletSwitchingConfig(),
+            portFlowletConfig,
+            true /* flowletEnable */));
 
     done = true;
     readEcmpDetails.join();
@@ -1048,12 +1071,13 @@ TEST_F(HwArsFlowletTest, ValidateFlowletStatsThread) {
     auto portFlowletConfig =
         getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
 
-    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(),
-        kAddr2Prefix, // second route
-        *cfg.flowletSwitchingConfig(),
-        portFlowletConfig,
-        true /* flowletEnable */));
+    EXPECT_TRUE(
+        utility::verifyEcmpForFlowletSwitching(
+            getHwSwitch(),
+            kAddr2Prefix, // second route
+            *cfg.flowletSwitchingConfig(),
+            portFlowletConfig,
+            true /* flowletEnable */));
 
     // start a new thread to poll the flowlet stats
     std::atomic<bool> done{false};
@@ -1070,12 +1094,13 @@ TEST_F(HwArsFlowletTest, ValidateFlowletStatsThread) {
     ecmpHelper_->unprogramRoutes(
         getRouteUpdater(), {RoutePrefixV6{kAddr1, 64}});
 
-    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(),
-        kAddr2Prefix, // second route
-        *cfg.flowletSwitchingConfig(),
-        portFlowletConfig,
-        true /* flowletEnable */));
+    EXPECT_TRUE(
+        utility::verifyEcmpForFlowletSwitching(
+            getHwSwitch(),
+            kAddr2Prefix, // second route
+            *cfg.flowletSwitchingConfig(),
+            portFlowletConfig,
+            true /* flowletEnable */));
 
     done = true;
     readFlowletStats.join();

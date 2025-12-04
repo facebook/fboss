@@ -112,6 +112,7 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
       XLOG(FATAL) << "Unsupported HwAsic: "
                   << ensemble->getPlatform()->getAsic()->getAsicTypeStr();

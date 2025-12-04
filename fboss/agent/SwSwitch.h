@@ -15,6 +15,7 @@
 #include "fboss/agent/MultiHwSwitchHandler.h"
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/PacketObserver.h"
+#include "fboss/agent/StateDeltaLogger.h"
 #include "fboss/agent/SwRxPacket.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchInfoTable.h"
@@ -81,7 +82,6 @@ class NeighborUpdater;
 class PacketLogger;
 class RouteUpdateLogger;
 class StateObserver;
-class PreUpdateStateModifier;
 class TunManager;
 class MirrorManager;
 class PhySnapshotManager;
@@ -111,6 +111,7 @@ class ResourceAccountant;
 class RemoteNeighborUpdater;
 class EcmpResourceManager;
 class ShelManager;
+class FabricLinkMonitoringManager;
 
 inline static const int kHiPriorityBufferSize{1000};
 inline static const int kMidPriorityBufferSize{1000};
@@ -127,6 +128,7 @@ enum class SwitchFlags : int {
   PUBLISH_STATS = 4,
   ENABLE_LACP = 8,
   ENABLE_MACSEC = 16,
+  ENABLE_FABRIC_LINK_MONITORING = 32,
 };
 
 inline SwitchFlags operator|(SwitchFlags lhs, SwitchFlags rhs) {
@@ -419,11 +421,6 @@ class SwSwitch : public HwSwitchCallback {
       override;
   void unregisterStateObserver(StateObserver* observer) override;
 
-  void registerStateModifier(
-      PreUpdateStateModifier* modifier,
-      const std::string& name);
-  void unregisterStateModifier(PreUpdateStateModifier* modifier);
-
   /*
    * Signal to the switch that initial config is applied.
    * The switch may then use this to start certain functions
@@ -652,6 +649,11 @@ class SwSwitch : public HwSwitchCallback {
       AggregatePortID aggPortID,
       std::optional<uint8_t> queue = std::nullopt) noexcept;
 
+  bool sendPacketOutOfPortSyncForPktType(
+      std::unique_ptr<TxPacket> pkt,
+      const PortID& portID,
+      TxPacketType packetType) noexcept;
+
   /*
    * Send a packet to HwSwitch using thrift stream
    */
@@ -659,7 +661,8 @@ class SwSwitch : public HwSwitchCallback {
       std::unique_ptr<TxPacket> pkt,
       SwitchID switchId,
       std::optional<PortID> portID,
-      std::optional<uint8_t> queue = std::nullopt) noexcept;
+      std::optional<uint8_t> queue = std::nullopt,
+      std::optional<TxPacketType> packetType = std::nullopt) noexcept;
   /*
    * Send a packet, using switching logic to send it out the correct port(s)
    * for the specified VLAN and destination MAC.
@@ -784,6 +787,11 @@ class SwSwitch : public HwSwitchCallback {
   LookupClassRouteUpdater* getLookupClassRouteUpdater() {
     return lookupClassRouteUpdater_.get();
   }
+
+  FabricLinkMonitoringManager* getFabricLinkMonitoringManager() {
+    return fabricLinkMonitoringManager_.get();
+  }
+
   const EcmpResourceManager* getEcmpResourceManager() const {
     return ecmpResourceManager_.get();
   }
@@ -1015,14 +1023,13 @@ class SwSwitch : public HwSwitchCallback {
   template <typename VlanOrIntfT>
   std::optional<VlanID> getVlanIDForTx(
       const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;
-  bool hasConfiguredDesiredPeers(const InterfaceID& intfId);
+  bool hasQualifiedConfiguredDesiredPeer(const InterfaceID& intfId);
 
  private:
   void initAgentInfo();
   void createAndProbeTunManager();
   void initializeTunManager(bool useBlocking);
 
-  void updateRibEcmpOverrides(const StateDelta& delta);
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;
   void updateStateBlockingImpl(
@@ -1055,6 +1062,7 @@ class SwSwitch : public HwSwitchCallback {
   void updateRouteStats();
   void updateTeFlowStats();
   void updateFlowletStats();
+  void updateFabricLinkMonitoringStats();
   void setSwitchRunState(SwitchRunState desiredState);
   SwitchStats* createSwitchStats();
 
@@ -1102,20 +1110,11 @@ class SwSwitch : public HwSwitchCallback {
   void notifyStateObservers(const StateDelta& delta);
 
   /*
-   * Invoke State modifier to modify state prior to update.
-   */
-  bool preUpdateModifyState(std::vector<StateDelta>& deltas);
-
-  /*
    * Reconstruct state modifier from initial switch state.
    */
-  std::vector<StateDelta> reconstructStateModifierFromSwitchState(
+  std::vector<StateDelta> reconstructStateFromErmAndShelManager(
+      const std::shared_ptr<SwitchState>& emptyState,
       const std::shared_ptr<SwitchState>& initialState);
-
-  void notifyStateModifierUpdateFailed(
-      const std::shared_ptr<SwitchState>& state);
-
-  void notifyStateModifierUpdateDone();
 
   void logLinkStateEvent(PortID port, bool up);
 
@@ -1160,6 +1159,8 @@ class SwSwitch : public HwSwitchCallback {
   void postInit();
 
   void initLldpManager();
+
+  void initFabricLinkMonitoringManager();
 
   void publishBootTypeStats();
 
@@ -1334,7 +1335,6 @@ class SwSwitch : public HwSwitchCallback {
   std::map<StateObserver*, std::string> stateObservers_;
   std::unique_ptr<PacketObservers> pktObservers_;
   std::unique_ptr<L2LearnEventObservers> l2LearnEventObservers_;
-  std::unordered_map<PreUpdateStateModifier*, std::string> stateModifiers_;
 
   std::unique_ptr<ArpHandler> arp_;
   std::unique_ptr<IPv4Handler> ipv4_;
@@ -1345,6 +1345,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<MPLSHandler> mplsHandler_;
   std::unique_ptr<PacketLogger> packetLogger_;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger_;
+  std::unique_ptr<StateDeltaLogger> stateDeltaLogger_;
   std::unique_ptr<LinkAggregationManager> lagManager_;
   std::unique_ptr<ResolvedNexthopMonitor> resolvedNexthopMonitor_;
   std::unique_ptr<ResolvedNexthopProbeScheduler> resolvedNexthopProbeScheduler_;
@@ -1381,6 +1382,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<ResourceAccountant> resourceAccountant_;
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager_;
   std::unique_ptr<ShelManager> shelManager_;
+  std::unique_ptr<FabricLinkMonitoringManager> fabricLinkMonitoringManager_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>

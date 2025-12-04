@@ -36,6 +36,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw",
             "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw_800g",
             "meru800bia_800g_uniform_local_offset",
+            "meru800bia_uniform_local_offset",
             "janga800bic_dctype1_prod",
             "janga800bic_dctype1_test_fixture",
             "tahan800bc_test_fixture",
@@ -43,12 +44,14 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "icecube800bc",
             "icetea800bc",
             "tahansb800bc",
+            "wedge800bact",
         ],
         True: [
             "meru800bfa",
             "meru400bfu",
             "janga800bic_dctypef_prod",
             "janga800bic_dctypef_test_fixture",
+            "ladakh800bcls",
         ],
     }
     _FBCODE_GENERATED_DIR: str = (

@@ -6,6 +6,7 @@
 #include <folly/logging/xlog.h>
 #include <re2/re2.h>
 
+#include "fboss/platform/platform_manager/ScubaLogger.h"
 #include "fboss/platform/platform_manager/Utils.h"
 
 namespace facebook::fboss::platform::platform_manager {
@@ -92,6 +93,25 @@ void ExplorationSummary::publishCounters(ExplorationStatus finalStatus) {
   }
 }
 
+void ExplorationSummary::publishToScuba(ExplorationStatus finalStatus) {
+  // Log individual errors
+  for (const auto& [devicePath, explorationErrors] : devicePathToErrors_) {
+    for (const auto& error : explorationErrors) {
+      std::unordered_map<std::string, std::string> normals;
+
+      normals["platform"] = *platformConfig_.platformName();
+      normals["device_path"] = devicePath;
+      normals["event"] = *error.errorType();
+      normals["error_message"] = *error.message();
+      normals["exploration_status"] =
+          apache::thrift::util::enumNameSafe(finalStatus);
+
+      ScubaLogger::log(normals);
+      XLOG(INFO) << "Logged Platform Manager error to Scuba: " << devicePath;
+    }
+  }
+}
+
 ExplorationStatus ExplorationSummary::summarize() {
   ExplorationStatus finalStatus = ExplorationStatus::FAILED;
   if (devicePathToErrors_.empty() && devicePathToExpectedErrors_.empty()) {
@@ -102,6 +122,7 @@ ExplorationStatus ExplorationSummary::summarize() {
   // Exploration summary reporting.
   print(finalStatus);
   publishCounters(finalStatus);
+  publishToScuba(finalStatus);
   return finalStatus;
 }
 

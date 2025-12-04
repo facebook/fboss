@@ -44,7 +44,12 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD0(getModuleStateChanged, bool());
   MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
 
+  using CmisModule::frequencyGridToGridSelection;
   using CmisModule::getApplicationField;
+  using CmisModule::getChannelNumFromFrequency;
+  using CmisModule::getCurrentAppSelCode;
+  using CmisModule::getInterfaceCodeForAppSel;
+  using CmisModule::getTunableLaserStatus;
   using CmisModule::isTunableOptics;
 
  private:
@@ -1205,6 +1210,48 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
 
   // tunable optics check
   EXPECT_TRUE(xcvr->isTunableOptics());
+
+  // Test all supported frequency grids map to correct grid selection values
+  EXPECT_EQ(
+      0x00, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_3P125GHZ));
+  EXPECT_EQ(
+      0x10, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_6P25GHZ));
+  EXPECT_EQ(
+      0x20, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_12P5GHZ));
+  EXPECT_EQ(
+      0x30, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_25GHZ));
+  EXPECT_EQ(
+      0x40, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_50GHZ));
+  EXPECT_EQ(
+      0x50, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_100GHZ));
+  EXPECT_EQ(
+      0x60, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_33GHZ));
+  EXPECT_EQ(
+      0x70, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_75GHZ));
+  EXPECT_EQ(
+      0x80, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_150GHZ));
+
+  // Test 3P125GHZ getChannelNumFromFrequency conversion
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(
+          193100000, FrequencyGrid::LASER_3P125GHZ),
+      0);
+
+  auto tunableLaserStatus = xcvr->getTunableLaserStatus();
+  EXPECT_NE(tunableLaserStatus, std::nullopt);
+  EXPECT_EQ(
+      tunableLaserStatus->laserFrequencyMhz(),
+      CmisModule::kDefaultFrequencyMhz);
+  EXPECT_EQ(
+      tunableLaserStatus->tuningStatus(),
+      LaserStatusBitMask::LASER_TUNE_NOT_IN_PROGRESS);
+  EXPECT_EQ(
+      tunableLaserStatus->wavelengthLockingStatus(),
+      LaserStatusBitMask::WAVELENGTH_LOCKED);
+  EXPECT_EQ(
+      xcvr->getInterfaceCodeForAppSel(1, 1),
+      static_cast<uint8_t>(SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G));
+  EXPECT_EQ(xcvr->getCurrentAppSelCode(1), 0x1);
 }
 
 TEST_F(CmisTest, cmisCredo800AecInfoTest) {

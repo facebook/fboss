@@ -23,6 +23,7 @@ cpp_unittest(
     ],
     deps = [
         ":utils",
+        "//fb303:service_data",
         "//fboss/platform/sensor_service:core",
         "//fboss/platform/sensor_service:service",
         "//fboss/platform/sensor_service:utils",
@@ -76,6 +77,29 @@ cpp_unittest(
         "//fb303:service_data",
         "//fboss/platform/sensor_service:service",
         "//folly:file_util",
-        "//folly/testing:test_util",
+    ],
+)
+
+cpp_unittest(
+    name = "sensor_service_temperature_test",
+    srcs = [
+        "SensorServiceImplTemperatureTest.cpp",
+    ],
+    deps = [
+        "//fb303:service_data",
+        "//fboss/platform/sensor_service:service",
+        "//folly:file_util",
+    ],
+)
+
+cpp_unittest(
+    name = "sensor_service_input_voltage_test",
+    srcs = [
+        "SensorServiceImplInputVoltageTest.cpp",
+    ],
+    deps = [
+        "//fb303:service_data",
+        "//fboss/platform/sensor_service:service",
+        "//folly:file_util",
     ],
 )

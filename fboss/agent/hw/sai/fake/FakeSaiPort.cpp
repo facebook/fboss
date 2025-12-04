@@ -523,6 +523,12 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP:
       port.qosDscpToTcMap = attr->value.oid;
       break;
+    case SAI_PORT_ATTR_QOS_DOT1P_TO_TC_MAP:
+      port.qosDot1pToTcMap = attr->value.oid;
+      break;
+    case SAI_PORT_ATTR_QOS_TC_AND_COLOR_TO_DOT1P_MAP:
+      port.qosTcAndColorToDot1pMap = attr->value.oid;
+      break;
     case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
       port.qosTcToQueueMap = attr->value.oid;
       break;
@@ -790,6 +796,9 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_RESET_QUEUE_CREDIT_BALANCE:
       port.resetQueueCreditBalance = attr->value.booldata;
       break;
+    case SAI_PORT_ATTR_PFC_MONITOR_DIRECTION:
+      port.pfcMonitorDirection = attr->value.s32;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -882,6 +891,12 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP:
         attr->value.oid = port.qosDscpToTcMap;
+        break;
+      case SAI_PORT_ATTR_QOS_DOT1P_TO_TC_MAP:
+        attr->value.oid = port.qosDot1pToTcMap;
+        break;
+      case SAI_PORT_ATTR_QOS_TC_AND_COLOR_TO_DOT1P_MAP:
+        attr->value.oid = port.qosTcAndColorToDot1pMap;
         break;
       case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
         attr->value.oid = port.qosTcToQueueMap;
@@ -1147,6 +1162,9 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_RESET_QUEUE_CREDIT_BALANCE:
         attr[i].value.booldata = port.resetQueueCreditBalance;
+        break;
+      case SAI_PORT_ATTR_PFC_MONITOR_DIRECTION:
+        attr[i].value.s32 = port.pfcMonitorDirection;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

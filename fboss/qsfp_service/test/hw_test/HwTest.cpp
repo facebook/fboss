@@ -64,6 +64,16 @@ void HwTest::SetUp() {
   ensemble_ = std::make_unique<HwQsfpEnsemble>();
   ensemble_->init();
 
+  if (FLAGS_port_manager_mode) {
+    // In PortManager mode, we need ports to be enabled to bring ports /
+    // transceivers to programmed state.
+    ensemble_->getQsfpServiceHandler()->setOverrideAgentPortStatusForTesting(
+        true /* up */, true /* enabled */);
+  }
+
+  // Setting remediation paused as a default for 10 minutes
+  ensemble_->getWedgeManager()->setPauseRemediation(600, nullptr);
+
   // Allow back to back refresh and customizations in test
   gflags::SetCommandLineOptionWithMode(
       "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
@@ -79,6 +89,8 @@ void HwTest::SetUp() {
     // require a wait here
     sleep(5);
   }
+
+  XLOG(INFO) << "HwTest::SetUp() complete";
 }
 
 void HwTest::TearDown() {
@@ -174,28 +186,64 @@ std::vector<TransceiverID> HwTest::refreshTransceiversWithRetry(
 // We will wait till all the cabled transceivers reach the
 // TRANSCEIVER_PROGRAMMED state by retrying `numRetries` times of
 // TransceiverManager::refreshStateMachines()
-void HwTest::waitTillCabledTcvrProgrammed(int numRetries) {
+void HwTest::waitTillCabledTcvrProgrammed(int numRetries, bool portUp) {
   // First get all expected transceivers based on cabled ports from agent.conf
   const auto& expectedIds =
       utility::getCabledPortTranceivers(getHwQsfpEnsemble());
+  const auto& expectedPorts = utility::getCabledPorts(getHwQsfpEnsemble());
+  const PortStateMachineState expectedPortState = portUp
+      ? PortStateMachineState::PORT_UP
+      : PortStateMachineState::PORT_DOWN;
 
   // Due to some platforms are easy to have i2c issue which causes the current
   // refresh not work as expected. Adding enough retries to make sure that we
   // at least can secure TRANSCEIVER_PROGRAMMED after `numRetries` times.
-  auto refreshStateMachinesTillTcvrProgrammed = [this, &expectedIds]() {
-    auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
-    wedgeMgr->refreshStateMachines();
-    for (auto id : expectedIds) {
-      auto curState = wedgeMgr->getCurrentState(id);
-      // Statemachine can support transceiver programming (iphy/xphy/tcvr) when
-      // `setupOverrideTcvrToPortAndProfile_` is true.
-      if (setupOverrideTcvrToPortAndProfile_ &&
-          curState != TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
-        return false;
-      }
-    }
-    return true;
-  };
+  auto refreshStateMachinesTillTcvrProgrammed =
+      [this, &expectedIds, &expectedPorts, expectedPortState]() {
+        auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+        getHwQsfpEnsemble()->getQsfpServiceHandler()->refreshStateMachines();
+        std::vector<TransceiverID> notProgrammedTcvrs;
+        std::vector<PortID> notProgrammedPorts;
+        bool retval{true};
+
+        for (auto id : expectedIds) {
+          auto curState = wedgeMgr->getCurrentState(id);
+          // Statemachine can support transceiver programming (iphy/xphy/tcvr)
+          // when `setupOverrideTcvrToPortAndProfile_` is true.
+          if (setupOverrideTcvrToPortAndProfile_ &&
+              curState !=
+                  TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
+            notProgrammedTcvrs.push_back(id);
+            retval = false;
+          }
+        }
+
+        if (!notProgrammedTcvrs.empty()) {
+          XLOG(ERR) << "Transceivers that should be programmed but are not: "
+                    << folly::join(",", notProgrammedTcvrs);
+        }
+
+        if (FLAGS_port_manager_mode) {
+          auto portManager =
+              getHwQsfpEnsemble()->getQsfpServiceHandler()->getPortManager();
+          for (const auto& portId : expectedPorts) {
+            auto curState = portManager->getPortState(portId);
+            if (setupOverrideTcvrToPortAndProfile_ &&
+                curState != expectedPortState) {
+              notProgrammedPorts.push_back(portId);
+              retval = false;
+            }
+          }
+        }
+
+        if (!notProgrammedPorts.empty()) {
+          XLOG(ERR) << "Ports that did not reach "
+                    << apache::thrift::util::enumNameSafe(expectedPortState)
+                    << ": " << folly::join(",", notProgrammedPorts);
+        }
+
+        return retval;
+      };
 
   // Retry until all state machines reach TRANSCEIVER_PROGRAMMED
   checkWithRetry(
@@ -260,8 +308,8 @@ TEST_F(HwTest, CheckTcvrNameAndInterfaces) {
     EXPECT_EQ(tcvrStateName, tcvrStatsName);
     EXPECT_TRUE(
         tcvrStateName.starts_with("eth") || tcvrStateName.starts_with("fab"));
-    auto portName = wedgeManager->getPortName(TransceiverID(id));
-    EXPECT_EQ(tcvrStateName + "/1", portName);
+    auto tcvrPortName = wedgeManager->getPortName(TransceiverID(id));
+    EXPECT_EQ(tcvrStateName + "/1", tcvrPortName);
 
     auto ports = wedgeManager->getPortNames(TransceiverID(id));
     EXPECT_FALSE(ports.empty());

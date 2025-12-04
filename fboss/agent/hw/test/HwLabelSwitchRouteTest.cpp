@@ -131,11 +131,12 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
     for (auto i = 0; i < width; i++) {
       auto testNhop = getNextHop(helper.get(), i);
       applyNewState(helper->resolveNextHop(getProgrammedState(), testNhop));
-      nhops.insert(LabelNextHop{
-          testNhop.ip,
-          InterfaceID(utility::kBaseVlanId + i),
-          NextHopWeight(1), // TODO - support ECMP_WEIGHT
-          testNhop.action});
+      nhops.insert(
+          LabelNextHop{
+              testNhop.ip,
+              InterfaceID(utility::kBaseVlanId + i),
+              NextHopWeight(1), // TODO - support ECMP_WEIGHT
+              testNhop.action});
     }
     setupLabelRibRoute(nhops);
   }

@@ -86,6 +86,12 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
 
   void programDefaultRoute(
       const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+      utility::EcmpSetupTargetedPorts6& ecmp6);
+  void programDefaultRouteWithDisableTTLDecrement(
+      const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+      utility::EcmpSetupTargetedPorts6& ecmp6);
+  void programDefaultRoute(
+      const boost::container::flat_set<PortDescriptor>& ecmpPorts,
       std::optional<folly::MacAddress> dstMac = std::nullopt);
 
   /*
@@ -127,9 +133,6 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   void printProductionFeatures() const;
 
  private:
-  void programDefaultRoute(
-      const boost::container::flat_set<PortDescriptor>& ecmpPorts,
-      utility::EcmpSetupTargetedPorts6& ecmp6);
   void initializeCabledPorts();
   void logLinkDbgMessage(std::vector<PortID>& portIDs) const override;
 

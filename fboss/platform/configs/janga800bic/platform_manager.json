@@ -1,5 +1,5 @@
 {
-  "platformName": "janga800bic",
+  "platformName": "JANGA800BIC",
   "rootPmUnitName": "JANGA",
   "rootSlotType": "JANGA_SLOT",
   "slotTypeConfigs": {
@@ -844,116 +844,6 @@
               ]
             }
           ],
-          "ledCtrlConfigs": [
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_42_LED_1",
-                "deviceName": "port_led",
-                "csrOffset": "0x850"
-              },
-              "portNumber": 42,
-              "ledId": 1
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_43_LED_1",
-                "deviceName": "port_led",
-                "csrOffset": "0x858"
-              },
-              "portNumber": 43,
-              "ledId": 1
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_45_LED_1",
-                "deviceName": "port_led",
-                "csrOffset": "0x860"
-              },
-              "portNumber": 45,
-              "ledId": 1
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_46_LED_1",
-                "deviceName": "port_led",
-                "csrOffset": "0x868"
-              },
-              "portNumber": 46,
-              "ledId": 1
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_41_LED_1",
-                "deviceName": "port_led",
-                "csrOffset": "0x870"
-              },
-              "portNumber": 41,
-              "ledId": 1
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_44_LED_1",
-                "deviceName": "port_led",
-                "csrOffset": "0x878"
-              },
-              "portNumber": 44,
-              "ledId": 1
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_42_LED_2",
-                "deviceName": "port_led",
-                "csrOffset": "0x854"
-              },
-              "portNumber": 42,
-              "ledId": 2
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_43_LED_2",
-                "deviceName": "port_led",
-                "csrOffset": "0x85c"
-              },
-              "portNumber": 43,
-              "ledId": 2
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_45_LED_2",
-                "deviceName": "port_led",
-                "csrOffset": "0x864"
-              },
-              "portNumber": 45,
-              "ledId": 2
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_46_LED_2",
-                "deviceName": "port_led",
-                "csrOffset": "0x86c"
-              },
-              "portNumber": 46,
-              "ledId": 2
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_41_LED_2",
-                "deviceName": "port_led",
-                "csrOffset": "0x874"
-              },
-              "portNumber": 41,
-              "ledId": 2
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_LED_PORT_44_LED_2",
-                "deviceName": "port_led",
-                "csrOffset": "0x87c"
-              },
-              "portNumber": 44,
-              "ledId": 2
-            }
-          ],
           "ledCtrlBlockConfigs": [
             {
               "pmUnitScopedNamePrefix": "SMB_LED",
@@ -966,380 +856,86 @@
             {
               "pmUnitScopedNamePrefix": "SMB_LED",
               "deviceName": "port_led",
-              "csrOffsetCalc": "0x810+ ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+              "csrOffsetCalc": "0x810 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
               "numPorts": 8,
               "ledPerPort": 2,
               "startPort": 33
+            },
+            {
+              "pmUnitScopedNamePrefix": "SMB_LED",
+              "deviceName": "port_led",
+              "csrOffsetCalc": "0x870 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+              "numPorts": 1,
+              "ledPerPort": 2,
+              "startPort": 41
+            },
+            {
+              "pmUnitScopedNamePrefix": "SMB_LED",
+              "deviceName": "port_led",
+              "csrOffsetCalc": "0x850 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+              "numPorts": 2,
+              "ledPerPort": 2,
+              "startPort": 42
+            },
+            {
+              "pmUnitScopedNamePrefix": "SMB_LED",
+              "deviceName": "port_led",
+              "csrOffsetCalc": "0x878 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+              "numPorts": 1,
+              "ledPerPort": 2,
+              "startPort": 44
+            },
+            {
+              "pmUnitScopedNamePrefix": "SMB_LED",
+              "deviceName": "port_led",
+              "csrOffsetCalc": "0x860 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+              "numPorts": 2,
+              "ledPerPort": 2,
+              "startPort": 45
             }
           ],
-          "xcvrCtrlConfigs": [
+          "xcvrCtrlBlockConfigs": [
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_1",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40200"
-              },
-              "portNumber": 1
+              "pmUnitScopedNamePrefix": "SMB_DOM",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x40200 + ({portNum} - {startPort})*0x4",
+              "numPorts": 32,
+              "startPort": 1
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_2",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40204"
-              },
-              "portNumber": 2
+              "pmUnitScopedNamePrefix": "SMB_DOM",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x1000 + ({portNum} - {startPort})*0x4",
+              "numPorts": 8,
+              "startPort": 33
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_3",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40208"
-              },
-              "portNumber": 3
+              "pmUnitScopedNamePrefix": "SMB_DOM",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x1030 + ({portNum} - {startPort})*0x4",
+              "numPorts": 1,
+              "startPort": 41
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_4",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4020c"
-              },
-              "portNumber": 4
+              "pmUnitScopedNamePrefix": "SMB_DOM",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x1020 + ({portNum} - {startPort})*0x4",
+              "numPorts": 2,
+              "startPort": 42
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_5",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40210"
-              },
-              "portNumber": 5
+              "pmUnitScopedNamePrefix": "SMB_DOM",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x1034 + ({portNum} - {startPort})*0x4",
+              "numPorts": 1,
+              "startPort": 44
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_6",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40214"
-              },
-              "portNumber": 6
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_7",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40218"
-              },
-              "portNumber": 7
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_8",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4021c"
-              },
-              "portNumber": 8
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_9",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40220"
-              },
-              "portNumber": 9
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_10",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40224"
-              },
-              "portNumber": 10
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_11",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40228"
-              },
-              "portNumber": 11
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_12",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4022c"
-              },
-              "portNumber": 12
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_13",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40230"
-              },
-              "portNumber": 13
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_14",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40234"
-              },
-              "portNumber": 14
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_15",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40238"
-              },
-              "portNumber": 15
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_16",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4023c"
-              },
-              "portNumber": 16
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_17",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40240"
-              },
-              "portNumber": 17
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_18",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40244"
-              },
-              "portNumber": 18
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_19",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40248"
-              },
-              "portNumber": 19
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_20",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4024c"
-              },
-              "portNumber": 20
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_21",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40250"
-              },
-              "portNumber": 21
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_22",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40254"
-              },
-              "portNumber": 22
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_23",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40258"
-              },
-              "portNumber": 23
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_24",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4025c"
-              },
-              "portNumber": 24
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_25",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40260"
-              },
-              "portNumber": 25
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_26",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40264"
-              },
-              "portNumber": 26
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_27",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40268"
-              },
-              "portNumber": 27
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_28",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4026c"
-              },
-              "portNumber": 28
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_29",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40270"
-              },
-              "portNumber": 29
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_30",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40274"
-              },
-              "portNumber": 30
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_31",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40278"
-              },
-              "portNumber": 31
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_32",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4027c"
-              },
-              "portNumber": 32
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_33",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1000"
-              },
-              "portNumber": 33
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_34",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1004"
-              },
-              "portNumber": 34
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_35",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1008"
-              },
-              "portNumber": 35
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_36",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x100c"
-              },
-              "portNumber": 36
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_37",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1010"
-              },
-              "portNumber": 37
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_38",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1014"
-              },
-              "portNumber": 38
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_39",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1018"
-              },
-              "portNumber": 39
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_40",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x101c"
-              },
-              "portNumber": 40
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_42",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1020"
-              },
-              "portNumber": 42
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_43",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1024"
-              },
-              "portNumber": 43
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_45",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1028"
-              },
-              "portNumber": 45
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_46",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x102c"
-              },
-              "portNumber": 46
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_41",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1030"
-              },
-              "portNumber": 41
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_DOM_XCVR_CTRL_PORT_44",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1034"
-              },
-              "portNumber": 44
+              "pmUnitScopedNamePrefix": "SMB_DOM",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x1028 + ({portNum} - {startPort})*0x4",
+              "numPorts": 2,
+              "startPort": 45
             }
           ],
           "infoRomConfigs": [
@@ -1869,98 +1465,6 @@
     "/run/devmap/i2c-busses/SMB_IOB_I2C_MASTER_27": "/[SMB_IOB_I2C_MASTER_27]",
     "/run/devmap/i2c-busses/SMB_IOB_I2C_MASTER_28": "/[SMB_IOB_I2C_MASTER_28]",
     "/run/devmap/i2c-busses/SMB_IOB_I2C_MASTER_29": "/[SMB_IOB_I2C_MASTER_29]",
-    "/run/devmap/i2c-busses/XCVR_1": "/[SMB_DOM_I2C_MASTER_1]",
-    "/run/devmap/i2c-busses/XCVR_2": "/[SMB_DOM_I2C_MASTER_2]",
-    "/run/devmap/i2c-busses/XCVR_3": "/[SMB_DOM_I2C_MASTER_3]",
-    "/run/devmap/i2c-busses/XCVR_4": "/[SMB_DOM_I2C_MASTER_4]",
-    "/run/devmap/i2c-busses/XCVR_5": "/[SMB_DOM_I2C_MASTER_5]",
-    "/run/devmap/i2c-busses/XCVR_6": "/[SMB_DOM_I2C_MASTER_6]",
-    "/run/devmap/i2c-busses/XCVR_7": "/[SMB_DOM_I2C_MASTER_7]",
-    "/run/devmap/i2c-busses/XCVR_8": "/[SMB_DOM_I2C_MASTER_8]",
-    "/run/devmap/i2c-busses/XCVR_9": "/[SMB_DOM_I2C_MASTER_9]",
-    "/run/devmap/i2c-busses/XCVR_10": "/[SMB_DOM_I2C_MASTER_10]",
-    "/run/devmap/i2c-busses/XCVR_11": "/[SMB_DOM_I2C_MASTER_11]",
-    "/run/devmap/i2c-busses/XCVR_12": "/[SMB_DOM_I2C_MASTER_12]",
-    "/run/devmap/i2c-busses/XCVR_13": "/[SMB_DOM_I2C_MASTER_13]",
-    "/run/devmap/i2c-busses/XCVR_14": "/[SMB_DOM_I2C_MASTER_14]",
-    "/run/devmap/i2c-busses/XCVR_15": "/[SMB_DOM_I2C_MASTER_15]",
-    "/run/devmap/i2c-busses/XCVR_16": "/[SMB_DOM_I2C_MASTER_16]",
-    "/run/devmap/i2c-busses/XCVR_17": "/[SMB_DOM_I2C_MASTER_17]",
-    "/run/devmap/i2c-busses/XCVR_18": "/[SMB_DOM_I2C_MASTER_18]",
-    "/run/devmap/i2c-busses/XCVR_19": "/[SMB_DOM_I2C_MASTER_19]",
-    "/run/devmap/i2c-busses/XCVR_20": "/[SMB_DOM_I2C_MASTER_20]",
-    "/run/devmap/i2c-busses/XCVR_21": "/[SMB_DOM_I2C_MASTER_21]",
-    "/run/devmap/i2c-busses/XCVR_22": "/[SMB_DOM_I2C_MASTER_22]",
-    "/run/devmap/i2c-busses/XCVR_23": "/[SMB_DOM_I2C_MASTER_23]",
-    "/run/devmap/i2c-busses/XCVR_24": "/[SMB_DOM_I2C_MASTER_24]",
-    "/run/devmap/i2c-busses/XCVR_25": "/[SMB_DOM_I2C_MASTER_25]",
-    "/run/devmap/i2c-busses/XCVR_26": "/[SMB_DOM_I2C_MASTER_26]",
-    "/run/devmap/i2c-busses/XCVR_27": "/[SMB_DOM_I2C_MASTER_27]",
-    "/run/devmap/i2c-busses/XCVR_28": "/[SMB_DOM_I2C_MASTER_28]",
-    "/run/devmap/i2c-busses/XCVR_29": "/[SMB_DOM_I2C_MASTER_29]",
-    "/run/devmap/i2c-busses/XCVR_30": "/[SMB_DOM_I2C_MASTER_30]",
-    "/run/devmap/i2c-busses/XCVR_31": "/[SMB_DOM_I2C_MASTER_31]",
-    "/run/devmap/i2c-busses/XCVR_32": "/[SMB_DOM_I2C_MASTER_32]",
-    "/run/devmap/i2c-busses/XCVR_33": "/[SMB_DOM_I2C_MASTER_33]",
-    "/run/devmap/i2c-busses/XCVR_34": "/[SMB_DOM_I2C_MASTER_34]",
-    "/run/devmap/i2c-busses/XCVR_35": "/[SMB_DOM_I2C_MASTER_35]",
-    "/run/devmap/i2c-busses/XCVR_36": "/[SMB_DOM_I2C_MASTER_36]",
-    "/run/devmap/i2c-busses/XCVR_37": "/[SMB_DOM_I2C_MASTER_37]",
-    "/run/devmap/i2c-busses/XCVR_38": "/[SMB_DOM_I2C_MASTER_38]",
-    "/run/devmap/i2c-busses/XCVR_39": "/[SMB_DOM_I2C_MASTER_39]",
-    "/run/devmap/i2c-busses/XCVR_40": "/[SMB_DOM_I2C_MASTER_40]",
-    "/run/devmap/i2c-busses/XCVR_41": "/[SMB_DOM_I2C_MASTER_41]",
-    "/run/devmap/i2c-busses/XCVR_42": "/[SMB_DOM_I2C_MASTER_42]",
-    "/run/devmap/i2c-busses/XCVR_43": "/[SMB_DOM_I2C_MASTER_43]",
-    "/run/devmap/i2c-busses/XCVR_44": "/[SMB_DOM_I2C_MASTER_44]",
-    "/run/devmap/i2c-busses/XCVR_45": "/[SMB_DOM_I2C_MASTER_45]",
-    "/run/devmap/i2c-busses/XCVR_46": "/[SMB_DOM_I2C_MASTER_46]",
-    "/run/devmap/xcvrs/xcvr_1": "/[SMB_DOM_XCVR_CTRL_PORT_1]",
-    "/run/devmap/xcvrs/xcvr_2": "/[SMB_DOM_XCVR_CTRL_PORT_2]",
-    "/run/devmap/xcvrs/xcvr_3": "/[SMB_DOM_XCVR_CTRL_PORT_3]",
-    "/run/devmap/xcvrs/xcvr_4": "/[SMB_DOM_XCVR_CTRL_PORT_4]",
-    "/run/devmap/xcvrs/xcvr_5": "/[SMB_DOM_XCVR_CTRL_PORT_5]",
-    "/run/devmap/xcvrs/xcvr_6": "/[SMB_DOM_XCVR_CTRL_PORT_6]",
-    "/run/devmap/xcvrs/xcvr_7": "/[SMB_DOM_XCVR_CTRL_PORT_7]",
-    "/run/devmap/xcvrs/xcvr_8": "/[SMB_DOM_XCVR_CTRL_PORT_8]",
-    "/run/devmap/xcvrs/xcvr_9": "/[SMB_DOM_XCVR_CTRL_PORT_9]",
-    "/run/devmap/xcvrs/xcvr_10": "/[SMB_DOM_XCVR_CTRL_PORT_10]",
-    "/run/devmap/xcvrs/xcvr_11": "/[SMB_DOM_XCVR_CTRL_PORT_11]",
-    "/run/devmap/xcvrs/xcvr_12": "/[SMB_DOM_XCVR_CTRL_PORT_12]",
-    "/run/devmap/xcvrs/xcvr_13": "/[SMB_DOM_XCVR_CTRL_PORT_13]",
-    "/run/devmap/xcvrs/xcvr_14": "/[SMB_DOM_XCVR_CTRL_PORT_14]",
-    "/run/devmap/xcvrs/xcvr_15": "/[SMB_DOM_XCVR_CTRL_PORT_15]",
-    "/run/devmap/xcvrs/xcvr_16": "/[SMB_DOM_XCVR_CTRL_PORT_16]",
-    "/run/devmap/xcvrs/xcvr_17": "/[SMB_DOM_XCVR_CTRL_PORT_17]",
-    "/run/devmap/xcvrs/xcvr_18": "/[SMB_DOM_XCVR_CTRL_PORT_18]",
-    "/run/devmap/xcvrs/xcvr_19": "/[SMB_DOM_XCVR_CTRL_PORT_19]",
-    "/run/devmap/xcvrs/xcvr_20": "/[SMB_DOM_XCVR_CTRL_PORT_20]",
-    "/run/devmap/xcvrs/xcvr_21": "/[SMB_DOM_XCVR_CTRL_PORT_21]",
-    "/run/devmap/xcvrs/xcvr_22": "/[SMB_DOM_XCVR_CTRL_PORT_22]",
-    "/run/devmap/xcvrs/xcvr_23": "/[SMB_DOM_XCVR_CTRL_PORT_23]",
-    "/run/devmap/xcvrs/xcvr_24": "/[SMB_DOM_XCVR_CTRL_PORT_24]",
-    "/run/devmap/xcvrs/xcvr_25": "/[SMB_DOM_XCVR_CTRL_PORT_25]",
-    "/run/devmap/xcvrs/xcvr_26": "/[SMB_DOM_XCVR_CTRL_PORT_26]",
-    "/run/devmap/xcvrs/xcvr_27": "/[SMB_DOM_XCVR_CTRL_PORT_27]",
-    "/run/devmap/xcvrs/xcvr_28": "/[SMB_DOM_XCVR_CTRL_PORT_28]",
-    "/run/devmap/xcvrs/xcvr_29": "/[SMB_DOM_XCVR_CTRL_PORT_29]",
-    "/run/devmap/xcvrs/xcvr_30": "/[SMB_DOM_XCVR_CTRL_PORT_30]",
-    "/run/devmap/xcvrs/xcvr_31": "/[SMB_DOM_XCVR_CTRL_PORT_31]",
-    "/run/devmap/xcvrs/xcvr_32": "/[SMB_DOM_XCVR_CTRL_PORT_32]",
-    "/run/devmap/xcvrs/xcvr_33": "/[SMB_DOM_XCVR_CTRL_PORT_33]",
-    "/run/devmap/xcvrs/xcvr_34": "/[SMB_DOM_XCVR_CTRL_PORT_34]",
-    "/run/devmap/xcvrs/xcvr_35": "/[SMB_DOM_XCVR_CTRL_PORT_35]",
-    "/run/devmap/xcvrs/xcvr_36": "/[SMB_DOM_XCVR_CTRL_PORT_36]",
-    "/run/devmap/xcvrs/xcvr_37": "/[SMB_DOM_XCVR_CTRL_PORT_37]",
-    "/run/devmap/xcvrs/xcvr_38": "/[SMB_DOM_XCVR_CTRL_PORT_38]",
-    "/run/devmap/xcvrs/xcvr_39": "/[SMB_DOM_XCVR_CTRL_PORT_39]",
-    "/run/devmap/xcvrs/xcvr_40": "/[SMB_DOM_XCVR_CTRL_PORT_40]",
-    "/run/devmap/xcvrs/xcvr_41": "/[SMB_DOM_XCVR_CTRL_PORT_41]",
-    "/run/devmap/xcvrs/xcvr_42": "/[SMB_DOM_XCVR_CTRL_PORT_42]",
-    "/run/devmap/xcvrs/xcvr_43": "/[SMB_DOM_XCVR_CTRL_PORT_43]",
-    "/run/devmap/xcvrs/xcvr_44": "/[SMB_DOM_XCVR_CTRL_PORT_44]",
-    "/run/devmap/xcvrs/xcvr_45": "/[SMB_DOM_XCVR_CTRL_PORT_45]",
-    "/run/devmap/xcvrs/xcvr_46": "/[SMB_DOM_XCVR_CTRL_PORT_46]",
     "/run/devmap/gpiochips/SMB_GPIO_CHIP_1": "/[SMB_GPIO_CHIP_1]",
     "/run/devmap/gpiochips/FCB_GPIO_CHIP_1": "/[FCB_GPIO_CHIP_1]",
     "/run/devmap/gpiochips/FCB_GPIO_CHIP_2": "/[FCB_GPIO_CHIP_2]",
@@ -2067,7 +1571,7 @@
   "chassisEepromDevicePath": "/SMB_FRU_SLOT@0/[IDPROM]",
   "numXcvrs": 46,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "3.3.2-1",
+  "bspKmodsRpmVersion": "3.4.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",

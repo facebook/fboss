@@ -31,23 +31,24 @@ ModbusDevice::ModbusDevice(
 }
 
 void ModbusDevice::handleCommandFailure(std::exception& baseException) {
-  if (TimeoutException * ex;
+  if (TimeoutException* ex;
       (ex = dynamic_cast<TimeoutException*>(&baseException)) != nullptr) {
     info_.timeouts++;
-  } else if (CRCError * ex;
-             (ex = dynamic_cast<CRCError*>(&baseException)) != nullptr) {
+  } else if (CRCError* crcEx;
+             (crcEx = dynamic_cast<CRCError*>(&baseException)) != nullptr) {
     info_.crcErrors++;
-  } else if (ModbusError * ex;
-             (ex = dynamic_cast<ModbusError*>(&baseException)) != nullptr) {
+  } else if (ModbusError* modbusEx; (modbusEx = dynamic_cast<ModbusError*>(
+                                         &baseException)) != nullptr) {
     // ModbusErrors can happen in normal operation. Do not let
     // it increment numConsecutiveFailures since it should not
     // account as a signal of a device being dormant.
     info_.deviceErrors++;
     return;
-  } else if (std::system_error * ex; (ex = dynamic_cast<std::system_error*>(
-                                          &baseException)) != nullptr) {
+  } else if (std::system_error* sysEx;
+             (sysEx = dynamic_cast<std::system_error*>(&baseException)) !=
+             nullptr) {
     info_.miscErrors++;
-    logError << ex->what() << std::endl;
+    logError << sysEx->what() << std::endl;
   } else {
     info_.miscErrors++;
     logError << baseException.what() << std::endl;

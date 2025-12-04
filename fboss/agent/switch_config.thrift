@@ -84,6 +84,8 @@ struct PortPfc {
   2: bool rx = false;
   3: PortPgConfigName portPgConfigName;
   4: optional PfcWatchdog watchdog;
+  5: optional bool txPfcDurationEnable;
+  6: optional bool rxPfcDurationEnable;
 }
 
 /**
@@ -181,6 +183,10 @@ enum PortProfileID {
   PROFILE_200G_2_PAM4_RS544_COPPER = 54,
   PROFILE_100G_2_PAM4_RS544_COPPER = 55,
   PROFILE_100G_1_PAM4_RS544_COPPER = 56,
+  PROFILE_800G_4_PAM4_RS544X2N_COPPER = 57,
+  PROFILE_400G_2_PAM4_RS544X2N_COPPER = 58,
+  PROFILE_200G_1_PAM4_RS544X2N_COPPER = 59,
+  PROFILE_100G_1_PAM4_RS544X2N_COPPER = 60,
 }
 
 enum Scope {
@@ -826,6 +832,7 @@ enum MMUScalingFactor {
   TWO = 9,
   FOUR = 10,
   ONE_32768TH = 11,
+  ONE_HUNDRED_TWENTY_EIGHT = 12,
 }
 
 // This determines how packets are scheduled on a per queue basis
@@ -966,6 +973,12 @@ struct ExpQosMap {
   3: optional byte fromTrafficClassToExp;
 }
 
+struct PcpQosMap {
+  1: i16 internalTrafficClass;
+  2: list<byte> fromPcpToTrafficClass;
+  3: optional byte fromTrafficClassToPcp;
+}
+
 struct QosMap {
   1: list<DscpQosMap> dscpMaps;
   2: list<ExpQosMap> expMaps;
@@ -989,6 +1002,8 @@ struct QosMap {
   // we still generate config for NIF ports on VOQ  platforms even
   // when they are the same as trafficClassToQueueId.
   7: optional map<i16, i16> trafficClassToVoqId;
+  //  dot1q priority code point to traffic class
+  8: optional list<PcpQosMap> pcpMaps;
 }
 
 struct QosRule {
@@ -1515,6 +1530,7 @@ enum AsicType {
   ASIC_TYPE_RAMON3 = 16,
   ASIC_TYPE_CHENAB = 17,
   ASIC_TYPE_TOMAHAWK6 = 18,
+  ASIC_TYPE_AGERA3 = 19,
 }
 /**
  * The configuration for an interface
@@ -1959,6 +1975,7 @@ struct SwitchSettings {
   // Connected system ports are for fabric links and used in fabric link
   // monitoring feature.
   34: optional i32 fabricLinkMonitoringSystemPortOffset;
+  35: optional bool measureCableLengths;
 }
 
 // Global buffer pool

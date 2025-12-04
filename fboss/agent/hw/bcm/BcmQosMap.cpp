@@ -107,8 +107,9 @@ BcmQosMap::BcmQosMap(const BcmSwitchIf* hw, int flags, int mapHandle)
     XLOG(DBG4) << "found entry [color: " << bcmEntry.color
                << ", int_pri: " << bcmEntry.int_pri
                << ", exp]: " << bcmEntry.exp << "for qos map: " << handle_;
-    entries_.insert(std::make_unique<BcmQosMapEntry>(
-        *this, getQosMapEntryType(type_), bcmEntry));
+    entries_.insert(
+        std::make_unique<BcmQosMapEntry>(
+            *this, getQosMapEntryType(type_), bcmEntry));
   }
 }
 
@@ -125,11 +126,12 @@ void BcmQosMap::addRule(
    * previously, we don't skip creating QoS map for queue0.
    */
   /* TODO(pshaikh): Remove Qos rule altogether and use only qos maps */
-  entries_.insert(std::make_unique<BcmQosMapEntry>(
-      *this,
-      getQosMapEntryType(type_),
-      internalTrafficClass,
-      externalTrafficClass));
+  entries_.insert(
+      std::make_unique<BcmQosMapEntry>(
+          *this,
+          getQosMapEntryType(type_),
+          internalTrafficClass,
+          externalTrafficClass));
 }
 
 void BcmQosMap::clear() {

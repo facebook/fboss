@@ -41,7 +41,6 @@ set(SAI_SWITCH_SRC
   fboss/agent/hw/sai/switch/SaiVlanManager.cpp
   fboss/agent/hw/sai/switch/SaiVirtualRouterManager.cpp
   fboss/agent/hw/sai/switch/SaiWredManager.cpp
-  fboss/agent/hw/sai/switch/oss/SaiHostifManager.cpp
   fboss/agent/hw/sai/switch/npu/SaiAclTableManager.cpp
   fboss/agent/hw/sai/switch/npu/SaiPortManager.cpp
   fboss/agent/hw/sai/switch/npu/SaiSwitch.cpp
@@ -86,6 +85,23 @@ elseif (CHENAB_SAI_SDK)
     fboss/agent/hw/sai/switch/npu/chenab/SaiBufferManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiSwitch.cpp
     fboss/agent/hw/sai/switch/oss/SaiTamManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiPortManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiAclTableManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiSwitchManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiQueueManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiVendorSwitchManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiFirmwareManager.cpp
+  )
+elseif (SAI_BRCM_PAI_IMPL)
+  list(APPEND SAI_SWITCH_SRC
+    fboss/agent/hw/sai/switch/phy/SaiAclTableManager.cpp
+    fboss/agent/hw/sai/switch/phy/SaiPortManager.cpp
+    fboss/agent/hw/sai/switch/phy/SaiSwitch.cpp
+    fboss/agent/hw/sai/switch/oss/SaiArsProfileManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiArsManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiSwitch.cpp
+    fboss/agent/hw/sai/switch/oss/SaiTamManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiBufferManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiPortManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiAclTableManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiSwitchManager.cpp

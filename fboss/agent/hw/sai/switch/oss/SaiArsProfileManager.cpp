@@ -53,7 +53,7 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       : std::nullopt;
 
   std::optional<SaiArsProfileTraits::Attributes::ArsBaseIndex> arsBaseIndex =
-      FLAGS_enable_th5_ars_scale_mode && platform_->getAsic()->getArsBaseIndex()
+      platform_->getAsic()->getArsBaseIndex()
       ? std::optional<SaiArsProfileTraits::Attributes::ArsBaseIndex>(
             platform_->getAsic()->getArsBaseIndex().value())
       : std::nullopt;

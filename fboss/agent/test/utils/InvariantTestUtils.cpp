@@ -42,6 +42,7 @@ void verifySafeDiagCmds(TestEnsembleIf* ensemble) {
       case cfg::AsicType::ASIC_TYPE_CHENAB:
       case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
       case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+      case cfg::AsicType::ASIC_TYPE_AGERA3:
       case cfg::AsicType::ASIC_TYPE_JERICHO2:
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
       case cfg::AsicType::ASIC_TYPE_RAMON:
@@ -120,8 +121,9 @@ void verifyDscpToQueueMapping(SwSwitch* sw, const std::vector<PortID>& ports) {
   auto getPortStats = [&]() { return sw->getHwPortStats(ports); };
 
   auto q2dscpMap = utility::getOlympicQosMaps(sw->getConfig());
-  EXPECT_TRUE(utility::verifyQueueMappingsInvariantEcmpHelper(
-      q2dscpMap, sw, sw->getState(), getPortStats, ports));
+  EXPECT_TRUE(
+      utility::verifyQueueMappingsInvariantEcmpHelper(
+          q2dscpMap, sw, sw->getState(), getPortStats, ports));
 }
 
 } // namespace facebook::fboss::utility

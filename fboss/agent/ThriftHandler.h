@@ -297,8 +297,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getCpuPortStats(CpuPortStats& hwCpuPortStats) override;
   void getAllCpuPortStats(std::map<int, CpuPortStats>& hwCpuPortStats) override;
   void getHwPortStats(std::map<std::string, HwPortStats>& hwPortStats) override;
-  void getHwRouterInterfaceStats(std::map<std::string, HwRouterInterfaceStats>&
-                                     hwRouterInterfaceStats) override;
+  void getHwRouterInterfaceStats(
+      std::map<std::string, HwRouterInterfaceStats>& hwRouterInterfaceStats)
+      override;
   void getFabricReachabilityStats(
       FabricReachabilityStats& fabricReachabilityStats) override;
   void getAllEcmpDetails(std::vector<EcmpDetails>& ecmpDetails) override;
@@ -421,9 +422,14 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getAllInterfacePhyInfo(
       std::map<std::string, phy::PhyInfo>& phyInfos) override;
   bool isSwitchDrained() override;
-  void getActualSwitchDrainState(std::map<int64_t, cfg::SwitchDrainState>&
-                                     switchId2ActualSwitchDrainState) override;
+  void getActualSwitchDrainState(
+      std::map<int64_t, cfg::SwitchDrainState>& switchId2ActualSwitchDrainState)
+      override;
   void getMultiSwitchRunState(MultiSwitchRunState& runState) override;
+  void getAllFabricLinkMonitoringStats(
+      std::map<int32_t, FabricLinkMonPortStats>& stats) override;
+  void getFabricMonitoringDetails(
+      std::vector<FabricMonitoringDetail>& details) override;
 
  protected:
   void addMplsRoutesImpl(
@@ -446,17 +452,39 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
     // This version of ensureConfigured() won't log
     ensureConfigured(folly::StringPiece(nullptr, nullptr));
   }
+  void ensureVoqOrFabric(folly::StringPiece function) const;
 
  private:
   void ensureNPU(folly::StringPiece function) const;
   void ensureNotFabric(folly::StringPiece function) const;
-  void ensureVoqOrFabric(folly::StringPiece function) const;
   void updateUnicastRoutesImpl(
       int32_t vrf,
       int16_t client,
       const std::unique_ptr<std::vector<UnicastRoute>>& routes,
       const std::string& updType,
       bool sync);
+
+  void buildFabricMonitoringLookupMaps(
+      const cfg::SwitchConfig& config,
+      const std::shared_ptr<SwitchState>& swState,
+      cfg::SwitchType switchType,
+      std::map<std::string, SwitchID>& switchNameToSwitchIds,
+      std::map<SwitchID, std::string>& switchIdToSystemPort);
+
+  int determineVirtualDevice(
+      const std::shared_ptr<Port>& swPort,
+      const cfg::SwitchConfig& config,
+      cfg::SwitchType switchType,
+      const std::map<std::string, SwitchID>& switchNameToSwitchIds,
+      const cfg::PortNeighbor& neighbor);
+
+  void populateFabricPortDetail(
+      const std::shared_ptr<Port>& swPort,
+      const cfg::SwitchConfig& config,
+      cfg::SwitchType switchType,
+      const std::map<std::string, SwitchID>& switchNameToSwitchIds,
+      const std::map<SwitchID, std::string>& switchIdToSystemPort,
+      FabricMonitoringDetail& detail);
 
   void fillPortStats(PortInfoThrift& portInfo, int numPortQs = 0);
 
@@ -491,12 +519,12 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
    */
   SwSwitch* sw_;
 
-  int thriftIdleTimeout_;
+  int thriftIdleTimeout_{};
   std::vector<const TConnectionContext*> brokenClients_;
 
   apache::thrift::SSLPolicy sslPolicy_;
 
-  std::unordered_set<uint16_t> syncedFibClients;
+  std::unordered_set<uint16_t> syncedFibClients_;
 };
 
 } // namespace facebook::fboss

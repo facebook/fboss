@@ -65,15 +65,15 @@ class HwXphyPortStatsCollectionTest : public HwExternalPhyPortTest {
   void runTest() {
     const auto& availableXphyPorts = findAvailableXphyPorts();
     auto setup = [this, &availableXphyPorts]() {
-      auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
       for (const auto& [port, profile] : availableXphyPorts) {
         // First program the xphy port
-        wedgeManager->programXphyPort(port, profile);
+        getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPort(
+            port, profile);
       }
     };
 
     auto verify = [&]() {
-      getHwQsfpEnsemble()->getWedgeManager()->updateAllXphyPortsStats();
+      getHwQsfpEnsemble()->getQsfpServiceHandler()->updateAllXphyPortsStats();
       /* sleep override */
       sleep(getSleepSeconds(
           getHwQsfpEnsemble()->getWedgeManager()->getPlatformType()));
@@ -88,7 +88,8 @@ class HwXphyPortStatsCollectionTest : public HwExternalPhyPortTest {
 
         // Verify fb303 has the XPHY FEC counters
         auto portName =
-            getHwQsfpEnsemble()->getWedgeManager()->getPortNameByPortId(port);
+            getHwQsfpEnsemble()->getQsfpServiceHandler()->getPortNameByPortId(
+                port);
         CHECK(portName.has_value());
         for (const auto side : {"system", "line"}) {
           auto counterPrefix =
@@ -131,10 +132,10 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
   void runTest() {
     const auto& availableXphyPorts = findAvailableXphyPorts();
     auto setup = [this, &availableXphyPorts]() {
-      auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
       for (const auto& [port, profile] : availableXphyPorts) {
         // First program the xphy port
-        wedgeManager->programXphyPort(port, profile);
+        getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPort(
+            port, profile);
       }
     };
 
@@ -215,16 +216,17 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
   void runTest(phy::Side side) {
     const auto& availableXphyPorts = findAvailableXphyPorts();
     auto setup = [this, &availableXphyPorts, side]() {
-      auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
       for (const auto& [port, profile] : availableXphyPorts) {
         // First program the xphy port
-        wedgeManager->programXphyPort(port, profile);
+        getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPort(
+            port, profile);
         // Then program this xphy port with a common prbs polynominal
         phy::PortPrbsState prbs;
         prbs.enabled() = true;
         static constexpr auto kCommonPolynominal = 9;
         prbs.polynominal() = kCommonPolynominal;
-        wedgeManager->programXphyPortPrbs(port, side, prbs);
+        getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPortPrbs(
+            port, side, prbs);
       }
     };
 
@@ -235,12 +237,12 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
 
       // The first update stats will set the prbs stats to lock and accumulated
       // errors to 0
-      getHwQsfpEnsemble()->getWedgeManager()->updateAllXphyPortsStats();
+      getHwQsfpEnsemble()->getQsfpServiceHandler()->updateAllXphyPortsStats();
       /* sleep override */
       sleep(sleepSeconds);
       // The second update stats will provide the prbs stats since the first
       // update, which should see some bers
-      getHwQsfpEnsemble()->getWedgeManager()->updateAllXphyPortsStats();
+      getHwQsfpEnsemble()->getQsfpServiceHandler()->updateAllXphyPortsStats();
       /* sleep override */
       sleep(sleepSeconds);
 
@@ -315,25 +317,24 @@ TEST_F(HwTest, transceiverIOStats) {
    *    change pages during refresh on them.
    *    readFailed and writeFailed should not increment at all
    */
-  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-  wedgeManager->refreshStateMachines();
+  auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+  auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
+  qsfpServiceHandler->refreshStateMachines();
   auto tcvrs = utility::legacyTransceiverIds(
       utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
 
   std::unordered_map<int32_t, TransceiverStats> tcvrStatsBefore;
 
   for (auto tcvrID : tcvrs) {
-    auto tcvrInfo = getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
-        TransceiverID(tcvrID));
+    auto tcvrInfo = wedgeMgr->getTransceiverInfo(TransceiverID(tcvrID));
     auto& tcvrStats = *tcvrInfo.tcvrStats();
     CHECK(tcvrStats.stats());
     tcvrStatsBefore[tcvrID] = *tcvrStats.stats();
   }
 
-  wedgeManager->refreshStateMachines();
+  qsfpServiceHandler->refreshStateMachines();
   for (auto tcvrID : tcvrs) {
-    auto tcvrInfo = getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
-        TransceiverID(tcvrID));
+    auto tcvrInfo = wedgeMgr->getTransceiverInfo(TransceiverID(tcvrID));
     auto& tcvrState = *tcvrInfo.tcvrState();
     auto& tcvrStats = *tcvrInfo.tcvrStats();
     TransceiverStats& tcvrStatsAfter = tcvrStats.stats().ensure();
@@ -385,23 +386,24 @@ TEST_F(PhyIOTest, phyIOStats) {
    *    The read and write attempted counters should increment
    *    readFailed and writeFailed should not increment at all
    */
-  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-
   std::unordered_map<PortID, phy::PhyInfo> phyInfoBefore;
   const auto& availableXphyPorts = findAvailableXphyPorts();
 
   auto allPhyStatsUpdated =
       [&](std::unordered_map<PortID, phy::PhyInfo>& phyInfoToCompare) {
-        for (auto [portID, _] : availableXphyPorts) {
+        for (auto [portId, _] : availableXphyPorts) {
           try {
-            auto phyInfo = wedgeManager->getXphyInfo(portID);
+            phy::PhyInfo phyInfo;
+            getHwQsfpEnsemble()->getQsfpServiceHandler()->getXphyInfo(
+                phyInfo, portId);
             // Make sure the timestamp advances
-            if (phyInfoToCompare.find(portID) != phyInfoToCompare.end() &&
+            if (phyInfoToCompare.find(portId) != phyInfoToCompare.end() &&
                 folly::copy(phyInfo.stats()->timeCollected().value()) <=
-                    folly::copy(phyInfoToCompare[portID]
-                                    .stats()
-                                    ->timeCollected()
-                                    .value())) {
+                    folly::copy(
+                        phyInfoToCompare[portId]
+                            .stats()
+                            ->timeCollected()
+                            .value())) {
               return false;
             }
           } catch (...) {
@@ -419,28 +421,31 @@ TEST_F(PhyIOTest, phyIOStats) {
             { ASSERT_EVENTUALLY_TRUE(allPhyStatsUpdated(phyInfoToCompare)); });
       };
 
-  wedgeManager->updateAllXphyPortsStats();
+  getHwQsfpEnsemble()->getQsfpServiceHandler()->updateAllXphyPortsStats();
   // updateAllXphyPortsStats asynchronously updates phy stats, so wait until
   // stats are updated
   waitForAllPhyStatsToBeUpdated(phyInfoBefore);
 
-  for (auto [portID, _] : availableXphyPorts) {
-    phyInfoBefore[portID] = wedgeManager->getXphyInfo(portID);
+  for (auto [portId, _] : availableXphyPorts) {
+    phy::PhyInfo phyInfo;
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->getXphyInfo(phyInfo, portId);
+    phyInfoBefore[portId] = phyInfo;
   }
 
-  wedgeManager->updateAllXphyPortsStats();
+  getHwQsfpEnsemble()->getQsfpServiceHandler()->updateAllXphyPortsStats();
   // updateAllXphyPortsStats asynchronously updates phy stats, so wait until
   // stats are updated
   waitForAllPhyStatsToBeUpdated(phyInfoBefore);
-  for (auto [portID, _] : availableXphyPorts) {
-    auto phyInfo = wedgeManager->getXphyInfo(portID);
+  for (auto [portId, _] : availableXphyPorts) {
+    phy::PhyInfo phyInfo;
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->getXphyInfo(phyInfo, portId);
     auto& phyStats = *phyInfo.stats();
     auto ioStatsAfter = *phyStats.ioStats();
-    auto ioStatsBefore = *phyInfoBefore[portID].stats()->ioStats();
+    auto ioStatsBefore = *phyInfoBefore[portId].stats()->ioStats();
 
-    XLOG(DBG3) << "portID: " << portID
+    XLOG(DBG3) << "portID: " << portId
                << " Stats Before: " << ioStatsString<IOStats>(ioStatsBefore);
-    XLOG(DBG3) << "portID: " << portID
+    XLOG(DBG3) << "portID: " << portId
                << " Stats After: " << ioStatsString<IOStats>(ioStatsAfter);
     EXPECT_EQ(ioStatsAfter.get_readDownTime(), 0);
     EXPECT_EQ(ioStatsAfter.get_writeDownTime(), 0);

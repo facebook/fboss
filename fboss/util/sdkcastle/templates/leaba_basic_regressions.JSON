@@ -1,0 +1,35 @@
+{
+  "testSdkVersion": "leaba/24.8.3001",
+  "runMode": "list-test-runner-cmds-only",
+  "buildMode": "opt-asan",
+  "testRunnerMode": "meta-internal",
+  "testOutDirPath": "~/tmp/",
+  "testSpecs": {
+    "agentTests": [
+      {
+        "testName": "leabaAgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "gibraltar": {
+              "asicTestName": "gibraltar",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "gibraltar"
+              },
+              "numJobs": 4
+            },
+            "graphene200": {
+              "asicTestName": "graphene200",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "graphene200"
+              },
+              "numJobs": 4
+            }
+          }
+        }
+      }
+    ]
+  }
+}

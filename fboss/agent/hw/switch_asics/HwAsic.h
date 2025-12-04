@@ -17,15 +17,258 @@ class HwAsic {
       std::unordered_set<cfg::SwitchType> supportedModes = {
           cfg::SwitchType::NPU});
   enum class Feature {
+    // ACL Features::
+    // ==============
+    //
+    // ACL Entry:
+    //   - Consists of Matcher and Action
+    //   - Matcher: check if patcket matches criteria e.g. specific source IP.
+    //   - Action: perform action on match e.g. drop packet
+    //
+    // ACL Counter:
+    //   - Can be optionally attached to an ACL entry.
+    //   - Can be configured to count the number of bytes and/or packets that
+    //     matched that ACL entry.
+    //
+    // ACL Table:
+    //  - Ordered list of ACL entries
+    //  - Only the first matching ACL entry and its Action take effect.
+    //
+    // ACL Table Group:
+    //  - Group of ACL Tables
+    //  - First matching ACL entry in each table and its Action takes effect.
+    //
+    // Bind point:
+    //  - Where to attach the ACL e.g. switch (global), per port etc.
+    //  - FBOSS supports only switch level ACLs i.e. ACL will be checked for
+    //    very packet in the switch.
+    //
+    // Stage:
+    //  - Stage in the pipeline the ACL will be checked.
+    //  - For example: ingress, egress etc.
+    //
+
+    // Set to true if Multiple ACL Tables are supported
+    // TODO:
+    //  - Candidate for removal: YES, ACL_TABLE_GROUP is enabled everywhere.
+    //  - Consolidate to a single feature prefixed with ACL_
+    MULTIPLE_ACL_TABLES,
+    ACL_TABLE_GROUP,
+
+    // Set to true if SAI implementations allow individually enabling Packet
+    // counter and byte counter.
+    // On some SAI implementations, supporting this is non-trivial. Those SAI
+    // implementations enable bytes as well as packet counters even if only one
+    // of the two is enabled.
+    // TODO:
+    //   - Candidate for removal: YES. FBOSS use case does not require enabling
+    //     only one. Enforce that either both are enabled or neither is enabled
+    //     on every platform, and then remove this feature.
+    //   - If we decide to keep the feature, rename to carry ACL_ prefix.
+    SEPARATE_BYTE_AND_PACKET_ACL_COUNTER,
+
+    // Set to true if Ingress ACLs are supported.
+    // Used to bind an ACL Table or ACL Table Group to a switch using
+    // SAI_SWITCH_ATTR_INGRESS_ACL
+    // TODO:
+    //  - Candidate for removal: YES. All ASICs/SDKs already support this.
+    SWITCH_ATTR_INGRESS_ACL,
+
+    // Set to true if Egress ACL Table is supported.
+    // However, this Table sits post lookup but before buffering.
+    // Thus, named as INGRESS_POST_LOOKUP_ACL_TABLE.
+    // For SAI, this maps to SAI_ACL_STAGE_EGRESS.
+    // TODO:
+    //  - Rename to carry ACL_ prefix.
+    INGRESS_POST_LOOKUP_ACL_TABLE,
+
+    // Set to true if Empty Matcher can be used to match all packets.
+    // TODO:
+    //  - Rename to carry ACL_ prefix.
+    EMPTY_ACL_MATCHER,
+
+    // Set to true if Metadata qualifier is supported for ACLs.
+    // Metadata is an integer field that can be associated with an L2 entry,
+    // Neighbor entry, Route entry etc. When that L2/Neighbor/Route enetry is
+    // hit, the corresponding Metadata is  associated with the packet. This
+    // packet can match any ACL that carries the same Metadata in the matcher
+    // field and corresponding ACL action takes effect.
+    ACL_METADATA_QUALIFER,
+
+    // Set to true if the SAI implementation supports setting a
+    // label (string identifier) for an ACL counter.
+    // This label can be used to uniquely identify ACL counter
+    // object during warmboot.  The support was added by SAI community PR 1430,
+    // and is part of the SAI spec since v1.10.0.
+    ACL_COUNTER_LABEL,
+
+    // Set to true if the SAI implementation supports Ether type as ACL matcher
+    // For SAI, this maps to whether SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE can be
+    // set during ACL Table creation.
+    // TODO:
+    //  - Candidate for removal: YES, but non-trivial.
+    //  - Extend SAI spec sai_acl_capability_t to return the list of ACL
+    //    matchers supported.
+    //  - Work with SAI implementations to support this capability.
+    //  - Extend FBOSS to query supported matchers for a given stage e.g.
+    //    SAI_SWITCH_ATTR_ACL_STAGE_INGRESS
+    ACL_ENTRY_ETHER_TYPE,
+
+    // Set to true if the SAI implementation supports ACL Byte counters
+    // For SAI, this maps to whether SAI_ACL_COUNTER_ATTR_BYTES can be queried.
+    // TODO:
+    //  - Candidate for removal: YES, but non-trivial.
+    //  - Extend SAI spec sai_acl_capability_t to return whether ACL Byte
+    //    counters are supported.
+    //  - Work with SAI implementations to support this capability.
+    //  - Extend FBOSS to query whether ACL Byte counters are supported.
+    ACL_BYTE_COUNTER,
+
+    // Packet is dropped due to configured ACL rules, all stages/bind points
+    // For SAI this maps to whether debug counter SAI_IN_DROP_REASON_ACL_ANY
+    // can be queried.
+    // TODO:
+    //  - Candidate for removal: YES, but non-trivial.
+    //  - Extend SAI spec to support capability_t for Debug counters.
+    //  - Work with SAI implementations to support this capability.
+    //  - Extend FBOSS to query.
+    //  - Rename to carry ACL_ prefix.
+    ANY_ACL_DROP_COUNTER,
+
+    // Set to true if the SAI implementation supports Ether type as ACL matcher
+    // For SAI, this maps to whether SAI_ACL_TABLE_ATTR_FIELD_{IN, SRC}_PORT can
+    // be set during ACL Table creation.
+    // TODO:
+    //  - Candidate for removal: YES, but non-trivial.
+    //  - Extend SAI spec sai_acl_capability_t to return the list of ACL
+    //    matchers supported.
+    //  - Work with SAI implementations to support this capability.
+    //  - Extend FBOSS to query supported matchers for a given stage e.g.
+    //    SAI_SWITCH_ATTR_ACL_STAGE_INGRESS
+    //  - Rename to carry ACL_ prefix.
+    SAI_ACL_ENTRY_SRC_PORT_QUALIFIER,
+
+    // Set to true if the SAI implementation supports ACL action to set hash
+    // algorithm. For SAI, this maps to whether
+    // SAI_ACL_ACTION_TYPE_SET_ECMP_HASH_ALGORITHM
+    // ACL action is supported.
+    // TODO:
+    //  - Candidate for removal: YES.
+    //  - switch_config.AclTable already carries list of actionTypes.
+    //  - Start populating that field in the config.
+    //  - Populate SAI_ACL_ACTION_TYPE_SET_ECMP_HASH_ALGORITHM action only for
+    //    SAI implementations that support this action.
+    ACL_SET_ECMP_HASH_ALGORITHM,
+
+    // Set to true if flex counters are supported by ingress field processor.
+    // TODO:
+    //  - Candidate for removal: YES.
+    //  - Only used by non-SAI. Once we completely migrate to SAI, remove.
+    INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
+
+    SAI_ACL_TABLE_UPDATE,
+
+    // ECMP, Hashing Feature::
+    // =======================
+    //
+    // ECMP (Equal Cost Multi Path):
+    //  - Routing technique to efficiently utilize multiple paths
+    //    between two endpoints when those paths have the same cost.
+    //
+    // UCMP (Unequal Cost Multi Path):
+    //  - Routing technique to distribute traffic across multiple paths
+    //    with different costs, in proportion to their assigned weights.
+    //  - Native UCMP: Can program weights directly to hardware.
+    //  - Legacy UCMP: Replicate ECMP members in proportion to their weights.
+    //
+    // Hash Algorithm:
+    //  - Acts on a set of configured fields (L4 src/dst port, src/dst IP etc.)
+    //    and computes a hash value. The value is used to select a path.
+    //
+    // ECMP Width:
+    //  - Number of next hops (paths) in a ECMP group.
+    //  - Property of ASIC/SAI implementation.
+    //
+    // Wide ECMP:
+    //  - Some ASICs support every ECMP width value [0, ecmp_width]
+    //  - For > ecmp_width, they only support fixed values.
+    //  - e.g. TH4 ECMP widths: [1-512], 1K, 2K, 4K
+
+    // Set to true if the ASIC supports Native UCMP.
+    // Only used by BcmSwitch.
+    // Thus, remove after migration to SaiSwitch is completed.
+    WEIGHTED_NEXTHOPGROUP_MEMBER,
+
+    // Set to true if the ASIC or SAI implementation supports Native UCMP.
+    // In either case, FBOSS need not implement replication.
+    // Only used by SaiSwitch.
+    // TODO:
+    //  - Candidate for removal: YES, enabled everywhere except Fake, Trident2.
+    //    Remove Trident2 support (no longer needed), fix Fake support, then
+    //    remove.
+    //  - Rename to carry ECMP_ prefix.
+    SAI_WEIGHTED_NEXTHOPGROUP_MEMBER,
+
+    // Set to true if Wide ECMP (possibly with some restriction like fixed power
+    // of 2) is supported by the ASIC.
+    WIDE_ECMP,
+
+    // Set to true if the SAI implementation supports querying the number of
+    // ECMP members supported across all nexthop groups of the switch.
+    // This maps to SAI_SWITCH_ATTR_MAX_ECMP_MEMBER_COUNT.
+    // TODO:
+    //  - Candidate for removal: YES, enabled everywhere except Chenab.
+    //  - Collaborate to add this support on Chenab, then remove.
+    ECMP_MEMBER_WIDTH_INTROSPECTION,
+
+    // Set to true if the SAI implementation supports bulk add and
+    // remove of the nexthop group members.
+    // Bulk add/remove is signifacntly faster than individual member add/remove.
+    // TODO:
+    //  - Rename to carry ECMP_ prefix.
+    BULK_CREATE_ECMP_MEMBER,
+
+    // Set to true if the SAI implementation supports associating a specific
+    // hashing policy for IPv4 packets.
+    // This maps to SAI_SWITCH_ATTR_ECMP_HASH_IPV4.
+    // Some ASICs support hashing natively and thus do not support this
+    // configuration.
+    // TODO:
+    //  - Candidate for removal: YES, but non-trivial.
+    //  - Extend SAI spec to introduce sai_hash_capability_t to return the list
+    //    of hash configuraton supported.
+    ECMP_HASH_V4,
+
+    // Set to true if the SAI implementation supports associating a specific
+    // hashing policy for IPv6 packets.
+    // This maps to SAI_SWITCH_ATTR_ECMP_HASH_IPV6.
+    // Some ASICs support hashing natively and thus do not support this
+    // configuration.
+    // TODO:
+    //  - Candidate for removal: YES, but non-trivial.
+    //  - Extend SAI spec to introduce sai_hash_capability_t to return the list
+    //    of hash configuraton supported.
+    ECMP_HASH_V6,
+
+    // Set to true if ECMP configuration is supported with MPLS.
+    // TODO:
+    //  - Rename to carry ECMP_ prefix.
+    MPLS_ECMP,
+
+    HASH_FIELDS_CUSTOMIZATION,
+    TRAFFIC_HASHING,
+    SAI_ECMP_HASH_ALGORITHM,
+    SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
+    ECMP_DLB_OFFSET,
+
+    // Other features
     SPAN,
     ERSPANv4,
     ERSPANv6,
     SFLOWv4,
     SFLOWv6,
     MPLS,
-    MPLS_ECMP,
     SAI_MPLS_QOS,
-    HASH_FIELDS_CUSTOMIZATION,
     ECN,
     L3_QOS,
     QOS_MAP_GLOBAL,
@@ -35,7 +278,6 @@ class HwAsic {
     NEXTHOP_TTL_DECREMENT_DISABLE,
     PORT_TTL_DECREMENT_DISABLE,
     PORT_INTERFACE_TYPE,
-    WEIGHTED_NEXTHOPGROUP_MEMBER,
     BLACKHOLE_ROUTE_DROP_COUNTER,
     RESOURCE_USAGE_STATS,
     HSDK,
@@ -43,9 +285,6 @@ class HwAsic {
     L3_EGRESS_MODE_AUTO_ENABLED,
     SAI_ECN_WRED,
     PKTIO,
-    ACL_COPY_TO_CPU,
-    SWITCH_ATTR_INGRESS_ACL,
-    INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
     HOSTTABLE,
     PORT_TX_DISABLE,
     ZERO_SDK_WRITE_WARMBOOT,
@@ -64,7 +303,6 @@ class HwAsic {
     DETAILED_L2_UPDATE,
     COUNTER_REFRESH_INTERVAL,
     TELEMETRY_AND_MONITORING,
-    WIDE_ECMP,
     ALPM_ROUTE_PROJECTION,
     MAC_AGING,
     SAI_PORT_SPEED_CHANGE,
@@ -74,22 +312,15 @@ class HwAsic {
     EGRESS_SFLOW,
     DEFAULT_VLAN,
     SAI_LAG_HASH,
-    SAI_ACL_ENTRY_SRC_PORT_QUALIFIER,
-    TRAFFIC_HASHING,
-    ACL_TABLE_GROUP,
     MACSEC,
     CPU_PORT,
     VRF,
     SAI_HASH_FIELDS_CLEAR_BEFORE_SET,
-    EMPTY_ACL_MATCHER,
     SAI_PORT_SERDES_FIELDS_RESET,
     ROUTE_COUNTERS,
-    MULTIPLE_ACL_TABLES,
     ROUTE_FLEX_COUNTERS,
     BRIDGE_PORT_8021Q,
     FEC_DIAG_COUNTERS,
-    SAI_WEIGHTED_NEXTHOPGROUP_MEMBER,
-    SAI_ACL_TABLE_UPDATE,
     PORT_EYE_VALUES,
     SAI_MPLS_TTL_1_TRAP,
     SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER,
@@ -99,15 +330,12 @@ class HwAsic {
     SAI_PORT_ERR_STATUS,
     EXACT_MATCH,
     ROUTE_PROGRAMMING,
-    ECMP_HASH_V4,
-    ECMP_HASH_V6,
     FEC_CORRECTED_BITS,
     MEDIA_TYPE,
     FEC,
     RX_FREQUENCY_PPM,
     RX_SERDES_PARAMETERS,
     FABRIC_PORTS,
-    ECMP_MEMBER_WIDTH_INTROSPECTION,
     SAI_FIRMWARE_PATH,
     EXTENDED_FEC,
     LINK_TRAINING,
@@ -146,25 +374,20 @@ class HwAsic {
     SLOW_STAT_UPDATE, // pending CS00012299308
     VOQ_DELETE_COUNTER,
     DRAM_ENQUEUE_DEQUEUE_STATS,
-    SEPARATE_BYTE_AND_PACKET_ACL_COUNTER,
     ARS_PORT_ATTRIBUTES,
     SAI_EAPOL_TRAP,
     // pending CS00012311423
     L3_MTU_ERROR_TRAP,
     SAI_USER_DEFINED_TRAP,
-    ACL_COUNTER_LABEL,
     CREDIT_WATCHDOG,
-    ECMP_DLB_OFFSET,
     SAI_FEC_CORRECTED_BITS,
     SAI_FEC_CODEWORDS_STATS,
     LINK_INACTIVE_BASED_ISOLATE,
     SAI_PORT_SERDES_PROGRAMMING,
     RX_SNR,
     MANAGEMENT_PORT,
-    ANY_ACL_DROP_COUNTER,
     ANY_TRAP_DROP_COUNTER,
     PORT_WRED_COUNTER,
-    ACL_METADATA_QUALIFER,
     PORT_SERDES_ZERO_PREEMPHASIS,
     EGRESS_FORWARDING_DROP_COUNTER,
     SAI_PRBS,
@@ -175,13 +398,10 @@ class HwAsic {
     FABRIC_LINK_DOWN_CELL_DROP_COUNTER,
     CRC_ERROR_DETECT,
     EVENTOR_PORT_FOR_SFLOW,
-    SAI_ECMP_HASH_ALGORITHM,
     SWITCH_REACHABILITY_CHANGE_NOTIFY,
     CABLE_PROPOGATION_DELAY,
     DRAM_BLOCK_TIME,
     VOQ_LATENCY_WATERMARK_BIN,
-    ACL_ENTRY_ETHER_TYPE,
-    ACL_BYTE_COUNTER,
     DATA_CELL_FILTER,
     EGRESS_CORE_BUFFER_WATERMARK,
     DELETED_CREDITS_STAT,
@@ -196,7 +416,6 @@ class HwAsic {
     PORT_MTU_ERROR_TRAP,
     L3_INTF_MTU,
     DEDICATED_CPU_BUFFER_POOL,
-    INGRESS_POST_LOOKUP_ACL_TABLE,
     FAST_LLFC_COUNTER,
     INGRESS_SRAM_MIN_BUFFER_WATERMARK,
     FDR_FIFO_WATERMARK,
@@ -221,9 +440,6 @@ class HwAsic {
     TEMPERATURE_MONITORING,
     ROUTER_INTERFACE_STATISTICS,
     CPU_PORT_EGRESS_BUFFER_POOL,
-    ACL_SET_ECMP_HASH_ALGORITHM,
-    SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
-    BULK_CREATE_ECMP_MEMBER,
     TECH_SUPPORT,
     DRAM_QUARANTINED_BUFFER_STATS,
     MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA,
@@ -233,6 +449,10 @@ class HwAsic {
     FABRIC_LINK_MONITORING,
     ARS_ALTERNATE_MEMBERS,
     RESERVED_BYTES_FOR_BUFFER_POOL,
+    // Indicates the buffer pool size excludes the headroom
+    // pool size given the buffer pool size determination is
+    // left to vendor SAI implementation.
+    INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM,
   };
 
   enum class AsicMode {
@@ -281,8 +501,8 @@ class HwAsic {
       cfg::StreamType streamType,
       cfg::PortType portType) const = 0;
   virtual int getBasePortQueueId(
-      cfg::StreamType streamType,
-      cfg::PortType portType) const {
+      cfg::StreamType /* streamType */,
+      cfg::PortType /* portType */) const {
     return 0;
   }
   virtual uint32_t getMaxLabelStackDepth() const = 0;

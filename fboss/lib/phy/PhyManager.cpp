@@ -31,6 +31,8 @@ constexpr auto kSystemLanesKey = "systemLanes";
 constexpr auto kLineLanesKey = "lineLanes";
 constexpr auto kPortProfileStrKey = "profile";
 constexpr auto kPortSpeedStrKey = "speed";
+static constexpr auto kXphyGetPortInfoFailed = "xphy_get_port_info_failed";
+static constexpr auto kPimPrefix = "qsfp.pim";
 } // namespace
 
 namespace facebook::fboss {
@@ -65,15 +67,22 @@ cfg::PortProfileID getProfileIDBySpeed(
       " doesn't support speed:",
       apache::thrift::util::enumNameSafe(speed));
 }
+
+void bumpXphyGetPortInfoFailed(const PimID& pimId) {
+  auto stat = folly::to<std::string>(
+      kPimPrefix, ".", pimId, ".", kXphyGetPortInfoFailed);
+  facebook::tcData().addStatValue(stat, 1, facebook::fb303::SUM);
+}
 } // namespace
 
 PhyManager::PhyManager(const PlatformMapping* platformMapping)
     : platformMapping_(platformMapping),
       portToCacheInfo_(setupPortToCacheInfo(platformMapping)),
       portToStatsInfo_(setupPortToStatsInfo(platformMapping)),
-      xphySnapshotManager_(std::make_unique<PhySnapshotManager>(
-          kXphySnapshotIntervalSeconds,
-          SnapshotLogSource::QSFP_SERVICE)) {}
+      xphySnapshotManager_(
+          std::make_unique<PhySnapshotManager>(
+              kXphySnapshotIntervalSeconds,
+              SnapshotLogSource::QSFP_SERVICE)) {}
 PhyManager::~PhyManager() {}
 
 PhyManager::PortToCacheInfo PhyManager::setupPortToCacheInfo(
@@ -210,6 +219,17 @@ folly::EventBase* PhyManager::getPimEventBase(PimID pimID) const {
   throw FbossError("Can't find pim EventBase for pim=", pimID);
 }
 
+folly::EventBase* PhyManager::getXphyEventBase(
+    const GlobalXphyID& xphyID) const {
+  if (xphyThreadingModel_ == XphyThreadingModel::XPHY_LEVEL) {
+    throw FbossError("Can't find xphy EventBase for xphy=", xphyID);
+  }
+
+  // In PIM_LEVEL mode, return the PIM's event base
+  auto phyIDInfo = getPhyIDInfo(xphyID);
+  return getPimEventBase(phyIDInfo.pimID);
+}
+
 PhyManager::PimEventMultiThreading::PimEventMultiThreading(PimID pimID) {
   pim = pimID;
   eventBase = std::make_unique<folly::EventBase>();
@@ -228,6 +248,18 @@ PhyManager::PimEventMultiThreading::~PimEventMultiThreading() {
 
 void PhyManager::setupPimEventMultiThreading(PimID pimID) {
   pimToThread_.emplace(pimID, std::make_unique<PimEventMultiThreading>(pimID));
+}
+
+std::vector<GlobalXphyID> PhyManager::getXphyIDsForPim(
+    const PimID& pimID) const {
+  std::vector<GlobalXphyID> xphyIDs;
+  auto xphyMapIt = xphyMap_.find(pimID);
+  if (xphyMapIt != xphyMap_.end()) {
+    for (const auto& [xphyID, xphy] : xphyMapIt->second) {
+      xphyIDs.push_back(xphyID);
+    }
+  }
+  return xphyIDs;
 }
 
 bool PhyManager::setPortToPortCacheInfoLocked(
@@ -544,7 +576,7 @@ void PhyManager::setPortToExternalPhyPortStats(
 void PhyManager::updateAllXphyPortsStats() {
   for (const auto& portStatsInfo : portToStatsInfo_) {
     bool supportPortStats = false, supportPrbsStats = false;
-    PimID pimID;
+    GlobalXphyID xphyID;
     phy::ExternalPhy* xphy;
     {
       const auto& rLockedCache = getRLockedCache(portStatsInfo.first);
@@ -560,8 +592,7 @@ void PhyManager::updateAllXphyPortsStats() {
       supportPrbsStats =
           xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS);
 
-      auto xphyID = getGlobalXphyIDbyPortIDLocked(rLockedCache);
-      pimID = getPhyIDInfo(xphyID).pimID;
+      xphyID = getGlobalXphyIDbyPortIDLocked(rLockedCache);
     }
 
     // If xphy doesn't support either of stats collection, skip
@@ -570,9 +601,11 @@ void PhyManager::updateAllXphyPortsStats() {
     }
 
     const auto& wLockedStats = getWLockedStats(portStatsInfo.first);
-    auto evb = getPimEventBase(pimID);
+    // Use the appropriate event base based on threading model
+    auto evb = getXphyEventBase(xphyID);
+    auto pimID = getPhyIDInfo(xphyID).pimID;
     if (supportPortStats) {
-      updatePortStats(portStatsInfo.first, xphy, wLockedStats, evb);
+      updatePortStats(portStatsInfo.first, pimID, xphy, wLockedStats, evb);
     }
     if (supportPrbsStats) {
       updatePrbsStats(portStatsInfo.first, xphy, wLockedStats, evb);
@@ -583,9 +616,10 @@ void PhyManager::updateAllXphyPortsStats() {
 using namespace std::chrono;
 void PhyManager::updatePortStats(
     PortID portID,
+    const PimID& pimID,
     phy::ExternalPhy* xphy,
     const PhyManager::PortStatsWLockedPtr& wLockedStats,
-    folly::EventBase* pimEvb) {
+    folly::EventBase* evb) {
   if (wLockedStats->ongoingStatCollection.has_value() &&
       !wLockedStats->ongoingStatCollection->isReady()) {
     XLOG(DBG4) << "XPHY Port Stat collection for Port:" << portID
@@ -595,7 +629,7 @@ void PhyManager::updatePortStats(
 
   // Collect xphy port stats
   wLockedStats->ongoingStatCollection =
-      folly::via(pimEvb).thenValue([this, portID, xphy](auto&&) {
+      folly::via(evb).thenValue([this, pimID, portID, xphy](auto&&) {
         // Since this is future job, we need to fetch the cache with lock
         std::vector<LaneID> systemLanes, lineLanes;
         cfg::PortSpeed programmedSpeed;
@@ -630,6 +664,7 @@ void PhyManager::updatePortStats(
           } catch (const std::exception& ex) {
             XLOG(ERR) << getPortName(portID) << " getPortInfo failed with "
                       << ex.what();
+            bumpXphyGetPortInfoFailed(pimID);
           }
 
           currentPhyInfo.state()->name() = getPortName(portID);
@@ -654,7 +689,7 @@ void PhyManager::updatePrbsStats(
     PortID portID,
     phy::ExternalPhy* xphy,
     const PhyManager::PortStatsWLockedPtr& wLockedStats,
-    folly::EventBase* pimEvb) {
+    folly::EventBase* evb) {
   // Only needs to update prbs stats as long as there's one side enabled
   if (!wLockedStats->stats->isPrbsCollectionEnabled(phy::Side::SYSTEM) &&
       !wLockedStats->stats->isPrbsCollectionEnabled(phy::Side::LINE)) {
@@ -670,7 +705,7 @@ void PhyManager::updatePrbsStats(
 
   // Collect xphy prbs stats
   wLockedStats->ongoingPrbsStatCollection =
-      folly::via(pimEvb).thenValue([this, portID, xphy](auto&&) {
+      folly::via(evb).thenValue([this, portID, xphy](auto&&) {
         // Since this is future job, we need to fetch the cache with lock
         std::vector<LaneID> systemLanes, lineLanes;
         {

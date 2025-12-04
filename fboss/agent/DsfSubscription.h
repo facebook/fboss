@@ -111,6 +111,7 @@ class DsfSubscription {
   // TODO: kill this code after we cutover to patch subscriptions.
   MultiSwitchSystemPortMap curMswitchSysPorts_;
   MultiSwitchInterfaceMap curMswitchIntfs_;
+  uint64_t lastUpdateSeqNum_{0};
   bool stopped_{false};
   // Used for tests only
   std::shared_ptr<SwitchState> cachedState_;
@@ -122,6 +123,8 @@ class DsfSubscription {
   FRIEND_TEST(DsfSubscriptionTest, setupNeighbors);
   template <typename T>
   FRIEND_TEST(DsfSubscriptionTest, RemoteEndpointString);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition);
 };
 
 } // namespace facebook::fboss

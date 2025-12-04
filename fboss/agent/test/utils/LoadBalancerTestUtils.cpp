@@ -367,7 +367,11 @@ std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
 bool isDeviationWithinThreshold(
     int64_t lowest,
     int64_t highest,
-    int maxDeviationPct) {
+    int maxDeviationPct,
+    bool noTrafficOk) {
+  if (!lowest) {
+    return !highest && noTrafficOk;
+  }
   auto percentDev = (static_cast<float>(highest - lowest) / lowest) * 100.0;
   // Don't tolerate a deviation of more than maxDeviationPct
   XLOG(DBG2) << "Percent Deviation: " << percentDev
@@ -487,6 +491,10 @@ size_t pumpRoCETraffic(
           nxtHdr.value().end(),
           std::back_inserter(rocePayload));
     }
+    // Filler to take pkt size >64. IPv4 is at 58 which typically below SDK
+    // supported value
+    std::vector<uint8_t> filler = {0, 0, 0, 0, 0, 0, 0};
+    std::move(filler.begin(), filler.end(), std::back_inserter(rocePayload));
     auto pkt = makeUDPTxPacket(
         allocateFn,
         vlan,
@@ -654,11 +662,17 @@ size_t pumpTraffic(
       srcMacAddr.has_value() ? *srcMacAddr
                              : MacAddressGenerator().get(dstMac.u64HBO() + 1));
   for (auto i = 0; i < int(std::sqrt(numPackets)); ++i) {
-    auto srcIp = folly::IPAddress(folly::sformat(
-        isV6 ? "1001::{}:{}" : "100.0.{}.{}", (i + 1) / 256, (i + 1) % 256));
+    auto srcIp = folly::IPAddress(
+        folly::sformat(
+            isV6 ? "1001::{}:{}" : "100.0.{}.{}",
+            (i + 1) / 256,
+            (i + 1) % 256));
     for (auto j = 0; j < int(numPackets / std::sqrt(numPackets)); ++j) {
-      auto dstIp = folly::IPAddress(folly::sformat(
-          isV6 ? "2001::{}:{}" : "201.0.{}.{}", (j + 1) / 256, (j + 1) % 256));
+      auto dstIp = folly::IPAddress(
+          folly::sformat(
+              isV6 ? "2001::{}:{}" : "201.0.{}.{}",
+              (j + 1) / 256,
+              (j + 1) % 256));
       auto pkt = makeUDPTxPacket(
           allocateFn,
           vlan,

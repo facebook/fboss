@@ -31,11 +31,13 @@ struct TransceiverPortState {
   cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT;
   uint8_t numHostLanes;
   TransmitterTechnology transmitterTech = TransmitterTechnology::UNKNOWN;
+  std::optional<cfg::OpticalChannelConfig> opticalChannelConfig;
 
   bool operator==(const TransceiverPortState& other) const {
     return speed == other.speed && portName == other.portName &&
         startHostLane == other.startHostLane &&
-        transmitterTech == other.transmitterTech;
+        transmitterTech == other.transmitterTech &&
+        opticalChannelConfig == other.opticalChannelConfig;
   }
 };
 
@@ -93,7 +95,7 @@ class Transceiver {
    * Check if the transceiver is present or not and refresh data.
    */
   virtual void refresh() = 0;
-  virtual folly::Future<folly::Unit> futureRefresh() = 0;
+  virtual folly::Future<bool> futureRefresh() = 0;
 
   virtual void removeTransceiver() = 0;
 

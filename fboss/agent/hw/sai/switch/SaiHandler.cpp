@@ -423,4 +423,42 @@ void SaiHandler::getAllHwFirmwareInfo(
 void SaiHandler::getHwDebugDump(std::string& out) {
   out = hw_->getDebugDump();
 }
+
+void SaiHandler::getPortPrbsState(
+    prbs::InterfacePrbsState& prbsState,
+    int32_t portId) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+  prbsState = hw_->getPortPrbsState(PortID(portId));
+}
+
+void SaiHandler::getPortAsicPrbsStats(
+    std::vector<phy::PrbsLaneStats>& prbsStats,
+    int32_t portId) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+  prbsStats = hw_->getPortAsicPrbsStats(PortID(portId));
+}
+
+void SaiHandler::clearPortAsicPrbsStats(int32_t portId) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+  hw_->clearPortAsicPrbsStats(PortID(portId));
+}
+void SaiHandler::getPortPrbsPolynomials(
+    std::vector<prbs::PrbsPolynomial>& prbsPolynomials,
+    int32_t portId) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+  prbsPolynomials = hw_->getPortPrbsPolynomials(PortID(portId));
+}
+
+void SaiHandler::getProgrammedState(state::SwitchState& switchState) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+  auto state = hw_->getProgrammedState();
+  CHECK(state);
+  switchState = state->toThrift();
+}
+
 } // namespace facebook::fboss

@@ -358,7 +358,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
     } else {
       // Check if NDP static neighbor is enabled
       if (FLAGS_ndp_static_neighbor) {
-        if (cache_->sw_->hasConfiguredDesiredPeers(getIntfID())) {
+        if (cache_->sw_->hasQualifiedConfiguredDesiredPeer(getIntfID())) {
           // If we have configured desired peers, we should not flush the entry
           // after MAX_PROBE tries. Instead, we should keep on probing.
           // This functionality is needed for the scenario:

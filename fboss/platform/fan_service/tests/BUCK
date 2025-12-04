@@ -8,8 +8,10 @@ cpp_unittest(
         "BspTests.cpp",
         "ConfigValidatorTest.cpp",
         "ControlLogicTests.cpp",
+        "FsdbSensorSubscriberTests.cpp",
         "OvertempTests.cpp",
         "PidLogicTests.cpp",
+        "SensorDataTests.cpp",
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",

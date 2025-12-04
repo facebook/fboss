@@ -168,17 +168,19 @@ TEST_F(PkgManagerTest, processRpms) {
   // No installed rpms
   EXPECT_CALL(
       *mockSystemInterface_,
-      getInstalledRpms(fmt::format(
-          "{}-6.4.3-0_fbk1_755_ga25447393a1d",
-          *platformConfig_.bspKmodsRpmName())))
+      getInstalledRpms(
+          fmt::format(
+              "{}-6.4.3-0_fbk1_755_ga25447393a1d",
+              *platformConfig_.bspKmodsRpmName())))
       .WillOnce(Return(std::vector<std::string>{}));
   EXPECT_CALL(*mockSystemInterface_, removeRpms(_)).Times(0);
   EXPECT_CALL(
       *mockSystemInterface_,
-      installRpm(fmt::format(
-          "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
-          *platformConfig_.bspKmodsRpmName(),
-          *platformConfig_.bspKmodsRpmVersion())))
+      installRpm(
+          fmt::format(
+              "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
+              *platformConfig_.bspKmodsRpmName(),
+              *platformConfig_.bspKmodsRpmVersion())))
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(0));
   EXPECT_NO_THROW(pkgManager_.processRpms());
@@ -187,22 +189,26 @@ TEST_F(PkgManagerTest, processRpms) {
   // Installed rpms
   EXPECT_CALL(
       *mockSystemInterface_,
-      getInstalledRpms(fmt::format(
-          "{}-6.4.3-0_fbk1_755_ga25447393a1d",
-          *platformConfig_.bspKmodsRpmName())))
-      .WillOnce(Return(std::vector<std::string>{
-          "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}));
+      getInstalledRpms(
+          fmt::format(
+              "{}-6.4.3-0_fbk1_755_ga25447393a1d",
+              *platformConfig_.bspKmodsRpmName())))
+      .WillOnce(Return(
+          std::vector<std::string>{
+              "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}));
   EXPECT_CALL(
       *mockSystemInterface_,
-      removeRpms(std::vector<std::string>{
-          "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}))
+      removeRpms(
+          std::vector<std::string>{
+              "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}))
       .WillOnce(Return(0));
   EXPECT_CALL(
       *mockSystemInterface_,
-      installRpm(fmt::format(
-          "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
-          *platformConfig_.bspKmodsRpmName(),
-          *platformConfig_.bspKmodsRpmVersion())))
+      installRpm(
+          fmt::format(
+              "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
+              *platformConfig_.bspKmodsRpmName(),
+              *platformConfig_.bspKmodsRpmVersion())))
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(0));
   EXPECT_NO_THROW(pkgManager_.processRpms());
@@ -211,15 +217,18 @@ TEST_F(PkgManagerTest, processRpms) {
   // Remove installed rpms failed.
   EXPECT_CALL(
       *mockSystemInterface_,
-      getInstalledRpms(fmt::format(
-          "{}-6.4.3-0_fbk1_755_ga25447393a1d",
-          *platformConfig_.bspKmodsRpmName())))
-      .WillOnce(Return(std::vector<std::string>{
-          "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}));
+      getInstalledRpms(
+          fmt::format(
+              "{}-6.4.3-0_fbk1_755_ga25447393a1d",
+              *platformConfig_.bspKmodsRpmName())))
+      .WillOnce(Return(
+          std::vector<std::string>{
+              "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}));
   EXPECT_CALL(
       *mockSystemInterface_,
-      removeRpms(std::vector<std::string>{
-          "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}))
+      removeRpms(
+          std::vector<std::string>{
+              "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}))
       .WillOnce(Return(1));
   EXPECT_THROW(pkgManager_.processRpms(), std::runtime_error);
   EXPECT_EQ(
@@ -227,21 +236,24 @@ TEST_F(PkgManagerTest, processRpms) {
   // depmod failed
   EXPECT_CALL(
       *mockSystemInterface_,
-      getInstalledRpms(fmt::format(
-          "{}-6.4.3-0_fbk1_755_ga25447393a1d",
-          *platformConfig_.bspKmodsRpmName())))
+      getInstalledRpms(
+          fmt::format(
+              "{}-6.4.3-0_fbk1_755_ga25447393a1d",
+              *platformConfig_.bspKmodsRpmName())))
       .WillOnce(Return(std::vector<std::string>{}));
   EXPECT_CALL(
       *mockSystemInterface_,
-      removeRpms(std::vector<std::string>{
-          "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}))
+      removeRpms(
+          std::vector<std::string>{
+              "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}))
       .Times(0);
   EXPECT_CALL(
       *mockSystemInterface_,
-      installRpm(fmt::format(
-          "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
-          *platformConfig_.bspKmodsRpmName(),
-          *platformConfig_.bspKmodsRpmVersion())))
+      installRpm(
+          fmt::format(
+              "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
+              *platformConfig_.bspKmodsRpmName(),
+              *platformConfig_.bspKmodsRpmVersion())))
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(1));
   EXPECT_NO_THROW(pkgManager_.processRpms());
@@ -250,21 +262,24 @@ TEST_F(PkgManagerTest, processRpms) {
   // Rpm install failed
   EXPECT_CALL(
       *mockSystemInterface_,
-      getInstalledRpms(fmt::format(
-          "{}-6.4.3-0_fbk1_755_ga25447393a1d",
-          *platformConfig_.bspKmodsRpmName())))
+      getInstalledRpms(
+          fmt::format(
+              "{}-6.4.3-0_fbk1_755_ga25447393a1d",
+              *platformConfig_.bspKmodsRpmName())))
       .WillOnce(Return(std::vector<std::string>{}));
   EXPECT_CALL(
       *mockSystemInterface_,
-      removeRpms(std::vector<std::string>{
-          "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}))
+      removeRpms(
+          std::vector<std::string>{
+              "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}))
       .Times(0);
   EXPECT_CALL(
       *mockSystemInterface_,
-      installRpm(fmt::format(
-          "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
-          *platformConfig_.bspKmodsRpmName(),
-          *platformConfig_.bspKmodsRpmVersion())))
+      installRpm(
+          fmt::format(
+              "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
+              *platformConfig_.bspKmodsRpmName(),
+              *platformConfig_.bspKmodsRpmVersion())))
       .Times(3)
       .WillRepeatedly(Return(1));
   EXPECT_THROW(pkgManager_.processRpms(), std::runtime_error);
@@ -280,9 +295,10 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
       .WillOnce(Return(std::nullopt));
   EXPECT_CALL(
       *mockSystemInterface_,
-      getInstalledRpms(fmt::format(
-          "{}-6.4.3-0_fbk1_755_ga25447393a1d",
-          *platformConfig_.bspKmodsRpmName())))
+      getInstalledRpms(
+          fmt::format(
+              "{}-6.4.3-0_fbk1_755_ga25447393a1d",
+              *platformConfig_.bspKmodsRpmName())))
       .WillOnce(Return(std::vector<std::string>{}));
   EXPECT_CALL(*mockSystemInterface_, lsmod()).Times(0);
   EXPECT_NO_THROW(pkgManager_.unloadBspKmods());
@@ -293,11 +309,13 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
       .WillOnce(Return(std::nullopt));
   EXPECT_CALL(
       *mockSystemInterface_,
-      getInstalledRpms(fmt::format(
-          "{}-6.4.3-0_fbk1_755_ga25447393a1d",
-          *platformConfig_.bspKmodsRpmName())))
-      .WillOnce(Return(std::vector<std::string>{
-          "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}));
+      getInstalledRpms(
+          fmt::format(
+              "{}-6.4.3-0_fbk1_755_ga25447393a1d",
+              *platformConfig_.bspKmodsRpmName())))
+      .WillOnce(Return(
+          std::vector<std::string>{
+              "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}));
   EXPECT_THROW(pkgManager_.unloadBspKmods(), std::runtime_error);
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 1);

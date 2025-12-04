@@ -133,6 +133,18 @@ class LinkNeighbor
   }
 
   /*
+   * Get the port drain state.
+   *
+   * Returns an optional bool indicating if the neighbor port is drained.
+   */
+  std::optional<bool> getPortDrainState() const {
+    if (auto drainState = get<lldp_tags::portDrainState>()) {
+      return drainState->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  /*
    * Get the TTL originally specified in the packet.
    *
    * This always returns the value contained in the packet.  Use
@@ -252,6 +264,13 @@ class LinkNeighbor
   }
 
   /*
+   * Set the port drain state.
+   */
+  void setPortDrainState(bool drainState) {
+    ref<lldp_tags::portDrainState>() = drainState;
+  }
+
+  /*
    * Set the TTL.
    *
    * This also updates the expiration time to be the current time plus the TTL.
@@ -292,6 +311,7 @@ class LinkNeighbor
   void parseLldpPortId(folly::io::Cursor* cursor, uint16_t length);
   void parseLldpTtl(folly::io::Cursor* cursor, uint16_t length);
   void parseLldpSystemCaps(folly::io::Cursor* cursor, uint16_t length);
+  void parseLldpOrgSpecific(folly::io::Cursor* cursor, uint16_t length);
 
   bool parseCdpPayload(
       PortID srcPort,

@@ -39,16 +39,21 @@ def get_repo_path():
 def use_stable_hashes():
     cwd = os.getcwd()
     os.chdir(get_repo_path())
-    cmd = [
+
+    rm_cmd = [
         "rm",
         "-rf",
         "build/deps/github_hashes/",
-        "&&",
+    ]
+    subprocess.run(rm_cmd)
+
+    extract_cmd = [
         "tar",
         "xvzf",
         "fboss/oss/stable_commits/latest_stable_hashes.tar.gz",
     ]
-    subprocess.run(cmd)
+    subprocess.run(extract_cmd)
+
     os.chdir(cwd)
 
 

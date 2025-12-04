@@ -577,7 +577,8 @@ void EcmpSetupTargetedPorts<IPAddrT>::addRoutesToUpdater(
     const flat_set<PortDescriptor>& portDescriptors,
     const std::vector<RouteT>& prefixes,
     const std::vector<NextHopWeight>& weights,
-    const std::optional<RouteCounterID>& counterID) const {
+    const std::optional<RouteCounterID>& counterID,
+    const std::optional<bool>& disableTTLDecrement) const {
   if (prefixes.empty()) {
     return;
   }
@@ -596,7 +597,10 @@ void EcmpSetupTargetedPorts<IPAddrT>::addRoutesToUpdater(
     auto i = 0;
     for (const auto& portDescriptor : portDescriptors) {
       nhops.emplace(UnresolvedNextHop(
-          BaseEcmpSetupHelperT::ip(portDescriptor), hopWeights[i++]));
+          BaseEcmpSetupHelperT::ip(portDescriptor),
+          hopWeights[i++],
+          std::nullopt,
+          disableTTLDecrement));
     }
   }
   for (const auto& prefix : prefixes) {
@@ -615,8 +619,15 @@ void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
     const flat_set<PortDescriptor>& portDescriptors,
     const std::vector<RouteT>& prefixes,
     const std::vector<NextHopWeight>& weights,
-    std::optional<RouteCounterID> counterID) const {
-  addRoutesToUpdater(updater, portDescriptors, prefixes, weights, counterID);
+    std::optional<RouteCounterID> counterID,
+    const std::optional<bool>& disableTTLDecrement) const {
+  addRoutesToUpdater(
+      updater,
+      portDescriptors,
+      prefixes,
+      weights,
+      counterID,
+      disableTTLDecrement);
   updater->program();
 }
 
@@ -626,7 +637,8 @@ void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
     const std::vector<flat_set<PortDescriptor>>& portDescriptors,
     const std::vector<RouteT>& prefixes,
     const std::vector<std::vector<NextHopWeight>>& weights,
-    std::optional<RouteCounterID> counterID) const {
+    std::optional<RouteCounterID> counterID,
+    const std::optional<bool>& disableTTLDecrement) const {
   std::vector<std::vector<NextHopWeight>> hopWeights = weights;
   if (!weights.size()) {
     for (int i = 0; i < portDescriptors.size(); i++) {
@@ -637,7 +649,12 @@ void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
   CHECK_EQ(portDescriptors.size(), prefixes.size());
   for (int i = 0; i < portDescriptors.size(); i++) {
     addRoutesToUpdater(
-        updater, portDescriptors[i], {prefixes[i]}, hopWeights[i], counterID);
+        updater,
+        portDescriptors[i],
+        {prefixes[i]},
+        hopWeights[i],
+        counterID,
+        disableTTLDecrement);
   }
   updater->program();
 }
@@ -819,8 +836,10 @@ void EcmpSetupAnyNPorts<IPAddrT>::programRoutes(
     RouteUpdateWrapper* updater,
     const flat_set<PortDescriptor>& portDescs,
     const std::vector<RouteT>& prefixes,
-    const std::vector<NextHopWeight>& weights) const {
-  ecmpSetupTargetedPorts_.programRoutes(updater, portDescs, prefixes, weights);
+    const std::vector<NextHopWeight>& weights,
+    const std::optional<bool>& disableTTLDecrement) const {
+  ecmpSetupTargetedPorts_.programRoutes(
+      updater, portDescs, prefixes, weights, std::nullopt, disableTTLDecrement);
 }
 
 template <typename IPAddrT>
@@ -924,13 +943,14 @@ void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     // Fail if we go to 255 at the last octet
     CHECK_GT(255, lastOctet);
     bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
-    BaseEcmpSetupHelperT::nhops_.push_back(EcmpMplsNextHop<IPAddrT>(
-        IPAddrT(bytes),
-        portDescAndInterface.first,
-        nextHopMac ? MacAddress::fromHBO(nextHopMac.value().u64HBO())
-                   : MacAddress::fromHBO(baseMac + offset),
-        intf,
-        getLabelForwardingAction(portDescAndInterface.first)));
+    BaseEcmpSetupHelperT::nhops_.push_back(
+        EcmpMplsNextHop<IPAddrT>(
+            IPAddrT(bytes),
+            portDescAndInterface.first,
+            nextHopMac ? MacAddress::fromHBO(nextHopMac.value().u64HBO())
+                       : MacAddress::fromHBO(baseMac + offset),
+            intf,
+            getLabelForwardingAction(portDescAndInterface.first)));
   }
 }
 

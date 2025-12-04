@@ -200,6 +200,40 @@ void validateIngressPriorityGroupWatermarkCounters(
   });
 }
 
+void validatePfcDurationCounters(
+    facebook::fboss::AgentEnsemble* ensemble,
+    const int pfcPriority,
+    const std::vector<facebook::fboss::PortID>& portIds) {
+  facebook::fboss::cfg::SwitchConfig config = ensemble->getCurrentConfig();
+  WITH_RETRIES({
+    for (const auto& portId : portIds) {
+      auto portCfg = facebook::fboss::utility::findCfgPort(config, portId);
+      CHECK(portCfg->pfc().has_value());
+      bool rxDurationEnabled =
+          portCfg->pfc()->rxPfcDurationEnable().value_or(false);
+      bool txDurationEnabled =
+          portCfg->pfc()->txPfcDurationEnable().value_or(false);
+      auto portStats = ensemble->getLatestPortStats(portId);
+      auto commonLog =
+          "validatePfcDurationCounters: Port: " + std::to_string(portId);
+      if (rxDurationEnabled) {
+        auto rxPfcDurationUsec = folly::get_default(
+            portStats.rxPfcDurationUsec_().value(), pfcPriority, 0);
+        XLOG(DBG0) << commonLog << ", RX PFC duration: " << rxPfcDurationUsec
+                   << " usec";
+        EXPECT_EVENTUALLY_GT(rxPfcDurationUsec, 0);
+      }
+      if (txDurationEnabled) {
+        auto txPfcDurationUsec = folly::get_default(
+            portStats.txPfcDurationUsec_().value(), pfcPriority, 0);
+        XLOG(DBG0) << commonLog << ", TX PFC duration: " << txPfcDurationUsec
+                   << " usec";
+        EXPECT_EVENTUALLY_GT(txPfcDurationUsec, 0);
+      }
+    }
+  });
+}
+
 std::optional<std::string> extractPortIdsFromYaml(const std::string& yaml) {
   using namespace std::literals;
   size_t start = yaml.find("PORT_ID: [[");
@@ -316,7 +350,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
   }
 
   std::vector<PortID> portIdsForTest(bool scaleTest = false) {
-    auto allPorts = masterLogicalInterfacePortIds();
+    auto allPorts = FLAGS_hyper_port ? masterLogicalHyperPortIds()
+                                     : masterLogicalInterfacePortIds();
     int numPorts = scaleTest ? allPorts.size() : 2;
     return std::vector<PortID>(allPorts.begin(), allPorts.begin() + numPorts);
   }
@@ -362,6 +397,33 @@ class AgentTrafficPfcTest : public AgentHwTest {
     CHECK_EQ(portIds.size(), ips.size());
     for (int i = 0; i < portIds.size(); ++i) {
       setupEcmpTraffic(portIds[i], ips[i]);
+    }
+  }
+
+  void setupPfcDurationCounters(
+      cfg::SwitchConfig& cfg,
+      const std::vector<PortID>& portIds,
+      bool rxPfcDurationEnabled) {
+    // Either RX or TX direction is enabled based on production feature to
+    // ensure we can test these separately.
+    auto getPfcEnabledPortCfg = [&](const PortID& portId) {
+      auto portCfg = std::find_if(
+          cfg.ports()->begin(), cfg.ports()->end(), [&portId](auto& port) {
+            return PortID(*port.logicalID()) == portId;
+          });
+      CHECK(portCfg->pfc().has_value())
+          << "PFC not configured for port ID " << portId;
+      return portCfg;
+    };
+    for (const PortID& portId : portIds) {
+      auto portCfg = getPfcEnabledPortCfg(portId);
+      if (rxPfcDurationEnabled) {
+        portCfg->pfc()->rxPfcDurationEnable() = true;
+        XLOG(DBG0) << "Enabled PFC RX duration counter for port ID " << portId;
+      } else {
+        portCfg->pfc()->txPfcDurationEnable() = true;
+        XLOG(DBG0) << "Enabled PFC TX duration counter for port ID " << portId;
+      }
     }
   }
 
@@ -453,11 +515,11 @@ class AgentTrafficPfcTest : public AgentHwTest {
       const std::vector<PortID>& portIds,
       const std::vector<folly::IPAddressV6>& ips) {
     auto intfMac = getIntfMac();
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     // pri = 7 => dscp 56
     int dscp = priority * 8;
-    int numPacketsPerFlow = getAgentEnsemble()->getMinPktsForLineRate(
-        masterLogicalInterfacePortIds()[0]);
+    int numPacketsPerFlow =
+        getAgentEnsemble()->getMinPktsForLineRate(portIdsForTest()[0]);
     if (FLAGS_num_packets_to_trigger_pfc > 0) {
       numPacketsPerFlow = FLAGS_num_packets_to_trigger_pfc;
     }
@@ -517,70 +579,74 @@ class AgentTrafficPfcTest : public AgentHwTest {
     }
   }
 
-  void runTestWithCfg(
+  cfg::SwitchConfig getPfcTestConfig(
       const int trafficClass,
       const int pfcPriority,
       const std::map<int, int>& tcToPgOverride,
-      const TrafficTestParams& testParams,
-      std::function<void(
-          AgentEnsemble* ensemble,
-          const int pri,
-          const std::vector<PortID>& portIdsToValidate)> validateCounterFn =
-          validatePfcCountersIncreased) {
-    std::vector<PortID> portIds = portIdsForTest(testParams.scale);
-    for (const auto& portId : portIds) {
-      XLOG(INFO) << "Testing port: " << portDesc(portId);
+      const TrafficTestParams& testParams) {
+    // Setup PFC
+    auto cfg = getAgentEnsemble()->getCurrentConfig();
+    // Apply PFC config to all ports of interest
+    auto lossyPgIds = kLossyPgIds;
+    if (FLAGS_allow_zero_headroom_for_lossless_pg) {
+      // If the flag is set, we already have lossless PGs being created
+      // with headroom as 0 and there is no way to differentiate lossy
+      // and lossless PGs now that headroom is set to zero for lossless.
+      // So, avoid creating lossy PGs as this will result in PFC being
+      // enabled for 3 priorities, which is not supported for TAJO.
+      lossyPgIds.clear();
     }
-
-    auto setup = [&]() {
-      // Setup PFC
-      auto cfg = getAgentEnsemble()->getCurrentConfig();
-      // Apply PFC config to all ports of interest
-      auto lossyPgIds = kLossyPgIds;
-      if (FLAGS_allow_zero_headroom_for_lossless_pg) {
-        // If the flag is set, we already have lossless PGs being created
-        // with headroom as 0 and there is no way to differentiate lossy
-        // and lossless PGs now that headroom is set to zero for lossless.
-        // So, avoid creating lossy PGs as this will result in PFC being
-        // enabled for 3 priorities, which is not supported for TAJO.
-        lossyPgIds.clear();
-      }
-      utility::setupPfcBuffers(
-          getAgentEnsemble(),
-          cfg,
-          portIds,
-          kLosslessPgIds,
-          lossyPgIds,
-          tcToPgOverride,
-          testParams.buffer);
-      auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-      if (isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL)) {
-        utility::setupMultipleEgressPoolAndQueueConfigs(
-            cfg, kLosslessPgIds, asic->getMMUSizeBytes());
-      }
-      if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
-        // For YUBA, lossless queues needs to be configured with static
-        // queue limit equal to the MMU size to ensure its lossless.
-        for (auto& queueConfigs : *cfg.portQueueConfigs()) {
-          for (auto& queueCfg : queueConfigs.second) {
-            if (std::find(
-                    kLosslessPgIds.begin(),
-                    kLosslessPgIds.end(),
-                    *queueCfg.id()) != kLosslessPgIds.end()) {
-              // Given the 1:1 mapping for queueID to PG ID,
-              // this is a lossless queue.
-              queueCfg.sharedBytes() = asic->getMMUSizeBytes();
-            }
+    std::vector<PortID> portIds = portIdsForTest(testParams.scale);
+    utility::setupPfcBuffers(
+        getAgentEnsemble(),
+        cfg,
+        portIds,
+        kLosslessPgIds,
+        lossyPgIds,
+        tcToPgOverride,
+        testParams.buffer);
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    if (isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL)) {
+      utility::setupMultipleEgressPoolAndQueueConfigs(
+          cfg, kLosslessPgIds, asic->getMMUSizeBytes());
+    }
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+      // For YUBA, lossless queues needs to be configured with static
+      // queue limit equal to the MMU size to ensure its lossless.
+      for (auto& queueConfigs : *cfg.portQueueConfigs()) {
+        for (auto& queueCfg : queueConfigs.second) {
+          if (std::find(
+                  kLosslessPgIds.begin(),
+                  kLosslessPgIds.end(),
+                  *queueCfg.id()) != kLosslessPgIds.end()) {
+            // Given the 1:1 mapping for queueID to PG ID,
+            // this is a lossless queue.
+            queueCfg.sharedBytes() = asic->getMMUSizeBytes();
           }
         }
       }
+    }
+    return cfg;
+  }
+
+  void runPfcTestWithCfg(
+      const cfg::SwitchConfig& cfg,
+      const int trafficClass,
+      const int pfcPriority,
+      const TrafficTestParams& testParams,
+      const std::function<void(
+          AgentEnsemble* ensemble,
+          const int pri,
+          const std::vector<PortID>& portIdsToValidate)>& validateCounterFn =
+          validatePfcCountersIncreased) {
+    std::vector<PortID> portIds = portIdsForTest(testParams.scale);
+    auto setup = [&]() {
       applyNewConfig(cfg);
-
       setupEcmpTraffic(portIds);
-
       // ensure counter is 0 before we start traffic
       validateInitPfcCounters(portIds, pfcPriority);
     };
+
     auto verifyCommon = [&](bool postWb) {
       pumpTraffic(trafficClass, testParams.scale);
       // Sleep for a bit before validation, so that the test will fail if
@@ -600,6 +666,30 @@ class AgentTrafficPfcTest : public AgentHwTest {
     auto verify = [&]() { verifyCommon(false /* postWb */); };
     auto verifyPostWb = [&]() { verifyCommon(true /* postWb */); };
     verifyAcrossWarmBoots(setup, verify, []() {}, verifyPostWb);
+  }
+
+  void runTestWithCfg(
+      const int trafficClass,
+      const int pfcPriority,
+      const std::map<int, int>& tcToPgOverride,
+      const TrafficTestParams& testParams,
+      const std::function<void(
+          AgentEnsemble* ensemble,
+          const int pri,
+          const std::vector<PortID>& portIdsToValidate)>& validateCounterFn =
+          validatePfcCountersIncreased) {
+    std::vector<PortID> portIds = portIdsForTest(testParams.scale);
+    for (const auto& portId : portIds) {
+      XLOG(INFO) << "Testing port: " << portDesc(portId);
+    }
+    auto cfg =
+        getPfcTestConfig(trafficClass, pfcPriority, tcToPgOverride, testParams);
+    runPfcTestWithCfg(
+        cfg,
+        trafficClass,
+        pfcPriority,
+        testParams,
+        std::move(validateCounterFn));
   }
 };
 
@@ -712,6 +802,29 @@ TEST_F(AgentTrafficPfcTest, verifyPfcWithZeroGlobalHeadRoomCfg) {
       .expectDrop = true,
   };
   runTestWithCfg(kLosslessTrafficClass, kLosslessPriority, {}, param);
+}
+
+class AgentTrafficPfcTxDurationTest : public AgentTrafficPfcTest {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::PFC_TX_DURATION};
+  }
+};
+
+TEST_F(AgentTrafficPfcTxDurationTest, verifyPfcTxDuration) {
+  TrafficTestParams param{
+      .buffer = defaultPfcBufferParams(),
+  };
+  auto cfg =
+      getPfcTestConfig(kLosslessTrafficClass, kLosslessPriority, {}, param);
+  std::vector<PortID> portIds = portIdsForTest(false /*scale*/);
+  setupPfcDurationCounters(cfg, portIds, false /*rxPfcDurationEnabled*/);
+  runPfcTestWithCfg(
+      cfg,
+      kLosslessTrafficClass,
+      kLosslessPriority,
+      param,
+      validatePfcDurationCounters);
 }
 
 class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
@@ -1040,8 +1153,8 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
 // Tx disabled. Then we send packets to that IP on a different port (portId),
 // which will eventually cause queues to build up and PFC to trigger.
 TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
-  PortID portId = masterLogicalInterfacePortIds()[0];
-  PortID txOffPortId = masterLogicalInterfacePortIds()[1];
+  PortID portId = portIdsForTest()[0];
+  PortID txOffPortId = portIdsForTest()[1];
   XLOG(DBG3) << "Injection port: " << portDesc(portId);
   XLOG(DBG3) << "Tx off port: " << portDesc(txOffPortId);
   auto ip = getDestinationIps()[0];
@@ -1072,8 +1185,8 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
 // Since the watchdog counters are sw based, upon warm boot
 // we don't expect these counters to be incremented either
 TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogReset) {
-  PortID portId = masterLogicalInterfacePortIds()[0];
-  PortID txOffPortId = masterLogicalInterfacePortIds()[1];
+  PortID portId = portIdsForTest()[0];
+  PortID txOffPortId = portIdsForTest()[1];
   XLOG(DBG3) << "Injection port: " << portDesc(portId);
   XLOG(DBG3) << "Tx off port: " << portDesc(txOffPortId);
   auto ip = getDestinationIps()[0];

@@ -10,21 +10,14 @@
 
 #pragma once
 
-#include <chrono>
-#include <condition_variable>
-#include <future>
-#include <mutex>
-
-#include <folly/File.h>
-#include <folly/Synchronized.h>
+#include "fboss/agent/AsyncLoggerBase.h"
 
 namespace facebook::fboss {
 
-class AsyncLogger {
+class AsyncLogger : public AsyncLoggerBase {
  public:
-  enum LoggerSrcType { BCM_CINTER, SAI_REPLAYER };
   explicit AsyncLogger(
-      std::string filePath,
+      const std::string& filePath,
       uint32_t logTimeout,
       LoggerSrcType srcType);
 
@@ -45,46 +38,12 @@ class AsyncLogger {
    * current prod usage), but still perform well in frequent updates and
    * benchmark tests.
    */
+
   static auto constexpr kBufferSize = 409600;
 
-  void startFlushThread();
-  void stopFlushThread();
-  void forceFlush();
-
-  void appendLog(const char* logRecord, size_t logSize);
-
-  static void setBootType(bool canWarmBoot);
-
-  // Expose these variables for testing purpose
-  uint32_t getFlushCount() {
-    return flushCount_;
-  }
-
- private:
-  std::atomic_uint32_t flushCount_{0};
-  void worker_thread();
-  void openLogFile(std::string& file_path);
-  void writeNewBootHeader();
-
-  std::atomic_bool forceFlush_{false};
-  bool fullFlush_{false};
-  std::atomic_bool enableLogging_{false};
-
-  uint32_t bufferSize_;
-
-  char* logBuffer_;
-  char* flushBuffer_;
-
-  LoggerSrcType srcType_;
-
-  std::promise<int> promise_;
-  std::future<int> future_;
-  std::mutex latch_;
-  std::thread* flushThread_;
-  std::condition_variable cv_;
-  std::chrono::milliseconds logTimeout_;
-
-  folly::Synchronized<folly::File> logFile_;
+  uint32_t getOffset() override;
+  virtual void setOffset(uint32_t offset) override;
+  virtual void swapCurBuf() override;
 };
 
 } // namespace facebook::fboss

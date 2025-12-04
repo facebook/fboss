@@ -2495,9 +2495,10 @@ SaiSwitch::getVirtualDeviceToRemoteConnectionGroupsLocked(
       lookupVirtualDeviceId);
 }
 
-void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
+void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table, bool sdk)
+    const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  fetchL2TableLocked(lock, l2Table);
+  fetchL2TableLocked(lock, l2Table, sdk);
 }
 
 void SaiSwitch::gracefulExitImpl() {
@@ -2728,7 +2729,7 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
         // once link comes back up LACP engine in SwSwitch will bundle it
         // again
         managerTable_->lagManager().disableMember(swAggPort.value(), swPortId);
-        if (!managerTable_->lagManager().isMinimumLinkMet(swAggPort.value())) {
+        if (!managerTable_->lagManager().isLagUp(swAggPort.value())) {
           // remove fdb entries on LAG, this would remove neighbors, next hops
           // will point to drop and next hop group will shrink.
           managerTable_->fdbManager().handleLinkDown(
@@ -3851,10 +3852,15 @@ bool SaiSwitch::isValidStateUpdateLocked(
   auto isValid = true;
   if (globalQosDelta.getNew()) {
     auto& newPolicy = globalQosDelta.getNew();
-    if (newPolicy->getDscpMap()->get<switch_state_tags::from>()->size() == 0 ||
-        newPolicy->getTrafficClassToQueueId()->size() == 0) {
+    bool hasDscpMap =
+        newPolicy->getDscpMap()->get<switch_state_tags::from>()->size() > 0;
+    auto pcpMap = newPolicy->getPcpMap();
+    bool hasPcpMap = pcpMap.has_value() && !pcpMap->empty();
+    bool hasTcToQueue = newPolicy->getTrafficClassToQueueId()->size() > 0;
+
+    if ((!hasDscpMap && !hasPcpMap) || !hasTcToQueue) {
       XLOG(ERR)
-          << " Both DSCP to TC and TC to Queue maps must be provided in valid qos policies";
+          << " Either DSCP to TC or PCP to TC map, along with TC to Queue map, must be provided in valid qos policies";
       return false;
     }
     /*
@@ -3994,7 +4000,7 @@ bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP);
   SaiTxPacketTraits::TxAttributes attributes{
-      txType, std::nullopt, std::nullopt};
+      txType, std::nullopt, std::nullopt, std::nullopt};
   SaiHostifApiPacket txPacket{
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
@@ -4003,6 +4009,38 @@ bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
   if (rv != SAI_STATUS_SUCCESS) {
     saiLogErrorEveryMs(
         5000, rv, SAI_API_HOSTIF, "failed to send packet with pipeline lookup");
+  }
+  return rv == SAI_STATUS_SUCCESS;
+}
+
+bool SaiSwitch::sendPacketOutOfPortSyncCommon(
+    std::unique_ptr<TxPacket> pkt,
+    const PortSaiId& portSaiId,
+    std::optional<uint8_t> queueId,
+    std::optional<int32_t> packetType) {
+  SaiHostifApiPacket txPacket{
+      reinterpret_cast<void*>(pkt->buf()->writableData()),
+      pkt->buf()->length()};
+
+  SaiTxPacketTraits::Attributes::TxType txType(
+      SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
+  SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(portSaiId);
+  SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(
+      queueId.value_or(0));
+  std::optional<SaiTxPacketTraits::Attributes::PacketType> pktType;
+  if (packetType.has_value()) {
+    pktType = SaiTxPacketTraits::Attributes::PacketType(packetType.value());
+  }
+  SaiTxPacketTraits::TxAttributes attributes{
+      txType, egressPort, egressQueueIndex, pktType};
+  auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
+  auto rv = hostifApi.send(attributes, saiSwitchId_, txPacket);
+  if (rv != SAI_STATUS_SUCCESS) {
+    saiLogErrorEveryMs(
+        5000,
+        rv,
+        SAI_API_HOSTIF,
+        "failed to send packet on fabric port with pipeline bypass");
   }
   return rv == SAI_STATUS_SUCCESS;
 }
@@ -4035,7 +4073,8 @@ bool SaiSwitch::sendPacketOutOfPortSync(
   getSwitchStats()->txSent();
   folly::io::Cursor cursor(pkt->buf());
   EthHdr ethHdr{cursor};
-  if (!ethHdr.getVlanTags().empty()) {
+
+  if (FLAGS_strip_vlan_for_pipeline_bypass && !ethHdr.getVlanTags().empty()) {
     CHECK_EQ(ethHdr.getVlanTags().size(), 1)
         << "found more than one vlan tags while sending packet";
     /* Strip vlans as pipeline bypass doesn't handle this */
@@ -4062,30 +4101,15 @@ bool SaiSwitch::sendPacketOutOfPortSync(
     XLOG(DBG5) << PktUtil::hexDump(cursor);
   }
 
-  SaiHostifApiPacket txPacket{
-      reinterpret_cast<void*>(pkt->buf()->writableData()),
-      pkt->buf()->length()};
-
-  SaiTxPacketTraits::Attributes::TxType txType(
-      SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
-  SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(portItr->second);
-  SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(
-      queueId.value_or(0));
-  SaiTxPacketTraits::TxAttributes attributes{
-      txType, egressPort, egressQueueIndex};
-  auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
-  auto rv = hostifApi.send(attributes, saiSwitchId_, txPacket);
-  if (rv != SAI_STATUS_SUCCESS) {
-    saiLogErrorEveryMs(
-        5000, rv, SAI_API_HOSTIF, "failed to send packet pipeline bypass");
-  }
-  return rv == SAI_STATUS_SUCCESS;
+  return sendPacketOutOfPortSyncCommon(
+      std::move(pkt), portItr->second, queueId.value_or(0), std::nullopt);
 }
 
 void SaiSwitch::fetchL2TableLocked(
     const std::lock_guard<std::mutex>& /* lock */,
-    std::vector<L2EntryThrift>* l2Table) const {
-  *l2Table = managerTable_->fdbManager().getL2Entries();
+    std::vector<L2EntryThrift>* l2Table,
+    bool sdk) const {
+  *l2Table = managerTable_->fdbManager().getL2Entries(sdk);
 }
 
 folly::dynamic SaiSwitch::toFollyDynamicLocked(
@@ -4194,6 +4218,21 @@ void SaiSwitch::switchRunStateChangedImplLocked(
         switchApi.setAttribute(saiSwitchId_, sdkRegDumpLogPath);
       }
 
+      /*
+       * Cold boot system init results in a lot of events like interrupts.
+       * These needs to be cleared once system is up and running as it will
+       * help ensure that tech support dumps done at a later point in time
+       * will yield good data and we dont need to worry about events being
+       * left over from cold boot system init. Ideally, we need to clear the
+       * cold boot system init events once system is stable. However, it is
+       * hard to define the criteria for system stability, hence the decision
+       * to perform this init post cold boot and config complete.
+       */
+      if (bootType_ == BootType::COLD_BOOT &&
+          platform_->getAsic()->isSupported(HwAsic::Feature::TECH_SUPPORT)) {
+        initTechSupport();
+      }
+
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
         /*
          * Post warmboot synchronize hw link state with switch state
@@ -4294,7 +4333,7 @@ SaiManagerTable* SaiSwitch::managerTableLocked(
 void SaiSwitch::fdbEventCallback(
     uint32_t count,
     const sai_fdb_event_notification_data_t* data) {
-  XLOG(DBG2) << "Received " << count << " learn notifications";
+  XLOG(DBG4) << "Received " << count << " learn notifications";
   if (runState_ < SwitchRunState::CONFIGURED) {
     // receive learn events after switch is configured to prevent
     // fdb entries from being created against ports  which would
@@ -4335,7 +4374,7 @@ void SaiSwitch::fdbEventCallback(
     }
     fdbEventNotificationDataTmp.emplace_back(
         data[i].event_type, data[i].fdb_entry, bridgePortSaiId, fdbMetaData);
-    XLOG(DBG2) << "Received FDB event: " << fdbEventToString(data[i].event_type)
+    XLOG(DBG4) << "Received FDB event: " << fdbEventToString(data[i].event_type)
                << " for bridge port: " << bridgePortSaiId;
   }
   fdbEventBottomHalfEventBase_.runInFbossEventBaseThread(
@@ -4354,6 +4393,7 @@ void SaiSwitch::fdbEventCallbackLockedBottomHalf(
         cfg::L2LearningMode::SOFTWARE) {
       // Some platforms call fdb callback even when mode is set to HW. In
       // keeping with our native SDK approach, don't send these events up.
+      XLOG(DBG4) << "Ignoring FDB learn notification as mode is not software";
       return;
     }
 
@@ -4707,8 +4747,9 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_REPORT);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT_ACTION);
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-        objTypes.push_back(static_cast<sai_object_type_t>(
-            SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP));
+        objTypes.push_back(
+            static_cast<sai_object_type_t>(
+                SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP));
 #endif
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM);
@@ -5026,6 +5067,7 @@ void SaiSwitch::pfcDeadlockNotificationCallback(
   // need to switch to a tophalf/bottom half model, avoiding it for now.
   for (int idx = 0; idx < count; ++idx) {
     auto queueSaiId = static_cast<QueueSaiId>(data[idx].queue_id);
+    XLOG(DBG2) << "queue_id " << data[idx].queue_id;
     auto queueInfo =
         managerTable_->queueManager().getQueueIndexAndPortSaiId(queueSaiId);
     if (!queueInfo.has_value()) {
@@ -5045,7 +5087,8 @@ void SaiSwitch::pfcDeadlockNotificationCallback(
     PortID portId = portItr->second.portID;
     XLOG_EVERY_MS(WARNING, 5000)
         << "PFC deadlock notification callback invoked for qid: " << qId
-        << ", on port: " << portId << ", with event: " << deadlockEvent;
+        << ", on port: " << portId << ", with event: " << deadlockEvent
+        << " and queueSaiId " << (int)(queueSaiId);
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     switch (deadlockEvent) {
       case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_DETECTED:
@@ -5119,6 +5162,13 @@ HwSwitchPipelineStats SaiSwitch::getSwitchPipelineStats() const {
 HwSwitchTemperatureStats SaiSwitch::getSwitchTemperatureStats() const {
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);
   return managerTable_->switchManager().getSwitchTemperatureStats();
+}
+
+HwSwitchHardResetStats SaiSwitch::getHwSwitchHardResetStats() const {
+  HwSwitchHardResetStats hardResetStats;
+  hardResetStats.hard_reset_notification_received() =
+      hardResetNotificationReceived_.load();
+  return hardResetStats;
 }
 
 /*

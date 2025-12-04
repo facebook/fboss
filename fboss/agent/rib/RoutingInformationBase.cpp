@@ -11,15 +11,19 @@
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/rib/ConfigApplier.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/FibDeltaHelpers.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/NodeMap-defs.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/rib/RouteUpdater.h"
@@ -113,6 +117,11 @@ class Timer {
     *duration_ =
         std::chrono::duration_cast<std::chrono::microseconds>(end - start_);
   }
+
+  Timer(const Timer&) = delete;
+  Timer& operator=(const Timer&) = delete;
+  Timer(Timer&&) = delete;
+  Timer& operator=(Timer&&) = delete;
 
  private:
   std::chrono::microseconds* duration_;
@@ -342,16 +351,20 @@ void RibRouteTables::updateFib(
     RouterID vrf,
     const FibUpdateFunction& fibUpdateCallback,
     void* cookie) {
+  std::optional<StateDelta> fibDelta;
   try {
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
     auto& routeTable = lockedRouteTables->find(vrf)->second;
-    fibUpdateCallback(
+    auto gotDelta = fibUpdateCallback(
         resolver,
         vrf,
         routeTable.v4NetworkToRoute,
         routeTable.v6NetworkToRoute,
         routeTable.labelToRoute,
         cookie);
+    std::optional<StateDelta> tmp(
+        StateDelta(gotDelta.oldState(), gotDelta.newState()));
+    fibDelta.swap(tmp);
   } catch (const FbossHwUpdateError& hwUpdateError) {
     {
       SCOPE_FAIL {
@@ -376,6 +389,91 @@ void RibRouteTables::updateFib(
       }
     }
     throw;
+  }
+  CHECK(fibDelta.has_value());
+  updateEcmpOverrides(vrf, *fibDelta);
+}
+
+void RibRouteTables::updateEcmpOverrides(
+    RouterID vrf,
+    const StateDelta& delta) {
+  if (!FLAGS_enable_ecmp_resource_manager) {
+    return;
+  }
+  std::unordered_map<
+      RouterID,
+      std::unordered_map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>>
+      rid2prefix2SwitchingMode;
+  std::unordered_map<
+      RouterID,
+      std::unordered_map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>>
+      rid2prefix2Nhops;
+
+  forEachChangedRoute(
+      delta,
+      [&rid2prefix2SwitchingMode, &rid2prefix2Nhops](
+          RouterID rid, const auto& oldRoute, const auto& newRoute) {
+        if (!newRoute->isResolved()) {
+          return;
+        }
+        if (!oldRoute->isResolved()) {
+          if (newRoute->getForwardInfo()
+                  .getOverrideEcmpSwitchingMode()
+                  .has_value()) {
+            rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
+                newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
+          }
+          if (newRoute->getForwardInfo().getOverrideNextHops().has_value()) {
+            rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
+                newRoute->getForwardInfo().getOverrideNextHops();
+          }
+        } else {
+          // both are resolved
+          if (oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode() !=
+              newRoute->getForwardInfo().getOverrideEcmpSwitchingMode()) {
+            rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
+                newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
+          }
+          if (oldRoute->getForwardInfo().getOverrideNextHops() !=
+              newRoute->getForwardInfo().getOverrideNextHops()) {
+            rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
+                newRoute->getForwardInfo().getOverrideNextHops();
+          }
+        }
+      },
+      [&rid2prefix2SwitchingMode, &rid2prefix2Nhops](
+          RouterID rid, const auto& newRoute) {
+        // For new routes, just copy the override info into RIB. Alternatively
+        // we could could check the overrides being set and only set for
+        // routes which have overrides set. We take a more blanket approach
+        // as there are call sites  (e.g. config reload, cancelled update) where
+        // we create a delta of (emptyState, newState). While none of these are
+        // expected to clear overrides and just looking for overrides being
+        // set would be sufficient. We take a more defensive approach of just
+        // mimicking overrides (set or unset) of new routes.
+        if (newRoute->isResolved()) {
+          rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
+              newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
+          rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
+              newRoute->getForwardInfo().getOverrideNextHops();
+        }
+      },
+      [&rid2prefix2SwitchingMode](RouterID /*rid*/, const auto& /*oldRoute*/) {
+      });
+
+  auto rmitr = rid2prefix2SwitchingMode.find(vrf);
+  if (rmitr != rid2prefix2SwitchingMode.end()) {
+    setOverrideEcmpMode(vrf, rmitr->second);
+  }
+  auto rnitr = rid2prefix2Nhops.find(vrf);
+  if (rnitr != rid2prefix2Nhops.end()) {
+    setOverrideEcmpNhops(vrf, rnitr->second);
+  }
+}
+
+void RibRouteTables::updateEcmpOverrides(const StateDelta& delta) {
+  for (auto vrf : getVrfList()) {
+    updateEcmpOverrides(vrf, delta);
   }
 }
 
@@ -427,12 +525,10 @@ void RibRouteTables::setClassID(
 }
 
 void RibRouteTables::setOverrideEcmpMode(
-    const SwitchIdScopeResolver* resolver,
     RouterID rid,
-    const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
-        prefix2EcmpMode,
-    const FibUpdateFunction& fibUpdateCallback,
-    void* cookie) {
+    const std::unordered_map<
+        folly::CIDRNetwork,
+        std::optional<cfg::SwitchingMode>>& prefix2EcmpMode) {
   updateRib(rid, [&](auto& routeTable) {
     // Update rib
     auto updateRoute = [](auto& rib,
@@ -471,16 +567,13 @@ void RibRouteTables::setOverrideEcmpMode(
       }
     }
   });
-  updateFib(resolver, rid, fibUpdateCallback, cookie);
 }
 
 void RibRouteTables::setOverrideEcmpNhops(
-    const SwitchIdScopeResolver* resolver,
     RouterID rid,
-    const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
-        prefix2Nhops,
-    const FibUpdateFunction& fibUpdateCallback,
-    void* cookie) {
+    const std::unordered_map<
+        folly::CIDRNetwork,
+        std::optional<RouteNextHopSet>>& prefix2Nhops) {
   updateRib(rid, [&](auto& routeTable) {
     // Update rib
     auto updateRoute = [](auto& rib,
@@ -518,7 +611,6 @@ void RibRouteTables::setOverrideEcmpNhops(
       }
     }
   });
-  updateFib(resolver, rid, fibUpdateCallback, cookie);
 }
 
 template <typename AddressT>
@@ -718,34 +810,12 @@ void RoutingInformationBase::setClassIDImpl(
   }
 }
 
-void RoutingInformationBase::setOverrideEcmpModeAsync(
-    const SwitchIdScopeResolver* resolver,
-    RouterID rid,
-    const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
-        prefix2EcmpMode,
-    const FibUpdateFunction& fibUpdateCallback,
-    void* cookie) {
+void RoutingInformationBase::updateEcmpOverrides(const StateDelta& delta) {
   ensureRunning();
-  auto updateFn = [=, this]() {
-    ribTables_.setOverrideEcmpMode(
-        resolver, rid, prefix2EcmpMode, fibUpdateCallback, cookie);
+  auto updateFn = [=, &delta, this]() {
+    ribTables_.updateEcmpOverrides(delta);
   };
-  ribUpdateEventBase_.runInFbossEventBaseThread(updateFn);
-}
-
-void RoutingInformationBase::setOverrideEcmpNhopsAsync(
-    const SwitchIdScopeResolver* resolver,
-    RouterID rid,
-    const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
-        prefix2Nhops,
-    const FibUpdateFunction& fibUpdateCallback,
-    void* cookie) {
-  ensureRunning();
-  auto updateFn = [=, this]() {
-    ribTables_.setOverrideEcmpNhops(
-        resolver, rid, prefix2Nhops, fibUpdateCallback, cookie);
-  };
-  ribUpdateEventBase_.runInFbossEventBaseThread(updateFn);
+  ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
 }
 
 RibRouteTables RibRouteTables::fromThrift(

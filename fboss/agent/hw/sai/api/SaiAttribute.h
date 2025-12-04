@@ -356,9 +356,10 @@ inline void _fill(
 inline void _fill(
     const sai_acl_field_data_t& src,
     facebook::fboss::AclEntryFieldIpV6& dst) {
-  dst.setDataAndMask(std::make_pair(
-      facebook::fboss::fromSaiIpAddress(src.data.ip6),
-      facebook::fboss::fromSaiIpAddress(src.mask.ip6)));
+  dst.setDataAndMask(
+      std::make_pair(
+          facebook::fboss::fromSaiIpAddress(src.data.ip6),
+          facebook::fboss::fromSaiIpAddress(src.mask.ip6)));
 }
 
 inline void _fill(
@@ -372,9 +373,10 @@ inline void _fill(
 inline void _fill(
     const sai_acl_field_data_t& src,
     facebook::fboss::AclEntryFieldIpV4& dst) {
-  dst.setDataAndMask(std::make_pair(
-      facebook::fboss::fromSaiIpAddress(src.data.ip4),
-      facebook::fboss::fromSaiIpAddress(src.mask.ip4)));
+  dst.setDataAndMask(
+      std::make_pair(
+          facebook::fboss::fromSaiIpAddress(src.data.ip4),
+          facebook::fboss::fromSaiIpAddress(src.mask.ip4)));
 }
 
 inline void _fill(
@@ -390,9 +392,10 @@ inline void _fill(
 inline void _fill(
     const sai_acl_field_data_t& src,
     facebook::fboss::AclEntryFieldMac& dst) {
-  dst.setDataAndMask(std::make_pair(
-      facebook::fboss::fromSaiMacAddress(src.data.mac),
-      facebook::fboss::fromSaiMacAddress(src.mask.mac)));
+  dst.setDataAndMask(
+      std::make_pair(
+          facebook::fboss::fromSaiMacAddress(src.data.mac),
+          facebook::fboss::fromSaiMacAddress(src.mask.mac)));
 }
 
 inline void _fill(

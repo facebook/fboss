@@ -224,22 +224,26 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
 
   std::string dbgOutput;
-  dbgOutput.append(folly::sformat(
-      "Attributes for creating port {:d}, Side {:s}, Lanes: ",
-      static_cast<int>(portId),
-      (lineSide ? "Line" : "System")));
+  dbgOutput.append(
+      folly::sformat(
+          "Attributes for creating port {:d}, Side {:s}, Lanes: ",
+          static_cast<int>(portId),
+          (lineSide ? "Line" : "System")));
   for (auto lane : laneList) {
     dbgOutput.append(folly::sformat("{:d} ", lane));
   }
 
-  dbgOutput.append(folly::sformat(
-      " Speed {:d} Enabled {:s} Fec {:s} ",
-      static_cast<int>(speed),
-      (enabled ? "True" : "False"),
-      (fecMode ? folly::to<std::string>(fecMode->value()) : "null")));
+  dbgOutput.append(
+      folly::sformat(
+          " Speed {:d} Enabled {:s} Fec {:s} ",
+          static_cast<int>(speed),
+          (enabled ? "True" : "False"),
+          (fecMode ? folly::to<std::string>(fecMode->value()) : "null")));
   if (intfType.has_value()) {
-    dbgOutput.append(folly::sformat(
-        " Interface Type {:d}", static_cast<int>(intfType.value().value())));
+    dbgOutput.append(
+        folly::sformat(
+            " Interface Type {:d}",
+            static_cast<int>(intfType.value().value())));
   }
   XLOG(DBG2) << dbgOutput;
 
@@ -296,6 +300,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // StaticModuleId
       std::nullopt, // IsHyperPortMember
       std::nullopt, // HyperPortMemberList
+      std::nullopt, // PfcMonitorDirection
+      std::nullopt, // QosDot1pToTcMap
+      std::nullopt, // QosTcAndColorToDot1pMap
   };
 }
 
@@ -427,28 +434,38 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
   setTxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirMain{}, txMain);
 
   std::string dbgOutput;
-  dbgOutput.append(folly::sformat(
-      "Attributes for creating port {} Serdes (per lane): ",
-      static_cast<uint64_t>(portSaiId)));
+  dbgOutput.append(
+      folly::sformat(
+          "Attributes for creating port {} Serdes (per lane): ",
+          static_cast<uint64_t>(portSaiId)));
 
   for (auto lane = 0; lane < numExpectedTxLanes; lane++) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-    dbgOutput.append(folly::sformat(
-        "[Pre1 {:d} Pre2 {:d} Main {:d} Post1 {:d} Post2 {:d} Post3 {:d}], ",
-        (lane < txPre1.size() ? txPre1[lane] : static_cast<unsigned int>(-1)),
-        (lane < txPre2.size() ? txPre2[lane] : static_cast<unsigned int>(-1)),
-        (lane < txMain.size() ? txMain[lane] : static_cast<unsigned int>(-1)),
-        (lane < txPost1.size() ? txPost1[lane] : static_cast<unsigned int>(-1)),
-        (lane < txPost2.size() ? txPost2[lane] : static_cast<unsigned int>(-1)),
-        (lane < txPost3.size() ? txPost3[lane]
-                               : static_cast<unsigned int>(-1))));
+    dbgOutput.append(
+        folly::sformat(
+            "[Pre1 {:d} Pre2 {:d} Main {:d} Post1 {:d} Post2 {:d} Post3 {:d}], ",
+            (lane < txPre1.size() ? txPre1[lane]
+                                  : static_cast<unsigned int>(-1)),
+            (lane < txPre2.size() ? txPre2[lane]
+                                  : static_cast<unsigned int>(-1)),
+            (lane < txMain.size() ? txMain[lane]
+                                  : static_cast<unsigned int>(-1)),
+            (lane < txPost1.size() ? txPost1[lane]
+                                   : static_cast<unsigned int>(-1)),
+            (lane < txPost2.size() ? txPost2[lane]
+                                   : static_cast<unsigned int>(-1)),
+            (lane < txPost3.size() ? txPost3[lane]
+                                   : static_cast<unsigned int>(-1))));
 #else
-    dbgOutput.append(folly::sformat(
-        "[Pre1 {:d} Main {:d} Post1 {:d}], ",
-        (lane < txPre1.size() ? txPre1[lane] : static_cast<unsigned int>(-1)),
-        (lane < txMain.size() ? txMain[lane] : static_cast<unsigned int>(-1)),
-        (lane < txPost1.size() ? txPost1[lane]
-                               : static_cast<unsigned int>(-1))));
+    dbgOutput.append(
+        folly::sformat(
+            "[Pre1 {:d} Main {:d} Post1 {:d}], ",
+            (lane < txPre1.size() ? txPre1[lane]
+                                  : static_cast<unsigned int>(-1)),
+            (lane < txMain.size() ? txMain[lane]
+                                  : static_cast<unsigned int>(-1)),
+            (lane < txPost1.size() ? txPost1[lane]
+                                   : static_cast<unsigned int>(-1))));
 #endif
   }
   XLOG(INFO) << dbgOutput;

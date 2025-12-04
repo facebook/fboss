@@ -7,6 +7,10 @@
 #       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --json
 # To run script, send email and create task for user
 #       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba --user  --send_email --create_task
+# To run script for all test classes (fboss_qsfp, fboss_agent_ensemble_link_l1, fboss_agent_ensemble_link_l2, sai_agent)
+#       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --test_class all
+# To run script for one test class only
+#       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --test_class fboss_qsfp
 # in stack diff
 # sample usage:
 # To run script and create output json file
@@ -29,6 +33,7 @@ import re
 import sys
 import time
 import typing as t
+from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
@@ -52,15 +57,54 @@ logging.basicConfig(
 
 # Constants
 DEFAULT_MAX_RECORDS = "200"  # Default number of records returned from scuba
-DEFAULT_OUTPUT_FILE = "known_bad_tests_data.json"
+DEFAULT_OUTPUT_FILE = "~/known_bad_tests_data.json"
 DEFAULT_CLUSTER = "gp"
-ONCALL = "fboss_agent_push"
 PASSED = 1
 FAILED = 0
 USER_UNIX_ID = "prasoon"
 KNOWN_BAD_TEST = "known_bad_tests"
 FBOSS_KNOWN_BAD_TESTS = f"fboss_{KNOWN_BAD_TEST}"
 DEFAULT_LOG_TYPE = "stderr"
+
+
+@dataclass
+class TestConfig:
+    """Configuration for a specific test class."""
+
+    name: str
+    job_name_regex: str
+    oncall: str
+    cluster: str = DEFAULT_CLUSTER
+    description: str = ""
+
+
+# Define test configurations
+TEST_CONFIGS = {
+    "sai_agent": TestConfig(
+        name="sai_agent",
+        job_name_regex=".*sai_agent_known_bad_test.*",
+        oncall="fboss_agent_push",
+        description="SAI Agent known bad tests",
+    ),
+    "agent_ensemble_link_l1": TestConfig(
+        name="agent_ensemble_link_l1",
+        job_name_regex=".*ensemble_link.*l1_known_bad_test.*",
+        oncall="fboss_optics_phy",
+        description="Agent Ensemble Link L1 known bad tests",
+    ),
+    "agent_ensemble_link_l2": TestConfig(
+        name="agent_ensemble_link_l2",
+        job_name_regex=".*ensemble_link.*l2_known_bad_test.*",
+        oncall="fboss_agent_push",
+        description="Agent Ensemble Link L2 known bad tests",
+    ),
+    "fboss_qsfp": TestConfig(
+        name="fboss_qsfp",
+        job_name_regex=".*qsfp.*known_bad.*",
+        oncall="fboss_optics_phy",
+        description="Qsfp Hw known bad tests",
+    ),
+}
 
 
 class UserAndEmailHandler:
@@ -79,9 +123,15 @@ class UserAndEmailHandler:
             logger.info(f"Current on-call for {oncall}: {oncall.uid}")
             return oncall
 
-    def _get_user_data(self, isUser: bool) -> t.Tuple[str, int, str]:
+    def _get_user_data(
+        self, isUser: bool, test_config: TestConfig
+    ) -> t.Tuple[str, int, str]:
         """
         Get the current user's name and ID, falling back to on-call information if needed.
+
+        Args:
+            isUser: Whether to use the current user instead of oncall
+            test_config: Configuration for the test class
 
         Returns:
             tuple: A tuple containing:
@@ -94,24 +144,30 @@ class UserAndEmailHandler:
             user_id = employee.unixname_to_uid(user_name)
             return user_name, user_id, ""
         else:
-            oncall = UserAndEmailHandler().get_oncall_info(ONCALL)
-            user_name = ONCALL
+            oncall = UserAndEmailHandler().get_oncall_info(test_config.oncall)
+            user_name = test_config.oncall
             logger.info(f"User name: {user_name}, User ID: {oncall.uid}")
             return user_name, oncall.uid, oncall.person_email
 
     async def send_email(
-        self, isUser: bool, html: str, images: Optional[Dict[str, bytes]]
+        self,
+        isUser: bool,
+        test_config: TestConfig,
+        html: str,
+        images: Optional[Dict[str, bytes]],
     ) -> None:
         """
         Send an email with the given HTML content and images.
 
         Args:
+            isUser: Whether to use the current user instead of oncall
+            test_config: Configuration for the test class
             html (str): The HTML content of the email.
             images (Dict[str, bytes]): A dictionary of image names and their byte content to be included in the email.
         """
         subject = "Known bad tests report. Date: %s" % date.today().strftime("%Y-%m-%d")
 
-        user_name, _user_id, user_email = self._get_user_data(isUser)
+        user_name, _user_id, user_email = self._get_user_data(isUser, test_config)
 
         if user_email:
             to_addrs = [user_email]
@@ -128,23 +184,27 @@ class UserAndEmailHandler:
             is_html=True,
         )
 
-    async def create_task(self, isUser: bool, tests: Dict[str, int]) -> Task:
-        owner, _user_id, _user_email = self._get_user_data(isUser)
+    async def create_task(
+        self, isUser: bool, test_config: TestConfig, tests: Dict[str, int]
+    ) -> Task:
+        owner, _user_id, _user_email = self._get_user_data(isUser, test_config)
 
         return await task_api.create_task(
             creator=USER_UNIX_ID,
-            title="Known Bad Tests Passing Continuously for a week. Please remove them from known bad.",
-            description=self.text_format_known_bad_list(tests),
+            title=f"Known Bad Tests Passing Continuously for a week for {test_config}. Please remove them from known bad.",
+            description=self.text_format_known_bad_list(tests, test_config.name),
             priority=TaskPriority.HIGH,
             tags=[FBOSS_KNOWN_BAD_TESTS],
             owner=owner,
         )
 
     def HTTP_format_known_bad_list(
-        self, tests: Dict[str, int], known_bad_tests: Dict[str, int]
+        self, tests: Dict[str, int], known_bad_tests: Dict[str, int], job_name: str
     ) -> str:
         """Format the test data into a Workplace post."""
-        html = "<h1>Known bad tests passing continuously for a week</h1>"
+        html = (
+            f"<h1>Known bad tests passing continuously for a week for {job_name}</h1>"
+        )
         html += "<p>Here is the list of known bad tests passing 7 times in a row:</p>"
         html += "<p>Please remove them from known bad. </p>"
         html += "<table>"
@@ -162,9 +222,9 @@ class UserAndEmailHandler:
 
         return html
 
-    def text_format_known_bad_list(self, tests: Dict[str, int]) -> str:
+    def text_format_known_bad_list(self, tests: Dict[str, int], job_name: str) -> str:
         """Format the test data into a Workplace post."""
-        text = "Known bad tests passing continuously for a week\n"
+        text = f"Known bad tests passing continuously for a week for {job_name}\n"
         text += "Here is the list of known bad tests passing 7 times in a row:\n"
         text += "Please remove them from known bad.\n"
         text += "Test Name\n"
@@ -185,7 +245,7 @@ class ScubaQueryBuilder:
 
     def build_query_for_test_results(
         self,
-        job_name_prefix: str,
+        job_name_regex: str,
         limit: str = DEFAULT_MAX_RECORDS,
         consider_results_since: Optional[int] = None,
         status: Optional[bool] = None,
@@ -205,7 +265,7 @@ class ScubaQueryBuilder:
             WHERE
                 {consider_results_since} <= `time`
                 AND `time` <= {current_time}
-                AND (CONTAINS(`sandcastle_alias`, ARRAY('{job_name_prefix}')))
+                AND `sandcastle_alias` RLIKE '{job_name_regex}'
                 AND ((`purpose`) IN ('stress-run'))
                 AND (status IS TRUE)
             GROUP BY
@@ -219,7 +279,7 @@ class ScubaQueryBuilder:
 
     def build_query_for_chronos_job_id(
         self,
-        job_name_prefix: str,
+        job_name_regex: str,
         cluster: str = DEFAULT_CLUSTER,
         excluded_reasons: Optional[List[str]] = None,
         limit: str = DEFAULT_MAX_RECORDS,
@@ -245,7 +305,7 @@ class ScubaQueryBuilder:
             WHERE
                 {consider_results_since} <= `time`
                 AND `time` <= {query_time}
-                AND (CONTAINS(cluster_name + '/' + jobname, ARRAY('{job_name_prefix}')))
+                AND (cluster_name + '/' + jobname) RLIKE '{job_name_regex}'
             """
 
         if cluster:
@@ -327,11 +387,12 @@ class SandcastleClient:
         return tests
 
 
-def query_monthly_job_data(args) -> Dict[str, Dict[str, int]]:
+def query_monthly_job_data(args, test_config: TestConfig) -> Dict[str, Dict[str, int]]:
     """Query and process job data for monthly statistics comparison.
 
     Args:
         args: Command line arguments containing date information
+        test_config: Configuration for the test class
 
     Returns:
         Dictionary containing job data for both time periods:
@@ -340,7 +401,7 @@ def query_monthly_job_data(args) -> Dict[str, Dict[str, int]]:
             "current_month_first": {job_name: job_count, ...}
         }
     """
-    logger.info("Querying monthly job data for sai_agent_known_bad_test")
+    logger.info(f"Querying monthly job data for {test_config.job_name_regex}")
 
     # Calculate today and 1st of current month
     # Use --date if provided, otherwise use today's date
@@ -368,7 +429,9 @@ def query_monthly_job_data(args) -> Dict[str, Dict[str, int]]:
         start_timestamp = int(time.mktime(query_date.timetuple()))
 
         sql_query = ScubaQueryBuilder().build_query_for_chronos_job_id(
-            job_name_prefix="sai_agent_known_bad_test", query_time=start_timestamp
+            job_name_regex=test_config.job_name_regex,
+            cluster=test_config.cluster,
+            query_time=start_timestamp,
         )
         df = ScubaQueryBuilder().execute_query(sql_query)
         if df is None:
@@ -474,12 +537,17 @@ def analyze_monthly_improvements(monthly_results: Dict[str, Dict[str, int]]) -> 
         )
 
 
-def get_monthly_stats(args) -> None:
-    """Get monthly stats for sai_agent_known_bad_test comparing today vs 1st of month."""
-    logger.info("Getting monthly stats for sai_agent_known_bad_test")
+def get_monthly_stats(args, test_config: TestConfig) -> None:
+    """Get monthly stats comparing today vs 1st of month.
+
+    Args:
+        args: Command line arguments
+        test_config: Configuration for the test class
+    """
+    logger.info(f"Getting monthly stats for {test_config.job_name_regex}")
 
     # Query job data for both time periods
-    monthly_results = query_monthly_job_data(args)
+    monthly_results = query_monthly_job_data(args, test_config)
 
     # Analyze and display percentage improvements
     analyze_monthly_improvements(monthly_results)
@@ -596,7 +664,7 @@ class ChronosJobExtractor:
 def main() -> Optional[int]:
     """Main function to parse command line arguments and run the script."""
     parser = argparse.ArgumentParser(
-        description="Get data from a Scuba for sai_agent_known_bad_test"
+        description="Get data from Scuba for known bad tests"
     )
 
     parser.add_argument(
@@ -638,7 +706,7 @@ def main() -> Optional[int]:
     parser.add_argument(
         "--get_monthly_stats",
         action="store_true",
-        help="Get monthly stats for sai_agent_known_bad_test",
+        help="Get monthly stats for known bad tests",
     )
 
     parser.add_argument(
@@ -647,93 +715,121 @@ def main() -> Optional[int]:
         help="Time to query for. Format: YYYY-MM-DD. Default is today's date.",
     )
 
+    parser.add_argument(
+        "--test_class",
+        type=str,
+        default="all",
+        choices=list(TEST_CONFIGS.keys()) + ["all"],
+        help=f"Test class to query. Options: {', '.join(list(TEST_CONFIGS.keys()) + ["all"])}. Default: {"all"}",
+    )
+
     args = parser.parse_args()
 
-    if args.query_scuba:
-        # Query Scuba for test result
-        logger.info("Querying Scuba for test results...")
-        sql_query = ScubaQueryBuilder().build_query_for_test_results(
-            job_name_prefix="sai_agent_known_bad_test"
-        )
-        df = ScubaQueryBuilder().execute_query(sql_query)
+    test_configs = []
+    if args.test_class == "all":
+        test_configs = TEST_CONFIGS.values()
+    else:
+        test_configs = [TEST_CONFIGS[args.test_class]]
 
-        if df is None:
-            logger.error("Error: Could not execute Scuba query")
-            return 1
-        logger.info(f"Scuba query returned {len(df)} rows")
-        tests = {}
+    error_code = 0
+    for test_config in test_configs:
+        # Get the test configuration based on command line argument
+        logger.info(f"Using test configuration: {test_config.job_name_regex}")
 
-        for _, row in df.iterrows():
-            if row["status"] == PASSED and row["count"] == 7:
-                if row["test_name"] not in tests:
-                    tests[row["test_name"]] = row["status"]
-
-        logger.info(f"Found {len(tests)} known bad tests passing 7 times in a row")
-
-        # query scuba for job ids
-        sql_query = ScubaQueryBuilder().build_query_for_chronos_job_id(
-            "sai_agent_known_bad_test",
-        )
-        df = ScubaQueryBuilder().execute_query(sql_query)
-        if df is None:
-            return 1
-
-        known_bad_jobs = {}
-        for _i, (job_id, job_name, instance_id) in enumerate(
-            zip(df["jobId"], df["jobname"], df["job_instance_id"])
-        ):
-            logger.info(
-                f"job id: {job_id}, job name: {job_name} instance id: {instance_id}"
+        if args.query_scuba:
+            # Query Scuba for test result
+            logger.info("Querying Scuba for test results...")
+            sql_query = ScubaQueryBuilder().build_query_for_test_results(
+                job_name_regex=test_config.job_name_regex
             )
-            known_bad_jobs[job_name] = asyncio.run(
-                ChronosJobExtractor().process_instance(int(instance_id), job_name)
+            df = ScubaQueryBuilder().execute_query(sql_query)
+
+            if df is None:
+                logger.error("Error: Could not execute Scuba query")
+                error_code = 1
+                continue
+            logger.info(f"Scuba query returned {len(df)} rows")
+            tests = {}
+
+            for _, row in df.iterrows():
+                if row["status"] == PASSED and row["count"] == 7:
+                    if row["test_name"] not in tests:
+                        tests[row["test_name"]] = row["status"]
+
+            logger.info(f"Found {len(tests)} known bad tests passing 7 times in a row")
+
+            # query scuba for job ids
+            sql_query = ScubaQueryBuilder().build_query_for_chronos_job_id(
+                job_name_regex=test_config.job_name_regex,
+                cluster=test_config.cluster,
             )
+            df = ScubaQueryBuilder().execute_query(sql_query)
+            if df is None:
+                error_code = 1
 
-        for job_name, job_count in known_bad_jobs.items():
-            logger.info(f"Job name: {job_name}, Known bad count: {job_count}")
-
-        # Write test data to a separate JSON file
-        if args.json:
-            with open(DEFAULT_OUTPUT_FILE, "w") as f:
-                json.dump(tests, f, indent=2, default=str)
-                json.dump(known_bad_jobs, f, indent=2, default=str)
-            logger.info(f"Results written to {DEFAULT_OUTPUT_FILE}")
-
-        # send email to user or oncall
-        if args.send_email:
-            logger.info("Sending email...")
-            html = UserAndEmailHandler().HTTP_format_known_bad_list(
-                tests, known_bad_jobs
-            )
-
-            logger.info("html generated successfully for email body")
-            images = {}
-            return_code = asyncio.run(
-                UserAndEmailHandler().send_email(args.user, html, images)
-            )
-
-            if return_code == 0:
-                logger.error(
-                    f"Error: Failed to send email to user, return_code: {return_code}"
+            known_bad_jobs = {}
+            for _i, (job_id, job_name, instance_id) in enumerate(
+                zip(df["jobId"], df["jobname"], df["job_instance_id"])
+            ):
+                logger.info(
+                    f"job id: {job_id}, job name: {job_name} instance id: {instance_id}"
+                )
+                known_bad_jobs[job_name] = asyncio.run(
+                    ChronosJobExtractor().process_instance(int(instance_id), job_name)
                 )
 
-            logger.info(f"Email sent successfully return_code: {return_code}")
-        else:
-            logger.info("No email sent")
+            for job_name, job_count in known_bad_jobs.items():
+                logger.info(f"Job name: {job_name}, Known bad count: {job_count}")
 
-            # create task for user or oncall
-        if args.create_task:
-            logger.info("Creating task for oncall...")
-            task = asyncio.run(UserAndEmailHandler().create_task(args.user, tests))
-            logger.info(f"Task created successfully: T{task.task_number}")
-        else:
-            logger.info("No task created")
+            # Write test data to a separate JSON file
+            if args.json:
+                with open(os.path.expanduser(DEFAULT_OUTPUT_FILE), "w") as f:
+                    test_structure = {
+                        "passing_tests": tests,
+                        "job_test_count": known_bad_jobs,
+                    }
+                    json.dump(test_structure, f, indent=2, default=str)
+                logger.info(f"Results written to {DEFAULT_OUTPUT_FILE}")
 
-    # Get monthly stats for sai_agent_known_bad_test comparing today vs 1st of month.
-    if args.get_monthly_stats:
-        get_monthly_stats(args)
+            # send email to user or oncall
+            if args.send_email:
+                logger.info("Sending email...")
+                html = UserAndEmailHandler().HTTP_format_known_bad_list(
+                    tests, known_bad_jobs, test_config.name
+                )
 
-    return 0
+                logger.info("html generated successfully for email body")
+                images = {}
+                return_code = asyncio.run(
+                    UserAndEmailHandler().send_email(
+                        args.user, test_config, html, images
+                    )
+                )
+
+                if return_code == 0:
+                    logger.error(
+                        f"Error: Failed to send email to user, return_code: {return_code}"
+                    )
+
+                logger.info(f"Email sent successfully return_code: {return_code}")
+            else:
+                logger.info("No email sent")
+
+                # create task for user or oncall
+            if args.create_task:
+                logger.info("Creating task for oncall...")
+                task = asyncio.run(
+                    UserAndEmailHandler().create_task(args.user, test_config, tests)
+                )
+                logger.info(f"Task created successfully: T{task.task_number}")
+            else:
+                logger.info("No task created")
+
+        # Get monthly stats comparing today vs 1st of month.
+        if args.get_monthly_stats:
+            get_monthly_stats(args, test_config)
+
+    return error_code
 
 
 if __name__ == "__main__":

@@ -321,9 +321,9 @@ TEST(Interface, RemoteInterfaceModify) {
   sysPort1->setScope(cfg::Scope::GLOBAL);
   remoteSysPorts->addNode(sysPort1, scope);
   auto remoteInterfaces = stateV1->getRemoteInterfaces()->modify(&stateV1);
-  InterfaceID kIntf(1001);
+  InterfaceID remoteIntfId(1001);
   auto rif = std::make_shared<Interface>(
-      kIntf,
+      remoteIntfId,
       RouterID(0),
       std::optional<VlanID>(std::nullopt),
       folly::StringPiece("1001"),
@@ -337,7 +337,7 @@ TEST(Interface, RemoteInterfaceModify) {
   remoteInterfaces->addNode(rif, scope);
   stateV1->publish();
   auto origIntfMap = stateV1->getRemoteInterfaces()->getMapNodeIf(scope);
-  auto origIntf = stateV1->getRemoteInterfaces()->getNode(kIntf);
+  auto origIntf = stateV1->getRemoteInterfaces()->getNode(remoteIntfId);
   auto origIntfs = stateV1->getRemoteInterfaces();
   auto newIntf = origIntf->modify(&stateV1);
   EXPECT_NE(origIntf.get(), newIntf);
@@ -801,8 +801,9 @@ TEST(Interface, getRemoteInterfacesBySwitchId) {
 
   remoteInterfaces->addNode(
       rif,
-      HwSwitchMatcher(std::unordered_set<SwitchID>(
-          {static_cast<SwitchID>(static_cast<uint16_t>(remoteSwitchId))})));
+      HwSwitchMatcher(
+          std::unordered_set<SwitchID>(
+              {static_cast<SwitchID>(static_cast<uint16_t>(remoteSwitchId))})));
 
   EXPECT_EQ(stateV2->getInterfaces(SwitchID(remoteSwitchId))->size(), 1);
 }

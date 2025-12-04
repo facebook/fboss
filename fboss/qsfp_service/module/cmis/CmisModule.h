@@ -7,6 +7,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/firmware_storage/FbossFirmware.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <optional>
@@ -92,6 +93,8 @@ class CmisModule : public QsfpModule {
   static constexpr int kMaxOsfpNumLanes = 8;
   static constexpr int kHostInterfaceCodeOffset = 0;
   static constexpr int kMediaInterfaceCodeOffset = 1;
+  static constexpr int32_t kDefaultFrequencyMhz = 193100000;
+  static constexpr uint8_t kInvalidApplication = 0;
 
   using ApplicationAdvertisingFields = std::vector<ApplicationAdvertisingField>;
 
@@ -243,12 +246,67 @@ class CmisModule : public QsfpModule {
   virtual void setPowerOverrideIfSupportedLocked(
       PowerControlState currentState) override;
   /*
+   * Program the tunable optics module
+   * Program following parameters
+   *    1. Frequency
+   *    2. Tx Power - TODO
+   *
+   * Convert the C or L band frequency and grid
+   * to Grid channel number. If channel number is provided directly
+   * pass the channel number directly
+   */
+  void programTunableModule(
+      const cfg::OpticalChannelConfig& opticalChannelConfig);
+  /*
    * Set appropriate application code for PortSpeed, if supported
+   * if newAppSelCode is provided, use that directly instead of deriving
    */
   void setApplicationCodeLocked(
       cfg::PortSpeed speed,
       uint8_t startHostLane,
+      uint8_t numHostLanesForPort,
+      uint8_t newAppSelCode);
+
+  /*
+   * Helper function to discover and return the appropriate application
+   * capability based on module capabilities and speed requirements. Returns
+   * the full ApplicationAdvertisingField if a suitable application is found,
+   * or std::nullopt if no matching application is available or if the current
+   * config already matches.
+   */
+  std::optional<ApplicationAdvertisingField> getAppSelCodeForSpeed(
+      cfg::PortSpeed speed,
+      uint8_t startHostLane,
       uint8_t numHostLanesForPort);
+
+  /*
+   * Helper function to program a given AppSel code to the module.
+   * This contains the common logic for resetting datapath, programming,
+   * and verifying the application code.
+   *
+   * If appSelectFunc is provided, it will be used for programming.
+   * Otherwise, the default setApplicationSelectCode will be used.
+   */
+  void programApplicationSelectCode(
+      uint8_t appSelCode,
+      uint8_t moduleMediaInterfaceCode,
+      uint8_t startHostLane,
+      uint8_t numHostLanes,
+      std::optional<std::function<void()>> appSelectFunc = std::nullopt);
+
+  /*
+   * Helper function to read an interface code (host or media) for a given
+   * AppSel code from the EEPROM based on the byte offset.
+   * - For media interface code, use byteOffset = kMediaInterfaceCodeOffset (1)
+   * - For host interface code, use byteOffset = kHostInterfaceCodeOffset (0)
+   */
+  uint8_t getInterfaceCodeForAppSel(uint8_t appSelCode, int byteOffset);
+
+  /*
+   * Helper function to read the current application select code for a given
+   * lane.
+   */
+  uint8_t getCurrentAppSelCode(uint8_t startHostLane);
   /*
    * returns individual sensor values after scaling
    */
@@ -264,6 +322,16 @@ class CmisModule : public QsfpModule {
    * returns the freeside transceiver technology type
    */
   virtual TransmitterTechnology getQsfpTransmitterTechnology() const override;
+  /*
+   * Convert FrequencyGrid enum to grid selection byte value for CMIS register
+   */
+  uint8_t frequencyGridToGridSelection(FrequencyGrid grid) const;
+  /*
+   * Return the Channel number when frequency and grid is provided
+   */
+  int16_t getChannelNumFromFrequency(
+      int32_t frequencyMhz,
+      FrequencyGrid frequencyGrid);
   /*
    * Extract sensor flag levels
    */
@@ -459,6 +527,11 @@ class CmisModule : public QsfpModule {
    * returns whether optics frequency is tunable or not
    */
   bool isTunableOptics() const;
+
+  /*
+   * returns the tunable optics laser status and laser frequency
+   */
+  std::optional<TunableLaserStatus> getTunableLaserStatus() override;
   /*
    * Returns the ApplicationAdvertisingField corresponding to the application or
    * nullopt if it doesn't exist
@@ -504,6 +577,8 @@ class CmisModule : public QsfpModule {
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
   CmisModule& operator=(CmisModule const&) = delete;
+  CmisModule(CmisModule&&) = delete;
+  CmisModule& operator=(CmisModule&&) = delete;
 
   // VDM data location of each VDM config types
   std::map<VdmConfigType, VdmDiagsLocationStatus> vdmConfigDataLocations_;
@@ -580,6 +655,14 @@ class CmisModule : public QsfpModule {
 
   uint64_t maxRetriesWith500msDelay(bool /*init*/);
 
+  /*
+   * Check if the datapath for the specified lanes has been updated to one of
+   * the desired states
+   */
+  bool isDatapathUpdated(
+      uint8_t laneMask,
+      const std::vector<CmisLaneState>& states);
+
   void resetDataPathWithFunc(
       std::optional<std::function<void()>> afterDataPathDeinitFunc =
           std::nullopt,
@@ -631,6 +714,17 @@ class CmisModule : public QsfpModule {
   bool isMultiPortOptics() {
     return getIdentifier() == TransceiverModuleIdentifier::OSFP;
   }
+
+  // Utility functions for power state management
+  PowerControlState getCurrentPowerControlState();
+  bool isModuleInReadyState();
+  bool moduleReadyStatePoll();
+
+  // Check if module should be kept in low power mode for AppSel programming.
+  bool programAppSelInLowPowerMode() const;
+
+  // Apply Rx-SNR correction and return the corrected value
+  double applyRxSnrCorrection(uint16_t rawValue, double snrValue) const;
 
   // Private functions to extract and fill in VDM performance monitoring stats
   bool fillVdmPerfMonitorSnr(VdmPerfMonitorStats& vdmStats);

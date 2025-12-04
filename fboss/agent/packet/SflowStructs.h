@@ -33,6 +33,7 @@ using byte = uint8_t;
 enum struct AddressType : uint32_t { UNKNOWN = 0, IP_V4 = 1, IP_V6 = 2 };
 
 void serializeIP(folly::io::RWPrivateCursor* cursor, folly::IPAddress ip);
+folly::IPAddress deserializeIP(folly::io::Cursor& cursor);
 uint32_t sizeIP(folly::IPAddress ip);
 
 /* Data Format */
@@ -51,13 +52,50 @@ void serializeSflowPort(
     folly::io::RWPrivateCursor* cursor,
     SflowPort sflowPort);
 
-/* Flow record format */
-struct FlowRecord {
-  DataFormat flowFormat;
-  std::vector<uint8_t> flowData;
+/* Proposed standard sFlow data formats (draft 14) */
+/* Packet Header Data */
+/* header_potocol enumeration */
+enum struct HeaderProtocol : uint32_t {
+  ETHERNET_ISO88023 = 1,
+  ISO88024_TOKENBUS = 2,
+  ISO88025_TOKENRING = 3,
+  FDDI = 4,
+  FRAME_RELAY = 5,
+  X25 = 6,
+  PPP = 7,
+  SMDS = 8,
+  AAL5 = 9,
+  AAL5_IP = 10,
+  IPV4 = 11,
+  IPV6 = 12,
+  MPLS = 13,
+  POS = 14
+};
+
+/* Raw Packet Header */
+/* opaque = flow_data; enterprice = 0; format = 1 */
+struct SampledHeader {
+  HeaderProtocol protocol{};
+  uint32_t frameLength{};
+  uint32_t stripped{};
+  std::vector<uint8_t> header{};
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static SampledHeader deserialize(folly::io::Cursor& cursor);
+};
+
+/* Flow data variant - supports different types of flow data */
+using FlowData = std::variant<SampledHeader>;
+
+/* Flow record format */
+struct FlowRecord {
+  DataFormat flowFormat;
+  FlowData flowData;
+
+  void serialize(folly::io::RWPrivateCursor* cursor) const;
+  uint32_t size() const;
+  static FlowRecord deserialize(folly::io::Cursor& cursor);
 };
 
 // TODO (sgwang)
@@ -80,6 +118,7 @@ struct FlowSample {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static FlowSample deserialize(folly::io::Cursor& cursor);
 };
 
 /* Format of a single counter sample */
@@ -113,6 +152,7 @@ struct SampleRecord {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static SampleRecord deserialize(folly::io::Cursor& cursor);
 };
 
 /* Header information for sFlow version 5 datagrams */
@@ -125,6 +165,7 @@ struct SampleDatagramV5 {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static SampleDatagramV5 deserialize(folly::io::Cursor& cursor);
 };
 
 // Here we skip sample_datagram_type, since only v5 is used
@@ -135,38 +176,7 @@ struct SampleDatagram {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
-};
-
-/* Proposed standard sFlow data formats (draft 14) */
-/* Packet Header Data */
-/* header_potocol enumeration */
-enum struct HeaderProtocol : uint32_t {
-  ETHERNET_ISO88023 = 1,
-  ISO88024_TOKENBUS = 2,
-  ISO88025_TOKENRING = 3,
-  FDDI = 4,
-  FRAME_RELAY = 5,
-  X25 = 6,
-  PPP = 7,
-  SMDS = 8,
-  AAL5 = 9,
-  AAL5_IP = 10,
-  IPV4 = 11,
-  IPV6 = 12,
-  MPLS = 13,
-  POS = 14
-};
-/* Raw Packet Header */
-/* opaque = flow_data; enterprice = 0; format = 1 */
-struct SampledHeader {
-  HeaderProtocol protocol;
-  uint32_t frameLength;
-  uint32_t stripped;
-  uint32_t headerLength;
-  const byte* header;
-
-  void serialize(folly::io::RWPrivateCursor* cursor) const;
-  uint32_t size() const;
+  static SampleDatagram deserialize(folly::io::Cursor& cursor);
 };
 
 // .. We omit the spec definition below (including) "Ethernet Frame Data" on p36

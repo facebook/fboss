@@ -766,16 +766,7 @@ void AgentArsBase::generatePrefixes() {
 
 cfg::SwitchingMode AgentArsBase::getFwdSwitchingMode(
     const RoutePrefixV6& prefix) const {
-  auto switchId =
-      getSw()->getScopeResolver()->scope(masterLogicalPortIds()[0]).switchId();
-  auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
-  auto resolvedRoute = findRoute<folly::IPAddressV6>(
-      RouterID(0), {prefix.network(), prefix.mask()}, getProgrammedState());
-  state::RouteNextHopEntry entry{};
-  entry.adminDistance() = AdminDistance::EBGP;
-  entry.nexthops() = util::fromRouteNextHopSet(
-      resolvedRoute->getForwardInfo().getNextHopSet());
-  return client->sync_getFwdSwitchingMode(entry);
+  return getAgentEnsemble()->getFwdSwitchingMode(prefix);
 }
 
 void AgentArsBase::verifyFwdSwitchingMode(

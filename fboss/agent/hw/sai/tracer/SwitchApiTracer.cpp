@@ -169,6 +169,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, DefaultCpuEgressBufferPool)
   SAI_EXT_ATTR_MAP(Switch, TechSupportType)
   SAI_EXT_ATTR_MAP(Switch, ModuleIdFabricPortList)
+  SAI_EXT_ATTR_MAP(Switch, PfcMonitorEnable);
+  SAI_EXT_ATTR_MAP(Switch, CablePropagationDelayMeasurement);
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
   SAI_EXT_ATTR_MAP(Switch, LocalSystemPortIdRangeList)
 #endif
@@ -193,7 +195,11 @@ sai_status_t wrap_create_switch(
 }
 
 WRAP_REMOVE_FUNC(switch, SAI_OBJECT_TYPE_SWITCH, switch);
-WRAP_SET_ATTR_FUNC(switch, SAI_OBJECT_TYPE_SWITCH, switch);
+WRAP_SET_ATTR_FUNC_WITH_FILTER(
+    switch,
+    SAI_OBJECT_TYPE_SWITCH,
+    switch,
+    SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE);
 WRAP_GET_ATTR_FUNC(switch, SAI_OBJECT_TYPE_SWITCH, switch);
 WRAP_GET_STATS_FUNC(switch, SAI_OBJECT_TYPE_SWITCH, switch);
 WRAP_GET_STATS_EXT_FUNC(switch, SAI_OBJECT_TYPE_SWITCH, switch);

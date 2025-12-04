@@ -475,13 +475,14 @@ class PrbsTest : public LinkTest {
         if (prbsEnabled) {
           auto agentClient = utils::createWedgeAgentClient();
           WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
-            EXPECT_EVENTUALLY_TRUE(checkPrbsStatsAfterClearOnInterface<
-                                   apache::thrift::Client<FbossCtrl>>(
-                agentClient.get(),
-                timestampBeforeClear,
-                interfaceName,
-                component,
-                prbsEnabled));
+            EXPECT_EVENTUALLY_TRUE(
+                checkPrbsStatsAfterClearOnInterface<
+                    apache::thrift::Client<FbossCtrl>>(
+                    agentClient.get(),
+                    timestampBeforeClear,
+                    interfaceName,
+                    component,
+                    prbsEnabled));
           });
         }
       } else if (
@@ -494,13 +495,14 @@ class PrbsTest : public LinkTest {
         // Retry for a minute to give the qsfp_service enough chance to
         // successfully refresh a transceiver
         WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
-          EXPECT_EVENTUALLY_TRUE(checkPrbsStatsAfterClearOnInterface<
-                                 apache::thrift::Client<QsfpService>>(
-              qsfpServiceClient.get(),
-              timestampBeforeClear,
-              interfaceName,
-              component,
-              prbsEnabled));
+          EXPECT_EVENTUALLY_TRUE(
+              checkPrbsStatsAfterClearOnInterface<
+                  apache::thrift::Client<QsfpService>>(
+                  qsfpServiceClient.get(),
+                  timestampBeforeClear,
+                  interfaceName,
+                  component,
+                  prbsEnabled));
         });
       }
     }
@@ -801,6 +803,8 @@ PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(CR4_400G, PRBS31Q);
 
 PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(CR8_800G, PRBS31Q);
 
+PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(DR4_800G, PRBS31Q);
+
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR1_100G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_200G, PRBS31, ASIC, PRBS31Q);
@@ -814,5 +818,7 @@ PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR8_800G, PRBS31, ASIC, PRBS31Q);
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(CR4_400G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(CR8_800G, PRBS31, ASIC, PRBS31Q);
+
+PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(DR4_800G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_ASIC_ASIC_TEST(PRBS31);

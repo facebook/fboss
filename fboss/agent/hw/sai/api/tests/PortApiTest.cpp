@@ -89,6 +89,9 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // StaticModuleId
         std::nullopt, // IsHyperPortMember
         std::nullopt, // HyperPortMemberList
+        std::nullopt, // PfcMonitorDirection
+        std::nullopt, // QosDot1pToTcMap
+        std::nullopt, // QosTcAndColorToDot1pMap
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -344,6 +347,22 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   portApi->setAttribute(portId, portTcToQueue);
   auto gotPortTcToQueue = portApi->getAttribute(portId, portTcToQueue);
   EXPECT_EQ(gotPortTcToQueue, qosMapTcToQueue);
+
+  // Port Dot1p (PCP) to TC map get/set
+  sai_object_id_t qosMapDot1pToTc{44};
+  SaiPortTraits::Attributes::QosDot1pToTcMap portDot1pToTc{qosMapDot1pToTc};
+  portApi->setAttribute(portId, portDot1pToTc);
+  auto gotPortDot1pToTc = portApi->getAttribute(portId, portDot1pToTc);
+  EXPECT_EQ(gotPortDot1pToTc, qosMapDot1pToTc);
+
+  // Port TC and Color to Dot1p (PCP) map get/set
+  sai_object_id_t qosMapTcAndColorToDot1p{45};
+  SaiPortTraits::Attributes::QosTcAndColorToDot1pMap portTcAndColorToDot1p{
+      qosMapTcAndColorToDot1p};
+  portApi->setAttribute(portId, portTcAndColorToDot1p);
+  auto gotPortTcAndColorToDot1p =
+      portApi->getAttribute(portId, portTcAndColorToDot1p);
+  EXPECT_EQ(gotPortTcAndColorToDot1p, qosMapTcAndColorToDot1p);
 
   // Port TTL decrement
   SaiPortTraits::Attributes::DisableTtlDecrement disableTtlDec{true};

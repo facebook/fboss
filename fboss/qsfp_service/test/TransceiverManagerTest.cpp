@@ -3,6 +3,7 @@
 #include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
 
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
 
 namespace facebook::fboss {
 
@@ -299,6 +300,141 @@ TEST_F(TransceiverManagerTest, resetProgrammedIPhyPortToPortInfoForPorts) {
 
   // Clean up override
   transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(std::nullopt);
+}
+
+TEST_F(TransceiverManagerTest, programTransceiverWithNullQsfpConfig) {
+  // Set up test data using the override mechanism first
+  TransceiverManager::OverrideTcvrToPortAndProfile testOverride = {
+      {TransceiverID(0),
+       {{PortID(1), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL}}}};
+
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(testOverride);
+
+  // Program internal PHY ports to populate tcvrToPortInfo_
+  transceiverManager_->programInternalPhyPorts(TransceiverID(0));
+
+  // Reset the transceiver manager to create one without a qsfp config
+  // This will make qsfpConfig_ NULL, which will test the untested lines in
+  // getOpticalChannelConfig
+  resetTransceiverManager();
+
+  // Set up the override again since resetTransceiverManager creates a new
+  // instance
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(testOverride);
+  transceiverManager_->programInternalPhyPorts(TransceiverID(0));
+
+  // Call programTransceiver which internally calls getOpticalChannelConfig
+  // This should handle the NULL qsfpConfig_ case gracefully without crashing
+  // The getOpticalChannelConfig method will return std::nullopt when
+  // qsfpConfig_ is NULL
+  EXPECT_NO_THROW(
+      transceiverManager_->programTransceiver(TransceiverID(0), false));
+
+  // Clean up override
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(std::nullopt);
+}
+
+TEST_F(TransceiverManagerTest, areAllPortsDownWithEmptyPortInfo) {
+  // Test Case 1: FLAGS_port_manager_mode is false (default)
+  // When port info is empty, should return {false, {}} (ports are assumed up)
+  gflags::SetCommandLineOptionWithMode(
+      "port_manager_mode", "0", gflags::SET_FLAGS_DEFAULT);
+
+  // Call areAllPortsDown on a transceiver with no programmed ports
+  // TransceiverID(0) exists but has no programmed ports yet
+  auto [allPortsDown, downPorts] =
+      transceiverManager_->areAllPortsDown(TransceiverID(0));
+
+  // In non-PortManager mode, empty port info means ports are assumed up
+  EXPECT_FALSE(allPortsDown);
+  EXPECT_TRUE(downPorts.empty());
+
+  // Test Case 2: FLAGS_port_manager_mode is true
+  // When port info is empty, should return {true, {}} (no ports up)
+  gflags::SetCommandLineOptionWithMode(
+      "port_manager_mode", "1", gflags::SET_FLAGS_DEFAULT);
+
+  // Call areAllPortsDown again with port_manager_mode enabled
+  auto [allPortsDown2, downPorts2] =
+      transceiverManager_->areAllPortsDown(TransceiverID(0));
+
+  // In PortManager mode, empty port info means all ports are down
+  EXPECT_TRUE(allPortsDown2);
+  EXPECT_TRUE(downPorts2.empty());
+
+  // Reset flag to default
+  gflags::SetCommandLineOptionWithMode(
+      "port_manager_mode", "0", gflags::SET_FLAGS_DEFAULT);
+}
+
+TEST_F(TransceiverManagerTest, exceptionInRefresh) {
+  auto tcvrOneID = TransceiverID(0);
+  auto tcvrTwoID = TransceiverID(1);
+
+  auto transceiverImpl1 =
+      std::make_unique<::testing::NiceMock<MockTransceiverImpl>>();
+  EXPECT_CALL(*transceiverImpl1, detectTransceiver())
+      .WillRepeatedly(::testing::Return(true));
+  EXPECT_CALL(*transceiverImpl1, getNum())
+      .WillRepeatedly(::testing::Return(static_cast<int>(tcvrOneID)));
+  qsfpImpls_.push_back(std::move(transceiverImpl1));
+
+  transceiverManager_->overrideTransceiverForTesting(
+      tcvrOneID,
+      std::make_unique<MockSffModule>(
+          transceiverManager_->getPortNames(tcvrOneID),
+          qsfpImpls_.back().get(),
+          tcvrConfig_,
+          transceiverManager_->getTransceiverName(tcvrOneID)));
+
+  auto transceiverImpl2 =
+      std::make_unique<::testing::NiceMock<MockTransceiverImpl>>();
+  EXPECT_CALL(*transceiverImpl2, detectTransceiver())
+      .WillRepeatedly(::testing::Return(true));
+  EXPECT_CALL(*transceiverImpl2, getNum())
+      .WillRepeatedly(::testing::Return(static_cast<int>(tcvrTwoID)));
+  qsfpImpls_.push_back(std::move(transceiverImpl2));
+
+  auto tcvrTwo = static_cast<MockSffModule*>(
+      transceiverManager_->overrideTransceiverForTesting(
+          tcvrTwoID,
+          std::make_unique<MockSffModule>(
+              transceiverManager_->getPortNames(tcvrTwoID),
+              qsfpImpls_.back().get(),
+              tcvrConfig_,
+              transceiverManager_->getTransceiverName(tcvrTwoID))));
+
+  // Initialize and refresh to get transceivers into a known state
+  transceiverManager_->refreshStateMachines();
+
+  // Verify both transceivers start without communication errors
+  std::map<int32_t, TransceiverInfo> tcvrInfoBefore;
+  transceiverManager_->getTransceiversInfo(
+      tcvrInfoBefore, std::make_unique<std::vector<int32_t>>());
+  EXPECT_FALSE(*tcvrInfoBefore[static_cast<int>(tcvrOneID)]
+                    .tcvrState()
+                    ->communicationError());
+  EXPECT_FALSE(*tcvrInfoBefore[static_cast<int>(tcvrTwoID)]
+                    .tcvrState()
+                    ->communicationError());
+
+  // Make tcvrTwo throw an exception during refresh
+  ON_CALL(*tcvrTwo, updateQsfpData(::testing::_))
+      .WillByDefault(ThrowFbossError());
+
+  transceiverManager_->refreshStateMachines();
+  // tcvrOne should NOT have communication error (successful refresh)
+  // tcvrTwo SHOULD have communication error (failed refresh)
+  std::map<int32_t, TransceiverInfo> tcvrInfoAfter;
+  transceiverManager_->getTransceiversInfo(
+      tcvrInfoAfter, std::make_unique<std::vector<int32_t>>());
+
+  EXPECT_FALSE(*tcvrInfoAfter[static_cast<int>(tcvrOneID)]
+                    .tcvrState()
+                    ->communicationError());
+  EXPECT_TRUE(*tcvrInfoAfter[static_cast<int>(tcvrTwoID)]
+                   .tcvrState()
+                   ->communicationError());
 }
 
 } // namespace facebook::fboss

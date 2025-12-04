@@ -105,7 +105,7 @@ class QsfpModule : public Transceiver {
   std::string getNameString() const;
 
   virtual void refresh() override;
-  folly::Future<folly::Unit> futureRefresh() override;
+  folly::Future<bool> futureRefresh() override;
 
   void removeTransceiver() override;
 
@@ -662,6 +662,10 @@ class QsfpModule : public Transceiver {
       const std::string& /* portName */,
       phy::Side /* side */,
       bool /* setLoopback */) {}
+
+  virtual std::optional<TunableLaserStatus> getTunableLaserStatus() {
+    return std::nullopt;
+  }
 
   /*
    * Returns a set of Transceiver lanes for a given SW port for a given side

@@ -39,11 +39,22 @@ extern "C" {
 
 namespace {
 const int kDefaultMtu = 1500;
-}
+// Todo manually test
+const int maxRouteTableId = 4096;
+const int minRouteTableId = 1;
+
+} // namespace
 
 namespace facebook::fboss {
 
 using folly::IPAddress;
+
+// enable_1to1_intf_route_table_mapping feature depends on
+// cleanup_probed_kernel_data if enabling on existing platforms
+DEFINE_bool(
+    enable_1to1_intf_route_table_mapping,
+    false,
+    "Enable 1 to 1 interface id to route table id mapping");
 
 TunManager::TunManager(SwSwitch* sw, FbossEventBase* evb) : sw_(sw), evb_(evb) {
   DCHECK(sw) << "NULL pointer to SwSwitch.";
@@ -256,9 +267,16 @@ int TunManager::getTableId(InterfaceID ifID) const {
       throw FbossError("No system port range in SwitchSettings for VOQ switch");
   }
 
-  // Sanity checks. Generated ID must be in range [1-253]
-  CHECK_GE(tableId, 1);
-  CHECK_LE(tableId, 253);
+  if (!FLAGS_enable_1to1_intf_route_table_mapping) {
+    // Sanity checks. Generated ID must be in range [1-253]
+    CHECK_GE(tableId, 1);
+    CHECK_LE(tableId, 253);
+  } else {
+    // Sanity checks. Generated ID must be in range  [minRouteTableId,
+    // maxRouteTableId]
+    CHECK_GE(tableId, minRouteTableId);
+    CHECK_LE(tableId, maxRouteTableId);
+  }
 
   return tableId;
 }
@@ -406,6 +424,16 @@ bool TunManager::requiresProbedDataCleanup(
 }
 
 int TunManager::getTableIdForNpu(InterfaceID ifID) const {
+  int tableId = static_cast<int>(ifID);
+  // Start from TH6, table id could be larger than 256, directly use interface
+  // id as table id
+  if (FLAGS_enable_1to1_intf_route_table_mapping) {
+    if (tableId == 0 || tableId == 253 || tableId == 254 || tableId == 255) {
+      throw FbossError(
+          "Route table ID 0, 253, 254, 255 are reserved in kernel usage");
+    }
+    return tableId;
+  }
   // Kernel only supports up to 256 tables. The last few are used by kernel
   // as main, default, and local. IDs 0, 254 and 255 are not available. So we
   // use range 1-253 for our usecase.
@@ -414,7 +442,6 @@ int TunManager::getTableIdForNpu(InterfaceID ifID) const {
   // Type-1: 2000, 2001, 2002, 2003 ...
   // Type-2: 4000, 4001, 4002, 4003, 4004, ...
   // Type-3: 10, 11, 12, 13 (Virtual Interfaces)
-  int tableId = static_cast<int>(ifID);
   if (ifID >= InterfaceID(4000)) { // 4000, 4001, 4002, 4003 ...
     tableId = ifID - 4000 + 201; // 201, 202, 203, ...
   } else if (ifID >= InterfaceID(3000)) { // 3000, 3001, ...
@@ -485,12 +512,21 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
   } else if (
       platform == PlatformType::PLATFORM_JANGA800BIC ||
       FLAGS_dsf_single_stage_r192_f40_e32 ||
-      FLAGS_dsf_single_stage_r128_f40_e16_uniform_local_offset) {
+      FLAGS_dsf_single_stage_r128_f40_e16_uniform_local_offset ||
+      // TODO(daiweix): remove FLAGS_hyper_port after
+      // FLAGS_dsf_single_stage_r128_f40_e16_uniform_local_offset is set for
+      // hyper port
+      FLAGS_hyper_port) {
     auto intf = sw_->getState()->getInterfaces()->getNode(ifID);
     auto constexpr kLocalIntfTableStart = 1;
     auto constexpr kGlobalIntfTableStart = 200;
     if (intf->getScope() == cfg::Scope::LOCAL) {
-      return kLocalIntfTableStart + ifID;
+      if (FLAGS_dsf_single_stage_r128_f40_e16_uniform_local_offset) {
+        auto constexpr kLocalSystemPortIdStart = 6058;
+        return kLocalIntfTableStart + ifID - kLocalSystemPortIdStart;
+      } else {
+        return kLocalIntfTableStart + ifID;
+      }
     } else {
       auto firstSwitchSysPortRange =
           getFirstSwitchSystemPortIdRange(switchIdToSwitchInfo);
@@ -1251,8 +1287,10 @@ void TunManager::applyChanges(
  *
  * Process routes discovered during kernel probing and stores
  * them for later cleanup. It filters routes based on address family
- * (IPv4/IPv6 only), table ID (1-253 range), and extracts destination,
- * nexthop, and interface information.
+ * (IPv4/IPv6 only), table ID (1-253 range if
+ * enable_1to1_intf_route_table_mapping enable [minRouteTableId,
+ * maxRouteTableId]), and extracts destination, nexthop, and interface
+ * information.
  *
  * @param obj Netlink route object to process
  * @param data Pointer to TunManager instance for storing probed routes
@@ -1269,10 +1307,23 @@ void TunManager::routeProcessor(struct nl_object* obj, void* data) {
 
   // Only process routes from table-id 1 through 253
   auto tableId = rtnl_route_get_table(route);
-  if (tableId < 1 || tableId > 253) {
-    XLOG(DBG2) << "Skip route because table ID " << tableId
-               << " is outside range [1-253]";
-    return;
+  if (FLAGS_enable_1to1_intf_route_table_mapping) {
+    if (tableId < minRouteTableId || tableId > maxRouteTableId) {
+      XLOG(DBG2) << "Skip route because table ID " << tableId
+                 << " is outside range " << minRouteTableId << ", "
+                 << maxRouteTableId;
+      return;
+    }
+    if (tableId == 0 || tableId == 253 || tableId == 254 || tableId == 255) {
+      throw FbossError(
+          "Route table ID 0, 253, 254, 255 are reserved in kernel usage");
+    }
+  } else {
+    if (tableId < 1 || tableId > 253) {
+      XLOG(DBG2) << "Skip route because table ID " << tableId
+                 << " is outside range [1-253]";
+      return;
+    }
   }
 
   // Get destination address
@@ -1332,7 +1383,9 @@ void TunManager::routeProcessor(struct nl_object* obj, void* data) {
  * Netlink callback for processing source routing rules read from kernel.
  * Process source routing rules discovered during kernel probing and stores
  * them for later cleanup. It filters rules based on address family
- * (IPv4/IPv6 only), table ID (1-253 range), and extracts source address
+ * (IPv4/IPv6 only), table ID (1-253 range if
+ * enable_1to1_intf_route_table_mapping enable [minRouteTableId,
+ * maxRouteTableId]), and extracts source address
  * and table information.
  *
  * @param obj Netlink rule object to process
@@ -1348,12 +1401,26 @@ void TunManager::ruleProcessor(struct nl_object* obj, void* data) {
     return;
   }
 
-  // Only process rules with table ID in our range [1-253]
+  // Only process rules with table ID in our range [1-253] except
+  // enable_1to1_intf_route_table_mapping is true
   auto tableId = rtnl_rule_get_table(rule);
-  if (tableId < 1 || tableId > 253) {
-    XLOG(DBG2) << "Skip rule because table ID " << tableId
-               << " is outside range [1-253]";
-    return;
+  if (FLAGS_enable_1to1_intf_route_table_mapping) {
+    if (tableId < minRouteTableId || tableId > maxRouteTableId) {
+      XLOG(DBG2) << "Skip route because table ID " << tableId
+                 << " is outside range " << minRouteTableId << ", "
+                 << maxRouteTableId;
+      return;
+    }
+    if (tableId == 0 || tableId == 253 || tableId == 254 || tableId == 255) {
+      throw FbossError(
+          "Route table ID 0, 253, 254, 255 are reserved in kernel usage");
+    }
+  } else {
+    if (tableId < 1 || tableId > 253) {
+      XLOG(DBG2) << "Skip rule because table ID " << tableId
+                 << " is outside range [1-253]";
+      return;
+    }
   }
 
   // Get source address

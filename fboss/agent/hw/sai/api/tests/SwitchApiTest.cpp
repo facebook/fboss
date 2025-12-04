@@ -661,3 +661,56 @@ TEST_F(SwitchApiTest, setGetPfcDlrPacketAction) {
           switchId, SaiSwitchTraits::Attributes::PfcDlrPacketAction{}),
       SAI_PACKET_ACTION_FORWARD);
 }
+
+TEST_F(SwitchApiTest, testPfcMonitorEnable) {
+  // Test default value
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::PfcMonitorEnable{}),
+      false);
+
+  // Test setting to true
+  SaiSwitchTraits::Attributes::PfcMonitorEnable pfcMonitorEnable{true};
+  switchApi->setAttribute(switchId, pfcMonitorEnable);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::PfcMonitorEnable{}),
+      true);
+
+  // Test setting to false
+  SaiSwitchTraits::Attributes::PfcMonitorEnable pfcMonitorDisable{false};
+  switchApi->setAttribute(switchId, pfcMonitorDisable);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::PfcMonitorEnable{}),
+      false);
+}
+
+TEST_F(SwitchApiTest, testCablePropagationDelayMeasurement) {
+  // Test default value
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement{}),
+      false);
+
+  // Test setting to true
+  SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement
+      cablePropagationDelayMeasurementEnable{true};
+  switchApi->setAttribute(switchId, cablePropagationDelayMeasurementEnable);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement{}),
+      true);
+
+  // Test setting to false
+  SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement
+      cablePropagationDelayMeasurementDisable{false};
+  switchApi->setAttribute(switchId, cablePropagationDelayMeasurementDisable);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement{}),
+      false);
+}

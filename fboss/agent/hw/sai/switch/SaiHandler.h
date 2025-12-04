@@ -114,6 +114,18 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
 
   void getHwDebugDump(std::string& out) override;
 
+  void getPortPrbsState(prbs::InterfacePrbsState& prbsState, int32_t portId)
+      override;
+  void getPortAsicPrbsStats(
+      std::vector<phy::PrbsLaneStats>& prbsStats,
+      int32_t portId) override;
+  void clearPortAsicPrbsStats(int32_t portId) override;
+  void getPortPrbsPolynomials(
+      std::vector<prbs::PrbsPolynomial>& prbsPolynomials,
+      int32_t portId) override;
+
+  void getProgrammedState(state::SwitchState& state) override;
+
  private:
   SaiSwitch* hw_;
   StreamingDiagShellServer diagShell_;

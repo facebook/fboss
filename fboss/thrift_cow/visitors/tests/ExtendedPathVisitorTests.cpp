@@ -14,7 +14,6 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/thrift_cow/nodes/Types.h"
-#include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
 
 using folly::dynamic;
 using namespace facebook::fboss;

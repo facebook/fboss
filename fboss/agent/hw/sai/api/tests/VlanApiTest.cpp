@@ -32,7 +32,20 @@ class VlanApiTest : public ::testing::Test {
     SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{
         bridgePortId};
     return vlanApi->create<SaiVlanMemberTraits>(
-        {vlanIdAttribute, bridgePortIdAttribute}, 0);
+        {vlanIdAttribute, bridgePortIdAttribute, std::nullopt}, 0);
+  }
+
+  VlanMemberSaiId createVlanMemberWithTaggingMode(
+      const sai_object_id_t vlanId,
+      const sai_object_id_t bridgePortId,
+      const sai_vlan_tagging_mode_t taggingMode) const {
+    SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{vlanId};
+    SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{
+        bridgePortId};
+    SaiVlanMemberTraits::Attributes::VlanTaggingMode vlanTaggingModeAttribute{
+        taggingMode};
+    return vlanApi->create<SaiVlanMemberTraits>(
+        {vlanIdAttribute, bridgePortIdAttribute, vlanTaggingModeAttribute}, 0);
   }
 
   void checkVlan(VlanSaiId vlanId) const {
@@ -62,6 +75,11 @@ TEST_F(VlanApiTest, createVlanMember) {
   checkVlan(vlanId);
   auto vlanMemberId = createVlanMember(vlanId, 0);
   checkVlanMember(vlanId, vlanMemberId);
+
+  // Verify default tagging mode is UNTAGGED when not specified
+  auto taggingMode = vlanApi->getAttribute(
+      vlanMemberId, SaiVlanMemberTraits::Attributes::VlanTaggingMode());
+  EXPECT_EQ(taggingMode, SAI_VLAN_TAGGING_MODE_UNTAGGED);
 }
 
 TEST_F(VlanApiTest, multipleVlan) {
@@ -85,12 +103,27 @@ TEST_F(VlanApiTest, removeVlanMember) {
 TEST_F(VlanApiTest, multipleVlanMembers) {
   auto vlanId = vlanApi->create<SaiVlanTraits>({42}, 0);
   checkVlan(vlanId);
-  auto vlanMemberId1 = createVlanMember(vlanId, 0);
-  auto vlanMemberId2 =
-      createVlanMember(vlanId, static_cast<BridgePortSaiId>(1));
+
+  // Create first member with tagged mode
+  auto vlanMemberId1 = createVlanMemberWithTaggingMode(
+      vlanId, static_cast<BridgePortSaiId>(0), SAI_VLAN_TAGGING_MODE_TAGGED);
+
+  // Create second member with untagged mode
+  auto vlanMemberId2 = createVlanMemberWithTaggingMode(
+      vlanId, static_cast<BridgePortSaiId>(1), SAI_VLAN_TAGGING_MODE_UNTAGGED);
+
   checkVlanMember(vlanId, vlanMemberId1);
   checkVlanMember(vlanId, vlanMemberId2);
   EXPECT_NE(vlanMemberId1, vlanMemberId2);
+
+  // Verify tagging modes are set correctly for both members
+  auto taggingMode1 = vlanApi->getAttribute(
+      vlanMemberId1, SaiVlanMemberTraits::Attributes::VlanTaggingMode());
+  EXPECT_EQ(taggingMode1, SAI_VLAN_TAGGING_MODE_TAGGED);
+
+  auto taggingMode2 = vlanApi->getAttribute(
+      vlanMemberId2, SaiVlanMemberTraits::Attributes::VlanTaggingMode());
+  EXPECT_EQ(taggingMode2, SAI_VLAN_TAGGING_MODE_UNTAGGED);
 }
 
 TEST_F(VlanApiTest, getVlanAttribute) {
@@ -127,16 +160,20 @@ TEST_F(VlanApiTest, getVlanMemberAttribute) {
   checkVlan(vlanId);
 
   BridgePortSaiId bridgePortId{0};
-  auto vlanMemberId = createVlanMember(vlanId, bridgePortId);
+  auto vlanMemberId = createVlanMemberWithTaggingMode(
+      vlanId, bridgePortId, SAI_VLAN_TAGGING_MODE_TAGGED);
   checkVlanMember(vlanId, vlanMemberId);
 
   auto bridgePortIdGot = vlanApi->getAttribute(
       vlanMemberId, SaiVlanMemberTraits::Attributes::BridgePortId());
   auto vlanIdGot = vlanApi->getAttribute(
       vlanMemberId, SaiVlanMemberTraits::Attributes::VlanId());
+  auto taggingModeGot = vlanApi->getAttribute(
+      vlanMemberId, SaiVlanMemberTraits::Attributes::VlanTaggingMode());
 
   EXPECT_EQ(vlanId, vlanIdGot);
   EXPECT_EQ(bridgePortId, bridgePortIdGot);
+  EXPECT_EQ(taggingModeGot, SAI_VLAN_TAGGING_MODE_TAGGED);
 }
 
 TEST_F(VlanApiTest, setVlanMemberAttribute) {
@@ -165,6 +202,14 @@ TEST_F(VlanApiTest, formatVlanMemberVlanIdAttribute) {
   SaiVlanMemberTraits::Attributes::VlanId vi{42};
   std::string expected("VlanId: 42");
   EXPECT_EQ(expected, fmt::format("{}", vi));
+}
+
+TEST_F(VlanApiTest, formatVlanMemberTaggingModeAttribute) {
+  SaiVlanMemberTraits::Attributes::VlanTaggingMode taggingMode{
+      SAI_VLAN_TAGGING_MODE_TAGGED};
+  std::string expected(
+      "VlanTaggingMode: " + std::to_string(SAI_VLAN_TAGGING_MODE_TAGGED));
+  EXPECT_EQ(expected, fmt::format("{}", taggingMode));
 }
 
 /*

@@ -139,10 +139,11 @@ TEST(DHCPv4PacketTest, Parse) {
   EXPECT_EQ(MacAddress("010203040506"), chaddrMac);
   EXPECT_EQ(string("abcd"), string((char*)(dhcp.sname.data())));
   EXPECT_EQ(string("efgh"), string((char*)(dhcp.file.data())));
-  EXPECT_TRUE(std::equal(
-      dhcp.dhcpCookie.begin(),
-      dhcp.dhcpCookie.end(),
-      DHCPv4Packet::kOptionsCookie));
+  EXPECT_TRUE(
+      std::equal(
+          dhcp.dhcpCookie.begin(),
+          dhcp.dhcpCookie.end(),
+          DHCPv4Packet::kOptionsCookie));
 
   auto smallPacket = MockRxPacket::fromHex("00 00 00 00");
   Cursor cursor2(smallPacket->buf());
@@ -170,24 +171,32 @@ TEST(DHCPv4Packet, Write) {
 TEST(DHCPv4Packet, getOption) {
   auto dhcpPkt = makeDHCPPacket();
   vector<uint8_t> optData;
-  EXPECT_TRUE(DHCPv4Packet::getOptionSlow(
-      DHCPv4OptionsOfInterest::DHCP_MESSAGE_TYPE, dhcpPkt.options, optData));
+  EXPECT_TRUE(
+      DHCPv4Packet::getOptionSlow(
+          DHCPv4OptionsOfInterest::DHCP_MESSAGE_TYPE,
+          dhcpPkt.options,
+          optData));
   EXPECT_EQ(1, optData.size());
   EXPECT_EQ(1, optData[0]);
 
   optData.clear();
-  EXPECT_TRUE(DHCPv4Packet::getOptionSlow(
-      DHCPv4OptionsOfInterest::PAD, dhcpPkt.options, optData));
+  EXPECT_TRUE(
+      DHCPv4Packet::getOptionSlow(
+          DHCPv4OptionsOfInterest::PAD, dhcpPkt.options, optData));
   EXPECT_EQ(0, optData.size());
 
   optData.clear();
-  EXPECT_TRUE(DHCPv4Packet::getOptionSlow(
-      DHCPv4OptionsOfInterest::END, dhcpPkt.options, optData));
+  EXPECT_TRUE(
+      DHCPv4Packet::getOptionSlow(
+          DHCPv4OptionsOfInterest::END, dhcpPkt.options, optData));
   EXPECT_EQ(0, optData.size());
 
   optData.clear();
-  EXPECT_FALSE(DHCPv4Packet::getOptionSlow(
-      DHCPv4OptionsOfInterest::DHCP_AGENT_OPTIONS, dhcpPkt.options, optData));
+  EXPECT_FALSE(
+      DHCPv4Packet::getOptionSlow(
+          DHCPv4OptionsOfInterest::DHCP_AGENT_OPTIONS,
+          dhcpPkt.options,
+          optData));
   EXPECT_EQ(0, optData.size());
 }
 

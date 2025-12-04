@@ -62,7 +62,60 @@
     "SMBus I801 adapter at 5000",
     "SMBus iSMT adapter at 20fffa7b000"
   ],
-  "versionedPmUnitConfigs": {},
+  "versionedPmUnitConfigs": {
+    "NETLAKE": [
+      {
+        "pmUnitConfig": {
+          "pluggedInSlotType": "COMESE_SLOT",
+          "i2cDeviceConfigs": [
+            {
+              "busName": "INCOMING@0",
+              "address": "0x11",
+              "kernelDeviceName": "mp9941",
+              "pmUnitScopedName": "COME_HWMON_1"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x22",
+              "kernelDeviceName": "mp9941",
+              "pmUnitScopedName": "COME_HWMON_2"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x45",
+              "kernelDeviceName": "mp9941",
+              "pmUnitScopedName": "COME_HWMON_3"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x66",
+              "kernelDeviceName": "mp9941",
+              "pmUnitScopedName": "COME_HWMON_4"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x76",
+              "kernelDeviceName": "mp2993",
+              "pmUnitScopedName": "COME_HWMON_5"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x48",
+              "kernelDeviceName": "tmp75",
+              "pmUnitScopedName": "COME_U18_INLET_TSENSOR"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x4a",
+              "kernelDeviceName": "tmp75",
+              "pmUnitScopedName": "COME_U39_OUTLET_TSENSOR"
+            }
+          ]
+        },
+        "productSubVersion": 2
+      }
+    ]
+  },
   "pmUnitConfigs": {
     "ICETEA_MCB": {
       "pluggedInSlotType": "MCB_SLOT",
@@ -636,273 +689,23 @@
               ]
             }
           ],
-          "xcvrCtrlConfigs": [
+          "xcvrCtrlConfigs": [],
+          "xcvrCtrlBlockConfigs": [
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_1",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40200"
-              },
-              "portNumber": 1
+              "pmUnitScopedNamePrefix": "PIC_DOM",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x40200 + ({portNum} - {startPort})*0x4",
+              "numPorts": 32,
+              "startPort": 1
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_2",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40204"
-              },
-              "portNumber": 2
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_3",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40208"
-              },
-              "portNumber": 3
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_4",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4020c"
-              },
-              "portNumber": 4
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_5",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40210"
-              },
-              "portNumber": 5
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_6",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40214"
-              },
-              "portNumber": 6
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_7",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40218"
-              },
-              "portNumber": 7
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_8",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4021c"
-              },
-              "portNumber": 8
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_9",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40220"
-              },
-              "portNumber": 9
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_10",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40224"
-              },
-              "portNumber": 10
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_11",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40228"
-              },
-              "portNumber": 11
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_12",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4022c"
-              },
-              "portNumber": 12
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_13",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40230"
-              },
-              "portNumber": 13
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_14",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40234"
-              },
-              "portNumber": 14
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_15",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40238"
-              },
-              "portNumber": 15
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_16",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4023c"
-              },
-              "portNumber": 16
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_17",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40240"
-              },
-              "portNumber": 17
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_18",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40244"
-              },
-              "portNumber": 18
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_19",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40248"
-              },
-              "portNumber": 19
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_20",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4024c"
-              },
-              "portNumber": 20
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_21",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40250"
-              },
-              "portNumber": 21
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_22",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40254"
-              },
-              "portNumber": 22
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_23",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40258"
-              },
-              "portNumber": 23
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_24",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4025c"
-              },
-              "portNumber": 24
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_25",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40260"
-              },
-              "portNumber": 25
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_26",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40264"
-              },
-              "portNumber": 26
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_27",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40268"
-              },
-              "portNumber": 27
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_28",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4026c"
-              },
-              "portNumber": 28
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_29",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40270"
-              },
-              "portNumber": 29
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_30",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40274"
-              },
-              "portNumber": 30
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_31",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40278"
-              },
-              "portNumber": 31
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PIC_DOM_XCVR_CTRL_PORT_32",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4027c"
-              },
-              "portNumber": 32
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_XCVR_CTRL_PORT_33",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1030"
-              },
-              "portNumber": 33
+              "pmUnitScopedNamePrefix": "MCB_IOB",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x1030 + ({portNum} - {startPort})*0x4",
+              "numPorts": 1,
+              "startPort": 33
             }
           ],
-          "ledCtrlConfigs": [],
           "ledCtrlBlockConfigs": [
             {
               "pmUnitScopedNamePrefix": "MCB_LED",
@@ -953,13 +756,31 @@
           "busName": "MCB_IOB_I2C_MASTER_5",
           "address": "0x60",
           "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "MCB_PMBUS_1"
+          "pmUnitScopedName": "MCB_PMBUS_1",
+          "initRegSettings": [
+            {
+              "__comment__": "Set the page to 0 to ensure the driver can read the correct registers",
+              "regOffset": 0,
+              "ioBuf": [
+                0
+              ]
+            }
+          ]
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_5",
           "address": "0x61",
           "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "MCB_PMBUS_2"
+          "pmUnitScopedName": "MCB_PMBUS_2",
+          "initRegSettings": [
+            {
+              "__comment__": "Set the page to 0 to ensure the driver can read the correct registers",
+              "regOffset": 0,
+              "ioBuf": [
+                0
+              ]
+            }
+          ]
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_6",
@@ -990,7 +811,7 @@
           "busName": "MCB_IOB_I2C_MASTER_15",
           "address": "0x53",
           "kernelDeviceName": "24c64",
-          "pmUnitScopedName": "CHASSIS_IDPROM",
+          "pmUnitScopedName": "CHASSIS_EEPROM",
           "isEeprom": true
         },
         {
@@ -1095,31 +916,31 @@
         {
           "busName": "INCOMING@0",
           "address": "0x11",
-          "kernelDeviceName": "mp9941",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_HWMON_1"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x22",
-          "kernelDeviceName": "mp9941",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_HWMON_2"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x45",
-          "kernelDeviceName": "mp9941",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_HWMON_3"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x66",
-          "kernelDeviceName": "mp9941",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_HWMON_4"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x76",
-          "kernelDeviceName": "mp2993",
+          "kernelDeviceName": "xdpe15284",
           "pmUnitScopedName": "COME_HWMON_5"
         },
         {
@@ -1280,10 +1101,24 @@
           "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_1",
           "initRegSettings": [
             {
+              "__comment__": "Local temp high limit setting for high byte.",
+              "regOffset": 11,
+              "ioBuf": [
+                100
+              ]
+            },
+            {
+              "__comment__": "Local temp high limit setting for low byte.",
+              "regOffset": 61,
+              "ioBuf": [
+                0
+              ]
+            },
+            {
               "__comment__": "Remote temp1 high limit setting for high byte. PR:532",
               "regOffset": 13,
               "ioBuf": [
-                105
+                100
               ]
             },
             {
@@ -1297,7 +1132,7 @@
               "__comment__": "Remote temp2 high limit setting for high byte. PR:532",
               "regOffset": 21,
               "ioBuf": [
-                105
+                100
               ]
             },
             {
@@ -1348,10 +1183,24 @@
           "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_2",
           "initRegSettings": [
             {
+              "__comment__": "Local temp high limit setting for high byte.",
+              "regOffset": 11,
+              "ioBuf": [
+                100
+              ]
+            },
+            {
+              "__comment__": "Local temp high limit setting for low byte.",
+              "regOffset": 61,
+              "ioBuf": [
+                0
+              ]
+            },
+            {
               "__comment__": "Remote temp1 high limit setting for high byte. PR:532",
               "regOffset": 13,
               "ioBuf": [
-                105
+                100
               ]
             },
             {
@@ -1458,7 +1307,7 @@
   },
   "symbolicLinkToDevicePath": {
     "/run/devmap/eeproms/MCB_EEPROM": "/[IDPROM]",
-    "/run/devmap/eeproms/CHASSIS_EEPROM": "/[CHASSIS_IDPROM]",
+    "/run/devmap/eeproms/CHASSIS_EEPROM": "/[CHASSIS_EEPROM]",
     "/run/devmap/eeproms/RUNBMC_EEPROM": "/RUNBMC_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/COME_EEPROM": "/COMESE_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
@@ -1521,75 +1370,9 @@
     "/run/devmap/fpgas/PIC_DOM_INFO_ROM": "/[PIC_DOM_INFO_ROM]",
     "/run/devmap/inforoms/MCB_IOB_INFO_ROM": "/[MCB_IOB_INFO_ROM]",
     "/run/devmap/inforoms/PIC_DOM_INFO_ROM": "/[PIC_DOM_INFO_ROM]",
-    "/run/devmap/i2c-busses/XCVR_1": "/[PIC_DOM_I2C_MASTER_1]",
-    "/run/devmap/i2c-busses/XCVR_2": "/[PIC_DOM_I2C_MASTER_2]",
-    "/run/devmap/i2c-busses/XCVR_3": "/[PIC_DOM_I2C_MASTER_3]",
-    "/run/devmap/i2c-busses/XCVR_4": "/[PIC_DOM_I2C_MASTER_4]",
-    "/run/devmap/i2c-busses/XCVR_5": "/[PIC_DOM_I2C_MASTER_5]",
-    "/run/devmap/i2c-busses/XCVR_6": "/[PIC_DOM_I2C_MASTER_6]",
-    "/run/devmap/i2c-busses/XCVR_7": "/[PIC_DOM_I2C_MASTER_7]",
-    "/run/devmap/i2c-busses/XCVR_8": "/[PIC_DOM_I2C_MASTER_8]",
-    "/run/devmap/i2c-busses/XCVR_9": "/[PIC_DOM_I2C_MASTER_9]",
-    "/run/devmap/i2c-busses/XCVR_10": "/[PIC_DOM_I2C_MASTER_10]",
-    "/run/devmap/i2c-busses/XCVR_11": "/[PIC_DOM_I2C_MASTER_11]",
-    "/run/devmap/i2c-busses/XCVR_12": "/[PIC_DOM_I2C_MASTER_12]",
-    "/run/devmap/i2c-busses/XCVR_13": "/[PIC_DOM_I2C_MASTER_13]",
-    "/run/devmap/i2c-busses/XCVR_14": "/[PIC_DOM_I2C_MASTER_14]",
-    "/run/devmap/i2c-busses/XCVR_15": "/[PIC_DOM_I2C_MASTER_15]",
-    "/run/devmap/i2c-busses/XCVR_16": "/[PIC_DOM_I2C_MASTER_16]",
-    "/run/devmap/i2c-busses/XCVR_17": "/[PIC_DOM_I2C_MASTER_17]",
-    "/run/devmap/i2c-busses/XCVR_18": "/[PIC_DOM_I2C_MASTER_18]",
-    "/run/devmap/i2c-busses/XCVR_19": "/[PIC_DOM_I2C_MASTER_19]",
-    "/run/devmap/i2c-busses/XCVR_20": "/[PIC_DOM_I2C_MASTER_20]",
-    "/run/devmap/i2c-busses/XCVR_21": "/[PIC_DOM_I2C_MASTER_21]",
-    "/run/devmap/i2c-busses/XCVR_22": "/[PIC_DOM_I2C_MASTER_22]",
-    "/run/devmap/i2c-busses/XCVR_23": "/[PIC_DOM_I2C_MASTER_23]",
-    "/run/devmap/i2c-busses/XCVR_24": "/[PIC_DOM_I2C_MASTER_24]",
-    "/run/devmap/i2c-busses/XCVR_25": "/[PIC_DOM_I2C_MASTER_25]",
-    "/run/devmap/i2c-busses/XCVR_26": "/[PIC_DOM_I2C_MASTER_26]",
-    "/run/devmap/i2c-busses/XCVR_27": "/[PIC_DOM_I2C_MASTER_27]",
-    "/run/devmap/i2c-busses/XCVR_28": "/[PIC_DOM_I2C_MASTER_28]",
-    "/run/devmap/i2c-busses/XCVR_29": "/[PIC_DOM_I2C_MASTER_29]",
-    "/run/devmap/i2c-busses/XCVR_30": "/[PIC_DOM_I2C_MASTER_30]",
-    "/run/devmap/i2c-busses/XCVR_31": "/[PIC_DOM_I2C_MASTER_31]",
-    "/run/devmap/i2c-busses/XCVR_32": "/[PIC_DOM_I2C_MASTER_32]",
-    "/run/devmap/i2c-busses/XCVR_33": "/[MCB_IOB_I2C_MASTER_28]",
     "/run/devmap/i2c-busses/PIC_DOM_I2C_MASTER_33": "/[PIC_DOM_I2C_MASTER_33]",
     "/run/devmap/i2c-busses/PIC_DOM_I2C_MASTER_34": "/[PIC_DOM_I2C_MASTER_34]",
     "/run/devmap/gpiochips/MCB_GPIO_CHIP_1": "/[MCB_GPIO_CHIP_1]",
-    "/run/devmap/xcvrs/xcvr_1": "/[PIC_DOM_XCVR_CTRL_PORT_1]",
-    "/run/devmap/xcvrs/xcvr_2": "/[PIC_DOM_XCVR_CTRL_PORT_2]",
-    "/run/devmap/xcvrs/xcvr_3": "/[PIC_DOM_XCVR_CTRL_PORT_3]",
-    "/run/devmap/xcvrs/xcvr_4": "/[PIC_DOM_XCVR_CTRL_PORT_4]",
-    "/run/devmap/xcvrs/xcvr_5": "/[PIC_DOM_XCVR_CTRL_PORT_5]",
-    "/run/devmap/xcvrs/xcvr_6": "/[PIC_DOM_XCVR_CTRL_PORT_6]",
-    "/run/devmap/xcvrs/xcvr_7": "/[PIC_DOM_XCVR_CTRL_PORT_7]",
-    "/run/devmap/xcvrs/xcvr_8": "/[PIC_DOM_XCVR_CTRL_PORT_8]",
-    "/run/devmap/xcvrs/xcvr_9": "/[PIC_DOM_XCVR_CTRL_PORT_9]",
-    "/run/devmap/xcvrs/xcvr_10": "/[PIC_DOM_XCVR_CTRL_PORT_10]",
-    "/run/devmap/xcvrs/xcvr_11": "/[PIC_DOM_XCVR_CTRL_PORT_11]",
-    "/run/devmap/xcvrs/xcvr_12": "/[PIC_DOM_XCVR_CTRL_PORT_12]",
-    "/run/devmap/xcvrs/xcvr_13": "/[PIC_DOM_XCVR_CTRL_PORT_13]",
-    "/run/devmap/xcvrs/xcvr_14": "/[PIC_DOM_XCVR_CTRL_PORT_14]",
-    "/run/devmap/xcvrs/xcvr_15": "/[PIC_DOM_XCVR_CTRL_PORT_15]",
-    "/run/devmap/xcvrs/xcvr_16": "/[PIC_DOM_XCVR_CTRL_PORT_16]",
-    "/run/devmap/xcvrs/xcvr_17": "/[PIC_DOM_XCVR_CTRL_PORT_17]",
-    "/run/devmap/xcvrs/xcvr_18": "/[PIC_DOM_XCVR_CTRL_PORT_18]",
-    "/run/devmap/xcvrs/xcvr_19": "/[PIC_DOM_XCVR_CTRL_PORT_19]",
-    "/run/devmap/xcvrs/xcvr_20": "/[PIC_DOM_XCVR_CTRL_PORT_20]",
-    "/run/devmap/xcvrs/xcvr_21": "/[PIC_DOM_XCVR_CTRL_PORT_21]",
-    "/run/devmap/xcvrs/xcvr_22": "/[PIC_DOM_XCVR_CTRL_PORT_22]",
-    "/run/devmap/xcvrs/xcvr_23": "/[PIC_DOM_XCVR_CTRL_PORT_23]",
-    "/run/devmap/xcvrs/xcvr_24": "/[PIC_DOM_XCVR_CTRL_PORT_24]",
-    "/run/devmap/xcvrs/xcvr_25": "/[PIC_DOM_XCVR_CTRL_PORT_25]",
-    "/run/devmap/xcvrs/xcvr_26": "/[PIC_DOM_XCVR_CTRL_PORT_26]",
-    "/run/devmap/xcvrs/xcvr_27": "/[PIC_DOM_XCVR_CTRL_PORT_27]",
-    "/run/devmap/xcvrs/xcvr_28": "/[PIC_DOM_XCVR_CTRL_PORT_28]",
-    "/run/devmap/xcvrs/xcvr_29": "/[PIC_DOM_XCVR_CTRL_PORT_29]",
-    "/run/devmap/xcvrs/xcvr_30": "/[PIC_DOM_XCVR_CTRL_PORT_30]",
-    "/run/devmap/xcvrs/xcvr_31": "/[PIC_DOM_XCVR_CTRL_PORT_31]",
-    "/run/devmap/xcvrs/xcvr_32": "/[PIC_DOM_XCVR_CTRL_PORT_32]",
-    "/run/devmap/xcvrs/xcvr_33": "/[MCB_IOB_XCVR_CTRL_PORT_33]",
     "/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1": "/[MCB_SPI_MASTER_1_DEVICE_1]",
     "/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1": "/[MCB_SPI_MASTER_2_DEVICE_1]",
     "/run/devmap/flashes/MCB_SPI_MASTER_3_DEVICE_1": "/[MCB_SPI_MASTER_3_DEVICE_1]",
@@ -1664,10 +1447,10 @@
     "/run/devmap/xcvrs/xcvr_io_33": "/[MCB_IOB_I2C_MASTER_28]",
     "/run/devmap/xcvrs/xcvr_ctrl_33": "/[MCB_IOB_XCVR_CTRL_PORT_33]"
   },
-  "chassisEepromDevicePath": "/[CHASSIS_IDPROM]",
+  "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 33,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "3.3.2-1",
+  "bspKmodsRpmVersion": "3.4.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",

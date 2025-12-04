@@ -39,7 +39,10 @@ class PortManager {
  public:
   using TcvrToSynchronizedPortSet = std::unordered_map<
       TransceiverID,
-      std::unique_ptr<folly::Synchronized<std::unordered_set<PortID>>>>;
+      std::unique_ptr<folly::Synchronized<std::set<PortID>>>>;
+  using PortToSynchronizedTcvrVec = std::unordered_map<
+      PortID,
+      std::unique_ptr<folly::Synchronized<std::vector<TransceiverID>>>>;
 
  private:
   using TcvrToPortMap = std::unordered_map<TransceiverID, std::vector<PortID>>;
@@ -63,7 +66,8 @@ class PortManager {
       std::unique_ptr<PhyManager> phyManager,
       const std::shared_ptr<const PlatformMapping> platformMapping,
       const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          threads);
+          threads,
+      std::shared_ptr<QsfpFsdbSyncManager> fsdbSyncManager = nullptr);
   virtual ~PortManager();
   void gracefulExit();
 
@@ -88,6 +92,8 @@ class PortManager {
   // Marked virtual for MockPortManager testing.
   virtual phy::PhyInfo getXphyInfo(PortID portId);
 
+  phy::PortPrbsState getXphyPortPrbs(const PortID& portId, phy::Side side);
+
   void updateAllXphyPortsStats();
 
   std::vector<PortID> getMacsecCapablePorts() const;
@@ -108,10 +114,6 @@ class PortManager {
       const std::string& /* portName */,
       phy::PortComponent /* component */,
       bool /* setAdminUp */);
-
-  void getSymbolErrorHistogram(
-      CdbDatapathSymErrHistogram& symErr,
-      const std::string& portName);
 
   std::string saiPhyRegisterAccess(
       const std::string& /* portName */,
@@ -157,11 +159,12 @@ class PortManager {
    * transceiver (e.g. programInternalPhyPorts).
    *
    * For 1:1 tcvr:port case, this will simply return the passed in portID.
-   * For 1:X tcvr:port case, this will return the lowest portID assigned to the
-   * transceiver.
+   * For 1:X tcvr:port case, this will return the lowest initialized portID
+   * assigned to the transceiver.
    * For X:1 tcvr:port case, this will simply return the passed in portID.
    */
-  PortID getLowestIndexedPortForTransceiverPortGroup(PortID portId) const;
+  PortID getLowestIndexedInitializedPortForTransceiverPortGroup(
+      PortID portId) const;
 
   /* Gets lowest-indexed transceiverID associated with a given portID. This is
    * used for assigning port state machine functions to a thread for execution.
@@ -170,22 +173,48 @@ class PortManager {
    * For 1:X tcvr:port case, this will return the assigned transceiverID.
    * For X:1 tcvr:port case, this will return the lowest transceiverID assigned
    * to the port.
+   *
+   * This information can be pulled from static mapping in platform mapping or
+   * from the profile-specific pins – either way we are guaranteed that the
+   * first transceiver for a port will always be in use. That guarantee doesn't
+   * hold for the second transceiver.
    */
-  TransceiverID getLowestIndexedTransceiverForPort(PortID portId) const;
+  TransceiverID getLowestIndexedStaticTransceiverForPort(PortID portId) const;
 
-  bool isLowestIndexedPortForTransceiverPortGroup(PortID portId) const;
+  std::optional<TransceiverID> getNonControllingTransceiverIdForMultiTcvr(
+      TransceiverID tcvrId) const;
 
-  // Gets all transceiverIDs for a given port. This will contain 2 transceivers
-  // in the multi-tcvr - single-port use case, otherwise will contain 1.
-  std::vector<TransceiverID> getTransceiverIdsForPort(PortID portId) const;
+  /* Gets ALL transceiver ids that CAN be used by the given port. For a majority
+   * of ports, this will be 1. However, for our custom Wedge400 platform mapping
+   * that supports reverse Y-Cable downlinks, this will be two transceiver for
+   * downlink ports. */
+  std::vector<TransceiverID> getStaticTransceiversForPort(PortID portId) const;
+
+  /* Checks if a port is the lowest indexed, initialized port assigned to a
+   * specific transceiver. */
+  bool isLowestIndexedInitializedPortForTransceiverPortGroup(
+      PortID portId) const;
+
+  /* Gets all transceiverIDs for a given port. This will contain 2 transceivers
+   * in the multi-tcvr - single-port use case, otherwise will contain 1. */
+  std::vector<TransceiverID> getInitializedTransceiverIdsForPort(
+      PortID portId) const;
 
   bool hasPortFinishedIphyProgramming(PortID portId) const;
   bool hasPortFinishedXphyProgramming(PortID portId) const;
 
-  void programInternalPhyPorts(TransceiverID id);
+  cfg::PortProfileID getPerTransceiverProfile(
+      int numTcvrs,
+      cfg::PortProfileID profileId) const;
+  std::unordered_map<TransceiverID, std::map<int32_t, cfg::PortProfileID>>
+  getMultiTransceiverPortProfileIDs(
+      const TransceiverID& initTcvrId,
+      const std::map<int32_t, cfg::PortProfileID>& agentPortToProfileIDs) const;
+
+  virtual void programInternalPhyPorts(TransceiverID id);
 
   // Marked virtual for MockPortManager testing.
-  void programExternalPhyPorts(
+  virtual void programExternalPhyPorts(
       TransceiverID tcvrId,
       bool xPhyNeedResetDataPath);
 
@@ -262,15 +291,16 @@ class PortManager {
       phy::PortComponent component);
 
   void publishPhyStateToFsdb(
-      std::string&& /* portName */,
-      std::optional<phy::PhyState>&& /* newState */) const {}
+      std::string&& /* portNameStr */,
+      std::optional<phy::PhyState>&& /* newState */) const;
+
   void publishPhyStatToFsdb(
-      std::string&& /* portName */,
-      phy::PhyStats&& /* stat */) const {}
+      std::string&& /* portNameStr */,
+      phy::PhyStats&& /* stat */) const;
 
   void publishPortStatToFsdb(
-      std::string&& /* portName */,
-      HwPortStats&& /* stat */) const {}
+      std::string&& /* portNameStr */,
+      HwPortStats&& /* stat */) const;
 
   void syncNpuPortStatusUpdate(
       std::map<int, facebook::fboss::NpuPortStatus>& portStatus);
@@ -286,6 +316,14 @@ class PortManager {
 
   void updateTransceiverPortStatus() noexcept;
 
+  // Remediation logic and update on transceiver insert logic in
+  // TransceiverManager NEED to know if a transceiver has any ports that are
+  // currently active.
+
+  // Because PortManager states are now separated from transceiver manager, we
+  // need to update tcvrPortToPortInfo with this data every refresh cycle.
+  void updatePortActiveStatusInTransceiverManager();
+
   // For testing purposes only - direct access to tcvrToInitializedPorts_ cache
   const TcvrToSynchronizedPortSet& getTcvrToInitializedPortsForTest() const {
     return tcvrToInitializedPorts_;
@@ -296,12 +334,16 @@ class PortManager {
   // telling port state machines to upgrade to TCVRS_PROGRAMMED when necessary.
   void triggerProgrammingEvents();
 
-  void detectTransceiverDiscoveredAndReinitializeCorrespondingPorts();
+  void detectTransceiverResetAndReinitializeCorrespondingDownPorts();
 
   bool arePortTcvrsProgrammed(PortID portId) const;
 
   // Made public for PortManager access.
   void setPortEnabledStatusInCache(PortID portId, bool enabled);
+  void setTransceiverEnabledStatusInCache(PortID portId, TransceiverID tcvrId);
+  void clearEnabledTransceiversForPort(PortID portId);
+  void clearTransceiversReadyForProgramming(PortID portId);
+  void clearMultiTcvrMappings(PortID portId);
 
   void updatePortActiveState(
       const std::map<int32_t, PortStatus>& portStatus) noexcept;
@@ -310,12 +352,23 @@ class PortManager {
   // PortStateMachine.
   void refreshStateMachines();
 
- protected:
+  bool getXphyNeedResetDataPath(PortID id) const;
+
+  void programXphyPortPrbs(
+      PortID portId,
+      phy::Side side,
+      const phy::PortPrbsState& prbs);
+
+  void getPortStates(
+      std::map<int32_t, PortStateMachineState>& states,
+      std::unique_ptr<std::vector<int32_t>> ids);
+
   /*
    * function to initialize all the Phy in the system
    */
   bool initExternalPhyMap(bool forceWarmboot = false);
 
+ protected:
   void publishLinkSnapshots(PortID portId);
 
   std::unordered_set<TransceiverID> getTransceiversWithAllPortsInSet(
@@ -329,6 +382,10 @@ class PortManager {
   // For platforms that needs to program xphy (passed in through constructor).
   std::unique_ptr<PhyManager> phyManager_;
 
+  // Shared pointer to QsfpFsdbSyncManager for publishing to FSDB.
+  // Shared with TransceiverManager.
+  std::shared_ptr<QsfpFsdbSyncManager> fsdbSyncManager_;
+
  private:
   PortManager(PortManager const&) = delete;
   PortManager& operator=(PortManager const&) = delete;
@@ -337,6 +394,7 @@ class PortManager {
 
   const std::unordered_set<PortID> getXphyPortsCache();
 
+  void stopThreads();
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
 
   // Restore phy state from the last cached warm boot qsfp_service state
@@ -361,6 +419,11 @@ class PortManager {
       const PortID& portID,
       std::unique_ptr<PortStateMachineUpdate> update);
   void executeStateUpdates();
+  void drainAllStateMachineUpdates();
+
+  void setGracefulExitingFlag() {
+    isExiting_ = true;
+  }
 
   static void handlePendingUpdatesHelper(PortManager* mgr);
   void handlePendingUpdates();
@@ -368,6 +431,9 @@ class PortManager {
   PortNameIdMap setupPortNameToPortIDMap();
 
   TcvrToSynchronizedPortSet setupTcvrToSynchronizedPortSet();
+  PortToSynchronizedTcvrVec setupPortToSynchronizedTcvrVec();
+
+  void setWarmBootState();
 
   // TEST ONLY
   // This private map is an override of agent getPortStatus()
@@ -429,10 +495,19 @@ class PortManager {
   PortToStateMachineControllerMap setupPortToStateMachineControllerMap();
   const PortToStateMachineControllerMap stateMachineControllers_;
 
-  const TcvrToSynchronizedPortSet tcvrToInitializedPorts_;
+  // These data structures help out with iterating through initialized ports /
+  // transceivers faster.
 
-  std::unordered_map<TransceiverID, TransceiverStateMachineState>
-      lastTcvrStates_;
+  const TcvrToSynchronizedPortSet tcvrToInitializedPorts_;
+  // Initialized transceivers indicates if a transceiver is in use by a specific
+  // initialized port (e.g. for cases in which a port needs to subsume current
+  // transceiver and adjacent transceiver's ports.)
+  const PortToSynchronizedTcvrVec portToInitializedTcvrs_;
+
+  folly::Synchronized<std::unordered_map<PortID, PortID>>
+      multiTcvrQsfpPortToAgentPort_;
+  folly::Synchronized<std::unordered_map<TransceiverID, TransceiverID>>
+      multiTcvrControllingToNonControllingTcvr_;
 };
 
 } // namespace facebook::fboss

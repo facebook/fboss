@@ -29,6 +29,7 @@ cpp_library(
         "//fboss/agent/hw/test:load_balancer_utils",
         "//fboss/agent/hw/test:prod_config_factory",
         "//fboss/agent/state:state",
+        "//fboss/agent/state:state_utils",
         "//fboss/agent/test:agent_ensemble_test",
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test/utils:acl_test_utils",

@@ -180,6 +180,9 @@ class PortManagerTest : public ManagerTestBase {
         std::nullopt, // StaticModuleId
         std::nullopt, // IsHyperPortMember
         std::nullopt, // HyperPortMemberList
+        std::nullopt, // PfcMonitorDirection
+        std::nullopt, // QosDot1pToTcMap
+        std::nullopt, // QosTcAndColorToDot1pMap
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }
@@ -359,12 +362,14 @@ void checkCounterExport(
        HwPortFb303Stats("dummy").kPortMonotonicCounterStatKeys()) {
     switch (expectExport) {
       case ExpectExport::EXPORT:
-        EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
-            HwPortFb303Stats::statName(statKey, portName)));
+        EXPECT_TRUE(
+            facebook::fbData->getStatMap()->contains(
+                HwPortFb303Stats::statName(statKey, portName)));
         break;
       case ExpectExport::NO_EXPORT:
-        EXPECT_FALSE(facebook::fbData->getStatMap()->contains(
-            HwPortFb303Stats::statName(statKey, portName)));
+        EXPECT_FALSE(
+            facebook::fbData->getStatMap()->contains(
+                HwPortFb303Stats::statName(statKey, portName)));
         break;
     }
   }
@@ -375,8 +380,9 @@ TEST_F(PortManagerTest, changePortNameAndCheckCounters) {
   saiManagerTable->portManager().addPort(swPort);
   for (auto statKey :
        HwPortFb303Stats("dummy").kPortMonotonicCounterStatKeys()) {
-    EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
-        HwPortFb303Stats::statName(statKey, swPort->getName())));
+    EXPECT_TRUE(
+        facebook::fbData->getStatMap()->contains(
+            HwPortFb303Stats::statName(statKey, swPort->getName())));
   }
   auto newPort = swPort->clone();
   newPort->setName("eth1/1/1");

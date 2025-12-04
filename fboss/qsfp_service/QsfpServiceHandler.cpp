@@ -69,12 +69,19 @@ void QsfpServiceHandler::init() {
   tcvrManager_->init();
   if (FLAGS_subscribe_to_state_from_fsdb) {
     fsdbSubscriber_ = std::make_unique<QsfpFsdbSubscriber>();
-    fsdbSubscriber_->subscribeToSwitchStatePortMap(getTransceiverManager());
+    fsdbSubscriber_->subscribeToSwitchStatePortMap(
+        getTransceiverManager(), getPortManager());
   }
 
   if (FLAGS_port_manager_mode) {
     XLOG(INFO) << "Initializing PortManager";
     portManager_->init();
+  }
+
+  if (FLAGS_subscribe_to_state_from_fsdb) {
+    fsdbSubscriber_ = std::make_unique<QsfpFsdbSubscriber>();
+    fsdbSubscriber_->subscribeToSwitchStatePortMap(
+        getTransceiverManager(), getPortManager());
   }
 
   XLOG(INFO) << "QsfpServiceHandler initialization complete";
@@ -94,6 +101,13 @@ void QsfpServiceHandler::getTransceiverInfo(
     std::unique_ptr<std::vector<int32_t>> ids) {
   auto log = LOG_THRIFT_CALL(INFO);
   tcvrManager_->getTransceiversInfo(info, std::move(ids));
+}
+
+void QsfpServiceHandler::getPortStateMachineState(
+    std::map<int32_t, PortStateMachineState>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  portManager_->getPortStates(info, std::move(ids));
 }
 
 void QsfpServiceHandler::getPortMediaInterface(
@@ -182,7 +196,6 @@ void QsfpServiceHandler::getSymbolErrorHistogram(
     CdbDatapathSymErrHistogram& symErr,
     std::unique_ptr<std::string> portName) {
   auto log = LOG_THRIFT_CALL(INFO);
-  // TODO(smenta) - Support in Port Manager mode
   tcvrManager_->getSymbolErrorHistogram(symErr, *portName);
 }
 
@@ -583,9 +596,87 @@ void QsfpServiceHandler::gracefulExit() {
  */
 PhyManager* QsfpServiceHandler::getPhyManager() const {
   if (FLAGS_port_manager_mode) {
-    return getPortManager()->getPhyManager();
+    return portManager_->getPhyManager();
   } else {
-    return getTransceiverManager()->getPhyManager();
+    return tcvrManager_->getPhyManager();
+  }
+}
+
+std::optional<std::string> QsfpServiceHandler::getPortNameByPortId(
+    const PortID& portId) const {
+  if (FLAGS_port_manager_mode) {
+    return portManager_->getPortNameByPortId(portId);
+  } else {
+    return tcvrManager_->getPortNameByPortId(portId);
+  }
+}
+
+void QsfpServiceHandler::setOverrideAgentPortStatusForTesting(
+    bool up,
+    bool enabled,
+    bool clearOnly) {
+  if (FLAGS_port_manager_mode) {
+    portManager_->setOverrideAllAgentPortStatusForTesting(
+        up, enabled, clearOnly);
+  } else {
+    tcvrManager_->setOverrideAgentPortStatusForTesting(up, enabled, clearOnly);
+  }
+}
+
+void QsfpServiceHandler::setOverrideAgentConfigAppliedInfoForTesting(
+    ConfigAppliedInfo info) {
+  if (FLAGS_port_manager_mode) {
+    portManager_->setOverrideAgentConfigAppliedInfoForTesting(info);
+  } else {
+    tcvrManager_->setOverrideAgentConfigAppliedInfoForTesting(info);
+  }
+}
+
+std::optional<PortID> QsfpServiceHandler::getPortIdByPortName(
+    const std::string& portNameStr) const {
+  if (FLAGS_port_manager_mode) {
+    return portManager_->getPortIDByPortName(portNameStr);
+  } else {
+    return tcvrManager_->getPortIDByPortName(portNameStr);
+  }
+}
+
+void QsfpServiceHandler::programXphyPort(
+    PortID portId,
+    cfg::PortProfileID portProfileId) {
+  if (FLAGS_port_manager_mode) {
+    return portManager_->programXphyPort(portId, portProfileId);
+  } else {
+    return tcvrManager_->programXphyPort(portId, portProfileId);
+  }
+}
+
+void QsfpServiceHandler::updateAllXphyPortsStats() {
+  if (FLAGS_port_manager_mode) {
+    return portManager_->updateAllXphyPortsStats();
+  } else {
+    return tcvrManager_->updateAllXphyPortsStats();
+  }
+}
+
+void QsfpServiceHandler::programXphyPortPrbs(
+    PortID portId,
+    phy::Side side,
+    const phy::PortPrbsState& prbs) {
+  if (FLAGS_port_manager_mode) {
+    portManager_->programXphyPortPrbs(portId, side, prbs);
+  } else {
+    tcvrManager_->programXphyPortPrbs(portId, side, prbs);
+  }
+}
+
+phy::PortPrbsState QsfpServiceHandler::getXphyPortPrbs(
+    const PortID& portId,
+    phy::Side side) {
+  if (FLAGS_port_manager_mode) {
+    return portManager_->getXphyPortPrbs(portId, side);
+  } else {
+    return tcvrManager_->getXphyPortPrbs(portId, side);
   }
 }
 

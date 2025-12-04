@@ -71,7 +71,7 @@ WedgeManager::WedgeManager(
    * the QSFP devices on I2C/CPLD managed platforms
    */
   if (FLAGS_publish_state_to_fsdb || FLAGS_publish_stats_to_fsdb) {
-    fsdbSyncManager_ = std::make_unique<QsfpFsdbSyncManager>();
+    fsdbSyncManager_ = std::make_shared<QsfpFsdbSyncManager>();
   }
 
   dataCenter_ = getDeviceDatacenter();
@@ -180,8 +180,9 @@ void WedgeManager::initQsfpImplMap() {
       auto logConfig = apache::thrift::can_throw(i2cLogConfig.value());
       logBuffer = std::make_unique<I2cLogBuffer>(logConfig, fileName);
     }
-    qsfpImpls_.push_back(std::make_unique<WedgeQsfp>(
-        idx, wedgeI2cBus_.get(), this, std::move(logBuffer)));
+    qsfpImpls_.push_back(
+        std::make_unique<WedgeQsfp>(
+            idx, wedgeI2cBus_.get(), this, std::move(logBuffer)));
   }
 }
 
@@ -197,6 +198,9 @@ void WedgeManager::createQsfpToBmcSyncInterface() {
   }
 }
 
+// TODO(ccpowers): we should probably modify this function signature to just
+// return the map instead of passing it as an argument. It's easy to forget to
+// clear this between calls in tests
 void WedgeManager::getTransceiversInfo(
     std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::vector<int32_t>> ids) {
@@ -553,7 +557,9 @@ std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
 void WedgeManager::updateTcvrStateInFsdb(
     TransceiverID tcvrID,
     facebook::fboss::TcvrState&& newState) {
-  fsdbSyncManager_->updateTcvrState(tcvrID, std::move(newState));
+  QsfpFsdbSyncManager::TcvrStateMap states;
+  states[tcvrID] = std::move(newState);
+  fsdbSyncManager_->updateTcvrStates(std::move(states));
 }
 
 void WedgeManager::updatePimStateInFsdb(
@@ -593,10 +599,12 @@ void WedgeManager::publishTransceiversToFsdb() {
   TcvrInfoMap tcvrInfos;
   getTransceiversInfo(tcvrInfos, std::make_unique<std::vector<int32_t>>());
   QsfpFsdbSyncManager::TcvrStatsMap stats;
+  QsfpFsdbSyncManager::TcvrStateMap states;
   for (auto& [id, info] : tcvrInfos) {
-    updateTcvrStateInFsdb(TransceiverID(id), std::move(*info.tcvrState()));
     stats[id] = *info.tcvrStats();
+    states[id] = *info.tcvrState();
   }
+  fsdbSyncManager_->updateTcvrStates(std::move(states));
   fsdbSyncManager_->updateTcvrStats(std::move(stats));
 }
 
@@ -748,6 +756,11 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
           if (!qsfpImpls_[idx]->detectTransceiver()) {
             XLOG(DBG3) << "Transceiver is not present. TransceiverID=" << idx;
             continue;
+          } else {
+            // If we fail to read the management interface, but the module is
+            // detected, mark it as errored
+            auto erroredTransceivers = erroredTransceivers_.wlock();
+            erroredTransceivers->insert(TransceiverID(idx));
           }
         } catch (const std::exception& ex) {
           XLOG(ERR) << "Failed to detect transceiver. TransceiverID=" << idx
@@ -1017,6 +1030,12 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
   std::vector<folly::Future<folly::Unit>> initPimTasks;
   std::chrono::steady_clock::time_point begin =
       std::chrono::steady_clock::now();
+
+  // Check if using XPHY_LEVEL threading model
+  bool useXphyLevelThreading =
+      (phyManager_->getXphyThreadingModel() ==
+       PhyManager::XphyThreadingModel::XPHY_LEVEL);
+
   for (int pimIndex = 0; pimIndex < phyManager_->getNumOfSlot(); ++pimIndex) {
     auto pimID = PimID(pimIndex + phyManager_->getPimStartNum());
     if (!phyManager_->shouldInitializePimXphy(pimID)) {
@@ -1024,21 +1043,49 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
                  << static_cast<int>(pimID);
       continue;
     }
-    XLOG(DBG1) << "[" << (warmboot ? "WARM" : "COLD")
-               << " Boot] Initializing PIM " << static_cast<int>(pimID);
-    auto* pimEventBase = phyManager_->getPimEventBase(pimID);
-    initPimTasks.push_back(
-        folly::via(pimEventBase)
-            .thenValue([&, pimID, warmboot](auto&&) {
-              phyManager_->initializeSlotPhys(pimID, warmboot);
-            })
-            .thenError(
-                folly::tag_t<std::exception>{},
-                [pimID](const std::exception& e) {
-                  XLOG(WARNING) << "Exception in initializeSlotPhys() for pim="
-                                << static_cast<int>(pimID) << ", "
-                                << folly::exceptionStr(e);
-                }));
+
+    if (useXphyLevelThreading) {
+      // Per-XPHY initialization - spawn a task for each xphy
+      XLOG(DBG1) << "[" << (warmboot ? "WARM" : "COLD")
+                 << " Boot] Initializing PIM " << static_cast<int>(pimID)
+                 << " with per-xphy threading";
+
+      // Get all xphys for this PIM and initialize each on its own thread
+      auto xphyIDs = phyManager_->getXphyIDsForPim(pimID);
+      for (auto xphyID : xphyIDs) {
+        auto* xphyEventBase = phyManager_->getXphyEventBase(xphyID);
+        initPimTasks.push_back(
+            folly::via(xphyEventBase)
+                .thenValue([&, xphyID, warmboot](auto&&) {
+                  phyManager_->initializeXphy(xphyID, warmboot);
+                })
+                .thenError(
+                    folly::tag_t<std::exception>{},
+                    [xphyID](const std::exception& e) {
+                      XLOG(WARNING) << "Exception in initializeXphy() for xphy="
+                                    << static_cast<int>(xphyID) << ", "
+                                    << folly::exceptionStr(e);
+                    }));
+      }
+    } else {
+      // PIM-level initialization (legacy behavior)
+      XLOG(DBG1) << "[" << (warmboot ? "WARM" : "COLD")
+                 << " Boot] Initializing PIM " << static_cast<int>(pimID);
+      auto* pimEventBase = phyManager_->getPimEventBase(pimID);
+      initPimTasks.push_back(
+          folly::via(pimEventBase)
+              .thenValue([&, pimID, warmboot](auto&&) {
+                phyManager_->initializeSlotPhys(pimID, warmboot);
+              })
+              .thenError(
+                  folly::tag_t<std::exception>{},
+                  [pimID](const std::exception& e) {
+                    XLOG(WARNING)
+                        << "Exception in initializeSlotPhys() for pim="
+                        << static_cast<int>(pimID) << ", "
+                        << folly::exceptionStr(e);
+                  }));
+    }
   }
 
   if (!initPimTasks.empty()) {

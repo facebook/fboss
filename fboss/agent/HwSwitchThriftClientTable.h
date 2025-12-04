@@ -45,6 +45,20 @@ class HwSwitchThriftClientTable {
   std::vector<FirmwareInfo> getAllFirmwareInfo(SwitchID switchId);
 
   std::string getHwDebugDump(SwitchID switchId);
+  // prbs related APIs
+  std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(
+      const SwitchID& switchId,
+      const PortID& portId);
+  void clearPortAsicPrbsStats(const SwitchID& switchId, const PortID& portId);
+  std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(
+      const SwitchID& switchId,
+      const PortID& portId);
+  prbs::InterfacePrbsState getPortPrbsState(
+      const SwitchID& switchId,
+      const PortID& portId);
+
+  state::SwitchState getProgrammedState(const SwitchID& switchId);
+  SwitchRunState getHwSwitchRunState(const SwitchID& switchId);
 
  private:
   std::map<

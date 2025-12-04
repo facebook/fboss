@@ -11,9 +11,7 @@ cpp_binary(
         "fbsource//third-party/googletest:gtest",
         "//fboss/platform/helpers:init",
         "//fboss/platform/helpers:platform_fs_utils",
+        "//fboss/platform/platform_checks:platform_checks",
         "//fboss/platform/platform_manager:config_utils",
-        "//fboss/platform/weutil:fboss_eeprom_lib",
-        "//fboss/platform/weutil:weutil_core",
-        "//folly:network_address",
     ],
 )

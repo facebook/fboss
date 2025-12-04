@@ -1,3 +1,4 @@
+load("@fbcode//fboss/lib/phy:sai_xphy.bzl", "all_sai_xphy_libs")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 load("//fboss/lib/phy:sai_phy_management.bzl", "all_sai_phy_management_libs")
@@ -198,5 +199,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
     ],
 )
+
+all_sai_xphy_libs()
 
 all_sai_phy_management_libs()

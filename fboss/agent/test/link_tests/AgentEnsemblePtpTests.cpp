@@ -10,7 +10,6 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
-#include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"

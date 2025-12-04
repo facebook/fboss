@@ -28,7 +28,8 @@ class FbossMacsecHandler;
 
 std::unique_ptr<PhyManager> createPhyManager(
     PlatformType mode,
-    const PlatformMapping* platformMapping);
+    const PlatformMapping* platformMapping,
+    const WedgeManager* wedgeManager);
 
 std::unique_ptr<WedgeManager> createWedgeManager(
     std::unique_ptr<PlatformProductInfo> productInfo,

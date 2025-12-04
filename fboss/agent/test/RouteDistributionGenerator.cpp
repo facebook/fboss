@@ -154,13 +154,14 @@ void RouteDistributionGenerator::genRouteDistribution(
         // Start a new one
         generatedRouteChunks_->emplace_back();
       }
-      generatedRouteChunks_->back().emplace_back(Route{
-          getNewPrefix(
-              prefixGenerator,
-              startingState_,
-              routerId_,
-              routeDistribution.offset),
-          getNhops<AddrT>()});
+      generatedRouteChunks_->back().emplace_back(
+          Route{
+              getNewPrefix(
+                  prefixGenerator,
+                  startingState_,
+                  routerId_,
+                  routeDistribution.offset),
+              getNhops<AddrT>()});
     }
   }
 }

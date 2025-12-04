@@ -3,24 +3,24 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
-add_library(sai_platform
+set(SAI_PLATFORM_SRC
+# common_srcs
   fboss/agent/platforms/sai/SaiPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiBcmMinipackPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmYampPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmWedge100Platform.cpp
   fboss/agent/platforms/sai/SaiBcmWedge400Platform.cpp
   fboss/agent/platforms/sai/SaiBcmWedge400PlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmDarwinPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmElbertPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmMinipackPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmYampPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmFujiPlatform.cpp
   fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.cpp
   fboss/agent/platforms/sai/SaiFakePlatform.cpp
   fboss/agent/platforms/sai/SaiFakePlatformPort.cpp
   fboss/agent/platforms/sai/SaiJanga800bicPlatform.cpp
   fboss/agent/platforms/sai/SaiJanga800bicPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiMorgan800ccPlatform.cpp
-  fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformInit.cpp
   fboss/agent/platforms/sai/SaiWedge400CPlatform.cpp
@@ -29,23 +29,33 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiTajoPlatformPort.cpp
   fboss/agent/platforms/sai/SaiMeru400biuPlatform.cpp
   fboss/agent/platforms/sai/SaiMeru800biaPlatform.cpp
-  fboss/agent/platforms/sai/SaiMeru400biaPlatform.cpp
-  fboss/agent/platforms/sai/SaiMeru400biaPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiMeru400bfuPlatform.cpp
   fboss/agent/platforms/sai/SaiMeru800bfaPlatform.cpp
+  fboss/agent/platforms/sai/SaiMeru400bfuPlatform.cpp
+  fboss/agent/platforms/sai/SaiMeru400biaPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiMeru400biaPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMontblancPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiBcmLadakh800bclsPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmTahansb800bcPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmWedge800BACTPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmWedge800BACTPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiWedge800CACTPlatform.cpp
+  fboss/agent/platforms/sai/SaiWedge800CACTPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiMorgan800ccPlatform.cpp
   fboss/agent/platforms/sai/SaiTahan800bcPlatform.cpp
   fboss/agent/platforms/sai/SaiTahan800bcPlatformPort.cpp
   fboss/agent/platforms/sai/SaiYangraPlatform.cpp
   fboss/agent/platforms/sai/SaiMinipack3NPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmTahansb800bcPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmWedge800baPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmWedge800baPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiYangraPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.cpp
+# platform oss srcs (== fake_srcs)
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatform.cpp
-  fboss/agent/platforms/sai/oss/SaiTajoPlatform.cpp
+  fboss/agent/platforms/sai/oss/SaiBcmPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmFujiPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmWedge100PlatformPort.cpp
@@ -53,27 +63,28 @@ add_library(sai_platform
   fboss/agent/platforms/sai/oss/SaiBcmDarwinPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiBcmDarwinPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmYampPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiBcmElbertPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiBcmElbertPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiWedge400CPlatformPort.cpp
-  fboss/agent/platforms/sai/oss/SaiBcmPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru400biuPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru800biaPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru400biuPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiMeru800biaPlatformPort.cpp
-  fboss/agent/platforms/sai/oss/SaiMeru400biaPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru400bfuPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru800bfaPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru400bfuPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiMeru800bfaPlatformPort.cpp
+  fboss/agent/platforms/sai/oss/SaiTajoPlatform.cpp
+  fboss/agent/platforms/sai/oss/SaiMeru400biaPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMorgan800ccPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiYangraPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiWedge800caPlatform.cpp
-  fboss/agent/platforms/sai/SaiWedge800caPlatformPort.cpp
 )
+
+if (SAI_BRCM_PAI_IMPL)
+  list(APPEND SAI_PLATFORM_SRC
+    fboss/agent/platforms/sai/SaiPhyPlatform.cpp
+  )
+endif()
+
+add_library(sai_platform ${SAI_PLATFORM_SRC})
 
 target_link_libraries(sai_platform
   handler
@@ -110,12 +121,13 @@ target_link_libraries(sai_platform
   janga800bic_platform_mapping
   tahan800bc_platform_mapping
   tahansb800bc_platform_mapping
+  ladakh800bcls_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
   led_structs_types_cpp2
   led_mapping_cpp2
-  wedge800ba_platform_mapping
-  wedge800ca_platform_mapping
+  wedge800bact_platform_mapping
+  wedge800cact_platform_mapping
 )
 
 set_target_properties(sai_platform PROPERTIES COMPILE_FLAGS
@@ -183,10 +195,8 @@ endfunction()
 find_library(SAI_IMPL sai_impl)
 message(STATUS "SAI_IMPL: ${SAI_IMPL}")
 
-if (SAI_BRCM_IMPL)
-  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES saiswitchextensions.h)
-  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
-  message(STATUS, "SAI_EXPERIMENTAL_INCLUDE_DIR: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+if(BUILD_SAI_FAKE)
+  BUILD_SAI_WEDGE_AGENT("fake" fake_sai)
 endif()
 
 if(SAI_IMPL)

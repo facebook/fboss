@@ -34,108 +34,6 @@
           }
         }
     },
-    "4": {
-        "mapping": {
-          "id": 4,
-          "name": "rcy1/1/442",
-          "controllingPort": 4,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_RCY-slot1/chip1/core442",
-                "lane": 0
-              }
-            }
-          ],
-          "portType": 3,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 6,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "49": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip1/core442",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "5": {
-        "mapping": {
-          "id": 5,
-          "name": "rcy1/1/443",
-          "controllingPort": 5,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_RCY-slot1/chip1/core443",
-                "lane": 0
-              }
-            }
-          ],
-          "portType": 3,
-          "attachedCoreId": 1,
-          "attachedCorePortIndex": 6,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "49": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip1/core443",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "6": {
-        "mapping": {
-          "id": 6,
-          "name": "rcy1/1/444",
-          "controllingPort": 6,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_RCY-slot1/chip1/core444",
-                "lane": 0
-              }
-            }
-          ],
-          "portType": 3,
-          "attachedCoreId": 2,
-          "attachedCorePortIndex": 6,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "49": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip1/core444",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
     "7": {
         "mapping": {
           "id": 7,
@@ -379,76 +277,8 @@
     "8": {
         "mapping": {
           "id": 8,
-          "name": "rcy1/1/445",
-          "controllingPort": 8,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_RCY-slot1/chip1/core445",
-                "lane": 0
-              }
-            }
-          ],
-          "portType": 3,
-          "attachedCoreId": 3,
-          "attachedCorePortIndex": 6,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "49": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip1/core445",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "9": {
-        "mapping": {
-          "id": 9,
-          "name": "evt1/1/506",
-          "controllingPort": 9,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_EVT-slot1/chip1/core506",
-                "lane": 0
-              }
-            }
-          ],
-          "portType": 5,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 7,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "49": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_EVT-slot1/chip1/core506",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "11": {
-        "mapping": {
-          "id": 11,
           "name": "hyp1/1/1",
-          "controllingPort": 11,
+          "controllingPort": 8,
           "pins": [
             
           ],
@@ -461,10 +291,10 @@
         "supportedProfiles": {
           "0": {
               "subsumedPorts": [
-                6147,
-                6145,
-                6146,
-                6144
+                32871,
+                32869,
+                32870,
+                32868
               ],
               "pins": {
                 "iphy": [
@@ -771,10 +601,10 @@
         "supportedProfiles": {
           "0": {
               "subsumedPorts": [
-                6149,
-                6151,
-                6148,
-                6150
+                32873,
+                32875,
+                32872,
+                32874
               ],
               "pins": {
                 "iphy": [
@@ -801,10 +631,10 @@
         "supportedProfiles": {
           "0": {
               "subsumedPorts": [
-                6152,
-                6154,
-                6153,
-                6155
+                32876,
+                32878,
+                32877,
+                32879
               ],
               "pins": {
                 "iphy": [
@@ -831,10 +661,10 @@
         "supportedProfiles": {
           "0": {
               "subsumedPorts": [
-                6158,
-                6159,
-                6156,
-                6157
+                32882,
+                32883,
+                32880,
+                32881
               ],
               "pins": {
                 "iphy": [
@@ -9764,11 +9594,181 @@
           }
         }
     },
-    "6144": {
+    "32858": {
         "mapping": {
-          "id": 6144,
+          "id": 32858,
+          "name": "rcy1/1/442",
+          "controllingPort": 32858,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_RCY-slot1/chip1/core442",
+                "lane": 0
+              }
+            }
+          ],
+          "portType": 3,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 6,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "49": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_RCY-slot1/chip1/core442",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "32859": {
+        "mapping": {
+          "id": 32859,
+          "name": "rcy1/1/443",
+          "controllingPort": 32859,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_RCY-slot1/chip1/core443",
+                "lane": 0
+              }
+            }
+          ],
+          "portType": 3,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 6,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "49": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_RCY-slot1/chip1/core443",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "32860": {
+        "mapping": {
+          "id": 32860,
+          "name": "rcy1/1/444",
+          "controllingPort": 32860,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_RCY-slot1/chip1/core444",
+                "lane": 0
+              }
+            }
+          ],
+          "portType": 3,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 6,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "49": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_RCY-slot1/chip1/core444",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "32861": {
+        "mapping": {
+          "id": 32861,
+          "name": "rcy1/1/445",
+          "controllingPort": 32861,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_RCY-slot1/chip1/core445",
+                "lane": 0
+              }
+            }
+          ],
+          "portType": 3,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 6,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "49": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_RCY-slot1/chip1/core445",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "32862": {
+        "mapping": {
+          "id": 32862,
+          "name": "evt1/1/506",
+          "controllingPort": 32862,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_EVT-slot1/chip1/core506",
+                "lane": 0
+              }
+            }
+          ],
+          "portType": 5,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 7,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "49": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_EVT-slot1/chip1/core506",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "32868": {
+        "mapping": {
+          "id": 32868,
           "name": "eth1/19/1",
-          "controllingPort": 6144,
+          "controllingPort": 32868,
           "pins": [
             {
               "a": {
@@ -10044,11 +10044,11 @@
           }
         }
     },
-    "6145": {
+    "32869": {
         "mapping": {
-          "id": 6145,
+          "id": 32869,
           "name": "eth1/16/1",
-          "controllingPort": 6145,
+          "controllingPort": 32869,
           "pins": [
             {
               "a": {
@@ -10324,11 +10324,11 @@
           }
         }
     },
-    "6146": {
+    "32870": {
         "mapping": {
-          "id": 6146,
+          "id": 32870,
           "name": "eth1/18/1",
-          "controllingPort": 6146,
+          "controllingPort": 32870,
           "pins": [
             {
               "a": {
@@ -10604,11 +10604,11 @@
           }
         }
     },
-    "6147": {
+    "32871": {
         "mapping": {
-          "id": 6147,
+          "id": 32871,
           "name": "eth1/15/1",
-          "controllingPort": 6147,
+          "controllingPort": 32871,
           "pins": [
             {
               "a": {
@@ -10884,11 +10884,11 @@
           }
         }
     },
-    "6148": {
+    "32872": {
         "mapping": {
-          "id": 6148,
+          "id": 32872,
           "name": "eth1/13/1",
-          "controllingPort": 6148,
+          "controllingPort": 32872,
           "pins": [
             {
               "a": {
@@ -11164,11 +11164,11 @@
           }
         }
     },
-    "6149": {
+    "32873": {
         "mapping": {
-          "id": 6149,
+          "id": 32873,
           "name": "eth1/11/1",
-          "controllingPort": 6149,
+          "controllingPort": 32873,
           "pins": [
             {
               "a": {
@@ -11444,11 +11444,11 @@
           }
         }
     },
-    "6150": {
+    "32874": {
         "mapping": {
-          "id": 6150,
+          "id": 32874,
           "name": "eth1/14/1",
-          "controllingPort": 6150,
+          "controllingPort": 32874,
           "pins": [
             {
               "a": {
@@ -11724,11 +11724,11 @@
           }
         }
     },
-    "6151": {
+    "32875": {
         "mapping": {
-          "id": 6151,
+          "id": 32875,
           "name": "eth1/12/1",
-          "controllingPort": 6151,
+          "controllingPort": 32875,
           "pins": [
             {
               "a": {
@@ -12004,11 +12004,11 @@
           }
         }
     },
-    "6152": {
+    "32876": {
         "mapping": {
-          "id": 6152,
+          "id": 32876,
           "name": "eth1/20/1",
-          "controllingPort": 6152,
+          "controllingPort": 32876,
           "pins": [
             {
               "a": {
@@ -12284,11 +12284,11 @@
           }
         }
     },
-    "6153": {
+    "32877": {
         "mapping": {
-          "id": 6153,
+          "id": 32877,
           "name": "eth1/22/1",
-          "controllingPort": 6153,
+          "controllingPort": 32877,
           "pins": [
             {
               "a": {
@@ -12564,11 +12564,11 @@
           }
         }
     },
-    "6154": {
+    "32878": {
         "mapping": {
-          "id": 6154,
+          "id": 32878,
           "name": "eth1/21/1",
-          "controllingPort": 6154,
+          "controllingPort": 32878,
           "pins": [
             {
               "a": {
@@ -12844,11 +12844,11 @@
           }
         }
     },
-    "6155": {
+    "32879": {
         "mapping": {
-          "id": 6155,
+          "id": 32879,
           "name": "eth1/24/1",
-          "controllingPort": 6155,
+          "controllingPort": 32879,
           "pins": [
             {
               "a": {
@@ -13124,11 +13124,11 @@
           }
         }
     },
-    "6156": {
+    "32880": {
         "mapping": {
-          "id": 6156,
+          "id": 32880,
           "name": "eth1/27/1",
-          "controllingPort": 6156,
+          "controllingPort": 32880,
           "pins": [
             {
               "a": {
@@ -13404,11 +13404,11 @@
           }
         }
     },
-    "6157": {
+    "32881": {
         "mapping": {
-          "id": 6157,
+          "id": 32881,
           "name": "eth1/28/1",
-          "controllingPort": 6157,
+          "controllingPort": 32881,
           "pins": [
             {
               "a": {
@@ -13684,11 +13684,11 @@
           }
         }
     },
-    "6158": {
+    "32882": {
         "mapping": {
-          "id": 6158,
+          "id": 32882,
           "name": "eth1/25/1",
-          "controllingPort": 6158,
+          "controllingPort": 32882,
           "pins": [
             {
               "a": {
@@ -13964,11 +13964,11 @@
           }
         }
     },
-    "6159": {
+    "32883": {
         "mapping": {
-          "id": 6159,
+          "id": 32883,
           "name": "eth1/26/1",
-          "controllingPort": 6159,
+          "controllingPort": 32883,
           "pins": [
             {
               "a": {
@@ -14675,6 +14675,5928 @@
       "name": "TRANSCEIVER-QSFP28-slot1/chip39",
       "type": 3,
       "physicalID": 38
+    }
+  ],
+  "portConfigOverrides": [
+    {
+      "factor": {
+        "ports": [
+          1024
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core0",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 121,
+              "post": -5,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1025
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core0",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 5,
+              "main": 118,
+              "post": 2,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1026
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core0",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 121,
+              "post": -5,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1027
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core0",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 121,
+              "post": -5,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1028
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core0",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 121,
+              "post": -5,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1029
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core0",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 121,
+              "post": -5,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1030
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core0",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 5,
+              "main": 116,
+              "post": 4,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1031
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core0",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 121,
+              "post": -5,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1032
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core1",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 5,
+              "main": 119,
+              "post": 0,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1033
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core1",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 5,
+              "main": 113,
+              "post": -6,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1034
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core1",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 116,
+              "post": -10,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1035
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core1",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 5,
+              "main": 118,
+              "post": -3,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1036
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core1",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 111,
+              "post": -9,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1037
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core1",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 5,
+              "main": 115,
+              "post": -10,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1038
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core1",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 113,
+              "post": -12,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1039
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core1",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 116,
+              "post": -10,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1040
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core2",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 5,
+              "main": 117,
+              "post": -3,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1041
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core2",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 110,
+              "post": -10,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1042
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core2",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 6,
+              "main": 114,
+              "post": -4,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1043
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core2",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 115,
+              "post": -11,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1044
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core2",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 116,
+              "post": -10,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1045
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core2",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 4,
+              "main": 118,
+              "post": -5,
+              "post2": -15,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1046
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core2",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 6,
+              "main": 114,
+              "post": -4,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1047
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core2",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 113,
+              "post": -12,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1048
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core3",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 3,
+              "main": 112,
+              "post": -11,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1049
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core3",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 4,
+              "main": 109,
+              "post": -13,
+              "post2": -15,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1050
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core3",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 110,
+              "post": -12,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1051
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core3",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 4,
+              "main": 108,
+              "post": -16,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1052
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core3",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 4,
+              "main": 108,
+              "post": -16,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1053
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core3",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -34,
+              "pre2": 9,
+              "main": 96,
+              "post": -14,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1054
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core3",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 110,
+              "post": -12,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1055
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core3",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 4,
+              "main": 106,
+              "post": -20,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1056
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core4",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 4,
+              "main": 109,
+              "post": -11,
+              "post2": -16,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1057
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core4",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 4,
+              "main": 108,
+              "post": -16,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1058
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core4",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -35,
+              "pre2": 12,
+              "main": 94,
+              "post": -13,
+              "post2": -10,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1059
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core4",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 104,
+              "post": -15,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1060
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core4",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 108,
+              "post": -15,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1061
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core4",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 7,
+              "main": 106,
+              "post": -7,
+              "post2": -15,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1062
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core4",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 4,
+              "main": 108,
+              "post": -16,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1063
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core4",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 3,
+              "main": 112,
+              "post": -15,
+              "post2": -15,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1064
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core5",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -23,
+              "pre2": 5,
+              "main": 107,
+              "post": -21,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1065
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core5",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -20,
+              "pre2": 3,
+              "main": 111,
+              "post": -18,
+              "post2": -15,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1066
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core5",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 102,
+              "post": -19,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1067
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core5",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 3,
+              "main": 109,
+              "post": -17,
+              "post2": -16,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1068
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core5",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 4,
+              "main": 108,
+              "post": -18,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1069
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core5",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 5,
+              "main": 106,
+              "post": -14,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1070
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core5",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 106,
+              "post": -17,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1071
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core5",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 103,
+              "post": -17,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1072
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core6",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 5,
+              "main": 106,
+              "post": -13,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1073
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core6",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 3,
+              "main": 109,
+              "post": -17,
+              "post2": -16,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1074
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core6",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 5,
+              "main": 105,
+              "post": -19,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1075
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core6",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -23,
+              "pre2": 5,
+              "main": 105,
+              "post": -21,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1076
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core6",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 103,
+              "post": -17,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1077
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core6",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 3,
+              "main": 109,
+              "post": -17,
+              "post2": -16,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1078
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core6",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 5,
+              "main": 106,
+              "post": -13,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1079
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core6",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 3,
+              "main": 109,
+              "post": -17,
+              "post2": -16,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1080
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core7",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -23,
+              "pre2": 4,
+              "main": 108,
+              "post": -18,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1081
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core7",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 4,
+              "main": 104,
+              "post": -23,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1082
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core7",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 4,
+              "main": 108,
+              "post": -18,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1083
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core7",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 5,
+              "main": 100,
+              "post": -26,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1084
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core7",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 5,
+              "main": 102,
+              "post": -23,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1085
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core7",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 4,
+              "main": 105,
+              "post": -18,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1086
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core7",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 3,
+              "main": 108,
+              "post": -20,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1087
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core7",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 6,
+              "main": 100,
+              "post": -24,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1088
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core8",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -23,
+              "pre2": 5,
+              "main": 107,
+              "post": -21,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1089
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core8",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 105,
+              "post": -18,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1090
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core8",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 104,
+              "post": -18,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1091
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core8",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 104,
+              "post": -18,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1092
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core8",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 4,
+              "main": 108,
+              "post": -18,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1093
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core8",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 104,
+              "post": -18,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1094
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core8",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 4,
+              "main": 107,
+              "post": -22,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1095
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core8",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 102,
+              "post": -16,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1096
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core9",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 5,
+              "main": 102,
+              "post": -23,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1097
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core9",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 100,
+              "post": -22,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1098
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core9",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 5,
+              "main": 103,
+              "post": -21,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1099
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core9",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 4,
+              "main": 104,
+              "post": -23,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1100
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core9",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 99,
+              "post": -24,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1101
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core9",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 6,
+              "main": 101,
+              "post": -21,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1102
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core9",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 6,
+              "main": 103,
+              "post": -19,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1103
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core9",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 99,
+              "post": -24,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1104
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core10",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 121,
+              "post": -5,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1105
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core10",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -23,
+              "pre2": 4,
+              "main": 120,
+              "post": -8,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1106
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core10",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 5,
+              "main": 118,
+              "post": 2,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1107
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core10",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 4,
+              "main": 121,
+              "post": -4,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1108
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core10",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 4,
+              "main": 121,
+              "post": -4,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1109
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core10",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 5,
+              "main": 118,
+              "post": -3,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1110
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core10",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 5,
+              "main": 118,
+              "post": -3,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1111
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core10",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 5,
+              "main": 119,
+              "post": 0,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1112
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core11",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 5,
+              "main": 116,
+              "post": -3,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1113
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core11",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -23,
+              "pre2": 4,
+              "main": 115,
+              "post": -12,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1114
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core11",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -23,
+              "pre2": 4,
+              "main": 109,
+              "post": -16,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1115
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core11",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 4,
+              "main": 111,
+              "post": -14,
+              "post2": -15,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1116
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core11",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 5,
+              "main": 113,
+              "post": -7,
+              "post2": -15,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1117
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core11",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 116,
+              "post": -10,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1118
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core11",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 5,
+              "main": 116,
+              "post": -9,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1119
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core11",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 4,
+              "main": 118,
+              "post": -5,
+              "post2": -15,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1120
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core12",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 115,
+              "post": -7,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1121
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core12",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 4,
+              "main": 118,
+              "post": -5,
+              "post2": -15,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1122
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core12",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 6,
+              "main": 111,
+              "post": -6,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1123
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core12",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 4,
+              "main": 114,
+              "post": -8,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1124
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core12",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 7,
+              "main": 112,
+              "post": -7,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1125
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core12",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 5,
+              "main": 116,
+              "post": -8,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1126
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core12",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 5,
+              "main": 113,
+              "post": -12,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1127
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core12",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -20,
+              "pre2": 3,
+              "main": 113,
+              "post": -17,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1128
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core13",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 4,
+              "main": 112,
+              "post": -15,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1129
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core13",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 109,
+              "post": -12,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1130
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core13",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 109,
+              "post": -12,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1131
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core13",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 8,
+              "main": 107,
+              "post": -4,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1132
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core13",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 5,
+              "main": 111,
+              "post": -16,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1133
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core13",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 108,
+              "post": -14,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1134
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core13",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 6,
+              "main": 109,
+              "post": -5,
+              "post2": -15,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1135
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core13",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -21,
+              "pre2": 2,
+              "main": 113,
+              "post": -17,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1136
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core14",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 108,
+              "post": -15,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1137
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core14",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 4,
+              "main": 112,
+              "post": -15,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1138
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core14",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 108,
+              "post": -14,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1139
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core14",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 111,
+              "post": -9,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1140
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core14",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 109,
+              "post": -12,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1141
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core14",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 4,
+              "main": 112,
+              "post": -11,
+              "post2": -15,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1142
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core14",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 108,
+              "post": -14,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1143
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core14",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 6,
+              "main": 108,
+              "post": -15,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1144
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core15",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 102,
+              "post": -16,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1145
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core15",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 104,
+              "post": -22,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1146
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core15",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 104,
+              "post": -18,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1147
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core15",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 109,
+              "post": -17,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1148
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core15",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 102,
+              "post": -19,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1149
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core15",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 106,
+              "post": -17,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1150
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core15",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -20,
+              "pre2": 3,
+              "main": 111,
+              "post": -18,
+              "post2": -15,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1151
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core15",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -21,
+              "pre2": 2,
+              "main": 109,
+              "post": -21,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1152
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core16",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -21,
+              "pre2": 4,
+              "main": 111,
+              "post": -19,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1153
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core16",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 5,
+              "main": 103,
+              "post": -21,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1154
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core16",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 2,
+              "main": 108,
+              "post": -21,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1155
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core16",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 105,
+              "post": -18,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1156
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core16",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -22,
+              "pre2": 4,
+              "main": 105,
+              "post": -23,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1157
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core16",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -23,
+              "pre2": 4,
+              "main": 108,
+              "post": -18,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1158
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core16",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -23,
+              "pre2": 4,
+              "main": 108,
+              "post": -18,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1159
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core16",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 102,
+              "post": -19,
+              "post2": -10,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1160
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core17",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 101,
+              "post": -22,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1161
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core17",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 6,
+              "main": 100,
+              "post": -21,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1162
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core17",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 6,
+              "main": 101,
+              "post": -24,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1163
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core17",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 6,
+              "main": 101,
+              "post": -24,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1164
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core17",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 7,
+              "main": 98,
+              "post": -21,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1165
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core17",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 103,
+              "post": -19,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1166
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core17",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 101,
+              "post": -22,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1167
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core17",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -23,
+              "pre2": 3,
+              "main": 104,
+              "post": -22,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1168
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core18",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -23,
+              "pre2": 5,
+              "main": 106,
+              "post": -19,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1169
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core18",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 5,
+              "main": 105,
+              "post": -19,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1170
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core18",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 4,
+              "main": 109,
+              "post": -13,
+              "post2": -15,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1171
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core18",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 104,
+              "post": -17,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1172
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core18",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 6,
+              "main": 107,
+              "post": -16,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1173
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core18",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 4,
+              "main": 108,
+              "post": -15,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1174
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core18",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 4,
+              "main": 111,
+              "post": -14,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1175
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core18",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 104,
+              "post": -17,
+              "post2": -12,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1176
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core19",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 103,
+              "post": -17,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1177
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core19",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 4,
+              "main": 107,
+              "post": -18,
+              "post2": -14,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1178
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core19",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -21,
+              "pre2": 3,
+              "main": 109,
+              "post": -17,
+              "post2": -16,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1179
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core19",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 7,
+              "main": 97,
+              "post": -20,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1180
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core19",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -34,
+              "pre2": 11,
+              "main": 91,
+              "post": -21,
+              "post2": -8,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1181
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core19",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 103,
+              "post": -21,
+              "post2": -13,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1182
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core19",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 99,
+              "post": -24,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          1183
+        ],
+        "profiles": [
+          42
+        ],
+        "mediaInterfaceCode": 3,
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-J3_FE-slot1/chip1/core19",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 7,
+              "main": 98,
+              "post": -21,
+              "post2": -11,
+              "post3": 0
+            }
+          }
+        ]
+      }
     }
   ],
   "platformSupportedProfiles": [

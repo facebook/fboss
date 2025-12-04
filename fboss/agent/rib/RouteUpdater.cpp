@@ -116,9 +116,6 @@ void RibRouteUpdater::updateImpl(
     const std::vector<RouteEntry>& toAdd,
     const std::vector<folly::CIDRNetwork>& toDel,
     bool resetClientsRoutes) {
-  if (resetClientsRoutes) {
-    removeAllRoutesForClient(client);
-  }
   std::for_each(
       toAdd.begin(), toAdd.end(), [this, client](const auto& routeEntry) {
         addOrReplaceRoute(
@@ -130,6 +127,9 @@ void RibRouteUpdater::updateImpl(
   std::for_each(toDel.begin(), toDel.end(), [this, client](const auto& prefix) {
     delRoute(prefix.first, prefix.second, client);
   });
+  if (resetClientsRoutes) {
+    removeAllUnclaimedRoutesForClient(client, toAdd);
+  }
 }
 
 void RibRouteUpdater::updateImpl(
@@ -137,9 +137,6 @@ void RibRouteUpdater::updateImpl(
     const std::vector<MplsRouteEntry>& toAdd,
     const std::vector<LabelID>& toDel,
     bool resetClientsRoutes) {
-  if (resetClientsRoutes) {
-    removeAllMplsRoutesForClient(client);
-  }
   std::for_each(
       toAdd.begin(), toAdd.end(), [this, client](const auto& routeEntry) {
         addOrReplaceRoute(routeEntry.label, client, routeEntry.nhopEntry);
@@ -147,6 +144,9 @@ void RibRouteUpdater::updateImpl(
   std::for_each(toDel.begin(), toDel.end(), [this, client](const auto& label) {
     delRoute(label, client);
   });
+  if (resetClientsRoutes) {
+    removeAllUnclaimedMplsRoutesForClient(client, toAdd);
+  }
 }
 
 template <typename AddressT>
@@ -192,10 +192,11 @@ void RibRouteUpdater::addOrReplaceRoute(
   XLOG(DBG3) << "Add mpls route for label " << label << " nh " << entry.str();
   auto iter = mplsRoutes_->find(label);
   if (iter == mplsRoutes_->end()) {
-    mplsRoutes_->emplace(std::make_pair(
-        label,
-        std::make_shared<Route<LabelID>>(
-            Route<LabelID>::makeThrift(label, clientID, entry))));
+    mplsRoutes_->emplace(
+        std::make_pair(
+            label,
+            std::make_shared<Route<LabelID>>(
+                Route<LabelID>::makeThrift(label, clientID, entry))));
   } else {
     auto& route = iter->second;
     auto existingRouteForClient = route->getEntryForClient(clientID);
@@ -309,13 +310,85 @@ void RibRouteUpdater::removeAllRoutesFromClientImpl(
   }
 }
 
-void RibRouteUpdater::removeAllRoutesForClient(ClientID clientID) {
-  removeAllRoutesFromClientImpl<IPAddressV4>(v4Routes_, clientID);
-  removeAllRoutesFromClientImpl<IPAddressV6>(v6Routes_, clientID);
+template <typename AddressT, typename FilterFunc>
+void RibRouteUpdater::removeAllUnclaimedRoutesFromClientImpl(
+    const FilterFunc& isClaimedFunc,
+    NetworkToRouteMap<AddressT>* routes,
+    ClientID clientID) {
+  std::vector<typename NetworkToRouteMap<AddressT>::Iterator> toDelete;
+
+  for (auto it = routes->begin(); it != routes->end(); ++it) {
+    auto route = value<AddressT>(it);
+    if (isClaimedFunc(*route)) {
+      continue;
+    }
+    auto nhopEntry = route->getEntryForClient(clientID);
+    if (!nhopEntry) {
+      continue;
+    }
+    if (route->numClientEntries() == 1) {
+      // This client's is the only entry avoid unnecessary cloning
+      // we are going to prune the route anyways
+      toDelete.push_back(it);
+    } else {
+      route = writableRoute<AddressT>(it);
+      route->delEntryForClient(clientID);
+      if (route->hasNoEntry()) {
+        // The nexthops we removed was the only one.  Delete the route->
+        toDelete.push_back(it);
+      }
+    }
+  }
+
+  // Now, delete whatever routes went from 1 nexthoplist to 0.
+  for (auto it : toDelete) {
+    routes->erase(it);
+  }
 }
 
-void RibRouteUpdater::removeAllMplsRoutesForClient(ClientID clientID) {
-  removeAllRoutesFromClientImpl<LabelID>(mplsRoutes_, clientID);
+void RibRouteUpdater::removeAllUnclaimedRoutesForClient(
+    ClientID clientID,
+    const std::vector<RouteEntry>& claimed) {
+  std::unordered_set<folly::CIDRNetwork> v4Claimed, v6Claimed;
+  std::for_each(
+      claimed.begin(),
+      claimed.end(),
+      [&v4Claimed, &v6Claimed](const RouteEntry& route) {
+        if (route.prefix.first.isV6()) {
+          v6Claimed.insert(route.prefix);
+        } else {
+          v4Claimed.insert(route.prefix);
+        }
+      });
+  removeAllUnclaimedRoutesFromClientImpl<IPAddressV4>(
+      [&v4Claimed](const Route<folly::IPAddressV4>& inRoute) {
+        return v4Claimed.contains(inRoute.prefix().toCidrNetwork());
+      },
+      v4Routes_,
+      clientID);
+  removeAllUnclaimedRoutesFromClientImpl<IPAddressV6>(
+      [&v6Claimed](const Route<folly::IPAddressV6>& inRoute) {
+        return v6Claimed.contains(inRoute.prefix().toCidrNetwork());
+      },
+      v6Routes_,
+      clientID);
+}
+void RibRouteUpdater::removeAllUnclaimedMplsRoutesForClient(
+    ClientID clientID,
+    const std::vector<MplsRouteEntry>& claimed) {
+  std::unordered_set<LabelID> claimedMplsRoutes;
+  std::for_each(
+      claimed.begin(),
+      claimed.end(),
+      [&claimedMplsRoutes](const MplsRouteEntry& route) {
+        claimedMplsRoutes.insert(route.label);
+      });
+  removeAllUnclaimedRoutesFromClientImpl<LabelID>(
+      [&claimedMplsRoutes](const Route<LabelID>& inRoute) {
+        return claimedMplsRoutes.contains(inRoute.getID());
+      },
+      mplsRoutes_,
+      clientID);
 }
 
 // Some helper functions for recursive weight resolution
@@ -553,6 +626,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
     const std::optional<LabelForwardingAction>& labelAction,
     bool* hasToCpu,
     bool* hasDrop,
+    const std::optional<bool>& disableTTLDecrement,
     const std::optional<NetworkTopologyInformation>& topologyInfo,
     RouteNextHopSet& fwd) {
   auto it = routes->longestMatch(nh, nh.bitCount());
@@ -590,20 +664,23 @@ void RibRouteUpdater::getFwdInfoFromNhop(
             UCMP_DEFAULT_WEIGHT,
             LabelForwardingAction::combinePushLabelStack(
                 labelAction, rtNh.labelForwardingAction()),
-            rtNh.disableTTLDecrement(),
+            disableTTLDecrement.has_value() ? disableTTLDecrement
+                                            : rtNh.disableTTLDecrement(),
             topologyInfo));
       } else {
         std::for_each(
             nhops.begin(),
             nhops.end(),
-            [&fwd, labelAction, topologyInfo](const auto& nhop) {
+            [&fwd, labelAction, disableTTLDecrement, topologyInfo](
+                const auto& nhop) {
               fwd.insert(ResolvedNextHop(
                   nhop.addr(),
                   nhop.intf(),
                   nhop.weight(),
                   LabelForwardingAction::combinePushLabelStack(
                       labelAction, nhop.labelForwardingAction()),
-                  nhop.disableTTLDecrement(),
+                  disableTTLDecrement.has_value() ? disableTTLDecrement
+                                                  : nhop.disableTTLDecrement(),
                   topologyInfo));
             });
       }
@@ -677,6 +754,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.labelForwardingAction(),
               &hasToCpu,
               &hasDrop,
+              nh.disableTTLDecrement(),
               nh.topologyInfo(),
               nhToFwds[nh]);
         } else {
@@ -687,6 +765,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.labelForwardingAction(),
               &hasToCpu,
               &hasDrop,
+              nh.disableTTLDecrement(),
               nh.topologyInfo(),
               nhToFwds[nh]);
         }

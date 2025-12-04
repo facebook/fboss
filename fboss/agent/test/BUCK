@@ -23,6 +23,8 @@ cpp_unittest(
         "DsfSubscriptionTests.cpp",
         "EncapIndexAllocatorTest.cpp",
         "FabricConnectivityManagerTests.cpp",
+        "FabricLinkMonitoringManagerTest.cpp",
+        "FabricLinkMonitoringTest.cpp",
         "FibHelperTests.cpp",
         "ICMPTest.cpp",
         "IPv4Test.cpp",
@@ -81,6 +83,7 @@ cpp_unittest(
         ":neighbor_entry_test_util",
         ":route_scale_gen",
         ":utils",
+        "//common/async_trace:folly_scuba_trace",
         "//common/network/if:if-cpp2-types",
         "//common/stats:monotonic_counter",
         "//common/thrift/cpp/server/code_frameworks/testing:server",
@@ -108,6 +111,7 @@ cpp_unittest(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent:utils",
+        "//fboss/agent:voq_utils",
         "//fboss/agent/hw/mock:mock",
         "//fboss/agent/hw/mock:pkt",
         "//fboss/agent/hw/switch_asics:switch_asics",
@@ -423,6 +427,21 @@ cpp_unittest(
     ],
 )
 
+cpp_unittest(
+    name = "state_delta_logger_test",
+    srcs = ["StateDeltaLoggerTest.cpp"],
+    deps = [
+        ":utils",
+        "//fboss/agent:agent_features",
+        "//fboss/agent:state_delta_logger",
+        "//fboss/agent/state:state",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)
+
 cpp_library(
     name = "agent_test",
     srcs = [
@@ -658,6 +677,7 @@ cpp_library(
         "//fboss/agent:fboss_common_init",
         "//fboss/agent:fboss_init_h",
         "//fboss/agent:handler",
+        "//fboss/agent:hw_switch_thrift_client_table",
         "//fboss/agent:hwswitchcallback",
         "//fboss/agent:load_agent_config",
         "//fboss/agent:main-common",
@@ -980,6 +1000,7 @@ cpp_unittest(
         "//fboss/agent:core",
         "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:sw_switch_warmboot_helper",
         "//fboss/agent:utils",
         "//fboss/agent/state:state",
         "//fboss/agent/test/utils:ecmp_resource_mgr_test_utils",

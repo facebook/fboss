@@ -207,6 +207,15 @@ class PackageFboss:
         )
 
     def _copy_unsupported_tests(self, tmp_dir_name):
+        sai_hw_unsupported_tests_path = os.path.join(
+            self.git_path, "fboss/oss/sai_hw_unsupported_tests"
+        )
+        print(f"Copying {sai_hw_unsupported_tests_path} to {tmp_dir_name}")
+        shutil.copytree(
+            "fboss/oss/sai_hw_unsupported_tests",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "sai_hw_unsupported_tests"),
+        )
+
         qsfp_unsupported_tests_path = os.path.join(
             self.git_path, "fboss/oss/qsfp_unsupported_tests"
         )

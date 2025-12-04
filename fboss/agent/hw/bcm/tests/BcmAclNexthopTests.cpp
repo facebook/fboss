@@ -120,11 +120,12 @@ class BcmAclNexthopTest : public BcmTest {
             expectedEgressId = getHwSwitch()->getDropEgressId();
           }
           EXPECT_EQ(egressId, static_cast<uint32_t>(expectedEgressId));
-          EXPECT_TRUE(BcmAclEntry::isStateSame(
-              bcmSwitch,
-              bcmSwitch->getPlatform()->getAsic()->getDefaultACLGroupID(),
-              bcmAclHandle,
-              swAcl));
+          EXPECT_TRUE(
+              BcmAclEntry::isStateSame(
+                  bcmSwitch,
+                  bcmSwitch->getPlatform()->getAsic()->getDefaultACLGroupID(),
+                  bcmAclHandle,
+                  swAcl));
         });
   }
 };

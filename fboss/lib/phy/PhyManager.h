@@ -61,6 +61,19 @@ class PhyManager {
    */
   virtual void initializeSlotPhys(PimID pimID, bool warmboot) = 0;
 
+  /*
+   * Per-xphy initialization function for platforms using XPHY_LEVEL threading.
+   * This MUST be overridden by platforms that set XPHY_LEVEL threading model.
+   * Platforms using PIM_LEVEL threading (default) should use
+   * initializeSlotPhys().
+   */
+  virtual void initializeXphy(GlobalXphyID xphyID, bool warmboot) {
+    throw FbossError(
+        "initializeXphy() must be implemented when using XPHY_LEVEL threading. "
+        "Override this method in your platform-specific PhyManager. xphyID=",
+        xphyID);
+  }
+
   virtual MultiPimPlatformSystemContainer* getSystemContainer() = 0;
 
   int getNumOfSlot() const {
@@ -184,7 +197,16 @@ class PhyManager {
         "Attempted to call setupMacsecState from non-SaiPhyManager");
   }
 
+  enum class XphyThreadingModel {
+    PIM_LEVEL,
+    XPHY_LEVEL,
+  };
+
   folly::EventBase* getPimEventBase(PimID pimID) const;
+  virtual folly::EventBase* getXphyEventBase(const GlobalXphyID& xphyID) const;
+
+  // Get all xphy IDs for a given PIM
+  std::vector<GlobalXphyID> getXphyIDsForPim(const PimID& pimID) const;
 
   virtual void
   setPortPrbs(PortID portID, phy::Side side, const phy::PortPrbsState& prbs);
@@ -255,6 +277,10 @@ class PhyManager {
     publishPhyCb_ = publishPhyCb;
   }
 
+  XphyThreadingModel getXphyThreadingModel() const {
+    return xphyThreadingModel_;
+  }
+
  protected:
   struct PortCacheInfo {
     // PhyManager is in the middle of changing its apis to accept PortID instead
@@ -291,6 +317,10 @@ class PhyManager {
   template <typename LockedPtr>
   phy::ExternalPhy* getExternalPhyLocked(const LockedPtr& lockedCache) {
     return getExternalPhy(lockedCache->xphyID);
+  }
+
+  void setXphyThreadingModel(XphyThreadingModel model) {
+    xphyThreadingModel_ = model;
   }
 
   // Return true if the new portConfig is different from the cache
@@ -382,6 +412,7 @@ class PhyManager {
   // Update PortStatsInfo::stats
   void updatePortStats(
       PortID portID,
+      const PimID& pimID,
       phy::ExternalPhy* xphy,
       const PortStatsWLockedPtr& wLockedStats,
       folly::EventBase* pimEvb);
@@ -405,6 +436,9 @@ class PhyManager {
   };
   std::unordered_map<PimID, std::unique_ptr<PimEventMultiThreading>>
       pimToThread_;
+
+  // Threading model - defaults to PIM_LEVEL for backward compatibility
+  XphyThreadingModel xphyThreadingModel_{XphyThreadingModel::PIM_LEVEL};
 
   // In the constructor function, we create this portToCacheInfo_ based on the
   // PlatformMapping, which should have all xphy ports. But their default

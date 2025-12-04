@@ -859,5 +859,25 @@
         }
       ]
     }
+  ],
+  "powerConfig": {
+    "perSlotPowerConfigs": [
+      {
+        "name": "PSU1",
+        "powerSensorName": "PSU_PIN"
+      }
+    ],
+    "inputVoltageSensors": [
+      "PSU_VIN"
+    ]
+  },
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "SC_TH3_DIODE1_TEMP",
+        "SC_TH3_DIODE2_TEMP"
+      ]
+    }
   ]
 }

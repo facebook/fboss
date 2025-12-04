@@ -57,6 +57,7 @@ cpp_library(
         "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/fsdb/oper:delta_value",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly:format",
         "//folly:string",

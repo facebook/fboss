@@ -18,6 +18,9 @@ class BspPhyContainer {
   BspDeviceMdioController* getMdioController() const {
     return phyIO_->getMdioController();
   }
+  BspPhyIO* getPhyIO() const {
+    return phyIO_;
+  }
 
  private:
   BspPhyMapping phyMapping_;

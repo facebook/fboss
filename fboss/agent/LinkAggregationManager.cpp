@@ -150,6 +150,21 @@ void LinkAggregationManager::stateUpdated(const StateDelta& delta) {
 
   DeltaFunctions::forEachChanged(
       delta.getPortsDelta(), &LinkAggregationManager::portChanged, this);
+
+  DeltaFunctions::forEachChanged(
+      delta.getAggregatePortsDelta(),
+      &LinkAggregationManager::updateHyperPortState,
+      this);
+  DeltaFunctions::forEachAdded(
+      delta.getAggregatePortsDelta(),
+      [&](const std::shared_ptr<AggregatePort>& newAggPort) {
+        updateHyperPortState(std::shared_ptr<AggregatePort>(), newAggPort);
+      });
+  DeltaFunctions::forEachRemoved(
+      delta.getAggregatePortsDelta(),
+      [&](const std::shared_ptr<AggregatePort>& oldAggPort) {
+        updateHyperPortState(oldAggPort, std::shared_ptr<AggregatePort>());
+      });
 }
 
 void LinkAggregationManager::aggregatePortAdded(
@@ -254,6 +269,105 @@ void LinkAggregationManager::updateAggregatePortStats(
   }
 
   aggregatePortStats->aggregatePortNameChanged(newAggPort->getName());
+}
+
+void LinkAggregationManager::updateHyperPortState(
+    const std::shared_ptr<AggregatePort>& oldAggPort,
+    const std::shared_ptr<AggregatePort>& newAggPort) {
+  if (!FLAGS_hyper_port) {
+    return;
+  }
+  cfg::PortState newPortState;
+  std::optional<PortID> hyperPortId;
+  if (!newAggPort) {
+    // remove old aggregate port
+    if (oldAggPort &&
+        oldAggPort->getAggregatePortType() ==
+            cfg::AggregatePortType::HYPER_PORT) {
+      hyperPortId = PortID(oldAggPort->getID());
+      newPortState = cfg::PortState::DISABLED;
+    }
+  } else {
+    bool allNewSubPortsForwarding = true;
+    for (const auto& subPort : newAggPort->sortedSubports()) {
+      if (newAggPort->getForwardingState(subPort.portID) !=
+          LegacyAggregatePortFields::Forwarding::ENABLED) {
+        allNewSubPortsForwarding = false;
+      }
+    }
+    bool allOldSubPortsForwarding = true;
+    if (oldAggPort) {
+      // existing aggregate port changed
+      for (const auto& subPort : oldAggPort->sortedSubports()) {
+        if (oldAggPort->getForwardingState(subPort.portID) !=
+            LegacyAggregatePortFields::Forwarding::ENABLED) {
+          allOldSubPortsForwarding = false;
+        }
+      }
+    }
+    if ((!oldAggPort || allOldSubPortsForwarding != allNewSubPortsForwarding) &&
+        newAggPort->getAggregatePortType() ==
+            cfg::AggregatePortType::HYPER_PORT) {
+      hyperPortId = PortID(newAggPort->getID());
+      newPortState = allNewSubPortsForwarding ? cfg::PortState::ENABLED
+                                              : cfg::PortState::DISABLED;
+    }
+  }
+
+  if (hyperPortId) {
+    auto updateFn = [hyperPortId,
+                     newPortState](const std::shared_ptr<SwitchState>& state) {
+      const auto oldHyperPort =
+          state->getPorts()->getNodeIf(hyperPortId.value());
+      std::shared_ptr<SwitchState> newState{state};
+      auto newHyperPort = oldHyperPort->modify(&newState);
+      XLOG(DBG2) << "set hyper port " << (int)hyperPortId.value()
+                 << " to state "
+                 << apache::thrift::util::enumNameSafe(newPortState);
+      newHyperPort->setAdminState(newPortState);
+      return newState;
+    };
+    sw_->updateStateNoCoalescing("set hyper-port state", std::move(updateFn));
+    if (newPortState == cfg::PortState::DISABLED) {
+      // toggle all enabled member ports after hyper port goes down
+      std::vector<PortID> memberPortsToToggle;
+      for (const auto& subPort : newAggPort->sortedSubports()) {
+        const auto memberPort =
+            sw_->getState()->getPorts()->getNodeIf(subPort.portID);
+        if (memberPort->getAdminState() == cfg::PortState::ENABLED) {
+          memberPortsToToggle.push_back(subPort.portID);
+        }
+      }
+      auto disableMemberPortsFn =
+          [memberPortsToToggle](const std::shared_ptr<SwitchState>& state) {
+            std::shared_ptr<SwitchState> newState{state};
+            for (const auto& portId : memberPortsToToggle) {
+              const auto oldMemberPort = state->getPorts()->getNodeIf(portId);
+              auto newMemberPort = oldMemberPort->modify(&newState);
+              XLOG(DBG2) << "set hyper port member " << (int)portId
+                         << " to state DISABLED";
+              newMemberPort->setAdminState(cfg::PortState::DISABLED);
+            }
+            return newState;
+          };
+      auto enableMemberPortsFn =
+          [memberPortsToToggle](const std::shared_ptr<SwitchState>& state) {
+            std::shared_ptr<SwitchState> newState{state};
+            for (const auto& portId : memberPortsToToggle) {
+              const auto oldMemberPort = state->getPorts()->getNodeIf(portId);
+              auto newMemberPort = oldMemberPort->modify(&newState);
+              XLOG(DBG2) << "set hyper port member " << (int)portId
+                         << " to state ENABLED";
+              newMemberPort->setAdminState(cfg::PortState::ENABLED);
+            }
+            return newState;
+          };
+      sw_->updateStateNoCoalescing(
+          "disable hyper-port members", std::move(disableMemberPortsFn));
+      sw_->updateStateNoCoalescing(
+          "enable hyper-port members", std::move(enableMemberPortsFn));
+    }
+  }
 }
 
 void LinkAggregationManager::portChanged(

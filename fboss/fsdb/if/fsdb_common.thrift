@@ -1,3 +1,5 @@
+package "facebook.com/fboss/fsdb"
+
 namespace py3 neteng.fboss
 namespace py neteng.fboss.fsdb_common
 namespace py.asyncio neteng.fboss.asyncio.fsdb_common
@@ -62,6 +64,7 @@ enum FsdbErrorCode {
   CLIENT_TRANSPORT_EXCEPTION = 20,
   SUBSCRIPTION_SERVE_QUEUE_FULL = 21,
   INVALID_REQUEST = 22,
+  SUBSCRIPTION_SERVE_UPDATES_PENDING = 23,
 }
 
 exception FsdbException {

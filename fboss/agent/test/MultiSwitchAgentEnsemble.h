@@ -22,6 +22,8 @@ class MultiSwitchAgentEnsemble : public AgentEnsemble {
   void reloadPlatformConfig() override;
   bool isSai() const override;
   void ensureHwSwitchConnected(SwitchID switchId) override;
+  cfg::SwitchingMode getFwdSwitchingMode(
+      const RouteNextHopEntry& entry) override;
 
  private:
   std::unique_ptr<SplitSwAgentInitializer> agentInitializer_;

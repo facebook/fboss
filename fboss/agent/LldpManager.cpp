@@ -23,6 +23,8 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/lldp/Lldp.h"
+#include "fboss/agent/lldp/gen-cpp2/lldp_constants.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
 
@@ -179,6 +181,7 @@ void LldpManager::sendLldpOnAllPorts() {
       switch (port->getPortType()) {
         case cfg::PortType::INTERFACE_PORT:
         case cfg::PortType::MANAGEMENT_PORT:
+        case cfg::PortType::HYPER_PORT_MEMBER:
           sendLldp = true;
           break;
         case cfg::PortType::FABRIC_PORT:
@@ -186,7 +189,6 @@ void LldpManager::sendLldpOnAllPorts() {
         case cfg::PortType::RECYCLE_PORT:
         case cfg::PortType::EVENTOR_PORT:
         case cfg::PortType::HYPER_PORT:
-        case cfg::PortType::HYPER_PORT_MEMBER:
           break;
       }
       if (sendLldp && port->isPortUp()) {
@@ -258,8 +260,9 @@ uint32_t LldpManager::LldpPktSize(
     const std::string& hostname,
     const std::string& portname,
     const std::string& portdesc,
-    const std::string& sysDesc) {
-  return
+    const std::string& sysDesc,
+    bool includePortDrainState) {
+  uint32_t size =
       // ethernet header
       (6 * 2) + 2 +
       2
@@ -287,6 +290,14 @@ uint32_t LldpManager::LldpPktSize(
       2
       // End of LLDPDU
       + 2;
+
+  // Add optional port drain state TLV size if needed
+  if (includePortDrainState) {
+    // TL header (2 bytes) + TLV content (PORT_DRAIN_STATE_TLV_LENGTH = 5 bytes)
+    size += 2 + PORT_DRAIN_STATE_TLV_LENGTH;
+  }
+
+  return size;
 }
 
 void LldpManager::fillLldpTlv(
@@ -298,7 +309,8 @@ void LldpManager::fillLldpTlv(
     const std::string& portname,
     const std::string& portdesc,
     const uint16_t ttl,
-    const uint16_t capabilities) {
+    const uint16_t capabilities,
+    const std::optional<bool> portDrainState) {
   RWPrivateCursor cursor(pkt->buf());
   pkt->writeEthHeader(&cursor, LLDP_DEST_MAC, macaddr, vlanID, ETHERTYPE_LLDP);
   // now write chassis ID TLV
@@ -337,7 +349,21 @@ void LldpManager::fillLldpTlv(
   uint32_t enabledCapabilities = (capabilities << 16) | capabilities;
   writeTlv(LldpTlvType::SYSTEM_CAPABILITY, enabledCapabilities, &cursor);
 
-  // now write PDU End TLV
+  // Write custom organization-specific TLVs before PDU_END
+  if (portDrainState.has_value()) {
+    writeTl(LldpTlvType::ORG_SPECIFIC, PORT_DRAIN_STATE_TLV_LENGTH, &cursor);
+    // Write Facebook OUI (3 bytes)
+    cursor.writeBE<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE1_);
+    cursor.writeBE<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE2_);
+    cursor.writeBE<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE3_);
+    // Write subtype (1 byte)
+    cursor.writeBE<uint8_t>(
+        static_cast<uint8_t>(FacebookLldpSubtype::PORT_DRAIN_STATE));
+    // Write value (1 byte)
+    cursor.writeBE<uint8_t>(portDrainState.value() ? 1 : 0);
+  }
+
+  // PDU End TLV must be the last TLV in the packet
   writeTl(LldpTlvType::PDU_END, PDU_END_TLV_LENGTH, &cursor);
 
   // Fill the padding with 0s

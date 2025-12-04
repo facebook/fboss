@@ -170,6 +170,13 @@ void HwSwitch::switchRunStateChanged(SwitchRunState newState) {
   }
 }
 
+bool HwSwitch::sendPacketOutOfPortSyncForPktType(
+    std::unique_ptr<TxPacket> /*pkt*/,
+    const PortID& /*portID*/,
+    TxPacketType /*packetType*/) {
+  throw FbossError("Sending packet over fabric is unsupported for platform!");
+}
+
 void HwSwitch::updateStats() {
   try {
     updateStatsImpl();
@@ -202,6 +209,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.switchTemperatureStats() = getSwitchTemperatureStats();
   hwSwitchStats.sysPortShelState() = getSysPortShelState();
   hwSwitchStats.hwRouterInterfaceStats() = getRouterInterfaceStats();
+  hwSwitchStats.hardResetStats() = getHwSwitchHardResetStats();
   return hwSwitchStats;
 }
 

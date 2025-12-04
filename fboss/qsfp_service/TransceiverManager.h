@@ -30,6 +30,7 @@
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
 #include "fboss/qsfp_service/TransceiverValidator.h"
 #include "fboss/qsfp_service/TypedStateMachineUpdate.h"
+#include "fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/port_state_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
@@ -273,7 +274,14 @@ class TransceiverManager {
       PortID portId,
       cfg::PortProfileID portProfileId) = 0;
 
+  virtual void programXphyPortPrbs(
+      PortID portID,
+      phy::Side side,
+      const phy::PortPrbsState& prbs) = 0;
+
   virtual phy::PhyInfo getXphyInfo(PortID portId) = 0;
+
+  virtual phy::PortPrbsState getXphyPortPrbs(PortID portID, phy::Side side) = 0;
 
   virtual void updateAllXphyPortsStats() = 0;
 
@@ -548,6 +556,7 @@ class TransceiverManager {
       bool removeTransceiver);
 
   void publishLinkSnapshots(std::string portName);
+  void publishLinkSnapshotsTransceiver(PortID portID);
 
   void getInterfacePhyInfo(
       std::map<std::string, phy::PhyInfo>& phyInfos,
@@ -646,6 +655,7 @@ class TransceiverManager {
   virtual void publishPhyStateToFsdb(
       std::string&& /* portName */,
       std::optional<phy::PhyState>&& /* newState */) const {}
+
   virtual void publishPhyStatToFsdb(
       std::string&& /* portName */,
       phy::PhyStats&& /* stat */) const {}
@@ -738,6 +748,9 @@ class TransceiverManager {
   // Return the list of transceivers that have programming events
   std::vector<TransceiverID> triggerProgrammingEvents();
 
+  std::unordered_set<TransceiverID> findPotentialTcvrsForFirmwareUpgrade(
+      const std::vector<TransceiverID>& presentXcvrIds);
+
   void findAndTriggerPotentialFirmwareUpgradeEvents(
       const std::vector<TransceiverID>& presentXcvrIds);
 
@@ -760,7 +773,11 @@ class TransceiverManager {
   // the state if graceful shutdown did not happen.
   // Will also be called during graceful exit for qsfp_service once the state
   // machine stops.
-  void setWarmBootState();
+
+  // phyWarmbootState can be optionally passed in if called by another class (in
+  // our case, this is PortManager).
+  void setWarmBootState(
+      const folly::dynamic& phyWarmbootState = folly::dynamic(nullptr));
 
   bool canWarmBoot() const {
     return canWarmBoot_;
@@ -786,6 +803,18 @@ class TransceiverManager {
             publishPortStatToFsdb(std::move(portName), std::move(*portStats));
           }
         });
+  }
+
+  // Check whether the specified stableTcvrs need remediation and then trigger
+  // the remediation events to remediate such transceivers.
+  void triggerRemediateEvents(const std::vector<TransceiverID>& stableTcvrs);
+
+  std::set<TransceiverID> getPresentTransceivers() const;
+
+  bool transceiverJustRemediated(const TransceiverID& id) const;
+
+  std::shared_ptr<QsfpFsdbSyncManager> getFsdbSyncManager() const {
+    return fsdbSyncManager_;
   }
 
  protected:
@@ -862,11 +891,17 @@ class TransceiverManager {
   // For platforms that needs to program xphy
   std::unique_ptr<PhyManager> phyManager_;
 
+  // Shared pointer to QsfpFsdbSyncManager for publishing to FSDB.
+  // Shared between WedgeManager and PortManager.
+  std::shared_ptr<QsfpFsdbSyncManager> fsdbSyncManager_;
+
   // Use the following bidirectional map to cache the static mapping so that
   // we don't have to search from PlatformMapping again and again
   PortNameIdMap portNameToPortID_;
 
   TcvrIdToTcvrNameMap tcvrIdToTcvrName_;
+
+  folly::Synchronized<std::unordered_set<TransceiverID>> erroredTransceivers_;
 
   struct SwPortInfo {
     std::optional<TransceiverID> tcvrID;
@@ -877,8 +912,6 @@ class TransceiverManager {
   virtual void updateTcvrStateInFsdb(
       TransceiverID /* tcvrID */,
       facebook::fboss::TcvrState&& /* newState */) {}
-
-  std::set<TransceiverID> getPresentTransceivers() const;
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -960,10 +993,6 @@ class TransceiverManager {
   // getPortStatus() results
   void updateTransceiverPortStatus() noexcept;
 
-  // Check whether the specified stableTcvrs need remediation and then trigger
-  // the remediation events to remediate such transceivers.
-  void triggerRemediateEvents(const std::vector<TransceiverID>& stableTcvrs);
-
   std::string warmBootStateFileName() const;
 
   std::string xphyWarmBootStateDirectory() const;
@@ -991,6 +1020,10 @@ class TransceiverManager {
   void drainAllStateMachineUpdates();
 
   std::unordered_set<TransceiverID> getTcvrsReadyForProgramming() const;
+
+  // Helper function to get optical channel config from qsfp config
+  std::optional<cfg::OpticalChannelConfig> getOpticalChannelConfig(
+      TransceiverID id) const;
 
   // Store the QSFP service state for warm boots.
   // Updated on every refresh of the state machine as well as during graceful

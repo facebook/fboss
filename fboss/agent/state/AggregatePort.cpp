@@ -181,6 +181,18 @@ bool AggregatePort::isIngressValid(
   return isValid;
 }
 
+/*
+ * [minLinkCount, minLinkCountToUp(optional)] are used to determine the LAG
+ * min-link requirement in LACP machine.
+ * If min-link requirement is not met, all Up subports will be in STANDBY state
+ * with forwarding disabled.
+ * So basically, as long as forwardingSubportCount > 0, the LAG is considered as
+ * up.
+ * But we need to cover a special case where a new port is down in fast-path, in
+ * which case, forwardingSubportCount might > 0 but < minLinkCount. This will
+ * also be considered as LAG down for fast-path.
+ * To cover both, simply use minLinkCount in the check.
+ */
 bool AggregatePort::isUp() const {
   return forwardingSubportCount() >= getMinimumLinkCount();
 }

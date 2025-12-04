@@ -24,10 +24,12 @@ class TestAgentPublisher {
   TestAgentPublisher(bool isStats, utils::ConnectionOptions serverOptions)
       : isStats_(isStats),
         connectionOptions_(std::move(serverOptions)),
-        publisherThread_(std::make_unique<folly::ScopedEventBaseThread>(
-            "test-publisher-stream")),
-        reconnectThread_(std::make_unique<folly::ScopedEventBaseThread>(
-            "test-publisher-reconnect")) {}
+        publisherThread_(
+            std::make_unique<folly::ScopedEventBaseThread>(
+                "test-publisher-stream")),
+        reconnectThread_(
+            std::make_unique<folly::ScopedEventBaseThread>(
+                "test-publisher-reconnect")) {}
 
   ~TestAgentPublisher() {
     disconnect();
@@ -502,6 +504,54 @@ TYPED_TEST(FsdbSubManagerTest, verifyGR) {
     ASSERT_EVENTUALLY_EQ(lastStateSeen, SubscriptionState::CONNECTED);
     ASSERT_EVENTUALLY_EQ(numUpdates, 2);
   });
+}
+
+template <typename SubscriberT>
+class FsdbSubManagerHbTest : public FsdbSubManagerTest<SubscriberT> {
+ public:
+  void SetUp() override {
+    FLAGS_serveHeartbeats = true;
+    FLAGS_statsSubscriptionHeartbeat_s = 1;
+    FLAGS_stateSubscriptionHeartbeat_s = 1;
+    FsdbSubManagerTest<SubscriberT>::SetUp();
+  }
+};
+
+TYPED_TEST_SUITE(FsdbSubManagerHbTest, SubscriberTypes);
+
+TYPED_TEST(FsdbSubManagerHbTest, verifyHeartbeatCb) {
+  auto data1 = this->data1("foo");
+  this->connectPublisherAndPublish(this->path1(), data1);
+
+  std::optional<SubscriptionState> lastStateSeen;
+  std::optional<int64_t> lastPublishedAt;
+  int numHeartbeats{0};
+  auto subscriber = this->createSubscriber("test", this->root().agent());
+  subscriber->subscribe(
+      [&](auto update) {
+        if (update.lastPublishedAt.has_value()) {
+          lastPublishedAt = update.lastPublishedAt.value();
+        }
+      },
+      [&](auto, auto newState, std::optional<bool> initialSyncHasData) {
+        lastStateSeen = newState;
+      },
+      [&](std::optional<OperMetadata> md) { numHeartbeats++; });
+
+  WITH_RETRIES(
+      { ASSERT_EVENTUALLY_EQ(lastStateSeen, SubscriptionState::CONNECTED); });
+
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_TRUE(
+        lastPublishedAt.has_value() && lastPublishedAt.value() > 0);
+  });
+
+  // Verify heartbeat callback is called
+  WITH_RETRIES_N(100, { EXPECT_EVENTUALLY_GT(numHeartbeats, 0); });
+
+  // Verify heartbeat callback continues to be called
+  numHeartbeats = 0;
+  WITH_RETRIES_N(100, { EXPECT_EVENTUALLY_GT(numHeartbeats, 0); });
 }
 
 } // namespace facebook::fboss::fsdb::test

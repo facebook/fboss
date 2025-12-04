@@ -15,134 +15,84 @@ using namespace testing;
 
 namespace facebook::fboss::platform::sensor_service {
 
-// Simple mock for Utils
-class MockUtils : public Utils {
- public:
-  MOCK_METHOD2(
-      getPciAddress,
-      std::optional<std::string>(
-          const std::string& vendorId,
-          const std::string& deviceId));
-};
-
 class SensorServiceImplAsicTempTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    mockUtils_ = std::make_shared<MockUtils>();
     mockPlatformUtils_ = std::make_shared<MockPlatformUtils>();
-    config_.switchAsicTemp() = SwitchAsicTemp();
-    config_.switchAsicTemp()->vendorId() = "0x1234";
-    config_.switchAsicTemp()->deviceId() = "0x5678";
     impl_ = std::make_unique<SensorServiceImpl>(
-        config_, mockUtils_, mockPlatformUtils_);
+        config_, std::make_shared<Utils>(), mockPlatformUtils_);
   }
 
   SensorConfig config_;
-  std::shared_ptr<MockUtils> mockUtils_;
   std::shared_ptr<MockPlatformUtils> mockPlatformUtils_;
   std::unique_ptr<SensorServiceImpl> impl_;
 };
 
-// Test successful ASIC temperature reading
+// Test successful ASIC command execution
 TEST_F(SensorServiceImplAsicTempTest, SuccessfulReading) {
-  ON_CALL(*mockUtils_, getPciAddress("0x1234", "0x5678"))
-      .WillByDefault(Return("0000:01:00.0"));
-  ON_CALL(
-      *mockPlatformUtils_,
-      runCommand(ElementsAre("/usr/bin/mget_temp", "-d", "0000:01:00.0")))
-      .WillByDefault(Return(std::make_pair(0, "42\n")));
+  EXPECT_CALL(*mockPlatformUtils_, execCommand("echo 42"))
+      .WillOnce(Return(std::make_pair(0, "42")));
 
-  impl_->fetchSensorData();
-  auto sensorData = impl_->getAllSensorData();
+  AsicCommand asicCommand;
+  asicCommand.sensorName() = "ASIC_TEMP_MGET_TEMP";
+  asicCommand.cmd() = "echo 42";
+  asicCommand.sensorType() = SensorType::TEMPERTURE;
 
-  ASSERT_TRUE(
-      sensorData.find(SensorServiceImpl::kAsicTemp) != sensorData.end());
-  auto& asicTemp = sensorData[SensorServiceImpl::kAsicTemp];
-  EXPECT_EQ(*asicTemp.name(), SensorServiceImpl::kAsicTemp);
-  EXPECT_EQ(*asicTemp.sensorType(), SensorType::TEMPERTURE);
-  ASSERT_TRUE(asicTemp.value().has_value());
-  EXPECT_EQ(*asicTemp.value(), 42);
-  EXPECT_EQ(*asicTemp.sysfsPath(), "/usr/bin/mget_temp -d 0000:01:00.0");
-  EXPECT_EQ(*asicTemp.slotPath(), "");
+  auto sensorData = impl_->processAsicCmd(asicCommand);
 
-  EXPECT_EQ(
-      fb303::fbData->getCounter(fmt::format(
-          SensorServiceImpl::kReadValue, SensorServiceImpl::kAsicTemp)),
-      42);
-  EXPECT_EQ(
-      fb303::fbData->getCounter(fmt::format(
-          SensorServiceImpl::kReadFailure, SensorServiceImpl::kAsicTemp)),
-      0);
+  EXPECT_EQ(*sensorData.name(), "ASIC_TEMP_MGET_TEMP");
+  EXPECT_EQ(*sensorData.sensorType(), SensorType::TEMPERTURE);
+  ASSERT_TRUE(sensorData.value().has_value());
+  EXPECT_EQ(*sensorData.value(), 42);
 }
 
-// Test when PCI device is not found
-TEST_F(SensorServiceImplAsicTempTest, DeviceNotFound) {
-  ON_CALL(*mockUtils_, getPciAddress("0x1234", "0x5678"))
-      .WillByDefault(Return(std::nullopt));
-
-  impl_->fetchSensorData();
-  auto sensorData = impl_->getAllSensorData();
-
-  ASSERT_TRUE(
-      sensorData.find(SensorServiceImpl::kAsicTemp) != sensorData.end());
-  auto& asicTemp = sensorData[SensorServiceImpl::kAsicTemp];
-  EXPECT_EQ(*asicTemp.name(), SensorServiceImpl::kAsicTemp);
-  EXPECT_EQ(*asicTemp.sensorType(), SensorType::TEMPERTURE);
-  EXPECT_FALSE(asicTemp.value().has_value());
-
-  EXPECT_EQ(
-      fb303::fbData->getCounter(fmt::format(
-          SensorServiceImpl::kReadFailure, SensorServiceImpl::kAsicTemp)),
-      1);
-}
-
-// Test when mget_temp command fails
+// Test when command fails
 TEST_F(SensorServiceImplAsicTempTest, CommandFailure) {
-  EXPECT_CALL(*mockUtils_, getPciAddress("0x1234", "0x5678"))
-      .WillOnce(Return("0000:01:00.0"));
-  EXPECT_CALL(
-      *mockPlatformUtils_,
-      runCommand(ElementsAre("/usr/bin/mget_temp", "-d", "0000:01:00.0")))
+  EXPECT_CALL(*mockPlatformUtils_, execCommand("failing_command"))
       .WillOnce(Return(std::make_pair(1, "Error reading temperature")));
 
-  impl_->fetchSensorData();
-  auto sensorData = impl_->getAllSensorData();
+  AsicCommand asicCommand;
+  asicCommand.sensorName() = "ASIC_TEMP_MGET_TEMP";
+  asicCommand.cmd() = "failing_command";
+  asicCommand.sensorType() = SensorType::TEMPERTURE;
 
-  ASSERT_TRUE(
-      sensorData.find(SensorServiceImpl::kAsicTemp) != sensorData.end());
-  auto& asicTemp = sensorData[SensorServiceImpl::kAsicTemp];
-  EXPECT_EQ(*asicTemp.name(), SensorServiceImpl::kAsicTemp);
-  EXPECT_EQ(*asicTemp.sensorType(), SensorType::TEMPERTURE);
-  EXPECT_FALSE(asicTemp.value().has_value());
+  auto sensorData = impl_->processAsicCmd(asicCommand);
 
-  EXPECT_EQ(
-      fb303::fbData->getCounter(fmt::format(
-          SensorServiceImpl::kReadFailure, SensorServiceImpl::kAsicTemp)),
-      1);
+  EXPECT_EQ(*sensorData.name(), "ASIC_TEMP_MGET_TEMP");
+  EXPECT_EQ(*sensorData.sensorType(), SensorType::TEMPERTURE);
+  EXPECT_FALSE(sensorData.value().has_value());
 }
 
-// Test with missing vendor ID
-TEST_F(SensorServiceImplAsicTempTest, MissingVendorId) {
-  config_.switchAsicTemp()->vendorId().reset();
-  impl_ = std::make_unique<SensorServiceImpl>(
-      config_, mockUtils_, mockPlatformUtils_);
+// Test with missing command
+TEST_F(SensorServiceImplAsicTempTest, MissingCommand) {
+  AsicCommand asicCommand;
+  asicCommand.sensorName() = "ASIC_TEMP_MGET_TEMP";
+  asicCommand.sensorType() = SensorType::TEMPERTURE;
+  // Don't set cmd() - leave it unset
 
-  impl_->fetchSensorData();
+  auto sensorData = impl_->processAsicCmd(asicCommand);
 
-  auto sensorData = impl_->getAllSensorData();
-  ASSERT_TRUE(
-      sensorData.find(SensorServiceImpl::kAsicTemp) != sensorData.end());
+  EXPECT_EQ(*sensorData.name(), "ASIC_TEMP_MGET_TEMP");
+  EXPECT_EQ(*sensorData.sensorType(), SensorType::TEMPERTURE);
+  EXPECT_FALSE(sensorData.value().has_value());
+}
 
-  auto& asicTemp = sensorData[SensorServiceImpl::kAsicTemp];
-  EXPECT_EQ(*asicTemp.name(), SensorServiceImpl::kAsicTemp);
-  EXPECT_EQ(*asicTemp.sensorType(), SensorType::TEMPERTURE);
-  EXPECT_FALSE(asicTemp.value().has_value());
+// Test when command returns non-numeric value causing parse exception
+TEST_F(SensorServiceImplAsicTempTest, NonNumericOutput) {
+  EXPECT_CALL(*mockPlatformUtils_, execCommand("echo invalid_data"))
+      .WillOnce(Return(std::make_pair(0, "invalid_data")));
 
-  // Verify failure counter was set
-  EXPECT_EQ(
-      fb303::fbData->getCounter(fmt::format(
-          SensorServiceImpl::kReadFailure, SensorServiceImpl::kAsicTemp)),
-      1);
+  AsicCommand asicCommand;
+  asicCommand.sensorName() = "ASIC_TEMP_MGET_TEMP";
+  asicCommand.cmd() = "echo invalid_data";
+  asicCommand.sensorType() = SensorType::TEMPERTURE;
+
+  auto sensorData = impl_->processAsicCmd(asicCommand);
+
+  EXPECT_EQ(*sensorData.name(), "ASIC_TEMP_MGET_TEMP");
+  EXPECT_EQ(*sensorData.sensorType(), SensorType::TEMPERTURE);
+  // Should not have value because parsing failed
+  EXPECT_FALSE(sensorData.value().has_value());
 }
 
 } // namespace facebook::fboss::platform::sensor_service

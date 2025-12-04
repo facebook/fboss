@@ -378,3 +378,46 @@ DEFINE_bool(
     enable_fabric_link_monitoring,
     false,
     "Enable fabric link monitoring feature in DSF");
+
+DEFINE_bool(
+    lldp_port_drain_state,
+    false,
+    "Enable sending and receiving port drain state in LLDP packets");
+
+DEFINE_bool(
+    enable_state_delta_logging,
+    false,
+    "Enable logging of state deltas applied in applyUpdate()");
+
+DEFINE_string(
+    state_delta_log_file,
+    "/tmp/state_delta.log",
+    "Path to the state delta log file.");
+
+DEFINE_bool(
+    strip_vlan_for_pipeline_bypass,
+    true,
+    "Strip vlan tag for packet injected with pipeline bypass");
+
+DEFINE_string(
+    state_delta_log_protocol,
+    "COMPACT",
+    "Serialization protocol for state delta logging (BINARY, SIMPLE_JSON, COMPACT)");
+
+DEFINE_int32(
+    state_delta_log_timeout_ms,
+    100,
+    "Log timeout value in milliseconds. Logger will periodically"
+    "flush logs even if the buffer is not full");
+
+DEFINE_int32(
+    fsdbStatsStreamIntervalSeconds,
+    5,
+    "Interval at which stats subscriptions are served");
+
+DEFINE_bool(
+    recover_from_hw_switch,
+    false,
+    "On SW agent only crash, it can collect the switch state from hw"
+    " switches and recover from it. This enables hitless restarts"
+    " on SW agent. This is only used for Sw Switch.");

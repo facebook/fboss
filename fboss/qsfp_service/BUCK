@@ -20,11 +20,11 @@ cpp_binary(
         "broadcom-plp-millenio": "5.5",
     },
     deps = [
-        ":core-credo-0.7.2",
+        ":core-credo-0.7.2",  # @manual
         ":handler",
         ":port-manager",
         ":stats",
-        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
+        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",  # @manual
         "//folly/executors:function_scheduler",
         "//folly/logging:init",
         "//thrift/lib/cpp2:server",
@@ -60,7 +60,7 @@ cpp_library(
 cpp_library(
     name = "core-default",
     exported_deps = [
-        ":core-credo-0.7.2",
+        ":core-credo-0.7.2",  # @manual
     ],
 )
 
@@ -146,6 +146,7 @@ cpp_library(
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//fboss/lib/usb:i2-api",
         "//fboss/lib/usb:transceiver_access_parameter",
+        "//fboss/qsfp_service/fsdb:fsdb-syncer",
         "//fboss/qsfp_service/if:config-cpp2-types",
         "//fboss/qsfp_service/if:port_state-cpp2-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
@@ -268,8 +269,8 @@ cpp_library(
         "//thrift/lib/cpp/util:enum_utils",
     ],
     exported_external_deps = [
-        "boost",
         ("boost", None, "boost_bimap"),
+        "boost",
     ],
 )
 

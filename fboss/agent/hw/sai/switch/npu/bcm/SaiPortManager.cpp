@@ -131,6 +131,7 @@ void SaiPortManager::changePortByRecreate(
     // Port Macro and re-create the removed ports with the new speed.
     removePort(oldPort);
     pendingNewPorts_[newPort->getID()] = newPort;
+    setPortType(newPort->getID(), newPort->getPortType());
     bool allPortsInGroupRemoved = true;
     auto& platformPortEntry =
         platform_->getPort(oldPort->getID())->getPlatformPortEntry();
@@ -243,6 +244,81 @@ void SaiPortManager::changePortFlowletConfig(
   } else {
     XLOG(DBG4) << "Port flowlet setting unchanged for " << newPort->getName();
   }
+}
+
+void SaiPortManager::programPfcDurationCounterEnable(
+    const std::shared_ptr<Port>& swPort,
+    const std::optional<cfg::PortPfc>& newPfc,
+    const std::optional<cfg::PortPfc>& oldPfc) {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+  static std::set<PortID> pfcDurationEnabledPortIds{};
+  bool enabled = false;
+  auto portHandle = getPortHandle(swPort->getID());
+  CHECK(portHandle) << "Unexpected port handle for " << swPort->getName();
+  auto isPfcDurationEnabled = [](const cfg::PortPfc& pfc) {
+    return pfc.txPfcDurationEnable().value_or(false) ||
+        pfc.rxPfcDurationEnable().value_or(false);
+  };
+  if (newPfc.has_value() && isPfcDurationEnabled(*newPfc)) {
+    // Only one of TX or RX can be enabled as of now!
+    bool txPfcDurationEn = newPfc->txPfcDurationEnable().value_or(false);
+    bool rxPfcDurationEn = newPfc->rxPfcDurationEnable().value_or(false);
+
+    // Note: Error checks are expeced to be done during config validations
+    if (rxPfcDurationEn) {
+      portHandle->port->setOptionalAttribute(
+          SaiPortTraits::Attributes::PfcMonitorDirection{
+              SAI_PFC_MONITOR_DIRECTION_PFC_RX});
+    }
+    if (txPfcDurationEn) {
+      portHandle->port->setOptionalAttribute(
+          SaiPortTraits::Attributes::PfcMonitorDirection{
+              SAI_PFC_MONITOR_DIRECTION_PFC_TX});
+    }
+    enabled = rxPfcDurationEn || txPfcDurationEn;
+  } else if (oldPfc.has_value() && isPfcDurationEnabled(*oldPfc)) {
+    // Identify a case where we are going from PFC duration being
+    // enabled to PFC duration being disabled on a port level.
+    // TODO(nivinl): Need a good handling to unconfigure PFC duration
+    // collection on a per port basis. As of now, its not available,
+    // as there is a default direction. If PFC is disabled on the port,
+    // PFC duration gets disabled as well.
+  }
+  if (enabled) {
+    if (pfcDurationEnabledPortIds.empty()) {
+      // PFC duration is enabled on the first port, now start PFC
+      // monitoring!
+      // TODO(nivinl): Get rid of the explicit enabling of PFC mon
+      // from NOS once support is available via CS00012428380.
+      managerTable_->switchManager().setEnablePfcMonitoring(
+          true /*enablePfcMonitoring*/);
+    }
+    pfcDurationEnabledPortIds.insert(swPort->getID());
+  } else if (pfcDurationEnabledPortIds.erase(swPort->getID()) > 0) {
+    if (pfcDurationEnabledPortIds.empty()) {
+      // PFC duration is disabled on the last port, now stop PFC
+      // monitoring!
+      // TODO(nivinl): Get rid of the explicit disabling of PFC mon
+      // from NOS once support is available via CS00012428380.
+      managerTable_->switchManager().setEnablePfcMonitoring(
+          false /*enablePfcMonitoring*/);
+    }
+  }
+#endif
+}
+
+const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
+    const PortID& portId) {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+  SaiPortHandle* portHandle = getPortHandle(portId);
+  CHECK(portHandle) << "Port handle uninitialized for portID " << portId;
+  if (portHandle->txPfcDurationStatsEnabled ||
+      portHandle->rxPfcDurationStatsEnabled) {
+    return SaiPortTraits::pfcXoffTotalDurationStats();
+  }
+#endif
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
 }
 
 void SaiPortManager::clearPortFlowletConfig(const PortID& /* unused */) {}

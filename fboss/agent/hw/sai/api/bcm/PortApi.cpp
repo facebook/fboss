@@ -277,11 +277,23 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcMonitorDirection::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX)
+  // Some ASICs can support PFC Monitoring only in one direction. This
+  // attribute specifies the direction to enable PFC monitoring for,
+  // either RX or TX.
+  return SAI_PORT_ATTR_PFC_MONITOR_DIRECTION;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
-#if defined(SAI_VERSION_11_7_0_0_ODP) ||     \
-    defined(SAI_VERSION_12_2_0_0_DNX_ODP) || \
-    defined(SAI_VERSION_13_0_EA_DNX_ODP) ||  \
-    defined(SAI_VERSION_13_3_0_0_DNX_ODP)
+#if (                                                                          \
+    defined(SAI_VERSION_11_7_0_0_ODP) || defined(BRCM_SAI_SDK_XGS_GTE_13_0) || \
+    defined(BRCM_SAI_SDK_DNX_GTE_12_0)) &&                                     \
+    !defined(SAI_VERSION_14_0_EA_ODP) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
   return SAI_PORT_ATTR_EXTENSION_AM_IDLES;
 #else
   return std::nullopt;
@@ -579,6 +591,23 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlTxPacketStats() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
   static const std::vector<sai_stat_id_t> stats{
       SAI_PORT_STAT_FABRIC_CONTROL_TX_PKTS};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_PORT_STAT_PFC_0_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_1_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_2_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_3_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_4_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_5_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_6_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_7_XOFF_TOTAL_DURATION};
 #else
   static const std::vector<sai_stat_id_t> stats;
 #endif

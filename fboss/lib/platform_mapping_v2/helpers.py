@@ -8,6 +8,7 @@ from fboss.lib.platform_mapping_v2.static_mapping import StaticMapping
 from neteng.fboss.phy.ttypes import (
     DataPlanePhyChip,
     DataPlanePhyChipType,
+    FecMode,
     Pin,
     PinConfig,
     PinConnection,
@@ -38,7 +39,7 @@ from neteng.fboss.platform_mapping_config.ttypes import (
 
 from neteng.fboss.switch_config.ttypes import PortProfileID, PortSpeed
 
-from neteng.fboss.transceiver.ttypes import TransmitterTechnology
+from neteng.fboss.transceiver.ttypes import TransmitterTechnology, Vendor
 
 
 def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
@@ -67,6 +68,7 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_200G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
     ]:
         return [PortSpeed.TWOHUNDREDG]
     if profile in [
@@ -74,12 +76,14 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
     ]:
         return [PortSpeed.FOURHUNDREDG]
     if profile in [
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
     ]:
         return [PortSpeed.EIGHTHUNDREDG]
     if profile in [
@@ -122,6 +126,7 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_25G_1_NRZ_RS528_COPPER,
         PortProfileID.PROFILE_25G_1_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
     ]:
         return 1
     if profile in [
@@ -132,6 +137,7 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_100G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_200G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
     ]:
         return 2
     if profile in [
@@ -143,6 +149,7 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
     ]:
         return 4
     if profile in [
@@ -485,12 +492,22 @@ def _create_override_from_si_setting(
     chip_type: ChipType,
 ) -> PlatformPortConfigOverride:
     """Create platform port config override from SI setting factor."""
+    si_setting_vendor = si_setting_and_factor.factor.tcvr_override_setting.vendor
+    # we only care about the vendor name and part number for overrides.
+    vendor = Vendor(
+        name=si_setting_vendor.name,
+        oui=b"",
+        partNumber=si_setting_vendor.partNumber,
+        rev="",
+        serialNumber="",
+        dateCode="",
+    )
     override_factor = PlatformPortConfigOverrideFactor(
         ports=[port_id],
         profiles=[profile],
         transceiverManagementInterface=None,
         mediaInterfaceCode=si_setting_and_factor.factor.tcvr_override_setting.media_interface_code,
-        vendor=si_setting_and_factor.factor.tcvr_override_setting.vendor,
+        vendor=vendor,
     )
 
     port_pin_config = PortPinConfig(
@@ -820,9 +837,108 @@ def transmitter_tech_from_profile(
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
     ]:
         return [TransmitterTechnology.COPPER]
+    if profile in [
+        PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
+    ]:
+        return [TransmitterTechnology.COPPER, TransmitterTechnology.BACKPLANE]
     if profile in [PortProfileID.PROFILE_DEFAULT]:
         return [TransmitterTechnology.UNKNOWN]
     raise Exception("Can't figure out transmitter tech for profile ", profile)
+
+
+def fec_from_profile(profile: PortProfileID) -> FecMode:
+    # NOFEC profiles
+    if profile in [
+        PortProfileID.PROFILE_10G_1_NRZ_NOFEC,
+        PortProfileID.PROFILE_10G_1_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_20G_2_NRZ_NOFEC,
+        PortProfileID.PROFILE_20G_2_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_20G_2_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_25G_1_NRZ_NOFEC,
+        PortProfileID.PROFILE_25G_1_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_25G_1_NRZ_NOFEC_COPPER_RACK_YV3_T1,
+        PortProfileID.PROFILE_40G_4_NRZ_NOFEC,
+        PortProfileID.PROFILE_40G_4_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_40G_4_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_50G_2_NRZ_NOFEC,
+        PortProfileID.PROFILE_50G_2_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_50G_2_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_100G_4_NRZ_NOFEC,
+        PortProfileID.PROFILE_100G_4_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_100G_1_PAM4_NOFEC_COPPER,
+    ]:
+        return FecMode.NONE
+    # CL74 profiles
+    if profile in [
+        PortProfileID.PROFILE_25G_1_NRZ_CL74_COPPER,
+        PortProfileID.PROFILE_50G_2_NRZ_CL74_COPPER,
+    ]:
+        return FecMode.CL74
+    # CL91 profiles
+    if profile in [
+        PortProfileID.PROFILE_100G_4_NRZ_CL91,
+        PortProfileID.PROFILE_100G_4_NRZ_CL91_COPPER,
+        PortProfileID.PROFILE_100G_4_NRZ_CL91_OPTICAL,
+        PortProfileID.PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1,
+    ]:
+        return FecMode.CL91
+    # RS528 profiles
+    if profile in [
+        PortProfileID.PROFILE_25G_1_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_50G_2_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_50G_2_NRZ_RS528_OPTICAL,
+        PortProfileID.PROFILE_100G_4_NRZ_RS528,
+        PortProfileID.PROFILE_100G_4_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_100G_4_NRZ_RS528_OPTICAL,
+    ]:
+        return FecMode.RS528
+    # RS544 profiles
+    if profile in [
+        PortProfileID.PROFILE_50G_1_PAM4_RS544_COPPER,
+        PortProfileID.PROFILE_100G_1_PAM4_RS544_COPPER,
+        PortProfileID.PROFILE_100G_1_PAM4_RS544_OPTICAL,
+        PortProfileID.PROFILE_100G_2_PAM4_RS544_COPPER,
+        PortProfileID.PROFILE_106POINT25G_1_PAM4_RS544_COPPER,
+        PortProfileID.PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL,
+        PortProfileID.PROFILE_200G_2_PAM4_RS544_COPPER,
+    ]:
+        return FecMode.RS544
+    # RS544_2N profiles
+    if profile in [
+        PortProfileID.PROFILE_100G_2_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_100G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_200G_4_PAM4_RS544X2N,
+        PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_400G_8_PAM4_RS544X2N,
+        PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
+    ]:
+        return FecMode.RS544_2N
+    # RS545 profiles
+    if profile in [
+        PortProfileID.PROFILE_53POINT125G_1_PAM4_RS545_COPPER,
+        PortProfileID.PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL,
+    ]:
+        return FecMode.RS545
+    if profile in [PortProfileID.PROFILE_DEFAULT]:
+        return FecMode.NONE
+    raise Exception("Can't figure out FEC mode for profile ", profile)
 
 
 def get_unique_connection_pairs(

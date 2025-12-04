@@ -132,12 +132,13 @@ class NeighborCache {
         timeout_(timeout),
         maxNeighborProbes_(maxNeighborProbes),
         staleEntryInterval_(staleEntryInterval),
-        impl_(std::make_unique<NeighborCacheImpl<NTable>>(
-            this,
-            sw,
-            vlanID,
-            vlanName,
-            intfID)) {}
+        impl_(
+            std::make_unique<NeighborCacheImpl<NTable>>(
+                this,
+                sw,
+                vlanID,
+                vlanName,
+                intfID)) {}
 
   // Methods useful for subclasses
   void setPendingEntry(AddressType ip, PortDescriptor port) {
@@ -229,6 +230,8 @@ class NeighborCache {
   // Forbidden copy constructor and assignment operator
   NeighborCache(NeighborCache const&) = delete;
   NeighborCache& operator=(NeighborCache const&) = delete;
+  NeighborCache(NeighborCache&&) = delete;
+  NeighborCache& operator=(NeighborCache&&) = delete;
 
   SwSwitch* sw_;
   std::chrono::seconds timeout_;

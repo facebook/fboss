@@ -26,6 +26,7 @@ target_link_libraries(fsdb_handler
   fsdb_model_cpp2
   fsdb_oper_metadata_tracker
   fsdb_naive_periodic_subscribable_storage
+  fsdb_flags
   log_thrift_call
   oper_path_helpers
   Folly::folly
@@ -54,3 +55,6 @@ target_link_libraries(fsdb
   fboss_init
   restart_time_tracker
 )
+
+# Register this executable for fsdb_all_services target
+set(FSDB_EXECUTABLES ${FSDB_EXECUTABLES} fsdb CACHE INTERNAL "List of all FSDB executables")

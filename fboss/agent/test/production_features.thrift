@@ -102,6 +102,9 @@ enum ProductionFeature {
   AM_IDLES = 89,
   ALTERNATE_ARS_MEMBERS = 90,
   EGRESS_MIRROR_PACKET_TRUNCATION = 91,
+  PFC_RX_DURATION = 92,
+  PFC_TX_DURATION = 93,
+  L2_QOS = 94,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

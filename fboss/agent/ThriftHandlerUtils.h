@@ -85,8 +85,9 @@ void clearPortStats(
     for (auto pri : enabledPfcPriorities_) {
       portKeys.emplace_back(
           folly::to<std::string>(portNameExt, "in_pfc_frames.priority", pri));
-      portKeys.emplace_back(folly::to<std::string>(
-          portNameExt, "in_pfc_xon_frames.priority", pri));
+      portKeys.emplace_back(
+          folly::to<std::string>(
+              portNameExt, "in_pfc_xon_frames.priority", pri));
       portKeys.emplace_back(
           folly::to<std::string>(portNameExt, "out_pfc_frames.priority", pri));
     }

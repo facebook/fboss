@@ -152,7 +152,8 @@ std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
 bool isDeviationWithinThreshold(
     int64_t lowest,
     int64_t highest,
-    int maxDeviationPct);
+    int maxDeviationPct,
+    bool noTrafficOk = false);
 
 template <typename PortIdT, typename PortStatsT>
 bool isLoadBalancedImpl(

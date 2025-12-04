@@ -548,7 +548,15 @@ cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
   auto trapDstIp = folly::CIDRNetwork{kRxMeasureDstIp, 128};
   utility::addTrapPacketAcl(asic, &config, trapDstIp);
 
-  config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
+  // Disable L2 learning for chenab platform to prevent
+  // FDB metadata read errors on dynamically learned MAC entries.
+  // Minipack3N do not support L2 learning mode.
+  auto asicType = asic->getAsicType();
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::DISABLED;
+  } else {
+    config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
+  }
   addPort2NewVlan(
       config,
       ensemble.masterLogicalInterfacePortIds()[kRxMeasurePortIdx],

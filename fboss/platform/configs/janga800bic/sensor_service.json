@@ -162,10 +162,11 @@
             "maxAlarmVal": 63,
             "upperCriticalVal": 65
           },
-          "compute": "@/1000.0"
+          "__comment__": "Update the multiplier to 3 because the HW design has 3 milliohm resistors in parallel, giving an equivalent resistance of 0.333 milliohms",
+          "compute": "3*@/1000.0"
         },
         {
-          "name": "SMB_U279_MAIN_HSC_ADM1272_VOUT",
+          "name": "SMB_U279_MAIN_HSC_ADM1272_VIN",
           "sysfsPath": "/run/devmap/sensors/SMB_U279_ADM1272_1/in1_input",
           "type": 1,
           "thresholds": {
@@ -175,14 +176,25 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_U279_MAIN_HSC_ADM1272_POUT",
+          "name": "SMB_U279_MAIN_HSC_ADM1272_VOUT",
+          "sysfsPath": "/run/devmap/sensors/SMB_U279_ADM1272_1/in2_input",
+          "type": 1,
+          "thresholds": {
+            "maxAlarmVal": 58,
+            "upperCriticalVal": 60
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_U279_MAIN_HSC_ADM1272_PIN",
           "sysfsPath": "/run/devmap/sensors/SMB_U279_ADM1272_1/power1_input",
           "type": 0,
           "thresholds": {
             "maxAlarmVal": 2800,
             "upperCriticalVal": 3000
           },
-          "compute": "@/1000000.0"
+          "__comment__": "Update the multiplier to 3 because the HW design has 3 milliohm resistors in parallel, giving an equivalent resistance of 0.333 milliohms",
+          "compute": "3*@/1000000.0"
         },
         {
           "name": "SMB_U279_MAIN_HSC_ADM1272_TEMP",
@@ -949,7 +961,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_U327_TPS25990_COMe_XP12R0V_VIN",
+          "name": "SMB_U327_TPS25990_COME_XP12R0V_VIN",
           "sysfsPath": "/run/devmap/sensors/SMB_U327_TPS25990_COME/in1_input",
           "type": 1,
           "thresholds": {
@@ -961,7 +973,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_U327_TPS25990_COMe_P12V_VOUT",
+          "name": "SMB_U327_TPS25990_COME_P12V_VOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_U327_TPS25990_COME/in2_input",
           "type": 1,
           "thresholds": {
@@ -973,7 +985,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_U327_TPS25990_COMe_P12V_TEMP",
+          "name": "SMB_U327_TPS25990_COME_P12V_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_U327_TPS25990_COME/temp1_input",
           "type": 3,
           "thresholds": {
@@ -983,7 +995,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_U327_TPS25990_COMe_P12V_PIN",
+          "name": "SMB_U327_TPS25990_COME_P12V_PIN",
           "sysfsPath": "/run/devmap/sensors/SMB_U327_TPS25990_COME/power1_input",
           "type": 0,
           "thresholds": {
@@ -995,7 +1007,7 @@
           "compute": "(1000/3650)*@/1000000.0"
         },
         {
-          "name": "SMB_U327_TPS25990_COMe_P12V_IIN",
+          "name": "SMB_U327_TPS25990_COME_P12V_IIN",
           "sysfsPath": "/run/devmap/sensors/SMB_U327_TPS25990_COME/curr1_input",
           "type": 2,
           "thresholds": {
@@ -8245,7 +8257,7 @@
           "type": 5,
           "thresholds": {
             "upperCriticalVal": 255,
-            "lowerCriticalVal": 140
+            "lowerCriticalVal": 25
           }
         },
         {
@@ -8342,7 +8354,7 @@
           "type": 5,
           "thresholds": {
             "upperCriticalVal": 255,
-            "lowerCriticalVal": 140
+            "lowerCriticalVal": 25
           }
         },
         {
@@ -8440,7 +8452,7 @@
       "pmUnitName": "NETLAKE",
       "sensors": [
         {
-          "name": "COMe_U18_Inlet_Sensor_TMP75_TEMP",
+          "name": "COME_U18_INLET_SENSOR_TMP75_TEMP",
           "sysfsPath": "/run/devmap/sensors/COME_U18_INLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
@@ -8450,7 +8462,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "COMe_U39_Outlet_Sensor_TMP75_TEMP",
+          "name": "COME_U39_OUTLET_SENSOR_TMP75_TEMP",
           "sysfsPath": "/run/devmap/sensors/COME_U39_OUTLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
@@ -8464,7 +8476,7 @@
         {
           "sensors": [
             {
-              "name": "COMe_PU4_XDPE15284_PVCCIN_VIN",
+              "name": "COME_PU4_XDPE15284_PVCCIN_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/in1_input",
               "type": 1,
               "thresholds": {
@@ -8475,7 +8487,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_P1V8_VIN",
+              "name": "COME_PU4_XDPE15284_P1V8_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/in2_input",
               "type": 1,
               "thresholds": {
@@ -8486,7 +8498,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_PVCCIN_VOUT",
+              "name": "COME_PU4_XDPE15284_PVCCIN_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/in3_input",
               "type": 1,
               "thresholds": {
@@ -8497,7 +8509,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_P1V8_VOUT",
+              "name": "COME_PU4_XDPE15284_P1V8_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/in4_input",
               "type": 1,
               "thresholds": {
@@ -8508,7 +8520,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_PVCCIN_TEMP",
+              "name": "COME_PU4_XDPE15284_PVCCIN_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/temp1_input",
               "type": 3,
               "thresholds": {
@@ -8518,7 +8530,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_P1V8_TEMP",
+              "name": "COME_PU4_XDPE15284_P1V8_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/temp2_input",
               "type": 3,
               "thresholds": {
@@ -8528,7 +8540,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_PVCCIN_PIN",
+              "name": "COME_PU4_XDPE15284_PVCCIN_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/power1_input",
               "type": 0,
               "thresholds": {
@@ -8537,7 +8549,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_P1V8_PIN",
+              "name": "COME_PU4_XDPE15284_P1V8_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/power2_input",
               "type": 0,
               "thresholds": {
@@ -8546,7 +8558,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_PVCCIN_POUT",
+              "name": "COME_PU4_XDPE15284_PVCCIN_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/power3_input",
               "type": 0,
               "thresholds": {
@@ -8555,7 +8567,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_P1V8_POUT",
+              "name": "COME_PU4_XDPE15284_P1V8_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/power4_input",
               "type": 0,
               "thresholds": {
@@ -8564,7 +8576,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_PVCCIN_IIN",
+              "name": "COME_PU4_XDPE15284_PVCCIN_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/curr1_input",
               "type": 2,
               "thresholds": {
@@ -8574,7 +8586,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_P1V8_IIN",
+              "name": "COME_PU4_XDPE15284_P1V8_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/curr2_input",
               "type": 2,
               "thresholds": {
@@ -8584,7 +8596,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_PVCCIN_IOUT",
+              "name": "COME_PU4_XDPE15284_PVCCIN_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/curr3_input",
               "type": 2,
               "thresholds": {
@@ -8594,7 +8606,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_P1V8_IOUT",
+              "name": "COME_PU4_XDPE15284_P1V8_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/curr4_input",
               "type": 2,
               "thresholds": {
@@ -8604,7 +8616,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_VIN",
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -8613,7 +8625,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_VOUT",
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -8623,7 +8635,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_TEMP",
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -8633,25 +8645,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_PIN",
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_POUT",
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_IIN",
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_IOUT",
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -8660,7 +8672,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_TDA38640_PVNN_PCH_VIN",
+              "name": "COME_PU31_TDA38640_PVNN_PCH_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -8669,7 +8681,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_TDA38640_PVNN_PCH_VOUT",
+              "name": "COME_PU31_TDA38640_PVNN_PCH_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -8679,7 +8691,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_TDA38640_PVNN_PCH_TEMP",
+              "name": "COME_PU31_TDA38640_PVNN_PCH_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -8689,25 +8701,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_TDA38640_PVNN_PCH_PIN",
+              "name": "COME_PU31_TDA38640_PVNN_PCH_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU31_TDA38640_PVNN_PCH_POUT",
+              "name": "COME_PU31_TDA38640_PVNN_PCH_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU31_TDA38640_PVNN_PCH_IIN",
+              "name": "COME_PU31_TDA38640_PVNN_PCH_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_TDA38640_PVNN_PCH_IOUT",
+              "name": "COME_PU31_TDA38640_PVNN_PCH_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -8716,7 +8728,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_TDA38640_PVCCANA_CPU_1V_VIN",
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -8725,7 +8737,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_TDA38640_PVCCANA_CPU_1V_VOUT",
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -8735,7 +8747,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_TDA38640_PVCCANA_CPU_1V_TEMP",
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -8745,25 +8757,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_TDA38640_PVCCANA_CPU_1V_PIN",
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU42_TDA38640_PVCCANA_CPU_1V_POUT",
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU42_TDA38640_PVCCANA_CPU_1V_IIN",
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_TDA38640_PVCCANA_CPU_1V_IOUT",
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -8772,7 +8784,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_TDA38640_P1V05_STBY_VIN",
+              "name": "COME_PU32_TDA38640_P1V05_STBY_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -8781,7 +8793,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_TDA38640_P1V05_STBY_VOUT",
+              "name": "COME_PU32_TDA38640_P1V05_STBY_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -8791,7 +8803,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_TDA38640_P1V05_STBY_TEMP",
+              "name": "COME_PU32_TDA38640_P1V05_STBY_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -8801,25 +8813,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_TDA38640_P1V05_STBY_PIN",
+              "name": "COME_PU32_TDA38640_P1V05_STBY_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU32_TDA38640_P1V05_STBY_POUT",
+              "name": "COME_PU32_TDA38640_P1V05_STBY_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU32_TDA38640_P1V05_STBY_IIN",
+              "name": "COME_PU32_TDA38640_P1V05_STBY_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_TDA38640_P1V05_STBY_IOUT",
+              "name": "COME_PU32_TDA38640_P1V05_STBY_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -8835,7 +8847,7 @@
         {
           "sensors": [
             {
-              "name": "COMe_PU4_XDPE15284_PVCCIN_VIN",
+              "name": "COME_PU4_XDPE15284_PVCCIN_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/in1_input",
               "type": 1,
               "thresholds": {
@@ -8846,7 +8858,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_P1V8_VIN",
+              "name": "COME_PU4_XDPE15284_P1V8_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/in2_input",
               "type": 1,
               "thresholds": {
@@ -8857,7 +8869,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_PVCCIN_VOUT",
+              "name": "COME_PU4_XDPE15284_PVCCIN_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/in3_input",
               "type": 1,
               "thresholds": {
@@ -8868,7 +8880,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_P1V8_VOUT",
+              "name": "COME_PU4_XDPE15284_P1V8_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/in4_input",
               "type": 1,
               "thresholds": {
@@ -8879,7 +8891,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_PVCCIN_TEMP",
+              "name": "COME_PU4_XDPE15284_PVCCIN_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/temp1_input",
               "type": 3,
               "thresholds": {
@@ -8889,7 +8901,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_P1V8_TEMP",
+              "name": "COME_PU4_XDPE15284_P1V8_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/temp2_input",
               "type": 3,
               "thresholds": {
@@ -8899,7 +8911,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_PVCCIN_PIN",
+              "name": "COME_PU4_XDPE15284_PVCCIN_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/power1_input",
               "type": 0,
               "thresholds": {
@@ -8908,7 +8920,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_P1V8_PIN",
+              "name": "COME_PU4_XDPE15284_P1V8_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/power2_input",
               "type": 0,
               "thresholds": {
@@ -8917,7 +8929,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_PVCCIN_POUT",
+              "name": "COME_PU4_XDPE15284_PVCCIN_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/power3_input",
               "type": 0,
               "thresholds": {
@@ -8926,7 +8938,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_P1V8_POUT",
+              "name": "COME_PU4_XDPE15284_P1V8_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/power4_input",
               "type": 0,
               "thresholds": {
@@ -8935,7 +8947,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_PVCCIN_IIN",
+              "name": "COME_PU4_XDPE15284_PVCCIN_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/curr1_input",
               "type": 2,
               "thresholds": {
@@ -8945,7 +8957,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_P1V8_IIN",
+              "name": "COME_PU4_XDPE15284_P1V8_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/curr2_input",
               "type": 2,
               "thresholds": {
@@ -8955,7 +8967,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_PVCCIN_IOUT",
+              "name": "COME_PU4_XDPE15284_PVCCIN_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/curr3_input",
               "type": 2,
               "thresholds": {
@@ -8965,7 +8977,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_XDPE15284_P1V8_IOUT",
+              "name": "COME_PU4_XDPE15284_P1V8_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/curr4_input",
               "type": 2,
               "thresholds": {
@@ -8975,7 +8987,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_VIN",
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -8984,7 +8996,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_VOUT",
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -8994,7 +9006,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_TEMP",
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -9004,25 +9016,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_PIN",
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_POUT",
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_IIN",
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_IOUT",
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -9031,7 +9043,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_TDA38640_PVNN_PCH_VIN",
+              "name": "COME_PU31_TDA38640_PVNN_PCH_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -9040,7 +9052,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_TDA38640_PVNN_PCH_VOUT",
+              "name": "COME_PU31_TDA38640_PVNN_PCH_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -9050,7 +9062,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_TDA38640_PVNN_PCH_TEMP",
+              "name": "COME_PU31_TDA38640_PVNN_PCH_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -9060,25 +9072,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_TDA38640_PVNN_PCH_PIN",
+              "name": "COME_PU31_TDA38640_PVNN_PCH_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU31_TDA38640_PVNN_PCH_POUT",
+              "name": "COME_PU31_TDA38640_PVNN_PCH_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU31_TDA38640_PVNN_PCH_IIN",
+              "name": "COME_PU31_TDA38640_PVNN_PCH_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_TDA38640_PVNN_PCH_IOUT",
+              "name": "COME_PU31_TDA38640_PVNN_PCH_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -9087,7 +9099,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_TDA38640_PVCCANA_CPU_1V_VIN",
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -9096,7 +9108,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_TDA38640_PVCCANA_CPU_1V_VOUT",
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -9106,7 +9118,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_TDA38640_PVCCANA_CPU_1V_TEMP",
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -9116,25 +9128,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_TDA38640_PVCCANA_CPU_1V_PIN",
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU42_TDA38640_PVCCANA_CPU_1V_POUT",
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU42_TDA38640_PVCCANA_CPU_1V_IIN",
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_TDA38640_PVCCANA_CPU_1V_IOUT",
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -9143,7 +9155,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_TDA38640_P1V05_STBY_VIN",
+              "name": "COME_PU32_TDA38640_P1V05_STBY_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -9152,7 +9164,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_TDA38640_P1V05_STBY_VOUT",
+              "name": "COME_PU32_TDA38640_P1V05_STBY_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -9162,7 +9174,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_TDA38640_P1V05_STBY_TEMP",
+              "name": "COME_PU32_TDA38640_P1V05_STBY_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -9172,25 +9184,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_TDA38640_P1V05_STBY_PIN",
+              "name": "COME_PU32_TDA38640_P1V05_STBY_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU32_TDA38640_P1V05_STBY_POUT",
+              "name": "COME_PU32_TDA38640_P1V05_STBY_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU32_TDA38640_P1V05_STBY_IIN",
+              "name": "COME_PU32_TDA38640_P1V05_STBY_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_TDA38640_P1V05_STBY_IOUT",
+              "name": "COME_PU32_TDA38640_P1V05_STBY_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -9206,7 +9218,7 @@
         {
           "sensors": [
             {
-              "name": "COMe_PU4_MP2993_VIN",
+              "name": "COME_PU4_MP2993_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/in1_input",
               "type": 1,
               "thresholds": {
@@ -9218,7 +9230,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_PVCCIN_VOUT",
+              "name": "COME_PU4_MP2993_PVCCIN_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/in2_input",
               "type": 1,
               "thresholds": {
@@ -9229,7 +9241,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_P1V8_VOUT",
+              "name": "COME_PU4_MP2993_P1V8_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/in3_input",
               "type": 1,
               "thresholds": {
@@ -9240,7 +9252,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_PVCCIN_TEMP",
+              "name": "COME_PU4_MP2993_PVCCIN_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/temp1_input",
               "type": 3,
               "thresholds": {
@@ -9250,7 +9262,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_P1V8_TEMP",
+              "name": "COME_PU4_MP2993_P1V8_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/temp2_input",
               "type": 3,
               "thresholds": {
@@ -9260,7 +9272,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_PIN",
+              "name": "COME_PU4_MP2993_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/power1_input",
               "type": 0,
               "thresholds": {
@@ -9269,7 +9281,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_PVCCIN_POUT",
+              "name": "COME_PU4_MP2993_PVCCIN_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/power2_input",
               "type": 0,
               "thresholds": {
@@ -9278,7 +9290,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_P1V8_POUT",
+              "name": "COME_PU4_MP2993_P1V8_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/power3_input",
               "type": 0,
               "thresholds": {
@@ -9287,13 +9299,13 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_IIN",
+              "name": "COME_PU4_MP2993_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_PVCCIN_IOUT",
+              "name": "COME_PU4_MP2993_PVCCIN_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/curr2_input",
               "type": 2,
               "thresholds": {
@@ -9303,7 +9315,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_P1V8_IOUT",
+              "name": "COME_PU4_MP2993_P1V8_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/curr3_input",
               "type": 2,
               "thresholds": {
@@ -9313,7 +9325,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_VIN",
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -9322,7 +9334,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_VOUT",
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -9332,7 +9344,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_TEMP",
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -9342,25 +9354,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_PIN",
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_POUT",
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_IIN",
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_IOUT",
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -9369,7 +9381,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_MP9941_PVNN_PCH_VIN",
+              "name": "COME_PU31_MP9941_PVNN_PCH_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -9378,7 +9390,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_MP9941_PVNN_PCH_VOUT",
+              "name": "COME_PU31_MP9941_PVNN_PCH_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -9388,7 +9400,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_MP9941_PVNN_PCH_TEMP",
+              "name": "COME_PU31_MP9941_PVNN_PCH_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -9398,25 +9410,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_MP9941_PVNN_PCH_PIN",
+              "name": "COME_PU31_MP9941_PVNN_PCH_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU31_MP9941_PVNN_PCH_POUT",
+              "name": "COME_PU31_MP9941_PVNN_PCH_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU31_MP9941_PVNN_PCH_IIN",
+              "name": "COME_PU31_MP9941_PVNN_PCH_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_MP9941_PVNN_PCH_IOUT",
+              "name": "COME_PU31_MP9941_PVNN_PCH_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -9425,7 +9437,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_MP9941_PVCCANA_CPU_1V_VIN",
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -9434,7 +9446,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_MP9941_PVCCANA_CPU_1V_VOUT",
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -9444,7 +9456,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_MP9941_PVCCANA_CPU_1V_TEMP",
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -9454,25 +9466,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_MP9941_PVCCANA_CPU_1V_PIN",
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU42_MP9941_PVCCANA_CPU_1V_POUT",
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU42_MP9941_PVCCANA_CPU_1V_IIN",
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_MP9941_PVCCANA_CPU_1V_IOUT",
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -9481,7 +9493,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_MP9941_P1V05_STBY_VIN",
+              "name": "COME_PU32_MP9941_P1V05_STBY_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -9490,7 +9502,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_MP9941_P1V05_STBY_VOUT",
+              "name": "COME_PU32_MP9941_P1V05_STBY_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -9500,7 +9512,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_MP9941_P1V05_STBY_TEMP",
+              "name": "COME_PU32_MP9941_P1V05_STBY_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -9510,25 +9522,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_MP9941_P1V05_STBY_PIN",
+              "name": "COME_PU32_MP9941_P1V05_STBY_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU32_MP9941_P1V05_STBY_POUT",
+              "name": "COME_PU32_MP9941_P1V05_STBY_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU32_MP9941_P1V05_STBY_IIN",
+              "name": "COME_PU32_MP9941_P1V05_STBY_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_MP9941_P1V05_STBY_IOUT",
+              "name": "COME_PU32_MP9941_P1V05_STBY_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -9544,7 +9556,7 @@
         {
           "sensors": [
             {
-              "name": "COMe_PU4_MP2993_VIN",
+              "name": "COME_PU4_MP2993_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/in1_input",
               "type": 1,
               "thresholds": {
@@ -9556,7 +9568,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_PVCCIN_VOUT",
+              "name": "COME_PU4_MP2993_PVCCIN_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/in2_input",
               "type": 1,
               "thresholds": {
@@ -9567,7 +9579,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_P1V8_VOUT",
+              "name": "COME_PU4_MP2993_P1V8_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/in3_input",
               "type": 1,
               "thresholds": {
@@ -9578,7 +9590,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_PVCCIN_TEMP",
+              "name": "COME_PU4_MP2993_PVCCIN_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/temp1_input",
               "type": 3,
               "thresholds": {
@@ -9588,7 +9600,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_P1V8_TEMP",
+              "name": "COME_PU4_MP2993_P1V8_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/temp2_input",
               "type": 3,
               "thresholds": {
@@ -9598,7 +9610,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_PIN",
+              "name": "COME_PU4_MP2993_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/power1_input",
               "type": 0,
               "thresholds": {
@@ -9607,7 +9619,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_PVCCIN_POUT",
+              "name": "COME_PU4_MP2993_PVCCIN_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/power2_input",
               "type": 0,
               "thresholds": {
@@ -9616,7 +9628,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_P1V8_POUT",
+              "name": "COME_PU4_MP2993_P1V8_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/power3_input",
               "type": 0,
               "thresholds": {
@@ -9625,13 +9637,13 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_IIN",
+              "name": "COME_PU4_MP2993_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_PVCCIN_IOUT",
+              "name": "COME_PU4_MP2993_PVCCIN_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/curr2_input",
               "type": 2,
               "thresholds": {
@@ -9641,7 +9653,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU4_MP2993_P1V8_IOUT",
+              "name": "COME_PU4_MP2993_P1V8_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/curr3_input",
               "type": 2,
               "thresholds": {
@@ -9651,7 +9663,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_VIN",
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -9660,7 +9672,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_VOUT",
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -9670,7 +9682,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_TEMP",
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -9680,25 +9692,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_PIN",
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_POUT",
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_IIN",
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_IOUT",
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU41_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -9707,7 +9719,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_MP9941_PVNN_PCH_VIN",
+              "name": "COME_PU31_MP9941_PVNN_PCH_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -9716,7 +9728,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_MP9941_PVNN_PCH_VOUT",
+              "name": "COME_PU31_MP9941_PVNN_PCH_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -9726,7 +9738,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_MP9941_PVNN_PCH_TEMP",
+              "name": "COME_PU31_MP9941_PVNN_PCH_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -9736,25 +9748,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_MP9941_PVNN_PCH_PIN",
+              "name": "COME_PU31_MP9941_PVNN_PCH_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU31_MP9941_PVNN_PCH_POUT",
+              "name": "COME_PU31_MP9941_PVNN_PCH_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU31_MP9941_PVNN_PCH_IIN",
+              "name": "COME_PU31_MP9941_PVNN_PCH_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU31_MP9941_PVNN_PCH_IOUT",
+              "name": "COME_PU31_MP9941_PVNN_PCH_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU31_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -9763,7 +9775,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_MP9941_PVCCANA_CPU_1V_VIN",
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -9772,7 +9784,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_MP9941_PVCCANA_CPU_1V_VOUT",
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -9782,7 +9794,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_MP9941_PVCCANA_CPU_1V_TEMP",
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -9792,25 +9804,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_MP9941_PVCCANA_CPU_1V_PIN",
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU42_MP9941_PVCCANA_CPU_1V_POUT",
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU42_MP9941_PVCCANA_CPU_1V_IIN",
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU42_MP9941_PVCCANA_CPU_1V_IOUT",
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU42_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -9819,7 +9831,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_MP9941_P1V05_STBY_VIN",
+              "name": "COME_PU32_MP9941_P1V05_STBY_VIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/in1_input",
               "type": 1,
               "thresholds": {
@@ -9828,7 +9840,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_MP9941_P1V05_STBY_VOUT",
+              "name": "COME_PU32_MP9941_P1V05_STBY_VOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/in2_input",
               "type": 1,
               "thresholds": {
@@ -9838,7 +9850,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_MP9941_P1V05_STBY_TEMP",
+              "name": "COME_PU32_MP9941_P1V05_STBY_TEMP",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/temp1_input",
               "type": 3,
               "thresholds": {
@@ -9848,25 +9860,25 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_MP9941_P1V05_STBY_PIN",
+              "name": "COME_PU32_MP9941_P1V05_STBY_PIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU32_MP9941_P1V05_STBY_POUT",
+              "name": "COME_PU32_MP9941_P1V05_STBY_POUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/power2_input",
               "type": 0,
               "compute": "@/1000000.0"
             },
             {
-              "name": "COMe_PU32_MP9941_P1V05_STBY_IIN",
+              "name": "COME_PU32_MP9941_P1V05_STBY_IIN",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "COMe_PU32_MP9941_P1V05_STBY_IOUT",
+              "name": "COME_PU32_MP9941_P1V05_STBY_IOUT",
               "sysfsPath": "/run/devmap/sensors/COME_PU32_TDA38640/curr2_input",
               "type": 2,
               "thresholds": {
@@ -9886,7 +9898,7 @@
       "pmUnitName": "MINERVA_BMC",
       "sensors": [
         {
-          "name": "BMC_U9_Thermal_Sensor_TMP1075_TEMP",
+          "name": "BMC_U9_THERMAL_SENSOR_TMP1075_TEMP",
           "sysfsPath": "/run/devmap/sensors/BMC_U9_THERMAL_SENSOR/temp1_input",
           "type": 3,
           "thresholds": {
@@ -9895,6 +9907,36 @@
           },
           "compute": "@/1000.0"
         }
+      ]
+    }
+  ],
+  "powerConfig": {
+    "perSlotPowerConfigs": [
+      {
+        "__comment__": "Hot-swap VRM chip ADM1272 monitors the power consumption of the entire system",
+        "name": "HSC",
+        "voltageSensorName": "SMB_U279_MAIN_HSC_ADM1272_VOUT",
+        "currentSensorName": "SMB_U279_MAIN_HSC_ADM1272_IOUT"
+      }
+    ],
+    "inputVoltageSensors": [
+      "SMB_U279_MAIN_HSC_ADM1272_VIN"
+    ]
+  },
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "SMB_U68_TMP422_J3_A_TEMPDIODE_NIF1",
+        "SMB_U68_TMP422_J3_A_TEMPDIODE_HBM_PHY0",
+        "SMB_U150_TMP422_J3_A_TEMPDIODE_FAB1",
+        "SMB_U150_TMP422_J3_A_TEMPDIODE_HBM_PHY2",
+        "SMB_U351_TMP422_J3_B_TEMPDIODE_PADS",
+        "SMB_U351_TMP422_J3_B_TEMPDIODE_NIF0",
+        "SMB_U352_TMP422_J3_B_TEMPDIODE_NIF1",
+        "SMB_U352_TMP422_J3_B_TEMPDIODE_HBM_PHY0",
+        "SMB_U152_TMP422_J3_B_TEMPDIODE_FAB1",
+        "SMB_U152_TMP422_J3_B_TEMPDIODE_HBM_PHY2"
       ]
     }
   ]

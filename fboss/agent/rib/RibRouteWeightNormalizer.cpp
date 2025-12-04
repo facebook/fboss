@@ -182,8 +182,9 @@ void RibRouteWeightNormalizer::normalizeWeightsForNexthops(
       throw FbossError("plane id not set in topology info");
     }
     auto planeId = PlaneId(*topologyInfo.plane_id());
-    planeIdToFailures.insert(std::make_pair(
-        planeId, std::make_pair(numRackFailures, numSpineFailures)));
+    planeIdToFailures.insert(
+        std::make_pair(
+            planeId, std::make_pair(numRackFailures, numSpineFailures)));
 
     // update local capacity information for each plane
     auto localPlaneInfo = localPlaneCapacity.find(planeId);

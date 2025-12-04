@@ -284,8 +284,9 @@ struct WritableImpl {
       "Refer to thrift/lib/cpp2/reflection/reflection.h");
   template <typename TType>
   static inline bool remove(TType&, const std::string& token) {
-    throw std::runtime_error(folly::to<std::string>(
-        "Cannot remove a child from a primitive node: ", token));
+    throw std::runtime_error(
+        folly::to<std::string>(
+            "Cannot remove a child from a primitive node: ", token));
   }
 
   template <typename TType>
@@ -481,17 +482,19 @@ class SerializableWrapper : public Serializable {
         return Serializer<fsdb::OperProtocol::COMPACT>::template serializeBuf<
             TC>(node_);
       default:
-        throw std::runtime_error(folly::to<std::string>(
-            "Unknown protocol: ", static_cast<int>(proto)));
+        throw std::runtime_error(
+            folly::to<std::string>(
+                "Unknown protocol: ", static_cast<int>(proto)));
     }
   }
 
   void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
       override {
     if constexpr (std::is_const<TType>::value) {
-      throw std::runtime_error(folly::to<std::string>(
-          "deserialize assigns to const type: ",
-          folly::demangle(typeid(TType)).toStdString()));
+      throw std::runtime_error(
+          folly::to<std::string>(
+              "deserialize assigns to const type: ",
+              folly::demangle(typeid(TType)).toStdString()));
     } else {
       node_ = deserializeBuf<TC, TType>(proto, std::move(encoded));
     }
@@ -520,9 +523,10 @@ class SerializableWrapper : public Serializable {
 
   virtual bool remove(const std::string& token) override {
     if constexpr (std::is_const<TType>::value) {
-      throw std::runtime_error(folly::to<std::string>(
-          "remove(token) called on const type: ",
-          folly::demangle(typeid(TType)).toStdString()));
+      throw std::runtime_error(
+          folly::to<std::string>(
+              "remove(token) called on const type: ",
+              folly::demangle(typeid(TType)).toStdString()));
     } else {
       return WritableImpl<TC>::remove(node_, token);
     }
@@ -531,9 +535,10 @@ class SerializableWrapper : public Serializable {
   virtual void modify(const std::string& token, bool construct = true)
       override {
     if constexpr (std::is_const<TType>::value) {
-      throw std::runtime_error(folly::to<std::string>(
-          "modify(token) called on const type: ",
-          folly::demangle(typeid(TType)).toStdString()));
+      throw std::runtime_error(
+          folly::to<std::string>(
+              "modify(token) called on const type: ",
+              folly::demangle(typeid(TType)).toStdString()));
     } else {
       WritableImpl<TC>::modify(node_, token, construct);
     }

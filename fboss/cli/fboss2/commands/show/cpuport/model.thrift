@@ -1,7 +1,10 @@
+package "facebook.com/fboss/cli"
+
 namespace cpp2 facebook.fboss.cli
 
 struct ShowCpuPortModel {
-  1: list<CpuPortQueueEntry> cpuQueueEntries;
+  1: list<CpuPortQueueEntry> cpuQueueEntries_DEPRECATED;
+  2: map<i32, list<CpuPortQueueEntry>> cpuPortStatEntries;
 }
 
 struct CpuPortQueueEntry {

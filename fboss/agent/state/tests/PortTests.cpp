@@ -366,8 +366,8 @@ TEST(Port, pauseConfig) {
   state->getPorts()->getNodeIf(PortID(1))->resetPortQueues(queues);
 
   auto verifyPause = [&state](cfg::PortPause expectPause) {
-    auto port = state->getPorts()->getNodeIf(PortID(1));
-    auto pause = port->getPause();
+    auto currentPort = state->getPorts()->getNodeIf(PortID(1));
+    auto pause = currentPort->getPause();
     EXPECT_EQ(expectPause, pause);
   };
 

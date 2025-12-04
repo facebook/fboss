@@ -54,14 +54,23 @@ const std::vector<std::string> l2LinkTestNames = {"trafficRxTx", "ecmpShrink"};
 
 #ifndef IS_OSS
 long swAgentMemThreshold(facebook::fboss::PlatformType platform) {
-  if (platform == facebook::fboss::PlatformType::PLATFORM_MERU800BIA) {
-    return 6 * 1000 * 1000 * 1000L; // 6GB
-  } else if (platform == facebook::fboss::PlatformType::PLATFORM_MONTBLANC) {
-    return 4 * 1000 * 1000 * 1000L; // 4GB
-  } else if (platform == facebook::fboss::PlatformType::PLATFORM_MORGAN800CC) {
-    return 5 * 1000 * 1000 * 1000L; // 5GB
+  switch (platform) {
+    case facebook::fboss::PlatformType::PLATFORM_WEDGE100:
+    case facebook::fboss::PlatformType::PLATFORM_WEDGE400:
+    case facebook::fboss::PlatformType::PLATFORM_DARWIN:
+    case facebook::fboss::PlatformType::PLATFORM_DARWIN48V:
+    case facebook::fboss::PlatformType::PLATFORM_MINIPACK:
+    case facebook::fboss::PlatformType::PLATFORM_YAMP:
+    case facebook::fboss::PlatformType::PLATFORM_FUJI:
+    case facebook::fboss::PlatformType::PLATFORM_ELBERT:
+      return 3 * 1000 * 1000 * 1000L; // 3GB
+    case facebook::fboss::PlatformType::PLATFORM_MORGAN800CC:
+      return 5 * 1000 * 1000 * 1000L; // 5GB
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIA:
+      return 6 * 1000 * 1000 * 1000L; // 6GB
+    default:
+      return 4 * 1000 * 1000 * 1000L; // 4GB
   }
-  return 3 * 1000 * 1000 * 1000L; // 3GB
 }
 #endif
 } // namespace
@@ -80,6 +89,8 @@ void AgentEnsembleLinkTest::SetUp() {
   // Wait for all the cabled ports to link up before finishing the setup
   waitForAllCabledPorts(true, 60, 5s);
   utility::waitForAllTransceiverStates(true, getCabledTranceivers(), 60, 5s);
+  utility::waitForPortStateMachineState(true, getCabledPorts(), 60, 5s);
+
   XLOG(DBG2) << "Multi Switch Link Test setup ready";
 }
 
@@ -180,7 +191,9 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
   const auto& platformPorts = getSw()->getPlatformMapping()->getPlatformPorts();
 
   auto swConfig = getSw()->getConfig();
-  const auto& chips = getSw()->getPlatformMapping()->getChips();
+  const auto& platformMapping = getSw()->getPlatformMapping();
+  const auto& chips = platformMapping->getChips();
+
   for (const auto& port : *swConfig.ports()) {
     if (!(*port.expectedLLDPValues()).empty() ||
         !(*port.expectedNeighborReachability()).empty()) {
@@ -192,10 +205,13 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
       const auto platformPortEntry = platformPorts.find(portID);
       EXPECT_TRUE(platformPortEntry != platformPorts.end())
           << "Can't find port:" << portID << " in PlatformMapping";
-      auto transceiverID =
-          utility::getTransceiverId(platformPortEntry->second, chips);
-      if (transceiverID.has_value()) {
-        cabledTransceivers_.insert(*transceiverID);
+
+      const auto tcvrIds = utility::getTransceiverIds(
+          platformPortEntry->second, chips, *port.profileID());
+      for (const auto& tcvrId : tcvrIds) {
+        cabledTransceivers_.insert(tcvrId);
+      }
+      if (!tcvrIds.empty()) {
         cabledTransceiverPorts_.emplace_back(portID);
       }
     }
@@ -309,15 +325,42 @@ void AgentEnsembleLinkTest::programDefaultRoute(
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
+// only use when NEXTHOP_TTL_DECREMENT_DISABLE is supported
+// This allows a single state update to both program routes and configure nhops
+void AgentEnsembleLinkTest::programDefaultRouteWithDisableTTLDecrement(
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+    utility::EcmpSetupTargetedPorts6& ecmp6) {
+  ASSERT_GT(ecmpPorts.size(), 0);
+  getSw()->updateStateBlocking(
+      "Resolve nhops", [ecmpPorts, &ecmp6](auto state) {
+        return ecmp6.resolveNextHops(state, ecmpPorts);
+      });
+  ecmp6.programRoutes(
+      std::make_unique<SwSwitchRouteUpdateWrapper>(getSw()->getRouteUpdater()),
+      ecmpPorts,
+      {Route<folly::IPAddressV6>::Prefix{folly::IPAddressV6(), 0}},
+      std::vector<NextHopWeight>(),
+      std::nullopt,
+      true /* disableTTLDecrement */);
+}
+
 void AgentEnsembleLinkTest::createL3DataplaneFlood(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
   auto switchId = scope(ecmpPorts);
   utility::EcmpSetupTargetedPorts6 ecmp6(
       getSw()->getState(),
       getSw()->needL2EntryForNeighbor(),
-      getSw()->getLocalMac(switchId));
-  programDefaultRoute(ecmpPorts, ecmp6);
-  utility::disableTTLDecrements(getSw(), ecmpPorts);
+      getSw()->getLocalMac(switchId),
+      RouterID(0),
+      false,
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
+  if (getSw()->getHwAsicTable()->isFeatureSupported(
+          switchId, HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
+    programDefaultRouteWithDisableTTLDecrement(ecmpPorts, ecmp6);
+  } else {
+    programDefaultRoute(ecmpPorts, ecmp6);
+    utility::disableTTLDecrements(getSw(), ecmpPorts);
+  }
   auto vlanID = getAgentEnsemble()->getVlanIDForTx();
   utility::pumpTraffic(
       true,

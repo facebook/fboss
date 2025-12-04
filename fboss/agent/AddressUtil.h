@@ -61,9 +61,10 @@ inline folly::IPAddress toIPAddress(const T& input) {
 }
 
 inline folly::IPAddress toIPAddress(const thrift::BinaryAddress& addr) {
-  return folly::IPAddress::fromBinary(folly::ByteRange(
-      reinterpret_cast<const unsigned char*>(addr.addr()->data()),
-      addr.addr()->size()));
+  return folly::IPAddress::fromBinary(
+      folly::ByteRange(
+          reinterpret_cast<const unsigned char*>(addr.addr()->data()),
+          addr.addr()->size()));
 }
 
 inline thrift::IPPrefix toIPPrefix(const folly::CIDRNetwork& network) {

@@ -1,0 +1,20 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "thrift_client_utils",
+    srcs = ["ThriftClientUtils.cpp"],
+    headers = ["ThriftClientUtils.h"],
+    exported_deps = [
+        "//common/network:util",
+        "//common/thrift/thrift:monitor-cpp2-clients",
+        "//fboss/agent:address_utils",
+        "//fboss/agent/if:hw_ctrl-cpp2-services",
+        "//fboss/agent/if:test_ctrl-cpp2-clients",
+        "//fboss/fsdb/if:fsdb-cpp2-services",
+        "//fboss/qsfp_service/if:qsfp-cpp2-clients",
+        "//folly:network_address",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+    ],
+)

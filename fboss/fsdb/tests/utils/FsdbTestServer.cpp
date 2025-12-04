@@ -1,19 +1,65 @@
-// (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include <fboss/fsdb/oper/PathConverter.h>
+#include <thrift/lib/cpp2/server/ThriftServer.h>
+#include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 #include <memory>
-#include "common/services/cpp/ServiceFrameworkLight.h"
-#include "common/strings/UUID.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss::fsdb::test {
+
+// Platform-specific implementation is defined in facebook/FsdbTestServer.cpp or
+// oss/FsdbTestServer.cpp
+extern std::unique_ptr<FsdbTestServerImpl> createPlatformSpecificImpl(
+    std::shared_ptr<ServiceHandler> handler,
+    uint16_t port);
+
+std::shared_ptr<apache::thrift::ThriftServer> FsdbTestServerImpl::createServer(
+    std::shared_ptr<ServiceHandler> handler,
+    uint16_t port) {
+  auto server = std::make_shared<apache::thrift::ThriftServer>();
+  server->setAllowPlaintextOnLoopback(true);
+  server->setPort(port);
+  server->setInterface(handler);
+  server->setSSLPolicy(apache::thrift::SSLPolicy::PERMITTED);
+  return server;
+}
+
+void FsdbTestServerImpl::checkServerStart(
+    std::shared_ptr<apache::thrift::ThriftServer> server,
+    uint16_t& fsdbPort) {
+  checkWithRetry([&server, &fsdbPort]() {
+    fsdbPort = server->getAddress().getPort();
+    if (fsdbPort == 0) {
+      return false;
+    }
+    return true;
+  });
+  CHECK_NE(fsdbPort, 0);
+  XLOG(INFO) << "Started thrift server on port " << fsdbPort;
+}
 
 FsdbTestServer::FsdbTestServer(
     std::shared_ptr<FsdbConfig> config,
     uint16_t port,
     uint32_t stateSubscriptionServe_ms,
-    uint32_t statsSubscriptionServe_ms) {
-  // Run tests faster
+    uint32_t statsSubscriptionServe_ms,
+    uint32_t subscriptionServeQueueSize,
+    uint32_t statsSubscriptionServeQueueSize)
+    : config_(std::move(config)) {
+  auto queueSize = std::to_string(subscriptionServeQueueSize);
+  gflags::SetCommandLineOptionWithMode(
+      "subscriptionServeQueueSize",
+      queueSize.c_str(),
+      gflags::SET_FLAG_IF_DEFAULT);
+
+  auto statsQueueSize = std::to_string(statsSubscriptionServeQueueSize);
+  gflags::SetCommandLineOptionWithMode(
+      "statsSubscriptionServeQueueSize",
+      statsQueueSize.c_str(),
+      gflags::SET_FLAG_IF_DEFAULT);
+
   auto stateServeInterval = std::to_string(stateSubscriptionServe_ms);
   auto statsServeInterval = std::to_string(statsSubscriptionServe_ms);
   gflags::SetCommandLineOptionWithMode(
@@ -29,46 +75,16 @@ FsdbTestServer::FsdbTestServer(
   gflags::SetCommandLineOptionWithMode(
       "checkOperOwnership", "false", gflags::SET_FLAG_IF_DEFAULT);
 
-  folly::Baton<> serverStartedBaton;
-  thriftThread_ =
-      std::make_unique<std::thread>([=, this, &serverStartedBaton, &config] {
-        ServiceHandler::Options options;
-        options.serveIdPathSubs = true;
-
-        handler_ = std::make_shared<ServiceHandler>(std::move(config), options);
-        // Uniquify SF name for different test runs, since they may run in
-        // parallel
-        std::string sfName = folly::to<std::string>(
-            "fsdbTestServerSf-", strings::generateUUID());
-        serviceFramework_ = std::make_unique<services::ServiceFrameworkLight>(
-            sfName.c_str(),
-            true /* threadsafe */,
-            services::ServiceFrameworkLight::Options().setDisableScubaLogging(
-                true));
-        auto server = std::make_shared<apache::thrift::ThriftServer>();
-        server->setAllowPlaintextOnLoopback(true);
-        server->setPort(port);
-        server->setInterface(handler_);
-        server->setSSLPolicy(apache::thrift::SSLPolicy::PERMITTED);
-        serviceFramework_->addThriftService(
-            server,
-            handler_.get(),
-            0 /* port */,
-            services::ServiceFrameworkLight::ServerOptions()
-                .setExportUnprefixedCounters(false));
-        serviceFramework_->go(false /* waitUntilStop */);
-        fsdbPort_ = server->getAddress().getPort();
-        CHECK_NE(fsdbPort_, 0);
-        serverStartedBaton.post();
-      });
-  serverStartedBaton.wait();
+  startTestServer(port);
 }
 
 FsdbTestServer::~FsdbTestServer() {
-  serviceFramework_->stop();
-  serviceFramework_->waitForStop();
-  thriftThread_->join();
-  thriftThread_.reset();
+  stopTestServer();
+}
+
+std::unique_ptr<apache::thrift::Client<FsdbService>>
+FsdbTestServer::getClient() {
+  return apache::thrift::makeTestClient(handler_);
 }
 
 std::string FsdbTestServer::getPublisherId(int publisherIndex) const {
@@ -84,7 +100,6 @@ std::optional<FsdbOperTreeMetadata> FsdbTestServer::getPublisherRootMetadata(
   if (metadata) {
     return metadata;
   }
-  // try retrieving using id paths
   std::string idRoot;
   if (isStats) {
     idRoot = PathConverter<FsdbOperStatsRoot>::pathToIdTokens({root}).at(0);
@@ -97,6 +112,28 @@ std::optional<FsdbOperTreeMetadata> FsdbTestServer::getPublisherRootMetadata(
 ServiceHandler::ActiveSubscriptions FsdbTestServer::getActiveSubscriptions()
     const {
   return serviceHandler().getActiveSubscriptions();
+}
+
+void FsdbTestServer::startTestServer(uint16_t port) {
+  ServiceHandler::Options options;
+#ifdef IS_OSS
+  // TODO: Enabling serveIdPathSubs causes serve subscriptions to fail with
+  // P2015402468
+  options.serveIdPathSubs = false;
+#else
+  options.serveIdPathSubs = true;
+#endif
+  handler_ = std::make_shared<ServiceHandler>(config_, options);
+
+  impl_ = createPlatformSpecificImpl(handler_, port);
+  impl_->startServer(fsdbPort_);
+}
+
+void FsdbTestServer::stopTestServer() {
+  if (impl_) {
+    impl_->stopServer();
+  }
+  impl_.reset();
 }
 
 } // namespace facebook::fboss::fsdb::test

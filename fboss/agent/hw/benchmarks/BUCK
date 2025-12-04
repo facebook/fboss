@@ -455,6 +455,35 @@ agent_benchmark_lib(
     extra_deps = [":hw_voq_remote_entity_benchmark_helpers"],
 )
 
+cpp_library(
+    name = "hw_voq_route_competing_remote_neighbor_benchmark_helper",
+    headers = [
+        "HwVoqRouteCompetingRemoteNeighborBenchmarkHelper.h",
+    ],
+    exported_deps = [
+        ":hw_route_scale_benchmark_helpers",
+        "//fboss/agent:agent_features",
+        "//fboss/agent:core",
+        "//fboss/agent:fib_helpers",
+        "//fboss/agent:utils",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test/utils:dsf_config_utils",
+        "//fboss/agent/test/utils:voq_test_utils",
+        "//fboss/lib:function_call_time_reporter",
+        "//folly:benchmark",
+        "//folly:synchronized",
+    ],
+)
+
+agent_benchmark_lib(
+    name = "hw_voq_route_competing_remote_neighbor_benchmark",
+    srcs = ["HwVoqRouteCompetingRemoteNeighborBenchmark.cpp"],
+    extra_deps = [
+        ":hw_voq_route_competing_remote_neighbor_benchmark_helper",
+    ],
+)
+
 agent_benchmark_lib(
     name = "hw_clear_interface_phy_counters",
     srcs = ["HwClearInterfacePhyCountersBenchmark.cpp"],
@@ -488,6 +517,19 @@ agent_benchmark_lib(
 agent_benchmark_lib(
     name = "hw_ecmp_backup_group_spillover",
     srcs = ["HwEcmpBackupGroupSpilloverBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
+        "//fboss/agent/hw/test:hw_test_ecmp_utils",
+        "//fboss/agent/hw/test:hw_test_port_utils",
+        "//fboss/agent/test/utils:ecmp_test_utils",
+        "//fboss/agent/test/utils:load_balancer_test_utils",
+        "//fboss/agent/test/utils:scale_test_utils",
+    ],
+)
+
+agent_benchmark_lib(
+    name = "hw_ecmp_group_scale_benchmark",
+    srcs = ["HwEcmpGroupScaleBenchmark.cpp"],
     extra_deps = [
         "//fboss/agent/hw/test:hw_switch_ensemble_factory",
         "//fboss/agent/hw/test:hw_test_ecmp_utils",

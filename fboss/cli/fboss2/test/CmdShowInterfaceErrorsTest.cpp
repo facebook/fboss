@@ -109,7 +109,7 @@ TEST_F(CmdShowInterfaceErrorsTestFixture, queryClient) {
   auto result = cmd.queryClient(localhost(), queriedEntries);
   auto model = cmd.createModel(portEntries, queriedEntries);
 
-  EXPECT_THRIFT_EQ(result, model);
+  EXPECT_THRIFT_EQ(model, result);
 }
 
 TEST_F(CmdShowInterfaceErrorsTestFixture, createModel) {

@@ -23,6 +23,7 @@ const std::string kGpioChip = "gpiochip";
 const re2::RE2 kWatchdogNameRe{"watchdog(\\d+)"};
 const std::string kWatchdog = "watchdog";
 constexpr auto kWatchdogDevCreationWaitSecs = std::chrono::seconds(5);
+constexpr auto kMdioBusCharDevCreationWaitSecs = std::chrono::seconds(5);
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
@@ -59,13 +60,19 @@ std::string Utils::resolveGpioChipCharDevPath(const std::string& sysfsPath) {
     }
   }
   if (!gpioChipNum) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: Couldn't find gpio chip under {}", failMsg, sysfsPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: Couldn't find gpio chip under {}",
+            failMsg,
+            sysfsPath));
   }
   auto charDevPath = fmt::format("/dev/gpiochip{}", *gpioChipNum);
   if (!fs::exists(charDevPath)) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: {} does not exist in the system", failMsg, charDevPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: {} does not exist in the system",
+            failMsg,
+            charDevPath));
   }
   return charDevPath;
 }
@@ -84,10 +91,11 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
               "Watchdog SysfsPath is not created. Waited for at most {}s",
               kWatchdogDevCreationWaitSecs.count()),
           kWatchdogDevCreationWaitSecs)) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: Couldn't find watchdog directory under {}",
-        failMsg,
-        sysfsPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: Couldn't find watchdog directory under {}",
+            failMsg,
+            sysfsPath));
   }
 
   std::optional<uint16_t> watchdogNum{std::nullopt};
@@ -99,8 +107,9 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
     }
   }
   if (!watchdogNum) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: Couldn't find watchdog under {}", failMsg, sysfsPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: Couldn't find watchdog under {}", failMsg, sysfsPath));
   }
   auto charDevPath = fmt::format("/dev/watchdog{}", *watchdogNum);
   if (!Utils().checkDeviceReadiness(
@@ -109,8 +118,29 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
               "Watchdog CharDevPath is not created. Waited for at most {}s",
               kWatchdogDevCreationWaitSecs.count()),
           kWatchdogDevCreationWaitSecs)) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: {} does not exist in the system", failMsg, charDevPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: {} does not exist in the system",
+            failMsg,
+            charDevPath));
+  }
+  return charDevPath;
+}
+
+std::string Utils::resolveMdioBusCharDevPath(uint32_t instanceId) {
+  auto failMsg = "Failed to resolve mdio_bus CharDevPath";
+  auto charDevPath = fmt::format("/dev/fb-mdio-{}", instanceId);
+  if (!Utils().checkDeviceReadiness(
+          [&]() -> bool { return fs::exists(charDevPath); },
+          fmt::format(
+              "MdioBus CharDevPath is not created. Waited for at most {}s",
+              kMdioBusCharDevCreationWaitSecs.count()),
+          kMdioBusCharDevCreationWaitSecs)) {
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: {} does not exist in the system",
+            failMsg,
+            charDevPath));
   }
   return charDevPath;
 }
@@ -143,34 +173,50 @@ int Utils::getGpioLineValue(const std::string& charDevPath, int lineIndex)
   return value;
 };
 
-std::string Utils::computeHexExpression(
+std::string Utils::formatExpression(
     const std::string& expression,
     int port,
-    int led,
-    int startPort) {
-  // Handle mathematical expressions
-  std::string result = fmt::format(
-      fmt::runtime(expression),
-      fmt::arg("portNum", port),
-      fmt::arg("ledNum", led),
-      fmt::arg("startPort", startPort));
+    int startPort,
+    std::optional<int> led) {
+  if (led.has_value()) {
+    return fmt::format(
+        fmt::runtime(expression),
+        fmt::arg("portNum", port),
+        fmt::arg("ledNum", *led),
+        fmt::arg("startPort", startPort));
+  } else {
+    return fmt::format(
+        fmt::runtime(expression),
+        fmt::arg("portNum", port),
+        fmt::arg("startPort", startPort));
+  }
+}
 
-  // Convert hexadecimal literals to decimal since exprtk doesn't support hex
-  result = convertHexLiteralsToDecimal(result);
+std::string Utils::evaluateExpression(const std::string& expression) {
+  std::string decimalExpression = convertHexLiteralsToDecimal(expression);
   exprtk::symbol_table<double> symbolTable;
   exprtk::expression<double> expr;
   expr.register_symbol_table(symbolTable);
   exprtk::parser<double> parser;
 
-  if (!parser.compile(result, expr)) {
+  if (!parser.compile(decimalExpression, expr)) {
     throw std::runtime_error(
-        fmt::format("Failed to parse csrOffset expression: {}", result));
+        fmt::format(
+            "Failed to parse offset expression: {}", decimalExpression));
   }
 
-  // Convert the result back to hexadecimal format since downstream code
-  // expects hex
   uint64_t value = static_cast<uint64_t>(expr.value());
   return fmt::format("0x{:x}", value);
+}
+
+std::string Utils::computeHexExpression(
+    const std::string& expression,
+    int port,
+    int startPort,
+    std::optional<int> led) {
+  std::string formattedExpression =
+      formatExpression(expression, port, startPort, led);
+  return evaluateExpression(formattedExpression);
 }
 
 std::string Utils::convertHexLiteralsToDecimal(const std::string& expression) {
@@ -199,5 +245,79 @@ std::string Utils::convertHexLiteralsToDecimal(const std::string& expression) {
   }
 
   return result;
+}
+
+std::vector<XcvrCtrlConfig> Utils::createXcvrCtrlConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<XcvrCtrlConfig> xcvrCtrlConfigs;
+  const auto xcvrCtrlBlockConfigs = pciDeviceConfig.xcvrCtrlBlockConfigs();
+  for (const auto& xcvrCtrlBlockConfig : *xcvrCtrlBlockConfigs) {
+    int endPort =
+        *xcvrCtrlBlockConfig.startPort() + *xcvrCtrlBlockConfig.numPorts();
+    for (int port = *xcvrCtrlBlockConfig.startPort(); port < endPort; ++port) {
+      XcvrCtrlConfig xcvrCtrlConfig;
+      xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
+          "{}_XCVR_CTRL_PORT_{}",
+          *xcvrCtrlBlockConfig.pmUnitScopedNamePrefix(),
+          port);
+      xcvrCtrlConfig.fpgaIpBlockConfig()->deviceName() =
+          *xcvrCtrlBlockConfig.deviceName();
+      xcvrCtrlConfig.fpgaIpBlockConfig()->csrOffset() =
+          Utils().computeHexExpression(
+              *xcvrCtrlBlockConfig.csrOffsetCalc(),
+              port,
+              *xcvrCtrlBlockConfig.startPort());
+      xcvrCtrlConfig.portNumber() = port;
+      if (!xcvrCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+        xcvrCtrlConfig.fpgaIpBlockConfig()->iobufOffset() =
+            Utils().computeHexExpression(
+                *xcvrCtrlBlockConfig.iobufOffsetCalc(),
+                port,
+                *xcvrCtrlBlockConfig.startPort());
+      }
+      xcvrCtrlConfigs.push_back(xcvrCtrlConfig);
+    }
+  }
+  return xcvrCtrlConfigs;
+}
+
+std::vector<LedCtrlConfig> Utils::createLedCtrlConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<LedCtrlConfig> ledCtrlConfigs;
+  const auto ledCtrlBlockConfigs = pciDeviceConfig.ledCtrlBlockConfigs();
+  for (const auto& ledCtrlBlockConfig : *ledCtrlBlockConfigs) {
+    int endPort =
+        *ledCtrlBlockConfig.startPort() + *ledCtrlBlockConfig.numPorts();
+    for (int port = *ledCtrlBlockConfig.startPort(); port < endPort; ++port) {
+      for (int led = 1; led <= ledCtrlBlockConfig.ledPerPort(); ++led) {
+        LedCtrlConfig ledCtrlConfig;
+        ledCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
+            "{}_PORT_{}_LED_{}",
+            *ledCtrlBlockConfig.pmUnitScopedNamePrefix(),
+            port,
+            led);
+        ledCtrlConfig.fpgaIpBlockConfig()->deviceName() =
+            *ledCtrlBlockConfig.deviceName();
+        ledCtrlConfig.fpgaIpBlockConfig()->csrOffset() =
+            Utils().computeHexExpression(
+                *ledCtrlBlockConfig.csrOffsetCalc(),
+                port,
+                *ledCtrlBlockConfig.startPort(),
+                led);
+        ledCtrlConfig.portNumber() = port;
+        ledCtrlConfig.ledId() = led;
+        if (!ledCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+          ledCtrlConfig.fpgaIpBlockConfig()->iobufOffset() =
+              Utils().computeHexExpression(
+                  *ledCtrlBlockConfig.iobufOffsetCalc(),
+                  port,
+                  *ledCtrlBlockConfig.startPort(),
+                  led);
+        }
+        ledCtrlConfigs.push_back(ledCtrlConfig);
+      }
+    }
+  }
+  return ledCtrlConfigs;
 }
 } // namespace facebook::fboss::platform::platform_manager

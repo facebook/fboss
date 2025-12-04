@@ -22,6 +22,7 @@ from getdeps.dyndeps import create_dyn_dep_munger
 from getdeps.errors import TransientFailure
 from getdeps.fetcher import (
     file_name_is_cmake_file,
+    is_public_commit,
     list_files_under_dir_newer_than_timestamp,
     SystemPackageFetcher,
 )
@@ -105,7 +106,7 @@ class ProjectCmdBase(SubCmd):
 
         manifest = loader.load_manifest(args.project)
 
-        self.run_project_cmd(args, loader, manifest)
+        return self.run_project_cmd(args, loader, manifest)
 
     def process_project_dir_arguments(self, args, loader):
         def parse_project_arg(arg, arg_type):
@@ -732,12 +733,13 @@ class BuildCmd(ProjectCmdBase):
 
                     # Only populate the cache from continuous build runs, and
                     # only if we have a built_marker.
-                    if (
-                        not args.skip_upload
-                        and args.schedule_type == "continuous"
-                        and has_built_marker
-                    ):
-                        cached_project.upload()
+                    if not args.skip_upload and has_built_marker:
+                        if args.schedule_type == "continuous":
+                            cached_project.upload()
+                        elif args.schedule_type == "base_retry":
+                            # Check if on public commit before uploading
+                            if is_public_commit(loader.build_opts):
+                                cached_project.upload()
                 elif args.verbose:
                     print("found good %s" % built_marker)
 
@@ -857,9 +859,6 @@ class BuildCmd(ProjectCmdBase):
             help="Do not attempt to use the build cache.",
         )
         parser.add_argument(
-            "--schedule-type", help="Indicates how the build was activated"
-        )
-        parser.add_argument(
             "--cmake-target",
             help=("Target for cmake build."),
             default="install",
@@ -935,18 +934,16 @@ class TestCmd(ProjectCmdBase):
         if not self.check_built(loader, manifest):
             print("project %s has not been built" % manifest.name)
             return 1
-        self.create_builder(loader, manifest).run_tests(
+        return self.create_builder(loader, manifest).run_tests(
             schedule_type=args.schedule_type,
             owner=args.test_owner,
             test_filter=args.filter,
             retry=args.retry,
             no_testpilot=args.no_testpilot,
+            timeout=args.timeout,
         )
 
     def setup_project_cmd_parser(self, parser):
-        parser.add_argument(
-            "--schedule-type", help="Indicates how the build was activated"
-        )
         parser.add_argument("--test-owner", help="Owner for testpilot")
         parser.add_argument("--filter", help="Only run the tests matching the regex")
         parser.add_argument(
@@ -960,6 +957,19 @@ class TestCmd(ProjectCmdBase):
             "--no-testpilot",
             help="Do not use Test Pilot even when available",
             action="store_true",
+        )
+        parser.add_argument(
+            "--timeout",
+            type=int,
+            default=None,
+            help="Timeout in seconds for each individual test",
+        )
+        parser.add_argument(
+            "--build-type",
+            help="Set the build type explicitly.  Cmake and cargo builders act on them. Only Debug and RelWithDebInfo widely supported.",
+            choices=["Debug", "Release", "RelWithDebInfo", "MinSizeRel"],
+            action="store",
+            default=None,
         )
 
 
@@ -1045,6 +1055,13 @@ class GenerateGitHubActionsCmd(ProjectCmdBase):
         run_tests = (
             args.enable_tests
             and manifest.get("github.actions", "run_tests", ctx=manifest_ctx) != "off"
+        )
+        rust_version = (
+            manifest.get("github.actions", "rust_version", ctx=manifest_ctx) or "stable"
+        )
+
+        override_build_type = args.build_type or manifest.get(
+            "github.actions", "build_type", ctx=manifest_ctx
         )
         if run_tests:
             manifest_ctx.set("test", "on")
@@ -1160,8 +1177,8 @@ jobs:
             out.write("    - uses: actions/checkout@v4\n")
 
             build_type_arg = ""
-            if args.build_type:
-                build_type_arg = f"--build-type {args.build_type} "
+            if override_build_type:
+                build_type_arg = f"--build-type {override_build_type} "
 
             if build_opts.free_up_disk:
                 free_up_disk = "--free-up-disk "
@@ -1238,8 +1255,8 @@ jobs:
                     or builder_name == "cargo"
                     or mbuilder_name == "cargo"
                 ):
-                    out.write("    - name: Install Rust Stable\n")
-                    out.write("      uses: dtolnay/rust-toolchain@stable\n")
+                    out.write(f"    - name: Install Rust {rust_version.capitalize()}\n")
+                    out.write(f"      uses: dtolnay/rust-toolchain@{rust_version}\n")
                     break
 
             # Normal deps that have manifests
@@ -1357,7 +1374,7 @@ jobs:
 
                 out.write("    - name: Test %s\n" % manifest.name)
                 out.write(
-                    f"      run: {getdepscmd}{allow_sys_arg} test {num_jobs_arg}--src-dir=. {manifest.name}{project_prefix}\n"
+                    f"      run: {getdepscmd}{allow_sys_arg} test {build_type_arg}{num_jobs_arg}--src-dir=. {manifest.name}{project_prefix}\n"
                 )
             if build_opts.free_up_disk and not build_opts.is_windows():
                 out.write("    - name: Show disk space at end\n")
@@ -1553,6 +1570,11 @@ def parse_args():
             "in cases where the upstream project has uploaded a new "
             "version of the archive with a different hash"
         ),
+    )
+    add_common_arg(
+        "--schedule-type",
+        nargs="?",
+        help="Indicates how the build was activated",
     )
 
     ap = argparse.ArgumentParser(

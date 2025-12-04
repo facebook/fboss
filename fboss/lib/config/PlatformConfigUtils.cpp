@@ -79,26 +79,6 @@ void recurseGetPinsByChipType(
   }
 }
 
-std::vector<Pin> getPinsByChipType(
-    const std::map<std::string, DataPlanePhyChip>& chipsMap,
-    const std::vector<PinConnection>& pinConns,
-    DataPlanePhyChipType type) {
-  // First get all the expected chip type into a map to make search easier
-  std::map<std::string, DataPlanePhyChip> filteredChips;
-  for (const auto& itChip : chipsMap) {
-    if (*itChip.second.type() == type) {
-      filteredChips[itChip.first] = itChip.second;
-    }
-  }
-
-  // use the recurse function to get all the expected chip pin
-  std::vector<Pin> results;
-  for (const auto& pinConn : pinConns) {
-    recurseGetPinsByChipType(pinConn, filteredChips, results);
-  }
-  return results;
-}
-
 void checkPinType(const Pin& pin, const DataPlanePhyChipType& expectedType) {
   switch (expectedType) {
     case DataPlanePhyChipType::IPHY:
@@ -124,11 +104,40 @@ void checkPinType(const Pin& pin, const DataPlanePhyChipType& expectedType) {
   }
 }
 
+std::vector<Pin> getPinsByChipType(
+    const std::map<std::string, DataPlanePhyChip>& chipsMap,
+    const std::vector<PinConnection>& pinConns,
+    DataPlanePhyChipType type) {
+  // First get all the expected chip type into a map to make search easier
+  std::map<std::string, DataPlanePhyChip> filteredChips;
+  for (const auto& itChip : chipsMap) {
+    if (*itChip.second.type() == type) {
+      filteredChips[itChip.first] = itChip.second;
+    }
+  }
+
+  // use the recurse function to get all the expected chip pin
+  std::vector<Pin> results;
+  for (const auto& pinConn : pinConns) {
+    recurseGetPinsByChipType(pinConn, filteredChips, results);
+  }
+
+  for (auto& pin : results) {
+    checkPinType(pin, type);
+  }
+
+  return results;
+}
+
 std::string getChipName(const Pin& pin) {
   if (pin.getType() == Pin::Type::junction) {
     return *pin.get_junction().system()->chip();
   }
   return *pin.get_end().chip();
+}
+
+std::string getChipName(const PinConfig& pinConfig) {
+  return *pinConfig.id()->chip();
 }
 
 std::vector<int32_t> getPhysicalIdsByChipType(
@@ -176,7 +185,6 @@ std::vector<phy::PinID> getTransceiverLanes(
         phy::DataPlanePhyChipType::TRANSCEIVER);
     // the return pins should always be PinID for transceiver
     for (auto pin : pins) {
-      checkPinType(pin, phy::DataPlanePhyChipType::TRANSCEIVER);
       lanes.push_back(pin.get_end());
     }
   }
@@ -253,7 +261,6 @@ std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
         *platformPortEntry.mapping()->pins(),
         phy::DataPlanePhyChipType::XPHY);
     for (const auto& pin : xphyPinList) {
-      checkPinType(pin, phy::DataPlanePhyChipType::XPHY);
       for (const auto& connection : *pin.get_junction().line()) {
         if (auto pn = connection.polaritySwap()) {
           xphyPolaritySwapMap.emplace(*connection.a()->lane(), *pn);
@@ -297,7 +304,6 @@ std::vector<phy::PinID> getOrderedIphyLanes(
         chipsMap, *port.mapping()->pins(), phy::DataPlanePhyChipType::IPHY);
     // the return pins should always be PinID for transceiver
     for (auto pin : pins) {
-      checkPinType(pin, phy::DataPlanePhyChipType::IPHY);
       lanes.push_back(pin.get_end());
     }
   }
@@ -351,13 +357,46 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
   return ports;
 }
 
+std::vector<phy::PinConfig> getPinsFromPortPinConfig(
+    const phy::PortPinConfig& pinConfig,
+    phy::DataPlanePhyChipType chipType) {
+  std::vector<phy::PinConfig> pins;
+  switch (chipType) {
+    case phy::DataPlanePhyChipType::IPHY:
+      pins = *pinConfig.iphy();
+      break;
+    case phy::DataPlanePhyChipType::XPHY:
+      if (pinConfig.xphySys().has_value()) {
+        pins = *pinConfig.xphySys();
+      }
+      if (pinConfig.xphyLine().has_value()) {
+        pins.insert(
+            pins.end(),
+            pinConfig.xphyLine()->begin(),
+            pinConfig.xphyLine()->end());
+      }
+      break;
+    case phy::DataPlanePhyChipType::TRANSCEIVER:
+      if (pinConfig.transceiver().has_value()) {
+        pins = *pinConfig.transceiver();
+      }
+      break;
+    default:
+      throw FbossError(
+          "Only IPHY, XPHY, and TRANSCEIVER chip types are supported.");
+  }
+
+  return pins;
+}
+
 std::map<std::string, phy::DataPlanePhyChip> getDataPlanePhyChips(
     const cfg::PlatformPortEntry& port,
     const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
-    std::optional<phy::DataPlanePhyChipType> chipType) {
+    std::optional<phy::DataPlanePhyChipType> chipType,
+    const std::optional<cfg::PortProfileID> profileID) {
   std::map<std::string, phy::DataPlanePhyChip> chips;
 
-  // if not specifying chipType, we return all the chips for such port
+  // If chipType is not specified, we return all the chips for such port.
   std::vector<phy::DataPlanePhyChipType> types;
   if (chipType) {
     types.push_back(*chipType);
@@ -367,35 +406,56 @@ std::map<std::string, phy::DataPlanePhyChip> getDataPlanePhyChips(
     types.push_back(phy::DataPlanePhyChipType::TRANSCEIVER);
   }
 
-  for (auto type : types) {
-    auto pins = getPinsByChipType(chipsMap, *port.mapping()->pins(), type);
-    if (pins.empty()) {
-      continue;
+  // If profileID is specified, we return the chips based on the
+  // profile-specific pins. Else, we return the chips based on the static pin
+  // mapping.
+  if (profileID.has_value() &&
+      port.supportedProfiles()->find(*profileID) !=
+          port.supportedProfiles()->end()) {
+    auto& pinConfig = *port.supportedProfiles()->at(*profileID).pins();
+    for (auto type : types) {
+      for (const auto& pin : getPinsFromPortPinConfig(pinConfig, type)) {
+        // Backplane chips are stored in the transceiver field, so we need to
+        // add an additional filter here.
+        if (auto itChip = chipsMap.find(getChipName(pin));
+            itChip != chipsMap.end() && *itChip->second.type() == type) {
+          chips.emplace(itChip->first, itChip->second);
+        }
+      }
     }
-    for (auto pin : pins) {
-      checkPinType(pin, type);
-      std::string chipName = getChipName(pin);
-      if (auto itChip = chipsMap.find(chipName); itChip != chipsMap.end()) {
-        chips.emplace(itChip->first, itChip->second);
+  } else {
+    for (auto type : types) {
+      for (const auto& pinConn :
+           getPinsByChipType(chipsMap, *port.mapping()->pins(), type)) {
+        if (auto itChip = chipsMap.find(getChipName(pinConn));
+            itChip != chipsMap.end()) {
+          chips.emplace(itChip->first, itChip->second);
+        }
       }
     }
   }
+
   return chips;
 }
 
-std::optional<TransceiverID> getTransceiverId(
+const std::vector<TransceiverID> getTransceiverIds(
     const cfg::PlatformPortEntry& port,
-    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap) {
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
+    const std::optional<cfg::PortProfileID> profileID) {
   auto transceiverChips = getDataPlanePhyChips(
-      port, chipsMap, phy::DataPlanePhyChipType::TRANSCEIVER);
-  // There should be no more than one transceiver associated with a port.
-  // Note that this will change once we start supporting multi-transceiver /
-  // single-port use case (e.g. Wedge400 downlinks).
-  CHECK_LE(transceiverChips.size(), 1);
-  if (!transceiverChips.empty()) {
-    return TransceiverID(*transceiverChips.begin()->second.physicalID());
+      port, chipsMap, phy::DataPlanePhyChipType::TRANSCEIVER, profileID);
+  // In most use cases, we expect only one transceiver per port. However, we now
+  // want to support the use case of multi-transceiver ports.
+
+  // Since this function can be used anywhere for platform mapping, we need to
+  // remove the check that guarantees there's only one tcvr per port.
+  std::vector<TransceiverID> ids;
+  ids.reserve(transceiverChips.size());
+  for (const auto& chip : transceiverChips) {
+    ids.emplace_back(*chip.second.physicalID());
   }
-  return std::nullopt;
+
+  return ids;
 }
 
 std::vector<TransceiverID> getTransceiverIds(
@@ -453,20 +513,27 @@ TcvrToPortMap getTcvrToPortMap(
     // Get the transceiver id based on the port info from platform mapping.
     auto portIdInt = *port.mapping()->id();
     auto portId = PortID(portIdInt);
-    auto transceiverId = utility::getTransceiverId(port, chipsMap);
-    if (!transceiverId) {
-      XLOG(INFO) << "Did not find corresponding TransceiverID for PortID: "
+    auto transceiverIds = utility::getTransceiverIds(port, chipsMap);
+    if (transceiverIds.empty()) {
+      XLOG(INFO) << "Did not find corresponding TransceiverIDs for PortID: "
                  << portIdInt;
       continue;
     }
 
-    // Add the port to the transceiver-indexed port group.
-    auto portGroupIt = tcvrToPortMap.find(transceiverId.value());
-    if (portGroupIt == tcvrToPortMap.end()) {
-      tcvrToPortMap[transceiverId.value()] = std::vector<PortID>{portId};
-    } else {
-      tcvrToPortMap.at(transceiverId.value()).emplace_back(portId);
+    for (const auto& transceiverId : transceiverIds) {
+      // Add the port to the transceiver-indexed port group.
+      auto portGroupIt = tcvrToPortMap.find(transceiverId);
+      if (portGroupIt == tcvrToPortMap.end()) {
+        tcvrToPortMap[transceiverId] = std::vector<PortID>{portId};
+      } else {
+        tcvrToPortMap.at(transceiverId).emplace_back(portId);
+      }
     }
+  }
+
+  for (auto& [tcvrId, portIds] : tcvrToPortMap) {
+    XLOG(DBG2) << "TransceiverID(" << tcvrId
+               << ") has ports: " << folly::join(", ", portIds);
   }
 
   return tcvrToPortMap;
@@ -482,20 +549,18 @@ PortToTcvrMap getPortToTcvrMap(
     // Get the transceiver id based on the port info from platform mapping.
     auto portIdInt = *port.mapping()->id();
     auto portId = PortID(portIdInt);
-    auto transceiverId = utility::getTransceiverId(port, chipsMap);
-    if (!transceiverId) {
-      XLOG(INFO) << "Did not find corresponding TransceiverID for PortID: "
+    auto transceiverIds = utility::getTransceiverIds(port, chipsMap);
+    if (transceiverIds.empty()) {
+      XLOG(INFO) << "Did not find corresponding TransceiverIDs for PortID: "
                  << portIdInt;
       continue;
     }
 
-    // Add the transceiver to the port-indexed transceiver group.
-    auto tcvrGroupIt = portToTcvrMap.find(portId);
-    if (tcvrGroupIt == portToTcvrMap.end()) {
-      portToTcvrMap[portId] = std::vector<TransceiverID>{transceiverId.value()};
-    } else {
-      portToTcvrMap.at(portId).emplace_back(transceiverId.value());
-    }
+    // Add all transceivers to the port-indexed transceiver group.
+    portToTcvrMap[portId] = transceiverIds;
+
+    XLOG(ERR) << "PortID(" << portId
+              << ") has transceivers: " << folly::join(", ", transceiverIds);
   }
 
   return portToTcvrMap;

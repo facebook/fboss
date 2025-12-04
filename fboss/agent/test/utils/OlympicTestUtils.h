@@ -134,6 +134,10 @@ void addQosMapsHelper(
 void addOlympicQosMaps(
     cfg::SwitchConfig& cfg,
     const std::vector<const HwAsic*>& asics);
+void addOlympicQosMapsForDot1p(
+    cfg::SwitchConfig& cfg,
+    const std::map<int, std::vector<uint8_t>>& queueToPcpMap,
+    const std::vector<const HwAsic*>& asics);
 void addOlympicAllSPQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType);

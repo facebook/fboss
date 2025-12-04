@@ -140,8 +140,9 @@ TEST_F(MultiNodeLoadBalancerTest, verifyFullHashLoadBalance) {
     }
     // Let all packets get through
     sleep(5);
-    EXPECT_TRUE(utility::isLoadBalanced(
-        getPortStats(testPortNames()), 25 /*max deviation*/));
+    EXPECT_TRUE(
+        utility::isLoadBalanced(
+            getPortStats(testPortNames()), 25 /*max deviation*/));
   };
   verifyAcrossWarmBoots(verify);
 }

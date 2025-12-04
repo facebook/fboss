@@ -6,6 +6,7 @@
 add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/Agent2QueueToOlympicQoSTests.cpp
   fboss/agent/test/agent_hw_tests/AgentCoppTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentDot1qMappingTest.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpMarkingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpQueueMappingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDeepPacketInspectionTests.cpp

@@ -204,10 +204,11 @@ int hwAgentMain(
     // Start the UpdateSwitchStatsThread
     fs.reset(new folly::FunctionScheduler());
     fs->setThreadName("UpdateStatsThread");
-    std::function<void()> callback(std::bind(
-        updateStats,
-        hwAgent->getPlatform()->getHwSwitch(),
-        thriftSyncer.get()));
+    std::function<void()> callback(
+        std::bind(
+            updateStats,
+            hwAgent->getPlatform()->getHwSwitch(),
+            thriftSyncer.get()));
     auto timeInterval = std::chrono::seconds(FLAGS_update_stats_interval_s);
     fs->addFunction(callback, timeInterval, "updateStats");
     fs->start();

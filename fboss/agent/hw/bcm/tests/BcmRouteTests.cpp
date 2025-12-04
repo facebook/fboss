@@ -1118,8 +1118,9 @@ TYPED_TEST(BcmRouteNeighborTest, UnresolveResolveNextHop) {
       }
 
       auto entry = entries[port];
-      ntable->updateEntry(NeighborEntryFields<folly::IPAddressV6>::fromThrift(
-          entry->toThrift()));
+      ntable->updateEntry(
+          NeighborEntryFields<folly::IPAddressV6>::fromThrift(
+              entry->toThrift()));
     }
     this->applyNewState(state1);
     helper.programRoutes(this->getRouteUpdater(), ports, {route});

@@ -1,0 +1,116 @@
+{
+  "i2cBusIgnore": [],
+  "i2cDumpDevices": [
+    "/run/devmap/cplds/BLACKHAWK_CPLD",
+    "/run/devmap/cplds/FAN_CPLD"
+  ],
+  "psus": [],
+  "gpios": [
+    {
+      "path": "/run/devmap/gpiochips/RACKMON_PLS",
+      "lines": [
+        {
+          "name": "RJ1_BKP_RED",
+          "lineIndex": 0
+        },
+        {
+          "name": "RJ2_BKP_RED",
+          "lineIndex": 1
+        },
+        {
+          "name": "RJ3_BKP_RED",
+          "lineIndex": 2
+        },
+        {
+          "name": "GPIO_FTDI_RST",
+          "lineIndex": 3
+        },
+        {
+          "name": "RJ1_PWR_OK",
+          "lineIndex": 4
+        },
+        {
+          "name": "RJ2_PWR_OK",
+          "lineIndex": 5
+        },
+        {
+          "name": "RJ3_PWR_OK",
+          "lineIndex": 6
+        },
+        {
+          "name": "BMC_MOD_ID0",
+          "lineIndex": 9
+        },
+        {
+          "name": "BMC_MOD_ID1",
+          "lineIndex": 10
+        },
+        {
+          "name": "BMC_MOD_ID2",
+          "lineIndex": 11
+        },
+        {
+          "name": "BMC_ALIVE",
+          "lineIndex": 12
+        },
+        {
+          "name": "BMC_PGOOD_CONN",
+          "lineIndex": 13
+        },
+        {
+          "name": "IOEXP_BMC_RESET",
+          "lineIndex": 14
+        },
+        {
+          "name": "BMC_PRSNT_L",
+          "lineIndex": 15
+        }
+      ]
+    }
+  ],
+  "pems": [
+    {
+      "name": "PEM1",
+      "presenceSysfsPath": "/run/devmap/fpgas/SCD_FPGA/pem_present",
+      "statusSysfsPath": "/run/devmap/fpgas/SCD_FPGA/pem_status",
+      "inputOkSysfsPath": "/run/devmap/fpgas/SCD_FPGA/pem_input_ok"
+    }
+  ],
+  "fanspinners": [
+    {
+      "path": "/run/devmap/sensors/FS_FAN_SLG4F4527",
+      "sysfsAttributes": [
+        {
+          "name": "pwm",
+          "path": "/run/devmap/sensors/FS_FAN_SLG4F4527/pwm"
+        },
+        {
+          "name": "fs_fan_rpm",
+          "path": "/run/devmap/sensors/FS_FAN_SLG4F4527/fan1_input"
+        },
+        {
+          "name": "idprom_wp",
+          "path": "/run/devmap/sensors/FS_FAN_SLG4F4527/idprom_wp"
+        },
+        {
+          "name": "rackmon_idprom_wp",
+          "path": "/run/devmap/sensors/FS_FAN_SLG4F4527/rm_idprom_wp"
+        },
+        {
+          "name": "led_green",
+          "path": "/run/devmap/sensors/FS_FAN_SLG4F4527/led_green"
+        },
+        {
+          "name": "led_red",
+          "path": "/run/devmap/sensors/FS_FAN_SLG4F4527/led_red"
+        }
+      ]
+    }
+  ],
+  "scPowerGood": {
+    "sysfsAttribute": {
+      "name": "SMB_POWERGOOD",
+      "path": "/run/devmap/cplds/BLACKHAWK_CPLD/switch_card_pwr_status"
+    }
+  }
+}

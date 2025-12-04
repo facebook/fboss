@@ -11,6 +11,7 @@
 #include <range/v3/view/transform.hpp>
 #include <range/v3/view/unique.hpp>
 #include <re2/re2.h>
+#include <thrift/lib/cpp2/op/Get.h>
 
 #include "fboss/platform/platform_manager/I2cAddr.h"
 #include "fboss/platform/platform_manager/Utils.h"
@@ -38,7 +39,8 @@ constexpr auto kSymlinkDirs = {
     "gpiochips",
     "xcvrs",
     "flashes",
-    "watchdogs"};
+    "watchdogs",
+    "mdio-busses"};
 // Supported modalias - spidev +
 // https://github.com/torvalds/linux/blob/master/drivers/spi/spidev.c#L702
 constexpr auto kSpiDevModaliases = {
@@ -270,8 +272,85 @@ bool ConfigValidator::isValidLedCtrlBlockConfig(
       if (!isValidCsrOffsetCalc(
               *ledCtrlBlockConfig.csrOffsetCalc(),
               port,
-              led,
-              *ledCtrlBlockConfig.startPort())) {
+              *ledCtrlBlockConfig.startPort(),
+              led)) {
+        return false;
+      }
+
+      if (!ledCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+        if (!isValidIobufOffsetCalc(
+                *ledCtrlBlockConfig.iobufOffsetCalc(),
+                port,
+                *ledCtrlBlockConfig.startPort(),
+                led)) {
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+bool ConfigValidator::isValidXcvrCtrlBlockConfig(
+    const XcvrCtrlBlockConfig& xcvrCtrlBlockConfig) {
+  if (xcvrCtrlBlockConfig.pmUnitScopedNamePrefix()->empty()) {
+    XLOG(ERR) << "PmUnitScopedNamePrefix must be a non-empty string";
+    return false;
+  }
+  if (xcvrCtrlBlockConfig.pmUnitScopedNamePrefix()->ends_with('_')) {
+    XLOG(ERR) << "PmUnitScopedNamePrefix must not end with an underscore";
+    return false;
+  }
+  if (xcvrCtrlBlockConfig.deviceName()->empty()) {
+    XLOG(ERR) << "deviceName must be a non-empty string";
+    return false;
+  }
+  if (xcvrCtrlBlockConfig.csrOffsetCalc()->empty()) {
+    XLOG(ERR) << "csrOffsetCalc must be a non-empty string";
+    return false;
+  }
+  if (*xcvrCtrlBlockConfig.numPorts() <= 0) {
+    XLOG(ERR) << "numPorts must be a value greater than 0";
+    return false;
+  }
+  if (*xcvrCtrlBlockConfig.startPort() <= 0) {
+    XLOG(ERR) << "startPort must be a value greater than 0";
+    return false;
+  }
+  if (*xcvrCtrlBlockConfig.numPorts() > numXcvrs_) {
+    XLOG(ERR) << fmt::format(
+        "numPorts must be less than or equal to {}", numXcvrs_);
+    return false;
+  }
+  if (*xcvrCtrlBlockConfig.startPort() > numXcvrs_) {
+    XLOG(ERR) << fmt::format(
+        "startPort must be less than or equal to {}", numXcvrs_);
+    return false;
+  }
+  if (*xcvrCtrlBlockConfig.startPort() + *xcvrCtrlBlockConfig.numPorts() - 1 >
+      numXcvrs_) {
+    XLOG(ERR) << fmt::format(
+        "startPort + numPorts - 1 must be must be less than or equal to {}",
+        numXcvrs_);
+    return false;
+  }
+
+  for (int16_t port = *xcvrCtrlBlockConfig.startPort(); port <
+       *xcvrCtrlBlockConfig.startPort() + *xcvrCtrlBlockConfig.numPorts();
+       port++) {
+    if (!isValidCsrOffsetCalc(
+            *xcvrCtrlBlockConfig.csrOffsetCalc(),
+            port,
+            *xcvrCtrlBlockConfig.startPort())) {
+      return false;
+    }
+
+    if (!xcvrCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+      if (!isValidIobufOffsetCalc(
+              *xcvrCtrlBlockConfig.iobufOffsetCalc(),
+              port,
+              *xcvrCtrlBlockConfig.startPort())) {
         return false;
       }
     }
@@ -336,6 +415,9 @@ bool ConfigValidator::isValidPciDeviceConfig(
   for (const auto& config : *pciDeviceConfig.ledCtrlConfigs()) {
     fpgaIpBlockConfigs.push_back(*config.fpgaIpBlockConfig());
   }
+  for (const auto& config : *pciDeviceConfig.sysLedCtrlConfigs()) {
+    fpgaIpBlockConfigs.push_back(config);
+  }
   for (const auto& config : *pciDeviceConfig.xcvrCtrlConfigs()) {
     if (*config.fpgaIpBlockConfig()->deviceName() != kXcvrDeviceName) {
       XLOG(ERR) << fmt::format(
@@ -358,6 +440,9 @@ bool ConfigValidator::isValidPciDeviceConfig(
   for (const auto& config : *pciDeviceConfig.miscCtrlConfigs()) {
     fpgaIpBlockConfigs.push_back(config);
   }
+  for (const auto& config : *pciDeviceConfig.mdioBusConfigs()) {
+    fpgaIpBlockConfigs.push_back(config);
+  }
 
   std::set<std::string> uniqueNames{};
   for (const auto& config : fpgaIpBlockConfigs) {
@@ -377,7 +462,25 @@ bool ConfigValidator::isValidPciDeviceConfig(
     }
   }
 
-  if (!isValidPortRanges(*pciDeviceConfig.ledCtrlBlockConfigs())) {
+  std::vector<std::pair<int16_t, int16_t>> ledPortRanges;
+  for (const auto& config : *pciDeviceConfig.ledCtrlBlockConfigs()) {
+    ledPortRanges.emplace_back(*config.startPort(), *config.numPorts());
+  }
+  if (!isValidPortRanges(ledPortRanges)) {
+    return false;
+  }
+
+  for (const auto& config : *pciDeviceConfig.xcvrCtrlBlockConfigs()) {
+    if (!isValidXcvrCtrlBlockConfig(config)) {
+      return false;
+    }
+  }
+
+  std::vector<std::pair<int16_t, int16_t>> xcvrPortRanges;
+  for (const auto& config : *pciDeviceConfig.xcvrCtrlBlockConfigs()) {
+    xcvrPortRanges.emplace_back(*config.startPort(), *config.numPorts());
+  }
+  if (!isValidPortRanges(xcvrPortRanges)) {
     return false;
   }
 
@@ -532,12 +635,16 @@ bool ConfigValidator::isValidDeviceName(
               *pciDeviceConfig.spiMasterConfigs(),
               *pciDeviceConfig.fanTachoPwmConfigs(),
               *pciDeviceConfig.ledCtrlConfigs(),
+              *pciDeviceConfig.sysLedCtrlConfigs(),
+              Utils::createLedCtrlConfigs(pciDeviceConfig),
+              Utils::createXcvrCtrlConfigs(pciDeviceConfig),
               *pciDeviceConfig.xcvrCtrlConfigs(),
               *pciDeviceConfig.spiMasterConfigs(),
               *pciDeviceConfig.gpioChipConfigs(),
               *pciDeviceConfig.watchdogConfigs(),
               *pciDeviceConfig.infoRomConfigs(),
-              *pciDeviceConfig.miscCtrlConfigs())) {
+              *pciDeviceConfig.miscCtrlConfigs(),
+              *pciDeviceConfig.mdioBusConfigs())) {
         return true;
       }
     }
@@ -560,6 +667,15 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     return false;
   }
 
+  // Verify platformName is in uppercase
+  if (containsLower(*config.platformName())) {
+    XLOGF(
+        ERR,
+        "Platform name must be in uppercase; {} contains lowercase characters",
+        *config.platformName());
+    return false;
+  }
+
   if (config.rootSlotType()->empty()) {
     XLOG(ERR) << "Platform rootSlotType cannot be empty";
     return false;
@@ -570,6 +686,12 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     XLOG(ERR) << fmt::format(
         "Invalid rootSlotType {}. Not found in slotTypeConfigs",
         *config.rootSlotType());
+    return false;
+  }
+
+  // Validate chassisEepromDevicePath
+  if (!isValidChassisEepromDevicePath(
+          config, *config.chassisEepromDevicePath())) {
     return false;
   }
 
@@ -619,30 +741,23 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
        *config.versionedPmUnitConfigs()) {
     XLOG(INFO) << fmt::format(
         "Validating VersionedPmUnitConfigs for PmUnit {}...", pmUnitName);
+
+    auto defaultConfigIt = config.pmUnitConfigs()->find(pmUnitName);
+
     // Validate that PMUnit name exists in pmUnitConfigs
-    if (!config.pmUnitConfigs()->contains(pmUnitName)) {
+    if (defaultConfigIt == config.pmUnitConfigs()->end()) {
       XLOG(ERR) << fmt::format(
           "PMUnit name '{}' in versionedPmUnitConfigs does not exist in pmUnitConfigs",
           pmUnitName);
       return false;
     }
-    if (versionedPmUnitConfigs.empty()) {
-      XLOG(ERR) << fmt::format(
-          "VersionedPmUnitConfigs for {} must not be empty", pmUnitName);
+
+    if (!isValidVersionedPmUnitConfig(
+            pmUnitName,
+            versionedPmUnitConfigs,
+            defaultConfigIt->second,
+            *config.slotTypeConfigs())) {
       return false;
-    }
-    for (const auto& versionedPmUnitConfig : versionedPmUnitConfigs) {
-      if (*versionedPmUnitConfig.productSubVersion() < 0) {
-        XLOG(ERR) << fmt::format(
-            "One of PmUnit {}'s VersionedPmUnitConfig has a negative ProductSubVersion",
-            pmUnitName);
-        return false;
-      }
-      if (!isValidPmUnitConfig(
-              *config.slotTypeConfigs(),
-              *versionedPmUnitConfig.pmUnitConfig())) {
-        return false;
-      }
     }
   }
 
@@ -921,13 +1036,13 @@ bool ConfigValidator::isValidXcvrSymlinks(
 bool ConfigValidator::isValidCsrOffsetCalc(
     const std::string& csrOffsetCalc,
     const int16_t& portNum,
-    const int16_t& ledNum,
-    const int16_t& startPort) {
+    const int16_t& startPort,
+    std::optional<int16_t> ledNum) {
   // Test the expression with sample values to see if it's computable
   try {
     // Use Utils to test if the expression can be compiled and evaluated
     auto result =
-        Utils().computeHexExpression(csrOffsetCalc, portNum, ledNum, startPort);
+        Utils().computeHexExpression(csrOffsetCalc, portNum, startPort, ledNum);
 
     // Validate the resulting hex value
     if (result.empty()) {
@@ -947,25 +1062,111 @@ bool ConfigValidator::isValidCsrOffsetCalc(
   }
 }
 
+bool ConfigValidator::isValidIobufOffsetCalc(
+    const std::string& iobufOffsetCalc,
+    const int16_t& portNum,
+    const int16_t& startPort,
+    std::optional<int16_t> ledNum) {
+  // Test the expression with sample values to see if it's computable
+  try {
+    // Use Utils to test if the expression can be compiled and evaluated
+    auto result = Utils().computeHexExpression(
+        iobufOffsetCalc, portNum, startPort, ledNum);
+
+    // Validate the resulting hex value
+    if (result.empty()) {
+      XLOG(ERR) << "iobufOffsetCalc expression resulted in empty value";
+      return false;
+    }
+    if (!result.starts_with("0x")) {
+      XLOG(ERR)
+          << "iobufOffsetCalc expression result is not in valid hex format: "
+          << result;
+      return false;
+    }
+    return true;
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "iobufOffsetCalc expression validation failed: " << e.what();
+    return false;
+  }
+}
+
+bool ConfigValidator::isValidVersionedPmUnitConfig(
+    const std::string& pmUnitName,
+    const std::vector<VersionedPmUnitConfig>& versionedPmUnitConfigs,
+    const PmUnitConfig& defaultPmUnitConfig,
+    const std::map<std::string, SlotTypeConfig>& slotTypeConfigs) {
+  using apache::thrift::op::get;
+  using apache::thrift::op::get_name_v;
+  using apache::thrift::op::get_value_or_null;
+  namespace ident = apache::thrift::ident;
+
+  if (versionedPmUnitConfigs.empty()) {
+    XLOG(ERR) << fmt::format(
+        "VersionedPmUnitConfigs for {} must not be empty", pmUnitName);
+    return false;
+  }
+
+  for (const auto& versionedPmUnitConfig : versionedPmUnitConfigs) {
+    if (*versionedPmUnitConfig.productSubVersion() < 0) {
+      XLOG(ERR) << fmt::format(
+          "One of PmUnit {}'s VersionedPmUnitConfig has a negative ProductSubVersion",
+          pmUnitName);
+      return false;
+    }
+
+    bool fieldMismatch = false;
+    apache::thrift::op::for_each_field_id<PmUnitConfig>([&]<class Id>(Id) {
+      // i2cDeviceConfigs are allowed to differ between versioned and default
+      if constexpr (std::is_same_v<
+                        apache::thrift::op::get_ident<PmUnitConfig, Id>,
+                        ident::i2cDeviceConfigs>) {
+        return;
+      }
+
+      const auto& defaultFieldRef = get<Id>(defaultPmUnitConfig);
+      const auto& versionedFieldRef =
+          get<Id>(*versionedPmUnitConfig.pmUnitConfig());
+
+      const auto* defaultValue = get_value_or_null(defaultFieldRef);
+      const auto* versionedValue = get_value_or_null(versionedFieldRef);
+
+      // Check if fields mismatch:
+      if ((defaultValue && versionedValue &&
+           *defaultValue != *versionedValue) ||
+          (defaultValue && !versionedValue) ||
+          (!defaultValue && versionedValue)) {
+        XLOG(ERR) << fmt::format(
+            "The {} of VersionedPmUnitConfig {}, does not match default config",
+            get_name_v<PmUnitConfig, Id>,
+            pmUnitName);
+        fieldMismatch = true;
+      }
+    });
+
+    if (fieldMismatch) {
+      return false;
+    }
+
+    if (!isValidPmUnitConfig(
+            slotTypeConfigs, *versionedPmUnitConfig.pmUnitConfig())) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool ConfigValidator::isValidPortRanges(
-    const std::vector<LedCtrlBlockConfig>& ledCtrlBlockConfigs) {
-  if (ledCtrlBlockConfigs.empty()) {
+    const std::vector<std::pair<int16_t, int16_t>>& startPortAndNumPorts) {
+  if (startPortAndNumPorts.empty()) {
     return true; // Empty list is valid
   }
 
   // Create a vector of port ranges (startPort, endPort) for sorting
   std::vector<std::pair<int, int>> portRanges;
-  for (const auto& config : ledCtrlBlockConfigs) {
-    int startPort = *config.startPort();
-    int endPort = startPort + *config.numPorts() - 1;
+  for (const auto& [startPort, numPorts] : startPortAndNumPorts) {
+    int endPort = startPort + numPorts - 1;
     portRanges.emplace_back(startPort, endPort);
-  }
-
-  if (portRanges.begin()->first != 1) {
-    XLOG(ERR) << fmt::format(
-        "Port ranges must start at 1, but the first port starts at {}",
-        portRanges.begin()->first);
-    return false;
   }
 
   // Check for sorting, overlaps and gaps
@@ -991,15 +1192,49 @@ bool ConfigValidator::isValidPortRanges(
           currStart);
       return false;
     }
+  }
 
-    // Check for gap (missing ports)
-    if (currStart != prevEnd + 1) {
+  return true;
+}
+
+bool ConfigValidator::isValidChassisEepromDevicePath(
+    const PlatformConfig& platformConfig,
+    const std::string& chassisEepromDevicePath) {
+  if (platformConfig.platformName() == "DARWIN") {
+    // Darwin has a special case where the chassis EEPROM is not a real device
+    return true;
+  }
+
+  // First check if the device path is valid
+  if (!isValidDevicePath(platformConfig, chassisEepromDevicePath)) {
+    return false;
+  }
+
+  auto [_, deviceName] = Utils().parseDevicePath(chassisEepromDevicePath);
+  if (deviceName == "IDPROM") {
+    // IDPROM is only allowed for certain platforms
+    const auto& exceptionPlatforms = platform_manager_validators_constants::
+        PLATFORMS_WITH_IDPROM_CHASSIS_EEPROM();
+    if (std::find(
+            exceptionPlatforms.begin(),
+            exceptionPlatforms.end(),
+            *platformConfig.platformName()) == exceptionPlatforms.end()) {
       XLOG(ERR) << fmt::format(
-          "Missing ports detected between LedCtrlBlockConfigs: gap between ports {} and {}",
-          prevEnd,
-          currStart);
+          "Platform {} has chassisEepromDevicePath pointing to IDPROM device '{}'. "
+          "New platforms must NOT use IDPROM for chassisEepromDevicePath. "
+          "Please use a dedicated chassis EEPROM device instead.",
+          *platformConfig.platformName(),
+          chassisEepromDevicePath);
       return false;
     }
+  } else if (deviceName != "CHASSIS_EEPROM") {
+    // Device name must be CHASSIS_EEPROM
+    XLOG(ERR) << fmt::format(
+        "Platform {} has chassisEepromDevicePath pointing to device '{}'. "
+        "Device name must be 'CHASSIS_EEPROM'.",
+        *platformConfig.platformName(),
+        deviceName);
+    return false;
   }
 
   return true;

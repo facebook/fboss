@@ -93,7 +93,8 @@ SaiSystemPortManager::attributesFromSwSystemPort(
       qosTcToQueueMap = std::nullopt;
   auto qosMapHandle =
       managerTable_->qosMapManager().getQosMap(swSystemPort->getQosPolicy());
-  if (qosMapHandle && qosMapHandle->tcToVoqMap) {
+  if (qosMapHandle && qosMapHandle->tcToVoqMap &&
+      (swSystemPort->getPortType() != cfg::PortType::FABRIC_PORT)) {
     auto qosMap = qosMapHandle->tcToVoqMap;
     auto qosMapId = qosMap->adapterKey();
     qosTcToQueueMap =
@@ -141,6 +142,8 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
           swSystemPort->getRemoteSystemPortType() !=
               RemoteSystemPortType::DYNAMIC_ENTRY));
   auto handle = std::make_unique<SaiSystemPortHandle>();
+  handle->qosMapsSupported =
+      swSystemPort->getPortType() != cfg::PortType::FABRIC_PORT;
 
   auto& systemPortStore = saiStore_->get<SaiSystemPortTraits>();
   SaiSystemPortTraits::AdapterHostKey systemPortKey{
@@ -446,6 +449,11 @@ void SaiSystemPortManager::setQosMapOnSystemPort(
     const SaiQosMapHandle* qosMapHandle,
     SystemPortID swId) {
   auto handle = getSystemPortHandle(swId);
+  if (!handle->qosMapsSupported) {
+    // QosMap not supported on specific system port
+    XLOG(DBG2) << "QosMap not supported on system port " << swId;
+    return;
+  }
   if (qosMapHandle && qosMapHandle->tcToVoqMap) {
     // set qos policy
     auto qosMap = qosMapHandle->tcToVoqMap;
@@ -468,6 +476,11 @@ void SaiSystemPortManager::setQosPolicy(
     SystemPortID portId,
     const std::optional<std::string>& qosPolicy) {
   if (!tcToQueueMapAllowedOnSystemPort_) {
+    return;
+  }
+  auto handle = getSystemPortHandle(portId);
+  if (!handle->qosMapsSupported) {
+    // QosMap not supported on specific system port
     return;
   }
   XLOG(DBG2) << "set QoS policy " << (qosPolicy ? qosPolicy.value() : "null")
@@ -497,6 +510,11 @@ void SaiSystemPortManager::setQosPolicy(
 
 void SaiSystemPortManager::clearQosPolicy(SystemPortID portId) {
   if (!tcToQueueMapAllowedOnSystemPort_) {
+    return;
+  }
+  auto handle = getSystemPortHandle(portId);
+  if (!handle->qosMapsSupported) {
+    // QosMap not supported on specific system port
     return;
   }
   XLOG(DBG2) << "clear QoS policy for system port " << portId;

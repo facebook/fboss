@@ -182,11 +182,11 @@ void fillHwSwitchTemperatureStats(
   for (auto attrIdAndValue : attrId2Value) {
     auto [attrId, value] = attrIdAndValue;
     if (attrId == SAI_SWITCH_ATTR_TEMP_LIST) {
+      auto timeStamp =
+          std::chrono::system_clock::now().time_since_epoch().count();
       for (uint32_t i = 0; i < value.s32list.count; i++) {
         auto sensorName = std::to_string(i);
-        hwSwitchTemperatureStats.timeStamp()->insert(
-            {sensorName,
-             std::chrono::system_clock::now().time_since_epoch().count()});
+        hwSwitchTemperatureStats.timeStamp()->insert({sensorName, timeStamp});
         hwSwitchTemperatureStats.value()->insert(
             {sensorName, value.s32list.list[i]});
       }
@@ -221,8 +221,9 @@ SaiSwitchManager::SaiSwitchManager(
         switch_->setOptionalAttribute(
             SaiSwitchTraits::Attributes::SrcMac{platform->getLocalMac()});
       }
-      switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::MacAgingTime{
-          platform->getDefaultMacAgingTime()});
+      switch_->setOptionalAttribute(
+          SaiSwitchTraits::Attributes::MacAgingTime{
+              platform->getDefaultMacAgingTime()});
     }
     if (switchType == cfg::SwitchType::VOQ) {
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
@@ -232,8 +233,9 @@ SaiSwitchManager::SaiSwitchManager(
       // warm boot. So, to cater to the systems which will only
       // WB to this change, set the attribute post WB. It should
       // be a no-op if already set.
-      switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::MaxSwitchId{
-          platform->getAsic()->getMaxSwitchId()});
+      switch_->setOptionalAttribute(
+          SaiSwitchTraits::Attributes::MaxSwitchId{
+              platform->getAsic()->getMaxSwitchId()});
 #endif
     }
   } else {
@@ -644,24 +646,28 @@ void SaiSwitchManager::setQosPolicy() {
   // set switch attrs to oids
   if (isGlobalQoSMapSupported()) {
     globalDscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosDscpToTcMap{
-        globalDscpToTcQosMap_->adapterKey()});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::QosDscpToTcMap{
+            globalDscpToTcQosMap_->adapterKey()});
     globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosTcToQueueMap{
-        globalTcToQueueQosMap_->adapterKey()});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::QosTcToQueueMap{
+            globalTcToQueueQosMap_->adapterKey()});
   }
   if (!isMplsQosSupported_) {
     return;
   }
   globalExpToTcQosMap_ = qosMapHandle->expToTcMap;
   if (globalExpToTcQosMap_) {
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosExpToTcMap{
-        globalExpToTcQosMap_->adapterKey()});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::QosExpToTcMap{
+            globalExpToTcQosMap_->adapterKey()});
   }
   globalTcToExpQosMap_ = qosMapHandle->tcToExpMap;
   if (globalTcToExpQosMap_) {
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosTcToExpMap{
-        globalTcToExpQosMap_->adapterKey()});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::QosTcToExpMap{
+            globalTcToExpQosMap_->adapterKey()});
   }
 }
 
@@ -767,8 +773,9 @@ void SaiSwitchManager::setTamObject(std::vector<sai_object_id_t> tamObject) {
 }
 
 void SaiSwitchManager::resetTamObject() {
-  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::TamObject{
-      std::vector<sai_object_id_t>{SAI_NULL_OBJECT_ID}});
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::TamObject{
+          std::vector<sai_object_id_t>{SAI_NULL_OBJECT_ID}});
 }
 
 void SaiSwitchManager::setArsProfile(
@@ -1171,23 +1178,43 @@ const HwSwitchTemperatureStats SaiSwitchManager::getHwSwitchTemperatureStats()
     const {
   // Get temperature stats
   HwSwitchTemperatureStats switchTemperatureStats;
+  static sai_int32_t NumTemperatureSensors = -1;
+  static auto lastReadTimestamp =
+      std::chrono::system_clock::now().time_since_epoch().count();
+  // Read temperature stats is expensive, so read it as often as fsdb would
+  // stream stats to its client defined by FLAGS_fsdbStatsStreamIntervalSeconds
+  const uint64_t kReadInterval =
+      static_cast<int64_t>(FLAGS_fsdbStatsStreamIntervalSeconds) * 1000000000;
+
+  auto currReadTimestamp =
+      std::chrono::system_clock::now().time_since_epoch().count();
+
+  if (currReadTimestamp - lastReadTimestamp < kReadInterval) {
+    return switchTemperatureStats;
+  }
+  lastReadTimestamp = currReadTimestamp;
+
   if (!supportedTemperatureStats().empty()) {
     folly::F14FastMap<sai_attr_id_t, sai_attribute_value_t> attrValues;
     for (auto attrId : supportedTemperatureStats()) {
       try {
         if (attrId == SAI_SWITCH_ATTR_MAX_NUMBER_OF_TEMP_SENSORS) {
-          auto NumTemperatureSensors =
-              SaiApiTable::getInstance()->switchApi().getAttribute(
-                  switch_->adapterKey(),
-                  SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          if (NumTemperatureSensors < 0) {
+            NumTemperatureSensors =
+                SaiApiTable::getInstance()->switchApi().getAttribute(
+                    switch_->adapterKey(),
+                    SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          }
           sai_attribute_value_t value;
           value.u8 = NumTemperatureSensors;
           attrValues[attrId] = value;
         } else if (attrId == SAI_SWITCH_ATTR_TEMP_LIST) {
-          auto NumTemperatureSensors =
-              SaiApiTable::getInstance()->switchApi().getAttribute(
-                  switch_->adapterKey(),
-                  SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          if (NumTemperatureSensors < 0) {
+            NumTemperatureSensors =
+                SaiApiTable::getInstance()->switchApi().getAttribute(
+                    switch_->adapterKey(),
+                    SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          }
           std::vector<sai_int32_t> temperatureList;
           XLOG(DBG5) << "# temperature sensor: " << NumTemperatureSensors;
           temperatureList.resize(NumTemperatureSensors);
@@ -1331,6 +1358,7 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     updateSramLowBufferLimitHitCounter();
   }
   switchTemperatureStats_ = getHwSwitchTemperatureStats();
+  publishSwitchTemperatureStats(switchTemperatureStats_);
   switchPipelineStats_ = getHwSwitchPipelineStats(updateWatermarks);
   publishSwitchPipelineStats(switchPipelineStats_);
 }
@@ -1497,10 +1525,12 @@ void SaiSwitchManager::setShelConfig(
   if (shelConfig.has_value()) {
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::ShelSrcMac{platform_->getLocalMac()});
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::ShelSrcIp{
-        folly::IPAddressV6(*shelConfig.value().shelSrcIp())});
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::ShelDstIp{
-        folly::IPAddressV6(*shelConfig.value().shelDstIp())});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::ShelSrcIp{
+            folly::IPAddressV6(*shelConfig.value().shelSrcIp())});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::ShelDstIp{
+            folly::IPAddressV6(*shelConfig.value().shelDstIp())});
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::ShelPeriodicInterval{static_cast<uint32_t>(
             *shelConfig.value().shelPeriodicIntervalMS())});
@@ -1602,6 +1632,13 @@ void SaiSwitchManager::setPfcWatchdogTimerGranularity(
         SaiSwitchTraits::Attributes::PfcTcDldTimerGranularityInterval{
             mapToValueList});
   }
+#endif
+}
+
+void SaiSwitchManager::setEnablePfcMonitoring(bool enablePfcMonitoring) {
+#if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_13_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::PfcMonitorEnable{enablePfcMonitoring});
 #endif
 }
 

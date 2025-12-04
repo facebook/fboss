@@ -31,6 +31,34 @@ std::ostream& operator<<(
   return os;
 }
 
+template <typename AddressT>
+void updateRouteOverrides(
+    std::shared_ptr<Route<AddressT>>& route,
+    std::optional<cfg::SwitchingMode> backupSwitchingMode,
+    std::optional<EcmpResourceManager::GroupIds2ConsolidationInfoItr>
+        mergeInfoItr) {
+  const auto& curForwardInfo = route->getForwardInfo();
+  std::optional<RouteNextHopSet> overrideNhops;
+  if (mergeInfoItr) {
+    overrideNhops = (*mergeInfoItr)->second.mergedNhops;
+  }
+  auto newForwardInfo = RouteNextHopEntry(
+      curForwardInfo.getNextHopSet(),
+      curForwardInfo.getAdminDistance(),
+      curForwardInfo.getCounterID(),
+      curForwardInfo.getClassID(),
+      backupSwitchingMode,
+      overrideNhops);
+  XLOG(DBG2) << " Set : " << route->str()
+             << " backup switching mode to : " << backupSwitchingMode
+             << " override next hops to : "
+             << (overrideNhops.has_value()
+                     ? folly::to<std::string>(*overrideNhops)
+                     : "null");
+  route->setResolved(newForwardInfo);
+  route->publish();
+}
+
 void updateRouteOverrides(
     const EcmpResourceManager::Prefix& ridAndPfx,
     std::shared_ptr<SwitchState>& newState,
@@ -42,26 +70,7 @@ void updateRouteOverrides(
   auto updateFib = [backupSwitchingMode, mergeInfoItr](
                        const auto& routePfx, auto fib) {
     auto route = fib->exactMatch(routePfx)->clone();
-    const auto& curForwardInfo = route->getForwardInfo();
-    std::optional<RouteNextHopSet> overrideNhops;
-    if (mergeInfoItr) {
-      overrideNhops = (*mergeInfoItr)->second.mergedNhops;
-    }
-    auto newForwardInfo = RouteNextHopEntry(
-        curForwardInfo.getNextHopSet(),
-        curForwardInfo.getAdminDistance(),
-        curForwardInfo.getCounterID(),
-        curForwardInfo.getClassID(),
-        backupSwitchingMode,
-        overrideNhops);
-    XLOG(DBG2) << " Set : " << route->str()
-               << " backup switching mode to : " << backupSwitchingMode
-               << " override next hops to : "
-               << (overrideNhops.has_value()
-                       ? folly::to<std::string>(*overrideNhops)
-                       : "null");
-    route->setResolved(newForwardInfo);
-    route->publish();
+    updateRouteOverrides(route, backupSwitchingMode, mergeInfoItr);
     fib->updateNode(route);
   };
   const auto& [rid, pfx] = ridAndPfx;
@@ -194,9 +203,9 @@ int computePenalty(int numGroupNhops, int numMergedNhops, int routeRefCount) {
 bool checkDeltasPublished(const std::vector<StateDelta>& deltas) {
   bool published{true};
   for (auto i = 0; i < deltas.size() && published; ++i) {
-    auto published = deltas[i].oldState()->isPublished() &&
+    auto deltaPublished = deltas[i].oldState()->isPublished() &&
         deltas[i].newState()->isPublished();
-    XLOG(DBG4) << " Checking delta: " << i << " published: " << published;
+    XLOG(DBG4) << " Checking delta: " << i << " published: " << deltaPublished;
   }
   return published;
 }
@@ -270,7 +279,8 @@ EcmpResourceManager::getPrimaryEcmpAndMemberCounts() const {
 }
 
 std::vector<StateDelta> EcmpResourceManager::consolidate(
-    const StateDelta& delta) {
+    const StateDelta& delta,
+    bool rollingBack) {
   std::optional<InputOutputState> inOutState;
   StopWatch timeIt("EcmpResourceManager::consolidate", false /*json*/);
   SCOPE_EXIT {
@@ -294,22 +304,23 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   }
 
   handleSwitchSettingsDelta(delta);
-  auto switchingModeChangeResult = handleFlowletSwitchConfigDelta(delta);
+  auto switchingModeChangeResult =
+      handleFlowletSwitchConfigDelta(delta, rollingBack);
   if (switchingModeChangeResult) {
     switchingModeChangeResult->publishLastDelta();
   }
+  inOutState = std::move(switchingModeChangeResult);
   if (DeltaFunctions::isEmpty(delta.getFibsDelta())) {
-    if (switchingModeChangeResult.has_value()) {
-      return switchingModeChangeResult->moveDeltas();
+    if (inOutState.has_value()) {
+      return inOutState->moveDeltas();
     }
     return makeRet(delta);
   }
 
-  inOutState = std::move(switchingModeChangeResult);
-
   auto [primaryEcmpGroupsCnt, ecmpMemberCnt] = getPrimaryEcmpAndMemberCounts();
   if (!inOutState.has_value()) {
-    inOutState = InputOutputState(primaryEcmpGroupsCnt, ecmpMemberCnt, delta);
+    inOutState = InputOutputState(
+        primaryEcmpGroupsCnt, ecmpMemberCnt, delta, rollingBack);
   } else {
     inOutState->primaryEcmpGroupsCnt = primaryEcmpGroupsCnt;
     inOutState->ecmpMemberCnt = ecmpMemberCnt;
@@ -450,8 +461,11 @@ EcmpResourceManager::getGroupsToReclaimOrdered(uint32_t canReclaim) const {
         continue;
       }
       auto mergeGrpInfoItr = (*oitr)->getMergedGroupInfoItr();
+      // Merge itr must be set, since we are reclaiming from a merged group
       CHECK(mergeGrpInfoItr.has_value());
       const auto& [mergeSet, _] = *mergeGrpInfoItr.value();
+      // Merged group must not be empty. Else it should have already been
+      // pruned
       CHECK_GT(mergeSet.size(), 0);
       // Merge set will create mergeSet.size() primary groups primary group and
       // delete one merged group
@@ -633,6 +647,7 @@ void EcmpResourceManager::updateMergedGroups(
                  << nhopGroupIdsDifference(curMergeSet, newMergeSet);
     }
     auto citr = mergedGroups_.find(curMergeSet);
+    // curMergeSet must be in the mergedGroups_ map
     CHECK(citr != mergedGroups_.end());
     auto curMergedSetNhops = citr->second.mergedNhops.size();
     // Prune curMergeSet from mergedGroups_
@@ -771,7 +786,8 @@ void EcmpResourceManager::reclaimMergeGroups(
 }
 
 void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
-  CHECK_LE(inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
+  DCHECK_LE(
+      inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
   auto canReclaim =
       config_.getMaxPrimaryEcmpGroups() - inOutState->primaryEcmpGroupsCnt;
   if (!canReclaim) {
@@ -817,7 +833,9 @@ EcmpResourceManager::getOptimalMergeGroupSet() const {
   if (!getEcmpCompressionThresholdPct()) {
     return {};
   }
-  CHECK(!candidateMergeGroups_.empty());
+  if (candidateMergeGroups_.empty()) {
+    throw FbossError("Hit ECMP group limit, but no candidate merge found");
+  }
   auto citr = std::min_element(
       candidateMergeGroups_.begin(),
       candidateMergeGroups_.end(),
@@ -872,9 +890,11 @@ EcmpResourceManager::NextHopGroupIds EcmpResourceManager::getUnMergedGids()
 EcmpResourceManager::InputOutputState::InputOutputState(
     uint32_t _primaryEcmpGroupsCnt,
     uint32_t _ecmpMemberCnt,
-    const StateDelta& _in)
+    const StateDelta& _in,
+    bool rollingBack)
     : primaryEcmpGroupsCnt(_primaryEcmpGroupsCnt),
-      ecmpMemberCnt(_ecmpMemberCnt) {
+      ecmpMemberCnt(_ecmpMemberCnt),
+      rollingBack_(rollingBack) {
   /*
    * Note that for first StateDelta we push in.oldState() for both
    * old and new state in the first StateDelta, since we will process
@@ -905,8 +925,9 @@ EcmpResourceManager::InputOutputState::InputOutputState(
   if (_in.oldState()->getFibs() && !_in.oldState()->getFibs()->empty()) {
     newStateWithOldFibs->resetForwardingInformationBases(
         _in.oldState()->getFibs());
-    DCHECK(DeltaFunctions::isEmpty(
-        StateDelta(_in.oldState(), newStateWithOldFibs).getFibsDelta()));
+    DCHECK(
+        DeltaFunctions::isEmpty(
+            StateDelta(_in.oldState(), newStateWithOldFibs).getFibsDelta()));
   } else {
     // Cater for when old state is empty - e.g. warmboot,
     // rollback
@@ -1015,6 +1036,11 @@ void EcmpResourceManager::InputOutputState::deleteRoute(
   replaceLastDelta(StateDelta(oldState, newState));
 }
 
+StateDelta EcmpResourceManager::InputOutputState::getCurrentStateDelta() const {
+  CHECK(!out_.empty());
+  return StateDelta(out_.back().oldState(), out_.back().newState());
+}
+
 std::pair<std::shared_ptr<NextHopGroupInfo>, bool>
 EcmpResourceManager::getOrCreateGroupInfo(
     const RouteNextHopSet& nhops,
@@ -1044,6 +1070,7 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
       << "Ecmp overflow, but no candidates available for merge";
   auto mergeSet = mergeSetIn;
   auto citr = candidateMergeGroups_.find(mergeSet);
+  // mergeSet must be in candidate merged
   CHECK(citr != candidateMergeGroups_.end());
   auto [newMergeGrpInfo, mergeGrpNhopsInserted] =
       getOrCreateGroupInfo(citr->second.mergedNhops, *inOutState);
@@ -1112,7 +1139,7 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
         }
       });
   // Prune preExistingMemberMergeSets since we are going to
-  // make these part of a large merge set now
+  // make these part of a larger merge set now
   std::for_each(
       preExistingMemberMergeSets.begin(),
       preExistingMemberMergeSets.end(),
@@ -1200,6 +1227,8 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
     }
   }
   const auto& curForwardInfo = route->getForwardInfo();
+  XLOG(DBG2) << " Will set backup switching mode for : " << route->str()
+             << " to: " << getBackupEcmpSwitchingMode();
   auto newForwardInfo = RouteNextHopEntry(
       curForwardInfo.getNextHopSet(),
       curForwardInfo.getAdminDistance(),
@@ -1290,7 +1319,7 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
     // For merge groups - reclaim creates one delta for
     // each merge set being reclaimed. So we can't assert
     // for a precise number.
-    CHECK_LE(deltas.size(), 2);
+    DCHECK_LE(deltas.size(), 2);
   }
   StateDelta toRet(deltas.front().oldState(), deltas.back().newState());
   deltas.clear();
@@ -1321,7 +1350,7 @@ EcmpResourceManager::routeAddedNoCompressionThreshold(
   auto nhopSet = newRoute->getForwardInfo().normalizedNextHops();
   auto [grpInfo, grpInserted] = getOrCreateGroupInfo(nhopSet, *inOutState);
   if (grpInserted) {
-    CHECK(grpInfo->isUninitialized());
+    DCHECK(grpInfo->isUninitialized());
     XLOG(DBG2) << " Route: " << newRoute->str()
                << " points to new group: " << *grpInfo;
     // Ecmp limit reached and we did not find a existing group,
@@ -1392,7 +1421,7 @@ EcmpResourceManager::routeAddedNoOverrideNhops(
   auto nhopSet = newRoute->getForwardInfo().normalizedNextHops();
   auto [grpInfo, grpInserted] = getOrCreateGroupInfo(nhopSet, *inOutState);
   if (grpInserted) {
-    CHECK(grpInfo->isUninitialized());
+    DCHECK(grpInfo->isUninitialized());
     XLOG(DBG2) << " Route: " << newRoute->str()
                << " points to new group: " << *grpInfo;
     // Ecmp limit reached and we did not find a existing group,
@@ -1497,7 +1526,7 @@ EcmpResourceManager::routeAddedWithOverrideNhops(
              << " created: " << grpInserted;
   if (overrideGrpInserted) {
     if (ecmpLimitReached) {
-      CHECK(overrideGrpInfo->isUninitialized());
+      DCHECK(overrideGrpInfo->isUninitialized());
       XLOG(DBG2) << " Exceeded ECMP limit for route: " << newRoute->str();
       mergeGroupAndMigratePrefixes(inOutState);
     } else {
@@ -1543,7 +1572,8 @@ void EcmpResourceManager::routeAddedOrUpdated(
   CHECK_EQ(rid, RouterID(0));
   CHECK(newRoute->isResolved());
   CHECK(newRoute->isPublished());
-  CHECK_LE(inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
+  DCHECK_LE(
+      inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
   bool ecmpLimitReached = config_.ecmpLimitReached(
       inOutState->primaryEcmpGroupsCnt, inOutState->ecmpMemberCnt);
   if (oldRoute) {
@@ -1572,8 +1602,21 @@ void EcmpResourceManager::routeAddedOrUpdated(
     std::tie(grpInfo, grpInserted) =
         routeAddedNoOverrideNhops(rid, newRoute, ecmpLimitReached, inOutState);
   } else {
-    std::tie(grpInfo, grpInserted) = routeAddedWithOverrideNhops(
-        rid, newRoute, ecmpLimitReached, inOutState);
+    DCHECK(!oldRoute || inOutState->rollingBack())
+        << " Routes with override nhops "
+           "should only be seen during reconstructFromSwitchState (addRoute) or rollback";
+    if (!oldRoute || inOutState->rollingBack()) {
+      std::tie(grpInfo, grpInserted) = routeAddedWithOverrideNhops(
+          rid, newRoute, ecmpLimitReached, inOutState);
+    } else {
+      XLOG(ERR)
+          << " Ingoring override nhop !!!. Routes with override nhops "
+             "should only be seen during reconstructFromSwitchState (addRoute) or rollback";
+      auto newerRoute = newRoute->clone();
+      updateRouteOverrides(newerRoute, std::nullopt, std::nullopt);
+      std::tie(grpInfo, grpInserted) = routeAddedNoOverrideNhops(
+          rid, newerRoute, ecmpLimitReached, inOutState);
+    }
   }
   CHECK(grpInfo);
   auto [pitr, pfxInserted] = prefixToGroupInfo_.insert(
@@ -1585,7 +1628,8 @@ void EcmpResourceManager::routeAddedOrUpdated(
     pitr->second->incRouteUsageCount();
   }
   CHECK_GT(pitr->second->getRouteUsageCount(), 0);
-  CHECK_LE(inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
+  DCHECK_LE(
+      inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
   if (getEcmpCompressionThresholdPct()) {
     if (pfxInserted) {
       /*
@@ -1706,7 +1750,7 @@ EcmpResourceManager::appendToOrCreateMergeGroup(
             grpInfo->getRouteUsageCount());
         auto [_, insertedPenalty] =
             mitr->second.groupId2Penalty.insert({newMemberGroupId, penalty});
-        CHECK(insertedPenalty)
+        DCHECK(insertedPenalty)
             << " Group ID: " << newMemberGroupId
             << " already has a computed penalty in: " << mitr->first;
       });
@@ -2054,7 +2098,9 @@ void EcmpResourceManager::updateFailed(
 }
 
 std::optional<EcmpResourceManager::InputOutputState>
-EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
+EcmpResourceManager::handleFlowletSwitchConfigDelta(
+    const StateDelta& delta,
+    bool rollingBack) {
   auto oldBackupEcmpMode = getBackupEcmpSwitchingMode();
   config_.handleFlowletSwitchConfigDelta(delta);
   if (!oldBackupEcmpMode.has_value()) {
@@ -2064,7 +2110,7 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
     return std::nullopt;
   }
   InputOutputState inOutState(
-      0 /*primaryEcmpGroupsCnt*/, 0 /*ecmpMemberCnt*/, delta);
+      0 /*primaryEcmpGroupsCnt*/, 0 /*ecmpMemberCnt*/, delta, rollingBack);
   CHECK_EQ(inOutState.numDeltas(), 1);
   // Make changes on to current new state (which is essentially,
   // newState with old state's fibs). The first delta we will queue
@@ -2074,6 +2120,10 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
   for (const auto& [ridAndPfx, grpInfo] : prefixToGroupInfo_) {
     if (!grpInfo->isBackupEcmpGroupType()) {
       continue;
+    } else {
+      XLOG(DBG2) << ridAndPfx
+                 << " updating backup ecmp mode, from: " << *oldBackupEcmpMode
+                 << " to: " << getBackupEcmpSwitchingMode();
     }
     // Got a route with backupEcmpType set. Change it.
     changed = true;
@@ -2108,6 +2158,7 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
           grpInfo);
     }
   }
+  inOutState.updated = changed;
   return changed ? std::move(inOutState) : std::optional<InputOutputState>();
 }
 
@@ -2290,9 +2341,9 @@ void NextHopGroupInfo::routeUsageCountChanged(
   auto prevState = state_;
   switch (state_) {
     case NextHopGroupState::UNINITIALIZED:
-      CHECK_EQ(prevRouteUsageCount, 0);
+      DCHECK_EQ(prevRouteUsageCount, 0);
       // From 0, routeUsageCount can only transition to 1
-      CHECK_EQ(curRouteUsageCount, 1);
+      DCHECK_EQ(curRouteUsageCount, 1);
       state_ = NextHopGroupState::UNMERGED_NHOPS_ONLY;
       break;
     case NextHopGroupState::UNMERGED_NHOPS_ONLY:
@@ -2305,9 +2356,9 @@ void NextHopGroupInfo::routeUsageCountChanged(
         // merged nhop group.
         // If current state was MERGED_NHOPS_ONLY, the prior
         // route usage count must be 0
-        CHECK_EQ(prevRouteUsageCount, 0);
+        DCHECK_EQ(prevRouteUsageCount, 0);
         // From 0, routeUsageCount can only transition to 1
-        CHECK_EQ(curRouteUsageCount, 1);
+        DCHECK_EQ(curRouteUsageCount, 1);
         DCHECK(mergedAndUnmergedNhopsMatch());
         state_ = NextHopGroupState::UNMERGED_AND_MERGED_NHOPS;
       }
@@ -2323,7 +2374,8 @@ void NextHopGroupInfo::routeUsageCountChanged(
              << prevState << " to: " << state_ << ". Merge group points to: "
              << (mergedGroupsToInfoItr_
                      ? toStr((*mergedGroupsToInfoItr_)->first)
-                     : " null");
+                     : " null")
+             << ". Has backup ecmp mode set: " << isBackupEcmpGroupType();
 }
 
 void NextHopGroupInfo::mergeInfoItrChanged() {
@@ -2332,7 +2384,7 @@ void NextHopGroupInfo::mergeInfoItrChanged() {
   auto prevState = state_;
   switch (state_) {
     case NextHopGroupState::UNINITIALIZED:
-      CHECK_EQ(routeUsageCount_, 0);
+      DCHECK_EQ(routeUsageCount_, 0);
       if (mergedAndUnmergedNhopsMatch()) {
         state_ = NextHopGroupState::MERGED_NHOPS_ONLY;
       }
@@ -2353,7 +2405,7 @@ void NextHopGroupInfo::mergeInfoItrChanged() {
     case NextHopGroupState::UNMERGED_AND_MERGED_NHOPS:
       // In such a state routeUsageCount must always be > 0,
       // since we are just updating the iterator.
-      CHECK_GT(routeUsageCount_, 0);
+      DCHECK_GT(routeUsageCount_, 0);
       if (!mergedAndUnmergedNhopsMatch()) {
         state_ = NextHopGroupState::UNMERGED_NHOPS_ONLY;
       }

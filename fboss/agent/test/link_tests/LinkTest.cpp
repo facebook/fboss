@@ -80,6 +80,7 @@ void LinkTest::SetUp() {
   // programming
   waitForAllCabledPorts(true, 60, 5s);
   utility::waitForAllTransceiverStates(true, getCabledTranceivers(), 60, 5s);
+  utility::waitForPortStateMachineState(true, getCabledPorts(), 60, 5s);
   XLOG(DBG2) << "Link Test setup ready";
 }
 
@@ -170,7 +171,9 @@ void LinkTest::initializeCabledPorts() {
   const auto& platformPorts = sw()->getPlatformMapping()->getPlatformPorts();
 
   auto swConfig = sw()->getConfig();
-  const auto& chips = sw()->getPlatformMapping()->getChips();
+  const auto& platformMapping = sw()->getPlatformMapping();
+  const auto& chips = platformMapping->getChips();
+
   for (const auto& port : *swConfig.ports()) {
     if (!(*port.expectedLLDPValues()).empty()) {
       auto portID = *port.logicalID();
@@ -181,10 +184,13 @@ void LinkTest::initializeCabledPorts() {
       const auto platformPortEntry = platformPorts.find(portID);
       EXPECT_TRUE(platformPortEntry != platformPorts.end())
           << "Can't find port:" << portID << " in PlatformMapping";
-      auto transceiverID =
-          utility::getTransceiverId(platformPortEntry->second, chips);
-      if (transceiverID.has_value()) {
-        cabledTransceivers_.insert(*transceiverID);
+
+      const auto tcvrIds = utility::getTransceiverIds(
+          platformPortEntry->second, chips, *port.profileID());
+      for (const auto& tcvrId : tcvrIds) {
+        cabledTransceivers_.insert(tcvrId);
+      }
+      if (!tcvrIds.empty()) {
         cabledTransceiverPorts_.emplace_back(portID);
       }
     }
@@ -289,7 +295,10 @@ void LinkTest::createL3DataplaneFlood(
   utility::EcmpSetupTargetedPorts6 ecmp6(
       sw()->getState(),
       sw()->needL2EntryForNeighbor(),
-      sw()->getLocalMac(switchId));
+      sw()->getLocalMac(switchId),
+      RouterID(0),
+      false,
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
   programDefaultRoute(ecmpPorts, ecmp6);
   utility::disableTTLDecrements(sw(), ecmpPorts);
   auto vlanID = getVlanIDForTx();

@@ -4,6 +4,7 @@
 # Configuration data classes for sdkcastle based on thrift spec
 #
 
+# pyre-unsafe
 
 from dataclasses import dataclass
 from typing import Dict, List, Optional
@@ -71,11 +72,23 @@ class AgentTestsSpec:
 
 
 @dataclass
+class AgentScaleTestsSpec:
+    """Agent scale tests specification"""
+
+    test_name: str
+    common_test_spec: CommonTestSpec
+    npu_mode: Optional[NpuMode] = None
+    multi_stage: Optional[MultiStage] = None
+
+
+@dataclass
 class NWarmbootTestsSpec:
     """N-warmboot tests specification"""
 
     test_name: str
     common_test_spec: CommonTestSpec
+    npu_mode: Optional[NpuMode] = None
+    num_iterations: Optional[MultiStage] = None
 
 
 @dataclass
@@ -87,8 +100,8 @@ class LinkTestsSpec:
 
 
 @dataclass
-class SpecTestsSpec:
-    """Spec tests specification"""
+class ConfigTestsSpec:
+    """Config tests specification"""
 
     test_name: str
     common_test_spec: CommonTestSpec
@@ -100,6 +113,7 @@ class BenchmarkTestsSpec:
 
     test_name: str
     common_test_spec: CommonTestSpec
+    npu_mode: Optional[NpuMode] = None
 
 
 @dataclass
@@ -108,9 +122,10 @@ class TestSpec:
 
     hw_tests: Optional[List[HwTestsSpec]] = None
     agent_tests: Optional[List[AgentTestsSpec]] = None
+    agent_scale_tests: Optional[List[AgentScaleTestsSpec]] = None
     n_warmboot_tests: Optional[List[NWarmbootTestsSpec]] = None
     link_tests: Optional[List[LinkTestsSpec]] = None
-    config_tests: Optional[List[SpecTestsSpec]] = None
+    config_tests: Optional[List[ConfigTestsSpec]] = None
     benchmark_tests: Optional[List[BenchmarkTestsSpec]] = None
 
 

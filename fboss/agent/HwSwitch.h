@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/MultiSwitchCtrl.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/if/gen-cpp2/multiswitch_ctrl_handlers.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -233,6 +234,22 @@ class HwSwitch {
       std::optional<uint8_t> queue = std::nullopt) noexcept = 0;
 
   /*
+   * Transmit an application-specific packet through the designated
+   * port. This API is intended for use with VoQ and fabric switches
+   * only. On both VoQ and fabric switches, the injected packet
+   * bypasses the normal pipeline and is sent directly to the port.
+   * Specifying the application type adds extra internal header
+   * fields required for transmission. A typical use case for this
+   * method is injecting fabric link monitoring packets.
+   *
+   * @return If the packet is successfully sent to HW.
+   */
+  virtual bool sendPacketOutOfPortSyncForPktType(
+      std::unique_ptr<TxPacket> pkt,
+      const PortID& portID,
+      TxPacketType packetType);
+
+  /*
    * Allows hardware-specific code to record switch statistics.
    */
   void updateStats();
@@ -245,7 +262,9 @@ class HwSwitch {
   virtual folly::F14FastMap<std::string, HwRouterInterfaceStats>
   getRouterInterfaceStats() const = 0;
 
-  virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const = 0;
+  virtual void fetchL2Table(
+      std::vector<L2EntryThrift>* l2Table,
+      bool sdk = false) const = 0;
 
   void updateAllPhyInfo();
   std::map<PortID, phy::PhyInfo> getAllPhyInfo() const {
@@ -267,6 +286,12 @@ class HwSwitch {
   virtual HwResourceStats getResourceStats() const = 0;
   virtual std::map<int, cfg::PortState> getSysPortShelState() const = 0;
   virtual cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) = 0;
+  /*
+   * Stats for number of times switch has been hard reset. This is only
+   * needed in tests to validate hard reset callback being received, but
+   * actual hard reset is avoided by appropriate GFLAGs.
+   */
+  virtual HwSwitchHardResetStats getHwSwitchHardResetStats() const = 0;
 
   /*
    * Get latest device watermark bytes

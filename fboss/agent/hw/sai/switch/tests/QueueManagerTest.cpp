@@ -249,16 +249,18 @@ void checkCounterExportAndValue(
   for (auto statKey : PortStats("dummy").kQueueMonotonicCounterStatKeys()) {
     switch (expectExport) {
       case ExpectExport::EXPORT:
-        EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
-            PortStats::statName(statKey, portName, queueId, queueName)));
+        EXPECT_TRUE(
+            facebook::fbData->getStatMap()->contains(
+                PortStats::statName(statKey, portName, queueId, queueName)));
         EXPECT_EQ(
             portStat->getCounterLastIncrement(
                 PortStats::statName(statKey, portName, queueId, queueName)),
             0);
         break;
       case ExpectExport::NO_EXPORT:
-        EXPECT_FALSE(facebook::fbData->getStatMap()->contains(
-            PortStats::statName(statKey, portName, queueId, queueName)));
+        EXPECT_FALSE(
+            facebook::fbData->getStatMap()->contains(
+                PortStats::statName(statKey, portName, queueId, queueName)));
         break;
     }
   }

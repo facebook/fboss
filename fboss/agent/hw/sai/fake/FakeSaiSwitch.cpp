@@ -175,9 +175,10 @@ sai_status_t set_switch_attribute_fn(
       sw.setInitStatus(attr->value.booldata);
       break;
     case SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO:
-      sw.setHwInfo(std::vector<int8_t>(
-          attr->value.s8list.list,
-          attr->value.s8list.list + attr->value.s8list.count));
+      sw.setHwInfo(
+          std::vector<int8_t>(
+              attr->value.s8list.list,
+              attr->value.s8list.list + attr->value.s8list.count));
       break;
     case SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE:
       sw.setShellStatus(attr->value.booldata);
@@ -248,9 +249,10 @@ sai_status_t set_switch_attribute_fn(
       sw.setCounterRefreshInterval(attr->value.u32);
       break;
     case SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME:
-      sw.setFirmwarePathName(std::vector<int8_t>(
-          attr->value.s8list.list,
-          attr->value.s8list.list + attr->value.s8list.count));
+      sw.setFirmwarePathName(
+          std::vector<int8_t>(
+              attr->value.s8list.list,
+              attr->value.s8list.list + attr->value.s8list.count));
       break;
     case SAI_SWITCH_ATTR_FIRMWARE_LOAD_METHOD:
       sw.setFirmwareLoadMethod(attr->value.s32);
@@ -274,10 +276,11 @@ sai_status_t set_switch_attribute_fn(
       sw.setMaxSystemCores(attr->value.u32);
       break;
     case SAI_SWITCH_ATTR_SYSTEM_PORT_CONFIG_LIST:
-      sw.setSysPortConfigList(std::vector<sai_system_port_config_t>(
-          attr->value.sysportconfiglist.list,
-          attr->value.sysportconfiglist.list +
-              attr->value.sysportconfiglist.count));
+      sw.setSysPortConfigList(
+          std::vector<sai_system_port_config_t>(
+              attr->value.sysportconfiglist.list,
+              attr->value.sysportconfiglist.list +
+                  attr->value.sysportconfiglist.count));
       break;
     case SAI_SWITCH_ATTR_TYPE:
       sw.setSwitchType(attr->value.u32);
@@ -319,6 +322,12 @@ sai_status_t set_switch_attribute_fn(
       break;
     case SAI_SWITCH_ATTR_REG_NOTICE_SWITCH_ASIC_SDK_HEALTH_CATEGORY:
       // TODO: implement if required
+      break;
+    case SAI_SWITCH_ATTR_PFC_MONITOR_ENABLE:
+      sw.setPfcMonitorEnable(attr->value.booldata);
+      break;
+    case SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT:
+      sw.setCablePropagationDelayMeasurement(attr->value.booldata);
       break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
@@ -584,6 +593,12 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_REG_FATAL_SWITCH_ASIC_SDK_HEALTH_CATEGORY:
       case SAI_SWITCH_ATTR_REG_NOTICE_SWITCH_ASIC_SDK_HEALTH_CATEGORY:
         attr[i].value.s32list.count = 0;
+        break;
+      case SAI_SWITCH_ATTR_PFC_MONITOR_ENABLE:
+        attr[i].value.booldata = sw.getPfcMonitorEnable();
+        break;
+      case SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT:
+        attr[i].value.booldata = sw.getCablePropagationDelayMeasurement();
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

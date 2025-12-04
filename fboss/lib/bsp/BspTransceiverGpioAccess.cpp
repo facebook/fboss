@@ -26,8 +26,9 @@ BspTransceiverGpioAccess::BspTransceiverGpioAccess(
   chip_ = gpiod_chip_open(gpioChipSymLink.c_str());
 
   if (nullptr == chip_) {
-    throw BspTransceiverGpioAccessError(fmt::format(
-        "QSFP {}, Unable to open gpio chip {}", tcvr, gpioChipSymLink));
+    throw BspTransceiverGpioAccessError(
+        fmt::format(
+            "QSFP {}, Unable to open gpio chip {}", tcvr, gpioChipSymLink));
   }
 }
 
@@ -87,8 +88,9 @@ void BspTransceiverGpioAccess::releaseReset() {
         chip_, *gpioOffset, fmt::format("QSFP {}  Reset GPIO", tcvrID_));
     reset.setValue(kBspGpioInactiveLow, kBspGpioInactiveLow);
   } catch (std::exception& ex) {
-    throw BspTransceiverGpioAccessError(fmt::format(
-        "QSFP {}: release reset fails with {}", tcvrID_, ex.what()));
+    throw BspTransceiverGpioAccessError(
+        fmt::format(
+            "QSFP {}: release reset fails with {}", tcvrID_, ex.what()));
   }
 }
 

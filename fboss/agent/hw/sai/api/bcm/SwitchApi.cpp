@@ -176,14 +176,7 @@ SaiSwitchTraits::fabricInterCellJitterWatermarkStats() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
   // TODO (nivinl): Stats ID not yet available in 14.x!
   static const std::vector<sai_stat_id_t> stats{
-#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
-      // TODO: Remove this once we have
-      // SAI_SWITCH_STAT_EXTENSION_FABRIC_INTER_CELL_JITTER_MAX_IN_NSEC
-      // available in 13.3
-      SAI_SWITCH_STAT_FABRIC_INTER_CELL_JITTER_MAX_IN_CLOCKS};
-#else
       SAI_SWITCH_STAT_EXTENSION_FABRIC_INTER_CELL_JITTER_MAX_IN_NSEC};
-#endif // BRCM_SAI_SDK_DNX_GTE_13_0
 #else
   static const std::vector<sai_stat_id_t> stats;
 #endif
@@ -348,25 +341,38 @@ void SwitchApi::registerSwitchEventCallback(
 #endif
     eventAttr.value.u32list.count = events.size();
     eventAttr.value.u32list.list = events.data();
-    auto rv = _setAttribute(id, &eventAttr);
-    saiLogError(rv, ApiType, "Unable to register parity error switch events");
 
-    // Register switch event callback function
-    rv = _setAttribute(id, &attr);
-    saiLogError(
-        rv, ApiType, "Unable to register parity error switch event callback");
+    {
+      auto g{SaiApiLock::getInstance()->lock()};
+      auto rv = _setAttribute(id, &eventAttr);
+      saiLogError(rv, ApiType, "Unable to register parity error switch events");
+    }
+
+    {
+      // Register switch event callback function
+      auto g{SaiApiLock::getInstance()->lock()};
+      auto rv = _setAttribute(id, &attr);
+      saiLogError(
+          rv, ApiType, "Unable to register parity error switch event callback");
+    }
   } else {
     // This is reverse of the registration sequence.
     // First, unregister callback, then unregister events.
 
-    // First unregister callback function
-    auto rv = _setAttribute(id, &attr);
-    saiLogError(rv, ApiType, "Unable to unregister TAM event callback");
+    {
+      auto g{SaiApiLock::getInstance()->lock()};
+      // First unregister callback function
+      auto rv = _setAttribute(id, &attr);
+      saiLogError(rv, ApiType, "Unable to unregister TAM event callback");
+    }
 
-    // Then unregister switch events
-    eventAttr.value.u32list.count = 0;
-    rv = _setAttribute(id, &eventAttr);
-    saiLogError(rv, ApiType, "Unable to unregister switch events");
+    {
+      auto g{SaiApiLock::getInstance()->lock()};
+      // Then unregister switch events
+      eventAttr.value.u32list.count = 0;
+      auto rv = _setAttribute(id, &eventAttr);
+      saiLogError(rv, ApiType, "Unable to unregister switch events");
+    }
   }
 #endif
 }
@@ -716,6 +722,22 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeLocalSystemPortIdRangeList::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
   return SAI_SWITCH_ATTR_LOCAL_SYSTEM_PORT_ID_RANGE_LIST;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePfcMonitorEnable::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX)
+  return SAI_SWITCH_ATTR_PFC_MONITOR_ENABLE;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeCablePropagationDelayMeasurement::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  return SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT;
 #endif
   return std::nullopt;
 }

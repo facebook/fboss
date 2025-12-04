@@ -43,6 +43,13 @@ class QsfpServiceHandler
       std::unique_ptr<std::vector<int32_t>> ids) override;
 
   /*
+   * Returns all qsfp information for the transceiver
+   */
+  void getPortStateMachineState(
+      std::map<int32_t, PortStateMachineState>& info,
+      std::unique_ptr<std::vector<int32_t>> ids) override;
+
+  /*
    * Returns portName to configured media interface
    */
   void getPortMediaInterface(
@@ -299,6 +306,29 @@ class QsfpServiceHandler
   void gracefulExit();
 
   PhyManager* getPhyManager() const;
+
+  std::optional<std::string> getPortNameByPortId(const PortID& portId) const;
+
+  void setOverrideAgentPortStatusForTesting(
+      bool up,
+      bool enabled,
+      bool clearOnly = false);
+
+  void setOverrideAgentConfigAppliedInfoForTesting(ConfigAppliedInfo config);
+
+  std::optional<PortID> getPortIdByPortName(
+      const std::string& portNameStr) const;
+
+  void programXphyPort(PortID portId, cfg::PortProfileID portProfileId);
+
+  void updateAllXphyPortsStats();
+
+  void programXphyPortPrbs(
+      PortID portID,
+      phy::Side side,
+      const phy::PortPrbsState& prbs);
+
+  phy::PortPrbsState getXphyPortPrbs(const PortID& portId, phy::Side side);
 
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<bool> co_sakInstallRx(

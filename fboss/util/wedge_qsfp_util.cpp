@@ -46,6 +46,7 @@
 #include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
+#include "fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
@@ -56,6 +57,8 @@
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahansb800bc/Tahansb800bcBspPlatformMapping.h"
+#include "fboss/lib/bsp/wedge800bact/Wedge800BACTBspPlatformMapping.h"
+#include "fboss/lib/bsp/wedge800cact/Wedge800CACTBspPlatformMapping.h"
 #include "fboss/lib/fpga/Wedge400I2CBus.h"
 #include "fboss/lib/fpga/Wedge400TransceiverApi.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
@@ -1258,9 +1261,10 @@ DOMDataUnion getDOMDataUnionI2CBus(
     sffModule->refresh();
     return sffModule->getDOMDataUnion();
   } else {
-    throw std::runtime_error(folly::sformat(
-        "Unknown transceiver management interface: {}.",
-        static_cast<int>(mgmtInterface)));
+    throw std::runtime_error(
+        folly::sformat(
+            "Unknown transceiver management interface: {}.",
+            static_cast<int>(mgmtInterface)));
   }
 }
 
@@ -2241,6 +2245,24 @@ void printCmisDetailService(
   printSignalsAndSettings(transceiverInfo);
   printDomMonitors(transceiverInfo);
   printVendorInfo(transceiverInfo);
+  if (auto tunablelaserstatus = tcvrState.tunableLaserStatus()) {
+    printf(
+        "  Laser Tunning Status: %s\n",
+        apache::thrift::util::enumNameSafe(
+            tunablelaserstatus->tuningStatus().value())
+            .c_str());
+    printf(
+        "  Laser Wavelength Lock Status: %s\n",
+        apache::thrift::util::enumNameSafe(
+            tunablelaserstatus->wavelengthLockingStatus().value())
+            .c_str());
+    printf(
+        "  Laser Status Flags Bytes: 0x%02x\n",
+        tunablelaserstatus->laserStatusFlagsByte().value());
+    printf(
+        "  Laser Frequency (MHz): %ld\n",
+        tunablelaserstatus->laserFrequencyMhz().value());
+  }
   if (auto timeCollected = *transceiverInfo.tcvrState()->timeCollected()) {
     printf("  Time collected: %s\n", getLocalTime(timeCollected).c_str());
   }
@@ -2250,19 +2272,30 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   int i = 0; // For the index of lane
   CmisData cmisData = domDataUnion.get_cmis();
   const uint8_t *lowerBuf, *page0Buf, *page01Buf, *page10Buf, *page11Buf,
-      *page14Buf;
+      *page12Buf, *page14Buf;
   lowerBuf = cmisData.lower()->data();
   page0Buf = cmisData.page0()->data();
 
   // Some CMIS optics like Blanco bypass modules have flat memory so we need
   // to exclude other pages for these modules
-  bool flatMem = ((lowerBuf[2] & 0x80) != 0);
+  bool flatMem =
+      ((lowerBuf[2] & 0x80) != 0); // Fetch the transmitter technology
+  auto transmitterTech = page0Buf[84];
+  bool isTunableOptics = false;
+
+  if (transmitterTech == DeviceTechnologyCmis::C_BAND_TUNABLE_LASER_CMIS ||
+      transmitterTech == DeviceTechnologyCmis::L_BAND_TUNABLE_LASER_CMIS) {
+    isTunableOptics = true;
+  }
 
   if (!flatMem) {
     page01Buf = can_throw(cmisData.page01())->data();
     page10Buf = can_throw(cmisData.page10())->data();
     page11Buf = can_throw(cmisData.page11())->data();
     page14Buf = can_throw(cmisData.page14())->data();
+    if (isTunableOptics) {
+      page12Buf = can_throw(cmisData.page12())->data();
+    }
   }
 
   printf("  Module Interface Type: CMIS (200G or above)\n");
@@ -2434,6 +2467,15 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
       rangeStr[9] = 0;
       printf("%s", rangeStr);
     }
+  }
+  if (isTunableOptics) {
+    printf("\nLaser Frequency (MHz)      ");
+    uint32_t frequencyMhz = 0;
+    frequencyMhz = (static_cast<uint32_t>(page12Buf[5]) << 24) |
+        (static_cast<uint32_t>(page12Buf[6]) << 16) |
+        (static_cast<uint32_t>(page12Buf[7]) << 8) |
+        (static_cast<uint32_t>(page12Buf[8]));
+    printf("%u", frequencyMhz);
   }
   if (auto timeCollected = cmisData.timeCollected()) {
     printf("\nTime collected: %s", getLocalTime(*timeCollected).c_str());
@@ -4420,6 +4462,24 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
                                  .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "wedge800bact") {
+      auto systemContainer = BspGenericSystemContainer<
+                                 Wedge800BACTBspPlatformMapping>::getInstance()
+                                 .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "wedge800cact") {
+      auto systemContainer = BspGenericSystemContainer<
+                                 Wedge800CACTBspPlatformMapping>::getInstance()
+                                 .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "ladakh800bcls") {
+      auto systemContainer = BspGenericSystemContainer<
+                                 Ladakh800bclsBspPlatformMapping>::getInstance()
+                                 .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
     } else {
       return getTransceiverIOBusFromPlatform(FLAGS_platform);
     }
@@ -4515,6 +4575,24 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
+  } else if (mode == PlatformType::PLATFORM_WEDGE800BACT) {
+    auto systemContainer =
+        BspGenericSystemContainer<Wedge800BACTBspPlatformMapping>::getInstance()
+            .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
+  } else if (mode == PlatformType::PLATFORM_WEDGE800CACT) {
+    auto systemContainer =
+        BspGenericSystemContainer<Wedge800CACTBspPlatformMapping>::getInstance()
+            .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
+  } else if (mode == PlatformType::PLATFORM_LADAKH800BCLS) {
+    auto systemContainer = BspGenericSystemContainer<
+                               Ladakh800bclsBspPlatformMapping>::getInstance()
+                               .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
   }
 
   return getTransceiverIOBusFromMode(mode);
@@ -4573,6 +4651,8 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
       mode = PlatformType::PLATFORM_ICETEA800BC;
     } else if (FLAGS_platform == "tahansb800bc") {
       mode = PlatformType::PLATFORM_TAHANSB800BC;
+    } else if (FLAGS_platform == "ladakh800bcls") {
+      mode = PlatformType::PLATFORM_LADAKH800BCLS;
     }
   } else {
     // If the platform is not provided by the user then use current hardware's
@@ -4641,6 +4721,12 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
     auto systemContainer =
         BspGenericSystemContainer<Tahansb800bcBspPlatformMapping>::getInstance()
             .get();
+    return std::make_pair(
+        std::make_unique<BspTransceiverApi>(systemContainer), 0);
+  } else if (mode == PlatformType::PLATFORM_LADAKH800BCLS) {
+    auto systemContainer = BspGenericSystemContainer<
+                               Ladakh800bclsBspPlatformMapping>::getInstance()
+                               .get();
     return std::make_pair(
         std::make_unique<BspTransceiverApi>(systemContainer), 0);
   } else if (mode == PlatformType::PLATFORM_WEDGE400C) {

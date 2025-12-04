@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<5cfdaa53cd99ff243bd93753f4c0367a>>"
+        "@generated SignedSource<<b0e8025115e5bf91911e9c8d1cc213c4>>"
     ],
     "MINIPACK": [
         {
@@ -43,7 +43,7 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.32",
-            "saiSdk": "13.0_ea_odp",
+            "saiSdk": "13.3.0.0_odp",
             "saiVersion": "1.16.1"
         }
     ],
@@ -93,7 +93,7 @@
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.32",
-            "saiSdk": "13.0_ea_odp",
+            "saiSdk": "13.3.0.0_odp",
             "saiVersion": "1.16.1"
         }
     ],
@@ -161,7 +161,7 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.32",
-            "saiSdk": "13.0_ea_odp",
+            "saiSdk": "13.3.0.0_odp",
             "saiVersion": "1.16.1"
         }
     ],
@@ -200,9 +200,9 @@
     "MINIPACK3N": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "4.8.1974",
-            "saiSdk": "116.133.2509.6",
-            "saiVersion": "1.16.1"
+            "asicSdk": "4.8.2060",
+            "saiSdk": "2505.34",
+            "saiVersion": "1.16.2"
         }
     ],
     "MERU400BIU": [
@@ -285,7 +285,7 @@
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.32",
-            "saiSdk": "13.0_ea_odp",
+            "saiSdk": "13.3.0.0_odp",
             "saiVersion": "1.16.1"
         }
     ]

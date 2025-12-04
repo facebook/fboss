@@ -22,6 +22,14 @@ namespace facebook::fboss::utility {
 using PacketComparatorFn =
     std::optional<std::function<bool(utility::EthFrame, utility::EthFrame)>>;
 
+// Packet rewrite fields
+struct PacketMatchFields {
+  std::optional<folly::MacAddress> expectedSrcMac;
+};
+
+// Packet comparator function with acceptable packet rewrite fields
+PacketComparatorFn makePacketComparator(const PacketMatchFields& criteria = {});
+
 // define received packet type for packetSnooper
 enum class packetSnooperReceivePacketType {
   PACKET_TYPE_ALL,

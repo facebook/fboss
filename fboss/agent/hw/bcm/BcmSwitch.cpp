@@ -19,7 +19,6 @@
 #include <unordered_set>
 #include <utility>
 
-#include <boost/cast.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
@@ -34,7 +33,6 @@
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LoadBalancerUtils.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
@@ -53,7 +51,6 @@
 #include "fboss/agent/hw/bcm/BcmEgressQueueFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmExactMatchUtils.h"
-#include "fboss/agent/hw/bcm/BcmFacebookAPI.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
@@ -78,14 +75,11 @@
 #include "fboss/agent/hw/bcm/BcmRouteCounter.h"
 #include "fboss/agent/hw/bcm/BcmRtag7LoadBalancer.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSflowExporter.h"
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitchSettings.h"
-#include "fboss/agent/hw/bcm/BcmTableStats.h"
-#include "fboss/agent/hw/bcm/BcmTeFlowEntry.h"
 #include "fboss/agent/hw/bcm/BcmTeFlowTable.h"
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
@@ -96,7 +90,6 @@
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootState.h"
 #include "fboss/agent/hw/bcm/PacketTraceUtils.h"
-#include "fboss/agent/hw/bcm/RxUtils.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
@@ -734,15 +727,17 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
     swPort->setProfileId(
         platformPort->getProfileIDBySpeed(bcmPort->getSpeed()));
     // Coldboot state can assume transceiver doesn't exist
-    PlatformPortProfileConfigMatcher matcher{swPort->getProfileID(), portID};
-    if (auto profileConfig = platform_->getPortProfileConfig(matcher)) {
+    PlatformPortProfileConfigMatcher profileMatcher{
+        swPort->getProfileID(), portID};
+    if (auto profileConfig = platform_->getPortProfileConfig(profileMatcher)) {
       swPort->setProfileConfig(*profileConfig->iphy());
     } else {
       throw FbossError(
-          "No port profile config found with matcher:", matcher.toString());
+          "No port profile config found with matcher:",
+          profileMatcher.toString());
     }
     swPort->resetPinConfigs(
-        platform_->getPlatformMapping()->getPortIphyPinConfigs(matcher));
+        platform_->getPlatformMapping()->getPortIphyPinConfigs(profileMatcher));
     swPort->setSpeed(bcmPort->getSpeed());
     if (platform_->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
       auto queues = bcmPort->getCurrentQueueSettings();
@@ -978,8 +973,7 @@ HwInitResult BcmSwitch::initImpl(
     // bcmSwitchL3EgressMode else the egress ids
     // in the host table don't show up correctly.
     // TODO: Use thrift representation for sw switch state.
-    auto switchStateJson =
-        getPlatform()->getWarmBootHelper()->getWarmBootState();
+    switchStateJson = getPlatform()->getWarmBootHelper()->getWarmBootState();
     warmBootCache_->populate(switchStateJson);
   }
   setupToCpuEgress();
@@ -3310,6 +3304,10 @@ HwSwitchTemperatureStats BcmSwitch::getSwitchTemperatureStats() const {
   return HwSwitchTemperatureStats{};
 }
 
+HwSwitchHardResetStats BcmSwitch::getHwSwitchHardResetStats() const {
+  return HwSwitchHardResetStats{};
+}
+
 bcm_if_t BcmSwitch::getDropEgressId() const {
   return platform_->getAsic()->getDefaultDropEgressID();
 }
@@ -4067,7 +4065,8 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
   return 0;
 }
 
-void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
+void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table, bool /*sdk*/)
+    const {
   auto cookie = std::make_pair(this, l2Table);
   int rv = bcm_l2_traverse(unit_, _addL2Entry, &cookie);
   bcmCheckError(rv, "bcm_l2_traverse failed");
@@ -4215,6 +4214,7 @@ void BcmSwitch::disableHotSwap() const {
       case cfg::AsicType::ASIC_TYPE_CHENAB:
       case cfg::AsicType::ASIC_TYPE_MOCK:
       case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+      case cfg::AsicType::ASIC_TYPE_AGERA3:
       case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
       case cfg::AsicType::ASIC_TYPE_JERICHO2:
       case cfg::AsicType::ASIC_TYPE_JERICHO3:

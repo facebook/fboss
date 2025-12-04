@@ -18,4 +18,12 @@ enum class LldpTlvType : uint16_t {
   ORG_SPECIFIC = 127,
 };
 
+// Facebook-specific TLV subtypes
+enum class FacebookLldpSubtype : uint8_t {
+  PORT_DRAIN_STATE = 1,
+};
+
+// Port drain state TLV length: OUI (3) + Subtype (1) + Value (1) = 5
+constexpr uint16_t PORT_DRAIN_STATE_TLV_LENGTH = 0x5;
+
 } // namespace facebook::fboss

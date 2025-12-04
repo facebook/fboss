@@ -11,6 +11,8 @@
 #include <folly/logging/xlog.h>
 #include <string>
 
+DEFINE_int32(fsdbPathPublishQueueSize, 31, "FSDB Path publisher queue size");
+
 namespace {
 using namespace facebook::fboss::fsdb;
 auto constexpr kState = "state";
@@ -131,7 +133,8 @@ std::unique_ptr<PublisherT> FsdbPubSubManager::createPublisherImpl(
     const Path& publishPath,
     bool publishStats,
     FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
-    int32_t fsdbPort) const {
+    int32_t fsdbPort,
+    std::optional<size_t> publishQueueSize) const {
   auto publisherExists = publishStats
       ? (statDeltaPublisher_ || statPathPublisher_)
       : (stateDeltaPublisher_ || statePathPublisher_ || statePatchPublisher_);
@@ -147,7 +150,8 @@ std::unique_ptr<PublisherT> FsdbPubSubManager::createPublisherImpl(
       publisherEvb,
       reconnectEvb_,
       publishStats,
-      publisherStateChangeCb);
+      publisherStateChangeCb,
+      publishQueueSize);
   publisher->setConnectionOptions(utils::ConnectionOptions("::1", fsdbPort));
   return publisher;
 }
@@ -168,14 +172,16 @@ void FsdbPubSubManager::createStateDeltaPublisher(
 void FsdbPubSubManager::createStatePathPublisher(
     const Path& publishPath,
     FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
-    int32_t fsdbPort) {
+    int32_t fsdbPort,
+    size_t queueSize) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
   statePathPublisher_ = createPublisherImpl<FsdbStatePublisher>(
       lk,
       publishPath,
       false /*subscribeStat*/,
       publisherStateChangeCb,
-      fsdbPort);
+      fsdbPort,
+      queueSize);
 }
 
 void FsdbPubSubManager::createStatePatchPublisher(
@@ -207,14 +213,16 @@ void FsdbPubSubManager::createStatDeltaPublisher(
 void FsdbPubSubManager::createStatPathPublisher(
     const Path& publishPath,
     FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
-    int32_t fsdbPort) {
+    int32_t fsdbPort,
+    size_t queueSize) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
   statPathPublisher_ = createPublisherImpl<FsdbStatePublisher>(
       lk,
       publishPath,
       true /*subscribeStat*/,
       publisherStateChangeCb,
-      fsdbPort);
+      fsdbPort,
+      queueSize);
 }
 
 void FsdbPubSubManager::createStatPatchPublisher(
@@ -555,18 +563,19 @@ std::string FsdbPubSubManager::addSubscriptionImpl(
     clientStr.append(folly::to<std::string>("_", clientIdSuffix.value()));
   }
 
-  auto [itr, inserted] = path2SubscriberW->emplace(std::make_pair(
-      subsStr,
-      std::make_unique<SubscriberT>(
-          clientStr,
-          subscribePath,
-          subscriberEvb_,
-          reconnectEvb_,
-          subUnitAvailableCb,
-          subscribeStats,
-          stateChangeCb,
-          std::nullopt,
-          heartbeatCb)));
+  auto [itr, inserted] = path2SubscriberW->emplace(
+      std::make_pair(
+          subsStr,
+          std::make_unique<SubscriberT>(
+              clientStr,
+              subscribePath,
+              subscriberEvb_,
+              reconnectEvb_,
+              subUnitAvailableCb,
+              subscribeStats,
+              stateChangeCb,
+              std::nullopt,
+              heartbeatCb)));
   if (!inserted) {
     throw std::runtime_error(
         "Subscription at : " + subsStr + " already exists");
@@ -602,18 +611,19 @@ std::string FsdbPubSubManager::addSubscriptionImpl(
     clientStr.append(folly::to<std::string>("_", clientIdSuffix.value()));
   }
 
-  auto [itr, inserted] = path2SubscriberW->emplace(std::make_pair(
-      subsStr,
-      std::make_unique<SubscriberT>(
-          clientStr,
-          subscribePath,
-          subscriberEvb_,
-          reconnectEvb_,
-          subUnitAvailableCb,
-          subscribeStats,
-          stateChangeCb,
-          std::nullopt,
-          heartbeatCb)));
+  auto [itr, inserted] = path2SubscriberW->emplace(
+      std::make_pair(
+          subsStr,
+          std::make_unique<SubscriberT>(
+              clientStr,
+              subscribePath,
+              subscriberEvb_,
+              reconnectEvb_,
+              subUnitAvailableCb,
+              subscribeStats,
+              stateChangeCb,
+              std::nullopt,
+              heartbeatCb)));
   if (!inserted) {
     throw std::runtime_error(
         "Subscription at : " + subsStr + " already exists");
@@ -644,17 +654,18 @@ std::string FsdbPubSubManager::addSubscriptionImpl(
       : statePath2Subscriber_;
   auto path2SubscriberW = path2Subscriber.wlock();
 
-  auto [itr, inserted] = path2SubscriberW->emplace(std::make_pair(
-      subsStr,
-      std::make_unique<SubscriberT>(
-          std::move(subscriptionOptions),
-          subscribePath,
-          subscriberEvb_,
-          reconnectEvb_,
-          subUnitAvailableCb,
-          stateChangeCb,
-          std::nullopt,
-          hearbeatCb)));
+  auto [itr, inserted] = path2SubscriberW->emplace(
+      std::make_pair(
+          subsStr,
+          std::make_unique<SubscriberT>(
+              std::move(subscriptionOptions),
+              subscribePath,
+              subscriberEvb_,
+              reconnectEvb_,
+              subUnitAvailableCb,
+              stateChangeCb,
+              std::nullopt,
+              hearbeatCb)));
   if (!inserted) {
     throw std::runtime_error(
         "Subscription at : " + subsStr + " already exists");

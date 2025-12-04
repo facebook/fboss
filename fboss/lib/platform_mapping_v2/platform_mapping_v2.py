@@ -66,6 +66,7 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
         "meru800bia_dual_stage_rdsw",
         "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw",
         "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw_800g",
+        "meru800bia_uniform_local_offset",
     ],
     "tahan800bc": [
         "tahan800bc_chassis",

@@ -49,6 +49,8 @@ struct FakePort {
   std::vector<uint32_t> preemphasis;
   sai_uint32_t mtu{1514};
   sai_object_id_t qosDscpToTcMap{SAI_NULL_OBJECT_ID};
+  sai_object_id_t qosDot1pToTcMap{SAI_NULL_OBJECT_ID};
+  sai_object_id_t qosTcAndColorToDot1pMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosTcToQueueMap{SAI_NULL_OBJECT_ID};
   bool disableTtlDecrement{false};
   sai_port_interface_type_t interface_type{SAI_PORT_INTERFACE_TYPE_NONE};
@@ -107,6 +109,7 @@ struct FakePort {
   sai_object_id_t fabricSystemPort{};
   sai_uint32_t staticModuleId{};
   bool resetQueueCreditBalance{false};
+  sai_int32_t pfcMonitorDirection{0};
 };
 
 struct FakePortSerdes {

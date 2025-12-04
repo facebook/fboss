@@ -107,8 +107,10 @@ void PortStateMachineController::logCurrentState(
 
 template <>
 void PortStateMachineController::setStateMachineAttributes() {
-  stateMachine_.withWLock(
-      [&](auto& stateMachine) { stateMachine.get_attribute(portID) = id_; });
+  stateMachine_.withWLock([&](auto& stateMachine) {
+    stateMachine.get_attribute(portID) = id_;
+    stateMachine.get_attribute(xphyNeedResetDataPath) = false;
+  });
 }
 
 } // namespace facebook::fboss

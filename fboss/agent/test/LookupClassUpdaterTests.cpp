@@ -1656,18 +1656,20 @@ class LookupClassUpdaterWarmbootWithQueuePerPhysicalHostTest
     auto vlanID = this->kVlan();
     auto vlan = newState->getVlans()->getNodeIf(vlanID);
     auto macTable = vlan->getMacTable();
-    macTable->addEntry(std::make_shared<MacEntry>(
-        this->kMacAddress(),
-        PortDescriptor(this->kPortID()),
-        std::optional<cfg::AclLookupClass>(
-            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
-        MacEntryType::DYNAMIC_ENTRY));
-    macTable->addEntry(std::make_shared<MacEntry>(
-        this->kMetaMacAddress(),
-        PortDescriptor(this->kPortID()),
-        std::optional<cfg::AclLookupClass>(
-            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
-        MacEntryType::DYNAMIC_ENTRY));
+    macTable->addEntry(
+        std::make_shared<MacEntry>(
+            this->kMacAddress(),
+            PortDescriptor(this->kPortID()),
+            std::optional<cfg::AclLookupClass>(
+                cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
+            MacEntryType::DYNAMIC_ENTRY));
+    macTable->addEntry(
+        std::make_shared<MacEntry>(
+            this->kMetaMacAddress(),
+            PortDescriptor(this->kPortID()),
+            std::optional<cfg::AclLookupClass>(
+                cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
+            MacEntryType::DYNAMIC_ENTRY));
 
     std::shared_ptr<NeighborTableT> neighborTable;
     if (this->isIntfNbrTable()) {
@@ -1795,12 +1797,13 @@ class LookupClassUpdaterWarmbootRebalanceTest
 
     // imbalanced assignment results from warmboot state
     for (int i = 0; i < 5; i++) {
-      macTable->addEntry(std::make_shared<MacEntry>(
-          this->kMacAddressN(i),
-          PortDescriptor(this->kPortID()),
-          std::optional<cfg::AclLookupClass>(
-              cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
-          MacEntryType::DYNAMIC_ENTRY));
+      macTable->addEntry(
+          std::make_shared<MacEntry>(
+              this->kMacAddressN(i),
+              PortDescriptor(this->kPortID()),
+              std::optional<cfg::AclLookupClass>(
+                  cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
+              MacEntryType::DYNAMIC_ENTRY));
 
       neighborTable->addEntry(NeighborEntryFields(
           this->getIpAddrN(i),

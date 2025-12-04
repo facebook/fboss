@@ -52,7 +52,6 @@ cpp_unittest(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/fsdb/oper:extended_path_builder",
         "//fboss/thrift_cow/nodes:nodes",
-        "//fboss/thrift_cow/nodes/tests:test-cpp2-reflection",
         "//fboss/thrift_cow/visitors:visitors",
         "//folly:string",
         "//folly/json:dynamic",

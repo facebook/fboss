@@ -18,10 +18,10 @@ import typing
 from shlex import quote as shellquote
 from typing import Optional
 
-from .copytree import simple_copytree
+from .copytree import rmtree_more, simple_copytree
 from .dyndeps import create_dyn_dep_munger
 from .envfuncs import add_path_entry, Env, path_search
-from .fetcher import copy_if_different
+from .fetcher import copy_if_different, is_public_commit
 from .runcmd import run_cmd
 
 if typing.TYPE_CHECKING:
@@ -203,7 +203,7 @@ class BuilderBase(object):
                 if os.path.islink(self.build_dir):
                     os.remove(self.build_dir)
                 else:
-                    shutil.rmtree(self.build_dir)
+                    rmtree_more(self.build_dir)
         elif self.build_opts.is_windows():
             # On Windows, emit a wrapper script that can be used to run build artifacts
             # directly from the build directory, without installing them.  On Windows $PATH
@@ -238,7 +238,9 @@ class BuilderBase(object):
             )
         )
 
-    def run_tests(self, schedule_type, owner, test_filter, retry, no_testpilot) -> None:
+    def run_tests(
+        self, schedule_type, owner, test_filter, retry, no_testpilot, timeout=None
+    ) -> None:
         """Execute any tests that we know how to run.  If they fail,
         raise an exception."""
         pass
@@ -343,7 +345,9 @@ class MakeBuilder(BuilderBase):
             for file in glob.glob(srcpattern):
                 shutil.copy(file, libdir)
 
-    def run_tests(self, schedule_type, owner, test_filter, retry, no_testpilot) -> None:
+    def run_tests(
+        self, schedule_type, owner, test_filter, retry, no_testpilot, timeout=None
+    ) -> None:
         if not self.test_args:
             return
 
@@ -357,6 +361,9 @@ class MakeBuilder(BuilderBase):
             env["GETDEPS_TEST_RETRY"] = retry
         else:
             env["GETDEPS_TEST_RETRY"] = 0
+
+        if timeout is not None:
+            env["GETDEPS_TEST_TIMEOUT"] = str(timeout)
 
         cmd = (
             [self._make_binary, "-j%s" % self.num_jobs]
@@ -703,6 +710,7 @@ if __name__ == "__main__":
         self.loader = loader
         if build_opts.shared_libs:
             self.defines["BUILD_SHARED_LIBS"] = "ON"
+            self.defines["BOOST_LINK_STATIC"] = "OFF"
 
     def _invalidate_cache(self) -> None:
         for name in [
@@ -918,7 +926,7 @@ if __name__ == "__main__":
         )
 
     def run_tests(
-        self, schedule_type, owner, test_filter, retry: int, no_testpilot
+        self, schedule_type, owner, test_filter, retry: int, no_testpilot, timeout=None
     ) -> None:
         env = self._compute_env()
         ctest = path_search(env, "ctest")
@@ -1012,7 +1020,13 @@ if __name__ == "__main__":
                 )
             return tests
 
-        if schedule_type == "continuous" or schedule_type == "testwarden":
+        discover_like_continuous = False
+        if schedule_type == "continuous" or (
+            schedule_type == "base_retry" and is_public_commit(self.build_opts)
+        ):
+            discover_like_continuous = True
+
+        if discover_like_continuous or schedule_type == "testwarden":
             # for continuous and testwarden runs, disabling retry can give up
             # better signals for flaky tests.
             retry = 0
@@ -1059,12 +1073,15 @@ if __name__ == "__main__":
                 if run_id is not None:
                     testpilot_args += ["--run-id", run_id]
 
+                if timeout is not None:
+                    testpilot_args += ["--timeout", str(timeout)]
+
                 if test_filter:
                     testpilot_args += ["--", test_filter]
 
                 if schedule_type == "diff":
                     runs.append(["--collection", "oss-diff", "--purpose", "diff"])
-                elif schedule_type == "continuous":
+                elif discover_like_continuous:
                     runs.append(
                         [
                             "--tag-new-tests",
@@ -1119,6 +1136,8 @@ if __name__ == "__main__":
             ]
             if test_filter:
                 args += ["-R", test_filter]
+            if timeout is not None:
+                args += ["--timeout", str(timeout)]
 
             count = 0
             retcode = -1
@@ -1414,7 +1433,9 @@ class SetupPyBuilder(BuilderBase):
         with open(os.path.join(self.inst_dir, ".built-by-getdeps"), "w") as f:
             f.write("built")
 
-    def run_tests(self, schedule_type, owner, test_filter, retry, no_testpilot) -> None:
+    def run_tests(
+        self, schedule_type, owner, test_filter, retry, no_testpilot, timeout=None
+    ) -> None:
         # setup.py actually no longer has a standard command for running tests.
         # Instead we let manifest files specify an arbitrary Python file to run
         # as a test.

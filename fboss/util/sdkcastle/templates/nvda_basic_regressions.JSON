@@ -1,0 +1,27 @@
+{
+  "testSdkVersion": "chenab/116.133.2509.6",
+  "runMode": "list-test-runner-cmds-only",
+  "buildMode": "opt-asan",
+  "testRunnerMode": "meta-internal",
+  "testOutDirPath": "~/tmp/",
+  "testSpecs": {
+    "agentTests": [
+      {
+        "testName": "NvdaAgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "spectrum4": {
+              "asicTestName": "spectrum4",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "spectrum4"
+              },
+              "numJobs": 4
+            }
+          }
+        }
+      }
+    ]
+  }
+}

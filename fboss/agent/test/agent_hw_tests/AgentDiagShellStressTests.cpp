@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 
+#include <folly/logging/xlog.h>
+
 namespace facebook::fboss {
 
 class AgentDiagShellStressTest : public AgentHwTest {
@@ -23,16 +25,19 @@ class AgentDiagShellStressTest : public AgentHwTest {
         case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
         case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
         case cfg::AsicType::ASIC_TYPE_JERICHO2:
-        case cfg::AsicType::ASIC_TYPE_JERICHO3:
         case cfg::AsicType::ASIC_TYPE_RAMON:
         case cfg::AsicType::ASIC_TYPE_RAMON3:
         case cfg::AsicType::ASIC_TYPE_CHENAB:
+        case cfg::AsicType::ASIC_TYPE_AGERA3:
           // No diag shell to test for these ASICs
+          break;
+        case cfg::AsicType::ASIC_TYPE_JERICHO3:
+          runBcmDnxCmds(switchId);
           break;
         case cfg::AsicType::ASIC_TYPE_EBRO:
         case cfg::AsicType::ASIC_TYPE_GARONNE:
         case cfg::AsicType::ASIC_TYPE_YUBA:
-          runTajoDiagCmds(switchId);
+          runLeabaDiagCmds(switchId);
           break;
         case cfg::AsicType::ASIC_TYPE_TRIDENT2:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
@@ -59,6 +64,7 @@ class AgentDiagShellStressTest : public AgentHwTest {
 
  private:
   static auto constexpr kNumDiagCmds = 500;
+  static auto constexpr kNumDiagCmdsLeaba = 50;
   static auto constexpr kNumRestarts = 20;
 
   std::string makeDiagCmd(const std::string& cmd) const {
@@ -85,24 +91,45 @@ class AgentDiagShellStressTest : public AgentHwTest {
     std::ignore = out;
   }
 
-  void runTajoDiagCmds(SwitchID id) {
+  void runLeabaDiagCmds(SwitchID id) {
     std::string out;
     auto ensemble = getAgentEnsemble();
     ensemble->runDiagCommand(makeDiagCmd(""), out, id);
-    ensemble->runDiagCommand(makeDiagCmd("from cli import sai_cli"), out, id);
-    for (int i = 0; i < kNumDiagCmds; i++) {
-      // TODO: Change with more meaningful command for stress testing
-      ensemble->runDiagCommand(makeDiagCmd("print('hello')"), out, id);
+    ensemble->runDiagCommand(
+        makeDiagCmd("from leaba.debug_api import *"), out, id);
+    ensemble->runDiagCommand(makeDiagCmd("dapi = DebugApi()"), out, id);
+    ensemble->runDiagCommand(makeDiagCmd("from leaba_val import *"), out, id);
+    ensemble->runDiagCommand(
+        makeDiagCmd("set_dev(sdk.la_get_device(0))"), out, id);
+    for (int i = 0; i < kNumDiagCmdsLeaba; i++) {
+      ensemble->runDiagCommand(
+          makeDiagCmd("dapi.dump_port_counters()"), out, id);
+      ensemble->runDiagCommand(makeDiagCmd("get_counters()"), out, id);
     }
-    ensemble->runDiagCommand(makeDiagCmd("quit"), out, id);
-    for (int i = 0; i < kNumRestarts; i++) {
-      ensemble->runDiagCommand(makeDiagCmd(""), out, id);
-      ensemble->runDiagCommand(makeDiagCmd("from cli import sai_cli"), out, id);
-      // TODO: Change with more meaningful command for stress testing
-      ensemble->runDiagCommand(makeDiagCmd("print('hello')"), out, id);
-      ensemble->runDiagCommand(makeDiagCmd("quit"), out, id);
+    std::ignore = out;
+  }
+
+  void runBcmDnxCmds(SwitchID id) {
+    std::string out;
+    auto ensemble = getAgentEnsemble();
+    // This is to check the solution in D76308958
+    // Run the following command sequence to check if the command hangs
+    try {
+      for (int i = 0; i < kNumRestarts; i++) {
+        ensemble->runDiagCommand(makeDiagCmd(""), out, id);
+        ensemble->runDiagCommand(
+            makeDiagCmd("debug soc counter debug"), out, id);
+        ensemble->runDiagCommand(makeDiagCmd("port status"), out, id);
+        ensemble->runDiagCommand(makeDiagCmd("port status"), out, id);
+        // Actuall call for quit
+        ensemble->runDiagCommand(makeDiagCmd("\x0d"), out, id);
+      }
+    } catch (const std::exception& ex) {
+      XLOG(FATAL) << "Diag command failed with exception for "
+                  << "switchId: " << static_cast<int>(id)
+                  << ", exception: " << ex.what();
     }
-    // TODO: Validate some output.
+
     std::ignore = out;
   }
 };

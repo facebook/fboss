@@ -20,6 +20,10 @@ class FabricLinkMonitoring {
   const std::map<PortID, SwitchID>& getPort2LinkSwitchIdMapping() const;
   SwitchID getSwitchIdForPort(const PortID& portId) const;
 
+  // Test-only methods to enable/check test mode
+  static void setTestMode(bool enabled);
+  static bool isTestMode();
+
  private:
   // Forward declarations for methods to be added in later diffs
   // Compute switch ID offsets
@@ -42,7 +46,8 @@ class FabricLinkMonitoring {
   // Link counting and validation
   void updateLinkCounts(
       const cfg::SwitchConfig* config,
-      const SwitchID& neighborSwitchId);
+      const SwitchID& neighborSwitchId,
+      const int vd);
   void validateLinkLimits() const;
 
   // Virtual device handling
@@ -76,9 +81,9 @@ class FabricLinkMonitoring {
   SwitchID lowestL2SwitchId_{SHRT_MAX};
   bool isVoqSwitch_;
 
-  // Link counting variables
-  int numLeafToL1Links_{0};
-  int numL1ToL2Links_{0};
+  // Link counting variables per VD
+  std::map<int, int> numLeafL1Links_;
+  std::map<int, int> numL1L2Links_;
 
   // Virtual device variables
   std::map<PortID, int32_t> portId2Vd_;

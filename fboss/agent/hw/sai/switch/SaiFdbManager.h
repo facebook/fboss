@@ -125,7 +125,7 @@ class SaiFdbManager {
   void changeMac(
       const std::shared_ptr<MacEntry>& oldEntry,
       const std::shared_ptr<MacEntry>& newEntry);
-  std::vector<L2EntryThrift> getL2Entries() const;
+  std::vector<L2EntryThrift> getL2Entries(bool sdk = false) const;
   void handleLinkDown(SaiPortDescriptor portId);
   std::shared_ptr<SaiFdbEntry> createSaiObject(
       const typename SaiFdbTraits::AdapterHostKey& key,

@@ -67,7 +67,10 @@ class AgentEnsembleMacLearningTest : public AgentEnsembleLinkTest {
                  << vlanId << ": " << (node != nullptr);
       return node != nullptr;
     };
-    EXPECT_TRUE(waitForSwitchStateCondition(l2EntryLearned, kMaxRetries));
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(
+          waitForSwitchStateCondition(l2EntryLearned, kMaxRetries));
+    });
   }
 
   void verifyL2EntryValidated(PortID txPort, MacAddress srcMac) {
@@ -75,8 +78,20 @@ class AgentEnsembleMacLearningTest : public AgentEnsembleLinkTest {
     // if L2 entry is in pending state, these packets would be dropped
     auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
     auto switchId = scope(ecmpPorts);
-    programDefaultRoute(ecmpPorts, getSw()->getLocalMac(switchId));
-    utility::disableTTLDecrements(getSw(), ecmpPorts);
+    utility::EcmpSetupTargetedPorts6 ecmp6(
+        getSw()->getState(),
+        getSw()->needL2EntryForNeighbor(),
+        getSw()->getLocalMac(switchId),
+        RouterID(0),
+        false,
+        {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
+    if (getSw()->getHwAsicTable()->isFeatureSupported(
+            switchId, HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
+      programDefaultRouteWithDisableTTLDecrement(ecmpPorts, ecmp6);
+    } else {
+      programDefaultRoute(ecmpPorts, ecmp6);
+      utility::disableTTLDecrements(getSw(), ecmpPorts);
+    }
     // wait long enough for all L2 entries learned/validated, port stats updated
     // sleep override
     sleep(5);
@@ -149,21 +164,22 @@ TEST_F(AgentEnsembleMacLearningTest, l2EntryFlap) {
     facebook::fboss::ThriftHandler handler(getSw());
     handler.getL2Table(l2Entries);
 
-    bool foundL2Entry = false;
-    for (auto& l2Entry : l2Entries) {
-      if (*l2Entry.mac() == macAddr.toString()) {
-        XLOG(DBG2) << "L2 entry state is "
-                   << (*l2Entry.l2EntryType() ==
-                               L2EntryType::L2_ENTRY_TYPE_PENDING
-                           ? "pending"
-                           : "validated");
-        foundL2Entry = true;
-        EXPECT_TRUE(
-            *l2Entry.l2EntryType() == L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+    WITH_RETRIES({
+      bool foundL2Entry = false;
+      for (auto& l2Entry : l2Entries) {
+        if (*l2Entry.mac() == macAddr.toString()) {
+          XLOG(DBG2) << "L2 entry state is "
+                     << (*l2Entry.l2EntryType() ==
+                                 L2EntryType::L2_ENTRY_TYPE_PENDING
+                             ? "pending"
+                             : "validated");
+          foundL2Entry = true;
+          EXPECT_EVENTUALLY_TRUE(
+              *l2Entry.l2EntryType() == L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+        }
       }
-    }
-    EXPECT_TRUE(foundL2Entry);
-
+      EXPECT_EVENTUALLY_TRUE(foundL2Entry);
+    });
     verifyL2EntryValidated(txPort, macAddr);
   };
   verifyAcrossWarmBoots([]() {}, verify);

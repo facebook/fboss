@@ -106,11 +106,13 @@ std::string IPPacket<AddrT>::toString() const {
      << " UDP : " << (udpPayLoad_.has_value() ? udpPayLoad_->toString() : "")
      << " TCP: " << (tcpPayLoad_.has_value() ? tcpPayLoad_->toString() : "")
      << " L3 only payload: "
-     << (ipPayload_.has_value() ? PktUtil::hexDump(folly::IOBuf(
-                                      folly::IOBuf::CopyBufferOp::COPY_BUFFER,
-                                      ipPayload_->data(),
-                                      ipPayload_->size()))
-                                : "");
+     << (ipPayload_.has_value()
+             ? PktUtil::hexDump(
+                   folly::IOBuf(
+                       folly::IOBuf::CopyBufferOp::COPY_BUFFER,
+                       ipPayload_->data(),
+                       ipPayload_->size()))
+             : "");
   return ss.str();
 }
 template class IPPacket<folly::IPAddressV4>;

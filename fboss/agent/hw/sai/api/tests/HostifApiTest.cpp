@@ -57,7 +57,8 @@ TEST_F(HostifApiTest, sendPacket) {
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
   SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(7);
-  SaiTxPacketTraits::TxAttributes a{txType, egressPort, egressQueueIndex};
+  SaiTxPacketTraits::TxAttributes a{
+      txType, egressPort, egressQueueIndex, std::nullopt};
   folly::StringPiece testPacket = "TESTPACKET";
   SaiHostifApiPacket txPacket{
       (void*)(testPacket.toString().c_str()), testPacket.toString().length()};

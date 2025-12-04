@@ -141,23 +141,11 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   nextHopGroupHandle->saiStore_ = saiStore_;
   nextHopGroupHandle->maxVariableWidthEcmpSize =
       platform_->getAsic()->getMaxVariableWidthEcmpSize();
-
-#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0) && \
-    defined(BRCM_SAI_SDK_XGS)
-  // Read ARS class ID from the next hop group metadata attribute
-  auto arsClassId = SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
-      nextHopGroupId,
-      SaiNextHopGroupTraits::Attributes::ArsNextHopGroupMetaData{});
-  nextHopGroupHandle->arsClassId = arsClassId;
-  XLOG(DBG3) << "NexthopGroup OID: " << nextHopGroupId
-             << " ARS class ID: " << arsClassId;
-#else
-  nextHopGroupHandle->arsClassId = 0;
-#endif
+  nextHopGroupHandle->platform_ = platform_;
 
   XLOG(DBG2) << "Created NexthopGroup OID: " << nextHopGroupId;
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::BULK_CREATE_ECMP_MEMBER)) {
     // TODO(zecheng): Use bulk create for warmboot handle reclaiming as well.
@@ -192,7 +180,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     nextHopGroupHandle->members_.push_back(result.first);
   }
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::BULK_CREATE_ECMP_MEMBER)) {
     nextHopGroupHandle->bulkCreate = false;
@@ -358,14 +346,6 @@ cfg::SwitchingMode SaiNextHopGroupManager::getNextHopGroupSwitchingMode(
   return cfg::SwitchingMode::FIXED_ASSIGNMENT;
 }
 
-uint32_t SaiNextHopGroupManager::getNextHopGroupArsClassId(
-    const std::shared_ptr<SaiNextHopGroupHandle>& handle) {
-  if (handle) {
-    return handle->arsClassId;
-  }
-  return 0;
-}
-
 NextHopGroupMember::NextHopGroupMember(
     SaiNextHopGroupManager* manager,
     SaiNextHopGroupHandle* nhgroup,
@@ -434,7 +414,7 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
     }
   }
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
   if (nhgroup_ && nhgroup_->bulkCreate) {
     adapterHostKey_ = adapterHostKey;
     createAttributes_ = createAttributes;
@@ -576,23 +556,23 @@ SaiNextHopGroupHandle::~SaiNextHopGroupHandle() {
     }
   }
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  // TODO(zecheng): Pass in pointer to platform and check if ASIC supports bulk
-  // add and remove.
-  //  For now it's okay since J3 is the only DNX asic that will program ECMP
-  //  members.
-  std::vector<SaiNextHopGroupMemberTraits::AdapterKey> adapterKeys;
-  for (const auto& member : members_) {
-    auto obj = member->getObject();
-    if (obj) {
-      obj->setSkipRemove(true);
-      adapterKeys.emplace_back(obj->adapterKey());
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+  if (platform_ &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::BULK_CREATE_ECMP_MEMBER)) {
+    std::vector<SaiNextHopGroupMemberTraits::AdapterKey> adapterKeys;
+    for (const auto& member : members_) {
+      auto obj = member->getObject();
+      if (obj) {
+        obj->setSkipRemove(true);
+        adapterKeys.emplace_back(obj->adapterKey());
+      }
     }
-  }
 
-  if (adapterKeys.size()) {
-    SaiApiTable::getInstance()->getApi<NextHopGroupApi>().bulkRemove(
-        adapterKeys);
+    if (adapterKeys.size()) {
+      SaiApiTable::getInstance()->getApi<NextHopGroupApi>().bulkRemove(
+          adapterKeys);
+    }
   }
 #endif
 

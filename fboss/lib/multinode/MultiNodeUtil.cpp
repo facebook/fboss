@@ -134,6 +134,42 @@ void adminEnablePort(const std::string& switchName, int32_t portID) {
   swAgentClient->sync_setPortState(portID, true /* enable port */);
 }
 
+void drainPort(const std::string& switchName, int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setPortDrainState(portID, true /* drain port */);
+}
+
+void undrainPort(const std::string& switchName, int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setPortDrainState(portID, false /* undrain port */);
+}
+
+void setSelfHealingLagEnable(const std::string& switchName, int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setSelfHealingLagState(portID, true /* enable SHEL */);
+}
+
+void setSelfHealingLagDisable(const std::string& switchName, int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setSelfHealingLagState(portID, false /* disable SHEL */);
+}
+
+void enableConditionalEntropyRehash(
+    const std::string& switchName,
+    int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setConditionalEntropyRehash(
+      portID, true /* enable conditional entropy rehash */);
+}
+
+void disableConditionalEntropyRehash(
+    const std::string& switchName,
+    int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setConditionalEntropyRehash(
+      portID, false /* disable conditional entropy rehash */);
+}
+
 std::map<int64_t, DsfNode> getSwitchIdToDsfNode(const std::string& switchName) {
   auto swAgentClient = getSwAgentThriftClient(switchName);
   std::map<int64_t, DsfNode> switchIdToDsfNode;
@@ -1848,10 +1884,11 @@ std::vector<MultiNodeUtil::NeighborInfo> MultiNodeUtil::computeNeighborsForRdsw(
     std::map<int32_t, folly::IPAddress> intfIDToIp;
     for (const auto& [_, rif] : getIntfIdToIntf(rdsw)) {
       for (const auto& ipPrefix : *rif.address()) {
-        auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
-            reinterpret_cast<const unsigned char*>(
-                ipPrefix.ip()->addr()->data()),
-            ipPrefix.ip()->addr()->size()));
+        auto ip = folly::IPAddress::fromBinary(
+            folly::ByteRange(
+                reinterpret_cast<const unsigned char*>(
+                    ipPrefix.ip()->addr()->data()),
+                ipPrefix.ip()->addr()->size()));
 
         if (!folly::IPAddress(ip).isLinkLocal()) {
           // Pick any one non-local IP per interface
@@ -1917,8 +1954,9 @@ bool MultiNodeUtil::verifyNeighborHelper(
   auto isNeighborPresentHelper = [](const auto& ndpEntries,
                                     const auto& neighbor) {
     for (const auto& ndpEntry : ndpEntries) {
-      auto ndpEntryIp = folly::IPAddress::fromBinary(folly::ByteRange(
-          folly::StringPiece(ndpEntry.ip().value().addr().value())));
+      auto ndpEntryIp = folly::IPAddress::fromBinary(
+          folly::ByteRange(
+              folly::StringPiece(ndpEntry.ip().value().addr().value())));
 
       if (ndpEntry.interfaceID().value() == neighbor.intfID &&
           ndpEntryIp == neighbor.ip) {
@@ -1994,8 +2032,9 @@ bool MultiNodeUtil::verifyNeighborLocalPresent(
       auto ndpEntries = getNdpEntries(rdsw);
 
       for (const auto& ndpEntry : ndpEntries) {
-        auto ndpEntryIp = folly::IPAddress::fromBinary(folly::ByteRange(
-            folly::StringPiece(ndpEntry.ip().value().addr().value())));
+        auto ndpEntryIp = folly::IPAddress::fromBinary(
+            folly::ByteRange(
+                folly::StringPiece(ndpEntry.ip().value().addr().value())));
 
         if (ndpEntry.interfaceID().value() == neighbor.intfID &&
             ndpEntryIp == neighbor.ip) {
@@ -2122,10 +2161,11 @@ bool MultiNodeUtil::verifyRoutePresent(
     const int16_t prefixLength) const {
   auto verifyRoutePresentHelper = [rdsw, destPrefix, prefixLength]() {
     for (const auto& route : getAllRoutes(rdsw)) {
-      auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
-          reinterpret_cast<const unsigned char*>(
-              route.dest()->ip()->addr()->data()),
-          route.dest()->ip()->addr()->size()));
+      auto ip = folly::IPAddress::fromBinary(
+          folly::ByteRange(
+              reinterpret_cast<const unsigned char*>(
+                  route.dest()->ip()->addr()->data()),
+              route.dest()->ip()->addr()->size()));
       if (ip == destPrefix && *route.dest()->prefixLength() == prefixLength) {
         XLOG(DBG2) << "rdsw: " << rdsw << " Found route:: prefix: " << ip.str()
                    << " prefixLength: " << *route.dest()->prefixLength();
@@ -2393,6 +2433,26 @@ bool MultiNodeUtil::verifyTrafficSpray() const {
   return true;
 }
 
+bool MultiNodeUtil::runScenariosAndVerifyNoDrops(
+    const std::vector<Scenario>& scenarios) const {
+  for (const auto& scenario : scenarios) {
+    XLOG(DBG2) << "Running scenario: " << scenario.name;
+    if (!scenario.setup()) {
+      XLOG(DBG2) << "Scenario: " << scenario.name << " failed";
+      return false;
+    }
+
+    if (!verifyNoReassemblyErrorsForAllSwitches()) {
+      // TODO query drop counters to root cause reason for reassembly errors
+      XLOG(DBG2) << "Scenario: " << scenario.name
+                 << " unexpected reassembly errors";
+      return false;
+    }
+  }
+
+  return true;
+}
+
 bool MultiNodeUtil::verifyNoReassemblyErrorsForAllSwitches() const {
   auto verifyNoReassemblyErrorsForAllSwitchesHelper = [this]() {
     auto getCounterName = [this](const auto& switchName) {
@@ -2425,7 +2485,26 @@ bool MultiNodeUtil::verifyNoReassemblyErrorsForAllSwitches() const {
       verifyNoReassemblyErrorsForAllSwitchesHelper, 10 /* num retries */);
 }
 
-bool MultiNodeUtil::verifyNoTrafficDrop() const {
+std::set<std::string> MultiNodeUtil::getOneFabricSwitchForEachCluster() const {
+  // Get one FDSW from each cluster + one SDSW
+  std::set<std::string> fabricSwitchesToTest;
+  for (const auto& [_, fdsws] : std::as_const(clusterIdToFdsws_)) {
+    if (!fdsws.empty()) {
+      fabricSwitchesToTest.insert(fdsws.front());
+    }
+  }
+
+  if (!sdsws_.empty()) {
+    fabricSwitchesToTest.insert(*sdsws_.begin());
+  }
+
+  return fabricSwitchesToTest;
+}
+
+bool MultiNodeUtil::verifyNoTrafficDropOnProcessRestarts() const {
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+
   if (!setupTrafficLoop()) {
     XLOG(DBG2) << "Traffic loop setup failed";
     return false;
@@ -2439,48 +2518,185 @@ bool MultiNodeUtil::verifyNoTrafficDrop() const {
 
   // With traffic loop running, execute a variety of scenarios.
   // For each scenario, expect no drops on Fabric ports.
-  struct Scenario {
-    std::string name;
-    std::function<bool()> setup;
+
+  auto allQsfpRestartHelper = [this](bool gracefulRestart) {
+    {
+      // Gracefully restart QSFP on all switches
+      forEachExcluding(
+          allSwitches_,
+          {}, // exclude none
+          gracefulRestart ? triggerGracefulQsfpRestart
+                          : triggerUngracefulQsfpRestart);
+
+      // Wait for QSFP to come up on all switches
+      auto restart = checkForEachExcluding(
+          allSwitches_,
+          {}, // exclude none
+          [this](
+              const std::string& switchName, const QsfpServiceRunState& state) {
+            return this->verifyQsfpServiceRunState(switchName, state);
+          },
+          QsfpServiceRunState::ACTIVE);
+
+      return restart;
+    }
   };
 
   Scenario gracefullyRestartQsfpAllSwitches = {
-      "gracefullyRestartQsfpAllSwitches", [this]() {
-        // Gracefully restart QSFP on all switches
+      "gracefullyRestartQsfpAllSwitches",
+      [&] { return allQsfpRestartHelper(true /* gracefulRestart */); }};
+
+  Scenario unGracefullyRestartQsfpAllSwitches = {
+      "unGracefullyRestartQsfpAllSwitches",
+      [&] { return allQsfpRestartHelper(false /* ungracefulRestart */); }};
+
+  Scenario gracefullyRestartFSDBAllSwitches = {
+      "gracefullyRestartFSDBAllSwitches", [this]() {
+        // Gracefully restart FSDB on all switches
         forEachExcluding(
             allSwitches_,
             {}, // exclude none
-            triggerGracefulQsfpRestart);
+            triggerGracefulFsdbRestart);
 
-        // Wait for QSFP to come up on all switches
+        // Wait for FSDB to come up on all switches
         auto gracefulRestart = checkForEachExcluding(
             allSwitches_,
             {}, // exclude none
-            [this](
-                const std::string& switchName,
-                const QsfpServiceRunState& state) {
-              return this->verifyQsfpServiceRunState(switchName, state);
-            },
-            QsfpServiceRunState::ACTIVE);
+            [this](const std::string& switchName) {
+              return this->verifyFsdbIsUp(switchName);
+            });
 
         return gracefulRestart;
       }};
 
-  std::vector<Scenario> scenarios = {gracefullyRestartQsfpAllSwitches};
-  for (const auto& scenario : scenarios) {
-    XLOG(DBG2) << "Running scenario: " << scenario.name;
-    if (!scenario.setup()) {
-      XLOG(DBG2) << "Scenario: " << scenario.name << " failed";
-      return false;
-    }
+  Scenario ungracefullyRestartFSDBAllSwitches = {
+      "ungracefullyRestartFSDBAllSwitches", [this]() {
+        // Ungracefully restart FSDB on all switches
+        forEachExcluding(
+            allSwitches_,
+            {}, // exclude none
+            triggerUngracefulFsdbRestart);
 
-    if (!verifyNoReassemblyErrorsForAllSwitches()) {
-      XLOG(DBG2) << "Scenario: " << scenario.name
-                 << " unexpected reassembly errors";
-      return false;
-    }
+        // Wait for FSDB to come up on all switches
+        auto ungracefulRestart = checkForEachExcluding(
+            allSwitches_,
+            {}, // exclude none
+            [this](const std::string& switchName) {
+              return this->verifyFsdbIsUp(switchName);
+            });
+
+        return ungracefulRestart;
+      }};
+
+  Scenario gracefullyRestartAgentAllSwitches = {
+      "gracefullyRestartAgentAllSwitches", [this, myHostname]() {
+        // Gracefully restart Agent on all switches
+        forEachExcluding(
+            allSwitches_,
+            {myHostname}, // exclude self
+            triggerGracefulAgentRestart);
+
+        // Wait for Agent to come up on all switches
+        auto gracefulRestart = checkForEachExcluding(
+            allSwitches_,
+            {myHostname}, // exclude self
+            [this](const std::string& switchName, const SwitchRunState& state) {
+              return this->verifySwSwitchRunState(switchName, state);
+            },
+            SwitchRunState::CONFIGURED);
+
+        return gracefulRestart;
+      }};
+
+  std::vector<Scenario> scenarios = {
+      std::move(gracefullyRestartQsfpAllSwitches),
+      std::move(unGracefullyRestartQsfpAllSwitches),
+      std::move(gracefullyRestartFSDBAllSwitches),
+      std::move(ungracefullyRestartFSDBAllSwitches),
+      std::move(gracefullyRestartAgentAllSwitches),
+  };
+
+  return runScenariosAndVerifyNoDrops(scenarios);
+}
+
+bool MultiNodeUtil::drainUndrainActiveFabricLinkForSwitch(
+    const std::string& switchName) const {
+  auto isPortDrainedHelper = [switchName](int32_t portId, bool drained) {
+    auto portIdToPortInfo = getPortIdToPortInfo(switchName);
+    auto iter = portIdToPortInfo.find(portId);
+    CHECK(iter != portIdToPortInfo.end());
+    return iter->second.isDrained() == drained;
+  };
+
+  auto activeFabricPortNameToPortInfo =
+      getActiveFabricPortNameToPortInfo(switchName);
+  CHECK(!activeFabricPortNameToPortInfo.empty());
+
+  auto [_, portInfo] = *activeFabricPortNameToPortInfo.begin();
+  XLOG(DBG2) << "Draining port: " << portInfo.name().value();
+  drainPort(switchName, portInfo.portId().value());
+
+  if (!checkWithRetryErrorReturn(
+          [&] {
+            return isPortDrainedHelper(
+                portInfo.portId().value(), true /* drained */);
+          },
+          30 /* num retries */)) {
+    XLOG(DBG2) << "Port not drained: " << portInfo.name().value();
+    return false;
   }
 
+  XLOG(DBG2) << "Undraining port: " << portInfo.name().value();
+  undrainPort(switchName, portInfo.portId().value());
+
+  if (!checkWithRetryErrorReturn(
+          [&] {
+            return isPortDrainedHelper(
+                portInfo.portId().value(), false /* undrained */);
+          },
+          30 /* num retries */)) {
+    XLOG(DBG2) << "Port not undrained: " << portInfo.name().value();
+    return false;
+  }
+
+  return true;
+}
+
+bool MultiNodeUtil::verifyNoTrafficDropOnDrainUndrain() const {
+  if (!setupTrafficLoop()) {
+    XLOG(DBG2) << "Traffic loop setup failed";
+    return false;
+  }
+
+  if (!verifyNoReassemblyErrorsForAllSwitches()) {
+    XLOG(DBG2) << "Unexpected reassembly errors";
+    // TODO query drop counters to root cause reason for reassembly errors
+    return false;
+  }
+
+  Scenario drainUndrainFabricLinkOnePerFabric = {
+      "drainUndrainFabricLinkOnePerFabric", [this]() {
+        auto fabricSwitchesToDrainUndrainLinks =
+            getOneFabricSwitchForEachCluster();
+
+        auto drainUndrainFabricLink = checkForEachExcluding(
+            fabricSwitchesToDrainUndrainLinks,
+            {}, // exclude none
+            [this](const std::string& switchName) {
+              return drainUndrainActiveFabricLinkForSwitch(switchName);
+            });
+
+        return drainUndrainFabricLink;
+      }};
+
+  const std::vector<Scenario> scenarios = {
+      std::move(drainUndrainFabricLinkOnePerFabric),
+  };
+
+  return runScenariosAndVerifyNoDrops(scenarios);
+}
+
+bool MultiNodeUtil::verifySelfHealingECMPLag() const {
   return true;
 }
 

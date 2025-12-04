@@ -46,10 +46,15 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByChip(
     const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
     const phy::DataPlanePhyChip& chip);
 
+std::vector<phy::PinConfig> getPinsFromPortPinConfig(
+    const phy::PortPinConfig& pinConfig,
+    phy::DataPlanePhyChipType chipType);
+
 std::map<std::string, phy::DataPlanePhyChip> getDataPlanePhyChips(
     const cfg::PlatformPortEntry& port,
     const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
-    std::optional<phy::DataPlanePhyChipType> chipType = std::nullopt);
+    std::optional<phy::DataPlanePhyChipType> chipType = std::nullopt,
+    const std::optional<cfg::PortProfileID> profileID = std::nullopt);
 
 std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
     const cfg::PlatformPortEntry& platformPortEntry,
@@ -57,9 +62,10 @@ std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
     const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
     const phy::PortProfileConfig& portProfileConfig);
 
-std::optional<TransceiverID> getTransceiverId(
+const std::vector<TransceiverID> getTransceiverIds(
     const cfg::PlatformPortEntry& port,
-    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap);
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
+    const std::optional<cfg::PortProfileID> profileID = std::nullopt);
 
 std::vector<TransceiverID> getTransceiverIds(
     const std::map<std::string, phy::DataPlanePhyChip>& chipsMap);

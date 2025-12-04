@@ -44,9 +44,10 @@ facebook::fboss::cfg::AgentConfig getDummyConfig() {
   facebook::fboss::cfg::AgentConfig config;
 
   config.platform()->platformSettings() = {};
-  config.platform()->platformSettings()->insert(std::make_pair(
-      facebook::fboss::cfg::PlatformAttributes::CONNECTION_HANDLE,
-      "test connection handle"));
+  config.platform()->platformSettings()->insert(
+      std::make_pair(
+          facebook::fboss::cfg::PlatformAttributes::CONNECTION_HANDLE,
+          "test connection handle"));
   facebook::fboss::cfg::SwitchInfo info{};
   info.switchType() = facebook::fboss::cfg::SwitchType::NPU;
   info.asicType() = facebook::fboss::cfg::AsicType::ASIC_TYPE_MOCK;
@@ -191,11 +192,12 @@ void ManagerTestBase::setupSaiPlatform() {
             portDesc,
             InterfaceID(testInterface.id));
         auto macTable = vlan->getMacTable();
-        macTable->addEntry(std::make_shared<MacEntry>(
-            remoteHost.mac,
-            portDesc,
-            std::optional<cfg::AclLookupClass>(std::nullopt),
-            MacEntryType::STATIC_ENTRY));
+        macTable->addEntry(
+            std::make_shared<MacEntry>(
+                remoteHost.mac,
+                portDesc,
+                std::optional<cfg::AclLookupClass>(std::nullopt),
+                MacEntryType::STATIC_ENTRY));
       }
     }
   }

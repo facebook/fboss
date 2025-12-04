@@ -37,7 +37,9 @@ uint32_t getMaxAclEntries(const std::vector<const HwAsic*>& asics) {
     CHECK(maxAclEntries.has_value());
     return maxAclEntries.value();
   }
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+    // Todo: check with Vendor to get the correct value
     return 64;
   }
   throw FbossError("max acl not supported");

@@ -10,3 +10,86 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
+
+add_library(fsdb_test_server
+  fboss/fsdb/tests/utils/FsdbTestServer.h
+  fboss/fsdb/tests/utils/FsdbTestServer.cpp
+  fboss/fsdb/tests/utils/oss/FsdbTestServer.cpp
+)
+
+target_link_libraries(fsdb_test_server
+  fsdb_handler
+  fsdb_oper_cpp2
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
+add_library(fsdb_test_subscriber
+  fboss/fsdb/tests/utils/FsdbTestSubscriber.h
+)
+
+target_link_libraries(fsdb_test_subscriber
+  fsdb_pub_sub
+  fsdb_model_cpp2
+  Folly::folly
+)
+
+add_executable(fsdb_utils_benchmark
+  fboss/fsdb/tests/utils/FsdbUtilsBenchmark.cpp
+)
+
+target_link_libraries(fsdb_utils_benchmark
+  fsdb_utils
+  Folly::folly
+  Folly::follybenchmark
+  FBThrift::thriftcpp2
+  ${GTEST}
+  ${LIBGMOCK}
+  ${GFLAGS}
+)
+
+# Register this executable for fsdb_all_services target
+set(FSDB_EXECUTABLES ${FSDB_EXECUTABLES} fsdb_utils_benchmark CACHE INTERNAL "List of all FSDB executables")
+
+add_library(fsdb_test_clients
+  fboss/fsdb/tests/client/FsdbTestClients.h
+  fboss/fsdb/tests/client/FsdbTestClients.cpp
+)
+
+target_link_libraries(fsdb_test_clients
+  fsdb_pub_sub
+  fsdb_stream_client
+  fsdb_model_cpp2
+  common_utils
+  Folly::folly
+  FBThrift::thriftcpp2
+  FBThrift::thriftprotocol
+  ${GTEST}
+)
+
+add_executable(fsdb_pub_sub_tests
+  fboss/fsdb/tests/client/FsdbPubSubManagerTest.cpp
+  fboss/agent/test/oss/Main.cpp
+)
+
+target_link_libraries(fsdb_pub_sub_tests
+  log_thrift_call
+  fsdb_test_clients
+  fsdb_test_server
+  fsdb_pub_sub
+  fsdb_model_cpp2
+  fsdb_oper_cpp2
+  patch_cpp2
+  extended_path_builder
+  common_utils
+  thrift_service_client
+  Folly::folly
+  FBThrift::thriftcpp2
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(fsdb_pub_sub_tests)
+
+# Register this executable for fsdb_all_services target
+set(FSDB_EXECUTABLES ${FSDB_EXECUTABLES} fsdb_pub_sub_tests CACHE INTERNAL "List of all FSDB executables")

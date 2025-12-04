@@ -28,28 +28,29 @@ class HwPortProfileTest : public HwTest {
       const std::vector<std::pair<PortID, cfg::PortProfileID>>& xphyPorts,
       const std::map<int32_t, TransceiverInfo>& transceivers) {
     const auto* platformMapping = getHwQsfpEnsemble()->getPlatformMapping();
-    for (auto& [portID, profile] : xphyPorts) {
+    for (auto& [port, profile] : xphyPorts) {
       // Check whether transceiver exist, which will affect xphy config
       // Get the transceiver id for the given port id
-      auto platformPortEntry = platformMapping->getPlatformPorts().find(portID);
+      auto platformPortEntry = platformMapping->getPlatformPorts().find(port);
       if (platformPortEntry == platformMapping->getPlatformPorts().end()) {
         throw FbossError(
             "Can't find the platform port entry in platform mapping for port:",
-            portID);
+            port);
       }
-      auto tcvrID = utility::getTransceiverId(
+      auto tcvrIds = utility::getTransceiverIds(
           platformPortEntry->second, platformMapping->getChips());
-      if (!tcvrID) {
+      if (tcvrIds.empty()) {
         throw FbossError(
             "Can't find the transceiver id in platform mapping for port:",
-            portID);
+            port);
       }
       std::optional<TransceiverInfo> tcvrOpt;
-      if (auto tcvr = transceivers.find(*tcvrID); tcvr != transceivers.end()) {
+      if (auto tcvr = transceivers.find(tcvrIds[0]);
+          tcvr != transceivers.end()) {
         tcvrOpt = tcvr->second;
       }
 
-      utility::verifyXphyPort(portID, profile, tcvrOpt, getHwQsfpEnsemble());
+      utility::verifyXphyPort(port, profile, tcvrOpt, getHwQsfpEnsemble());
     }
   }
 
@@ -85,7 +86,8 @@ class HwPortProfileTest : public HwTest {
       for (auto& [port, profile] : ports.xphyPorts) {
         // Program the same port with the same profile twice, the second time
         // should be idempotent.
-        getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(port, profile);
+        getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPort(
+            port, profile);
       }
     };
     auto verify = [&]() {
@@ -113,7 +115,8 @@ class HwPortProfileTest : public HwTest {
             getHwQsfpEnsemble()->getWedgeManager()->getTransceiverID(port);
         CHECK(transceiverId.has_value());
         auto portName =
-            getHwQsfpEnsemble()->getWedgeManager()->getPortNameByPortId(port);
+            getHwQsfpEnsemble()->getQsfpServiceHandler()->getPortNameByPortId(
+                port);
         CHECK(portName.has_value());
         portToTransceiverInfoMap[*portName] = transceivers[*transceiverId];
       }
@@ -181,6 +184,8 @@ TEST_PROFILE(PROFILE_800G_8_PAM4_RS544X2N_COPPER)
 TEST_PROFILE(PROFILE_400G_2_PAM4_RS544X2N_OPTICAL)
 
 TEST_PROFILE(PROFILE_200G_1_PAM4_RS544X2N_OPTICAL)
+
+TEST_PROFILE(PROFILE_100G_1_PAM4_RS544X2N_COPPER)
 
 // TODO: Enable when we have 800G Profile enabled
 // on Minipack3. Add test as known bad for other platforms.

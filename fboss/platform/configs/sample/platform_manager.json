@@ -1,6 +1,6 @@
 {
   "___COMMENT___": "See the associated topology in sample_platform_topology.txt",
-  "platformName": "sample_platform",
+  "platformName": "SAMPLE_PLATFORM",
   "rootPmUnitName": "SCM",
   "rootSlotType": "SCM_SLOT",
   "slotTypeConfigs": {
@@ -56,6 +56,20 @@
           "i2cAdapterConfigs": [
             {
               "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SCM_IOB_I2C_MASTER_1",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SCM_IOB_I2C_MASTER_2",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4100"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "SCM_IOB_I2C_0",
                 "deviceName": "i2c-smb",
                 "iobufOffset": "0x0023"
@@ -92,6 +106,27 @@
                   "maxSpeedHz": 25000000
                 }
               ]
+            }
+          ],
+          "ledCtrlBlockConfigs": [
+            {
+              "pmUnitScopedNamePrefix": "SCM_LED",
+              "deviceName": "port_led",
+              "csrOffsetCalc": "0x1000 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+              "iobufOffsetCalc": "0x2000 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+              "numPorts": 2,
+              "ledPerPort": 2,
+              "startPort": 1
+            }
+          ],
+          "xcvrCtrlBlockConfigs": [
+            {
+              "pmUnitScopedNamePrefix": "SCM",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x1000 + ({portNum} - {startPort})*0x4",
+              "iobufOffsetCalc": "0x2000 + ({portNum} - {startPort})*0x4",
+              "numPorts": 2,
+              "startPort": 1
             }
           ]
         }
@@ -335,8 +370,14 @@
     "/run/devmap/i2c-busses/SMB_IOB_MASTER_0": "/SMB_SLOT@0/[SMB_IOB_I2C_0]",
     "/run/devmap/i2c-busses/SMB_IOB_MASTER_1": "/SMB_SLOT@0/[SMB_IOB_I2C_1]",
     "/run/devmap/i2c-busses/DOM_MASTER_0": "/SMB_SLOT@0/YOLO_SLOT@0/[YOLO_DOM_I2C_0]",
-    "/run/devmap/sensors/FAN_CPLD": "/SMB_SLOT@0/[FAN_CPLD]"
+    "/run/devmap/sensors/FAN_CPLD": "/SMB_SLOT@0/[FAN_CPLD]",
+    "/run/devmap/xcvrs/xcvr_io_1": "/[SCM_IOB_I2C_MASTER_1]",
+    "/run/devmap/xcvrs/xcvr_ctrl_1": "/[SCM_XCVR_CTRL_PORT_1]",
+    "/run/devmap/xcvrs/xcvr_io_2": "/[SCM_IOB_I2C_MASTER_2]",
+    "/run/devmap/xcvrs/xcvr_ctrl_2": "/[SCM_XCVR_CTRL_PORT_2]"
   },
+  "numXcvrs": 2,
+  "chassisEepromDevicePath": "/SMB_SLOT@0/[CHASSIS_EEPROM]",
   "bspKmodsRpmName": "sample_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.2-1"
 }

@@ -81,6 +81,35 @@ if ($ENV{CHENAB_SAI_SDK})
   add_definitions (-DCHENAB_SAI_SDK)
 endif()
 
+option(SAI_BRCM_PAI_IMPL "Build SAI api with BRCOM_PAI-SAI extensions" OFF)
+if ($ENV{SAI_BRCM_PAI_IMPL})
+  message(STATUS "ENV SAI_BRCM_PAI_IMPL is set")
+  set(SAI_BRCM_PAI_IMPL ON)
+  # NOTE: Unlike agent that we use sai_impl, we directly use pre-built SDK from
+  # local directory
+  # Header files for libpai.a, the whole inc directory from SDK
+  set(SAI_BRCM_PAI_IMPL_INC_DIR "/var/FBOSS/pai_impl/include")
+  # macsec headers
+  include_directories("${SAI_BRCM_PAI_IMPL_INC_DIR}/pai_macsec")
+
+  # SDK artifacts directory which hosts libpai.a, EPDM SW artifact, PHY Driver
+  # SW artifact
+  set(SAI_BRCM_PAI_IMPL_LIB_DIR "/var/FBOSS/pai_impl/lib")
+  set(CMAKE_PREFIX_PATH ${SAI_BRCM_PAI_IMPL_LIB_DIR} ${CMAKE_PREFIX_PATH})
+  find_library(PAI_LIB pai)
+  find_library(EPDM_LIB epdm)
+  find_library(DRIVER_LIB phymodepil)
+  message(
+    STATUS
+    "PAI_LIB: ${PAI_LIB}, EPDM_LIB: ${EPDM_LIB}, DRIVER_LIB: ${DRIVER_LIB}"
+  )
+  set(XPHY_SDK_LIBS
+    ${DRIVER_LIB}
+    ${EPDM_LIB}
+    ${PAI_LIB}
+  )
+endif()
+
 if (NOT $ENV{SAI_VERSION} EQUAL "")
   message(STATUS "ENV SAI_VERSION is set")
   set (SAI_VERSION $ENV{SAI_VERSION})
@@ -203,27 +232,41 @@ include_directories(${NLOHMANN_JSON_INCLUDE_DIRS})
 find_package(Python3 COMPONENTS Interpreter Development)
 include_directories(${Python3_INCLUDE_DIR})
 
-find_path(SAI_INCLUDE_DIR NAMES sai.h)
+# SAI_BRCM_PAI_IMPL SDK comes with SAI headers instead of using public SAI
+if (SAI_BRCM_PAI_IMPL)
+  set(SAI_INCLUDE_DIR "${SAI_BRCM_PAI_IMPL_INC_DIR}/sai/inc")
+else()
+  find_path(SAI_INCLUDE_DIR NAMES sai.h)
+endif()
 include_directories(${SAI_INCLUDE_DIR})
+message(STATUS "Found SAI Include dir: ${SAI_INCLUDE_DIR}")
 
 if (SAI_BRCM_IMPL)
   find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES saiswitchextensions.h)
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
-  message(STATUS, "Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
 elseif(CHENAB_SAI_SDK)
   # Chenab-TODO: set experimental directories appropriately
   set(SAI_EXPERIMENTAL_INCLUDE_DIR "/var/FBOSS/sai_impl_output/include")
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
-  message(STATUS, "Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+elseif(SAI_BRCM_PAI_IMPL)
+  set(
+    SAI_EXPERIMENTAL_INCLUDE_DIR
+    "${SAI_BRCM_PAI_IMPL_INC_DIR}/sai/experimental"
+  )
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
+  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
 else()
   find_path(SAI_EXPERIMENTAL_INCLUDE_DIR
     NAMES
     experimental/saiswitchextensions.h)
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
-  message(STATUS, "Experimental Dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+  message(
+    STATUS
+    "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental"
+  )
 endif()
-
-message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
 
 find_library(LIBNL nl-3)
 find_path(LIBNL_INCLUDE_DIR NAMES libnl3/netlink/socket.h)
@@ -243,6 +286,8 @@ find_library(YAML yaml)
 find_path(YAML_INCLUDE_DIR NAMES yaml.h)
 include_directories(${YAML_INCLUDE_DIR})
 message(STATUS "Found YAML_INCLUDE_DIR: ${YAML_INCLUDE_DIR}")
+
+find_package(python-pyyaml REQUIRED)
 
 # Generate thrift deps and libraries
 include(FBThriftCppLibrary)
@@ -943,40 +988,6 @@ foreach(cmakeFile ${cmakeFiles})
   INCLUDE(${cmakeFile})
 endforeach(cmakeFile)
 
-if(BUILD_SAI_FAKE AND BUILD_SAI_FAKE_BENCHMARKS)
-add_custom_target(fboss_fake_agent_benchmarks)
-add_dependencies(fboss_fake_agent_benchmarks
-  sai_fsw_scale_route_add_speed-fake
-  sai_fsw_scale_route_del_speed-fake
-  sai_th_alpm_scale_route_add_speed-fake
-  sai_th_alpm_scale_route_del_speed-fake
-  sai_hgrid_du_scale_route_add_speed-fake
-  sai_hgrid_du_scale_route_del_speed-fake
-  sai_hgrid_uu_scale_route_add_speed-fake
-  sai_hgrid_uu_scale_route_del_speed-fake
-  sai_anticipated_scale_route_add_speed-fake
-  sai_anticipated_scale_route_del_speed-fake
-  sai_stats_collection_speed-fake
-  sai_tx_slow_path_rate-fake
-  sai_ecmp_shrink_speed-fake
-  sai_ecmp_shrink_with_competing_route_updates_speed-fake
-  sai_rx_slow_path_rate-fake
-  sai_init_and_exit_40Gx10G-fake
-  sai_init_and_exit_100Gx10G-fake
-  sai_init_and_exit_100Gx25G-fake
-  sai_init_and_exit_100Gx50G-fake
-  sai_init_and_exit_100Gx100G-fake
-  sai_init_and_exit_voq-fake
-  sai_init_and_exit_fabric-fake
-  sai_rib_resolution_speed-fake
-  sai_rib_sync_fib_speed-fake
-  sai_voq_scale_route_add_speed-fake
-  sai_voq_scale_route_del_speed-fake
-  sai_switch_reachability_change_speed-fake
-  sai_voq_sys_port_programming-fake
-)
-endif()
-
 add_custom_target(fboss_agent_benchmark_libs)
 add_dependencies(fboss_agent_benchmark_libs
   hw_flowlet_stats_collection_speed
@@ -1006,6 +1017,8 @@ add_dependencies(fboss_platform_services
   platform_data_corral_sw_test
   platform_manager_utils_test
   platform_helpers_platform_name_lib_test
+  platform_helpers_platform_fs_utils_test
+  platform_helpers_platform_utils_test
   platform_manager_data_store_test
   platform_manager_config_validator_test
   platform_manager_presence_checker_test
@@ -1044,7 +1057,7 @@ add_dependencies(fboss_other_services
   qsfp_targets
   led_targets
   fboss2
-  fsdb
+  fsdb_all_services
 )
 
 add_custom_target(fboss_platform_mapping_gen)
@@ -1088,17 +1101,40 @@ add_dependencies(fboss_agent_thrift_libs
 
 add_custom_target(fboss_fake_agent_targets)
 add_dependencies(fboss_fake_agent_targets
+  fboss_agent_thrift_libs
+  fboss_sw_agent
+  sai_replayer-fake
+  wedge_agent-fake
+  fboss_hw_agent-fake
+)
+
+add_custom_target(fboss_fake_agent_test_targets)
+add_dependencies(fboss_fake_agent_test_targets
+  fboss_agent_thrift_libs
   sai_test-fake
   sai_agent_hw_test-fake
   multi_switch_agent_hw_test
-  fboss_agent_thrift_libs
-  fboss_sw_agent
+  sai_agent_scale_test-fake
+  sai_invariant_agent_test-fake
 )
+
+if(BUILD_SAI_FAKE_BENCHMARKS)
+add_custom_target(fboss_fake_agent_benchmarks)
+
+# SAI_BENCHMARKS defined in cmake/AgentHwSaiBenchmarks.cmake
+foreach(SAI_BENCHMARK IN LISTS SAI_BENCHMARKS)
+    add_dependencies(fboss_fake_agent_benchmarks sai_${SAI_BENCHMARK}-fake)
+endforeach()
+endif()
+
 if (BUILD_SAI_FAKE_LINK_TEST)
-add_dependencies(fboss_fake_agent_targets
+add_dependencies(fboss_fake_agent_test_targets
   sai_link_test-fake
+  sai_mono_link_test-fake
+  sai_multi_link_test-fake
 )
 endif()
+
 endif()
 
 if (GITHUB_ACTIONS_BUILD)
@@ -1106,6 +1142,6 @@ if (GITHUB_ACTIONS_BUILD)
   add_dependencies(github_actions_fboss_other_services
     # Services
     fboss2
-    fsdb
+    fsdb_all_services
   )
 endif()

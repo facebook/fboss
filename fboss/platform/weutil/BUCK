@@ -16,16 +16,13 @@ cpp_library(
         "WeutilInterface.h",
     ],
     exported_deps = [
-        "fbsource//third-party/re2:re2",
+        ":config_utils_lib",
         ":eeprom_content_validator",
         ":fboss_eeprom_lib",
         "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/helpers:platform_utils",
-        "//fboss/platform/platform_manager:config_utils",
-        "//fboss/platform/weutil/if:weutil_config-cpp2-types",
         "//folly:conv",
         "//folly:format",
-        "//folly:string",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
@@ -62,6 +59,24 @@ cpp_library(
     exported_deps = [
         "//fboss/platform/weutil/if:weutil_config-cpp2-types",
         "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "config_utils_lib",
+    srcs = [
+        "ConfigUtils.cpp",
+    ],
+    headers = [
+        "ConfigUtils.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/re2:re2",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//folly:format",
+        "//folly:string",
+        "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
 
@@ -105,6 +120,7 @@ cpp_binary(
         "main.cpp",
     ],
     deps = [
+        ":config_utils_lib",
         ":weutil_core",
         "//fboss/platform/helpers:init_cli",
         "//folly:string",

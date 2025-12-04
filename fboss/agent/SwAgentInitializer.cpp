@@ -85,6 +85,9 @@ SwitchFlags SwSwitchInitializer::setupFlags() {
   if (FLAGS_enable_macsec) {
     flags |= SwitchFlags::ENABLE_MACSEC;
   }
+  if (FLAGS_enable_fabric_link_monitoring) {
+    flags |= SwitchFlags::ENABLE_FABRIC_LINK_MONITORING;
+  }
   return flags;
 }
 

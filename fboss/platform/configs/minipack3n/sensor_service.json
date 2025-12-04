@@ -2921,18 +2921,33 @@
       ]
     }
   ],
-  "switchAsicTemp": {
-    "vendorId": "0x15b3",
-    "deviceId": "0xcf80"
+  "asicCommand": {
+    "sensorName": "ASIC_TEMP_MGET_TEMP",
+    "cmd": "/usr/bin/mget_temp -d /dev/mst/mt53120_pciconf0",
+    "sensorType": 3
   },
-  "powerConsumptionConfigs": [
+  "powerConfig": {
+    "perSlotPowerConfigs": [
+      {
+        "name": "PSU1",
+        "powerSensorName": "PSU1_L_PIN"
+      },
+      {
+        "name": "PSU2",
+        "powerSensorName": "PSU2_R_PIN"
+      }
+    ],
+    "inputVoltageSensors": [
+      "PSU1_L_VIN",
+      "PSU2_R_VIN"
+    ]
+  },
+  "temperatureConfigs": [
     {
-      "name": "PSU1",
-      "powerSensorName": "PSU1_L_PIN"
-    },
-    {
-      "name": "PSU2",
-      "powerSensorName": "PSU2_R_PIN"
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "ASIC_TEMP_MGET_TEMP"
+      ]
     }
   ]
 }

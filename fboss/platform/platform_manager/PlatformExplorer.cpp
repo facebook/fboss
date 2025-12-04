@@ -311,8 +311,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     with ioctl and written to the /run/devmap file.
     See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
     */
-    if ((platformConfig_.platformName().value() == "meru800bfa" ||
-         platformConfig_.platformName().value() == "meru800bia") &&
+    if ((platformConfig_.platformName().value() == "MERU800BFA" ||
+         platformConfig_.platformName().value() == "MERU800BIA") &&
         (!(idpromConfig.busName()->starts_with("INCOMING")) &&
          *idpromConfig.address() == "0x50")) {
       try {
@@ -424,10 +424,11 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     pmUnitName = *slotTypeConfig.pmUnitName();
   }
   if (!pmUnitName) {
-    throw std::runtime_error(fmt::format(
-        "PmUnitName must be configured in SlotTypeConfig::pmUnitName "
-        "or SlotTypeConfig::idpromConfig at {}",
-        slotPath));
+    throw std::runtime_error(
+        fmt::format(
+            "PmUnitName must be configured in SlotTypeConfig::pmUnitName "
+            "or SlotTypeConfig::idpromConfig at {}",
+            slotPath));
   }
   dataStore_.updatePmUnitName(slotPath, *pmUnitName);
   return pmUnitName;
@@ -453,11 +454,12 @@ void PlatformExplorer::exploreI2cDevices(
         auto channelToBusNums =
             i2cExplorer_.getMuxChannelI2CBuses(busNum, devAddr);
         if (channelToBusNums.size() != *i2cDeviceConfig.numOutgoingChannels()) {
-          throw std::runtime_error(fmt::format(
-              "Unexpected number mux channels for {}. Expected: {}. Actual: {}",
-              *i2cDeviceConfig.pmUnitScopedName(),
-              *i2cDeviceConfig.numOutgoingChannels(),
-              channelToBusNums.size()));
+          throw std::runtime_error(
+              fmt::format(
+                  "Unexpected number mux channels for {}. Expected: {}. Actual: {}",
+                  *i2cDeviceConfig.pmUnitScopedName(),
+                  *i2cDeviceConfig.numOutgoingChannels(),
+                  channelToBusNums.size()));
         }
         for (const auto& [channelNum, channelBusNum] : channelToBusNums) {
           dataStore_.updateI2cBusNum(
@@ -609,7 +611,7 @@ void PlatformExplorer::explorePciDevices(
         });
     createPciSubDevices(
         slotPath,
-        pciExplorer_.createLedCtrlConfigs(pciDeviceConfig),
+        Utils::createLedCtrlConfigs(pciDeviceConfig),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_LED_CTRL,
         [&](const auto& ledCtrlConfig) {
           pciExplorer_.createLedCtrl(pciDevice, ledCtrlConfig, instId++);
@@ -620,6 +622,25 @@ void PlatformExplorer::explorePciDevices(
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_LED_CTRL,
         [&](const auto& ledCtrlConfig) {
           pciExplorer_.createLedCtrl(pciDevice, ledCtrlConfig, instId++);
+        });
+    createPciSubDevices(
+        slotPath,
+        *pciDeviceConfig.sysLedCtrlConfigs(),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_LED_CTRL,
+        [&](const auto& sysLedCtrlConfig) {
+          pciExplorer_.createFpgaIpBlock(pciDevice, sysLedCtrlConfig, instId++);
+        });
+    createPciSubDevices(
+        slotPath,
+        Utils::createXcvrCtrlConfigs(pciDeviceConfig),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_XCVR_CTRL,
+        [&](const auto& xcvrCtrlConfig) {
+          auto devicePath = Utils().createDevicePath(
+              slotPath,
+              *xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName());
+          auto xcvrCtrlSysfsPath =
+              pciExplorer_.createXcvrCtrl(pciDevice, xcvrCtrlConfig, instId++);
+          dataStore_.updateSysfsPath(devicePath, xcvrCtrlSysfsPath);
         });
     createPciSubDevices(
         slotPath,
@@ -651,6 +672,18 @@ void PlatformExplorer::explorePciDevices(
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MISC_CTRL,
         [&](const auto& miscCtrlConfig) {
           pciExplorer_.createFpgaIpBlock(pciDevice, miscCtrlConfig, instId++);
+        });
+    createPciSubDevices(
+        slotPath,
+        *pciDeviceConfig.mdioBusConfigs(),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MDIO_BUS,
+        [&](const auto& mdioBusConfig) {
+          auto mdioBusSysfsPath =
+              pciExplorer_.createMdioBus(pciDevice, mdioBusConfig, instId++);
+          dataStore_.updateCharDevPath(
+              Utils().createDevicePath(
+                  slotPath, *mdioBusConfig.pmUnitScopedName()),
+              mdioBusSysfsPath);
         });
   }
 }
@@ -698,7 +731,8 @@ void PlatformExplorer::createDeviceSymLink(
     } else if (
         linkParentPath.string() == "/run/devmap/gpiochips" ||
         linkParentPath.string() == "/run/devmap/flashes" ||
-        linkParentPath.string() == "/run/devmap/watchdogs") {
+        linkParentPath.string() == "/run/devmap/watchdogs" ||
+        linkParentPath.string() == "/run/devmap/mdio-busses") {
       targetPath = devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
     } else if (linkParentPath.string() == "/run/devmap/xcvrs") {
       auto xcvrName = linkPath.substr(linkParentPath.string().length() + 1);
@@ -799,9 +833,13 @@ void PlatformExplorer::publishHardwareVersions() {
   }
 
   auto chassisEepromContent = dataStore_.getEepromContents(chassisDevicePath);
+  auto version = chassisEepromContent.getVersion();
   auto prodState = chassisEepromContent.getProductionState();
   auto prodSubState = chassisEepromContent.getProductionSubState();
   auto variantVersion = chassisEepromContent.getVariantVersion();
+
+  // Report version
+  fb303::fbData->setCounter(fmt::format(kChassisEepromVersion, version), 1);
 
   // Report production state
   if (!prodState.empty()) {

@@ -46,6 +46,10 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
   // Unlike the coupled RIB implementation, we need only update the
   // SwitchState for a single VRF.
   std::shared_ptr<SwitchState> nextState(state);
+  SCOPE_SUCCESS {
+    std::optional<StateDelta> next(StateDelta(state, nextState));
+    lastDelta_.swap(next);
+  };
   auto previousFibContainer = nextState->getFibs()->getNodeIf(vrf_);
   if (!previousFibContainer) {
     auto fibMap = nextState->getFibs()->modify(&nextState);

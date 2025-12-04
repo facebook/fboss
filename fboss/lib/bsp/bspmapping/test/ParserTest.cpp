@@ -63,7 +63,19 @@ TEST(ParserTest, GetNameForTests) {
   EXPECT_EQ(
       facebook::fboss::Parser::getNameFor(
           facebook::fboss::PlatformType::PLATFORM_TAHANSB800BC),
-      "tahansb");
+      "tahansb800bc");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_WEDGE800BACT),
+      "wedge800bact");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_WEDGE800CACT),
+      "wedge800cact");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_LADAKH800BCLS),
+      "ladakh800bcls");
 }
 
 TEST(ParserTest, GetTransceiverConfigRowFromCsvLine) {
@@ -161,8 +173,9 @@ TEST(ParserTest, GetTransceiverConfigRowsFromCsvTest) {
 
 TEST(ParserTest, GetBspPlatformMappingFromCsvTest) {
   auto bspPlatformMapping =
-      facebook::fboss::Parser::getBspPlatformMappingFromCsv(folly::StringPiece(
-          "fboss/lib/bsp/bspmapping/test/test_data/test_example.csv"));
+      facebook::fboss::Parser::getBspPlatformMappingFromCsv(
+          folly::StringPiece(
+              "fboss/lib/bsp/bspmapping/test/test_data/test_example.csv"));
   EXPECT_EQ(bspPlatformMapping.get_pimMapping().size(), 1);
   EXPECT_TRUE(
       bspPlatformMapping.get_pimMapping().find(1) !=

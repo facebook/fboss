@@ -47,6 +47,10 @@ struct TerminalSession {
       const PtySlave& ptySlave,
       const std::vector<folly::File>& streams);
   ~TerminalSession() noexcept;
+  TerminalSession(const TerminalSession&) = delete;
+  TerminalSession& operator=(const TerminalSession&) = delete;
+  TerminalSession(TerminalSession&&) = delete;
+  TerminalSession& operator=(TerminalSession&&) = delete;
 
   // Track the streams we change for this terminal session
   std::map<int, folly::File> fd2oldStreams_;
@@ -73,6 +77,10 @@ class DiagShell {
  public:
   explicit DiagShell(const SaiSwitch* hw);
   virtual ~DiagShell() noexcept = default;
+  DiagShell(const DiagShell&) = delete;
+  DiagShell& operator=(const DiagShell&) = delete;
+  DiagShell(DiagShell&&) = delete;
+  DiagShell& operator=(DiagShell&&) = delete;
 
   void consumeInput(
       std::unique_ptr<std::string> input,
@@ -139,6 +147,10 @@ class DiagCmdServer {
  public:
   explicit DiagCmdServer(const SaiSwitch* hw, DiagShell* diagShell);
   ~DiagCmdServer() noexcept;
+  DiagCmdServer(const DiagCmdServer&) = delete;
+  DiagCmdServer& operator=(const DiagCmdServer&) = delete;
+  DiagCmdServer(DiagCmdServer&&) = delete;
+  DiagCmdServer& operator=(DiagCmdServer&&) = delete;
 
   // Processing programmatic inputs
   std::string diagCmd(

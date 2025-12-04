@@ -99,6 +99,11 @@ class PortStats {
   void pfcDeadlockRecoveryCount() const;
   void pfcDeadlockDetectionCount() const;
 
+  // Fabric link monitoring stats
+  // Non-const as they access previous packet counts to calculate deltas
+  void fabricLinkMonitoringRxPackets(int64_t count);
+  void fabricLinkMonitoringTxPackets(int64_t count);
+
   // Non-const as it accesses curInErrors_, should only be called from the
   // stats update thread.
   void
@@ -142,6 +147,8 @@ class PortStats {
   std::chrono::steady_clock::time_point lastMkPduTime_;
   int64_t curInErrors_{0};
   int64_t curFecUncorrectableErrors_{0};
+  int64_t curFabricLinkMonitoringRxPackets_{0};
+  int64_t curFabricLinkMonitoringTxPackets_{0};
 };
 
 } // namespace facebook::fboss

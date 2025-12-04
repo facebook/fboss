@@ -3,13 +3,20 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_library(qsfp_stats
+  fboss/qsfp_service/StatsPublisher.h
+  fboss/qsfp_service/oss/StatsPublisher.cpp
+)
+
+target_link_libraries(qsfp_stats
+  transceiver_manager
+  Folly::folly
+)
+
 add_library(qsfp_lib
   fboss/qsfp_service/fsdb/QsfpFsdbSubscriber.cpp
   fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.cpp
   fboss/qsfp_service/fsdb/oss/QsfpFsdbSyncManager.cpp
-  fboss/qsfp_service/oss/StatsPublisher.cpp
-  fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
-  fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
   fboss/qsfp_service/lib/QsfpCache.cpp
 )
 
@@ -32,8 +39,7 @@ target_link_libraries(qsfp_lib
     fsdb_model
     qsfp_bsp_core
     thrift_cow_serializer
-    io_stats_recorder
-    cmis_cpp2
+    wedge_transceiver
 )
 
 add_library(qsfp_config
@@ -173,6 +179,33 @@ target_link_libraries(tahansb800bc_bsp
   FBThrift::thriftcpp2
 )
 
+add_library(wedge800bact_bsp
+  fboss/lib/bsp/wedge800bact/Wedge800BACTBspPlatformMapping.cpp
+)
+
+target_link_libraries(wedge800bact_bsp
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
+add_library(wedge800cact_bsp
+  fboss/lib/bsp/wedge800cact/Wedge800CACTBspPlatformMapping.cpp
+)
+
+target_link_libraries(wedge800cact_bsp
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
+add_library(ladakh800bcls_bsp
+  fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.cpp
+)
+
+target_link_libraries(ladakh800bcls_bsp
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
 add_library(qsfp_bsp_core
   fboss/lib/bsp/BspGenericSystemContainer.cpp
   fboss/lib/bsp/BspIOBus.cpp
@@ -208,6 +241,9 @@ target_link_libraries(qsfp_bsp_core
   janga800bic_bsp
   tahan800bc_bsp
   tahansb800bc_bsp
+  wedge800bact_bsp
+  wedge800cact_bsp
+  ladakh800bcls_bsp
   device_mdio
   fpga_device
   phy_management_base
@@ -234,6 +270,7 @@ add_library(transceiver_manager STATIC
 )
 
 target_link_libraries(transceiver_manager
+  qsfp_lib
   qsfp_module
   ledIO
   qsfp_bsp_core
@@ -264,6 +301,7 @@ add_library(port_manager STATIC
 )
 
 target_link_libraries(port_manager
+  qsfp_lib
   fboss_error
   fboss_types
   utils
@@ -271,6 +309,7 @@ target_link_libraries(port_manager
   phy_management_base
   thrift_service_client
   thread_heartbeat
+  utils
   product_info
   fsdb_flags
   restart_time_tracker
@@ -300,20 +339,28 @@ target_link_libraries(qsfp_core
   qsfp_handler
 )
 
-add_executable(qsfp_service
-    fboss/qsfp_service/Main.cpp
+set(QSFP_SERVICE_SRCS
+  fboss/qsfp_service/Main.cpp
 )
 
-target_link_libraries(qsfp_service
-    qsfp_module
-    qsfp_config
-    phy_management_base
-    transceiver_manager
-    port_manager
-    qsfp_platforms_wedge
-    log_thrift_call
-    qsfp_core
-    qsfp_handler
+set(QSFP_SERVICE_DEPS
+  qsfp_module
+  qsfp_config
+  phy_management_base
+  transceiver_manager
+  port_manager
+  qsfp_platforms_wedge
+  log_thrift_call
+  qsfp_core
+  qsfp_handler
 )
 
-install(TARGETS qsfp_service)
+if(SAI_BRCM_PAI_IMPL)
+  BUILD_AND_INSTALL_WITH_XPHY_SDK_LIBS(
+    "qsfp_service" QSFP_SERVICE_SRCS QSFP_SERVICE_DEPS "brcm_pai" XPHY_SDK_LIBS
+  )
+else()
+  BUILD_AND_INSTALL_WITH_XPHY_SDK_LIBS(
+    "qsfp_service" QSFP_SERVICE_SRCS QSFP_SERVICE_DEPS "" ""
+  )
+endif()

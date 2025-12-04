@@ -19,8 +19,11 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/EthFrame.h"
-#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/Ethertype.h"
+#include "fboss/agent/packet/IPv4Hdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/packet/SflowStructs.h"
 #include "fboss/agent/packet/UDPDatagram.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentEnsemble.h"
@@ -49,67 +52,145 @@ namespace facebook::fboss {
 
 namespace {
 
-std::unique_ptr<folly::IOBuf> maskSflowFields(folly::IOBuf* ioBuf) {
-  std::unique_ptr<folly::IOBuf> maskedIoBuf{ioBuf->clone()};
-  folly::io::RWPrivateCursor cursor{maskedIoBuf.get()};
-  folly::MacAddress zeroMac{};
-  // Preserve the destination MAC address
-  cursor.skip(folly::MacAddress::SIZE);
-  // Preserve the source MAC address
-  cursor.skip(folly::MacAddress::SIZE);
-  // Preserve the ethernet protocol
-  cursor.skip(2);
-  // Preserve the IPv6 Header
-  cursor.skip(IPv6Hdr::size());
-  // Preserve UDP source port, destination port, and length
-  cursor.skip(6);
-  // Zero the checksum
-  // TODO(T235175754): Preserve the checksum once implementation is present
-  cursor.writeBE<uint16_t>(0);
-  // Preserve sFlow datagram version
-  cursor.skip(4);
-  // Preserve sFlow agent address type
-  cursor.skip(4);
-  // Preserve sFlow IPv6 address
-  cursor.skip(folly::IPAddressV6::byteCount());
-  // Zero the sub-agent ID
-  cursor.writeBE<uint32_t>(0);
-  // Zero the sample datagram sequence number
-  cursor.writeBE<uint32_t>(0);
-  // Zero the system uptime
-  cursor.writeBE<uint32_t>(0);
-  // Preserve the number of samples
-  cursor.skip(4);
-  // Preserve the sFlow data format
-  cursor.skip(4);
-  // Preserve the sample data length
-  cursor.skip(4);
-  // Zero the flow sample sequence number
-  cursor.writeBE<uint32_t>(0);
-  // Zero the source ID
-  cursor.writeBE<uint32_t>(0);
-  // Preserve the sample rate
-  cursor.skip(4);
-  // Preserve the sample pool
-  cursor.skip(4);
-  // Preserve the number of dropped packets
-  cursor.skip(4);
-  // Preserve the input interface index number
-  cursor.skip(4);
-  // Preserve the output interface index number
-  cursor.skip(4);
-  // Preserve the flow records count
-  cursor.skip(4);
-  // Preserve the flow record sFlow data format
-  cursor.skip(4);
-  // Preserve flow data length
-  cursor.skip(4);
-  // Preserve sample header protol
-  cursor.skip(4);
-  // Zero the sample header frame length
-  cursor.writeBE<uint32_t>(0);
-  // Preserve all the remaining fields
-  return maskedIoBuf;
+// Struct to hold all headers and sFlow datagram
+struct SflowPacketParsed {
+  EthHdr ethHeader;
+  std::variant<IPv4Hdr, IPv6Hdr> ipHeader;
+  UDPHeader udpHeader;
+  sflow::SampleDatagram sflowDatagram;
+};
+
+// Function to deserialize an IOBuf containing an sFlow packet
+SflowPacketParsed deserializeSflowPacket(const folly::IOBuf* buf) {
+  SflowPacketParsed parsed;
+  folly::io::Cursor cursor(buf);
+
+  // Parse ethernet header
+  parsed.ethHeader = EthHdr(cursor);
+
+  // Parse IP header based on ethertype
+  if (parsed.ethHeader.getEtherType() ==
+      static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4)) {
+    parsed.ipHeader = IPv4Hdr(cursor);
+  } else if (
+      parsed.ethHeader.getEtherType() ==
+      static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)) {
+    parsed.ipHeader = IPv6Hdr(cursor);
+  } else {
+    throw std::runtime_error("Unsupported ethertype");
+  }
+
+  // Parse UDP header
+  parsed.udpHeader.parse(&cursor);
+
+  // Parse sFlow datagram
+  parsed.sflowDatagram = sflow::SampleDatagram::deserialize(cursor);
+
+  return parsed;
+}
+
+// Function to create SflowPacketParsed directly from packet parameters
+SflowPacketParsed makeSflowV5PacketParsed(
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    uint32_t ingressInterface,
+    uint32_t egressInterface,
+    uint32_t samplingRate,
+    std::span<const std::vector<uint8_t>> payloads) {
+  SflowPacketParsed parsed;
+
+  // Create ethernet header
+  EthHdr::VlanTags_t vlanTags;
+  if (vlan.has_value()) {
+    vlanTags.emplace_back(
+        vlan.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN));
+  }
+  parsed.ethHeader = EthHdr(
+      dstMac,
+      srcMac,
+      std::move(vlanTags),
+      static_cast<uint16_t>(
+          srcIp.isV4() ? ETHERTYPE::ETHERTYPE_IPV4
+                       : ETHERTYPE::ETHERTYPE_IPV6));
+
+  // Create IP header based on address type
+  if (srcIp.isV4()) {
+    IPv4Hdr ipv4Header(
+        srcIp.asV4(),
+        dstIp.asV4(),
+        static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
+        0);
+    ipv4Header.ttl = hopLimit;
+    ipv4Header.dscp = trafficClass;
+    parsed.ipHeader = std::move(ipv4Header);
+  } else {
+    IPv6Hdr ipv6Header;
+    ipv6Header.srcAddr = srcIp.asV6();
+    ipv6Header.dstAddr = dstIp.asV6();
+    ipv6Header.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
+    ipv6Header.hopLimit = hopLimit;
+    ipv6Header.trafficClass = trafficClass;
+    parsed.ipHeader = std::move(ipv6Header);
+  }
+
+  // Create UDP header
+  parsed.udpHeader = UDPHeader(srcPort, dstPort, 0, 0);
+
+  // Create sFlow datagram structure
+  sflow::SampleDatagramV5 datagramV5;
+  datagramV5.agentAddress = srcIp;
+  datagramV5.subAgentID = 0;
+  datagramV5.sequenceNumber = 0;
+  datagramV5.uptime = 0;
+
+  for (int sampleIndex = 0; sampleIndex < payloads.size(); sampleIndex++) {
+    // Create sample header
+    sflow::SampledHeader sampleHeader;
+    sampleHeader.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+    sampleHeader.frameLength = 0;
+    sampleHeader.stripped = 0;
+    sampleHeader.header = payloads[sampleIndex];
+
+    // Create flow record
+    sflow::FlowRecord flowRecord;
+    flowRecord.flowFormat = 1;
+    flowRecord.flowData = sampleHeader;
+
+    // Create flow sample
+    sflow::FlowSample flowSample;
+    // [sayeedt-notes] Set the sequence number for the different flow samples
+    // for each sample record
+    flowSample.sequenceNumber = sampleIndex;
+    flowSample.sourceID = 0;
+    flowSample.samplingRate = samplingRate;
+    flowSample.samplePool = 0;
+    flowSample.drops = 0;
+    flowSample.input = ingressInterface;
+    flowSample.output = egressInterface;
+    flowSample.flowRecords = {std::move(flowRecord)};
+
+    // Create sample record
+    sflow::SampleRecord sampleRecord;
+    sampleRecord.sampleType = 1;
+    sampleRecord.sampleData = {std::move(flowSample)};
+
+    datagramV5.samples.push_back(std::move(sampleRecord));
+  }
+
+  // Wrap in the outer datagram structure
+  sflow::SampleDatagram datagram;
+  datagram.datagramV5 = std::move(datagramV5);
+
+  parsed.sflowDatagram = std::move(datagram);
+
+  return parsed;
 }
 
 } // namespace
@@ -170,12 +251,17 @@ device:
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
 
-    auto port0 = ensemble.masterLogicalInterfacePortIds()[0];
+    std::vector<PortID> allPorts;
+    if (FLAGS_hyper_port) {
+      allPorts = ensemble.masterLogicalHyperPortIds();
+    } else {
+      allPorts = ensemble.masterLogicalInterfacePortIds();
+    }
+    auto port0 = allPorts[0];
     auto port0Switch =
         ensemble.getSw()->getScopeResolver()->scope(port0).switchId();
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(port0Switch);
-    auto ports =
-        getPortsForSampling(ensemble.masterLogicalInterfacePortIds(), asic);
+    auto ports = getPortsForSampling(allPorts, asic);
     if (asic->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
       utility::addEventorVoqConfig(&cfg, cfg::StreamType::UNICAST);
       for (auto& port : *cfg.ports()) {
@@ -252,20 +338,27 @@ device:
         : cfg::PortType::INTERFACE_PORT;
   }
 
+  std::vector<PortID> getAllPorts() const {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds();
+    }
+    return masterLogicalInterfacePortIds();
+  }
+
   std::vector<PortID> getPortsForSampling() const {
-    auto allIntfPorts = masterLogicalInterfacePortIds();
+    std::vector<PortID> allPorts = getAllPorts();
     auto nonSampledPort = getNonSflowSampledInterfacePort();
     // Ports with sampling enabled are all interface ports except any
     // on which we are sending the sampled packets out!
     std::vector<PortID> sampledPorts;
     std::copy_if(
-        allIntfPorts.begin(),
-        allIntfPorts.end(),
+        allPorts.begin(),
+        allPorts.end(),
         std::back_inserter(sampledPorts),
         [nonSampledPort](const auto& portId) {
           return portId != nonSampledPort;
         });
-    auto switchID = switchIdForPort(allIntfPorts[0]);
+    auto switchID = switchIdForPort(allPorts[0]);
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchID);
     return getPortsForSampling(sampledPorts, asic);
   }
@@ -478,12 +571,15 @@ device:
   void verifySflowCapturedPacket(
       folly::IOBuf* capturedPktBuf,
       PortID txPort,
-      const std::vector<uint8_t>& sFlowPayload,
+      std::span<const std::vector<uint8_t>> sFlowPayloads,
       bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>) {
+    // Parse captured packet into SflowPacketParsed struct
+    SflowPacketParsed capturedParsed = deserializeSflowPacket(capturedPktBuf);
+
+    // Create expected SflowPacketParsed from inputs similar to sFlowPacket
     folly::MacAddress intfMac{
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
-    std::unique_ptr<TxPacket> sFlowPacket{utility::makeSflowV5Packet(
-        getSw() /*switchT*/,
+    SflowPacketParsed expectedParsed = makeSflowV5PacketParsed(
         getVlanIDForTx() /*vlan*/,
         intfMac /*srcMac*/,
         kMirrorDstMac /*dstMac*/,
@@ -493,33 +589,129 @@ device:
         kUdpDstPort /*dstPort*/,
         0 /*trafficClass*/,
         126 /*hopLimit*/,
-        getSystemPortID(
+        static_cast<uint32_t>(getSystemPortID(
             txPort,
             getProgrammedState(),
-            scopeResolver().scope(txPort).switchId()) /*ingressInterface*/,
+            scopeResolver().scope(txPort).switchId())) /*ingressInterface*/,
         0 /*egressInterface*/,
         1 /*samplingRate*/,
-        false /*computeChecksum*/,
-        sFlowPayload /*payload*/)};
-    std::unique_ptr<folly::IOBuf> maskedCapturedSflowPktBuf{
-        maskSflowFields(capturedPktBuf)};
-    std::unique_ptr<folly::IOBuf> maskedExpectedSflowPktBuf{
-        maskSflowFields(sFlowPacket->buf())};
-    EXPECT_LE(
-        maskedCapturedSflowPktBuf->length(),
-        maskedExpectedSflowPktBuf->length());
-    for (std::size_t i = 0; i < maskedCapturedSflowPktBuf->length(); i++) {
-      EXPECT_EQ(
-          maskedCapturedSflowPktBuf->data()[i],
-          maskedExpectedSflowPktBuf->data()[i])
-          << fmt::format(
-                 "Captured sFlow packet does not match expected sFlow packet "
-                 "after masking at position {}",
-                 i);
-    }
+        sFlowPayloads /*payloads*/);
+
+    // Compare the contents of the structs, only fields not masked by
+    // maskSflowFields Ethernet headers should match
     EXPECT_EQ(
-        folly::hexlify(maskedCapturedSflowPktBuf->coalesce()),
-        folly::hexlify(maskedExpectedSflowPktBuf->coalesce()));
+        capturedParsed.ethHeader.getDstMac(),
+        expectedParsed.ethHeader.getDstMac());
+    EXPECT_EQ(
+        capturedParsed.ethHeader.getSrcMac(),
+        expectedParsed.ethHeader.getSrcMac());
+    EXPECT_EQ(
+        capturedParsed.ethHeader.getEtherType(),
+        expectedParsed.ethHeader.getEtherType());
+
+    // IP headers should match (preserve IP header fields)
+    if (std::holds_alternative<IPv4Hdr>(capturedParsed.ipHeader)) {
+      ASSERT_TRUE(std::holds_alternative<IPv4Hdr>(expectedParsed.ipHeader));
+      auto& capturedIpv4 = std::get<IPv4Hdr>(capturedParsed.ipHeader);
+      auto& expectedIpv4 = std::get<IPv4Hdr>(expectedParsed.ipHeader);
+      EXPECT_EQ(capturedIpv4.srcAddr, expectedIpv4.srcAddr);
+      EXPECT_EQ(capturedIpv4.dstAddr, expectedIpv4.dstAddr);
+      // Skip ttl comparison - could be modified by maskSflowFields logic
+      EXPECT_EQ(capturedIpv4.dscp, expectedIpv4.dscp);
+      EXPECT_EQ(capturedIpv4.protocol, expectedIpv4.protocol);
+    } else {
+      ASSERT_TRUE(std::holds_alternative<IPv6Hdr>(expectedParsed.ipHeader));
+      auto& capturedIpv6 = std::get<IPv6Hdr>(capturedParsed.ipHeader);
+      auto& expectedIpv6 = std::get<IPv6Hdr>(expectedParsed.ipHeader);
+      EXPECT_EQ(capturedIpv6.srcAddr, expectedIpv6.srcAddr);
+      EXPECT_EQ(capturedIpv6.dstAddr, expectedIpv6.dstAddr);
+      EXPECT_EQ(capturedIpv6.trafficClass, expectedIpv6.trafficClass);
+      EXPECT_EQ(capturedIpv6.nextHeader, expectedIpv6.nextHeader);
+      EXPECT_EQ(capturedIpv6.hopLimit, expectedIpv6.hopLimit);
+    }
+
+    // UDP headers should match (preserve source port, destination port)
+    EXPECT_EQ(
+        capturedParsed.udpHeader.srcPort, expectedParsed.udpHeader.srcPort);
+    EXPECT_EQ(
+        capturedParsed.udpHeader.dstPort, expectedParsed.udpHeader.dstPort);
+    // UDP length and checksum is zeroed in maskSflowFields, so don't compare it
+
+    // sFlow datagram comparison - skip fields that are masked
+    auto& capturedDatagram = capturedParsed.sflowDatagram.datagramV5;
+    auto& expectedDatagram = expectedParsed.sflowDatagram.datagramV5;
+
+    // Preserve agent address type and IPv6 address
+    EXPECT_EQ(capturedDatagram.agentAddress, expectedDatagram.agentAddress);
+
+    // Skip sub-agent ID, sequence number, uptime - these are zeroed by
+    // maskSflowFields
+
+    // Preserve number of samples
+    EXPECT_EQ(capturedDatagram.samples.size(), expectedDatagram.samples.size());
+
+    for (int sampleIndex = 0; sampleIndex < capturedDatagram.samples.size();
+         ++sampleIndex) {
+      auto& capturedSample = capturedDatagram.samples[sampleIndex];
+      auto& expectedSample = expectedDatagram.samples[sampleIndex];
+
+      // Preserve sFlow data format
+      EXPECT_EQ(capturedSample.sampleType, expectedSample.sampleType);
+
+      // Compare sample data - skip sequence number and source ID as they're
+      // zeroed
+      if (!capturedSample.sampleData.empty() &&
+          !expectedSample.sampleData.empty()) {
+        // sampleData is a vector, get the first element
+        if (std::holds_alternative<sflow::FlowSample>(
+                capturedSample.sampleData[0]) &&
+            std::holds_alternative<sflow::FlowSample>(
+                expectedSample.sampleData[0])) {
+          auto& capturedFlowSample =
+              std::get<sflow::FlowSample>(capturedSample.sampleData[0]);
+          auto& expectedFlowSample =
+              std::get<sflow::FlowSample>(expectedSample.sampleData[0]);
+
+          // Skip sequence number and source ID (zeroed by maskSflowFields)
+          // Preserve sample rate, sample pool, drops, input/output interfaces
+          EXPECT_EQ(
+              capturedFlowSample.samplingRate, expectedFlowSample.samplingRate);
+          EXPECT_EQ(
+              capturedFlowSample.samplePool, expectedFlowSample.samplePool);
+          EXPECT_EQ(capturedFlowSample.drops, expectedFlowSample.drops);
+          EXPECT_EQ(capturedFlowSample.input, expectedFlowSample.input);
+          EXPECT_EQ(capturedFlowSample.output, expectedFlowSample.output);
+
+          // Preserve flow records count and format
+          EXPECT_EQ(
+              capturedFlowSample.flowRecords.size(),
+              expectedFlowSample.flowRecords.size());
+
+          if (!capturedFlowSample.flowRecords.empty() &&
+              !expectedFlowSample.flowRecords.empty()) {
+            auto& capturedFlowRecord = capturedFlowSample.flowRecords[0];
+            auto& expectedFlowRecord = expectedFlowSample.flowRecords[0];
+
+            EXPECT_EQ(
+                capturedFlowRecord.flowFormat, expectedFlowRecord.flowFormat);
+            // Skip sample header frame length (zeroed by maskSflowFields)
+            // Compare flow data payload
+            ASSERT_TRUE(
+                std::holds_alternative<sflow::SampledHeader>(
+                    capturedFlowRecord.flowData));
+            auto& capturedSampleHeader =
+                std::get<sflow::SampledHeader>(capturedFlowRecord.flowData);
+            auto& expectedSampleHeader =
+                std::get<sflow::SampledHeader>(expectedFlowRecord.flowData);
+            EXPECT_EQ(
+                capturedSampleHeader.protocol, expectedSampleHeader.protocol);
+            EXPECT_EQ(
+                capturedSampleHeader.stripped, expectedSampleHeader.stripped);
+            EXPECT_EQ(capturedSampleHeader.header, expectedSampleHeader.header);
+          }
+        }
+      }
+    }
   }
 
   void verifySampledPacket(
@@ -670,7 +862,8 @@ device:
 
     if (checkSameAndGetAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_JERICHO3) {
-      verifySflowCapturedPacket(capturedPktBuf->get(), txPort, sFlowPayload);
+      verifySflowCapturedPacket(
+          capturedPktBuf->get(), txPort, std::array{sFlowPayload});
     }
   }
 
@@ -963,7 +1156,7 @@ class AgentSflowMirrorWithLineRateTrafficTest
   void testSflowEgressCongestion(int iterations) {
     constexpr int kNumDataTrafficPorts{6};
     auto setup = [=, this]() {
-      auto allPorts = masterLogicalInterfacePortIds();
+      auto allPorts = getAllPorts();
       std::vector<PortID> portIds(
           allPorts.begin(), allPorts.begin() + kNumDataTrafficPorts);
       std::vector<int> losslessPgIds = {kLosslessPriority};
@@ -1044,7 +1237,7 @@ class AgentSflowMirrorWithLineRateTrafficTest
     folly::IPAddressV6 kSrcIp("2402::1");
     const auto dstMac = utility::getMacForFirstInterfaceWithPorts(
         ensemble->getProgrammedState());
-    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
+    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64HBO() + 1);
 
     auto txPacket = utility::makeUDPTxPacket(
         ensemble->getSw(),
@@ -1081,8 +1274,9 @@ class AgentSflowMirrorWithLineRateTrafficTest
     auto portId = getNonSflowSampledInterfacePort();
     // Expect atleast 1Gbps of mirror traffic!
     const uint64_t kDesiredMirroredTrafficRate{1000000000};
-    EXPECT_NO_THROW(getAgentEnsemble()->waitForSpecificRateOnPort(
-        portId, kDesiredMirroredTrafficRate));
+    EXPECT_NO_THROW(
+        getAgentEnsemble()->waitForSpecificRateOnPort(
+            portId, kDesiredMirroredTrafficRate));
     // Make sure that we can sustain the rate for longer duration
     constexpr int kWaitPeriod{5};
     auto prevPortStats = getLatestPortStats(portId);
@@ -1162,15 +1356,20 @@ class AgentSflowMirrorTruncateWithSamplesPackingTestV6
     // Send as many packets as the samples packed in a single
     // packet and expect to receive a single sampled packet.
     int numPacketsToSend{numSflowSamplesPacked};
+    PortID txPort{ports[1]};
+    std::vector<std::vector<uint8_t>> sFlowPayloads{};
     for (auto i = 0; i < numPacketsToSend; i++) {
       auto pkt = genPacket(1, 256);
+      const uint8_t* packetData = pkt->buf()->data();
+      sFlowPayloads.emplace_back(
+          packetData, packetData + getMirrorTruncateSize());
       XLOG(DBG2) << "Sending packet through port " << ports[1];
       getAgentEnsemble()->sendPacketAsync(
-          std::move(pkt), PortDescriptor(ports[1]), std::nullopt);
+          std::move(pkt), PortDescriptor(txPort), std::nullopt);
     }
     WITH_RETRIES({
       // Make sure that packets TXed from port stats!
-      auto portStats = getLatestPortStats(ports[1]);
+      auto portStats = getLatestPortStats(txPort);
       EXPECT_EVENTUALLY_GE(*portStats.outUnicastPkts_(), numPacketsToSend);
     });
     int sflowPacketCount{0};
@@ -1180,6 +1379,30 @@ class AgentSflowMirrorTruncateWithSamplesPackingTestV6
       capturedPacketBuf = snooper.waitForPacket(1);
       if (capturedPacketBuf.has_value()) {
         sflowPacketCount++;
+        folly::MacAddress intfMac{
+            utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
+        bool isV4 = false;
+        SflowPacketParsed expectedParsed = makeSflowV5PacketParsed(
+            getVlanIDForTx() /*vlan*/,
+            intfMac /*srcMac*/,
+            kMirrorDstMac /*dstMac*/,
+            utility::getSflowMirrorSource(isV4) /*srcIp*/,
+            utility::getSflowMirrorDestination(isV4) /*dstIp*/,
+            kUdpSrcPort /*srcPort*/,
+            kUdpDstPort /*dstPort*/,
+            0 /*trafficClass*/,
+            126 /*hopLimit*/,
+            static_cast<uint32_t>(getSystemPortID(
+                txPort,
+                getProgrammedState(),
+                scopeResolver().scope(txPort).switchId())) /*ingressInterface*/,
+            0 /*egressInterface*/,
+            1 /*samplingRate*/,
+            sFlowPayloads /*payloads*/);
+        SflowPacketParsed capturedParsed =
+            deserializeSflowPacket(capturedPacketBuf->get());
+        verifySflowCapturedPacket(
+            capturedPacketBuf->get(), txPort, sFlowPayloads);
       }
     }
     // Make sure that we received exactly one sflow packet
@@ -1204,7 +1427,9 @@ using AgentSflowMirrorOnTrunkTestV6 =
 
 #define SFLOW_SAMPLING_TEST(fixture, name, code) \
   TEST_F(fixture, name) {                        \
-    { code }                                     \
+    {                                            \
+      code                                       \
+    }                                            \
   }
 
 #define SFLOW_SAMPLING_UNTRUNCATE_TEST_V4_V6(name, code)            \
@@ -1319,13 +1544,13 @@ class AgentSflowMirrorEventorTest
         getAgentEnsemble()->getProgrammedState(),
         getAgentEnsemble()->getSw()->needL2EntryForNeighbor(),
         intfMac);
-    for (auto portId : masterLogicalInterfacePortIds()) {
+    for (auto portId : getAllPorts()) {
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return ecmpHelper.unresolveNextHops(in, {PortDescriptor(portId)});
       });
     }
-    verifyNoTrafficOnPort(masterLogicalInterfacePortIds()[0], 3 /*iterations*/);
-    for (auto portId : masterLogicalInterfacePortIds()) {
+    verifyNoTrafficOnPort(getAllPorts()[0], 3 /*iterations*/);
+    for (auto portId : getAllPorts()) {
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return ecmpHelper.resolveNextHops(in, {PortDescriptor(portId)});
       });
@@ -1335,7 +1560,7 @@ class AgentSflowMirrorEventorTest
 
 TEST_F(AgentSflowMirrorEventorTest, VerifyEventorMtu) {
   constexpr int kNumPorts = 1;
-  const PortID trafficLoopPortId = masterLogicalInterfacePortIds()[0];
+  const PortID trafficLoopPortId = getAllPorts()[0];
   const PortID eventorPortId =
       masterLogicalPortIds({cfg::PortType::EVENTOR_PORT})[0];
 
@@ -1440,8 +1665,7 @@ TEST_F(
     verifySflowSamplesPacking) {
   auto setup = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
-    configureMirror(config, false, 0);
-    configSampling(config, 1);
+    configureMirrorWithSampling(config, 1 /*sampleRate*/);
     configureTrapAcl(config);
     applyNewConfig(config);
     resolveRouteForMirrorDestination();

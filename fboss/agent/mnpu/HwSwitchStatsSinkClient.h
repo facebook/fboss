@@ -40,7 +40,7 @@ class HwSwitchStatsSinkClient
  private:
   void connected() override {}
 #if FOLLY_HAS_COROUTINES
-  StatsEventQueueType eventQueue_;
+  StatsEventQueueType eventQueue_{100 /* queue max size */};
 #endif
 };
 } // namespace facebook::fboss

@@ -83,6 +83,9 @@ class PortStoreTest : public SaiStoreTest {
         std::nullopt, // StaticModuleId
         std::nullopt, // IsHyperPortMember
         std::nullopt, // HyperPortMemberList
+        std::nullopt, // PfcMonitorDirection
+        std::nullopt, // QosDot1pToTcMap
+        std::nullopt, // QosTcAndColorToDot1pMap
     };
   }
 
@@ -403,4 +406,23 @@ TEST_F(PortStoreTest, portSetResetQueueCreditBalance) {
   apiResetQueueCreditBalance = saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::ResetQueueCreditBalance{});
   EXPECT_EQ(apiResetQueueCreditBalance, false);
+}
+
+TEST_F(PortStoreTest, portSetPfcMonitorDirection) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+
+  // Check default value
+  auto apiPfcMonitorDirection = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::PfcMonitorDirection{});
+  EXPECT_EQ(apiPfcMonitorDirection, 0);
+
+  // Set PFC monitor direction to 1
+  SaiPortTraits::Attributes::PfcMonitorDirection pfcMonitorDirection(1);
+  saiApiTable->portApi().setAttribute(portId, pfcMonitorDirection);
+
+  // Verify the attribute was set correctly
+  apiPfcMonitorDirection = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::PfcMonitorDirection{});
+  EXPECT_EQ(apiPfcMonitorDirection, 1);
 }

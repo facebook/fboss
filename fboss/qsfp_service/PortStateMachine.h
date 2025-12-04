@@ -49,8 +49,7 @@ BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, xphyNeedResetDataPath)
 
 BOOST_MSM_EUML_ACTION(updatePortCache){
     template <class Event, class Fsm, class State>
-    void
-    operator()(const Event& /* event */, Fsm& fsm, State& currState)
+    void operator()(const Event& /* event */, Fsm & fsm, State & currState)
         const {auto portId = fsm.get_attribute(portID);
 auto portMgr = fsm.get_attribute(portMgrPtr);
 auto newState = portStateToStateEnum(currState);
@@ -58,7 +57,10 @@ bool isEnabled = newState == PortStateMachineState::INITIALIZED;
 XLOG(DBG2) << "[Port:" << portId << "] State changed to "
            << apache::thrift::util::enumNameSafe(newState);
 
+portMgr->clearTransceiversReadyForProgramming(portId);
 portMgr->setPortEnabledStatusInCache(portId, isEnabled);
+portMgr->clearEnabledTransceiversForPort(portId);
+portMgr->clearMultiTcvrMappings(portId);
 } // namespace facebook::fboss
 }
 ;
@@ -112,12 +114,14 @@ PortStateMachineState portStateToStateEnum(State& /* state */) {
 
 BOOST_MSM_EUML_ACTION(portLogStateChanged){
     template <class Event, class Fsm, class Source, class Target>
-    void
-    operator()(
+    void operator()(
         const Event& /* event */,
-        Fsm& fsm,
-        Source& source,
-        Target& target) const {auto portId = fsm.get_attribute(portID);
+        Fsm &
+            fsm,
+        Source &
+            source,
+        Target &
+            target) const {auto portId = fsm.get_attribute(portID);
 auto name = fsm.get_attribute(portName);
 XLOG(DBG2) << "[Port: " << name << ", PortID: " << portId
            << "] State changed from "
@@ -130,10 +134,10 @@ XLOG(DBG2) << "[Port: " << name << ", PortID: " << portId
 
 BOOST_MSM_EUML_ACTION(portProgramIphyPorts){
     template <class Event, class Fsm, class Source, class Target>
-    bool
-    operator()(
+    bool operator()(
         const Event& /* ev */,
-        Fsm& fsm,
+        Fsm &
+            fsm,
         Source& /* src */,
         Target& /* trg */){auto portId = fsm.get_attribute(portID);
 auto name = fsm.get_attribute(portName);
@@ -143,16 +147,19 @@ if (!portMgr) {
 }
 
 try {
-  if (portMgr->isLowestIndexedPortForTransceiverPortGroup(portId)) {
+  if (portMgr->isLowestIndexedInitializedPortForTransceiverPortGroup(portId)) {
     // Port should orchestrate PHY programming.
-    for (auto tcvrID : portMgr->getTransceiverIdsForPort(portId)) {
-      portMgr->programInternalPhyPorts(tcvrID);
-    }
+    // First transceiver will communicate which pins need to be programmed (for
+    // both ports) - so only one transceiver needs to request information from
+    // agent.
+
+    portMgr->programInternalPhyPorts(
+        portMgr->getLowestIndexedStaticTransceiverForPort(portId));
   } else {
     // Port shouldn't orchestrate PHY programming. Port needs to check state
     // of orchestrating port to proceed to next stage.
     auto lowestIdxPort =
-        portMgr->getLowestIndexedPortForTransceiverPortGroup(portId);
+        portMgr->getLowestIndexedInitializedPortForTransceiverPortGroup(portId);
     return portMgr->hasPortFinishedIphyProgramming(lowestIdxPort);
   }
   return true;
@@ -168,10 +175,10 @@ try {
 
 BOOST_MSM_EUML_ACTION(portProgramXphyPorts){
     template <class Event, class Fsm, class Source, class Target>
-    bool
-    operator()(
+    bool operator()(
         const Event& /* ev */,
-        Fsm& fsm,
+        Fsm &
+            fsm,
         Source& /* src */,
         Target& /* trg */){auto portId = fsm.get_attribute(portID);
 auto name = fsm.get_attribute(portName);
@@ -181,17 +188,18 @@ if (!portMgr) {
 }
 
 try {
-  if (portMgr->isLowestIndexedPortForTransceiverPortGroup(portId)) {
+  if (portMgr->isLowestIndexedInitializedPortForTransceiverPortGroup(portId)) {
     // Port should orchestrate PHY programming.
-    for (auto tcvrID : portMgr->getTransceiverIdsForPort(portId)) {
-      portMgr->programExternalPhyPorts(
-          tcvrID, fsm.get_attribute(xphyNeedResetDataPath));
-    }
+    // TODO(smenta) – When Y-Cable support is needed for XPHY tcvrs, may need to
+    // loop through all transceivers for ports.
+    auto tcvrId = portMgr->getLowestIndexedStaticTransceiverForPort(portId);
+    portMgr->programExternalPhyPorts(
+        tcvrId, fsm.get_attribute(xphyNeedResetDataPath));
   } else {
     // Port shouldn't orchestrate PHY programming. Port needs to check state
     // of orchestrating port to proceed to next stage.
     auto lowestIdxPort =
-        portMgr->getLowestIndexedPortForTransceiverPortGroup(portId);
+        portMgr->getLowestIndexedInitializedPortForTransceiverPortGroup(portId);
     return portMgr->hasPortFinishedXphyProgramming(lowestIdxPort);
   }
   return true;
@@ -207,10 +215,10 @@ try {
 
 BOOST_MSM_EUML_ACTION(checkTransceiversProgrammed){
     template <class Event, class Fsm, class Source, class Target>
-    bool
-    operator()(
+    bool operator()(
         const Event& /* ev */,
-        Fsm& fsm,
+        Fsm &
+            fsm,
         Source& /* src */,
         Target& /* trg */){auto portId = fsm.get_attribute(portID);
 auto portMgr = fsm.get_attribute(portMgrPtr);
@@ -218,7 +226,11 @@ if (!portMgr) {
   return false;
 }
 
-return portMgr->arePortTcvrsProgrammed(portId);
+if (portMgr->arePortTcvrsProgrammed(portId)) {
+  fsm.get_attribute(xphyNeedResetDataPath) = false;
+  return true;
+}
+return false;
 }
 }
 ;

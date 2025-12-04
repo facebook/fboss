@@ -1,0 +1,47 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_platform")
+
+cpp_library(
+    name = "config_differ",
+    srcs = [
+        "ConfigDiffer.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/op:get",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_binary(
+    name = "config_diff_tool",
+    srcs = [
+        "ConfigDiffTool.cpp",
+    ],
+    deps = [
+        ":config_differ",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//folly/init:init",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    external_deps = [
+        "CLI11",
+    ],
+)
+
+cpp_unittest(
+    name = "config_differ_test",
+    srcs = [
+        "ConfigDifferTest.cpp",
+    ],
+    deps = [
+        ":config_differ",
+    ],
+)

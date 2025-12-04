@@ -302,6 +302,21 @@ bool MultiHwSwitchHandler::sendPacketSwitchedAsync(
   return false;
 }
 
+bool MultiHwSwitchHandler::sendPacketOutOfPortSyncForPktType(
+    std::unique_ptr<TxPacket> pkt,
+    const PortID& portID,
+    TxPacketType packetType) noexcept {
+  CHECK_GE(hwSwitchSyncers_.size(), 1);
+  // use first available connected switch to send pkt
+  for (auto& hwSwitchHandler : hwSwitchSyncers_) {
+    if (isHwSwitchConnected(hwSwitchHandler.first)) {
+      return hwSwitchHandler.second->sendPacketOutOfPortSyncForPktType(
+          std::move(pkt), portID, packetType);
+    }
+  }
+  return false;
+}
+
 std::map<SwitchID, HwSwitchHandler*> MultiHwSwitchHandler::getHwSwitchHandlers()
     const {
   std::map<SwitchID, HwSwitchHandler*> handlers;

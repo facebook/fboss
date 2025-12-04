@@ -8,22 +8,15 @@
  *
  */
 #include "fboss/agent/NeighborUpdater.h"
-#include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/state/AggregatePort.h"
-#include "fboss/agent/state/ArpTable.h"
-#include "fboss/agent/state/DeltaFunctions.h"
-#include "fboss/agent/state/NdpTable.h"
-#include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/StateDelta.h"
-#include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
-
 #include <boost/container/flat_map.hpp>
 #include <folly/logging/xlog.h>
-#include <list>
 #include <string>
 #include <vector>
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/StateDelta.h"
 
 using boost::container::flat_map;
 using folly::IPAddress;
@@ -60,7 +53,7 @@ NeighborUpdater::NeighborUpdater(SwSwitch* sw, bool disableImpl) : sw_(sw) {
 }
 
 NeighborUpdater::NeighborUpdater(SwSwitch* sw)
-    : NeighborUpdater(sw, FLAGS_disable_neighbor_updates){};
+    : NeighborUpdater(sw, FLAGS_disable_neighbor_updates) {};
 
 NeighborUpdater::~NeighborUpdater() {
   sw_->unregisterStateObserver(this);

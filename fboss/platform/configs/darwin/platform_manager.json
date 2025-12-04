@@ -1,5 +1,5 @@
 {
-  "platformName": "darwin",
+  "platformName": "DARWIN",
   "rootPmUnitName": "SMB",
   "rootSlotType": "SMB_SLOT",
   "slotTypeConfigs": {
@@ -220,7 +220,6 @@
             }
           ],
           "spiMasterConfigs": [],
-          "ledCtrlConfigs": [],
           "xcvrCtrlConfigs": [],
           "infoRomConfigs": [
             {
@@ -281,33 +280,21 @@
               ]
             }
           ],
-          "ledCtrlConfigs": [
+          "sysLedCtrlConfigs": [
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SYSTEM_STATUS_LED",
-                "deviceName": "sys_led",
-                "csrOffset": "0x6050"
-              },
-              "portNumber": -1,
-              "ledId": 1
+              "pmUnitScopedName": "SYSTEM_STATUS_LED",
+              "deviceName": "sys_led",
+              "csrOffset": "0x6050"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "FAN_STATUS_LED",
-                "deviceName": "fan_led",
-                "csrOffset": "0x6060"
-              },
-              "portNumber": -1,
-              "ledId": 1
+              "pmUnitScopedName": "FAN_STATUS_LED",
+              "deviceName": "fan_led",
+              "csrOffset": "0x6060"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PSU_STATUS_LED",
-                "deviceName": "psu_led",
-                "csrOffset": "0x6070"
-              },
-              "portNumber": -1,
-              "ledId": 1
+              "pmUnitScopedName": "PSU_STATUS_LED",
+              "deviceName": "psu_led",
+              "csrOffset": "0x6070"
             }
           ],
           "infoRomConfigs": [

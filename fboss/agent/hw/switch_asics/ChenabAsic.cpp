@@ -32,7 +32,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
     case HwAsic::Feature::DEFAULT_VLAN:
-    case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::VRF:
@@ -89,6 +88,8 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
+    case HwAsic::Feature::BRIDGE_PORT_8021Q:
+    case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
       return true;
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
@@ -203,8 +204,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SFLOWv4:
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::SFLOW_SAMPLING:
-    case HwAsic::Feature::BRIDGE_PORT_8021Q: // no fdb entries required, using
-                                             // only pure l3 rifs
     case HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR:
     case HwAsic::Feature::SFLOW_SAMPLES_PACKING:
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
@@ -345,6 +344,8 @@ int ChenabAsic::getBufferDynThreshFromScalingFactor(
       return 1;
     case cfg::MMUScalingFactor::FOUR:
       return 2;
+    case cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT:
+      return 7;
     case cfg::MMUScalingFactor::ONE_32768TH:
       // Unsupported
       throw FbossError(

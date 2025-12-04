@@ -30,9 +30,22 @@ class MockPortManager : public PortManager {
             transceiverManager,
             std::move(phyManager),
             platformMapping,
-            threads) {}
+            threads) {
+    // By default, delegate to the real implementation
+    // Tests can override with EXPECT_CALL if they need custom behavior
+    ON_CALL(*this, programInternalPhyPorts(::testing::_))
+        .WillByDefault([this](TransceiverID tcvrId) {
+          PortManager::programInternalPhyPorts(tcvrId);
+        });
+    ON_CALL(*this, programExternalPhyPorts(::testing::_, ::testing::_))
+        .WillByDefault([this](TransceiverID tcvrId, bool resetDataPath) {
+          PortManager::programExternalPhyPorts(tcvrId, resetDataPath);
+        });
+  }
 
   MOCK_METHOD1(getXphyInfo, phy::PhyInfo(PortID));
+  MOCK_METHOD1(programInternalPhyPorts, void(TransceiverID));
+  MOCK_METHOD2(programExternalPhyPorts, void(TransceiverID, bool));
 
   // Wrapper functions for protected methods to enable direct testing
   std::unordered_set<TransceiverID> getTransceiversWithAllPortsInSet(
@@ -41,7 +54,7 @@ class MockPortManager : public PortManager {
   }
 
   // Helper methods for easier test access to cache data
-  std::unordered_set<PortID> getInitializedPortsForTransceiver(
+  std::set<PortID> getInitializedPortsForTransceiver(
       TransceiverID tcvrId) const {
     const auto& cache = getTcvrToInitializedPortsForTest();
     auto it = cache.find(tcvrId);

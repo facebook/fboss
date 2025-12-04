@@ -87,11 +87,6 @@ class PciExplorer {
       const LedCtrlConfig& ledCtrlConfig,
       uint32_t instanceId);
 
-  // Create the LED Controller Config block based on the given ledCtrlConfig
-  // residing at the given PciDevice. Throw std::runtime_error on failure.
-  std::vector<LedCtrlConfig> createLedCtrlConfigs(
-      const PciDeviceConfig& pciDeviceConfig);
-
   // Create the Transceiver block based on the given xcvrCtrlConfig residing
   // at the given PciDevice.
   // Return the SysfsPath. Throw std::runtime_error on failure.
@@ -124,6 +119,13 @@ class PciExplorer {
   std::string createFanPwmCtrl(
       const PciDevice& pciDevice,
       const FanPwmCtrlConfig& fanPwmCtrlConfig,
+      uint32_t instanceId);
+
+  // Create the mdio_bus based on the given FpgaIpBlockConfig residing
+  // at the given PciDevice path. Throw std::runtime_error on failure.
+  std::string createMdioBus(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& mdioBusConfig,
       uint32_t instanceId);
 
   // Create the generic device block based on the given FpgaIpBlockConfig
@@ -171,6 +173,10 @@ class PciExplorer {
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
   std::string getXcvrCtrlSysfsPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+  std::string getMdioBusSysfsPath(
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);

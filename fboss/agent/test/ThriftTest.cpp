@@ -243,7 +243,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getHwDebugDump) {
 TYPED_TEST(ThriftTestAllSwitchTypes, getL2Table) {
   ThriftHandler handler(this->sw_);
   std::string out;
-  EXPECT_HW_CALL(this->sw_, fetchL2Table(testing::_))
+  EXPECT_HW_CALL(this->sw_, fetchL2Table(testing::_, testing::_))
       .Times(this->isNpu() ? 1 : 0);
 
   std::vector<L2EntryThrift> l2Entries;
@@ -833,12 +833,12 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getVlanAddresses) {
   ThriftHandler handler(this->sw_);
   using Addresses = std::vector<facebook::network::thrift::Address>;
   using BinaryAddresses = std::vector<facebook::network::thrift::BinaryAddress>;
-  auto constexpr kVlan = 1;
+  auto constexpr kVlanId = 1;
   auto constexpr kVlanName = "Vlan1";
   if (this->isNpu()) {
     {
       Addresses addrs;
-      handler.getVlanAddresses(addrs, kVlan);
+      handler.getVlanAddresses(addrs, kVlanId);
       EXPECT_GT(addrs.size(), 0);
     }
     {
@@ -849,7 +849,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getVlanAddresses) {
     }
     {
       BinaryAddresses addrs;
-      handler.getVlanBinaryAddresses(addrs, kVlan);
+      handler.getVlanBinaryAddresses(addrs, kVlanId);
       EXPECT_GT(addrs.size(), 0);
     }
     {
@@ -2188,8 +2188,6 @@ TEST_F(ThriftTest, CounterIDThriftReadTest) {
   // create and update route counters
   updateCounter(counterID1);
   updateCounter(counterID2);
-  CounterCache counters(sw_);
-  counters.update();
 
   std::map<std::string, std::int64_t> routeCounters;
   auto counterIDs = std::make_unique<std::vector<std::string>>();

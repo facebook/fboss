@@ -46,7 +46,10 @@ class MultiNodeUtil {
   bool verifyNeighborAddRemove() const;
 
   bool verifyTrafficSpray() const;
-  bool verifyNoTrafficDrop() const;
+  bool verifyNoTrafficDropOnProcessRestarts() const;
+  bool verifyNoTrafficDropOnDrainUndrain() const;
+
+  bool verifySelfHealingECMPLag() const;
 
  private:
   enum class SwitchType : uint8_t {
@@ -69,8 +72,9 @@ class MultiNodeUtil {
   void logNdpEntry(
       const std::string& rdsw,
       const facebook::fboss::NdpEntryThrift& ndpEntry) const {
-    auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
-        folly::StringPiece(ndpEntry.ip().value().addr().value())));
+    auto ip = folly::IPAddress::fromBinary(
+        folly::ByteRange(
+            folly::StringPiece(ndpEntry.ip().value().addr().value())));
 
     XLOG(DBG2) << "From " << rdsw << " ip: " << ip.str()
                << " state: " << ndpEntry.state().value()
@@ -82,8 +86,9 @@ class MultiNodeUtil {
           rdswToNdpEntries) const {
     for (const auto& [rdsw, ndpEntries] : rdswToNdpEntries) {
       for (const auto& ndpEntry : ndpEntries) {
-        auto ndpEntryIp = folly::IPAddress::fromBinary(folly::ByteRange(
-            folly::StringPiece(ndpEntry.ip().value().addr().value())));
+        auto ndpEntryIp = folly::IPAddress::fromBinary(
+            folly::ByteRange(
+                folly::StringPiece(ndpEntry.ip().value().addr().value())));
         XLOG(DBG2) << "RDSW:: " << rdsw
                    << " NDP Entry to verify:: port: " << ndpEntry.port().value()
                    << " interfaceID: " << ndpEntry.interfaceID().value()
@@ -310,6 +315,21 @@ class MultiNodeUtil {
   bool setupTrafficLoop() const;
 
   bool verifyNoReassemblyErrorsForAllSwitches() const;
+
+  struct Scenario {
+    std::string name;
+    std::function<bool()> setup;
+  };
+  // Return true only if all scenarios are successful
+  bool runScenariosAndVerifyNoDrops(
+      const std::vector<Scenario>& scenarios) const;
+
+  bool drainUndrainActiveFabricLinkForSwitch(
+      const std::string& switchName) const;
+
+  // Returns sample set of Fabric switches to test.
+  // One FDSW from each cluster + one SDSW.
+  std::set<std::string> getOneFabricSwitchForEachCluster() const;
 
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;

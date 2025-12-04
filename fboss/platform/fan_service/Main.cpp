@@ -1,6 +1,5 @@
 // Copyright 2021- Facebook. All rights reserved.
 
-#include <csignal>
 #include <memory>
 #include <string>
 
@@ -28,19 +27,7 @@ DEFINE_int32(
     1,
     "How often we will check whether sensor read and pwm control is needed");
 
-// This signal handler is used to stop the thrift server and service, resulting
-// in a clean exit of the program ensuring all resources are released/destroyed.
-std::shared_ptr<apache::thrift::ThriftServer> server;
-void handleSignal(int sig) {
-  XLOG(INFO) << "Received signal " << sig << ", shutting down...";
-  if (server) {
-    server->stop();
-  }
-}
-
 int main(int argc, char** argv) {
-  std::signal(SIGTERM, handleSignal);
-  std::signal(SIGINT, handleSignal);
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(&argc, &argv);
 
@@ -58,7 +45,7 @@ int main(int argc, char** argv) {
   }
 
   auto pBsp = std::make_shared<Bsp>(config);
-  server = std::make_shared<apache::thrift::ThriftServer>();
+  auto server = std::make_shared<apache::thrift::ThriftServer>();
   auto controlLogic = std::make_shared<ControlLogic>(config, pBsp);
   auto handler = std::make_shared<FanServiceHandler>(controlLogic);
 
@@ -72,8 +59,12 @@ int main(int argc, char** argv) {
   server->setPort(FLAGS_thrift_port);
   server->setInterface(handler);
   server->setAllowPlaintextOnLoopback(true);
+
+  auto evb = server->getEventBaseManager()->getEventBase();
+  helpers::SignalHandler signalHandler(evb, server);
+
   helpers::runThriftService(server, handler, "FanService", FLAGS_thrift_port);
 
-  XLOG(INFO) << "FanService stopped";
+  XLOG(INFO) << "================ STOPPED PLATFORM BINARY ================";
   return 0;
 }

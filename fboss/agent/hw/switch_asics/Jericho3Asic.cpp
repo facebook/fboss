@@ -60,7 +60,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER:
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
-    case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::ERSPANv4:
@@ -115,6 +114,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TECH_SUPPORT:
     case HwAsic::Feature::DRAM_QUARANTINED_BUFFER_STATS:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
+    case HwAsic::Feature::TEMPERATURE_MONITORING:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -224,7 +224,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
     case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
-    case HwAsic::Feature::TEMPERATURE_MONITORING:
     case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
@@ -240,6 +239,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
        */
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
+    case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
       return false;
   }
@@ -370,7 +370,7 @@ Jericho3Asic::desiredLoopbackModes() const {
       {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC},
       {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::NONE},
       {cfg::PortType::EVENTOR_PORT, cfg::PortLoopbackMode::NONE},
-      {cfg::PortType::HYPER_PORT, cfg::PortLoopbackMode::NONE}};
+      {cfg::PortType::HYPER_PORT, cfg::PortLoopbackMode::PHY}};
   return kLoopbackMode;
 }
 

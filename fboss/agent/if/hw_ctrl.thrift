@@ -131,6 +131,11 @@ service FbossHwCtrl {
     2: phy.PortComponent component,
   ) throws (1: fboss.FbossBaseError error);
 
+  list<phy.PrbsLaneStats> getPortAsicPrbsStats(1: i32 portId);
+  void clearPortAsicPrbsStats(1: i32 portId);
+  list<prbs.PrbsPolynomial> getPortPrbsPolynomials(1: i32 portId);
+  prbs.InterfacePrbsState getPortPrbsState(1: i32 portId);
+
   /*
    * Clear FEC and signal locked / changed lock counters per port.
    */
@@ -175,4 +180,13 @@ service FbossHwCtrl {
    * on a box
    */
   string getHwDebugDump();
+
+  /*
+   * Get the current programmed switch state from HwAgent.
+   * This returns the in-memory state that HwAgent maintains,
+   * which can be used for SW Agent warmboot recovery.
+   */
+  switch_state.SwitchState getProgrammedState() throws (
+    1: fboss.FbossBaseError error,
+  );
 }

@@ -108,30 +108,77 @@ struct PmUnitSensors {
   4: list<VersionedPmSensor> versionedSensors;
 }
 
-// `SwitchAsicTemp`: The temperature sensor configuration for the switch ASIC.
+// `AsicCommand`: Describes the command to get sensor data from Switch ASIC.
 //
-// `vendorId`: The PCI vendor ID of ASIC PCI device
+// `sensorName`: Name of the sensor.
 //
-// `deviceId`: The PCI device ID of ASIC PCI device
-struct SwitchAsicTemp {
-  1: optional string vendorId;
-  2: optional string deviceId;
+// `cmd`: Command to get sensor data from ASIC.
+//
+// `sensorType`: See SensorType definition above.
+struct AsicCommand {
+  1: string sensorName;
+  2: string cmd;
+  3: SensorType sensorType;
 }
 
-struct PowerConsumptionConfig {
-  // This name should be the unique name of each PSU, PEM, etc. in the platform
-  // e.g. PSU1, PSU2, PEM1, PEM2, etc
+// `PerSlotPowerConfig`: Describes power consumption of individual slots.
+// This is used for PSU/PEM/HSC which are useful to monitor individually.
+//
+// `name`: Unique name of the power component (e.g., PSU1, PSU2, PEM1, PEM2, HSC).
+//
+// `powerSensorName`: Name of the power sensor if available. This should be set
+//                    if the component has a direct power measurement sensor.
+//
+// `voltageSensorName`: Name of the voltage sensor. This should be set if no
+//                      direct power sensor is available and power needs to be
+//                      calculated from voltage and current.
+//
+// `currentSensorName`: Name of the current sensor. This should be set if no
+//                      direct power sensor is available and power needs to be
+//                      calculated from voltage and current.
+struct PerSlotPowerConfig {
   1: string name;
-  // If there is power sensor, this should be set
   2: optional string powerSensorName;
-  // If no power sensor, the following two fields should be set
   3: optional string voltageSensorName;
   4: optional string currentSensorName;
+}
+
+// `PowerConfig`: Consolidates all power-related configurations.
+//
+// `perSlotPowerConfigs`: List of per-slot power configurations for PSU/PEM/HSC.
+//
+// `otherPowerSensorNames`: List of other power sensor names that are not part
+//                          of per-slot configurations (e.g., FANx power sensors).
+//
+// `powerDelta`: A fixed wattage value that is added to the total power consumption.
+//               Example: some switches have standby power consumption that is not
+//               measured by sensors. In this case, we can add a fixed value to
+//               the total power consumption.
+//
+// `inputVoltageSensors`: List of input voltage sensor names for monitoring input voltage.
+struct PowerConfig {
+  1: list<PerSlotPowerConfig> perSlotPowerConfigs;
+  2: list<string> otherPowerSensorNames;
+  3: double powerDelta;
+  4: list<string> inputVoltageSensors;
+}
+
+// `TemperatureConfig`: Describes temperature of components.
+//
+// `name`: Unique name of the component (e.g., ASIC, ASIC1).
+//
+// `temperatureSensorNames`: List of temperature sensors for this component.
+//                           The maximum value among these sensors will be used
+//                           to determine the overall temperature.
+struct TemperatureConfig {
+  1: string name;
+  2: list<string> temperatureSensorNames;
 }
 
 // The configuration for sensor mapping.
 struct SensorConfig {
   1: list<PmUnitSensors> pmUnitSensorsList;
-  2: optional SwitchAsicTemp switchAsicTemp;
-  3: list<PowerConsumptionConfig> powerConsumptionConfigs;
+  2: optional AsicCommand asicCommand;
+  11: PowerConfig powerConfig;
+  12: list<TemperatureConfig> temperatureConfigs;
 }

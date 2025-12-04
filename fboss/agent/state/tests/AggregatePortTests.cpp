@@ -780,9 +780,10 @@ TEST(AggregatePort, serializationInverseOfDeserialization) {
   EXPECT_EQ(
       aggPort->getMinimumLinkCountToUp(),
       deserializedAggPort->getMinimumLinkCountToUp());
-  EXPECT_TRUE(std::equal(
-      aggPort->sortedSubports().begin(),
-      aggPort->sortedSubports().end(),
-      deserializedAggPort->sortedSubports().begin(),
-      deserializedAggPort->sortedSubports().end()));
+  EXPECT_TRUE(
+      std::equal(
+          aggPort->sortedSubports().begin(),
+          aggPort->sortedSubports().end(),
+          deserializedAggPort->sortedSubports().begin(),
+          deserializedAggPort->sortedSubports().end()));
 }

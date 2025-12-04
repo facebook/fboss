@@ -18,4 +18,7 @@ void publishSwitchWatermarks(HwSwitchWatermarkStats& /*watermarkStats*/) {}
 
 void publishSwitchPipelineStats(HwSwitchPipelineStats& /*pipelineStats*/) {}
 
+void publishSwitchTemperatureStats(
+    HwSwitchTemperatureStats& /*temperatureStats*/) {}
+
 } // namespace facebook::fboss

@@ -339,7 +339,6 @@ class HwMacsecTest : public HwExternalPhyPortTest {
 };
 
 TEST_F(HwMacsecTest, installRemoveKeys) {
-  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
@@ -364,7 +363,8 @@ TEST_F(HwMacsecTest, installRemoveKeys) {
         sakKeyGen.getNext(),
         sakKeyIdGen.getNext(),
         0);
-    wedgeManager->programXphyPort(port, profile);
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPort(
+        port, profile);
 
     XLOG(INFO) << "installKeys: Installing Macsec TX for port " << port;
     phyManager->sakInstallTx(txSak);
@@ -386,7 +386,6 @@ TEST_F(HwMacsecTest, installRemoveKeys) {
 }
 
 TEST_F(HwMacsecTest, rotateRxKeys) {
-  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
@@ -412,7 +411,8 @@ TEST_F(HwMacsecTest, rotateRxKeys) {
         sakKeyIdGen.getNext(),
         1);
 
-    wedgeManager->programXphyPort(port, profile);
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPort(
+        port, profile);
 
     XLOG(INFO) << "rotateRxKeys: Installing Macsec RX for port " << port;
     phyManager->sakInstallRx(rxSak, remoteSci);
@@ -449,7 +449,6 @@ TEST_F(HwMacsecTest, rotateRxKeys) {
 // Verify that the RX SAK APIs are idempotent because MKA service may need
 // to retry in some cases.
 TEST_F(HwMacsecTest, idempotentRx) {
-  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
@@ -468,7 +467,8 @@ TEST_F(HwMacsecTest, idempotentRx) {
         sakKeyIdGen.getNext(),
         0);
 
-    wedgeManager->programXphyPort(port, profile);
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPort(
+        port, profile);
 
     XLOG(INFO) << "idempotentRx: 2x installing RX SAK for port " << port;
     phyManager->sakInstallRx(rxSak, remoteSci);
@@ -505,7 +505,6 @@ TEST_F(HwMacsecTest, idempotentRx) {
  *    removed, SAK2 is untouched
  */
 TEST_F(HwMacsecTest, updateRxKeys) {
-  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
@@ -514,7 +513,8 @@ TEST_F(HwMacsecTest, updateRxKeys) {
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;
 
-    wedgeManager->programXphyPort(port, profile);
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPort(
+        port, profile);
 
     auto macGen = facebook::fboss::utility::MacAddressGenerator();
     auto sakKeyGen = facebook::fboss::utility::SakKeyHexGenerator();
@@ -585,7 +585,6 @@ TEST_F(HwMacsecTest, updateRxKeys) {
  * 2. Install Tx SAK3 (SC=X, AN=2, Key=W), Verify SAK3 is programmed
  */
 TEST_F(HwMacsecTest, updateTxKeys) {
-  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
@@ -594,7 +593,8 @@ TEST_F(HwMacsecTest, updateTxKeys) {
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;
 
-    wedgeManager->programXphyPort(port, profile);
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPort(
+        port, profile);
 
     auto macGen = facebook::fboss::utility::MacAddressGenerator();
     auto sakKeyGen = facebook::fboss::utility::SakKeyHexGenerator();
@@ -638,7 +638,6 @@ TEST_F(HwMacsecTest, updateTxKeys) {
 }
 
 TEST_F(HwMacsecTest, cleanupMacsec) {
-  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
@@ -662,7 +661,8 @@ TEST_F(HwMacsecTest, cleanupMacsec) {
     auto txSak = makeSak(
         localSci, *platPort->second.mapping()->name(), sakKey2, sakKeyId2, 0);
 
-    wedgeManager->programXphyPort(port, profile);
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPort(
+        port, profile);
 
     // Set the MacsecDesired=True
     phyManager->setupMacsecState(
@@ -706,7 +706,6 @@ TEST_F(HwMacsecTest, cleanupMacsec) {
 }
 
 TEST_F(HwMacsecTest, verifyMacsecAclStates) {
-  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
@@ -730,7 +729,8 @@ TEST_F(HwMacsecTest, verifyMacsecAclStates) {
     auto txSak = makeSak(
         localSci, *platPort->second.mapping()->name(), sakKey2, sakKeyId2, 0);
 
-    wedgeManager->programXphyPort(port, profile);
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPort(
+        port, profile);
 
     // Verify Macsec state does not exists
     phyManager->setupMacsecState(
@@ -788,7 +788,6 @@ TEST_F(HwMacsecTest, verifyMacsecAclStates) {
 }
 
 void HwMacsecTest::rotateKeysMultiple(bool circleThroughAN) {
-  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto* phyMgr = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
@@ -800,7 +799,8 @@ void HwMacsecTest::rotateKeysMultiple(bool circleThroughAN) {
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;
     auto sci = makeSci(macGen.getNext().toString(), port);
-    wedgeManager->programXphyPort(port, profile);
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPort(
+        port, profile);
     auto installKeys = [=, this, currentPort = port](auto direction) mutable {
       std::optional<mka::MKASak> prevSak;
       bool isIngress = direction == SAI_MACSEC_DIRECTION_INGRESS;

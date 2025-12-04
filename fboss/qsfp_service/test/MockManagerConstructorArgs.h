@@ -26,7 +26,10 @@ makeSlotThreadHelper(
 }
 
 const inline std::shared_ptr<const FakeTestPlatformMapping>
-makeFakePlatformMapping(int numModules, int numPortsPerModule) {
+makeFakePlatformMapping(
+    int numModules,
+    int numPortsPerModule,
+    bool multipleTransceiversPerPort = false) {
   std::vector<int> controllingPortIDs(numModules);
   std::generate(
       begin(controllingPortIDs),
@@ -37,6 +40,6 @@ makeFakePlatformMapping(int numModules, int numPortsPerModule) {
         return port;
       });
   return std::make_shared<FakeTestPlatformMapping>(
-      controllingPortIDs, numPortsPerModule);
+      controllingPortIDs, numPortsPerModule, multipleTransceiversPerPort);
 }
 } // namespace facebook::fboss

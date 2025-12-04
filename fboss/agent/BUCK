@@ -706,7 +706,6 @@ cpp_library(
         "//folly:file_util",
         "//folly:range",
         "//folly/gen:base",
-        "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [
         ("boost", None, "boost_container"),
@@ -764,8 +763,8 @@ cpp_library(
     ],
     exported_deps = [
         ":agent_features",
+        ":fboss-types",
         ":fib_helpers",
-        ":pre_update_state_modifier",
         ":stats",
         ":switch_config-cpp2-types",
         ":utils",
@@ -782,11 +781,47 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        ":fboss-types",
         ":fib_helpers",
-        ":pre_update_state_modifier",
         ":utils",
         "//fboss/agent/state:state",
         "//folly:synchronized",
+    ],
+)
+
+cpp_library(
+    name = "state_delta_logger",
+    srcs = [
+        "StateDeltaLogger.cpp",
+    ],
+    exported_deps = [
+        ":agent_features",
+        ":async_logger_base",
+        "//fboss/agent/state:state",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "hw_switch_thrift_client_table",
+    srcs = [
+        "HwSwitchThriftClientTable.cpp",
+    ],
+    headers = [
+        "HwSwitchThriftClientTable.h",
+    ],
+    exported_deps = [
+        ":fboss-error",
+        ":fboss-types",
+        "//fboss/agent/if:hw_ctrl-cpp2-services",
+        "//folly/io/async:async_base",
+        "//folly/io/async:scoped_event_base_thread",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/async:pooled_request_channel",
+        "//thrift/lib/cpp2/async:reconnecting_request_channel",
+        "//thrift/lib/cpp2/async:retrying_request_channel",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
 )
 
@@ -807,10 +842,10 @@ cpp_library(
         "EncapIndexAllocator.cpp",
         "FabricConnectivityManager.cpp",
         "FabricLinkMonitoring.cpp",
+        "FabricLinkMonitoringManager.cpp",
         "FsdbSyncer.cpp",
         "HwAsicTable.cpp",
         "HwSwitchConnectionStatusTable.cpp",
-        "HwSwitchThriftClientTable.cpp",
         "IPHeaderV4.cpp",
         "IPv4Handler.cpp",
         "IPv6Handler.cpp",
@@ -865,7 +900,6 @@ cpp_library(
         "FsdbSyncer.h",
         "HwAsicTable.h",
         "HwSwitchConnectionStatusTable.h",
-        "HwSwitchThriftClientTable.h",
         "LockPolicy.h",
         "MultiSwitchFb303Stats.h",
         "MultiSwitchPacketStreamMap.h",
@@ -895,6 +929,7 @@ cpp_library(
         ":build_info_wrapper",
         ":constants",
         ":dhcpv4_options_of_interest",
+        ":dsfnode_utils",
         ":ecmp_resource_manager",
         ":fboss-error",
         ":fboss-types",
@@ -902,6 +937,7 @@ cpp_library(
         ":fib_helpers",
         ":fsdb_adapted_sub_manager",
         ":hw_switch_handler",
+        ":hw_switch_thrift_client_table",
         ":hwswitchcallback",
         ":l2learn_event_observer",
         ":load_agent_config",
@@ -913,6 +949,7 @@ cpp_library(
         ":phy_snapshot_lib",
         ":route_update_wrapper",
         ":shel_manager",
+        ":state_delta_logger",
         ":state_observer",
         ":stats",
         ":sw_switch_warmboot_helper",
@@ -943,6 +980,7 @@ cpp_library(
         "//fboss/agent/if:mpls-cpp2-types",
         "//fboss/agent/if:multiswitch_ctrl-cpp2-services",
         "//fboss/agent/lldp:lldp",
+        "//fboss/agent/lldp:lldp_structs-cpp2-types",
         "//fboss/agent/packet:ether_type",
         "//fboss/agent/packet:ipproto",
         "//fboss/agent/packet:packet",
@@ -989,7 +1027,6 @@ cpp_library(
         "//folly:demangle",
         "//folly:exception_string",
         "//folly:file_util",
-        "//folly:glog",
         "//folly:intrusive_list",
         "//folly:map_util",
         "//folly:memory",
@@ -1021,11 +1058,7 @@ cpp_library(
         "//scribe/client:scribe_client_no_sr",
         "//servicerouter/client/cpp2:cpp2",
         "//thrift/lib/cpp/util:enum_utils",
-        "//thrift/lib/cpp2/async:pooled_request_channel",
-        "//thrift/lib/cpp2/async:reconnecting_request_channel",
         "//thrift/lib/cpp2/async:request_channel",
-        "//thrift/lib/cpp2/async:retrying_request_channel",
-        "//thrift/lib/cpp2/async:rocket_client_channel",
         "//thrift/lib/cpp2/protocol:protocol",
         "//thrift/lib/cpp2/util:util",
     ],
@@ -1046,12 +1079,14 @@ cpp_library(
     ],
     exported_deps = [
         ":address_utils",
+        ":agent_features",
         ":core",
         ":fboss-error",
         ":fboss-types",
         ":fboss_event_base",
         ":fib_helpers",
         ":hw_asic_table",
+        ":hw_switch_thrift_client_table",
         ":packet",
         ":stats",
         ":switch_config-cpp2-types",
@@ -1068,7 +1103,6 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/agent/rib:fib_updater",
-        "//fboss/agent/rib:network_to_route_map",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_utils",
@@ -1076,8 +1110,6 @@ cpp_library(
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:prbs-cpp2-types",
-        "//folly:json_pointer",
-        "//folly:move_wrapper",
         "//folly:network_address",
         "//folly:range",
         "//folly:string",
@@ -1253,6 +1285,7 @@ cpp_library(
         "//fboss/agent/hw:hw_switch_fb303_stats",
         "//fboss/agent/hw:hw_switch_warmboot_helper",
         "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/if:multiswitch_ctrl-cpp2-services",
@@ -1274,6 +1307,16 @@ cpp_library(
     name = "async_logger",
     srcs = [
         "AsyncLogger.cpp",
+    ],
+    exported_deps = [
+        ":async_logger_base",
+    ],
+)
+
+cpp_library(
+    name = "async_logger_base",
+    srcs = [
+        "AsyncLoggerBase.cpp",
     ],
     exported_deps = [
         ":fboss-error",
@@ -1484,19 +1527,6 @@ cpp_library(
     name = "state_observer",
     headers = [
         "StateObserver.h",
-    ],
-    exported_deps = [
-        "//fboss/agent/state:state",
-    ],
-    exported_external_deps = [
-        "boost",
-    ],
-)
-
-cpp_library(
-    name = "pre_update_state_modifier",
-    headers = [
-        "PreUpdateStateModifier.h",
     ],
     exported_deps = [
         "//fboss/agent/state:state",

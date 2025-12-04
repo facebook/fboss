@@ -5,8 +5,6 @@
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <folly/String.h>
 #include <folly/gen/Base.h>
-#include <cstdint>
-#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/phy/gen-cpp2/model_types.h"
@@ -217,6 +215,7 @@ class CmdShowInterfacePhy
     if (!pmdLanes.empty()) {
       printPmdLaneRxInfo(out, sideState, sideStats, pmdLanes, prefix);
       printPmdLaneTxInfo(out, sideState, pmdLanes, prefix);
+      printSerdesParametersInfo(out, *sideState.pmd(), prefix);
     }
   }
 
@@ -334,6 +333,124 @@ class CmdShowInterfacePhy
            post3});
     }
     out << pmdTxTable;
+  }
+
+  void printSerdesParametersInfo(
+      std::ostream& out,
+      phy::PmdState& pmdState,
+      const std::string& prefix) {
+    Table serdesTable;
+    serdesTable.setHeader(
+        {prefix + "Serdes Parameters",
+         "Lane",
+         "RVga",
+         "Dco",
+         "TpChn0",
+         "TpChn1",
+         "TpChn2",
+         "RxPf",
+         "RxFltM",
+         "RxFltS",
+         "RxTap1",
+         "RxTap2",
+         "RxEq3",
+         "RxEq2",
+         "RxEq1",
+         "RxEqM",
+         "RxEqP1",
+         "RxEqP2"});
+
+    for (const auto& [laneId, laneState] : *pmdState.lanes()) {
+      auto serdesParams = laneState.serdesParameters();
+
+      std::string rvga = "N/A";
+      std::string dco = "N/A";
+      std::string tpChn0 = "N/A";
+      std::string tpChn1 = "N/A";
+      std::string tpChn2 = "N/A";
+      std::string rxPf = "N/A";
+      std::string rxFltM = "N/A";
+      std::string rxFltS = "N/A";
+      std::string rxTap1 = "N/A";
+      std::string rxTap2 = "N/A";
+      std::string rxEq3 = "N/A";
+      std::string rxEq2 = "N/A";
+      std::string rxEq1 = "N/A";
+      std::string rxEqM = "N/A";
+      std::string rxEqP1 = "N/A";
+      std::string rxEqP2 = "N/A";
+
+      if (auto rvgaVal = serdesParams->rvga()) {
+        rvga = std::to_string(*rvgaVal);
+      }
+      if (auto dcoVal = serdesParams->dco()) {
+        dco = std::to_string(*dcoVal);
+      }
+      if (auto tpChn0Val = serdesParams->tpChn0()) {
+        tpChn0 = std::to_string(*tpChn0Val);
+      }
+      if (auto tpChn1Val = serdesParams->tpChn1()) {
+        tpChn1 = std::to_string(*tpChn1Val);
+      }
+      if (auto tpChn2Val = serdesParams->tpChn2()) {
+        tpChn2 = std::to_string(*tpChn2Val);
+      }
+      if (auto rxPfVal = serdesParams->rxPf()) {
+        rxPf = std::to_string(*rxPfVal);
+      }
+      if (auto rxFltMVal = serdesParams->rxFltM()) {
+        rxFltM = std::to_string(*rxFltMVal);
+      }
+      if (auto rxFltSVal = serdesParams->rxFltS()) {
+        rxFltS = std::to_string(*rxFltSVal);
+      }
+      if (auto rxTap1Val = serdesParams->rxTap1()) {
+        rxTap1 = std::to_string(*rxTap1Val);
+      }
+      if (auto rxTap2Val = serdesParams->rxTap2()) {
+        rxTap2 = std::to_string(*rxTap2Val);
+      }
+      if (auto rxEq3Val = serdesParams->rxEq3()) {
+        rxEq3 = std::to_string(*rxEq3Val);
+      }
+      if (auto rxEq2Val = serdesParams->rxEq2()) {
+        rxEq2 = std::to_string(*rxEq2Val);
+      }
+      if (auto rxEq1Val = serdesParams->rxEq1()) {
+        rxEq1 = std::to_string(*rxEq1Val);
+      }
+      if (auto rxEqMVal = serdesParams->rxEqM()) {
+        rxEqM = std::to_string(*rxEqMVal);
+      }
+      if (auto rxEqP1Val = serdesParams->rxEqP1()) {
+        rxEqP1 = std::to_string(*rxEqP1Val);
+      }
+      if (auto rxEqP2Val = serdesParams->rxEqP2()) {
+        rxEqP2 = std::to_string(*rxEqP2Val);
+      }
+
+      serdesTable.addRow(
+          {"",
+           std::to_string(laneId),
+           rvga,
+           dco,
+           tpChn0,
+           tpChn1,
+           tpChn2,
+           rxPf,
+           rxFltM,
+           rxFltS,
+           rxTap1,
+           rxTap2,
+           rxEq3,
+           rxEq2,
+           rxEq1,
+           rxEqM,
+           rxEqP1,
+           rxEqP2});
+    }
+
+    out << serdesTable;
   }
 
   Table::StyledCell makeColorCellForLiveFlag(const std::string& flag) {

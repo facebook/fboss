@@ -27,18 +27,20 @@ using namespace facebook::fboss::platform::showtech_config;
 namespace facebook::fboss::platform {
 
 void Utils::printHostDetails() {
-  std::cout << "##### SYSTEM TIME #####" << std::endl;
+  std::cout << "##### Host Information #####" << std::endl;
+  std::cout << "#### SYSTEM TIME ####" << std::endl;
   std::cout << platformUtils_.execCommand("date").second << std::endl;
-  std::cout << "##### HOSTNAME #####" << std::endl;
+  std::cout << "#### HOSTNAME ####" << std::endl;
   std::cout << platformUtils_.execCommand("hostname").second << std::endl;
-  std::cout << "##### Linux Kernel Version #####" << std::endl;
+  std::cout << "#### Linux Kernel Version ####" << std::endl;
   std::cout << platformUtils_.execCommand("uname -r").second << std::endl;
-  std::cout << "##### UPTIME #####" << std::endl;
+  std::cout << "#### UPTIME ####" << std::endl;
   std::cout << platformUtils_.execCommand("uptime").second << std::endl;
   std::cout << platformUtils_.execCommand("last reboot").second << std::endl;
 }
 
 void Utils::printFbossDetails() {
+  std::cout << "##### FBOSS Information #####" << std::endl;
   runFbossCliCmd("product");
   runFbossCliCmd("version agent");
   runFbossCliCmd("environment sensor");
@@ -68,6 +70,7 @@ void Utils::printLspciDetails() {
 }
 
 void Utils::printPortDetails() {
+  std::cout << "##### Port Information #####" << std::endl;
   runFbossCliCmd("port");
   runFbossCliCmd("fabric");
   runFbossCliCmd("lldp");
@@ -77,7 +80,7 @@ void Utils::printPortDetails() {
   runFbossCliCmd("interface phy");
   runFbossCliCmd("transceiver");
   if (!std::filesystem::exists("/etc/ramdisk")) {
-    std::cout << "##### wedge_qsfp_util #####" << std::endl;
+    std::cout << "#### wedge_qsfp_util ####" << std::endl;
     auto [ret, output] =
         platformUtils_.execCommand("timeout 30 wedge_qsfp_util");
     std::cout << output << std::endl;
@@ -89,9 +92,10 @@ void Utils::printPortDetails() {
 }
 
 void Utils::printSensorDetails() {
-  std::cout << "##### SENSORS #####" << std::endl;
+  std::cout << "##### Sensor Information #####" << std::endl;
+  std::cout << "#### SENSORS ####" << std::endl;
   std::cout << platformUtils_.execCommand("sensors").second << std::endl;
-  std::cout << "##### Dump from sensor_service #####" << std::endl;
+  std::cout << "#### Dump from sensor_service ####" << std::endl;
   std::cout << platformUtils_.execCommand("sensor_service_client").second
             << std::endl;
 }
@@ -109,7 +113,7 @@ void Utils::printI2cDetails() {
       continue;
     }
     auto cmd = fmt::format("time i2cdetect -y {}", busNum);
-    std::cout << fmt::format("##### Running `{}` for {} #####", cmd, busName)
+    std::cout << fmt::format("#### Running `{}` for {} ####", cmd, busName)
               << std::endl;
     std::cout << platformUtils_.execCommand(cmd).second << std::endl;
   }
@@ -317,12 +321,94 @@ void Utils::printPowerGoodDetails() {
   std::cout << std::endl;
 }
 
+void Utils::printServiceLogs(const std::string& service) const {
+  std::string cmd;
+  auto logFile = fmt::format("/var/facebook/logs/fboss/{}.log", service);
+  if (std::filesystem::exists(logFile)) {
+    cmd = fmt::format("cat {}", logFile);
+  } else {
+    cmd = fmt::format("journalctl -u {}", service);
+  }
+  std::cout << execCommandWithLimit(cmd).second << std::endl;
+}
+
+void Utils::printLogs() {
+  std::cout << "##### Platform Manager Log #####" << std::endl;
+  printServiceLogs("platform_manager");
+
+  std::cout << "##### Sensor Service Log #####" << std::endl;
+  printServiceLogs("sensor_service");
+
+  std::cout << "##### Fan Service Log #####" << std::endl;
+  printServiceLogs("fan_service");
+
+  std::cout << "##### Data Corral Log #####" << std::endl;
+  printServiceLogs("data_corral_service");
+
+  std::cout << "##### QSFP Service Log #####" << std::endl;
+  printServiceLogs("qsfp_service");
+
+  std::cout << "##### fboss_sw_agent Log #####" << std::endl;
+  printServiceLogs("fboss_sw_agent");
+
+  std::cout << "##### fboss_hw_agent@0 Log #####" << std::endl;
+  printServiceLogs("fboss_hw_agent@0");
+
+  std::cout << "##### demsg Log #####" << std::endl;
+  std::cout << execCommandWithLimit("dmesg").second << std::endl;
+
+  std::cout << "##### Boot Console Log #####" << std::endl;
+  std::cout << execCommandWithLimit("cat /var/log/boot.log").second
+            << std::endl;
+
+  std::cout << "##### Linux Messages Log #####" << std::endl;
+  std::cout << execCommandWithLimit("cat /var/log/messages").second
+            << std::endl;
+}
+
 void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);
-    std::cout << fmt::format("##### {} #####", fullCmd) << std::endl;
+    std::cout << fmt::format("#### {} ####", fullCmd) << std::endl;
     std::cout << platformUtils_.execCommand(fullCmd).second << std::endl;
   }
+}
+
+std::pair<int, std::string> Utils::execCommandWithLimit(
+    const std::string& cmd,
+    int maxLines) const {
+  auto [ret, output] = platformUtils_.execCommand(cmd);
+  std::vector<std::string> lines;
+  folly::split('\n', output, lines);
+
+  int totalLines = lines.size();
+  if (totalLines <= maxLines) {
+    return {ret, output};
+  }
+
+  // truncate output
+  int headCount = (maxLines + 1) / 2;
+  int tailCount = maxLines / 2;
+  std::string first =
+      folly::join('\n', folly::range(lines.begin(), lines.begin() + headCount));
+  std::string last =
+      folly::join('\n', folly::range(lines.end() - tailCount, lines.end()));
+
+  return {
+      ret,
+      fmt::format(
+          "=== Output exceeds {} lines (total: {}). "
+          "Showing first {} and last {} lines ===\n\n"
+          "{}\n\n"
+          "=== {} lines truncated ===\n\n"
+          "{}\n",
+          maxLines,
+          totalLines,
+          headCount,
+          tailCount,
+          first,
+          totalLines - maxLines,
+          last)};
 }
 
 void Utils::printSysfsAttribute(

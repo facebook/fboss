@@ -7,11 +7,12 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/util/Logging.h"
+
+#include <chrono>
 
 DEFINE_int32(
     dsf_subscription_chunk_timeout,
@@ -95,9 +96,10 @@ DsfSubscription::DsfSubscription(
           getConnectionOptions(localIp.str(), remoteIp.str()),
           reconnectEvb,
           subscriberEvb)),
-      validator_(std::make_unique<DsfUpdateValidator>(
-          sw->getSwitchInfoTable().getSwitchIDs(),
-          remoteNodeSwitchIds)),
+      validator_(
+          std::make_unique<DsfUpdateValidator>(
+              sw->getSwitchInfoTable().getSwitchIDs(),
+              remoteNodeSwitchIds)),
       localNodeName_(std::move(localNodeName)),
       remoteNodeName_(std::move(remoteNodeName)),
       remoteNodeSwitchIds_(std::move(remoteNodeSwitchIds)),
@@ -171,6 +173,17 @@ void DsfSubscription::setupSubscription() {
                 agentState->template safe_cref<k_fsdb_model::switchState>();
             queueRemoteStateChanged(
                 *switchState->getSystemPorts(), *switchState->getInterfaces());
+          }
+          // Update the DSF subscription serve delay metric
+          if (update.lastServedAt.has_value()) {
+            auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           std::chrono::system_clock::now().time_since_epoch())
+                           .count();
+            auto delay = now - *update.lastServedAt;
+            XLOG(DBG2) << "DsfSubscription patch subscription delay: " << delay
+                       << " ms from remote node: " << this->remoteNodeName_;
+
+            this->sw_->stats()->dsfSubscriptionServeDelayMs(delay);
           }
         },
         std::move(subscriptionStateCb));
@@ -262,23 +275,28 @@ void DsfSubscription::handleFsdbSubscriptionStateUpdate(
     processGRHoldTimerExpired();
   }
 }
-
 void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
   bool portsOrIntfsChanged{false};
+  std::optional<int64_t> maxServedDelay;
+
+  // Single pass: compute max delay and process changes
   for (const auto& change : *operStateUnit.changes()) {
+    // Process the actual state changes
     if (getSystemPortsPath().matchesPath(*change.path()->path())) {
       XLOG(DBG2) << "Got sys port update from : " << remoteNodeName_;
-      curMswitchSysPorts_.fromThrift(thrift_cow::deserialize<
-                                     MultiSwitchSystemPortMapTypeClass,
-                                     MultiSwitchSystemPortMapThriftType>(
-          fsdb::OperProtocol::BINARY, *change.state()->contents()));
+      curMswitchSysPorts_.fromThrift(
+          thrift_cow::deserialize<
+              MultiSwitchSystemPortMapTypeClass,
+              MultiSwitchSystemPortMapThriftType>(
+              fsdb::OperProtocol::BINARY, *change.state()->contents()));
       portsOrIntfsChanged = true;
     } else if (getInterfacesPath().matchesPath(*change.path()->path())) {
       XLOG(DBG2) << "Got rif update from : " << remoteNodeName_;
-      curMswitchIntfs_.fromThrift(thrift_cow::deserialize<
-                                  MultiSwitchInterfaceMapTypeClass,
-                                  MultiSwitchInterfaceMapThriftType>(
-          fsdb::OperProtocol::BINARY, *change.state()->contents()));
+      curMswitchIntfs_.fromThrift(
+          thrift_cow::deserialize<
+              MultiSwitchInterfaceMapTypeClass,
+              MultiSwitchInterfaceMapThriftType>(
+              fsdb::OperProtocol::BINARY, *change.state()->contents()));
       portsOrIntfsChanged = true;
     } else if (getDsfSubscriptionsPath(
                    makeRemoteEndpoint(localNodeName_, localIp_))
@@ -300,9 +318,36 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
           " from node: ",
           remoteNodeName_);
     }
+
+    // Calculate served delay if metadata is available
+    if (change.state()->metadata().has_value()) {
+      const auto& metadata = *change.state()->metadata();
+
+      if (metadata.lastServedAt().has_value()) {
+        auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                       std::chrono::system_clock::now().time_since_epoch())
+                       .count();
+        auto delay = now - *metadata.lastServedAt();
+
+        XLOG(DBG2) << "DsfSubscription handleFsdbUpdate delay: " << delay
+                   << " ms for path: "
+                   << folly::join("/", *change.path()->path())
+                   << " from remote node: " << remoteNodeName_;
+
+        if (!maxServedDelay.has_value() || delay > *maxServedDelay) {
+          maxServedDelay = delay;
+        }
+      }
+    }
   }
+
   if (portsOrIntfsChanged) {
     queueRemoteStateChanged(curMswitchSysPorts_, curMswitchIntfs_);
+  }
+
+  // Update the DSF subscription serve delay metric if we computed any delays
+  if (maxServedDelay.has_value()) {
+    sw_->stats()->dsfSubscriptionServeDelayMs(*maxServedDelay);
   }
 }
 
@@ -323,7 +368,7 @@ void DsfSubscription::queueRemoteStateChanged(
 
 void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
   bool needsScheduling = false;
-
+  std::optional<int64_t> currSeqNum;
   {
     auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
     // If nextDsfUpdate is not null, then just overwrite
@@ -335,6 +380,7 @@ void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
     // contents.
     needsScheduling = (*nextDsfUpdateWlock == nullptr);
     *nextDsfUpdateWlock = std::make_unique<DsfUpdate>(std::move(dsfUpdate));
+    currSeqNum = ++lastUpdateSeqNum_;
   }
   /*
    * Schedule updates async on hwUpdateEvb, so we don't
@@ -346,12 +392,15 @@ void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
    * each other for initial sync to complete.
    */
   if (needsScheduling) {
-    hwUpdateEvb_->runInEventBaseThread([this]() {
+    CHECK(currSeqNum.has_value());
+    hwUpdateEvb_->runInEventBaseThread([this, currSeqNum]() {
       DsfUpdate update;
       {
         auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
-        if (*nextDsfUpdateWlock == nullptr) {
-          // Update was already done or cancelled
+        if (*nextDsfUpdateWlock == nullptr ||
+            currSeqNum.value() != lastUpdateSeqNum_) {
+          // Update was already done or cancelled, or there are newer updates in
+          // the queue
           return;
         }
         update = std::move(**nextDsfUpdateWlock);
@@ -523,7 +572,14 @@ void DsfSubscription::processGRHoldTimerExpired() {
     return std::shared_ptr<SwitchState>{};
   };
 
-  hwUpdateEvb_->runInEventBaseThread(
-      [this, updateDsfStateFn]() { updateDsfState(updateDsfStateFn); });
+  {
+    // Hold the lock while enqueueing the GR expiry update. This is to avoid
+    // another DSF update comes in at the same time and not being enqueued
+    // because of the non-null nextDsfUpdate_.
+    auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+    hwUpdateEvb_->runInEventBaseThread(
+        [this, updateDsfStateFn]() { updateDsfState(updateDsfStateFn); });
+    nextDsfUpdateWlock->reset();
+  }
 }
 } // namespace facebook::fboss

@@ -20,6 +20,7 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/DsfNodeMap.h"
+#include "fboss/agent/state/FibInfoDelta.h"
 #include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/state/ForwardingInformationBaseDelta.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
@@ -102,6 +103,7 @@ class StateDelta {
 
   MultiSwitchMapDelta<MultiSwitchTransceiverMap> getTransceiversDelta() const;
   MultiSwitchForwardingInformationBaseMapDelta getFibsDelta() const;
+  MultiSwitchFibInfoMapDelta getFibsInfoDelta() const;
   MultiSwitchMapDelta<MultiLabelForwardingInformationBase>
   getLabelForwardingInformationBaseDelta() const;
   ThriftMapDelta<MultiSwitchSettings> getSwitchSettingsDelta() const;

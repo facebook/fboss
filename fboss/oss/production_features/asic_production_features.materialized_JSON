@@ -128,7 +128,8 @@
         70,
         75,
         76,
-        77
+        77,
+        89
     ],
     "ramon3": [
         1,
@@ -359,7 +360,9 @@
         87,
         88,
         89,
-        90
+        90,
+        94,
+        93
     ],
     "tomahawk6": [
         2,
@@ -595,7 +598,8 @@
         "SELF_HEALING_ECMP_LAG",
         "GLOBAL_TC_RATE_LIMIT",
         "COPP_SHAPER",
-        "COPP_SCHEDULER"
+        "COPP_SCHEDULER",
+        "AM_IDLES"
     ],
     "ramon3": [
         "FABRIC",
@@ -826,7 +830,9 @@
         "UDF_HASH",
         "INTER_PACKET_GAP",
         "AM_IDLES",
-        "ALTERNATE_ARS_MEMBERS"
+        "ALTERNATE_ARS_MEMBERS",
+        "L2_QOS",
+        "PFC_TX_DURATION"
     ],
     "tomahawk6": [
         "CPU_RX_TX",

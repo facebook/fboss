@@ -218,10 +218,11 @@ std::string utility::EthFrame::toString() const {
      << " v6 : " << (v6PayLoad_.has_value() ? v6PayLoad_->toString() : "")
      << " v4 : " << (v4PayLoad_.has_value() ? v4PayLoad_->toString() : "")
      << " mac control: "
-     << (macControlPayload_ ? PktUtil::hexDump(folly::IOBuf(
-                                  folly::IOBuf::CopyBufferOp::COPY_BUFFER,
-                                  macControlPayload_->data(),
-                                  macControlPayload_->size()))
+     << (macControlPayload_ ? PktUtil::hexDump(
+                                  folly::IOBuf(
+                                      folly::IOBuf::CopyBufferOp::COPY_BUFFER,
+                                      macControlPayload_->data(),
+                                      macControlPayload_->size()))
                             : "");
   return ss.str();
 }

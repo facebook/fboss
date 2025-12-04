@@ -76,17 +76,18 @@ cpp_library(
         "TCPPacket.cpp",
         "UDPDatagram.cpp",
     ],
+    deps = [
+        "//common/logging:logging",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:hw_switch",
+        "//folly:network_address",
+    ],
     exported_deps = [
         ":ether_type",
         ":packet",
-        ":pktutil",
-        "//common/logging:logging",
-        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
-        "//fboss/agent:hw_switch",
         "//fboss/agent:packet",
         "//fboss/agent/packet:sflow_structs",
-        "//folly:network_address",
         "//folly/io:iobuf",
     ],
 )

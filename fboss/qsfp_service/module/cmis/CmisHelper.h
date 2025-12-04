@@ -69,7 +69,9 @@ class CmisHelper final {
             facebook::fboss::cfg::PortSpeed::EIGHTHUNDREDG,
             {SMFMediaInterfaceCode::FR8_800G,
              SMFMediaInterfaceCode::DR4_800G,
-             SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G},
+             SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G,
+             SMFMediaInterfaceCode::ZR_OIF_ZRA_800G,
+             SMFMediaInterfaceCode::ZR_VENDOR_CUSTOM},
         }};
     return smfSpeedApplicationMapping_;
   }
@@ -90,6 +92,8 @@ class CmisHelper final {
         {SMFMediaInterfaceCode::DR1_100G, MediaInterfaceCode::DR1_100G},
         {SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G,
          MediaInterfaceCode::ZR_800G},
+        {SMFMediaInterfaceCode::ZR_OIF_ZRA_800G, MediaInterfaceCode::ZR_800G},
+        {SMFMediaInterfaceCode::ZR_VENDOR_CUSTOM, MediaInterfaceCode::ZR_800G},
     };
     return smfMediaInterfaceMapping_;
   }
@@ -298,6 +302,14 @@ class CmisHelper final {
             // 800G ZR
             SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G,
         },
+        {
+            // 800G ZR OIF ZRA
+            SMFMediaInterfaceCode::ZR_OIF_ZRA_800G,
+        },
+        {
+            // 800G ZR Vendor Custom
+            SMFMediaInterfaceCode::ZR_VENDOR_CUSTOM,
+        },
     };
     return smfOsfpValidSpeedCombinations_;
   }
@@ -305,7 +317,7 @@ class CmisHelper final {
   static const ActiveMediaInterfaceMap& getActiveMediaInterfaceMapping() {
     static const ActiveMediaInterfaceMap activeMediaInterfaceMapping_ = {
         {ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-         MediaInterfaceCode::CR4_100G},
+         MediaInterfaceCode::CR1_100G},
         {ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
          MediaInterfaceCode::CR4_200G},
         {ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
@@ -337,17 +349,6 @@ class CmisHelper final {
         activeOsfpValidSpeedCombinations_ = {
             /* These rates are not supported/tested as of now
                         {
-                            // 2xCR4_100G
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                        },
-                        {
                             // 2xCR4_200G
                             ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
                             ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
@@ -359,6 +360,17 @@ class CmisHelper final {
                             ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
                         },
             */
+            {
+                // 2xCR4_100G
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+            },
             {
                 // 2xCR4_400G
                 ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,

@@ -1,11 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/AsicUtils.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
-#include "fboss/agent/test/utils/FabricTestUtils.h"
-
-#include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
 namespace {
 constexpr auto kPrbsPolynomial = 9;
@@ -16,6 +12,28 @@ namespace facebook::fboss {
 
 class AgentPrbsTest : public AgentHwTest {
  public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentHwTest::initialConfig(ensemble);
+    if (isYubaAsic(ensemble)) {
+      for (auto& port : *cfg.ports()) {
+        port.loopbackMode() = cfg::PortLoopbackMode::PHY;
+      }
+    }
+    return cfg;
+  }
+
+  bool isYubaAsic(const AgentEnsemble& ensemble) const {
+    if (ensemble.getNumL3Asics() >= 1) {
+      auto l3Asics = ensemble.getL3Asics();
+      auto asic = checkSameAndGetAsic(l3Asics);
+      if (cfg::AsicType::ASIC_TYPE_YUBA == asic->getAsicType()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     return {ProductionFeature::PRBS};

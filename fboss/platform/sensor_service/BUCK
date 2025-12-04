@@ -103,6 +103,7 @@ cpp_library(
         "fbsource//third-party/re2:re2",
         "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
         "//folly/logging:logging",
+        "//thrift/lib/cpp2:field_ref",
     ],
 )
 

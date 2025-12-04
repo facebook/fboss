@@ -95,8 +95,9 @@ void printAggregate(
     for (auto& result : results) {
       auto [host, data, errStr] = result.get();
       if (errStr.empty()) {
-        hostAggResults.push_back(facebook::fboss::performAggregation<CmdTypeT>(
-            data, parsedAgg, validAggMap));
+        hostAggResults.push_back(
+            facebook::fboss::performAggregation<CmdTypeT>(
+                data, parsedAgg, validAggMap));
       } else {
         std::cerr << host << "::" << std::endl
                   << std::string(80, '=') << std::endl;
@@ -170,9 +171,10 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
   auto extraOptionsEC =
       CmdGlobalOptions::getInstance()->validateNonFilterOptions();
   if (extraOptionsEC != cli::CliOptionResult::EOK) {
-    throw std::invalid_argument(folly::to<std::string>(
-        "Error in filter parsing: ",
-        apache::thrift::util::enumNameSafe(extraOptionsEC)));
+    throw std::invalid_argument(
+        folly::to<std::string>(
+            "Error in filter parsing: ",
+            apache::thrift::util::enumNameSafe(extraOptionsEC)));
   }
 
   /* If there are errors during filter parsing, we do not exit in the getFilters
@@ -184,9 +186,10 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
   auto parsedFilters =
       CmdGlobalOptions::getInstance()->getFilters(filterParsingEC);
   if (filterParsingEC != cli::CliOptionResult::EOK) {
-    throw std::invalid_argument(folly::to<std::string>(
-        "Error in filter parsing: ",
-        apache::thrift::util::enumNameSafe(filterParsingEC)));
+    throw std::invalid_argument(
+        folly::to<std::string>(
+            "Error in filter parsing: ",
+            apache::thrift::util::enumNameSafe(filterParsingEC)));
   }
 
   ValidFilterMapType validFilters = {};
@@ -195,9 +198,10 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
     const auto& errorCode =
         CmdGlobalOptions::getInstance()->isValid(validFilters, parsedFilters);
     if (!(errorCode == cli::CliOptionResult::EOK)) {
-      throw std::invalid_argument(folly::to<std::string>(
-          "Error in filter parsing: ",
-          apache::thrift::util::enumNameSafe(errorCode)));
+      throw std::invalid_argument(
+          folly::to<std::string>(
+              "Error in filter parsing: ",
+              apache::thrift::util::enumNameSafe(errorCode)));
     }
   }
 
@@ -206,9 +210,10 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
       CmdGlobalOptions::getInstance()->parseAggregate(aggParsingEC);
 
   if (aggParsingEC != cli::CliOptionResult::EOK) {
-    throw std::invalid_argument(folly::to<std::string>(
-        "Error in aggregate parsing: ",
-        apache::thrift::util::enumNameSafe(aggParsingEC)));
+    throw std::invalid_argument(
+        folly::to<std::string>(
+            "Error in aggregate parsing: ",
+            apache::thrift::util::enumNameSafe(aggParsingEC)));
   }
 
   ValidAggMapType validAggs = {};
@@ -217,9 +222,10 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
     const auto& errorCode = CmdGlobalOptions::getInstance()->isValidAggregate(
         validAggs, parsedAggregationInput);
     if (errorCode != cli::CliOptionResult::EOK) {
-      throw std::invalid_argument(folly::to<std::string>(
-          "Error in Aggregate validation: ",
-          apache::thrift::util::enumNameSafe(errorCode)));
+      throw std::invalid_argument(
+          folly::to<std::string>(
+              "Error in Aggregate validation: ",
+              apache::thrift::util::enumNameSafe(errorCode)));
     }
   }
 
@@ -228,22 +234,24 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
   if (hosts.size() > 1 &&
       CmdTypeT::Traits::CLI_READ_WRITE_MODE ==
           CliReadWriteMode::CLI_MODE_WRITE) {
-    throw std::invalid_argument(folly::to<std::string>(
-        "multi host operation is supported on read-only commands"));
+    throw std::invalid_argument(
+        folly::to<std::string>(
+            "multi host operation is supported on read-only commands"));
   }
 
   std::vector<std::shared_future<std::tuple<std::string, RetType, std::string>>>
       futureList;
 
   for (const auto& host : hosts) {
-    futureList.push_back(std::async(
-                             std::launch::async,
-                             &CmdHandler::asyncHandler,
-                             this,
-                             host,
-                             parsedFilters,
-                             validFilters)
-                             .share());
+    futureList.push_back(
+        std::async(
+            std::launch::async,
+            &CmdHandler::asyncHandler,
+            this,
+            host,
+            parsedFilters,
+            validFilters)
+            .share());
   }
 
   if (!parsedAggregationInput.has_value()) {

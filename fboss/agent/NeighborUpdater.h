@@ -75,9 +75,10 @@ class NeighborUpdater : public StateObserver {
 #define ARG_FORWARDER(TYPE, NAME) std::forward<T_##NAME>(NAME)
 #define ARG_NAME_ONLY(TYPE, NAME) NAME
 #define NEIGHBOR_UPDATER_METHOD(VISIBILITY, NAME, RETURN_TYPE, ...)           \
-  VISIBILITY : template <ARG_LIST(ARG_TEMPLATE_PARAMETER, ##__VA_ARGS__)>     \
-               folly::Future<folly::lift_unit_t<RETURN_TYPE>>                 \
-               NAME(ARG_LIST(ARG_RVALUE_REF_TYPE, ##__VA_ARGS__)) {           \
+  VISIBILITY:                                                                 \
+  template <ARG_LIST(ARG_TEMPLATE_PARAMETER, ##__VA_ARGS__)>                  \
+  folly::Future<folly::lift_unit_t<RETURN_TYPE>> NAME(                        \
+      ARG_LIST(ARG_RVALUE_REF_TYPE, ##__VA_ARGS__)) {                         \
     return folly::via(sw_->getNeighborCacheEvb(), [=, impl = this->impl_]() { \
       return std::visit(                                                      \
           [&](auto&& arg) {                                                   \
@@ -88,7 +89,8 @@ class NeighborUpdater : public StateObserver {
   }
 
 #define NEIGHBOR_UPDATER_METHOD_NO_ARGS(VISIBILITY, NAME, RETURN_TYPE)     \
-  VISIBILITY : folly::Future<folly::lift_unit_t<RETURN_TYPE>> NAME() {     \
+  VISIBILITY:                                                              \
+  folly::Future<folly::lift_unit_t<RETURN_TYPE>> NAME() {                  \
     return folly::via(sw_->getNeighborCacheEvb(), [impl = this->impl_]() { \
       return std::visit([&](auto&& arg) { return arg.NAME(); }, *impl);    \
     });                                                                    \

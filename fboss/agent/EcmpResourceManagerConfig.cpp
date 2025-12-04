@@ -37,10 +37,10 @@ EcmpResourceManagerConfig::EcmpResourceManagerConfig(
 bool EcmpResourceManagerConfig::ecmpLimitReached(
     uint32_t primaryEcmpGroups,
     uint32_t ecmpGroupMembers) const {
-  CHECK_LE(primaryEcmpGroups, maxHwEcmpGroups_);
-  CHECK(!maxHwEcmpMembers_ || ecmpGroupMembers <= *maxHwEcmpMembers_);
-  return primaryEcmpGroups == maxHwEcmpGroups_ ||
-      (maxHwEcmpMembers_.has_value() && ecmpGroupMembers == *maxHwEcmpMembers_);
+  DCHECK_LE(primaryEcmpGroups, maxHwEcmpGroups_);
+  DCHECK(!maxHwEcmpMembers_ || ecmpGroupMembers <= *maxHwEcmpMembers_);
+  return primaryEcmpGroups >= maxHwEcmpGroups_ ||
+      (maxHwEcmpMembers_.has_value() && ecmpGroupMembers >= *maxHwEcmpMembers_);
 }
 
 uint32_t EcmpResourceManagerConfig::computeMaxHwEcmpGroups(

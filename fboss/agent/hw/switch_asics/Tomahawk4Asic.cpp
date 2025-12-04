@@ -41,7 +41,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
     case HwAsic::Feature::PKTIO:
-    case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
     case HwAsic::Feature::OBM_COUNTERS:
     case HwAsic::Feature::BUFFER_POOL:
@@ -240,6 +239,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
+    case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
       return false;
   }
   return false;
@@ -323,7 +323,7 @@ std::optional<uint32_t> Tomahawk4Asic::getMaxArsGroups() const {
 }
 
 std::optional<uint32_t> Tomahawk4Asic::getArsBaseIndex() const {
-  return std::nullopt;
+  return getMaxEcmpGroups().value() - getMaxArsGroups().value();
 }
 
 } // namespace facebook::fboss

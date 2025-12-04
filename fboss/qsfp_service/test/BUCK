@@ -16,7 +16,7 @@ cpp_binary(
         "//common/init:init",
         "//fboss/qsfp_service:handler",
         "//fboss/qsfp_service:port-manager",
-        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
+        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",  # @manual
         "//folly:singleton",
         "//folly/executors:function_scheduler",
         "//thrift/lib/cpp2:server",
@@ -62,6 +62,7 @@ cpp_unittest(
     deps = [
         ":transceiver_manager_test_helper",
         "//fboss/lib:common_file_utils",
+        "//fboss/qsfp_service/module/tests:mock-headers",
     ],
 )
 
@@ -80,6 +81,8 @@ cpp_unittest(
         "//fboss/lib/bsp/minipack3n:minipack3n_bsp",
         "//fboss/lib/bsp/montblanc:montblanc_bsp",
         "//fboss/lib/bsp/tahansb800bc:tahansb800bc_bsp",
+        "//fboss/lib/bsp/wedge800bact:wedge800bact_bsp",
+        "//fboss/lib/bsp/wedge800cact:wedge800cact_bsp",
         "//folly/testing:test_util",
     ],
 )

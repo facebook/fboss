@@ -3,6 +3,7 @@
 #include <folly/Benchmark.h>
 #include <unordered_set>
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/test/benchmarks/HwBenchmarkUtils.h"
 
@@ -32,11 +33,18 @@ size_t updateXphyStats() {
   // IPHY is not programmed in this test, hence override its programming
   gflags::SetCommandLineOptionWithMode(
       "override_program_iphy_ports_for_test", "1", gflags::SET_FLAGS_DEFAULT);
-  auto wedgeMgr = setupForColdboot();
+  std::unique_ptr<WedgeManager> wedgeMgr;
+  std::unique_ptr<PortManager> portMgr;
+  std::tie(wedgeMgr, portMgr) = setupForColdboot();
   wedgeMgr->init();
+  if (FLAGS_port_manager_mode) {
+    portMgr->init();
+  }
 
   // Filter out enabled ports on the config that have XPHY in the datapath
-  auto xphyPorts = wedgeMgr->getPhyManager()->getXphyPorts();
+  auto phyMgr = FLAGS_port_manager_mode ? portMgr->getPhyManager()
+                                        : wedgeMgr->getPhyManager();
+  auto xphyPorts = phyMgr->getXphyPorts();
   auto enabledPorts = getEnabledPorts(wedgeMgr.get());
   std::vector<PortID> enabledXphyPorts;
   for (auto port : xphyPorts) {
@@ -46,16 +54,20 @@ size_t updateXphyStats() {
   }
 
   // Refresh state machines till all enabled XPHY ports are programmed
-  auto refreshStateMachinesTillXphyProgrammed = [&wedgeMgr,
-                                                 &enabledXphyPorts]() {
-    wedgeMgr->refreshStateMachines();
-    for (auto id : enabledXphyPorts) {
-      if (!wedgeMgr->getPhyManager()->getProgrammedSpeed(id).has_value()) {
-        return false;
-      }
-    }
-    return true;
-  };
+  auto refreshStateMachinesTillXphyProgrammed =
+      [&wedgeMgr, &portMgr, &phyMgr, &enabledXphyPorts]() {
+        if (FLAGS_port_manager_mode) {
+          portMgr->refreshStateMachines();
+        } else {
+          wedgeMgr->refreshStateMachines();
+        }
+        for (const auto& id : enabledXphyPorts) {
+          if (!phyMgr->getProgrammedSpeed(id).has_value()) {
+            return false;
+          }
+        }
+        return true;
+      };
 
   // Retry until all enabled XPHY ports get programmed
   checkWithRetry(
@@ -65,9 +77,9 @@ size_t updateXphyStats() {
       "Never got all xphys programmed");
 
   // Wait till stats collection is done at least once on all enabled xphy ports
-  auto waitForStatsCollectionDone = [&wedgeMgr, &enabledXphyPorts]() {
+  auto waitForStatsCollectionDone = [&phyMgr, &enabledXphyPorts]() {
     for (auto port : enabledXphyPorts) {
-      if (!wedgeMgr->getPhyManager()->isXphyStatsCollectionDone(port)) {
+      if (!phyMgr->isXphyStatsCollectionDone(port)) {
         return false;
       }
     }
@@ -76,7 +88,12 @@ size_t updateXphyStats() {
   suspender.dismiss();
   // Start benchmarking
 
-  wedgeMgr->updateAllXphyPortsStats();
+  if (FLAGS_port_manager_mode) {
+    portMgr->updateAllXphyPortsStats();
+  } else {
+    wedgeMgr->updateAllXphyPortsStats();
+  }
+
   checkWithRetry(
       waitForStatsCollectionDone,
       180 * 1000 /* retry for 3 minutes */,

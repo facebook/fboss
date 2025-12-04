@@ -8,11 +8,21 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
+DEFINE_bool(
+    qsfp_port_manager_mode,
+    false,
+    "Set to true to enable Port Manager mode. This means PortManager object will manage all port-level logic and TransceiverManager object will only manage transceiver-level logic.");
+
 namespace facebook::fboss::utility {
 const std::vector<std::string> kRestartQsfpService = {
     "/bin/systemctl",
     "restart",
     "qsfp_service_for_testing"};
+
+const std::vector<std::string> kRestartQsfpServiceOss = {
+    "/bin/systemctl",
+    "restart",
+    "qsfp_service_oss"};
 
 const std::string kForceColdbootQsfpSvcFileName =
     "/dev/shm/fboss/qsfp_service/cold_boot_once_qsfp_service";
@@ -33,8 +43,12 @@ void restartQsfpService(bool coldboot) {
   } else {
     XLOG(DBG2) << "Restarting QSFP Service in warmboot mode";
   }
-
+#ifdef IS_OSS
+  folly::Subprocess(kRestartQsfpServiceOss).waitChecked();
+#else
   folly::Subprocess(kRestartQsfpService).waitChecked();
+
+#endif
 }
 
 // Retrieves the config validation status for all active transceivers. Strings
@@ -92,16 +106,19 @@ void getAllTransceiverConfigValidationStatuses(
 }
 
 void waitForAllTransceiverStates(
-    bool up,
+    bool enabled,
     const std::set<TransceiverID>& cabledTransceivers,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) {
+  auto expectedTcvrState = enabled ? TransceiverStateMachineState::ACTIVE
+                                   : TransceiverStateMachineState::INACTIVE;
+  if (FLAGS_qsfp_port_manager_mode) {
+    expectedTcvrState = enabled
+        ? TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED
+        : TransceiverStateMachineState::TRANSCEIVER_READY;
+  }
   waitForStateMachineState(
-      cabledTransceivers,
-      up ? TransceiverStateMachineState::ACTIVE
-         : TransceiverStateMachineState::INACTIVE,
-      retries,
-      msBetweenRetry);
+      cabledTransceivers, expectedTcvrState, retries, msBetweenRetry);
 }
 
 void waitForStateMachineState(
@@ -179,6 +196,67 @@ void includeLpoTransceivers(
   }
 }
 
+void waitForPortStateMachineState(
+    bool enabled,
+    const std::vector<PortID>& portsToCheck,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) {
+  if (!FLAGS_qsfp_port_manager_mode) {
+    return;
+  }
+  XLOG(DBG2) << "Checking qsfp PortStateMachineState on "
+             << folly::join(",", portsToCheck);
+
+  auto stateMachineState = enabled ? PortStateMachineState::PORT_UP
+                                   : PortStateMachineState::UNINITIALIZED;
+  std::vector<int32_t> expectedPorts;
+  expectedPorts.reserve(portsToCheck.size());
+  for (auto portID : portsToCheck) {
+    expectedPorts.push_back(static_cast<int32_t>(portID));
+  }
+
+  std::vector<int32_t> badPorts;
+  while (retries--) {
+    badPorts.clear();
+    std::map<int32_t, PortStateMachineState> info;
+    try {
+      auto qsfpServiceClient = utils::createQsfpServiceClient();
+      qsfpServiceClient->sync_getPortStateMachineState(info, expectedPorts);
+    } catch (const std::exception& ex) {
+      // We have retry mechanism to handle failure. No crash here
+      XLOG(WARN) << "Failed to call qsfp_service getPortStateMachineState(). "
+                 << folly::exceptionStr(ex);
+    }
+    // Check whether all expected ports have expected state
+    for (auto portID : expectedPorts) {
+      // Only continue if the port state machine matches
+      if (auto portInfoIt = info.find(portID); portInfoIt != info.end()) {
+        if (portInfoIt->second == stateMachineState) {
+          continue;
+        }
+      }
+      // Otherwise such port is considered to be in a bad state
+      badPorts.push_back(portID);
+    }
+
+    if (badPorts.empty()) {
+      XLOG(DBG2) << "All qsfp PortStateMachineState on "
+                 << folly::join(",", expectedPorts) << " match "
+                 << apache::thrift::util::enumNameSafe(stateMachineState);
+      return;
+    } else {
+      /* sleep override */
+      std::this_thread::sleep_for(msBetweenRetry);
+    }
+  }
+
+  throw FbossError(
+      "Ports:[",
+      folly::join(",", badPorts),
+      "] don't have expected PortStateMachineState:",
+      apache::thrift::util::enumNameSafe(stateMachineState));
+}
+
 // Wait until we have successfully fetched transceiver info (and thus know
 // which transceivers are available for testing)
 std::map<int32_t, TransceiverInfo> waitForTransceiverInfo(
@@ -228,8 +306,9 @@ std::map<std::string, MediaInterfaceCode> getPortToMediaInterface() {
 const TransceiverSpec* getTransceiverSpec(const SwSwitch* sw, PortID portId) {
   auto& platformPort = sw->getPlatformMapping()->getPlatformPort(portId);
   const auto& chips = sw->getPlatformMapping()->getChips();
-  if (auto tcvrID = utility::getTransceiverId(platformPort, chips)) {
-    auto transceiver = sw->getState()->getTransceivers()->getNodeIf(*tcvrID);
+  if (auto tcvrIds = utility::getTransceiverIds(platformPort, chips);
+      !tcvrIds.empty()) {
+    auto transceiver = sw->getState()->getTransceivers()->getNodeIf(tcvrIds[0]);
     return transceiver.get();
   }
   return nullptr;

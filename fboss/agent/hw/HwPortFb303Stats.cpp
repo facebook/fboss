@@ -54,8 +54,6 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kPqpErrorEgressDroppedPackets(),
       kFabricLinkDownDroppedCells(),
       kLinkLayerFlowControlWatermark(),
-      kPfcDeadlockDetection(),
-      kPfcDeadlockRecovery(),
       kMacTransmitQueueStuck(),
       kFabricControlRxPackets(),
       kFabricControlTxPackets(),
@@ -136,6 +134,15 @@ HwPortFb303Stats::kPfcMonotonicCounterStatKeys() const {
       kOutPfc(),
   };
   return kPfcKeys;
+}
+
+const std::vector<folly::StringPiece>&
+HwPortFb303Stats::kPfcDeadlockMonotonicCounterStatKeys() const {
+  static std::vector<folly::StringPiece> kPfcDeadlockKeys{
+      kPfcDeadlockDetection(),
+      kPfcDeadlockRecovery(),
+  };
+  return kPfcDeadlockKeys;
 }
 
 const std::vector<folly::StringPiece>&
@@ -256,18 +263,6 @@ void HwPortFb303Stats::updateStats(
         timeRetrieved_,
         kLinkLayerFlowControlWatermark(),
         *curPortStats.linkLayerFlowControlWatermark_());
-  }
-  if (curPortStats.pfcDeadlockDetection_().has_value()) {
-    updateStat(
-        timeRetrieved_,
-        kPfcDeadlockDetection(),
-        *curPortStats.pfcDeadlockDetection_());
-  }
-  if (curPortStats.pfcDeadlockRecovery_().has_value()) {
-    updateStat(
-        timeRetrieved_,
-        kPfcDeadlockRecovery(),
-        *curPortStats.pfcDeadlockRecovery_());
   }
   if (curPortStats.macTransmitQueueStuck_().has_value()) {
     updateStat(
@@ -456,15 +451,62 @@ void HwPortFb303Stats::updateStats(
   if (getEnabledPfcPriorities().size()) {
     updateStat(timeRetrieved_, kInPfc(), inPfc);
     updateStat(timeRetrieved_, kOutPfc(), outPfc);
+    if (curPortStats.pfcDeadlockDetection_().has_value()) {
+      updateStat(
+          timeRetrieved_,
+          kPfcDeadlockDetection(),
+          *curPortStats.pfcDeadlockDetection_());
+    }
+    if (curPortStats.pfcDeadlockRecovery_().has_value()) {
+      updateStat(
+          timeRetrieved_,
+          kPfcDeadlockRecovery(),
+          *curPortStats.pfcDeadlockRecovery_());
+    }
   }
 
-  // PG stats
-  for (const auto& [pgId, discards] : *curPortStats.pgInCongestionDiscards_()) {
-    updatePgStat(timeRetrieved_, kInCongestionDiscards(), pgId, discards);
+  // PFC duration stats
+  if (curPortStats.rxPfcDurationUsec_()->size()) {
+    for (const auto& priority : getEnabledPfcPriorities()) {
+      updatePfcStat(
+          kRxPfcDurationUsec(),
+          priority,
+          *curPortStats.rxPfcDurationUsec_(),
+          nullptr);
+    }
   }
-  for (const auto& [pgId, discardSeen] :
-       *curPortStats.pgInCongestionDiscardSeen_()) {
-    setPgCounter(timeRetrieved_, kInCongestionDiscardSeen(), pgId, discardSeen);
+  if (curPortStats.txPfcDurationUsec_()->size()) {
+    for (const auto& priority : getEnabledPfcPriorities()) {
+      updatePfcStat(
+          kTxPfcDurationUsec(),
+          priority,
+          *curPortStats.txPfcDurationUsec_(),
+          nullptr);
+    }
+  }
+
+  // Update PG stats if applicable.
+  // Note: There is a 1:1 mapping between priority and PG id.
+  if (curPortStats.pgInCongestionDiscards_()->size()) {
+    for (const auto& pgId : getEnabledPfcPriorities()) {
+      auto pgStatsIter = curPortStats.pgInCongestionDiscards_()->find(pgId);
+      if (pgStatsIter != curPortStats.pgInCongestionDiscards_()->end()) {
+        updatePgStat(
+            timeRetrieved_, kInCongestionDiscards(), pgId, pgStatsIter->second);
+      }
+    }
+  }
+  if (curPortStats.pgInCongestionDiscardSeen_()->size()) {
+    for (const auto& pgId : getEnabledPfcPriorities()) {
+      auto pgStatsIter = curPortStats.pgInCongestionDiscardSeen_()->find(pgId);
+      if (pgStatsIter != curPortStats.pgInCongestionDiscardSeen_()->end()) {
+        setPgCounter(
+            timeRetrieved_,
+            kInCongestionDiscardSeen(),
+            pgId,
+            pgStatsIter->second);
+      }
+    }
   }
 
   portStats_ = curPortStats;

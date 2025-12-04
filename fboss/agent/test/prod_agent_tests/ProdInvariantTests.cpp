@@ -287,23 +287,25 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
   // To account for switches that take longer to update port stats, bump sleep
   // time to 100ms.
   if (ecmpPorts_.size() == 0) {
-    EXPECT_TRUE(utility::verifyQueueMappingsInvariantSinglePortHelper(
-        q2dscpMap,
-        getSw(),
-        getSw()->getState(),
-        getPortStatsFn,
-        getDownlinkPort(),
-        100 /* sleep in ms */));
+    EXPECT_TRUE(
+        utility::verifyQueueMappingsInvariantSinglePortHelper(
+            q2dscpMap,
+            getSw(),
+            getSw()->getState(),
+            getPortStatsFn,
+            getDownlinkPort(),
+            100 /* sleep in ms */));
     XLOG(DBG2) << "Verify DSCP to Queue Mapping Done for single port";
     std::this_thread::sleep_for(std::chrono::seconds(1));
   } else {
-    EXPECT_TRUE(utility::verifyQueueMappingsInvariantEcmpHelper(
-        q2dscpMap,
-        getSw(),
-        getSw()->getState(),
-        getPortStatsFn,
-        getEcmpPortIds(),
-        100 /* sleep in ms */));
+    EXPECT_TRUE(
+        utility::verifyQueueMappingsInvariantEcmpHelper(
+            q2dscpMap,
+            getSw(),
+            getSw()->getState(),
+            getPortStatsFn,
+            getEcmpPortIds(),
+            100 /* sleep in ms */));
     XLOG(DBG2) << "Verify DSCP to Queue Mapping Done";
     std::this_thread::sleep_for(std::chrono::seconds(1));
   }
@@ -366,6 +368,7 @@ void ProdInvariantTest::verifySafeDiagCommands() {
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
     case cfg::AsicType::ASIC_TYPE_RAMON:
@@ -589,13 +592,14 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
   }
 
   void verifyFlowletAcls() {
+    auto config = getSw()->getConfig();
     // verify udf roce opcode ACL
     sendAndVerifyRoCETraffic(
         utility::kUdfRoceOpcodeAck,
         utility::kUdfAclRoceOpcodeName,
-        utility::kUdfAclRoceOpcodeStats);
+        utility::isSaiConfig(config) ? utility::kUdfAclRoceOpcodeName
+                                     : utility::kUdfAclRoceOpcodeStats);
 
-    auto config = getSw()->getConfig();
     // verify flowlet ACL to enable DLB
     sendAndVerifyRoCETraffic(
         utility::kUdfRoceOpcodeWriteImmediate,
@@ -643,19 +647,17 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
 
   void verifyDlbGroups() {
     // DLB groups can be either spray or flowlet
-    std::vector<EcmpDetails> ecmpGroups;
-
-    if (getSw()->isRunModeMonolithic()) {
-      ecmpGroups = getSw()->getMonolithicHwSwitchHandler()->getAllEcmpDetails();
-    } else {
-      throw FbossError(
-          "getAllEcmpDetails is not supported in multi-switch mode");
-    }
-    XLOG(DBG2) << "ECMP group count " << ecmpGroups.size();
-    for (auto ecmpGroup : ecmpGroups) {
-      XLOG(DBG2) << "ECMP ID: " << *(ecmpGroup.ecmpId());
-      ASSERT_TRUE(*(ecmpGroup.flowletEnabled()));
-    }
+    // Verify that the default route uses dynamic load balancing (DLB)
+    RoutePrefixV6 defaultPrefix{folly::IPAddressV6("::"), 0};
+    auto switchingMode = getAgentEnsemble()->getFwdSwitchingMode(defaultPrefix);
+    XLOG(DBG2) << "Default route switching mode: "
+               << apache::thrift::util::enumNameSafe(switchingMode);
+    WITH_RETRIES({
+      // DLB modes are FLOWLET_QUALITY and PER_PACKET_QUALITY
+      EXPECT_TRUE(
+          switchingMode == cfg::SwitchingMode::FLOWLET_QUALITY ||
+          switchingMode == cfg::SwitchingMode::PER_PACKET_QUALITY);
+    });
     XLOG(DBG2) << "Verify DLB groups Done";
   }
 
