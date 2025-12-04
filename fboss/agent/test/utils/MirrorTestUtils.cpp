@@ -10,17 +10,17 @@ namespace facebook::fboss::utility {
 template <>
 MirrorTestParams<folly::IPAddressV4> getMirrorTestParams<folly::IPAddressV4>() {
   return MirrorTestParams<folly::IPAddressV4>(
-      folly::IPAddressV4("101.0.0.10"), // sender
-      folly::IPAddressV4("201.0.0.10"), // receiver
-      folly::IPAddressV4("101.0.0.11")); // erspan destination
+      folly::IPAddressV4("101.101.0.10"), // sender
+      folly::IPAddressV4("201.201.0.10"), // receiver
+      folly::IPAddressV4("101.101.0.11")); // erspan destination
 }
 
 template <>
 MirrorTestParams<folly::IPAddressV6> getMirrorTestParams<folly::IPAddressV6>() {
   return MirrorTestParams<folly::IPAddressV6>(
-      folly::IPAddressV6("101::10"), // sender
-      folly::IPAddressV6("201::10"), // receiver
-      folly::IPAddressV6("101::11")); // erspan destination
+      folly::IPAddressV6("1001::10"), // sender
+      folly::IPAddressV6("2001::10"), // receiver
+      folly::IPAddressV6("1001::11")); // erspan destination
 }
 
 folly::IPAddress getSflowMirrorDestination(bool isV4) {
