@@ -33,7 +33,7 @@ std::shared_ptr<FibInfo> createFibInfo(RouterID vrf) {
   auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
   auto fibContainer = createFibContainer(vrf);
   fibsMap->updateForwardingInformationBaseContainer(fibContainer);
-  fibInfo->ref<switch_state_tags::fibsMap>() = fibsMap;
+  fibInfo->resetFibsMap(fibsMap);
   return fibInfo;
 }
 
@@ -302,7 +302,7 @@ TEST_F(MultiSwitchFibInfoMapTest, GetRouteCount) {
   fibContainer->setFib(fibV6.clone());
 
   fibsMap->updateForwardingInformationBaseContainer(fibContainer);
-  fibInfo->ref<switch_state_tags::fibsMap>() = fibsMap;
+  fibInfo->resetFibsMap(fibsMap);
 
   // Add FibInfo to FibInfoMap
   auto matcher = createMatcher(10);
