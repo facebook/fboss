@@ -58,6 +58,9 @@ class FsdbSubManager : public FsdbSubManagerBase {
     // Minimum lastServedAt timestamp in milliseconds across all paths
     // (optional, only if metadata available)
     std::optional<int64_t> lastServedAt;
+    // Maximum lastPublishedAt timestamps in milliseconds across all paths
+    // (optional, only if metadata available)
+    std::optional<int64_t> lastPublishedAt;
   };
 
   using DataCallback = std::function<void(SubUpdate)>;
@@ -134,6 +137,7 @@ class FsdbSubManager : public FsdbSubManagerBase {
     std::vector<std::vector<std::string>> changedPaths;
     changedPaths.reserve(chunk.patchGroups()->size());
     std::optional<int64_t> lastServedAt;
+    std::optional<int64_t> lastPublishedAt;
 
     for (auto& [key, patchGroup] : *chunk.patchGroups()) {
       for (auto& patch : patchGroup) {
@@ -154,6 +158,13 @@ class FsdbSubManager : public FsdbSubManagerBase {
             lastServedAt = patchLastServedAt;
           }
         }
+        if (metadata.lastPublishedAt().has_value()) {
+          auto patchLastPublishedAt = *metadata.lastPublishedAt();
+          if (!lastPublishedAt.has_value() ||
+              patchLastPublishedAt > *lastPublishedAt) {
+            lastPublishedAt = patchLastPublishedAt;
+          }
+        }
         changedKeys.push_back(key);
         changedPaths.emplace_back(*patch.basePath());
         root_.patch(std::move(patch));
@@ -164,7 +175,8 @@ class FsdbSubManager : public FsdbSubManagerBase {
         root_.root(),
         std::move(changedKeys),
         std::move(changedPaths),
-        lastServedAt};
+        lastServedAt,
+        lastPublishedAt};
     cb(std::move(update));
   }
 
