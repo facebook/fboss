@@ -53,7 +53,8 @@ void I2cLogBuffer::log(
   }
   std::lock_guard<std::mutex> g(mutex_);
   if ((op == Operation::Read && readLog_) ||
-      (op == Operation::Write && writeLog_)) {
+      (op == Operation::Write && writeLog_) || (op == Operation::Reset) ||
+      ((op == Operation::Presence))) {
     auto& bufferHead = buffer_[head_];
     bufferHead.steadyTime = std::chrono::steady_clock::now();
     bufferHead.systemTime = std::chrono::system_clock::now();
@@ -259,7 +260,22 @@ std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
     getOptional(ss, param.bank);
     ss << std::setfill(' ') << std::setw(3) << param.offset << " ";
     ss << std::setfill(' ') << std::setw(3) << param.len << " ";
-    ss << (entry.op == Operation::Read ? "R" : "W");
+    std::string opChar;
+    switch (entry.op) {
+      case Operation::Read:
+        opChar = "R";
+        break;
+      case Operation::Write:
+        opChar = "W";
+        break;
+      case Operation::Reset:
+        opChar = "T";
+        break;
+      case Operation::Presence:
+        opChar = "P";
+        break;
+    }
+    ss << opChar;
     ss << "> ";
     if (entry.success) {
       ss << " ";
@@ -315,9 +331,12 @@ I2cLogBuffer::Operation I2cLogBuffer::getOp(const char op) {
       return Operation::Read;
     case 'W':
       return Operation::Write;
-    default:
-      throw std::invalid_argument(fmt::format("Invalid Operation :{}", op));
+    case 'T':
+      return Operation::Reset;
+    case 'P':
+      return Operation::Presence;
   }
+  throw std::invalid_argument(fmt::format("Invalid Operation :{}", op));
 }
 
 std::array<uint8_t, kMaxI2clogDataSize> I2cLogBuffer::getData(std::string str) {

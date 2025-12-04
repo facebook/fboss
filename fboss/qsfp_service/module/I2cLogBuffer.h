@@ -46,6 +46,8 @@ class I2cLogBuffer {
   enum class Operation {
     Read = 0,
     Write = 1,
+    Reset = 2,
+    Presence = 3,
   };
 
   // Log Entry.
