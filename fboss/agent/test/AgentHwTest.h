@@ -123,7 +123,8 @@ class AgentHwTest : public ::testing::Test {
   bool isSupportedOnAllAsics(HwAsic::Feature feature) const;
   AgentEnsemble* getAgentEnsemble() const;
   const std::shared_ptr<SwitchState> getProgrammedState() const;
-  std::vector<PortID> masterLogicalPortIds() const;
+  std::vector<PortID> masterLogicalPortIds(
+      std::optional<SwitchID> switchId = std::nullopt) const;
   std::vector<PortID> masterLogicalPortIds(
       const std::set<cfg::PortType>& portTypes) const;
   std::vector<PortID> masterLogicalPortIds(
@@ -140,6 +141,12 @@ class AgentHwTest : public ::testing::Test {
   }
   std::vector<PortID> masterLogicalHyperPortIds() const {
     return masterLogicalPortIds({cfg::PortType::HYPER_PORT});
+  }
+  std::vector<PortID> masterLogicalInterfacePortIds(SwitchID switchId) const {
+    return masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}, switchId);
+  }
+  std::vector<PortID> masterLogicalHyperPortIds(SwitchID switchId) const {
+    return masterLogicalPortIds({cfg::PortType::HYPER_PORT}, switchId);
   }
   void setSwitchDrainState(
       const cfg::SwitchConfig& curConfig,

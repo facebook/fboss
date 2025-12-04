@@ -274,6 +274,11 @@ DEFINE_int32(
     0,
     "switch index under test. Used for testing NPU specific features.");
 
+DEFINE_int32(
+    switch_id_for_testing,
+    0,
+    "switch ID under test. Used for testing NPU specific features.");
+
 DEFINE_uint32(
     counter_refresh_interval,
     1,
