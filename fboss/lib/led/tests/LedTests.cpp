@@ -81,25 +81,17 @@ class LedTests : public ::testing::Test {
   void VerifyYellowBlink(const std::string& ledBlinkSpeed) {
     std::string yellow;
     folly::readFile(yellowDelayOn_.c_str(), yellow);
-    EXPECT_TRUE(ledBlinkSpeed == yellow);
+    EXPECT_EQ(ledBlinkSpeed, yellow);
     folly::readFile(yellowTrigger_.c_str(), yellow);
-    if (ledBlinkSpeed == "0") {
-      EXPECT_TRUE(yellow.empty());
-    } else {
-      EXPECT_TRUE("timer" == yellow);
-    }
+    EXPECT_EQ("timer", yellow);
   }
 
   void VerifyBlueBlink(const std::string& ledBlinkSpeed) {
     std::string blue;
     folly::readFile(blueDelayOn_.c_str(), blue);
-    EXPECT_TRUE(ledBlinkSpeed == blue);
+    EXPECT_EQ(ledBlinkSpeed, blue);
     folly::readFile(blueTrigger_.c_str(), blue);
-    if (ledBlinkSpeed == "0") {
-      EXPECT_TRUE(blue.empty());
-    } else {
-      EXPECT_TRUE("timer" == blue);
-    }
+    EXPECT_EQ("timer", blue);
   }
 
   folly::test::TemporaryDirectory tmpDir_;
@@ -178,6 +170,7 @@ TEST_F(LedTests, TestBlink) {
   ledMapping.yellowPath() = yellowBasePath_;
   // Instantiating Led object will write 0 to both blue and yellow LED
   // files and set current color to Off
+
   led_ = std::make_unique<LedIO>(ledMapping);
   led_->setLedState(
       utility::constructLedState(led::LedColor::YELLOW, led::Blink::SLOW));
