@@ -547,7 +547,7 @@ struct ExtendedPathVisitor<apache::thrift::type_class::variant> {
 
       std::string memberName = params.options.outputIdPaths
           ? folly::to<std::string>(descriptor::metadata::id::value)
-          : std::string(fatal::z_data<name>(), fatal::size<name>::value);
+          : std::string(fatal::z_data<name>());
 
       params.path.push_back(std::move(memberName));
 
@@ -642,7 +642,7 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
 
       std::string memberName = params.options.outputIdPaths
           ? folly::to<std::string>(member::id::value)
-          : std::string(fatal::z_data<name>(), fatal::size<name>::value);
+          : std::string(fatal::z_data<name>());
 
       params.path.push_back(std::move(memberName));
 
@@ -687,7 +687,7 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
 
       std::string memberName = params.options.outputIdPaths
           ? folly::to<std::string>(member::id::value)
-          : std::string(fatal::z_data<name>(), fatal::size<name>::value);
+          : std::string(fatal::z_data<name>());
 
       params.path.push_back(std::move(memberName));
 
@@ -730,7 +730,7 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
       }
       std::string memberName = params.options.outputIdPaths
           ? folly::to<std::string>(member::id::value)
-          : std::string(fatal::z_data<name>(), fatal::size<name>::value);
+          : std::string(fatal::z_data<name>());
 
       params.path.push_back(std::move(memberName));
 

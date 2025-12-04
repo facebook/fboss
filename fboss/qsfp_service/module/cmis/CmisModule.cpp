@@ -232,8 +232,20 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::APP_SEL_LANE_7, {CmisPages::PAGE10, 151, 1}},
     {CmisField::APP_SEL_LANE_8, {CmisPages::PAGE10, 152, 1}},
     {CmisField::RX_CONTROL_PRE_CURSOR, {CmisPages::PAGE10, 162, 4}},
+    {CmisField::RX_CONTROL_PRE_CURSOR_LANE_01, {CmisPages::PAGE10, 162, 1}},
+    {CmisField::RX_CONTROL_PRE_CURSOR_LANE_23, {CmisPages::PAGE10, 163, 1}},
+    {CmisField::RX_CONTROL_PRE_CURSOR_LANE_45, {CmisPages::PAGE10, 164, 1}},
+    {CmisField::RX_CONTROL_PRE_CURSOR_LANE_67, {CmisPages::PAGE10, 165, 1}},
     {CmisField::RX_CONTROL_POST_CURSOR, {CmisPages::PAGE10, 166, 4}},
+    {CmisField::RX_CONTROL_POST_CURSOR_LANE_01, {CmisPages::PAGE10, 166, 1}},
+    {CmisField::RX_CONTROL_POST_CURSOR_LANE_23, {CmisPages::PAGE10, 167, 1}},
+    {CmisField::RX_CONTROL_POST_CURSOR_LANE_45, {CmisPages::PAGE10, 168, 1}},
+    {CmisField::RX_CONTROL_POST_CURSOR_LANE_67, {CmisPages::PAGE10, 169, 1}},
     {CmisField::RX_CONTROL_MAIN, {CmisPages::PAGE10, 170, 4}},
+    {CmisField::RX_CONTROL_MAIN_LANE_01, {CmisPages::PAGE10, 170, 1}},
+    {CmisField::RX_CONTROL_MAIN_LANE_23, {CmisPages::PAGE10, 171, 1}},
+    {CmisField::RX_CONTROL_MAIN_LANE_45, {CmisPages::PAGE10, 172, 1}},
+    {CmisField::RX_CONTROL_MAIN_LANE_67, {CmisPages::PAGE10, 173, 1}},
     // Page 11h
     {CmisField::PAGE_UPPER11H, {CmisPages::PAGE11, 128, 128}},
     {CmisField::DATA_PATH_STATE, {CmisPages::PAGE11, 128, 4}},
@@ -482,6 +494,29 @@ std::array<CmisField, 4> prbsChkHostPatternFields = {
     CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_4_3,
     CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_6_5,
     CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_8_7,
+};
+
+// Each of the configuration byte controls 2 lanes. There are 4 bytes each for
+// pre-cursor, post-cursor and main amplitude. In this map, key is 0-3 (one of
+// the 4 bytes), and the value is a list of CmisField for settings corresponding
+// to that index
+std::map<int, std::vector<CmisField>> offsetIndexToCmisField = {
+    {0,
+     {CmisField::RX_CONTROL_PRE_CURSOR_LANE_01,
+      CmisField::RX_CONTROL_POST_CURSOR_LANE_01,
+      CmisField::RX_CONTROL_MAIN_LANE_01}},
+    {1,
+     {CmisField::RX_CONTROL_PRE_CURSOR_LANE_23,
+      CmisField::RX_CONTROL_POST_CURSOR_LANE_23,
+      CmisField::RX_CONTROL_MAIN_LANE_23}},
+    {2,
+     {CmisField::RX_CONTROL_PRE_CURSOR_LANE_45,
+      CmisField::RX_CONTROL_POST_CURSOR_LANE_45,
+      CmisField::RX_CONTROL_MAIN_LANE_45}},
+    {3,
+     {CmisField::RX_CONTROL_PRE_CURSOR_LANE_67,
+      CmisField::RX_CONTROL_POST_CURSOR_LANE_67,
+      CmisField::RX_CONTROL_MAIN_LANE_67}},
 };
 
 void getQsfpFieldAddress(
@@ -1247,11 +1282,10 @@ bool CmisModule::isModuleInReadyState() {
                          MODULE_STATUS_BITSHIFT) == CmisModuleState::READY);
 
   if (isReady) {
-    QSFP_LOG(INFO, this)
-        << "isModuleInReadyState: Module is in high power and READY state";
+    QSFP_LOG(INFO, this) << "isModuleInReadyState: Module is in READY state";
   } else {
     QSFP_LOG(INFO, this)
-        << "isModuleInReadyState: Module in high power but not ready yet - need more time to be ready";
+        << "isModuleInReadyState: Module is not ready yet - need more time to be ready";
   }
 
   return isReady;
@@ -1461,7 +1495,14 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
     // SNR value are LSB.
     uint16_t value = data[1] << 8 | data[0];
     channel.sensors()->rxSnr() = Sensor();
-    channel.sensors()->rxSnr()->value() = CmisFieldInfo::getSnr(value);
+
+    // Compute SNR value from raw value
+    double snrValue = CmisFieldInfo::getSnr(value);
+
+    // Apply Rx-SNR correction (returns corrected value)
+    snrValue = applyRxSnrCorrection(value, snrValue);
+
+    channel.sensors()->rxSnr()->value() = snrValue;
     data += 2;
     length--;
   }
@@ -1536,7 +1577,7 @@ SignalFlags CmisModule::getSignalFlagInfo() {
  * location (page, offset and length). These config could be module based config
  * or lane/datapath based config. The function updates the lowest offset of the
  * corresponding VDM data value. For config present in VDM page 0x20-23, the
- * coresponding data is present in VDM pages 0x24-27
+ * corresponding data is present in VDM pages 0x24-27
  */
 void CmisModule::updateVdmDiagsValLocation() {
   if (!cacheIsValid() || !isVdmSupported()) {
@@ -2508,23 +2549,128 @@ void CmisModule::setMaxFecSamplingLocked() {
 }
 
 /*
- * setApplicationCodeLocked
+ * programApplicationSelectCode
  *
- * This function programs the application select code for a port using the speed
- * value, start lane number and number of lanes. It goes through module's
- * advertised media interface support capabilities to find appropriate
- * application code tp program. If required, it programs valid configuration on
- * other lanes of the module also.
+ * Helper function to program a given AppSel code to the module. This contains
+ * the common logic for resetting datapath, programming the AppSel code,
+ * waiting for the module to process, and verifying the configuration.
+ *
+ * If appSelectFunc is provided, it will be used. Otherwise, the default
+ * setApplicationSelectCode will be used.
  */
-void CmisModule::setApplicationCodeLocked(
+void CmisModule::programApplicationSelectCode(
+    uint8_t appSelCode,
+    uint8_t moduleMediaInterfaceCode,
+    uint8_t startHostLane,
+    uint8_t numHostLanes,
+    std::optional<std::function<void()>> appSelectFunc) {
+  uint8_t hostLaneMask = laneMask(startHostLane, numHostLanes);
+
+  // Use provided function or create default one
+  if (!appSelectFunc) {
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "Programming App sel on lanes {:#x}", hostLaneMask);
+
+    appSelectFunc = std::bind(
+        &CmisModule::setApplicationSelectCode,
+        this,
+        appSelCode,
+        moduleMediaInterfaceCode,
+        startHostLane,
+        numHostLanes,
+        hostLaneMask);
+  }
+
+  resetDataPathWithFunc(appSelectFunc, hostLaneMask);
+
+  datapathResetPendingMask_ &= ~hostLaneMask;
+
+  // Certain OSFP Modules require a long time to finish application
+  // programming. The modules say config is accepted and applied, but
+  // internally the module will still be processing the config. If we don't
+  // have a delay here, the next application programming on a different lane
+  // gets rejected.
+  /* sleep override */
+  usleep(kUsecAfterAppProgramming);
+
+  // Check if the config has been applied correctly or not
+  // TODO: This is a failure scenario. We should Fail somehow !
+  if (!checkLaneConfigError(startHostLane, numHostLanes)) {
+    QSFP_LOG(ERR, this) << folly::sformat(
+        "application {:#x} could not be set", moduleMediaInterfaceCode);
+  }
+}
+
+/*
+ * getInterfaceCodeForAppSel
+ *
+ * Helper function to read an interface code (host or media) for a given AppSel
+ * code from the EEPROM based on the byte offset.
+ * - For media interface code, use byteOffset = kMediaInterfaceCodeOffset (1)
+ * - For host interface code, use byteOffset = kHostInterfaceCodeOffset (0)
+ */
+uint8_t CmisModule::getInterfaceCodeForAppSel(
+    uint8_t appSelCode,
+    int byteOffset) {
+  if (appSelCode == 0 || appSelCode > 15) {
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "Invalid appSelCode {:#x}, returning 0", appSelCode);
+    return 0;
+  }
+
+  uint8_t interfaceCode = 0;
+  int offset;
+  int length;
+  int dataAddress;
+
+  if (appSelCode >= 1 && appSelCode <= 8) {
+    getQsfpFieldAddress(
+        CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
+    offset += (appSelCode - 1) * length + byteOffset;
+    getQsfpValue(dataAddress, offset, 1, &interfaceCode);
+  } else if (appSelCode >= 9 && appSelCode <= 15) {
+    getQsfpFieldAddress(
+        CmisField::APPLICATION_ADVERTISING2, dataAddress, offset, length);
+    offset += (appSelCode - 9) * length + byteOffset;
+    getQsfpValue(dataAddress, offset, 1, &interfaceCode);
+  }
+
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "interfaceCode: {:#x} for appSelCode {:#x} byteOffset {}",
+      interfaceCode,
+      appSelCode,
+      byteOffset);
+
+  return interfaceCode;
+}
+
+/*
+ * getCurrentAppSelCode
+ *
+ * Helper function to read the current application select code for a given lane.
+ */
+uint8_t CmisModule::getCurrentAppSelCode(uint8_t startHostLane) {
+  uint8_t currentApplicationSel =
+      getSettingsValue(laneToActiveCtrlField[startHostLane], APP_SEL_MASK);
+  return currentApplicationSel >> APP_SEL_BITSHIFT;
+}
+
+/*
+ * getAppSelCodeForSpeed
+ *
+ * Helper function that discovers and returns the appropriate application
+ * capability based on module capabilities and speed requirements. Returns
+ * the full ApplicationAdvertisingField if a suitable application is found,
+ * or std::nullopt if no matching application is available or if the current
+ * config already matches.
+ */
+std::optional<CmisModule::ApplicationAdvertisingField>
+CmisModule::getAppSelCodeForSpeed(
     cfg::PortSpeed speed,
     uint8_t startHostLane,
     uint8_t numHostLanesForPort) {
-  QSFP_LOG(INFO, this) << folly::sformat(
-      "Trying to set application code for speed {} on startHostLane {}",
-      apache::thrift::util::enumNameSafe(speed),
-      startHostLane);
   std::vector<uint8_t> appCodes;
+
   if (isAecModule()) {
     appCodes = CmisHelper::getInterfaceCode<ActiveCuHostInterfaceCode>(
         speed, CmisHelper::getActiveSpeedApplication());
@@ -2532,6 +2678,7 @@ void CmisModule::setApplicationCodeLocked(
     appCodes = CmisHelper::getInterfaceCode<SMFMediaInterfaceCode>(
         speed, CmisHelper::getSmfSpeedApplicationMapping());
   }
+
   if (appCodes.empty()) {
     QSFP_LOG(INFO, this) << "Unsupported Speed.";
     throw FbossError(
@@ -2541,16 +2688,13 @@ void CmisModule::setApplicationCodeLocked(
             " Unsupported speed: ",
             apache::thrift::util::enumNameSafe(speed)));
   }
+
   QSFP_LOG(INFO, this) << "Application codes supporting current speed: "
                        << folly::join(",", appCodes);
 
   // Currently we will have the same application across all the lanes. So here
   // we only take one of them to look at.
-  uint8_t currentApplicationSel =
-      getSettingsValue(laneToActiveCtrlField[startHostLane], APP_SEL_MASK);
-
-  // The application sel code is at the higher four bits of the field.
-  currentApplicationSel = currentApplicationSel >> APP_SEL_BITSHIFT;
+  uint8_t currentApplicationSel = getCurrentAppSelCode(startHostLane);
 
   QSFP_LOG(INFO, this) << folly::sformat(
       "currentApplicationSel: {:#x} speed {:s} startHostLane {:d} numHostLanesForPort {:d}",
@@ -2558,11 +2702,6 @@ void CmisModule::setApplicationCodeLocked(
       apache::thrift::util::enumNameSafe(speed),
       startHostLane,
       numHostLanesForPort);
-
-  uint8_t currentApplication;
-  int offset;
-  int length;
-  int dataAddress;
 
   // We use the module Media Interface ID for Optical modules, which is located
   // at the second byte of the field (byteOffset = 1), as Application ID here.
@@ -2572,27 +2711,12 @@ void CmisModule::setApplicationCodeLocked(
   int byteOffset =
       isAecModule() ? kHostInterfaceCodeOffset : kMediaInterfaceCodeOffset;
 
-  // For ApSel value 1 to 8 get the current application from Page 0
-  // For ApSel value 9 to 15 get the current application from page 1
-  // ApSel value 0 means application not selected yet
-  if (currentApplicationSel >= 1 && currentApplicationSel <= 8) {
-    getQsfpFieldAddress(
-        CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
-    // Use host or media application offset based on byteOffset
-    offset += (currentApplicationSel - 1) * length + byteOffset;
-    getQsfpValue(dataAddress, offset, 1, &currentApplication);
-    QSFP_LOG(INFO, this) << folly::sformat(
-        "currentApplication: {:#x}", currentApplication);
-  } else if (currentApplicationSel >= 9 && currentApplicationSel <= 15) {
-    getQsfpFieldAddress(
-        CmisField::APPLICATION_ADVERTISING2, dataAddress, offset, length);
-    // Use host or media application offset based on byteOffset
-    offset += (currentApplicationSel - 9) * length + byteOffset;
-    getQsfpValue(dataAddress, offset, 1, &currentApplication);
-    QSFP_LOG(INFO, this) << folly::sformat(
-        "currentApplication: {:#x}", currentApplication);
+  // Get the current application interface code based on module type
+  uint8_t currentApplication = 0;
+  if (currentApplicationSel >= 1 && currentApplicationSel <= 15) {
+    currentApplication =
+        getInterfaceCodeForAppSel(currentApplicationSel, byteOffset);
   } else {
-    currentApplication = 0; // dummy value
     QSFP_LOG(INFO, this) << "currentApplication: not selected yet";
   }
 
@@ -2617,8 +2741,6 @@ void CmisModule::setApplicationCodeLocked(
       continue;
     }
 
-    uint8_t hostLaneMask = laneMask(startHostLane, numHostLanes);
-
     // If the currently configured application is the same as what we are trying
     // to configure, then skip the configuration
     if (application == currentApplication) {
@@ -2627,6 +2749,7 @@ void CmisModule::setApplicationCodeLocked(
           currentApplication);
       // Make sure the datapath is initialized, otherwise initialize it before
       // returning
+      uint8_t hostLaneMask = laneMask(startHostLane, numHostLanes);
       if (datapathResetPendingMask_ & hostLaneMask) {
         resetDataPathWithFunc(std::nullopt, hostLaneMask);
         datapathResetPendingMask_ &= ~hostLaneMask;
@@ -2634,60 +2757,13 @@ void CmisModule::setApplicationCodeLocked(
             "Reset datapath for lane mask {:#x} before returning",
             hostLaneMask);
       }
-      return;
+      return std::nullopt;
     }
 
-    // In 400G-FR4 case we will have 8 host lanes instead of 4. Further more,
-    // we need to deactivate all the lanes when we switch to an application with
-    // a different lane count. CMIS4.0-8.8.4
-    if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
-        !isRequestValidMultiportSpeedConfig(
-            speed, startHostLane, numHostLanes)) {
-      QSFP_LOG(INFO, this) << "Programming App sel on ALL lanes";
-      resetDataPathWithFunc(
-          std::bind(
-              &CmisModule::setApplicationSelectCodeAllPorts,
-              this,
-              speed,
-              startHostLane,
-              numHostLanes,
-              hostLaneMask)); // To use the default hostLaneMask = 0xFF for
-                              // all the lanes datapath reset.
-    } else {
-      QSFP_LOG(INFO, this) << folly::sformat(
-          "Programming App sel on lanes {:#x}", hostLaneMask);
-      resetDataPathWithFunc(
-          std::bind(
-              &CmisModule::setApplicationSelectCode,
-              this,
-              capability->ApSelCode,
-              capability->moduleMediaInterface,
-              startHostLane,
-              numHostLanes,
-              hostLaneMask),
-          hostLaneMask);
-    }
-
-    datapathResetPendingMask_ &= ~hostLaneMask;
-
-    // Certain OSFP Modules require a long time to finish application
-    // programming. The modules say config is accepted and applied, but
-    // internally the module will still be processing the config. If we don't
-    // have a delay here, the next application programming on a different lane
-    // gets rejected.
-    /* sleep override */
-    usleep(kUsecAfterAppProgramming);
-
-    // Check if the config has been applied correctly or not
-    // TODO: This is a failure scenario. We should Fail somehow !
-    if (!checkLaneConfigError(startHostLane, numHostLanes)) {
-      QSFP_LOG(ERR, this) << folly::sformat(
-          "application {:#x} could not be set",
-          capability->moduleMediaInterface);
-    }
-    // Done with application configuration
-    return;
+    // Found a matching application - return the full capability
+    return *capability;
   }
+
   // We didn't find an application that both we support and the module supports
   QSFP_LOG(INFO, this) << "Unsupported Application";
   throw FbossError(
@@ -2695,6 +2771,100 @@ void CmisModule::setApplicationCodeLocked(
           "Port: ",
           qsfpImpl_->getName(),
           " Unsupported Application by the module: "));
+}
+
+/*
+ * setApplicationCodeLocked
+ *
+ * This function programs the application select code for a port using the speed
+ * value, start lane number and number of lanes. It goes through module's
+ * advertised media interface support capabilities to find appropriate
+ * application code tp program. If required, it programs valid configuration on
+ * other lanes of the module also.
+ */
+void CmisModule::setApplicationCodeLocked(
+    cfg::PortSpeed speed,
+    uint8_t startHostLane,
+    uint8_t numHostLanesForPort,
+    uint8_t newAppSelCode) {
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "Trying to set application code for speed {} on startHostLane {}",
+      apache::thrift::util::enumNameSafe(speed),
+      startHostLane);
+
+  // For tunable optics, directly program the AppSel code from config
+  if (isTunableOptics()) {
+    if (newAppSelCode == kInvalidApplication) {
+      throw FbossError("newAppSelCode is invalid for tunable optics");
+    }
+
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "Direct AppSelCode programming for speed {} on startHostLane {} newAppSelCode {}",
+        apache::thrift::util::enumNameSafe(speed),
+        startHostLane,
+        newAppSelCode);
+
+    // Check if current AppSel matches the desired one
+    uint8_t currentAppSelCode = getCurrentAppSelCode(startHostLane);
+    if (currentAppSelCode == newAppSelCode) {
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "AppSel code matches: current {:#x} new {:#x}, skipping programming",
+          currentAppSelCode,
+          newAppSelCode);
+      return;
+    }
+
+    // Get the media interface code and program the AppSel
+    uint8_t moduleMediaInterfaceCode =
+        getInterfaceCodeForAppSel(newAppSelCode, kMediaInterfaceCodeOffset);
+
+    programApplicationSelectCode(
+        newAppSelCode,
+        moduleMediaInterfaceCode,
+        startHostLane,
+        numHostLanesForPort);
+    return;
+  }
+
+  // For non-tunable optics, discover the AppSel code based on capabilities
+  auto capability =
+      getAppSelCodeForSpeed(speed, startHostLane, numHostLanesForPort);
+
+  // If nullopt, means current config already matches, nothing to do
+  if (!capability) {
+    return;
+  }
+
+  uint8_t appSelCode = capability->ApSelCode;
+  uint8_t moduleMediaInterfaceCode = capability->moduleMediaInterface;
+  uint8_t numHostLanes = capability->hostLaneCount;
+
+  // Handle special OSFP multiport case
+  // In 400G-FR4 case we will have 8 host lanes instead of 4. Further more,
+  // we need to deactivate all the lanes when we switch to an application with
+  // a different lane count. CMIS4.0-8.8.4
+  std::optional<std::function<void()>> appSelectFunc = std::nullopt;
+
+  if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
+      !isRequestValidMultiportSpeedConfig(speed, startHostLane, numHostLanes)) {
+    QSFP_LOG(INFO, this) << "Programming App sel on ALL lanes";
+    uint8_t hostLaneMask = laneMask(startHostLane, numHostLanes);
+    appSelectFunc = std::bind(
+        &CmisModule::setApplicationSelectCodeAllPorts,
+        this,
+        speed,
+        startHostLane,
+        numHostLanes,
+        hostLaneMask);
+  }
+
+  // Use programApplicationSelectCode for both cases
+  programApplicationSelectCode(
+      appSelCode,
+      moduleMediaInterfaceCode,
+      startHostLane,
+      numHostLanes,
+      appSelectFunc);
 }
 
 /*
@@ -2985,9 +3155,14 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
    * This must be called with a lock held on qsfpModuleMutex_
    */
   if (customizationSupported()) {
-    // We want this on regardless of speed
-    setPowerOverrideIfSupportedLocked(
-        getPowerControlValue(false /* readFromCache */));
+    if (!programAppSelInLowPowerMode()) {
+      // We want this on regardless of speed
+      setPowerOverrideIfSupportedLocked(
+          getPowerControlValue(false /* readFromCache */));
+    } else {
+      QSFP_LOG(INFO, this)
+          << "Module is kept in low power mode for AppSel programming and skipping power override";
+    }
 
     if (isTunableOptics()) {
       if (portState.opticalChannelConfig.has_value()) {
@@ -2998,25 +3173,42 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
     }
 
     if (speed != cfg::PortSpeed::DEFAULT) {
-      setApplicationCodeLocked(speed, startHostLane, numHostLanes);
+      setApplicationCodeLocked(
+          speed, startHostLane, numHostLanes, kInvalidApplication);
     }
 
+    // For 200G-FR4 module operating in 2x50G mode, disable squelch on all lanes
+    // so that each lanes can operate independently
+    if (getModuleMediaInterface() == MediaInterfaceCode::FR4_200G &&
+        speed == cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG) {
+      uint8_t squelchDisableValue = 0xF;
+      writeCmisField(CmisField::TX_SQUELCH_DISABLE, &squelchDisableValue);
+      writeCmisField(CmisField::RX_SQUELCH_DISABLE, &squelchDisableValue);
+      QSFP_LOG(DBG1, this) << "Disabled TX and RX Squelch";
+    }
     // Set the FEC sampling if applicable.
     setMaxFecSamplingLocked();
     // Handle vendor-specific low power mode clearing after AppSel programming
     if (programAppSelInLowPowerMode()) {
-      uint8_t currentModuleControl;
-      readCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
-      uint8_t newModuleControl = currentModuleControl & ~LOW_PWR_BIT;
-      QSFP_LOG(INFO, this) << folly::sformat(
-          "Clearing low power bit to enable high power mode: {:#x}",
-          newModuleControl);
-      writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
+      const PowerControlState powerState = getCurrentPowerControlState();
+      if (powerState == PowerControlState::HIGH_POWER_OVERRIDE &&
+          isModuleInReadyState()) {
+        QSFP_LOG(INFO, this) << "Module already in high power and ready state";
+      } else {
+        uint8_t currentModuleControl;
+        readCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
+        uint8_t newModuleControl = currentModuleControl & ~LOW_PWR_BIT;
+        QSFP_LOG(INFO, this) << folly::sformat(
+            "Clearing low power bit to enable high power mode: {:#x} currentModuleControl: {:#x})",
+            newModuleControl,
+            currentModuleControl);
+        writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
 
-      getCurrentPowerControlState();
+        getCurrentPowerControlState();
 
-      if (!moduleReadyStatePoll()) {
-        QSFP_LOG(ERR, this) << "Module not in ready state";
+        if (!moduleReadyStatePoll()) {
+          QSFP_LOG(ERR, this) << "Module not in ready state";
+        }
       }
     }
   } else {
@@ -3428,20 +3620,48 @@ void CmisModule::setModuleRxEqualizerLocked(
     uint8_t startHostLane,
     uint8_t hostLaneCount) {
   uint8_t currPre[4], currPost[4], currMain[4];
+  // Read the existing settings to compare with desired settings later
+  readCmisField(CmisField::RX_OUT_PRE_CURSOR, currPre);
+  readCmisField(CmisField::RX_OUT_POST_CURSOR, currPost);
+  readCmisField(CmisField::RX_OUT_MAIN, currMain);
+
   uint8_t desiredPre[4], desiredPost[4], desiredMain[4];
+  // Initialize desired settings with the current settings
+  for (int i = 0; i < 4; i++) {
+    desiredPre[i] = currPre[i];
+    desiredPost[i] = currPost[i];
+    desiredMain[i] = currMain[i];
+  }
   bool changePre = false, changePost = false, changeMain = false;
 
   QSFP_LOG(INFO, this) << "setModuleRxEqualizerLocked called with startLane = "
                        << startHostLane
                        << ", hostLaneCount = " << hostLaneCount;
 
-  for (int i = 0; i < 4; i++) {
-    desiredPre[i] = ((*rxEqualizer.preCursor() & 0xf) << 4) |
-        (*rxEqualizer.preCursor() & 0xf);
-    desiredPost[i] = ((*rxEqualizer.postCursor() & 0xf) << 4) |
-        (*rxEqualizer.postCursor() & 0xf);
-    desiredMain[i] = ((*rxEqualizer.mainAmplitude() & 0xf) << 4) |
-        (*rxEqualizer.mainAmplitude() & 0xf);
+  // Update the desired settings for the relevant lanes
+  for (auto lane = startHostLane; lane <= (startHostLane + hostLaneCount - 1);
+       lane++) {
+    // Two lanes share the same byte. offsetIndex tracks which of the 4 bytes
+    // corresponds to lane
+    int offsetIndex = lane / 2;
+    // For odd lanes, values are at the upper 4 bits. shiftOffset will be 4 for
+    // odd lanes, 0 for even lanes
+    int shiftOffset = 0;
+    if (lane % 2) {
+      shiftOffset = 4;
+    }
+    // Clear the bits so that we can set them next
+    desiredPre[offsetIndex] &= ~(0xf << shiftOffset);
+    desiredPost[offsetIndex] &= ~(0xf << shiftOffset);
+    desiredMain[offsetIndex] &= ~(0xf << shiftOffset);
+
+    // Set the settings for the corresponding lane
+    desiredPre[offsetIndex] |=
+        ((*rxEqualizer.preCursor() & 0xf) << shiftOffset);
+    desiredPost[offsetIndex] |=
+        ((*rxEqualizer.postCursor() & 0xf) << shiftOffset);
+    desiredMain[offsetIndex] |=
+        ((*rxEqualizer.mainAmplitude() & 0xf) << shiftOffset);
   }
 
   auto compareSettings = [startHostLane, hostLaneCount](
@@ -3450,7 +3670,8 @@ void CmisModule::setModuleRxEqualizerLocked(
                              int length,
                              bool& changeNeeded) {
     // Two lanes share the same byte so loop only until numLanes / 2
-    for (auto i = startHostLane; i <= (startHostLane + hostLaneCount - 1) / 2;
+    for (auto i = startHostLane / 2;
+         i <= (startHostLane + hostLaneCount - 1) / 2;
          i++) {
       if (i < length && currSettings[i] != desiredSettings[i]) {
         // Some of the pre-cursor value needs to be changed so break from
@@ -3462,46 +3683,33 @@ void CmisModule::setModuleRxEqualizerLocked(
   };
 
   // Compare current Pre cursor value to see if the change is needed
-  readCmisField(CmisField::RX_OUT_PRE_CURSOR, currPre);
   compareSettings(currPre, desiredPre, 4, changePre);
-
   // Compare current Post cursor value to see if the change is needed
-  readCmisField(CmisField::RX_OUT_POST_CURSOR, currPost);
   compareSettings(currPost, desiredPost, 4, changePost);
-
   // Compare current Rx Main value to see if the change is needed
-  readCmisField(CmisField::RX_OUT_MAIN, currMain);
   compareSettings(currMain, desiredMain, 4, changeMain);
 
   // If anything is changed then apply the change and trigger it
   if (changePre || changePost || changeMain) {
-    // Apply the change for pre/post/main if needed
-    if (changePre) {
-      writeCmisField(CmisField::RX_CONTROL_PRE_CURSOR, desiredPre);
-      QSFP_LOG(INFO, this) << folly::sformat(
-          "customized for Pre-cursor 0x{:x},0x{:x},0x{:x},0x{:x}",
-          desiredPre[0],
-          desiredPre[1],
-          desiredPre[2],
-          desiredPre[3]);
-    }
-    if (changePost) {
-      writeCmisField(CmisField::RX_CONTROL_POST_CURSOR, desiredPost);
-      QSFP_LOG(INFO, this) << folly::sformat(
-          "customized for Post-cursor 0x{:x},0x{:x},0x{:x},0x{:x}",
-          desiredPost[0],
-          desiredPost[1],
-          desiredPost[2],
-          desiredPost[3]);
-    }
-    if (changeMain) {
-      writeCmisField(CmisField::RX_CONTROL_MAIN, desiredMain);
-      QSFP_LOG(INFO, this) << folly::sformat(
-          "customized for Rx-out-main 0x{:x},0x{:x},0x{:x},0x{:x}",
-          desiredMain[0],
-          desiredMain[1],
-          desiredMain[2],
-          desiredMain[3]);
+    for (auto i = startHostLane / 2;
+         i <= (startHostLane + hostLaneCount - 1) / 2;
+         i++) {
+      // Apply the change for pre/post/main if needed
+      if (changePre) {
+        writeCmisField(offsetIndexToCmisField[i][0], &desiredPre[i]);
+        QSFP_LOG(INFO, this) << folly::sformat(
+            "customized index {:d} for Pre-cursor 0x{:x}", i, desiredPre[i]);
+      }
+      if (changePost) {
+        writeCmisField(offsetIndexToCmisField[i][1], &desiredPost[i]);
+        QSFP_LOG(INFO, this) << folly::sformat(
+            "customized index {:d} for Post-cursor 0x{:x}", i, desiredPost[i]);
+      }
+      if (changeMain) {
+        writeCmisField(offsetIndexToCmisField[i][2], &desiredMain[i]);
+        QSFP_LOG(INFO, this) << folly::sformat(
+            "customized index {:d} for Rx-out-main 0x{:x}", i, desiredMain[i]);
+      }
     }
 
     // Apply the change using stage 0 control
@@ -3534,8 +3742,8 @@ void CmisModule::setModuleRxEqualizerLocked(
  * setDiagsCapability
  *
  * This function reads the module register from cache and populates the
- * diagnostic capability. This function is called from Module State Machine when
- * the MSM enters Module Discovered state after EEPROM read.
+ * diagnostic capability. This function is called from Module State Machine
+ * when the MSM enters Module Discovered state after EEPROM read.
  */
 void CmisModule::setDiagsCapability() {
   if (flatMem_) {
@@ -3631,45 +3839,6 @@ void CmisModule::setDiagsCapability() {
         vdmSupportedGroupsMax_ = (data & VDM_GROUPS_SUPPORT_MASK) + 1;
       }
 
-      if (*diags.cdb()) {
-        CdbCommandBlock commandBlockBuf;
-        // CdbCommandBlock* commandBlock = &commandBlockBuf;
-
-        // Get FW download, FW readback, EPL capability
-        commandBlockBuf.createCdbCmdGetFwFeatureInfo();
-        // Run the CDB command
-        bool status = commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
-
-        // If the CDB command is successfull then the return info is in LPL
-        // memory offset 141, 142. The LPL base offset is 136.
-        if (status && commandBlockBuf.getCdbRlplLength() >= 3) {
-          diags.cdbFirmwareUpgrade() =
-              commandBlockBuf.getCdbLplFlatMemory()[5] != 0;
-          diags.cdbEplMemorySupported() =
-              commandBlockBuf.getCdbLplFlatMemory()[5] ==
-                  CDB_FW_DOWNLOAD_EPL_SUPPORTED ||
-              commandBlockBuf.getCdbLplFlatMemory()[5] ==
-                  CDB_FW_DOWNLOAD_LPL_EPL_SUPPORTED;
-          diags.cdbFirmwareReadback() =
-              commandBlockBuf.getCdbLplFlatMemory()[6] != 0;
-        }
-
-        // Check CDB symbol error histogram command support. If command does
-        // not fail then it is implemented
-        commandBlockBuf.createCdbCmdSymbolErrorHistogram(0, true);
-        diags.cdbSymbolErrorHistogramLine() =
-            commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
-        commandBlockBuf.createCdbCmdSymbolErrorHistogram(0, false);
-        diags.cdbSymbolErrorHistogramSystem() =
-            commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
-        // CDB Rx error histogram
-        commandBlockBuf.createCdbCmdRxErrorHistogram(0, true);
-        diags.cdbRxErrorHistogramLine() =
-            commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
-        commandBlockBuf.createCdbCmdRxErrorHistogram(0, false);
-        diags.cdbRxErrorHistogramSystem() =
-            commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
-      }
       *diagsCapability = diags;
     }
   }
@@ -3795,8 +3964,8 @@ void CmisModule::latchAndReadVdmDataLocked() {
 
   // Write Byte 2F.144, bit 7 to 0 (clear latch)
   latchRequest &= ~FieldMasks::VDM_LATCH_REQUEST_MASK;
-  // Release the latch to resume VDM data collection. This automatically starts
-  // a new VDM interval in HW
+  // Release the latch to resume VDM data collection. This automatically
+  // starts a new VDM interval in HW
   writeCmisField(CmisField::VDM_LATCH_REQUEST, &latchRequest);
   // Wait tNack time
   /* sleep override */
@@ -3857,10 +4026,10 @@ void CmisModule::clearTransceiverPrbsStats(
 /*
  * setPortPrbsLocked
  *
- * This function starts or stops the PRBS generator and checker on a given side
- * of optics (line side or host side). The PRBS is supported on new 200G and
- * 400G CMIS optics.
- * This function expects the caller to hold the qsfp module level lock
+ * This function starts or stops the PRBS generator and checker on a given
+ * side of optics (line side or host side). The PRBS is supported on new 200G
+ * and 400G CMIS optics. This function expects the caller to hold the qsfp
+ * module level lock
  */
 bool CmisModule::setPortPrbsLocked(
     const std::string& portName,
@@ -4072,8 +4241,8 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(
 
     uint8_t patternByte, pattern;
     // Intentionally reading only 1 byte instead of 'length'
-    // We assume the same polynomial is configured on all lanes so only reading
-    // 1 byte which gives the polynomial configured on lane 0
+    // We assume the same polynomial is configured on all lanes so only
+    // reading 1 byte which gives the polynomial configured on lane 0
     cmisRegister = cmisPatternRegister[firstLane / 2];
     readCmisField(cmisRegister, &patternByte);
     pattern = (patternByte >> (((firstLane % 2) * 4))) & 0xF;
@@ -4088,9 +4257,9 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(
 /*
  * getPortPrbsStatsSideLocked
  *
- * This function retrieves the PRBS stats for all the lanes in a module for the
- * given side of optics (line side or host side). The PRBS checker lock and BER
- * stats are returned.
+ * This function retrieves the PRBS stats for all the lanes in a module for
+ * the given side of optics (line side or host side). The PRBS checker lock
+ * and BER stats are returned.
  */
 phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
     phy::Side side,
@@ -4112,8 +4281,8 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
       : phy::PortComponent::TRANSCEIVER_LINE;
 
   if (!checkerEnabled || !lastStats.laneStats()->size()) {
-    // If the checker is not enabled or the stats are uninitialized, return the
-    // default PrbsStats object with some of the parameters initialized
+    // If the checker is not enabled or the stats are uninitialized, return
+    // the default PrbsStats object with some of the parameters initialized
     int lanes = side == Side::SYSTEM ? numHostLanes() : numMediaLanes();
     for (int lane = 0; lane < lanes; lane++) {
       phy::PrbsLaneStats laneStat;
@@ -4225,7 +4394,7 @@ uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
       }
     } else {
       QSFP_LOG(ERR, this) << fmt::format(
-          "Datapath max {:s} time unable to retreive from val map spec {:x}",
+          "Datapath max {:s} time unable to retrieve from val map spec {:x}",
           init ? "init" : "deinit",
           spec);
     }
@@ -4598,8 +4767,8 @@ bool CmisModule::fillVdmPerfMonitorBer(VdmPerfMonitorStats& vdmStats) {
   auto& portNameToMediaLanes = getPortNameToMediaLanes();
   auto& portNameToHostLanes = getPortNameToHostLanes();
 
-  // Lambda to extract BER or Frame Error values for a given VDM config type on
-  // a SW Port
+  // Lambda to extract BER or Frame Error values for a given VDM config type
+  // on a SW Port
   auto captureVdmBerFrameErrorValues =
       [&](VdmConfigType vdmConfType, int startLane) -> std::optional<double> {
     auto [data, length] = getVdmDataValPtr(vdmConfType);
@@ -4682,8 +4851,8 @@ bool CmisModule::fillVdmPerfMonitorFecErr(VdmPerfMonitorStats& vdmStats) {
   auto& portNameToMediaLanes = getPortNameToMediaLanes();
   auto& portNameToHostLanes = getPortNameToHostLanes();
 
-  // Lambda to extract BER or Frame Error values for a given VDM config type on
-  // a SW Port
+  // Lambda to extract BER or Frame Error values for a given VDM config type
+  // on a SW Port
   auto captureVdmBerFrameErrorValues =
       [&](VdmConfigType vdmConfType, int startLane) -> std::optional<double> {
     auto [data, length] = getVdmDataValPtr(vdmConfType);
@@ -4785,8 +4954,9 @@ bool CmisModule::fillVdmPerfMonitorFecTail(VdmPerfMonitorStats& vdmStats) {
     if (auto fecTailMax =
             captureVdmFecTailValues(FEC_TAIL_MEDIA_IN_MAX, startLane)) {
       vdmStats.mediaPortVdmStats()[portName].fecTailMax() = fecTailMax.value();
-      // FIXME: We should check FEC type and set the max supported FEC tail. FEC
-      // Type is currently not available and hence hardcoding to 15 for now
+      // FIXME: We should check FEC type and set the max supported FEC tail.
+      // FEC Type is currently not available and hence hardcoding to 15 for
+      // now
       vdmStats.mediaPortVdmStats()[portName].maxSupportedFecTail() =
           kMaxFecTailRs544;
     }
@@ -4805,8 +4975,9 @@ bool CmisModule::fillVdmPerfMonitorFecTail(VdmPerfMonitorStats& vdmStats) {
     if (auto fecTailMax =
             captureVdmFecTailValues(FEC_TAIL_HOST_IN_MAX, startLane)) {
       vdmStats.hostPortVdmStats()[portName].fecTailMax() = fecTailMax.value();
-      // FIXME: We should check FEC type and set the max supported FEC tail. FEC
-      // Type is currently not available and hence hardcoding to 15 for now
+      // FIXME: We should check FEC type and set the max supported FEC tail.
+      // FEC Type is currently not available and hence hardcoding to 15 for
+      // now
       vdmStats.hostPortVdmStats()[portName].maxSupportedFecTail() =
           kMaxFecTailRs544;
     }
@@ -4821,8 +4992,8 @@ bool CmisModule::fillVdmPerfMonitorFecTail(VdmPerfMonitorStats& vdmStats) {
 /*
  * fillVdmPerfMonitorLtp
  *
- * Private function to fill in the VDM performance monitor stats for LTP (Level
- * Transition Parameter) on Media side
+ * Private function to fill in the VDM performance monitor stats for LTP
+ * (Level Transition Parameter) on Media side
  */
 bool CmisModule::fillVdmPerfMonitorLtp(VdmPerfMonitorStats& vdmStats) {
   if (!isVdmSupported() || !cacheIsValid()) {
@@ -4910,7 +5081,8 @@ bool CmisModule::fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats) {
 /*
  * fillVdmPerfMonitorPam4AlarmData
  *
- * Reads and processes the latched alarm and warning flags for PAM4 MPI values.
+ * Reads and processes the latched alarm and warning flags for PAM4 MPI
+ * values.
  *
  * These flags are stored in VDM page 0x2C, bytes 208-211, with the following
  * bit layout:

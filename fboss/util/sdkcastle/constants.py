@@ -23,3 +23,9 @@ TEST_TYPE_TEAM_MAPPING = {
     "n-warmboot": "sai_agent_test",
     "config": "sai_agent_test",
 }
+
+# Mapping between ASIC and its benchmark config (if config is different from ASIC name)
+BENCHMARK_ASIC_CONFIG = {
+    "tomahawk": "tomahawk_pentium",
+    "tomahawk3": "tomahawk3_pciegen3",
+}

@@ -105,7 +105,7 @@ class QsfpModule : public Transceiver {
   std::string getNameString() const;
 
   virtual void refresh() override;
-  folly::Future<folly::Unit> futureRefresh() override;
+  folly::Future<bool> futureRefresh() override;
 
   void removeTransceiver() override;
 

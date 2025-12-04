@@ -605,6 +605,50 @@
           "test_name_regex": "OpticsFwUpgradeTest.*$"
         }
     ],
+    "wedge800bact/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        }
+    ],
+    "wedge800bact/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        }
+    ],
+    "wedge800cact/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        }
+    ],
+    "wedge800cact/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        }
+    ],
     "yamp_8x16Q/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "DummyTest.*$"

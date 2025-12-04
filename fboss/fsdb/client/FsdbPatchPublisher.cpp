@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/client/FsdbPatchPublisher.h"
+#include "fboss/fsdb/oper/DeltaValue.h"
 
 #include <folly/logging/xlog.h>
 #include <chrono>
@@ -64,6 +65,10 @@ folly::coro::Task<void> FsdbPatchPublisher::serveStream(StreamT&& stream) {
                     .count();
             message.set_heartbeat(std::move(heartbeat));
           } else {
+            if (publishQueueMemoryLimit_ > 0) {
+              size_t pubUnitSize = getPubUnitSize(*patch);
+              servedDataSize_.fetch_add(pubUnitSize);
+            }
             message.set_patch(std::move(*patch));
             if (!initialSyncComplete_) {
               initialSyncComplete_ = true;
@@ -76,4 +81,9 @@ folly::coro::Task<void> FsdbPatchPublisher::serveStream(StreamT&& stream) {
   finalResponseReceiver(finalResponse);
   co_return;
 }
+
+size_t FsdbPatchPublisher::getPubUnitSize(const Patch& patch) {
+  return getPatchNodeSize(*patch.patch());
+}
+
 } // namespace facebook::fboss::fsdb

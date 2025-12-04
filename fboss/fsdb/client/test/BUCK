@@ -14,6 +14,7 @@ cpp_unittest(
         "//fboss/fsdb/client:fsdb_pub_sub",
         "//fboss/fsdb/client:fsdb_stream_client",
         "//fboss/fsdb/common:flags",
+        "//fboss/fsdb/tests/client:fsdb_test_clients",
         "//fboss/lib:common_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly/coro:async_generator",

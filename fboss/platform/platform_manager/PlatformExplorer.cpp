@@ -625,6 +625,13 @@ void PlatformExplorer::explorePciDevices(
         });
     createPciSubDevices(
         slotPath,
+        *pciDeviceConfig.sysLedCtrlConfigs(),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_LED_CTRL,
+        [&](const auto& sysLedCtrlConfig) {
+          pciExplorer_.createFpgaIpBlock(pciDevice, sysLedCtrlConfig, instId++);
+        });
+    createPciSubDevices(
+        slotPath,
         Utils::createXcvrCtrlConfigs(pciDeviceConfig),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_XCVR_CTRL,
         [&](const auto& xcvrCtrlConfig) {

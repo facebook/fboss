@@ -38,19 +38,19 @@ void ConfigDiffer::comparePmSensors(
     const std::vector<sensor_config::PmSensor>& sensors2,
     const std::string& pmUnitName,
     const std::string& versionInfo) {
-  std::map<std::string, sensor_config::PmSensor> map1;
-  std::map<std::string, sensor_config::PmSensor> map2;
+  std::set<std::string> set1;
+  std::set<std::string> set2;
 
   for (const auto& sensor : sensors1) {
-    map1[*sensor.name()] = sensor;
+    set1.insert(*sensor.name());
   }
 
   for (const auto& sensor : sensors2) {
-    map2[*sensor.name()] = sensor;
+    set2.insert(*sensor.name());
   }
 
-  for (const auto& [name, sensor] : map2) {
-    if (map1.find(name) == map1.end()) {
+  for (const auto& name : set2) {
+    if (set1.find(name) == set1.end()) {
       addDifference(pmUnitName, versionInfo, DiffType::ADDED, name, "[ADDED]");
     }
   }
@@ -62,9 +62,7 @@ void ConfigDiffer::compareVersionedSensors(
 
   const auto& pmUnitSensorsList = config.pmUnitSensorsList().value();
   for (const auto& pmUnitSensors : pmUnitSensorsList) {
-    if (!pmUnitSensors.versionedSensors()->empty()) {
-      compareVersionedSensors(config, *pmUnitSensors.pmUnitName());
-    }
+    compareVersionedSensors(config, *pmUnitSensors.pmUnitName());
   }
 }
 
@@ -93,7 +91,6 @@ void ConfigDiffer::compareVersionedSensors(
         ERR,
         "ERR: No default sensors found or exist for PmUnit '{}'",
         pmUnitName);
-    return;
   }
 
   // Moved the following code inside the function body, after checking

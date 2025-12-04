@@ -414,3 +414,10 @@ DEFINE_int32(
     fsdbStatsStreamIntervalSeconds,
     5,
     "Interval at which stats subscriptions are served");
+
+DEFINE_bool(
+    recover_from_hw_switch,
+    false,
+    "On SW agent only crash, it can collect the switch state from hw"
+    " switches and recover from it. This enables hitless restarts"
+    " on SW agent. This is only used for Sw Switch.");

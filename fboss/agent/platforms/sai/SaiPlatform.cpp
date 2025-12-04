@@ -566,6 +566,15 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
                              ->numberOfSflowSamplesPerPacket();
     }
   }
+  std::optional<SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement>
+      measureCableLengths{std::nullopt};
+  if (getAsic()->isSupported(HwAsic::Feature::CABLE_PROPOGATION_DELAY)) {
+    auto agentCfg = config();
+    if (agentCfg->thrift.sw()->switchSettings()->measureCableLengths()) {
+      measureCableLengths =
+          *agentCfg->thrift.sw()->switchSettings()->measureCableLengths();
+    }
+  }
   std::optional<SaiSwitchTraits::Attributes::DllPath> dllPath;
 #if defined(BRCM_SAI_SDK_XGS)
   auto platformMode = getType();
@@ -986,7 +995,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       localSystemPortIdRangeList, // range list of local scope system port ids
 #endif
       std::nullopt, // enable PFC monitoring for the switch
-      std::nullopt, // enable cable propagation delay measurement
+      measureCableLengths, // enable cable propagation delay measurement
   };
 }
 

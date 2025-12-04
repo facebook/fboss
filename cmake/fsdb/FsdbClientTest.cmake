@@ -7,6 +7,8 @@ add_executable(fsdb_client_test
 
 target_link_libraries(fsdb_client_test
   fsdb_pub_sub
+  fsdb_model
+  fsdb_test_clients
   error
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}

@@ -374,3 +374,22 @@ TEST(ThriftySwitchState, IpAddressConversion) {
     EXPECT_EQ(addr_0_dynamic, addr_1_dynamic);
   }
 }
+
+TEST(ThriftySwitchState, FibsInfoMapClearedOnDeserialize) {
+  auto state = SwitchState();
+  auto stateThrift = state.toThrift();
+
+  state::FibInfoFields fibInfo;
+  std::map<std::string, state::FibInfoFields> fibInfoMap;
+  fibInfoMap[HwSwitchMatcher::defaultHwSwitchMatcherKey()] = fibInfo;
+  stateThrift.fibsInfoMap() = fibInfoMap;
+
+  // Verify the thrift object has populated FibsInfoMap
+  EXPECT_TRUE(stateThrift.fibsInfoMap().has_value());
+  EXPECT_FALSE(stateThrift.fibsInfoMap()->empty());
+
+  auto deserializedState = SwitchState::fromThrift(stateThrift);
+
+  // Verify FibsInfoMap is cleared after deserialization
+  EXPECT_TRUE(deserializedState->getFibsInfoMap()->empty());
+}

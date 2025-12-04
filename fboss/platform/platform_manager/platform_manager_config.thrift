@@ -390,6 +390,8 @@ struct XcvrCtrlBlockConfig {
 // for port LEDs
 //
 // `ledId`: Led ID for this config.
+//
+// Deprecated: do not use
 struct LedCtrlConfig {
   1: FpgaIpBlockConfig fpgaIpBlockConfig;
   2: i32 portNumber;
@@ -500,7 +502,7 @@ struct PciDeviceConfig {
   8: list<FpgaIpBlockConfig> gpioChipConfigs;
   9: list<FpgaIpBlockConfig> watchdogConfigs;
   10: list<FanPwmCtrlConfig> fanTachoPwmConfigs;
-  11: list<LedCtrlConfig> ledCtrlConfigs;
+  11: list<LedCtrlConfig> ledCtrlConfigs; // Deprecated: do not use
   12: list<XcvrCtrlConfig> xcvrCtrlConfigs;
   13: list<FpgaIpBlockConfig> infoRomConfigs;
   14: list<FpgaIpBlockConfig> miscCtrlConfigs;
@@ -508,6 +510,7 @@ struct PciDeviceConfig {
   16: list<LedCtrlBlockConfig> ledCtrlBlockConfigs;
   17: list<XcvrCtrlBlockConfig> xcvrCtrlBlockConfigs;
   18: list<FpgaIpBlockConfig> mdioBusConfigs;
+  19: list<FpgaIpBlockConfig> sysLedCtrlConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and

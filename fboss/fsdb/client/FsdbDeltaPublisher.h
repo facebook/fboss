@@ -14,6 +14,9 @@ class FsdbDeltaPublisher : public FsdbPublisher<OperDelta> {
     cancel();
   }
 
+ protected:
+  size_t getPubUnitSize(const OperDelta& delta) override;
+
  private:
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<StreamT> setupStream() override;

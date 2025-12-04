@@ -14,7 +14,7 @@ std::string getMemberName(bool useId) {
   if (useId) {
     return folly::to<std::string>(id::value);
   } else {
-    return std::string(fatal::z_data<name>(), fatal::size<name>::value);
+    return std::string(fatal::z_data<name>());
   }
 }
 

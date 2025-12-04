@@ -57,6 +57,12 @@ DEFINE_dynamic_quantile_stat(
     std::array<double, 1>{{1.0}});
 
 namespace {
+#if defined(CHENAB_SAI_SDK)
+// Buffer size (39 KB) to accommodate pipeline latency for lossy PGs
+// from AR / ACLs in Chenab.
+constexpr uint32_t kChenabPgBufferForPipelineLatencyInBytes = 39 * 1024;
+#endif
+
 uint64_t getSwitchEgressPoolAvailableSize(const SaiPlatform* platform) {
   auto saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());
   const auto switchId = saiSwitch->getSaiSwitchId();
@@ -873,10 +879,13 @@ SaiBufferManager::ingressProfileCreateAttrs(
       typename BufferProfileTraits::Attributes::PgPipelineLatencyBytes>
       pgPipelineLatencyBytes;
 #if defined(CHENAB_SAI_SDK)
-  // For lossy PGs, explicitly configure an additional buffering
-  // of 39KB to compensate for the pipeline latency from AR / ACLs.
-  if (*config.headroomLimitBytes() == 0) {
-    pgPipelineLatencyBytes = 39 * 1024;
+  // Additional buffering to compensate for pipeline latency in Chenab
+  // for lossy PGs.
+  if (!config.headroomLimitBytes().has_value() ||
+      *config.headroomLimitBytes() == 0) {
+    pgPipelineLatencyBytes = kChenabPgBufferForPipelineLatencyInBytes;
+  } else {
+    pgPipelineLatencyBytes = 0;
   }
 #endif
   if constexpr (std::is_same_v<

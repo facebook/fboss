@@ -872,23 +872,27 @@ void QsfpModule::refresh() {
   refreshLocked();
 }
 
-folly::Future<folly::Unit> QsfpModule::futureRefresh() {
+// call refresh() on the module and return whether or not it was successful
+folly::Future<bool> QsfpModule::futureRefresh() {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   if (!i2cEvb) {
     try {
       refresh();
+      return folly::makeFuture(true);
     } catch (const std::exception& ex) {
       QSFP_LOG(DBG2, this) << "Error calling refresh(): " << ex.what();
+      return folly::makeFuture(false);
     }
-    return folly::makeFuture();
   }
 
   return via(i2cEvb).thenValue([&](auto&&) mutable {
     try {
       this->refresh();
+      return true;
     } catch (const std::exception& ex) {
       QSFP_LOG(DBG2, this) << "Error calling refresh(): " << ex.what();
+      return false;
     }
   });
 }

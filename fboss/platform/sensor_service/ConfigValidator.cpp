@@ -112,8 +112,12 @@ bool ConfigValidator::isValidPowerConfig(
   auto universalSensorNames = getAllUniversalSensorNames(sensorConfig);
   std::unordered_set<std::string> perSlotPowerConfigNames;
 
-  // perSlotPowerConfigs is optional for now
-  // TODO: make it mandatory
+  // perSlotPowerConfigs is mandatory and must not be empty
+  if (powerConfig.perSlotPowerConfigs()->empty()) {
+    XLOG(ERR) << "perSlotPowerConfigs must be defined and non-empty";
+    return false;
+  }
+
   for (const auto& perSlotConfig : *powerConfig.perSlotPowerConfigs()) {
     // Check for duplicate per-slot power config names
     if (perSlotPowerConfigNames.find(*perSlotConfig.name()) !=

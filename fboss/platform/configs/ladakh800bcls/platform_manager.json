@@ -483,6 +483,168 @@
               "deviceName": "fpga_info_dom",
               "csrOffset": "0x48000"
             }
+          ],
+          "mdioBusConfigs": [
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_1",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x48200"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_2",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x48220"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_3",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x48240"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_4",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x48260"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_5",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x48280"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_6",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x482a0"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_7",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x482c0"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_8",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x482e0"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_9",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x48300"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_10",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x48320"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_11",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x48340"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_12",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x48360"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_13",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x48380"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_14",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x483a0"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_15",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x483c0"
+            },
+            {
+              "pmUnitScopedName": "RTM_L_MDIO_BUS_16",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x483e0"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_1",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x40200"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_2",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x40220"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_3",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x40240"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_4",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x40260"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_5",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x40280"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_6",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x402a0"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_7",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x402c0"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_8",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x402e0"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_9",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x40300"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_10",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x40320"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_11",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x40340"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_12",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x40360"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_13",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x40380"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_14",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x403a0"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_15",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x403c0"
+            },
+            {
+              "pmUnitScopedName": "RTM_R_MDIO_BUS_16",
+              "deviceName": "mdio_controller",
+              "csrOffset": "0x403e0"
+            }
           ]
         }
       ],
@@ -1562,6 +1724,38 @@
     "/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1": "/[MCB_SPI_MASTER_5_DEVICE_1]",
     "/run/devmap/flashes/MCB_SPI_MASTER_6_DEVICE_1": "/[MCB_SPI_MASTER_6_DEVICE_1]",
     "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1": "/[MCB_SPI_MASTER_7_DEVICE_1]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_1": "/[RTM_L_MDIO_BUS_1]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_2": "/[RTM_L_MDIO_BUS_2]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_3": "/[RTM_L_MDIO_BUS_3]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_4": "/[RTM_L_MDIO_BUS_4]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_5": "/[RTM_L_MDIO_BUS_5]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_6": "/[RTM_L_MDIO_BUS_6]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_7": "/[RTM_L_MDIO_BUS_7]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_8": "/[RTM_L_MDIO_BUS_8]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_9": "/[RTM_L_MDIO_BUS_9]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_10": "/[RTM_L_MDIO_BUS_10]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_11": "/[RTM_L_MDIO_BUS_11]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_12": "/[RTM_L_MDIO_BUS_12]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_13": "/[RTM_L_MDIO_BUS_13]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_14": "/[RTM_L_MDIO_BUS_14]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_15": "/[RTM_L_MDIO_BUS_15]",
+    "/run/devmap/mdio-busses/RTM_L_MDIO_BUS_16": "/[RTM_L_MDIO_BUS_16]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_1": "/[RTM_R_MDIO_BUS_1]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_2": "/[RTM_R_MDIO_BUS_2]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_3": "/[RTM_R_MDIO_BUS_3]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_4": "/[RTM_R_MDIO_BUS_4]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_5": "/[RTM_R_MDIO_BUS_5]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_6": "/[RTM_R_MDIO_BUS_6]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_7": "/[RTM_R_MDIO_BUS_7]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_8": "/[RTM_R_MDIO_BUS_8]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_9": "/[RTM_R_MDIO_BUS_9]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_10": "/[RTM_R_MDIO_BUS_10]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_11": "/[RTM_R_MDIO_BUS_11]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_12": "/[RTM_R_MDIO_BUS_12]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_13": "/[RTM_R_MDIO_BUS_13]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_14": "/[RTM_R_MDIO_BUS_14]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_15": "/[RTM_R_MDIO_BUS_15]",
+    "/run/devmap/mdio-busses/RTM_R_MDIO_BUS_16": "/[RTM_R_MDIO_BUS_16]",
     "/run/devmap/sensors/RUNBMC_THERMAL_SENSOR": "/RUNBMC_SLOT@0/[RUNBMC_THERMAL_SENSOR]",
     "/run/devmap/sensors/COME_HWMON1": "/COMESE_SLOT@0/[COME_HWMON1]",
     "/run/devmap/sensors/COME_HWMON2": "/COMESE_SLOT@0/[COME_HWMON2]",
