@@ -304,70 +304,54 @@
               }
             }
           ],
-          "ledCtrlConfigs": [
+          "sysLedCtrlConfigs": [
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_FAN1_LED",
-                "deviceName": "fan1_led",
-                "iobufOffset": "0x451148",
-                "csrOffset": "0x451100"
-              }
+              "pmUnitScopedName": "MCB_FAN1_LED",
+              "deviceName": "fan1_led",
+              "iobufOffset": "0x451148",
+              "csrOffset": "0x451100"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_FAN2_LED",
-                "deviceName": "fan2_led",
-                "iobufOffset": "0x451150",
-                "csrOffset": "0x451100"
-              }
+              "pmUnitScopedName": "MCB_FAN2_LED",
+              "deviceName": "fan2_led",
+              "iobufOffset": "0x451150",
+              "csrOffset": "0x451100"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_FAN3_LED",
-                "deviceName": "fan3_led",
-                "iobufOffset": "0x451158",
-                "csrOffset": "0x451100"
-              }
+              "pmUnitScopedName": "MCB_FAN3_LED",
+              "deviceName": "fan3_led",
+              "iobufOffset": "0x451158",
+              "csrOffset": "0x451100"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_FAN4_LED",
-                "deviceName": "fan4_led",
-                "iobufOffset": "0x451160",
-                "csrOffset": "0x451100"
-              }
+              "pmUnitScopedName": "MCB_FAN4_LED",
+              "deviceName": "fan4_led",
+              "iobufOffset": "0x451160",
+              "csrOffset": "0x451100"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_FAN5_LED",
-                "deviceName": "fan5_led",
-                "iobufOffset": "0x451168",
-                "csrOffset": "0x451100"
-              }
+              "pmUnitScopedName": "MCB_FAN5_LED",
+              "deviceName": "fan5_led",
+              "iobufOffset": "0x451168",
+              "csrOffset": "0x451100"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_FAN6_LED",
-                "deviceName": "fan6_led",
-                "iobufOffset": "0x451170",
-                "csrOffset": "0x451100"
-              }
+              "pmUnitScopedName": "MCB_FAN6_LED",
+              "deviceName": "fan6_led",
+              "iobufOffset": "0x451170",
+              "csrOffset": "0x451100"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_FAN7_LED",
-                "deviceName": "fan7_led",
-                "iobufOffset": "0x451178",
-                "csrOffset": "0x451100"
-              }
+              "pmUnitScopedName": "MCB_FAN7_LED",
+              "deviceName": "fan7_led",
+              "iobufOffset": "0x451178",
+              "csrOffset": "0x451100"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_FAN8_LED",
-                "deviceName": "fan8_led",
-                "iobufOffset": "0x451180",
-                "csrOffset": "0x451100"
-              }
+              "pmUnitScopedName": "MCB_FAN8_LED",
+              "deviceName": "fan8_led",
+              "iobufOffset": "0x451180",
+              "csrOffset": "0x451100"
             }
           ]
         }
@@ -655,46 +639,36 @@
               "csrOffset": "0x70100"
             }
           ],
-          "ledCtrlConfigs": [
+          "sysLedCtrlConfigs": [
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SCM_SYS_LED",
-                "deviceName": "sys_led",
-                "iobufOffset": "0x7b128",
-                "csrOffset": "0x7b100"
-              }
+              "pmUnitScopedName": "SCM_SYS_LED",
+              "deviceName": "sys_led",
+              "iobufOffset": "0x7b128",
+              "csrOffset": "0x7b100"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SCM_SMB_LED",
-                "deviceName": "smb_led",
-                "iobufOffset": "0x7b130",
-                "csrOffset": "0x7b100"
-              }
+              "pmUnitScopedName": "SCM_SMB_LED",
+              "deviceName": "smb_led",
+              "iobufOffset": "0x7b130",
+              "csrOffset": "0x7b100"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SCM_PSU_LED",
-                "deviceName": "psu_led",
-                "iobufOffset": "0x7b138",
-                "csrOffset": "0x7b100"
-              }
+              "pmUnitScopedName": "SCM_PSU_LED",
+              "deviceName": "psu_led",
+              "iobufOffset": "0x7b138",
+              "csrOffset": "0x7b100"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SCM_SCM_LED",
-                "deviceName": "scm_led",
-                "iobufOffset": "0x7b140",
-                "csrOffset": "0x7b100"
-              }
+              "pmUnitScopedName": "SCM_SCM_LED",
+              "deviceName": "scm_led",
+              "iobufOffset": "0x7b140",
+              "csrOffset": "0x7b100"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SCM_FAN_LED",
-                "deviceName": "fan_led",
-                "iobufOffset": "0x7b148",
-                "csrOffset": "0x7b100"
-              }
+              "pmUnitScopedName": "SCM_FAN_LED",
+              "deviceName": "fan_led",
+              "iobufOffset": "0x7b148",
+              "csrOffset": "0x7b100"
             }
           ]
         }
@@ -1405,14 +1379,12 @@
               "iobufOffsetCalc": "0x1902c + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4"
             }
           ],
-          "ledCtrlConfigs": [
+          "sysLedCtrlConfigs": [
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_FRU_LED",
-                "deviceName": "smb_fru",
-                "iobufOffset": "0x1812c",
-                "csrOffset": "0x18000"
-              }
+              "pmUnitScopedName": "SMB_FRU_LED",
+              "deviceName": "smb_fru",
+              "iobufOffset": "0x1812c",
+              "csrOffset": "0x18000"
             }
           ]
         }
