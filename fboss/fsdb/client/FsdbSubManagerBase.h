@@ -43,7 +43,8 @@ class FsdbSubManagerBase {
 
   void subscribeImpl(
       std::function<void(SubscriberChunk&&)> chunkHandler,
-      std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb);
+      std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb,
+      std::optional<FsdbStreamHeartbeatCb> heartbeatCb);
 
   fsdb::SubscriptionOptions opts_;
   utils::ConnectionOptions connectionOptions_;

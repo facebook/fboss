@@ -110,12 +110,14 @@ class FsdbSubManager : public FsdbSubManagerBase {
   void subscribe(
       DataCallback cb,
       std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb =
-          std::nullopt) {
+          std::nullopt,
+      std::optional<FsdbStreamHeartbeatCb> heartbeatCb = std::nullopt) {
     subscribeImpl(
         [this, cb = std::move(cb)](SubscriberChunk chunk) {
           parseChunkAndInvokeCallback(std::move(chunk), std::move(cb));
         },
-        std::move(subscriptionStateChangeCb));
+        std::move(subscriptionStateChangeCb),
+        std::move(heartbeatCb));
   }
 
   // Returns a synchronized data object that is always kept up to date
