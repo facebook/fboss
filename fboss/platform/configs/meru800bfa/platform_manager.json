@@ -80,7 +80,6 @@
             }
           ],
           "spiMasterConfigs": [],
-          "ledCtrlConfigs": [],
           "xcvrCtrlConfigs": [],
           "infoRomConfigs": [
             {
@@ -952,34 +951,26 @@
               "startPort": 121
             }
           ],
-          "ledCtrlConfigs": [
+          "sysLedCtrlConfigs": [
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SYSTEM_STATUS_LED",
-                "deviceName": "sys_led",
-                "csrOffset": "0x6050"
-              }
+              "pmUnitScopedName": "SYSTEM_STATUS_LED",
+              "deviceName": "sys_led",
+              "csrOffset": "0x6050"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "FAN_STATUS_LED",
-                "deviceName": "fan_led",
-                "csrOffset": "0x6060"
-              }
+              "pmUnitScopedName": "FAN_STATUS_LED",
+              "deviceName": "fan_led",
+              "csrOffset": "0x6060"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PSU_STATUS_LED",
-                "deviceName": "psu_led",
-                "csrOffset": "0x6070"
-              }
+              "pmUnitScopedName": "PSU_STATUS_LED",
+              "deviceName": "psu_led",
+              "csrOffset": "0x6070"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_STATUS_LED",
-                "deviceName": "smb_led",
-                "csrOffset": "0x60a0"
-              }
+              "pmUnitScopedName": "SMB_STATUS_LED",
+              "deviceName": "smb_led",
+              "csrOffset": "0x60a0"
             }
           ],
           "xcvrCtrlBlockConfigs": [
