@@ -5,6 +5,7 @@
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
@@ -266,6 +267,11 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<ForwardingInformationBaseContainer>& /*fibs*/) const {
+  return l3SwitchMatcher();
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<FibInfo>& /*fibInfo*/) const {
   return l3SwitchMatcher();
 }
 
