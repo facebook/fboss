@@ -632,7 +632,7 @@ class TestRunner(abc.ABC):
                 _config_file_modified = f"/tmp/modified-{config_filename}"
                 shutil.copy2(conf_file, _config_file_modified)
 
-                print("Using a modified config file {_config_file_modified} for test runs")
+                print(f"Using a modified config file {_config_file_modified} for test runs")
                 # Some platforms, like TH5 SVK, need to set
                 # AUTOLOAD_BOARD_SETTINGS=1 to autodetect reference board
                 self._replace_string_in_file(
