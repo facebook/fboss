@@ -74,7 +74,8 @@
             "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1",
             "chip": [
               "N25Q128..3E",
-              "W25Q128.V..M"
+              "W25Q128.V..M",
+              "MX25L12805D"
             ]
           }
         }
@@ -86,7 +87,8 @@
           "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1",
           "chip": [
             "N25Q128..3E",
-            "W25Q128.V..M"
+            "W25Q128.V..M",
+            "MX25L12805D"
           ]
         }
       },
@@ -97,7 +99,8 @@
           "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1",
           "chip": [
             "N25Q128..3E",
-            "W25Q128.V..M"
+            "W25Q128.V..M",
+            "MX25L12805D"
           ]
         }
       },
@@ -363,7 +366,8 @@
             "programmer_type": "linux_spi:dev=",
             "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1",
             "chip": [
-              "W25X20"
+              "W25X20",
+              "MX25L2005(C)/MX25L2006E"
             ]
           }
         }
@@ -383,7 +387,8 @@
           "programmer_type": "linux_spi:dev=",
           "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1",
           "chip": [
-            "W25X20"
+            "W25X20",
+            "MX25L2005(C)/MX25L2006E"
           ]
         }
       },
@@ -393,7 +398,8 @@
           "programmer_type": "linux_spi:dev=",
           "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1",
           "chip": [
-            "W25X20"
+            "W25X20",
+            "MX25L2005(C)/MX25L2006E"
           ]
         }
       },
