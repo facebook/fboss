@@ -1,0 +1,5 @@
+{
+  "distribution_formats": {
+    "usb": "fboss-distro-image_usb.iso"
+  }
+}
