@@ -245,7 +245,8 @@ WedgeQsfp::futureGetTransceiverManagementInterface() {
   }
 
   return via(i2cEvb).thenValue([&](auto&&) mutable {
-    TransceiverManagementInterface mgmtInterface;
+    TransceiverManagementInterface mgmtInterface =
+        TransceiverManagementInterface::NONE;
     try {
       mgmtInterface = this->getTransceiverManagementInterface();
     } catch (const std::exception& ex) {
