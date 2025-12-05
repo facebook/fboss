@@ -13,6 +13,7 @@
 #include <folly/Subprocess.h>
 #include <folly/logging/xlog.h>
 #include <folly/system/Shell.h>
+#include <gtest/gtest_prod.h>
 #include <algorithm>
 #include <filesystem>
 #include <string>
@@ -47,6 +48,12 @@ class FwUtilImpl {
   std::tuple<std::string, FwConfig> getFpd(const std::string&);
 
  private:
+  // Friend declarations for unit tests
+  FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationValidPath);
+  FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationEmptyPath);
+  FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationVariousValues);
+  FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationFileOverwrite);
+
   void doPreUpgrade(const std::string&);
 
   void doPreUpgradeOperation(
