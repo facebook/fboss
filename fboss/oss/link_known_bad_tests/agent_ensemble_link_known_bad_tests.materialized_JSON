@@ -41333,9 +41333,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
@@ -41429,9 +41426,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
@@ -41529,9 +41523,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
@@ -41625,9 +41616,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
@@ -41725,9 +41713,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
@@ -41821,9 +41806,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
@@ -41921,9 +41903,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
@@ -42019,9 +41998,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
@@ -42115,9 +42091,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
@@ -42218,9 +42191,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
@@ -42311,9 +42281,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
@@ -42408,9 +42375,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
@@ -42501,9 +42465,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
@@ -42598,9 +42559,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
@@ -42691,9 +42649,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
@@ -42788,9 +42743,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
@@ -42881,9 +42833,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
@@ -42978,9 +42927,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
@@ -43071,9 +43017,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
@@ -43168,9 +43111,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
@@ -43261,9 +43201,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
@@ -43358,9 +43295,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
@@ -43451,9 +43385,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
@@ -43548,9 +43479,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
@@ -43641,9 +43569,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
@@ -43738,9 +43663,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
@@ -43831,9 +43753,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
