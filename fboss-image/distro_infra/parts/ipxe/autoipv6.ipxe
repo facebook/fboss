@@ -1,0 +1,9 @@
+#!ipxe
+
+ifconf -c ipv6
+
+# When booting over IPv6, iPXE only receives a fully-formed bootfile-url DHCPv6 option and it appears there is no way to
+# give just iPXE other options. bootfile-url becomes the iPXE ${filename} setting, but is a full URL and iPXE scripting
+# is not powerful enough to extract just the server IP from it so we can use HTTP downloading for the large artifacts.
+# Thus we autogenerate this iPXE script simply to set the server IP to be used by autoexec.ipxe.
+imgexec --replace ${filename}-serverip
