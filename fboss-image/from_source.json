@@ -1,0 +1,20 @@
+{
+  "distribution_formats": {
+    "usb": "fboss-distro-image_usb.iso",
+    "pxe": "fboss-distro-image_pxe.tar"
+  },
+  "kernel": {
+  },
+  "other_dependencies": [
+  ],
+  "fboss-platform-stack": {
+  },
+  "bsps": [
+  ],
+  "sai": {
+  },
+  "fboss-forwarding-stack": {
+  },
+  "image_build_hooks": {
+  }
+}
