@@ -31,8 +31,8 @@ using mdio_access_req_t = struct mdio_access_req_t {
   uint32_t reg_data; // 16-bit register value
 };
 
-#define MDIO_ACCESS_REGRD _IOW('F', 1, mdio_access_req_t)
-#define MDIO_ACCESS_REGWR _IOW('F', 2, mdio_access_req_t)
+#define MDIO_ACCESS_REGRD _IOW('F', 2, mdio_access_req_t)
+#define MDIO_ACCESS_REGWR _IOW('F', 1, mdio_access_req_t)
 
 } // namespace
 
