@@ -259,6 +259,9 @@ bool setTransceiverLoopback(
     std::vector<std::string> portList,
     LoopbackMode mode);
 
+std::map<std::string, std::vector<int32_t>> getPortTransceiverIDs(
+    folly::EventBase& evb);
+
 bool cliModulefirmwareUpgrade(
     DirectI2cInfo i2cInfo,
     unsigned int port,

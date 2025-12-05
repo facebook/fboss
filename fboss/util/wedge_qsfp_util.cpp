@@ -1205,6 +1205,16 @@ std::map<int32_t, TransceiverInfo> fetchInfoFromQsfpService(
   return qsfpInfoMap;
 }
 
+std::map<std::string, std::vector<int32_t>> getPortTransceiverIDs(
+    folly::EventBase& evb) {
+  auto client = getQsfpClient(evb);
+
+  std::map<std::string, std::vector<int32_t>> portNameToTcvrIds;
+
+  client->sync_getPortTransceiverIDs(portNameToTcvrIds);
+  return portNameToTcvrIds;
+}
+
 DOMDataUnion getDOMDataUnionI2CBus(
     DirectI2cInfo i2cInfo,
     unsigned int port,
