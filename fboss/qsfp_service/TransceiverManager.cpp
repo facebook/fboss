@@ -1699,6 +1699,15 @@ void TransceiverManager::resetPortState(const TransceiverID& id) {
   }
 }
 
+void TransceiverManager::getPortTransceiverIDs(
+    std::map<std::string, std::vector<int32_t>>& portTransceiverIds) const {
+  for (const auto& [portName, tcvrId] : portNameToModule_) {
+    // TODO: Handle multi-transceiver ports. portNameToModule_ only includes one
+    // transceiver per port
+    portTransceiverIds[portName].push_back(tcvrId);
+  }
+}
+
 void TransceiverManager::publishPortStatesToFsdb(
     const TransceiverID& id,
     const portstate::PortState& state) {

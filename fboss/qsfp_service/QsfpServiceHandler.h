@@ -125,6 +125,9 @@ class QsfpServiceHandler
       std::map<int32_t, WriteResponse>& response,
       std::unique_ptr<WriteRequest> request) override;
 
+  void getPortTransceiverIDs(
+      std::map<std::string, std::vector<int32_t>>& portTransceiverIds) override;
+
   /*
    * Thrift call servicing routine for programming one PHY port
    */
