@@ -302,6 +302,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
       swPort->getIngressMirror(), swPort->getEgressMirror(), samplingMirror};
   handle->mirrorInfo = mirrorInfo;
   handles_.emplace(swPort->getID(), std::move(handle));
+  processPortBufferPoolConfigs(swPort);
   setQosPolicy(swPort->getID(), swPort->getQosPolicy());
 
   addSamplePacket(swPort);
@@ -391,6 +392,7 @@ void SaiPortManager::changePortImpl(
       updatePrbsStatsEntryRate(newPort);
     }
   }
+  processPortBufferPoolConfigs(newPort);
 
   changeMirror(oldPort, newPort);
   changeSamplePacket(oldPort, newPort);

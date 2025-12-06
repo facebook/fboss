@@ -334,6 +334,7 @@ class SaiPortManager {
       const PortID& portId,
       sai_object_id_t sysPortObj);
   void resetFabricLinkMonitoringSystemPortId(const PortID& portId);
+  void processPortBufferPoolConfigs(const std::shared_ptr<Port>& swPort);
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);

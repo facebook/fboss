@@ -114,12 +114,11 @@ class SaiBufferManager {
       cfg::MMUScalingFactor losslessScalingFactor,
       cfg::MMUScalingFactor lossyScalingFactor,
       int reservedSizeBytes);
-
- private:
   void setupBufferPool(const PortQueue& queue);
   void setupBufferPool(const state::PortPgFields& portPgConfig);
-  void loadCpuPortEgressBufferPool();
 
+ private:
+  void loadCpuPortEgressBufferPool();
   void updateIngressBufferPoolStats();
   void updateEgressBufferPoolStats();
 

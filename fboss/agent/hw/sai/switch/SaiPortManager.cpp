@@ -1131,6 +1131,35 @@ void SaiPortManager::changePfcBuffers(
   }
 }
 
+void SaiPortManager::processPortBufferPoolConfigs(
+    const std::shared_ptr<Port>& swPort) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL) ||
+      !platform_->getAsic()->isSupported(
+          HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT)) {
+    return;
+  }
+
+  // Process port PG configs for ingress buffer pools
+  const auto& portPgCfgs = swPort->getPortPgConfigs();
+  if (portPgCfgs) {
+    for (const auto& portPgCfg : *portPgCfgs) {
+      // THRIFT_COPY
+      auto portPgCfgThrift = portPgCfg->toThrift();
+      // Handle ingress or ingress-egress buffer pool creation
+      managerTable_->bufferManager().setupBufferPool(portPgCfgThrift);
+    }
+  }
+
+  // Process port queue configs for egress buffer pools
+  const auto& portQueues = swPort->getPortQueues();
+  if (portQueues) {
+    for (const auto& portQueue : *portQueues) {
+      // Handle egress buffer pool creation
+      managerTable_->bufferManager().setupBufferPool(*portQueue);
+    }
+  }
+}
+
 prbs::InterfacePrbsState SaiPortManager::getPortPrbsState(PortID portId) {
   prbs::InterfacePrbsState portPrbsState;
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS)) {
