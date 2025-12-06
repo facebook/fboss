@@ -75,6 +75,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_QOS_QUEUE_LIST,
         std::vector<sai_object_id_t>,
         SaiObjectIdListDefault>;
+    using QosEgressBufferProfileList = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_EGRESS_BUFFER_PROFILE_LIST,
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
     using FecMode = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_FEC_MODE,
@@ -665,7 +670,8 @@ struct SaiPortTraits {
       std::optional<Attributes::HyperPortMemberList>,
       std::optional<Attributes::PfcMonitorDirection>,
       std::optional<Attributes::QosDot1pToTcMap>,
-      std::optional<Attributes::QosTcAndColorToDot1pMap>>;
+      std::optional<Attributes::QosTcAndColorToDot1pMap>,
+      std::optional<Attributes::QosEgressBufferProfileList>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -746,6 +752,7 @@ SAI_ATTRIBUTE_NAME(Port, DisableTtlDecrement)
 
 SAI_ATTRIBUTE_NAME(Port, QosNumberOfQueues)
 SAI_ATTRIBUTE_NAME(Port, QosQueueList)
+SAI_ATTRIBUTE_NAME(Port, QosEgressBufferProfileList)
 SAI_ATTRIBUTE_NAME(Port, Type)
 SAI_ATTRIBUTE_NAME(Port, InterfaceType)
 SAI_ATTRIBUTE_NAME(Port, PktTxEnable)

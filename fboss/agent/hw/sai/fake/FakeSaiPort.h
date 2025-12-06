@@ -46,6 +46,7 @@ struct FakePort {
   sai_port_media_type_t mediaType{SAI_PORT_MEDIA_TYPE_NOT_PRESENT};
   sai_vlan_id_t vlanId{0};
   std::vector<sai_object_id_t> queueIdList;
+  std::vector<sai_object_id_t> egressBufferProfileIdList;
   std::vector<uint32_t> preemphasis;
   sai_uint32_t mtu{1514};
   sai_object_id_t qosDscpToTcMap{SAI_NULL_OBJECT_ID};

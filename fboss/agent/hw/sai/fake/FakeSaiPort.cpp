@@ -532,6 +532,13 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
       port.qosTcToQueueMap = attr->value.oid;
       break;
+    case SAI_PORT_ATTR_QOS_EGRESS_BUFFER_PROFILE_LIST: {
+      auto& egressBufferProfileIdList = port.egressBufferProfileIdList;
+      egressBufferProfileIdList.clear();
+      for (int j = 0; j < attr->value.objlist.count; ++j) {
+        egressBufferProfileIdList.push_back(attr->value.objlist.list[j]);
+      }
+    } break;
     case SAI_PORT_ATTR_DISABLE_DECREMENT_TTL:
       port.disableTtlDecrement = attr->value.booldata;
       break;
@@ -844,6 +851,19 @@ sai_status_t get_port_attribute_fn(
         for (int j = 0; j < port.queueIdList.size(); ++j) {
           attr[i].value.objlist.list[j] = port.queueIdList[j];
         }
+        break;
+      case SAI_PORT_ATTR_QOS_EGRESS_BUFFER_PROFILE_LIST:
+        if (port.egressBufferProfileIdList.size() >
+            attr[i].value.objlist.count) {
+          attr[i].value.objlist.count =
+              static_cast<uint32_t>(port.egressBufferProfileIdList.size());
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.egressBufferProfileIdList.size(); ++j) {
+          attr[i].value.objlist.list[j] = port.egressBufferProfileIdList[j];
+        }
+        attr[i].value.objlist.count =
+            static_cast<uint32_t>(port.egressBufferProfileIdList.size());
         break;
       case SAI_PORT_ATTR_FEC_MODE:
         attr[i].value.s32 = static_cast<int32_t>(port.fecMode);

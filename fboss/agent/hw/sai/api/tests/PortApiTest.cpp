@@ -92,6 +92,7 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // PfcMonitorDirection
         std::nullopt, // QosDot1pToTcMap
         std::nullopt, // QosTcAndColorToDot1pMap
+        std::nullopt, // QosEgressBufferProfileList
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -559,4 +560,47 @@ TEST_F(PortApiTest, getFabricReachability) {
       id, SaiPortTraits::Attributes::FabricReachability{reachability});
   EXPECT_EQ(reachabilityGot.switch_id, switchId);
   EXPECT_TRUE(reachabilityGot.reachable);
+}
+
+TEST_F(PortApiTest, getQosEgressBufferProfileListPresized) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+  std::vector<sai_object_id_t> tempProfileList;
+  tempProfileList.resize(4);
+  SaiPortTraits::Attributes::QosEgressBufferProfileList profileListAttr{
+      tempProfileList};
+  auto gotProfiles = portApi->getAttribute(portId, profileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 0);
+}
+
+TEST_F(PortApiTest, getQosEgressBufferProfileListUnsized) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+  SaiPortTraits::Attributes::QosEgressBufferProfileList profileListAttr;
+  auto gotProfiles = portApi->getAttribute(portId, profileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 0);
+}
+
+TEST_F(PortApiTest, setQosEgressBufferProfileList) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+
+  // Set a list of buffer profile IDs
+  std::vector<sai_object_id_t> profileIds{10, 20, 30};
+  SaiPortTraits::Attributes::QosEgressBufferProfileList profileListAttr{
+      profileIds};
+  portApi->setAttribute(portId, profileListAttr);
+
+  // Get the list back and verify
+  SaiPortTraits::Attributes::QosEgressBufferProfileList getProfileListAttr;
+  auto gotProfiles = portApi->getAttribute(portId, getProfileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 3);
+  EXPECT_EQ(gotProfiles, profileIds);
+
+  // Clear the list
+  std::vector<sai_object_id_t> emptyList;
+  SaiPortTraits::Attributes::QosEgressBufferProfileList emptyListAttr{
+      emptyList};
+  portApi->setAttribute(portId, emptyListAttr);
+
+  // Verify it's empty
+  auto gotEmptyProfiles = portApi->getAttribute(portId, getProfileListAttr);
+  EXPECT_EQ(gotEmptyProfiles.size(), 0);
 }

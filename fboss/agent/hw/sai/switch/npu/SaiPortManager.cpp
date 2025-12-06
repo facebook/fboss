@@ -870,6 +870,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // PfcMonitorDirection
         std::nullopt, // QosDot1pToTcMap
         std::nullopt, // QosTcAndColorToDot1pMap
+        std::nullopt, // QosEgressBufferProfileList
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -964,6 +965,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // PfcMonitorDirection
       std::nullopt, // QosDot1pToTcMap
       std::nullopt, // QosTcAndColorToDot1pMap
+      std::nullopt, // QosEgressBufferProfileList
   };
 }
 
