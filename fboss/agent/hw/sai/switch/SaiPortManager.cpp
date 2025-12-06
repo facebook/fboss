@@ -522,7 +522,9 @@ TransmitterTechnology fromSaiMediaType(sai_port_media_type_t saiMediaType) {
  * we will report shorter cable lens. But short of getting
  * real-time optics delay, this is the best agent can do.
  */
-int getWorstCaseAssumedOpticsDelayNS(const HwAsic& asic) {
+int getWorstCaseAssumedOpticsDelayNS(
+    const HwAsic& asic,
+    const cfg::PortType& portType) {
   switch (asic.getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
     case cfg::AsicType::ASIC_TYPE_MOCK:
@@ -543,6 +545,13 @@ int getWorstCaseAssumedOpticsDelayNS(const HwAsic& asic) {
     case cfg::AsicType::ASIC_TYPE_AGERA3:
       break;
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      if (portType == cfg::PortType::FABRIC_PORT) {
+        return 110;
+      } else {
+        // TODO(daiweix): get tuned values for hyper port member
+        // and interface port CS00012425717
+        return 0;
+      }
     case cfg::AsicType::ASIC_TYPE_RAMON3:
       // For J3-R3, we measured max optics delay to
       // be 110ns.
@@ -2348,7 +2357,11 @@ void SaiPortManager::updateStats(
   const auto& asic = platform_->getAsic();
   if (updateCableLengths && isPortUp(portId) &&
       (portType == cfg::PortType::FABRIC_PORT ||
-       portType == cfg::PortType::HYPER_PORT_MEMBER) &&
+       portType == cfg::PortType::HYPER_PORT_MEMBER
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+       || portType == cfg::PortType::INTERFACE_PORT
+#endif
+       ) &&
       asic->isSupported(HwAsic::Feature::CABLE_PROPOGATION_DELAY)) {
     bool cableLenAvailableOnPort = true;
     if (asic->getSwitchType() == cfg::SwitchType::FABRIC &&
@@ -2383,7 +2396,8 @@ void SaiPortManager::updateStats(
                 SaiPortTraits::Attributes::CablePropogationDelayNS{});
         cablePropogationDelayNS = std::max(
             cablePropogationDelayNS -
-                getWorstCaseAssumedOpticsDelayNS(*platform_->getAsic()),
+                getWorstCaseAssumedOpticsDelayNS(
+                    *platform_->getAsic(), portType),
             0);
         // In fiber it takes about 5ns for light to travel 1 meter
         curPortStats.cableLengthMeters() =
