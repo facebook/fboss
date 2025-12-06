@@ -1044,4 +1044,47 @@ void SaiBufferManager::publishPgWatermarks(
   STATS_buffer_watermark_pg_shared.addValue(
       pgSharedBytes, portName, folly::to<std::string>("pg", pg));
 }
+
+std::shared_ptr<SaiBufferProfileHandle>
+SaiBufferManager::getOrCreatePortProfile(
+    SaiDynamicBufferProfileTraits::Attributes::PoolId pool,
+    cfg::MMUScalingFactor scalingFactor,
+    int reservedSizeBytes) {
+  // Create a PortQueue with the params of interest
+  PortQueue portProfileParams;
+  portProfileParams.setReservedBytes(reservedSizeBytes);
+  portProfileParams.setScalingFactor(scalingFactor);
+
+  // The buffer profile to apply on port is a base profile with just
+  // the scaling factor, reserved size and pool ID specified. Using
+  // the existing profile creation flow for egress queues to create
+  // this profile.
+  auto attributes = profileCreateAttrs<SaiDynamicBufferProfileTraits>(
+      pool, portProfileParams, cfg::PortType::INTERFACE_PORT);
+  SaiDynamicBufferProfileTraits::AdapterHostKey k = tupleProjection<
+      SaiDynamicBufferProfileTraits::CreateAttributes,
+      SaiDynamicBufferProfileTraits::AdapterHostKey>(attributes);
+
+  auto& store = saiStore_->get<SaiDynamicBufferProfileTraits>();
+  return std::make_shared<SaiBufferProfileHandle>(
+      store.setObject(k, attributes));
+}
+
+std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+SaiBufferManager::getIngressPortBufferProfiles(
+    cfg::MMUScalingFactor scalingFactor,
+    int reservedSizeBytes) {
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>> profileHandles;
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT)) {
+    auto ingressBufferPoolHandle = getIngressBufferPoolHandle();
+    if (ingressBufferPoolHandle) {
+      SaiDynamicBufferProfileTraits::Attributes::PoolId pool{
+          ingressBufferPoolHandle->bufferPool->adapterKey()};
+      profileHandles.emplace_back(
+          getOrCreatePortProfile(pool, scalingFactor, reservedSizeBytes));
+    }
+  }
+  return profileHandles;
+}
 } // namespace facebook::fboss
