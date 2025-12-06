@@ -123,6 +123,9 @@ struct SaiPortHandle {
       IngressPriorityGroupID,
       SaiIngressPriorityGroupHandleAndProfile>
       configuredIngressPriorityGroups;
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+      ingressPortBufferProfiles;
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>> egressPortBufferProfiles;
 };
 
 class SaiPortManager {

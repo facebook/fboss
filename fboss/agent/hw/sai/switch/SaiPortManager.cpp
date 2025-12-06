@@ -612,6 +612,19 @@ SaiPortHandle::~SaiPortHandle() {
         SaiPortTraits::Attributes::EgressSamplePacketEnable{
             SAI_NULL_OBJECT_ID});
   }
+  // Clear buffer profiles before port destruction
+  if (!ingressPortBufferProfiles.empty()) {
+    port->setOptionalAttribute(
+        SaiPortTraits::Attributes::QosIngressBufferProfileList{
+            std::vector<sai_object_id_t>{}});
+    ingressPortBufferProfiles.clear();
+  }
+  if (!egressPortBufferProfiles.empty()) {
+    port->setOptionalAttribute(
+        SaiPortTraits::Attributes::QosEgressBufferProfileList{
+            std::vector<sai_object_id_t>{}});
+    egressPortBufferProfiles.clear();
+  }
 }
 
 SaiPortManager::~SaiPortManager() {
@@ -1158,6 +1171,41 @@ void SaiPortManager::processPortBufferPoolConfigs(
       managerTable_->bufferManager().setupBufferPool(*portQueue);
     }
   }
+
+  // Currently only supported in Chenab. The various scaling factors
+  // and min guarantees configured per profile is capture in the google
+  // sheet https://fburl.com/gsheet/jahz9e6m
+  const cfg::MMUScalingFactor kIngressPortPoolScalingFactor{
+      cfg::MMUScalingFactor::EIGHT};
+  const cfg::MMUScalingFactor kEgressPortLossyPoolScalingFactor{
+      cfg::MMUScalingFactor::EIGHT};
+  const cfg::MMUScalingFactor kEgressPortLosslessPoolScalingFactor{
+      cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT};
+  const int kPoolPortReservedBytes{0};
+  auto portHandle = getPortHandle(swPort->getID());
+  if (!portHandle) {
+    XLOG(ERR) << "Port handle not found for port " << swPort->getID()
+              << ", skipping buffer profile configuration";
+    return;
+  }
+
+  // Get ingress port buffer profiles and set it per port
+  const auto ingressPortBufferProfiles =
+      managerTable_->bufferManager().getIngressPortBufferProfiles(
+          kIngressPortPoolScalingFactor, kPoolPortReservedBytes);
+  setPortQosIngressBufferProfiles(swPort->getID(), ingressPortBufferProfiles);
+  // Store the buffer profiles in the port handle
+  portHandle->ingressPortBufferProfiles = ingressPortBufferProfiles;
+
+  // Get egress port buffer profiles and set it per port
+  const auto egressPortBufferProfiles =
+      managerTable_->bufferManager().getEgressPortBufferProfiles(
+          kEgressPortLosslessPoolScalingFactor,
+          kEgressPortLossyPoolScalingFactor,
+          kPoolPortReservedBytes);
+  setPortQosEgressBufferProfiles(swPort->getID(), egressPortBufferProfiles);
+  // Store the buffer profiles in the port handle
+  portHandle->egressPortBufferProfiles = egressPortBufferProfiles;
 }
 
 prbs::InterfacePrbsState SaiPortManager::getPortPrbsState(PortID portId) {
