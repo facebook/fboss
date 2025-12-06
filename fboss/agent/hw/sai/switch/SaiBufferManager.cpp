@@ -1087,4 +1087,34 @@ SaiBufferManager::getIngressPortBufferProfiles(
   }
   return profileHandles;
 }
+std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+SaiBufferManager::getEgressPortBufferProfiles(
+    cfg::MMUScalingFactor losslessScalingFactor,
+    cfg::MMUScalingFactor lossyScalingFactor,
+    int reservedSizeBytes) {
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>> profileHandles;
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT)) {
+    for (const auto& egressPoolHdl : egressBufferPoolHandle_) {
+      // TODO(nivinl): Look for a better way to identify lossy and lossless
+      // egress pools
+      cfg::MMUScalingFactor scalingFactor;
+      if (egressPoolHdl.first == "egress_lossless_pool") {
+        scalingFactor = losslessScalingFactor;
+      } else if (
+          egressPoolHdl.first == "egress_lossy_pool" ||
+          egressPoolHdl.first == "default") {
+        scalingFactor = lossyScalingFactor;
+      } else {
+        throw FbossError(
+            "Pool name handling is not in place for ", egressPoolHdl.first);
+      }
+      SaiDynamicBufferProfileTraits::Attributes::PoolId pool{
+          egressPoolHdl.second->bufferPool->adapterKey()};
+      profileHandles.emplace_back(
+          getOrCreatePortProfile(pool, scalingFactor, reservedSizeBytes));
+    }
+  }
+  return profileHandles;
+}
 } // namespace facebook::fboss

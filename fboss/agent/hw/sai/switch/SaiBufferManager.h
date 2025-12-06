@@ -109,6 +109,11 @@ class SaiBufferManager {
   getIngressPortBufferProfiles(
       cfg::MMUScalingFactor scalingFactor,
       int reservedSizeBytes);
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+  getEgressPortBufferProfiles(
+      cfg::MMUScalingFactor losslessScalingFactor,
+      cfg::MMUScalingFactor lossyScalingFactor,
+      int reservedSizeBytes);
 
  private:
   void setupBufferPool(const PortQueue& queue);
