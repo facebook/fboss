@@ -2433,6 +2433,56 @@ std::shared_ptr<MultiSwitchPortMap> SaiPortManager::reconstructPortsFromStore(
   return portMap;
 }
 
+template <typename SaiPortAttribute>
+void SaiPortManager::setPortQosBufferProfiles(
+    const PortID& portID,
+    const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+        bufferProfileHandles,
+    const char* direction) {
+  auto portHandle = getPortHandle(portID);
+  if (!portHandle) {
+    XLOG(ERR) << "Port handle not found for port " << portID << ", skipping "
+              << direction << " buffer profile configuration";
+    return;
+  }
+  if (!portHandle->port) {
+    XLOG(ERR) << "Port object is null for port " << portID << ", skipping "
+              << direction << " buffer profile configuration";
+    return;
+  }
+  std::vector<sai_object_id_t> bufferProfileIds;
+  bufferProfileIds.reserve(bufferProfileHandles.size());
+  for (const auto& handle : bufferProfileHandles) {
+    if (!handle) {
+      XLOG(ERR) << "Null buffer profile handle found for port " << portID
+                << ", skipping";
+      continue;
+    }
+    bufferProfileIds.push_back(handle->adapterKey());
+  }
+  if (!bufferProfileIds.empty()) {
+    portHandle->port->setOptionalAttribute(SaiPortAttribute{bufferProfileIds});
+  }
+}
+
+void SaiPortManager::setPortQosEgressBufferProfiles(
+    const PortID& portID,
+    const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+        bufferProfileHandles) {
+  setPortQosBufferProfiles<
+      SaiPortTraits::Attributes::QosEgressBufferProfileList>(
+      portID, bufferProfileHandles, "egress");
+}
+
+void SaiPortManager::setPortQosIngressBufferProfiles(
+    const PortID& portID,
+    const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+        bufferProfileHandles) {
+  setPortQosBufferProfiles<
+      SaiPortTraits::Attributes::QosIngressBufferProfileList>(
+      portID, bufferProfileHandles, "ingress");
+}
+
 void SaiPortManager::setQosMapsOnPort(
     PortID portID,
     std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps) {
