@@ -16,7 +16,6 @@
 #include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
-#include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/HwSysPortFb303Stats.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/AclApi.h"
@@ -26,7 +25,6 @@
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
-#include "fboss/agent/hw/sai/api/SaiObjectApi.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
@@ -75,7 +73,6 @@
 #include "fboss/agent/hw/UnsupportedFeatureManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "folly/MacAddress.h"
-#include "folly/String.h"
 
 #include "fboss/agent/LoadBalancerUtils.h"
 
