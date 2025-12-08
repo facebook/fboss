@@ -53,6 +53,9 @@ class FwUtilImpl {
   FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationEmptyPath);
   FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationVariousValues);
   FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationFileOverwrite);
+  FRIEND_TEST(FwUtilVerifyTest, PerformVerifyFlashromWithArgs);
+  FRIEND_TEST(FwUtilVerifyTest, PerformVerifyFlashromWithoutArgs);
+  FRIEND_TEST(FwUtilVerifyTest, PerformVerifyUnsupportedCommandType);
 
   void doPreUpgrade(const std::string&);
 
