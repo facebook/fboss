@@ -1,5 +1,7 @@
 # FBOSS BSP Kernel Module API Specification
 
+import TestCase from '@site/src/components/TestCase';
+
 ## Version 1.0.0
 
 - [FBOSS BSP Kernel Module API Specification](#fboss-bsp-kernel-module-api-specification)
@@ -18,6 +20,13 @@
     - [2.2.8 Transceiver Controller (xcvr\_ctrl)](#228-transceiver-controller-xcvr_ctrl)
     - [2.2.9 LED](#229-led)
 
+:::tip
+<TestCase id="Note">
+This indicates that this statement is covered by a BSP Tests test case. Hover to
+see the test case id.
+</TestCase>
+:::
+
 ## 1. Device References
 
 Any interaction between userspace and devices shall use the device interfaces
@@ -33,15 +42,21 @@ environment.
 Device topology/settings are managed from userspace with the PlatformManager
 service.
 
+<TestCase id="CDEV.CdevIsCreated">
 The PCIe FPGA driver registers a character device for each FPGA instance in the
 system with the following naming pattern:
 
 `fbiob_%04x.%04x.%04x.%04x% (vendor, device, subsystem_vendor, subsystem_device)`
 
+</TestCase>
+
+<TestCase id="CDEV.CdevCreateAndDelete">
 This character device supports the following IOCTL commands:
 
 - `FBIOB_IOC_NEW_DEVICE`
 - `FBIOB_IOC_DEL_DEVICE`
+
+</TestCase>
 
 More details can be found in the [fbiob-ioctl.h](https://github.com/facebook/fboss/blob/main/fboss/platform/platform_manager/uapi/fbiob-ioctl.h)
 header file.
@@ -64,6 +79,8 @@ The FPGA Info driver exports the following sysfs files:
 
 **Interface:**
 
+<TestCase id="I2C.I2CAdapterCreatesBusses">
+
 Below are the list of I2C sysfs and character device interfaces used by FBOSS
 user space services:
 
@@ -72,10 +89,18 @@ user space services:
 - `/sys/bus/i2c/devices/<bus>-00<addr>/`
 - `/dev/i2c-#`
 
+</TestCase>
+
+<TestCase id="I2C.I2CAdapterNames">
+
 PlatformManager creates mappings between `/run/devmap/i2c-busses/BUS_NAME` and
 the corresponding character device `/dev/i2c-#`. For example:
 
 - `/run/devmap/i2c-busses/OPTICS_1` → `/dev/i2c-5`
+
+</TestCase>
+
+<TestCase id="I2C.I2CAdapterDevicesExist">
 
 Once an i2c adapter has been created, devices are instantiated by using
 userspace API as described here:
@@ -86,11 +111,17 @@ Example:
 
     # echo eeprom 0x50 > /sys/bus/i2c/devices/i2c-3/new_device
 
+</TestCase>
+
+<TestCase id="I2C.I2CTransactions">
+
 If devices attached to this adapter are not managed by a kernel driver it is
 possible to interact with them directly by using `ioctl` commands. See the below
 document for a full explanation.
 
 - [kernel.org/doc/Documentation/i2c/dev-interface](https://www.kernel.org/doc/Documentation/i2c/dev-interface)
+
+</TestCase>
 
 #### 2.2.3 SPI Controller (spi_master)
 
@@ -112,13 +143,21 @@ document for a full explanation.
 
 **Interface:**
 
+<TestCase id="GPIO.GpioCreated">
+
 All FBOSS user space services access GPIOs via the character device interface at
 `/dev/gpiochip#`. Full description can be found here.
 [https://docs.kernel.org/userspace-api/gpio/chardev.html](https://docs.kernel.org/userspace-api/gpio/chardev.html)
 
+</TestCase>
+
+<TestCase id="GPIO.GpioInfo">
+
 A GPIO Line is identified by `<gpiochip, offset>` pair: `gpiochip` is a symlink
 located under `/run/devmap/gpiochips/`, and offset is a non-negative offset
 within the corresponding `gpiochip`.
+
+</TestCase>
 
 #### 2.2.5 HWMON and PMBUS Device
 
@@ -128,12 +167,16 @@ developed under the Linux hardware monitoring framework.
 
 **Interface:**
 
+<TestCase id="HWMON.HwmonSensors">
+
 FBOSS services access hwmon devices via `/sys/class/hwmon/hwmon#`.
 
 hwmon drivers must report values to user space with proper units, and below link
 defines all the details:
 
 - [kernel.org/doc/Documentation/hwmon/sysfs-interface](https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface)
+
+</TestCase>
 
 #### 2.2.6 Fan Controller (fan_ctrl)
 
@@ -153,12 +196,20 @@ error code.
 
 **Interface:**
 
+<TestCase id="WATCHDOG.WatchdogStart">
+
 FBOSS adopts the standard Linux watchdog daemon to feed watchdog via character
 device interface `/dev/watchdog#`. The watchdog API is defined here.
 [kernel.org/doc/html/v6.4/watchdog/watchdog-api](https://www.kernel.org/doc/html/v5.9/watchdog/watchdog-api.html)
 
+</TestCase>
+
+<TestCase id="WATCHDOG.WatchdogPing">
+
 FBOSS Watchdog devices support `start`, `stop`, `ping` and `set_timeout`
 operations.
+
+</TestCase>
 
 **Behavior:**
 
@@ -169,6 +220,8 @@ to monitor system status after an expiration event subsequent service recovery.
 #### 2.2.8 Transceiver Controller (xcvr_ctrl)
 
 **Interface:**
+
+<TestCase id="XCVR.XcvrCreatesSysfsFiles">
 
 The `xcvr_ctrl` driver exports following sysfs entries for each transceiver port
 (port_num is 1-based integer):
@@ -187,12 +240,16 @@ The `xcvr_ctrl` driver exports following sysfs entries for each transceiver port
   - **Description**: 1 indicates xcvr is present, 0 indicates not present.
   - **Read/Write**: RO
 
+</TestCase>
+
 #### 2.2.9 LED
 
 LEDs are accessed via their original sysfs paths since they are non-dynamic. No
 symlinks are created by PlatformManager. All leds are found at `/sys/class/leds/`
 
 **Naming:**
+
+<TestCase id="LED.LedsCreated">
 
 LEDs are named with a common scheme:
 
@@ -207,7 +264,11 @@ For example:
 If an LED has no `id` in the name, it is a system-level LED, for example
 front-panel LEDs.
 
+</TestCase>
+
 **Interface:**
+
+<TestCase id="LED.DeviceLedsCreated">
 
 - FBOSS services control LEDs by writing `0` or `max_brightness` to
   `/sys/class/leds/<LED_NAME>/brightness` files.
@@ -223,3 +284,5 @@ front-panel LEDs.
     $ cat /sys/class/leds/port1_led:blue:status/brightness
     0
     ```
+
+</TestCase>

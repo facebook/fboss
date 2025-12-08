@@ -1,5 +1,7 @@
 # FBOSS BSP Kernel Module Development Requirements
 
+import TestCase from '@site/src/components/TestCase';
+
 ## Version: 1.0.0
 
 The Meta Kernel team doesn't take local kernel patches, so the BSP kernel
@@ -485,8 +487,15 @@ only intended to be used by I2C client devices without kernel drivers.
 
 ### 6.3 Test Requirement
 
+<TestCase id="I2C.I2CAdapterNames">
+
 * `i2cdetect -l` can list all the I2C buses, and each bus is assigned a
 global-unique and descriptive name.
+
+</TestCase>
+
+<TestCase id="I2C.I2CAdapterDevicesExist">
+
 * If the BSP contains multiple I2C adapter drivers, then for each I2C adapter
 driver:
 * Pick up a I2C bus randomly, make sure `i2cdetect -y <bus_num>` can detect all
@@ -496,6 +505,10 @@ the devices that are present in the bus.
   by `i2cdetect -y`, please try `i2cdetect -r` and `i2cdetect -q`: test can
   be marked pass if `-r` or `-q` options works.
 
+</TestCase>
+
+<TestCase id="I2C.I2CTransactions">
+
 * Pick up a I2C client device which is physically present (for example, QSFP
 EEPROM), and run below testing:
   * make sure `i2cdump -y -f <bus_num> <dev_addr>` prints device registers
@@ -504,8 +517,18 @@ EEPROM), and run below testing:
     device register correctly.
   * make sure `i2cset -y -f <bus_num> <dev_addr> <reg_addr> <data>` sets the
     value to the corresponding device register correctly.
+
+</TestCase>
+
+<TestCase id="I2C.I2CBusWithDevicesCanBeUnloaded">
+
 * Pick up an I2C bus, create a few I2C client devices on the bus, and then
 unload the I2C bus driver: make sure the module can be unloaded cleanly.
+
+</TestCase>
+
+<TestCase id="I2C.I2CAdapterCreatesBusses">
+
 * If a physical I2C adapter has multiple internal channels, and each channel is
 assigned a I2C bus, then:
 * Pick up at least 2 I2C buses from the same I2C adapter, and launch `i2cdump`/
@@ -513,6 +536,8 @@ assigned a I2C bus, then:
 expected results.
 * Trigger I2C transactions in a tight loop for 1000 times: no kernel panic, and
 no kernel log spew.
+
+</TestCase>
 
 ### 6.4 References
 
@@ -544,14 +569,33 @@ within the corresponding `gpiochip`.
 
 ### 7.3 Test Requirements
 
+<TestCase id="GPIO.GpioCreated">
+
 * Make sure `gpiodetect` can print all the GPIO Controllers, their names and
 number of supported GPIO lines correctly.
+
+</TestCase>
+
+<TestCase id="GPIO.GpioInfo">
+
 * Make sure `gpioinfo` can print all the GPIO lines of all the GPIO controllers
 correctly.
+
+</TestCase>
+
+<TestCase id="GPIO.GpioGet">
+
 * Make sure `gpioset` can be used to set value of output GPIO lines.
 * Make sure `gpioget` can be used to read value of input GPIO lines.
+
+</TestCase>
+
+<TestCase id="GPIO.DriverUnload">
+
 * Make sure all the GPIO controller driver modules can be unloaded cleanly and
 reloaded to the kernel successfully.
+
+</TestCase>
 
 ### 7.4 References
 
@@ -592,15 +636,34 @@ watchdog is referenced.
 
 ### 8.3 Test Requirements
 
-* Start watchdog daemon by `systemctl start watchdog`: make sure system doesn’t
+<TestCase id="WATCHDOG.WatchdogStart">
+
+* Start watchdog daemon by `systemctl start watchdog`: make sure system doesn't
 reboot in 2 hours.
 * Start watchdog daemon and run `echo 1 > /run/devmap/watchdogs/FBOSS_WDT`:
 command must fail with EBUSY.
+
+</TestCase>
+
+<TestCase id="WATCHDOG.WatchdogSetTimeout">
+
 * Write a program to update watchdog timeout and make sure watchdog timeout is
 updated properly.
+
+</TestCase>
+
+<TestCase id="WATCHDOG.WatchdogMagicClose">
+
 * Stop watchdog daemon and run `echo V > /run/devmap/watchdogs/FBOSS_WDT`:
 watchdog is stopped at file close.
+
+</TestCase>
+
+<TestCase id="WATCHDOG.WatchdogDriverUnload">
+
 * Unloading the driver removes the instances of `/dev/watchdog#`
+
+</TestCase>
 
 ### 8.4 References
 
@@ -640,7 +703,11 @@ defines all the details:
 
 ### 9.3 Test Requirements
 
+<TestCase id="HWMON.HwmonSensors">
+
 * `sensors` command can detect and print all the hwmon sensors.
+
+</TestCase>
 
 ## 10. PMBus Drivers
 
@@ -721,10 +788,19 @@ header file, please reach out to Meta for support.
 
 ### 11.2 Test Requirements
 
+<TestCase id="LED.LedsCreated">
+
 * Make sure all the required LEDs and LED colors are found at `/sys/class/leds`.
-* Write `0` to LEDs’ `brightness` file: make sure the color is turned off.
-* Write `max_brightness` to LEDs’ `brightness` file: make sure the color is
+
+</TestCase>
+
+<TestCase id="LED.DeviceLedsCreated">
+
+* Write `0` to LEDs' `brightness` file: make sure the color is turned off.
+* Write `max_brightness` to LEDs' `brightness` file: make sure the color is
 turned on.
+
+</TestCase>
 
 ## 12. SPI Master Drivers
 
