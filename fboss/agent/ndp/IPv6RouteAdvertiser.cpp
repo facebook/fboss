@@ -300,7 +300,7 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
       cursor,
       dstMac,
       intf->getMac(),
-      intf->getVlanIDIf(),
+      intf->getVlanIDIf_DEPRECATED(),
       ipv6,
       bodyLength,
       serializeBody);

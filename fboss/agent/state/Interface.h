@@ -108,7 +108,7 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     CHECK(getType() == cfg::InterfaceType::VLAN);
     return VlanID(get<switch_state_tags::vlanId>()->cref());
   }
-  std::optional<VlanID> getVlanIDIf() const {
+  std::optional<VlanID> getVlanIDIf_DEPRECATED() const {
     if (getType() == cfg::InterfaceType::VLAN) {
       return getVlanID();
     } else {

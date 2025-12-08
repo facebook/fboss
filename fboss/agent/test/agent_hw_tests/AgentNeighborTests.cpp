@@ -243,7 +243,7 @@ class AgentNeighborTest : public AgentHwTest {
     auto intf = outState->getInterfaces()->getNode(kIntfID());
     if (getSw()->needL2EntryForNeighbor() &&
         intf->getType() == cfg::InterfaceType::VLAN) {
-      CHECK(intf->getVlanIDIf().has_value());
+      CHECK(intf->getVlanIDIf_DEPRECATED().has_value());
       outState = utility::NeighborTestUtils::pruneMacEntryForDelNbrEntry(
           outState, intf->getVlanID(), neighborTable->getEntryIf(ip));
     }
@@ -280,7 +280,7 @@ class AgentNeighborTest : public AgentHwTest {
     auto intf = outState->getInterfaces()->getNode(kIntfID());
     if (getSw()->needL2EntryForNeighbor() &&
         intf->getType() == cfg::InterfaceType::VLAN) {
-      CHECK(intf->getVlanIDIf().has_value());
+      CHECK(intf->getVlanIDIf_DEPRECATED().has_value());
       outState = utility::NeighborTestUtils::addMacEntryForNewNbrEntry(
           outState, intf->getVlanID(), neighborTable->getEntryIf(ip));
     }

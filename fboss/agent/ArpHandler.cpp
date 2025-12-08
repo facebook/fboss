@@ -279,7 +279,7 @@ void ArpHandler::floodGratuituousArp() {
         // originator's address
         sendArp(
             sw_,
-            intf->getVlanIDIf(),
+            intf->getVlanIDIf_DEPRECATED(),
             ARP_OP_REQUEST,
             intf->getMac(),
             v4Addr,
@@ -361,7 +361,7 @@ void ArpHandler::sendArpRequest(
 
   sendArpRequest(
       sw,
-      intf->getVlanIDIf(),
+      intf->getVlanIDIf_DEPRECATED(),
       intf->getMac(),
       addrToReach->first.asV4(),
       targetIP);

@@ -752,7 +752,7 @@ std::optional<VlanID> getVlanIDFromVlanOrIntf(
     if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
       vlanID = vlanOrIntf->getID();
     } else {
-      vlanID = vlanOrIntf->getVlanIDIf();
+      vlanID = vlanOrIntf->getVlanIDIf_DEPRECATED();
     }
   }
 

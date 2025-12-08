@@ -255,7 +255,7 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveVlanRifNextHop(
   } else {
     nbrTable->addEntry(nhopIp, nhop.mac, nhop.portDesc, intf->getID());
     if (needL2EntryForNeighbor()) {
-      CHECK(intf->getVlanIDIf().has_value());
+      CHECK(intf->getVlanIDIf_DEPRECATED().has_value());
       outputState = NeighborTestUtils::addMacEntryForNewNbrEntry(
           outputState, intf->getVlanID(), nbrTable->getEntryIf(nhopIp));
     }
