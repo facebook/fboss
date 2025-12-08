@@ -625,4 +625,76 @@ TEST_F(I2cLogBufferTest, testReplayScenarios) {
   lambda();
 }
 
+TEST_F(I2cLogBufferTest, testI2cTransferCommandsInLogFile) {
+  I2cLogBuffer logBuffer = createBuffer(kFullBuffer);
+
+  // Create test data with known values for verification
+  std::array<uint8_t, kMaxI2clogDataSize> testData;
+  testData.fill(0);
+  testData[0] = 0xAB;
+  testData[1] = 0xCD;
+
+  // Log a Read operation: offset=10, len=5
+  TransceiverAccessParameter readParam(0, 10, 5);
+  logBuffer.log(
+      readParam, kField, testData.data(), I2cLogBuffer::Operation::Read);
+
+  // Log a Write operation: offset=20, len=2
+  TransceiverAccessParameter writeParam(0, 20, 2);
+  logBuffer.log(
+      writeParam, kField, testData.data(), I2cLogBuffer::Operation::Write);
+
+  // Log a Reset operation
+  TransceiverAccessParameter resetParam(0, 0, 0);
+  logBuffer.log(
+      resetParam, kField, testData.data(), I2cLogBuffer::Operation::Reset);
+
+  // Log a Presence operation
+  TransceiverAccessParameter presenceParam(0, 0, 0);
+  logBuffer.log(
+      presenceParam,
+      kField,
+      testData.data(),
+      I2cLogBuffer::Operation::Presence);
+
+  // Dump to file, which generates both log file and _i2c.sh file
+  logBuffer.dumpToFile();
+
+  // Read the generated i2c.sh file
+  std::string i2cShFile = kLogFile_ + "_replay.sh";
+  std::ifstream file(i2cShFile);
+  ASSERT_TRUE(file.is_open()) << "Failed to open " << i2cShFile;
+
+  std::vector<std::string> lines;
+  std::string line;
+  while (std::getline(file, line)) {
+    if (!line.empty()) {
+      lines.push_back(line);
+    }
+  }
+
+  // Verify the i2ctransfer commands
+  // Expected format for Read: i2ctransfer -y #i2cBus w1@0x50 <offset> r<len>
+  // Expected format for Write: i2ctransfer -y #i2cBus w<len+1>@0x50 <offset>
+  // <data bytes> Expected format for Reset: echo -----------
+  // trigger_hard_reset ----------- Expected format for Presence: echo
+  // ----------- read_transceiver_presence -----------
+
+  // First line should be the read command
+  EXPECT_EQ(lines[0], "i2ctransfer -y #i2cBus w1@0x50 10 r5");
+
+  // After sleep, write command (sleep time varies, so check prefix)
+  EXPECT_EQ(lines[1].substr(0, 5), "sleep");
+  EXPECT_EQ(lines[2], "i2ctransfer -y #i2cBus w3@0x50 20  0xab 0xcd");
+
+  // After sleep, reset command
+  EXPECT_EQ(lines[3].substr(0, 5), "sleep");
+  EXPECT_EQ(lines[4], "echo ----------- trigger_hard_reset ----------- ");
+
+  // After sleep, presence command
+  EXPECT_EQ(lines[5].substr(0, 5), "sleep");
+  EXPECT_EQ(
+      lines[6], "echo ----------- read_transceiver_presence ----------- ");
+}
+
 } // namespace facebook::fboss
