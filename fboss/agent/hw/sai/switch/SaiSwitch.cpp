@@ -3588,7 +3588,10 @@ void SaiSwitch::packetRxCallback(
     }
   }
 
-  auto queueId = hostifQueueIdOpt.has_value() ? hostifQueueIdOpt.value() : 0;
+  std::optional<uint8_t> queueId;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_QUEUES)) {
+    queueId = hostifQueueIdOpt.has_value() ? hostifQueueIdOpt.value() : 0;
+  }
 
   if (!lagSaiIdOpt) {
     packetRxCallbackPort(
@@ -3616,7 +3619,7 @@ void SaiSwitch::packetRxCallbackPort(
     PortSaiId portSaiId,
     bool allowMissingSrcPort,
     cfg::PacketRxReason rxReason,
-    uint8_t queueId) {
+    std::optional<uint8_t> queueId) {
   PortID swPortId(0);
   std::optional<VlanID> swVlanId = processVlanUntaggedPackets()
       ? std::nullopt
@@ -3706,8 +3709,8 @@ void SaiSwitch::packetRxCallbackPort(
   rxPacket->setSrcVlan(swVlanId);
 
   XLOG(DBG6) << "Rx packet on port: " << swPortId << " vlan: " << swVlanIdStr()
-             << " trap: " << packetRxReasonToString(rxReason)
-             << " queue: " << (uint16_t)queueId;
+             << " trap: " << packetRxReasonToString(rxReason) << " queue: "
+             << (queueId.has_value() ? static_cast<uint16_t>(*queueId) : 0);
 
   folly::io::Cursor c0(rxPacket->buf());
   XLOG(DBG6) << PktUtil::hexDump(c0);
@@ -3721,7 +3724,7 @@ void SaiSwitch::packetRxCallbackLag(
     PortSaiId portSaiId,
     bool allowMissingSrcPort,
     cfg::PacketRxReason rxReason,
-    uint8_t queueId) {
+    std::optional<uint8_t> queueId) {
   AggregatePortID swAggPortId(0);
   PortID swPortId(0);
   VlanID swVlanId(0);
@@ -3759,8 +3762,8 @@ void SaiSwitch::packetRxCallbackLag(
   rxPacket->setSrcPort(swPortId);
   XLOG(DBG6) << "Rx packet on lag: " << swAggPortId << ", port: " << swPortId
              << " vlan: " << swVlanId
-             << " trap: " << packetRxReasonToString(rxReason)
-             << " queue: " << (uint16_t)queueId;
+             << " trap: " << packetRxReasonToString(rxReason) << " queue: "
+             << (queueId.has_value() ? static_cast<uint16_t>(*queueId) : 0);
   folly::io::Cursor c0(rxPacket->buf());
   XLOG(DBG6) << PktUtil::hexDump(c0);
   callback_->packetReceived(std::move(rxPacket));
