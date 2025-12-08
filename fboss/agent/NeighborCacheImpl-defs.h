@@ -348,7 +348,6 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
     auto newNode = intfNew->getTable<NTable>()->getEntryIf(fields.ip);
     if (needL2EntryForNeighbor_ &&
         intfNew->getType() == cfg::InterfaceType::VLAN) {
-      CHECK(intfNew->getVlanIDIf_DEPRECATED().has_value());
       auto vlanID = intfNew->getVlanID();
       if (!node) {
         if (ncachehelpers::isReachable(newNode)) {
@@ -569,7 +568,6 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     if (needL2EntryForNeighbor_ &&
         intfNew->getType() == cfg::InterfaceType::VLAN && node &&
         ncachehelpers::isReachable(node)) {
-      CHECK(intfNew->getVlanIDIf_DEPRECATED().has_value());
       newState = StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
           newState, intfNew->getVlanID(), node);
     }
@@ -870,7 +868,6 @@ void NeighborCacheImpl<NTable>::flushEntry(AddressType ip, bool* flushed) {
       if (needL2EntryForNeighbor && oldEntry &&
           intf->getType() == cfg::InterfaceType::VLAN &&
           ncachehelpers::isReachable(oldEntry)) {
-        CHECK(intf->getVlanIDIf_DEPRECATED().has_value());
         newState = StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
             newState, intf->getVlanID(), oldEntry);
       }
