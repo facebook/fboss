@@ -67,6 +67,10 @@ class SaiTamManager {
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   folly::F14FastMap<std::string, std::unique_ptr<SaiTamHandle>> tamHandles_;
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  void addDnxMirrorOnDropReport(
+      const std::shared_ptr<MirrorOnDropReport>& report);
+#endif
 };
 
 } // namespace facebook::fboss
