@@ -1962,6 +1962,9 @@ cpp_library(
     srcs = [
         "AgentFeatures.cpp",
     ],
+    exported_deps = [
+        ":voq_constants",
+    ],
     exported_external_deps = [
         "gflags",
     ],
