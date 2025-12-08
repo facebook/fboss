@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/FabricLinkMonitoringManager.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
 #include <folly/MacAddress.h>
@@ -9,7 +10,6 @@
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 #include <cstring>
-#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
@@ -92,13 +92,8 @@ void FabricLinkMonitoringManager::start() {
   // Expect fabric ports to not change once the system is configured
   std::shared_ptr<SwitchState> state = sw_->getState();
 
-  auto portConnectedToL2Switch = [&](const PortID& portId) {
-    auto matcher = sw_->getScopeResolver()->scope(portId);
-    auto hwAsic = sw_->getHwAsicTable()->getHwAsicIf(matcher.switchId());
-    auto it = hwAsic->getL1FabricPortsToConnectToL2().find(
-        static_cast<int16_t>(portId));
-    return it != hwAsic->getL1FabricPortsToConnectToL2().end();
-  };
+  // Get the set of L1 fabric ports connected to L2 switches
+  auto l2ConnectedFabricPorts = getL2ConnectedL1FabricPorts(state);
 
   bool voqSwitch = sw_->getSwitchInfoTable()
                        .getSwitchIdsOfType(cfg::SwitchType::VOQ)
@@ -110,14 +105,15 @@ void FabricLinkMonitoringManager::start() {
         // only in the RDSW->FDSW and FDSW->SDSW direction, not in
         // the reverse direction.
         const PortID portId = port->getID();
-        if (!voqSwitch && portConnectedToL2Switch(portId)) {
-          continue;
+        bool l2ConnectedL1Port =
+            l2ConnectedFabricPorts.find(portId) != l2ConnectedFabricPorts.end();
+        if (voqSwitch || l2ConnectedL1Port) {
+          int groupId = getPortGroup(portId);
+          portGroupToPortsMap_[groupId].push_back(portId);
+          portToGroupMap_[portId] = groupId;
+          portStatsLocked->emplace(
+              portId, folly::Synchronized<FabricLinkMonPortStats>{});
         }
-        int groupId = getPortGroup(portId);
-        portGroupToPortsMap_[groupId].push_back(portId);
-        portToGroupMap_[portId] = groupId;
-        portStatsLocked->emplace(
-            portId, folly::Synchronized<FabricLinkMonPortStats>{});
       }
     }
   }

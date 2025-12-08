@@ -607,6 +607,7 @@ cpp_library(
         "//folly/logging:logging",
         "//folly/system:thread_name",
         "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2:field_ref",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [

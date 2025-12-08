@@ -26,6 +26,7 @@ class SwSwitch;
 class RxPacket;
 class TxPacket;
 class Port;
+class SwitchState;
 
 // FabricLinkMonitoringManager sends periodic monitoring packets on fabric ports
 // to verify link health and track packet loss
