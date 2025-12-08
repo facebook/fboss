@@ -80,6 +80,11 @@ SaiTamEventTraits::Attributes::AttributePacketDropTypeMmu::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributePacketDropTypeIngress::operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_PACKET_DROP_TYPE_INGRESS;
+}
+
+std::optional<sai_attr_id_t>
 SaiTamEventTraits::Attributes::AttributeAgingGroup::operator()() {
   return SAI_TAM_EVENT_ATTR_FAKE_AGING_GROUP;
 }

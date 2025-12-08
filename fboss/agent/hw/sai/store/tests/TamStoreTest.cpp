@@ -72,6 +72,7 @@ class TamStoreTest : public SaiStoreTest {
     sai_int32_t eventId = 1;
     std::vector<sai_object_id_t> extensionsCollectorList{10};
     std::vector<sai_int32_t> packetDropTypeMmu = {3, 4};
+    std::vector<sai_int32_t> packetDropTypeIngress = {5, 6};
     sai_object_id_t agingGroup = 20;
 
     SaiTamEventTraits::CreateAttributes result;
@@ -90,6 +91,9 @@ class TamStoreTest : public SaiStoreTest {
         result) = extensionsCollectorList;
     std::get<std::optional<SaiTamEventTraits::Attributes::PacketDropTypeMmu>>(
         result) = packetDropTypeMmu;
+    std::get<
+        std::optional<SaiTamEventTraits::Attributes::PacketDropTypeIngress>>(
+        result) = packetDropTypeIngress;
     std::get<std::optional<SaiTamEventTraits::Attributes::AgingGroup>>(result) =
         agingGroup;
 
