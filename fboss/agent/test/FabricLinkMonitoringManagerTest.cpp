@@ -920,3 +920,91 @@ TEST(
   manager->stop();
   FabricLinkMonitoringManager::setTestMode(false);
 }
+
+TEST(
+    FabricLinkMonitoringManagerTest,
+    LastPortIndexHandlingWithOutstandingLimitReached) {
+  // Enable test mode to avoid dependency on platform mapping
+  FabricLinkMonitoringManager::setTestMode(true);
+
+  // Create a simple config with 8 fabric ports
+  auto config = createVoqConfig();
+  config.ports()->resize(8); // Keep only first 8 ports
+
+  auto state = std::make_shared<SwitchState>();
+  addSwitchInfo(
+      state,
+      cfg::SwitchType::VOQ,
+      0,
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      0,
+      std::nullopt,
+      std::nullopt,
+      MockPlatform::getMockLocalMac().toString());
+
+  // Add the 8 fabric ports from config to the state
+  auto portMap = std::make_shared<MultiSwitchPortMap>();
+  for (const auto& cfgPort : *config.ports()) {
+    auto portId = PortID(*cfgPort.logicalID());
+    auto port = std::make_shared<Port>(portId, *cfgPort.name());
+    port->setPortType(*cfgPort.portType());
+    port->setOperState(true); // Port is UP
+    port->setAdminState(cfg::PortState::ENABLED);
+    portMap->addNode(port, HwSwitchMatcher());
+  }
+  state->resetPorts(portMap);
+
+  auto handle = createTestHandle(state);
+  auto sw = handle->getSw();
+
+  // Set a very low outstanding packet limit to force the limit to be reached
+  FLAGS_fabric_link_monitoring_max_outstanding_packets = 2;
+
+  std::atomic<int> totalPacketsSent{0};
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortSyncForPktType_(
+          TxPacketMatcher::createMatcher(
+              "Fabric Monitoring Packet",
+              [&totalPacketsSent](const TxPacket* /*pkt*/) {
+                totalPacketsSent++;
+              }),
+          _,
+          _))
+      .Times(AtLeast(8)); // Expect at least one packet per port
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  // Wait for multiple rounds of packet transmission
+  // The test verifies that even when outstanding limit is reached,
+  // the lastPortIndex correctly resumes from where it left off
+  WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(1500), {
+    auto allStats = manager->getAllFabricLinkMonPortStats();
+
+    // Verify all ports have been sent packets
+    int portsWithTx = 0;
+    for (const auto& [portId, stats] : allStats) {
+      if (*stats.txCount() > 0) {
+        portsWithTx++;
+      }
+    }
+
+    // All 8 ports should have sent at least one packet
+    EXPECT_EVENTUALLY_EQ(portsWithTx, 8);
+
+    int portsWithMultipleTx = 0;
+    for (const auto& [portId, stats] : allStats) {
+      if (*stats.txCount() >= 2) {
+        portsWithMultipleTx++;
+      }
+    }
+    // Most ports should have sent multiple packets, proving round-robin works
+    EXPECT_EVENTUALLY_GE(portsWithMultipleTx, 6);
+  });
+
+  manager->stop();
+  FabricLinkMonitoringManager::setTestMode(false);
+}

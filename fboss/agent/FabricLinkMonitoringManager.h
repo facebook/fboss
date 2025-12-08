@@ -5,6 +5,7 @@
 #include <folly/MacAddress.h>
 #include <folly/Synchronized.h>
 #include <folly/io/async/AsyncTimeout.h>
+#include <gflags/gflags.h>
 #include <chrono>
 #include <deque>
 #include <map>
@@ -13,6 +14,10 @@
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
+
+DECLARE_int32(fabric_link_monitoring_interval_ms);
+DECLARE_int32(fabric_link_monitoring_max_outstanding_packets);
+DECLARE_int32(fabric_link_monitoring_max_pending_seq_numbers);
 
 namespace folly {
 namespace io {
