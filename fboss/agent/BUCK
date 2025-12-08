@@ -466,6 +466,13 @@ cpp_library(
 )
 
 cpp_library(
+    name = "voq_constants",
+    headers = [
+        "VoqConstants.h",
+    ],
+)
+
+cpp_library(
     name = "voq_utils",
     srcs = [
         "VoqUtils.cpp",
@@ -476,6 +483,7 @@ cpp_library(
     exported_deps = [
         ":agent_features",
         ":switch_config-cpp2-types",
+        ":voq_constants",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
         "//folly:network_address",
