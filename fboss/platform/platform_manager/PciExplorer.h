@@ -147,6 +147,11 @@ class PciExplorer {
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
 
+  std::string getMdioBusSysfsPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+
  private:
   const std::shared_ptr<PlatformFsUtils> platformFsUtils_;
 
@@ -176,7 +181,7 @@ class PciExplorer {
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
-  std::string getMdioBusSysfsPath(
+  std::string getMdioBusCharDevPath(
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);

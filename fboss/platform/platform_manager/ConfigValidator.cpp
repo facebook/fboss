@@ -644,7 +644,7 @@ bool ConfigValidator::isValidDeviceName(
               *pciDeviceConfig.watchdogConfigs(),
               *pciDeviceConfig.infoRomConfigs(),
               *pciDeviceConfig.miscCtrlConfigs(),
-              *pciDeviceConfig.mdioBusConfigs())) {
+              Utils().createMdioBusConfigs(pciDeviceConfig))) {
         return true;
       }
     }

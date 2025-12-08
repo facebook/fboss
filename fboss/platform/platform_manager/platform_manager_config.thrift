@@ -453,6 +453,37 @@ struct LedCtrlBlockConfig {
   7: string iobufOffsetCalc;
 }
 
+// Defines generic MDIO BUS Controller block in FPGAs.
+//
+// `pmUnitScopedNamePrefix`: The prefix used to refer to this device
+//  Example: pmUnitScopedNamePrefix: RTM_L_MDIO_BUS, the expanded form would be
+//  RTM_L_MDIO_BUS_1, RTM_L_MDIO_BUS_2, etc.
+//
+// `deviceName`: It is the name used in the ioctl system call to create the
+// corresponding device. It should one of the compatible strings specified in
+// the kernel driver.
+//
+// `csrOffsetCalc`: Calculation to get the csr offset for fpga block
+//  This expression includes a base start address, port, a starting port number
+//  or index, and a led number. Final offset result is in hex format.
+//  Example:
+//  csrOffsetCalc: "0x200 + {busIndex}*0x20"
+//  busIndex=0:
+//    csrOffsetCalc: "0x200 + 0*0x20"
+//    csrOffsetCalc: "0x200"
+//  busIndex=1:
+//    csrOffsetCalc: "0x200 + 1*0x20"
+//    csrOffsetCalc: "0x220"
+//
+//
+// `numBuses`: Number of buses for this block config
+struct MdioBusBlockConfig {
+  1: string pmUnitScopedNamePrefix;
+  2: string deviceName;
+  3: string csrOffsetCalc;
+  4: i32 numBuses;
+}
+
 // Defines PCI Devices in the PmUnits. A new PciDeviceConfig should be created
 // for each unique combination of <vendorId, deviceId, subSystemVendorId,
 // subSystemDeviceId>.
@@ -511,6 +542,7 @@ struct PciDeviceConfig {
   17: list<XcvrCtrlBlockConfig> xcvrCtrlBlockConfigs;
   18: list<FpgaIpBlockConfig> mdioBusConfigs;
   19: list<FpgaIpBlockConfig> sysLedCtrlConfigs;
+  20: list<MdioBusBlockConfig> mdioBusBlockConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and
