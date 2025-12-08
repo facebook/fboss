@@ -744,7 +744,10 @@ void SaiHostifManager::loadCpuPort() {
     }
 #endif
   }
-  loadCpuPortQueues();
+  // Load CPU queues only for switches with CPU queues
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_QUEUES)) {
+    loadCpuPortQueues();
+  }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::VOQ)) {
     loadCpuSystemPortVoqs();
   }
@@ -785,6 +788,11 @@ HwPortStats SaiHostifManager::getCpuPortStats() const {
 
 uint32_t SaiHostifManager::getMaxCpuQueues() const {
   auto asic = platform_->getAsic();
+  if (asic->isSupported(HwAsic::Feature::CPU_PORT) &&
+      !asic->isSupported(HwAsic::Feature::CPU_QUEUES)) {
+    // Switch with CPU port support, but not CPU queues
+    return 0;
+  }
   auto cpuQueueTypes = asic->getQueueStreamTypes(cfg::PortType::CPU_PORT);
   CHECK_EQ(cpuQueueTypes.size(), 1);
   return asic->getDefaultNumPortQueues(

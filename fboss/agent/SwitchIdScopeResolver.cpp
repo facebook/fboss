@@ -84,6 +84,18 @@ const HwSwitchMatcher& SwitchIdScopeResolver::voqSwitchMatcher() const {
   return *voqSwitchMatcher_;
 }
 
+const HwSwitchMatcher& SwitchIdScopeResolver::scope(
+    const std::shared_ptr<ControlPlane>& /*c*/) const {
+  // ControlPlane (CPU port) is supported for L3 switches (VOQ/NPU) and FABRIC
+  // switches. For L3 switches, use l3SwitchMatcher and for FABRIC switches
+  //  use allSwitchMatcher
+  if (l3SwitchMatcher_) {
+    return *l3SwitchMatcher_;
+  }
+  // Non l3 switches with CPU ports
+  return allSwitchMatcher();
+}
+
 HwSwitchMatcher SwitchIdScopeResolver::scope(PortID portId) const {
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo_) {
     auto switchInfo = switchIdAndSwitchInfo.second;
@@ -341,7 +353,7 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(cfg::SwitchType type) const {
   std::unordered_set<SwitchID> switchIds;
-  for (auto entry : switchIdToSwitchInfo_) {
+  for (const auto& entry : switchIdToSwitchInfo_) {
     if (entry.second.switchType().value() != type) {
       continue;
     }

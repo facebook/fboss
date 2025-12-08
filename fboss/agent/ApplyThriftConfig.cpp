@@ -5481,6 +5481,28 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
     }
     return nullptr;
   }
+
+  if (!hwAsicTable_->isFeatureSupportedOnAnyAsic(HwAsic::Feature::CPU_QUEUES)) {
+    // If a switch supports a CPU port but does not support CPU queues,
+    // then the following configurations should NOT be present:
+    // - cpuTrafficPolicy
+    // - cpuQueues
+    // - cpuVoqs
+    if (cfg_->cpuTrafficPolicy().has_value() ||
+        (apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+             cfg_->cpuQueues()) &&
+         !cfg_->cpuQueues()->empty()) ||
+        (cfg_->cpuVoqs().has_value() && !cfg_->cpuVoqs()->empty())) {
+      throw FbossError(
+          "Without CPU queues, cpuTrafficPolicy, cpuQueues, or cpuVoqs "
+          "configuration cannot be applied");
+    }
+    // For these switches, a minimal ControlPlane without queues or
+    // policies is sufficient. Since there's no config to apply,
+    // return nullptr to indicate no change.
+    return nullptr;
+  }
+
   auto multiSwitchControlPlane = orig_->getControlPlane();
   CHECK_LE(multiSwitchControlPlane->size(), 1);
   auto origCPU = multiSwitchControlPlane->size()

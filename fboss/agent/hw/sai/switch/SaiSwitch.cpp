@@ -293,6 +293,9 @@ void __gSwitchAsicSdkHealthNotificationCallBack(
 #endif
 
 PortSaiId SaiSwitch::getCPUPortSaiId() const {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
+    throw FbossError("CPU port not supported on this platform");
+  }
   return managerTable_->switchManager().getCpuPort();
 }
 
@@ -3655,8 +3658,11 @@ void SaiSwitch::packetRxCallbackPort(
    * We use the cached cpu port id to avoid holding manager table locks in
    * the Rx path.
    */
+  const bool isCpuPort =
+      platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT) &&
+      (portSaiId == getCPUPortSaiId());
   if (!processVlanUntaggedPackets()) {
-    if (portSaiId == getCPUPortSaiId() ||
+    if (isCpuPort ||
         (allowMissingSrcPort &&
          portItr == concurrentIndices_->portSaiId2PortInfo.cend())) {
       folly::io::Cursor cursor(rxPacket->buf());
@@ -3688,7 +3694,7 @@ void SaiSwitch::packetRxCallbackPort(
       swVlanId = vlanItr->second;
     }
   } else { // VOQ / FABRIC
-    if (portSaiId != getCPUPortSaiId()) {
+    if (!isCpuPort) {
       if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
         // TODO: add counter to keep track of spurious rx packet
         XLOG(ERR) << "RX packet had port with unknown sai id: 0x" << std::hex

@@ -132,9 +132,7 @@ class SwitchIdScopeResolver {
     return l3SwitchMatcher();
   }
   const HwSwitchMatcher& scope(
-      const std::shared_ptr<ControlPlane>& /*c*/) const {
-    return l3SwitchMatcher();
-  }
+      const std::shared_ptr<ControlPlane>& /*c*/) const;
   const HwSwitchMatcher& scope(
       const std::shared_ptr<SflowCollector>& collector) const;
   const HwSwitchMatcher& scope(const cfg::SflowCollector& collector) const;
