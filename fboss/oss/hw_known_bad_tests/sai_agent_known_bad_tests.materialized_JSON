@@ -15196,12 +15196,6 @@
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
-        },
-        {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastToMidPriQ$"
         },
         {
@@ -15422,6 +15416,12 @@
         },
         {
           "test_name_regex": "warm_boot.AgentTrunkTest.TrunkMemberPortDownMinLinksViolated$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar/multi_switch": [
@@ -15439,12 +15439,6 @@
         },
         {
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
-        },
-        {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastToMidPriQ$"
@@ -15873,6 +15867,12 @@
         },
         {
           "test_name_regex": "warm_boot.AgentTrunkTest.TrunkMemberPortDownMinLinksViolated$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/gibraltar/multi_switch": [
@@ -17307,6 +17307,12 @@
         },
         {
           "test_name_regex": "warm_boot.AgentTrunkTest.TrunkMemberPortDownMinLinksViolated$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
         }
     ],
     "leaba/25.5.5210/25.5.5210/gibraltar/multi_switch": [
