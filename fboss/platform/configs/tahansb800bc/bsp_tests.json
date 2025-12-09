@@ -1,1 +1,684 @@
-{}
+{
+  "testData": {
+    "TAHANSB800BC_MCB.SCM_CPLD": {
+      "i2cTestData": {
+        "i2cGetData": [
+          {
+            "reg": "0x04",
+            "expected": "0xde"
+          }
+        ],
+        "i2cSetData": [
+          {
+            "reg": "0x41",
+            "value": "0x03"
+          },
+          {
+            "reg": "0x42",
+            "value": "0x03"
+          },
+          {
+            "reg": "0x43",
+            "value": "0x03"
+          },
+          {
+            "reg": "0x44",
+            "value": "0x03"
+          }
+        ]
+      },
+      "ledTestData": {
+        "createsLeds": true
+      }
+    },
+    "TAHANSB800BC_MCB.PMBUS_1": {
+      "i2cTestData": {
+        "i2cSetData": [
+          {
+            "reg": "0x00",
+            "value": "0x00"
+          }
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.PMBUS_2": {
+      "i2cTestData": {
+        "i2cSetData": [
+          {
+            "reg": "0x00",
+            "value": "0x00"
+          }
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.PB_INLET_TSENSOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "temp1"
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.48V_STBY_PWR_SENSOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin",
+          "vin",
+          "vmon",
+          "vout1",
+          "pin"
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.MCB_FAN_CPLD": {
+      "i2cTestData": {
+        "i2cSetData": [
+          {
+            "reg": "0x32",
+            "value": "0x20"
+          },
+          {
+            "reg": "0x42",
+            "value": "0x20"
+          },
+          {
+            "reg": "0x52",
+            "value": "0x20"
+          },
+          {
+            "reg": "0x62",
+            "value": "0x20"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "fan1",
+          "fan2",
+          "fan3",
+          "fan4",
+          "fan5",
+          "fan6",
+          "fan7",
+          "fan8"
+        ]
+      },
+      "watchdogTestData": {
+        "numWatchdogs": 1
+      }
+    },
+    "TAHANSB800BC_MCB.MCB_CPLD": {
+      "i2cTestData": {
+        "i2cGetData": [
+          {
+            "reg": "0x04",
+            "expected": "0xde"
+          }
+        ],
+        "i2cSetData": [
+          {
+            "reg": "0x04",
+            "value": "0xde"
+          },
+          {
+            "reg": "0x06",
+            "value": "0x0d"
+          }
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.LOAD_SWITCH_MONITOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin",
+          "vin",
+          "vmon",
+          "vout1",
+          "pin"
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.MCB_FAN1_SENSOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin",
+          "vin",
+          "vmon",
+          "vout1",
+          "pin"
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.MCB_FAN2_SENSOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin",
+          "vin",
+          "vmon",
+          "vout1",
+          "pin"
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.MCB_FAN3_SENSOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin",
+          "vin",
+          "vmon",
+          "vout1",
+          "pin"
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.MCB_FAN4_SENSOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin",
+          "vin",
+          "vmon",
+          "vout1",
+          "pin"
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.MCB_COME_INLET_TSENSOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "temp1"
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.OSFP_PWR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.48V_HSC_MONITOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iout1",
+          "vin",
+          "vout1",
+          "pin"
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.MCB_ADC1_MONITOR": {
+      "i2cTestData": {
+        "i2cGetData": [
+          {
+            "reg": "0x0b",
+            "expected": "0x02"
+          }
+        ],
+        "i2cSetData": [
+          {
+            "reg": "0x0b",
+            "value": "0x02"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "in0",
+          "in1",
+          "in2",
+          "in3",
+          "in4",
+          "in5",
+          "in6",
+          "in7"
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.MCB_ADC2_MONITOR": {
+      "i2cTestData": {
+        "i2cGetData": [
+          {
+            "reg": "0x0b",
+            "expected": "0x02"
+          }
+        ],
+        "i2cSetData": [
+          {
+            "reg": "0x0b",
+            "value": "0x02"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "in0",
+          "in1",
+          "in2",
+          "in3",
+          "in4",
+          "in5",
+          "in6",
+          "in7"
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.MCB_COME_OUTLET_TSENSOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "temp1"
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.PB_OUTLET_TSENSOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "temp1"
+        ]
+      }
+    },
+    "TAHANSB800BC_MCB.MCB_ADC3_MONITOR": {
+      "i2cTestData": {
+        "i2cGetData": [
+          {
+            "reg": "0x0b",
+            "expected": "0x02"
+          }
+        ],
+        "i2cSetData": [
+          {
+            "reg": "0x0b",
+            "value": "0x02"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "in0",
+          "in1",
+          "in2",
+          "in3",
+          "in4",
+          "in5",
+          "in6",
+          "in7"
+        ]
+      }
+    },
+    "BMC.RUNBMC_THERMAL_SENSOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "temp1"
+        ]
+      }
+    },
+    "NETLAKE.COME_INLET_TSENSOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "temp1"
+        ]
+      }
+    },
+    "NETLAKE.COME_OUTLET_TSENSOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "temp1"
+        ]
+      }
+    },
+    "SMB.SMB_ASIC_VOLTAGE_0": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_ASIC_VOLTAGE_1": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_TH6_SENSOR_TMP432_1": {
+      "i2cTestData": {
+        "i2cSetData": [
+          {
+            "reg": "0x0b",
+            "value": "0x64"
+          },
+          {
+            "reg": "0x0d",
+            "value": "0x64"
+          },
+          {
+            "reg": "0x13",
+            "value": "0x00"
+          },
+          {
+            "reg": "0x15",
+            "value": "0x64"
+          },
+          {
+            "reg": "0x17",
+            "value": "0x00"
+          },
+          {
+            "reg": "0x27",
+            "value": "0x05"
+          },
+          {
+            "reg": "0x28",
+            "value": "0x05"
+          },
+          {
+            "reg": "0x3d",
+            "value": "0x00"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "temp1",
+          "temp2",
+          "temp3"
+        ]
+      }
+    },
+    "SMB.SMB_ASIC_VOLTAGE_2": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_OUTLET_TH6_TSENSOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "temp1"
+        ]
+      }
+    },
+    "SMB.SMB_ASIC_VOLTAGE_3": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_TH6_SENSOR_TMP432_2": {
+      "i2cTestData": {
+        "i2cSetData": [
+          {
+            "reg": "0x0b",
+            "value": "0x64"
+          },
+          {
+            "reg": "0x0d",
+            "value": "0x64"
+          },
+          {
+            "reg": "0x13",
+            "value": "0x00"
+          },
+          {
+            "reg": "0x27",
+            "value": "0x05"
+          },
+          {
+            "reg": "0x28",
+            "value": "0x05"
+          },
+          {
+            "reg": "0x3d",
+            "value": "0x00"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "temp1",
+          "temp2",
+          "temp3"
+        ]
+      }
+    },
+    "SMB.SMB_ASIC_VOLTAGE_4": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_ASIC_VOLTAGE_5_1": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_ASIC_VOLTAGE_5_2": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_ASIC_VOLTAGE_6": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_ASIC_VOLTAGE_7": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_ADC1_SENSOR": {
+      "i2cTestData": {
+        "i2cGetData": [
+          {
+            "reg": "0x0b",
+            "expected": "0x02"
+          }
+        ],
+        "i2cSetData": [
+          {
+            "reg": "0x0b",
+            "value": "0x02"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "in0",
+          "in1",
+          "in2",
+          "in3",
+          "in4",
+          "in5",
+          "in6",
+          "in7"
+        ]
+      }
+    },
+    "SMB.SMB_CPLD": {
+      "i2cTestData": {
+        "i2cGetData": [
+          {
+            "reg": "0x04",
+            "expected": "0xde"
+          }
+        ],
+        "i2cSetData": [
+          {
+            "reg": "0x04",
+            "value": "0xde"
+          }
+        ]
+      }
+    },
+    "SMB.SMB_ADC2_SENSOR": {
+      "i2cTestData": {
+        "i2cGetData": [
+          {
+            "reg": "0x0b",
+            "expected": "0x02"
+          }
+        ],
+        "i2cSetData": [
+          {
+            "reg": "0x0b",
+            "value": "0x02"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "in0",
+          "in1",
+          "in2",
+          "in3",
+          "in4",
+          "in5",
+          "in6",
+          "in7"
+        ]
+      }
+    },
+    "SMB.SMB_INLET_TH6_TSENSOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "temp1"
+        ]
+      }
+    },
+    "SMB.SMB_VDDCORE": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "iin",
+          "iout1",
+          "iout2",
+          "vin",
+          "vout1",
+          "vout2",
+          "pin",
+          "pout1",
+          "pout2"
+        ]
+      }
+    }
+  }
+}
