@@ -1154,7 +1154,12 @@ class AgentSflowMirrorWithLineRateTrafficTest
 
   static const int kLosslessPriority{2};
   void testSflowEgressCongestion(int iterations) {
-    constexpr int kNumDataTrafficPorts{6};
+    int kNumDataTrafficPorts;
+    if (FLAGS_hyper_port) {
+      kNumDataTrafficPorts = 4;
+    } else {
+      kNumDataTrafficPorts = 6;
+    }
     auto setup = [=, this]() {
       auto allPorts = getAllPorts();
       std::vector<PortID> portIds(
