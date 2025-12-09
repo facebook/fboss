@@ -24890,9 +24890,6 @@
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.fabricLinkHealth$"
         },
         {
@@ -24943,9 +24940,6 @@
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
-        },
-        {
           "test_name_regex": "AgentEnsembleLinkTest.fabricLinkHealth$"
         },
         {
@@ -24994,9 +24988,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.fabricLinkHealth$"
