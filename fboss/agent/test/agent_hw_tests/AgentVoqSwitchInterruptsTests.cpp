@@ -252,7 +252,7 @@ TEST_F(AgentVoqSwitchVendorSwitchInterruptTest, blockLevelErrorInterruptsTest) {
     constexpr auto kTriggerBlockWiseInterruptsCintStr = R"(
   cint_reset();
   int count = 11;
-  int event_ids[count] = {2321, 521, 792, 728, 1087, 935, 2659, 1079, 2230, 2438};
+  int event_ids[count] = {2321, 521, 792, 728, 1087, 935, 2659, 1079, 2230, 1952, 2438};
   int i;
   for (i=0; i < count; i++) {
     bcm_switch_event_control_t event_ctrl;
@@ -270,6 +270,7 @@ TEST_F(AgentVoqSwitchVendorSwitchInterruptTest, blockLevelErrorInterruptsTest) {
     bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 0);
   }
 )";
+    bool hardResetNotifSeen = false;
     WITH_RETRIES({
       runCint(kTriggerBlockWiseInterruptsCintStr);
       auto asicErrors = getVoqAsicErrors();
@@ -290,6 +291,9 @@ TEST_F(AgentVoqSwitchVendorSwitchInterruptTest, blockLevelErrorInterruptsTest) {
         auto fabricTxErrors = asicError.fabricTxErrors().value_or(0);
         XLOG(INFO) << "Fabric TX errors: " << fabricTxErrors;
         EXPECT_EVENTUALLY_GT(fabricTxErrors, 0);
+        auto ingressTmErrors = asicError.ingressTmErrors().value_or(0);
+        XLOG(INFO) << "Ingress TM errors: " << ingressTmErrors;
+        EXPECT_EVENTUALLY_GT(ingressTmErrors, 0);
         auto ingressPpErrors = asicError.ingressPpErrors().value_or(0);
         XLOG(INFO) << "Ingress PP errors: " << ingressPpErrors;
         EXPECT_EVENTUALLY_GT(ingressPpErrors, 0);
@@ -310,6 +314,22 @@ TEST_F(AgentVoqSwitchVendorSwitchInterruptTest, blockLevelErrorInterruptsTest) {
         EXPECT_EVENTUALLY_GT(networkInterfaceErrors, 0);
       }
     });
+    // Make sure that hard reset notification callback is working as expected!
+    // Hard reset notification callback should result from the interrupt ID
+    // 1952 used in this test.
+    for (const auto& [switchId, asic] : getAsics()) {
+      auto switchIndex =
+          getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+      int hardResetNotificationReceived =
+          *getSw()
+               ->getHwSwitchStatsExpensive()[switchIndex]
+               .hardResetStats()
+               ->hard_reset_notification_received();
+      if (hardResetNotificationReceived) {
+        hardResetNotifSeen = true;
+      }
+    }
+    EXPECT_TRUE(hardResetNotifSeen);
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
