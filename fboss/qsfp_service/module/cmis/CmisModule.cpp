@@ -3173,8 +3173,21 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
     }
 
     if (speed != cfg::PortSpeed::DEFAULT) {
-      setApplicationCodeLocked(
-          speed, startHostLane, numHostLanes, kInvalidApplication);
+      if (isTunableOptics()) {
+        const auto& chanConfig = portState.opticalChannelConfig;
+        if (!chanConfig.has_value() ||
+            !is_non_optional_field_set_manually_or_by_serializer(
+                chanConfig.value().appSelCode_ref())) {
+          throw FbossError(
+              "Tunable optics requires optical channel config with appSelCode for speed configuration");
+        }
+        auto newAppSelCode = *chanConfig.value().appSelCode_ref();
+        setApplicationCodeLocked(
+            speed, startHostLane, numHostLanes, newAppSelCode);
+      } else {
+        setApplicationCodeLocked(
+            speed, startHostLane, numHostLanes, kInvalidApplication);
+      }
     }
 
     // For 200G-FR4 module operating in 2x50G mode, disable squelch on all lanes
