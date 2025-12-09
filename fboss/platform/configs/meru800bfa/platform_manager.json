@@ -80,7 +80,6 @@
             }
           ],
           "spiMasterConfigs": [],
-          "xcvrCtrlConfigs": [],
           "infoRomConfigs": [
             {
               "pmUnitScopedName": "SCM_FPGA_INFO_ROM",

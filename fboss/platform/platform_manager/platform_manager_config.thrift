@@ -331,6 +331,7 @@ struct FanPwmCtrlConfig {
 // `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
 //
 // `portNumber`: Port number which is associated with this config.
+// Deprecated: do not use
 struct XcvrCtrlConfig {
   1: FpgaIpBlockConfig fpgaIpBlockConfig;
   2: i32 portNumber;
@@ -534,7 +535,7 @@ struct PciDeviceConfig {
   9: list<FpgaIpBlockConfig> watchdogConfigs;
   10: list<FanPwmCtrlConfig> fanTachoPwmConfigs;
   11: list<LedCtrlConfig> ledCtrlConfigs; // Deprecated: do not use
-  12: list<XcvrCtrlConfig> xcvrCtrlConfigs;
+  12: list<XcvrCtrlConfig> xcvrCtrlConfigs; // Deprecated: do not use
   13: list<FpgaIpBlockConfig> infoRomConfigs;
   14: list<FpgaIpBlockConfig> miscCtrlConfigs;
   15: optional string desiredDriver;

@@ -228,7 +228,6 @@
             }
           ],
           "spiMasterConfigs": [],
-          "xcvrCtrlConfigs": [],
           "infoRomConfigs": [
             {
               "pmUnitScopedName": "ROOK_CPU_CPLD_INFO_ROM",
@@ -304,7 +303,6 @@
               "csrOffset": "0x6070"
             }
           ],
-          "xcvrCtrlConfigs": [],
           "infoRomConfigs": [
             {
               "pmUnitScopedName": "SCD_FPGA_INFO_ROM",

@@ -489,7 +489,6 @@
               ]
             }
           ],
-          "xcvrCtrlConfigs": [],
           "xcvrCtrlBlockConfigs": [
             {
               "pmUnitScopedNamePrefix": "MCB_DOM",

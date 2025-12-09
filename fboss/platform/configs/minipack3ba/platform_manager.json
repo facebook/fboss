@@ -931,7 +931,6 @@
               ]
             }
           ],
-          "xcvrCtrlConfigs": [],
           "xcvrCtrlBlockConfigs": [
             {
               "pmUnitScopedNamePrefix": "SMB_DOM1",
