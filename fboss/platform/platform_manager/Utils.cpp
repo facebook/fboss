@@ -320,4 +320,29 @@ std::vector<LedCtrlConfig> Utils::createLedCtrlConfigs(
   }
   return ledCtrlConfigs;
 }
+
+std::vector<FpgaIpBlockConfig> Utils::createMdioBusConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<FpgaIpBlockConfig> mdioBusConfigs;
+  const auto mdioBusBlockConfigs = pciDeviceConfig.mdioBusBlockConfigs();
+  for (const auto& mdioBusBlockConfig : *mdioBusBlockConfigs) {
+    int endBusIndex = *mdioBusBlockConfig.numBuses();
+    for (int busIndex = 0; busIndex < endBusIndex; ++busIndex) {
+      FpgaIpBlockConfig mdioBusConfig;
+      mdioBusConfig.pmUnitScopedName() = fmt::format(
+          "{}_{}", *mdioBusBlockConfig.pmUnitScopedNamePrefix(), busIndex + 1);
+      mdioBusConfig.deviceName() = *mdioBusBlockConfig.deviceName();
+      // Set iobufOffset to invalid value to let BSP calculate the reset address
+      // automatically
+      mdioBusConfig.iobufOffset() = fmt::format("0x{:x}", -1);
+      std::string formattedExpression = fmt::format(
+          fmt::runtime(*mdioBusBlockConfig.csrOffsetCalc()),
+          fmt::arg("busIndex", busIndex));
+      mdioBusConfig.csrOffset() =
+          Utils().evaluateExpression(formattedExpression);
+      mdioBusConfigs.push_back(mdioBusConfig);
+    }
+  }
+  return mdioBusConfigs;
+}
 } // namespace facebook::fboss::platform::platform_manager

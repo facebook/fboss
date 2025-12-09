@@ -329,7 +329,7 @@ std::string PciExplorer::createMdioBus(
     uint32_t instanceId) {
   auto auxData = getAuxData(mdioBusConfig, instanceId);
   create(pciDevice, mdioBusConfig, auxData);
-  return getMdioBusSysfsPath(pciDevice, mdioBusConfig, instanceId);
+  return getMdioBusCharDevPath(pciDevice, mdioBusConfig, instanceId);
 }
 
 void PciExplorer::createFpgaIpBlock(
@@ -739,6 +739,25 @@ std::string PciExplorer::getMdioBusSysfsPath(
     const PciDevice& pciDevice,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
+  const auto mdioBusSysfsPath = "/sys/class/mdio_bus";
+  std::string expectedEnding = fmt::format("mdio_controller.{}", instanceId);
+  for (const auto& dirEntry : fs::directory_iterator(mdioBusSysfsPath)) {
+    if (dirEntry.path().string().ends_with(expectedEnding)) {
+      return dirEntry.path().string();
+    }
+  }
+  throw PciSubDeviceRuntimeError(
+      fmt::format(
+          "Couldn't find MdioBusSysfsPath {} under {}",
+          *fpgaIpBlockConfig.deviceName(),
+          mdioBusSysfsPath),
+      *fpgaIpBlockConfig.pmUnitScopedName());
+}
+
+std::string PciExplorer::getMdioBusCharDevPath(
+    const PciDevice& pciDevice,
+    const FpgaIpBlockConfig& fpgaIpBlockConfig,
+    uint32_t instanceId) {
   std::string expectedEnding =
       fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
@@ -748,7 +767,7 @@ std::string PciExplorer::getMdioBusSysfsPath(
   }
   throw PciSubDeviceRuntimeError(
       fmt::format(
-          "Couldn't find MdioBus {} under {}",
+          "Couldn't find MdioBusCharDevPath {} under {}",
           *fpgaIpBlockConfig.deviceName(),
           pciDevice.sysfsPath()),
       *fpgaIpBlockConfig.pmUnitScopedName());
