@@ -11,6 +11,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/fsdb/common/Flags.h"
+#include "fboss/lib/AlertLogger.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -565,7 +566,10 @@ TransceiverManager::triggerAllOpticsFwUpgrade() {
   for (const auto& [portName, _] : portsForFwUpgrade) {
     if (portNameToModule_.find(portName) != portNameToModule_.end()) {
       auto tcvrID = TransceiverID(portNameToModule_[portName]);
-      FW_LOG(INFO, tcvrID) << "Selected for FW upgrade";
+      XLOG(INFO)
+          << FirmwareUpgradeAlert()
+          << "Selected for firmware upgrade through triggerAllOpticsFwUpgrade cli"
+          << TransceiverParam(tcvrID) << PortParam(portName);
       tcvrsToUpgradeWLock->insert(TransceiverID(portNameToModule_[portName]));
     }
   }
@@ -817,9 +821,11 @@ void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
     return;
   }
   auto& tcvr = *tcvrIt->second;
-  FW_LOG(INFO, tcvrID)
-      << "Triggering Transceiver Firmware Upgrade for Part Number="
-      << tcvr.getPartNumber();
+  auto portName = getPortName(tcvrID);
+  XLOG(INFO) << FirmwareUpgradeAlert()
+             << "Starting firmware upgrade attempt for"
+             << TransceiverParam(tcvrID) << PortParam(portName)
+             << " Part Number=" << tcvr.getPartNumber();
 
   auto updateStateInFsdb = [&](bool status) {
     if (FLAGS_publish_stats_to_fsdb) {
@@ -831,8 +837,12 @@ void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
   updateStateInFsdb(true);
   if (upgradeFirmware(*tcvrIt->second)) {
     bumpSuccessfulFwUpgrade();
+    XLOG(INFO) << FirmwareUpgradeAlert() << "Firmware upgrade SUCCESSFUL for"
+               << TransceiverParam(tcvrID) << PortParam(portName);
   } else {
     bumpFailedFwUpgrade();
+    XLOG(ERR) << FirmwareUpgradeAlert() << "Firmware upgrade FAILED for"
+              << TransceiverParam(tcvrID) << PortParam(portName);
   }
   // We will leave the fwUpgradeStatus as true for now because we still have a
   // lot to do after upgrading the firmware. The optic goes through reset, the
@@ -1880,6 +1890,11 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
                     cachedPortInfoIt->second.status->operState &&
                     !portStatusIt->second.operState) {
                   tcvrsForFwUpgrade.insert(tcvrID);
+                  auto portName = getPortName(tcvrID);
+                  XLOG(INFO)
+                      << FirmwareUpgradeAlert()
+                      << "Selected for potential firmware upgrade due to link down event"
+                      << TransceiverParam(tcvrID) << PortParam(portName);
                 }
               }
               cachedPortInfoIt->second.status.emplace(portStatusIt->second);
@@ -2264,9 +2279,10 @@ TransceiverManager::findPotentialTcvrsForFirmwareUpgrade(
       if (FLAGS_firmware_upgrade_on_coldboot && firstRefreshAfterColdboot) {
         // First refresh after cold boot and module is still in
         // discovered state
-        XLOG(INFO)
-            << "Transceiver " << static_cast<int>(tcvrId)
-            << " just did a cold boot and is still in discovered state, adding it to list of potentialTcvrsForFwUpgrade";
+        auto portName = getPortName(tcvrId);
+        XLOG(INFO) << FirmwareUpgradeAlert()
+                   << "Selected for potential FW upgrade due to coldboot"
+                   << TransceiverParam(tcvrId) << PortParam(portName);
         potentialTcvrsForFwUpgrade.insert(tcvrId);
       } else if (FLAGS_firmware_upgrade_on_tcvr_insert) {
         if (FLAGS_port_manager_mode) {
@@ -2286,9 +2302,11 @@ TransceiverManager::findPotentialTcvrsForFirmwareUpgrade(
                 newTransceiverInsertedAfterInit)) {
           // Not the first refresh but the module is in discovered state and
           // was just inserted
+          auto portName = getPortName(tcvrId);
           XLOG(INFO)
-              << "Transceiver " << static_cast<int>(tcvrId)
-              << " is in DISCOVERED state and was recently inserted, adding it to list of potentialTcvrsForFwUpgrade";
+              << FirmwareUpgradeAlert()
+              << "Selected for potential firmware upgrade due to optics insertion"
+              << TransceiverParam(tcvrId) << PortParam(portName);
           potentialTcvrsForFwUpgrade.insert(tcvrId);
         }
       }
