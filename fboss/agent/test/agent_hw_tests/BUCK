@@ -121,7 +121,6 @@ cpp_library(
         "//fboss/agent:fib_helpers",
         "//fboss/agent:handler",
         "//fboss/agent:hw_asic_table",
-        "//fboss/agent:hw_switch_thrift_client_table",
         "//fboss/agent:hwswitch_matcher",
         "//fboss/agent:load_agent_config",
         "//fboss/agent:packet",
