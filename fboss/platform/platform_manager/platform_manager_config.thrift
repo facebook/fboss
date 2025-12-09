@@ -464,8 +464,8 @@ struct LedCtrlBlockConfig {
 // the kernel driver.
 //
 // `csrOffsetCalc`: Calculation to get the csr offset for fpga block
-//  This expression includes a base start address, port, a starting port number
-//  or index, and a led number. Final offset result is in hex format.
+//  This expression includes a base start address, busIndex
+//  Final offset result is in hex format.
 //  Example:
 //  csrOffsetCalc: "0x200 + {busIndex}*0x20"
 //  busIndex=0:
@@ -477,11 +477,25 @@ struct LedCtrlBlockConfig {
 //
 //
 // `numBuses`: Number of buses for this block config
+//
+//
+// `iobufOffsetCalc`: Calculation to get the iobuf offset for fpga block
+//  This expression includes a base start address, busIndex
+//  Final offset result is in hex format.
+//  Example:
+//  iobufOffsetCalc: "0x200 + {busIndex}*0x4"
+//  busIndex=0:
+//    iobufOffsetCalc: "0x200 + 0*0x4"
+//    iobufOffsetCalc: "0x200"
+//  busIndex=1:
+//    iobufOffsetCalc: "0x200 + 1*0x4"
+//    iobufOffsetCalc: "0x204"
 struct MdioBusBlockConfig {
   1: string pmUnitScopedNamePrefix;
   2: string deviceName;
   3: string csrOffsetCalc;
   4: i32 numBuses;
+  5: string iobufOffsetCalc;
 }
 
 // Defines PCI Devices in the PmUnits. A new PciDeviceConfig should be created

@@ -490,13 +490,15 @@
               "pmUnitScopedNamePrefix": "RTM_L_MDIO_BUS",
               "deviceName": "mdio_controller",
               "csrOffsetCalc": "0x48200 + {busIndex}*0x20",
-              "numBuses": 16
+              "numBuses": 16,
+              "iobufOffsetCalc": "0x480c0 + {busIndex}*0x4"
             },
             {
               "pmUnitScopedNamePrefix": "RTM_R_MDIO_BUS",
               "deviceName": "mdio_controller",
               "csrOffsetCalc": "0x40200 + {busIndex}*0x20",
-              "numBuses": 16
+              "numBuses": 16,
+              "iobufOffsetCalc": "0x400c0 + {busIndex}*0x4"
             }
           ]
         }
