@@ -3275,6 +3275,24 @@ void CmisModule::programTunableModule(
       channelNum,
       channelNumBytes[0],
       channelNumBytes[1]);
+  /*
+   * Program the module with tx-power supplied from the qsfp_service_config
+   * throw an error if tx-power value is not specified
+   * TODO: tx-power range based sanity check 04h:198-201
+   */
+  if (!apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+          opticalChannelConfig.txPower0P01Dbm_ref())) {
+    throw FbossError("Tx-power not specified on the qsfp_service_config");
+  }
+  int16_t txPower = *opticalChannelConfig.txPower0P01Dbm();
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "OpticalChannelConfig txPower {}", txPower);
+  uint8_t txPowerBytes[2];
+  txPowerBytes[1] = static_cast<uint8_t>(txPower & 0XFF);
+  txPowerBytes[0] = static_cast<uint8_t>((txPower >> 8) & 0XFF);
+  // Tx Power programming
+  writeCmisField(CmisField::MEDIA_TX_1_TGT_OUTPUT_PWR, txPowerBytes);
+  QSFP_LOG(INFO, this) << folly::sformat("Tx power {} got programmed", txPower);
 }
 
 uint8_t CmisModule::frequencyGridToGridSelection(FrequencyGrid grid) const {
