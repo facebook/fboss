@@ -65,7 +65,7 @@ TEST_F(HwmonTest, HwmonSensors) {
     try {
       auto result = I2CUtils::createI2CAdapter(adapter, id);
       registerAdaptersForCleanup(result.createdAdapters);
-      id++;
+      id += result.createdAdapters.size();
 
       for (const auto& i2cDevice : *adapter.i2cDevices()) {
         auto hwmonDataOpt = getHwmonTestData(i2cDevice);
