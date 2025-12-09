@@ -678,20 +678,20 @@ void PlatformExplorer::explorePciDevices(
         Utils().createMdioBusConfigs(pciDeviceConfig),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MDIO_BUS,
         [&](const auto& mdioBusConfig) {
+          auto instanceId = instId;
           auto mdioBusCharDevPath =
-              pciExplorer_.createMdioBus(pciDevice, mdioBusConfig, instId);
+              pciExplorer_.createMdioBus(pciDevice, mdioBusConfig, instId++);
           dataStore_.updateCharDevPath(
               Utils().createDevicePath(
                   slotPath, *mdioBusConfig.pmUnitScopedName()),
               mdioBusCharDevPath);
 
           auto mdioBusSysfsPath = pciExplorer_.getMdioBusSysfsPath(
-              pciDevice, mdioBusConfig, instId);
+              pciDevice, mdioBusConfig, instanceId);
           dataStore_.updateSysfsPath(
               Utils().createDevicePath(
                   slotPath, *mdioBusConfig.pmUnitScopedName()),
               mdioBusSysfsPath);
-          instId++;
         });
   }
 }
