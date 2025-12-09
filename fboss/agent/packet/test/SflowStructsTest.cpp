@@ -1250,7 +1250,7 @@ TEST(SflowStructsTest, SampleRecord) {
   flowSample.flowRecords = {record1, record2};
 
   // Add the FlowSample to the SampleRecord
-  record.sampleData.push_back(flowSample);
+  record.sampleData.emplace_back(flowSample);
 
   uint32_t expectedSize = 4 /* sampleType */ + 4 /* sampleDataLen */ +
       std::get<FlowSample>(record.sampleData[0]).size();
@@ -1454,8 +1454,8 @@ TEST(SflowStructsTest, SampleRecordMultipleFlowSamples) {
   flowSample2.flowRecords = {record2};
 
   // Add both FlowSamples to the SampleRecord
-  record.sampleData.push_back(flowSample1);
-  record.sampleData.push_back(flowSample2);
+  record.sampleData.emplace_back(flowSample1);
+  record.sampleData.emplace_back(flowSample2);
 
   // Test size calculation - should include both FlowSamples
   uint32_t expectedFlowSample1Size = 32 + 28; // 32 fixed + 28 for record1
@@ -2040,7 +2040,7 @@ TEST(SflowStructsTest, SampleDatagramV5) {
   flowSample.flowRecords = {record1, record2};
 
   // Add FlowSample to SampleRecord
-  sampleRecord.sampleData.push_back(flowSample);
+  sampleRecord.sampleData.emplace_back(flowSample);
 
   // Add SampleRecord to SampleDatagramV5
   datagram.samples.push_back(std::move(sampleRecord));
@@ -2284,7 +2284,7 @@ TEST(SflowStructsTest, SampleDatagramV5SizeCalculation) {
   flowRecord1.flowData = header1;
   flowSample1.flowRecords = {flowRecord1};
 
-  record1.sampleData.push_back(flowSample1);
+  record1.sampleData.emplace_back(flowSample1);
   datagram.samples.push_back(std::move(record1));
 
   // Create second sample record
@@ -2311,7 +2311,7 @@ TEST(SflowStructsTest, SampleDatagramV5SizeCalculation) {
   flowRecord2.flowData = header2;
   flowSample2.flowRecords = {flowRecord2};
 
-  record2.sampleData.push_back(flowSample2);
+  record2.sampleData.emplace_back(flowSample2);
   datagram.samples.push_back(std::move(record2));
 
   uint32_t expectedSize2 =
@@ -2350,7 +2350,7 @@ TEST(SflowStructsTest, SampleDatagramV5MultipleSamples) {
   flowRecord1.flowData = header1;
   flowSample1.flowRecords = {flowRecord1};
 
-  record1.sampleData.push_back(flowSample1);
+  record1.sampleData.emplace_back(flowSample1);
 
   // Create second sample record
   sflow::SampleRecord record2;
@@ -2375,7 +2375,7 @@ TEST(SflowStructsTest, SampleDatagramV5MultipleSamples) {
   flowRecord2.flowData = header2;
   flowSample2.flowRecords = {flowRecord2};
 
-  record2.sampleData.push_back(flowSample2);
+  record2.sampleData.emplace_back(flowSample2);
 
   // Add both records to datagram
   datagram.samples.push_back(std::move(record1));
@@ -2451,7 +2451,7 @@ TEST(SflowStructsTest, SampleDatagram) {
   flowSample.flowRecords = {record1, record2};
 
   // Add FlowSample to SampleRecord
-  sampleRecord.sampleData.push_back(flowSample);
+  sampleRecord.sampleData.emplace_back(flowSample);
 
   // Add SampleRecord to SampleDatagramV5
   datagram.datagramV5.samples.push_back(std::move(sampleRecord));
@@ -2528,7 +2528,7 @@ TEST(SflowStructsTest, SampleDatagramSizeCalculation) {
   flowRecord1.flowData = header1;
   flowSample1.flowRecords = {flowRecord1};
 
-  record1.sampleData.push_back(flowSample1);
+  record1.sampleData.emplace_back(flowSample1);
   datagram.datagramV5.samples.push_back(std::move(record1));
 
   uint32_t expectedSize1 = 4 /* VERSION5 */ + datagram.datagramV5.size();
@@ -2557,7 +2557,7 @@ TEST(SflowStructsTest, SampleDatagramSizeCalculation) {
   flowRecord2.flowData = header2;
   flowSample2.flowRecords = {flowRecord2};
 
-  record2.sampleData.push_back(flowSample2);
+  record2.sampleData.emplace_back(flowSample2);
   datagram.datagramV5.samples.push_back(std::move(record2));
 
   uint32_t expectedSize2 = 4 /* VERSION5 */ + datagram.datagramV5.size();
@@ -2605,7 +2605,7 @@ TEST(SflowStructsTest, SampleDatagramMultipleSamples) {
   flowRecord1b.flowData = header1b;
 
   flowSample1.flowRecords = {flowRecord1a, flowRecord1b};
-  record1.sampleData.push_back(flowSample1);
+  record1.sampleData.emplace_back(flowSample1);
 
   // Create second sample record
   sflow::SampleRecord record2;
@@ -2630,7 +2630,7 @@ TEST(SflowStructsTest, SampleDatagramMultipleSamples) {
   flowRecord2.flowData = header2;
   flowSample2.flowRecords = {flowRecord2};
 
-  record2.sampleData.push_back(flowSample2);
+  record2.sampleData.emplace_back(flowSample2);
 
   // Add both records to datagram
   datagram.datagramV5.samples.push_back(std::move(record1));

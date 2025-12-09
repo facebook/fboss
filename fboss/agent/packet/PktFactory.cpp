@@ -844,7 +844,7 @@ std::unique_ptr<TxPacket> makeSflowV5Packet(
   fsample.flowRecords.push_back(frecord);
 
   // Add flow sample to sample record
-  record.sampleData.push_back(fsample);
+  record.sampleData.emplace_back(fsample);
 
   // Add sample record to datagram
   datagram.datagramV5.samples.push_back(record);
@@ -941,7 +941,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
   frecord.flowData = std::move(hdr);
 
   fsample.flowRecords.push_back(frecord);
-  record.sampleData.push_back(fsample);
+  record.sampleData.emplace_back(fsample);
   datagram.datagramV5.samples.push_back(record);
 
   auto sampleHdrSize = datagram.size();
@@ -1028,7 +1028,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
   frecord.flowData = std::move(hdr);
 
   fsample.flowRecords.push_back(frecord);
-  record.sampleData.push_back(fsample);
+  record.sampleData.emplace_back(fsample);
   datagram.datagramV5.samples.push_back(record);
 
   auto sampleHdrSize = datagram.size();
