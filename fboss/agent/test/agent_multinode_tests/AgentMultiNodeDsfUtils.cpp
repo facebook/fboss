@@ -1514,4 +1514,23 @@ int32_t getFirstActiveFabricPort(const std::string& switchName) {
   return portInfo.portId().value();
 }
 
+int64_t getSystemPortMin(
+    const std::unique_ptr<TopologyInfo>& topologyInfo,
+    const std::string& switchName) {
+  CHECK(
+      topologyInfo->getSwitchNameToSwitchIds().find(switchName) !=
+      topologyInfo->getSwitchNameToSwitchIds().end());
+  auto switchId =
+      *topologyInfo->getSwitchNameToSwitchIds().at(switchName).begin();
+  auto switchIdToDsfNode = getSwitchIdToDsfNode(switchName);
+  CHECK(switchIdToDsfNode.find(switchId) != switchIdToDsfNode.end());
+  auto ranges = switchIdToDsfNode.at(switchId).systemPortRanges();
+
+  // TODO: Extend to work with multiple system port ranges
+  CHECK_GE(ranges->systemPortRanges()->size(), 1);
+  auto systemPortMin = *ranges->systemPortRanges()->front().minimum();
+
+  return systemPortMin;
+}
+
 } // namespace facebook::fboss::utility
