@@ -307,6 +307,9 @@ bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
       getRemotePorts(remoteRdsw, neighbors);
   const auto& [firstRemotePortID, secondRemotePortID] =
       getRemotePortIDs(remoteRdsw, neighbors);
+  auto firstRemoteSystemPortID =
+      int32_t(utility::getSystemPortMin(topologyInfo, remoteRdsw)) +
+      firstRemotePortID;
 
   // Conditional Entropy is enabled, so traffic should egress on both ports.
   {
@@ -352,6 +355,23 @@ bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
     }
     if (!utility::verifyNoReassemblyErrorsForAllSwitches(topologyInfo)) {
       XLOG(DBG2) << "Unexpected reassembly errors";
+      return false;
+    }
+    // SHEL state for the admim disabled port should be sync'ed to every RDSW
+    // including the RDSW whose port was disabled.
+    if (!utility::checkForEachExcluding(
+            topologyInfo->getRdsws(),
+            {}, // exclude none
+            [firstRemoteSystemPortID](const std::string& switchName) {
+              return utility::verifyRemoteSystemPortShelState(
+                  switchName,
+                  firstRemoteSystemPortID,
+                  cfg::PortState::DISABLED);
+            })) {
+      XLOG(DBG2) << "SHEL port state mismatch for rdsw: " << remoteRdsw
+                 << " remotePort: " << firstRemotePortID
+                 << " remoteSystemPort: " << firstRemoteSystemPortID
+                 << " Port state should be DISABLED on every RDSW";
       return false;
     }
   }
