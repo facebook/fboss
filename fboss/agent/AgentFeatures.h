@@ -131,3 +131,6 @@ DECLARE_int32(state_delta_log_timeout_ms);
 DECLARE_int32(fsdbStatsStreamIntervalSeconds);
 DECLARE_bool(recover_from_hw_switch);
 DECLARE_int32(fabric_link_monitoring_max_l1_l2_switch_ids);
+
+DECLARE_bool(recover_from_hw_switch);
+DECLARE_bool(montblanc_odd_ports_8x100G);

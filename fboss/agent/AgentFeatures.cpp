@@ -432,3 +432,8 @@ DEFINE_int32(
     fabric_link_monitoring_max_l1_l2_switch_ids,
     facebook::fboss::kDualStageMaxL1L2FabricLinkMonitoringSwitchIds,
     "Max number of L1-L2 fabric link monitoring switch IDs to allocate");
+
+DEFINE_bool(
+    montblanc_odd_ports_8x100G,
+    false,
+    "Enables platform mapping with 8x100G on odd ports");
