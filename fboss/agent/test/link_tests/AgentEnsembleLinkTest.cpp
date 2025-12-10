@@ -570,6 +570,10 @@ void AgentEnsembleLinkTest::logLinkDbgMessage(
   std::map<std::string, phy::PhyInfo> xPhyInfos;
   std::map<int32_t, TransceiverInfo> tcvrInfos;
 
+  auto cabledTcvrPorts = getCabledTransceiverPorts();
+  std::unordered_set<PortID> cabledTcvrPortSet(
+      cabledTcvrPorts.begin(), cabledTcvrPorts.end());
+
   try {
     qsfpServiceClient->sync_getInterfacePhyInfo(xPhyInfos, portNames);
   } catch (const std::exception& ex) {
@@ -579,6 +583,9 @@ void AgentEnsembleLinkTest::logLinkDbgMessage(
 
   std::vector<int32_t> tcvrIds;
   for (auto portID : portIDs) {
+    if (!cabledTcvrPortSet.contains(portID)) {
+      continue;
+    }
     tcvrIds.push_back(
         getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(portID));
   }
@@ -607,6 +614,9 @@ void AgentEnsembleLinkTest::logLinkDbgMessage(
       XLOG(ERR) << "XPHY info missing for " << portName;
     }
 
+    if (!cabledTcvrPortSet.contains(portID)) {
+      continue;
+    }
     auto tcvrId =
         getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(portID);
     if (tcvrInfos.find(tcvrId) != tcvrInfos.end()) {
