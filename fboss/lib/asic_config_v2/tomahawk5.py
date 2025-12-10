@@ -33,6 +33,7 @@ TH5_SAI_CFG = {
     "sai_stats_support_mask": "0x802",
     "sai_disable_internal_port_serdes": "1",
     "stat_custom_receive0_management_mode": "1",
+    "sai_stats_disable_mask": "0x800",
 }
 
 
