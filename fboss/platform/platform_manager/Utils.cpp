@@ -332,14 +332,17 @@ std::vector<FpgaIpBlockConfig> Utils::createMdioBusConfigs(
       mdioBusConfig.pmUnitScopedName() = fmt::format(
           "{}_{}", *mdioBusBlockConfig.pmUnitScopedNamePrefix(), busIndex + 1);
       mdioBusConfig.deviceName() = *mdioBusBlockConfig.deviceName();
-      // Set iobufOffset to invalid value to let BSP calculate the reset address
-      // automatically
-      mdioBusConfig.iobufOffset() = fmt::format("0x{:x}", -1);
-      std::string formattedExpression = fmt::format(
+
+      std::string iobufExpression = fmt::format(
+          fmt::runtime(*mdioBusBlockConfig.iobufOffsetCalc()),
+          fmt::arg("busIndex", busIndex));
+      mdioBusConfig.iobufOffset() = Utils().evaluateExpression(iobufExpression);
+
+      std::string csrExpression = fmt::format(
           fmt::runtime(*mdioBusBlockConfig.csrOffsetCalc()),
           fmt::arg("busIndex", busIndex));
-      mdioBusConfig.csrOffset() =
-          Utils().evaluateExpression(formattedExpression);
+      mdioBusConfig.csrOffset() = Utils().evaluateExpression(csrExpression);
+
       mdioBusConfigs.push_back(mdioBusConfig);
     }
   }
