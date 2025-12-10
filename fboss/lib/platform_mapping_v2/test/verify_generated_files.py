@@ -26,6 +26,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
     _OSS_MULTI_NPU_SUPPORTED_PLATFORMS: Dict[bool, List[str]] = {
         False: [
             "montblanc",
+            "montblanc_odd_ports_8x100G",
             "minipack3n",
             "meru800bia",
             "meru800bia_dual_stage_rdsw",
