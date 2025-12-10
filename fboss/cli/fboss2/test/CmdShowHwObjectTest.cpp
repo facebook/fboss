@@ -8,9 +8,9 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
+#include <thrift/lib/cpp2/reflection/testing.h>
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
 
 using namespace ::testing;
 
@@ -56,7 +56,7 @@ TEST_F(CmdShowHwObjectTestFixture, queryClient) {
 
   auto cmd = CmdShowHwObject();
   auto hwObjectInfo = cmd.queryClient(localhost(), mockHwObjectTypes);
-  EXPECT_THRIFT_EQ(hwObjectInfo, expectedHwObjectInfo);
+  EXPECT_EQ(hwObjectInfo, expectedHwObjectInfo);
 }
 
 TEST_F(CmdShowHwObjectTestFixture, printOutput) {
