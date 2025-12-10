@@ -154,6 +154,7 @@ cpp_unittest(
         "tests/RegisterSpanTest.cpp",
         "tests/RegisterTest.cpp",
         "tests/RegisterValueTest.cpp",
+        "tests/ThriftHandlerTest.cpp",
         "tests/UARTDeviceTest.cpp",
     ],
     headers = [
