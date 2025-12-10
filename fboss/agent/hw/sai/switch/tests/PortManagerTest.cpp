@@ -183,6 +183,8 @@ class PortManagerTest : public ManagerTestBase {
         std::nullopt, // PfcMonitorDirection
         std::nullopt, // QosDot1pToTcMap
         std::nullopt, // QosTcAndColorToDot1pMap
+        std::nullopt, // QosIngressBufferProfileList
+        std::nullopt, // QosEgressBufferProfileList
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }

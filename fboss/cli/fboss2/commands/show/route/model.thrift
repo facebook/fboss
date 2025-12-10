@@ -1,3 +1,5 @@
+package "facebook.com/fboss/cli"
+
 namespace cpp2 facebook.fboss.cli
 
 include "fboss/agent/if/common.thrift"

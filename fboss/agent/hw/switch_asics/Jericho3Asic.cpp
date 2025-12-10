@@ -28,6 +28,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_SFLOW:
     case HwAsic::Feature::DEFAULT_VLAN:
     case HwAsic::Feature::CPU_PORT:
+    case HwAsic::Feature::CPU_QUEUES:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
@@ -241,6 +242,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
     case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
+    case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
       return false;
   }
   return false;

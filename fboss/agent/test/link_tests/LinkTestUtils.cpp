@@ -19,6 +19,11 @@ const std::vector<std::string> kRestartQsfpService = {
     "restart",
     "qsfp_service_for_testing"};
 
+const std::vector<std::string> kRestartQsfpServiceOss = {
+    "/bin/systemctl",
+    "restart",
+    "qsfp_service_oss"};
+
 const std::string kForceColdbootQsfpSvcFileName =
     "/dev/shm/fboss/qsfp_service/cold_boot_once_qsfp_service";
 
@@ -38,8 +43,12 @@ void restartQsfpService(bool coldboot) {
   } else {
     XLOG(DBG2) << "Restarting QSFP Service in warmboot mode";
   }
-
+#ifdef IS_OSS
+  folly::Subprocess(kRestartQsfpServiceOss).waitChecked();
+#else
   folly::Subprocess(kRestartQsfpService).waitChecked();
+
+#endif
 }
 
 // Retrieves the config validation status for all active transceivers. Strings

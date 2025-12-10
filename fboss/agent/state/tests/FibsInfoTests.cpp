@@ -33,7 +33,7 @@ std::shared_ptr<FibInfo> createFibInfo(RouterID vrf) {
   auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
   auto fibContainer = createFibContainer(vrf);
   fibsMap->updateForwardingInformationBaseContainer(fibContainer);
-  fibInfo->ref<switch_state_tags::fibsMap>() = fibsMap;
+  fibInfo->resetFibsMap(fibsMap);
   return fibInfo;
 }
 
@@ -302,7 +302,7 @@ TEST_F(MultiSwitchFibInfoMapTest, GetRouteCount) {
   fibContainer->setFib(fibV6.clone());
 
   fibsMap->updateForwardingInformationBaseContainer(fibContainer);
-  fibInfo->ref<switch_state_tags::fibsMap>() = fibsMap;
+  fibInfo->resetFibsMap(fibsMap);
 
   // Add FibInfo to FibInfoMap
   auto matcher = createMatcher(10);
@@ -348,6 +348,37 @@ TEST_F(MultiSwitchFibInfoMapTest, GetAllFibNodes) {
 
   auto mergedContainer2 = mergedMap->getFibContainerIf(RouterID(2));
   EXPECT_EQ(mergedContainer2->getID(), RouterID(2));
+}
+
+TEST_F(MultiSwitchFibInfoMapTest, GetVrfCount) {
+  auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+
+  // Test empty map
+  EXPECT_EQ(fibInfoMap->getVrfCount(), 0);
+
+  // Add FibInfo with null fibsMap (empty VRF)
+  auto emptyFibInfo = std::make_shared<FibInfo>();
+  auto matcher1 = createMatcher(10);
+  fibInfoMap->updateFibInfo(emptyFibInfo, matcher1);
+  EXPECT_EQ(fibInfoMap->getVrfCount(), 0);
+
+  // Add FibInfo with 1 VRF
+  auto fibInfo1 = createFibInfo(RouterID(0));
+  auto matcher2 = createMatcher(20);
+  fibInfoMap->updateFibInfo(fibInfo1, matcher2);
+  EXPECT_EQ(fibInfoMap->getVrfCount(), 1);
+
+  // Add FibInfo with 2 VRFs
+  auto fibInfo2 = std::make_shared<FibInfo>();
+  auto fibsMap2 = std::make_shared<ForwardingInformationBaseMap>();
+  fibsMap2->updateForwardingInformationBaseContainer(
+      createFibContainer(RouterID(1)));
+  fibsMap2->updateForwardingInformationBaseContainer(
+      createFibContainer(RouterID(2)));
+  fibInfo2->resetFibsMap(fibsMap2);
+  auto matcher3 = createMatcher(30);
+  fibInfoMap->updateFibInfo(fibInfo2, matcher3);
+  EXPECT_EQ(fibInfoMap->getVrfCount(), 3);
 }
 
 } // namespace facebook::fboss

@@ -176,6 +176,9 @@ class TransceiverManager {
     forceFirmwareUpgradeForTesting_ = enable;
   }
 
+  void getPortTransceiverIDs(
+      std::map<std::string, std::vector<int32_t>>& portTransceiverIds) const;
+
   /*
    * A function take a parameter representing number of seconds,
    * adding it to the time point of now and assign it to
@@ -900,6 +903,8 @@ class TransceiverManager {
   PortNameIdMap portNameToPortID_;
 
   TcvrIdToTcvrNameMap tcvrIdToTcvrName_;
+
+  folly::Synchronized<std::unordered_set<TransceiverID>> erroredTransceivers_;
 
   struct SwPortInfo {
     std::optional<TransceiverID> tcvrID;

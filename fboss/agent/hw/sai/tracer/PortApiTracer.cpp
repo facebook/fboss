@@ -36,6 +36,8 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, DisableTtlDecrement),
     SAI_ATTR_MAP(Port, QosNumberOfQueues),
     SAI_ATTR_MAP(Port, QosQueueList),
+    SAI_ATTR_MAP(Port, QosEgressBufferProfileList),
+    SAI_ATTR_MAP(Port, QosIngressBufferProfileList),
     SAI_ATTR_MAP(Port, Type),
     SAI_ATTR_MAP(Port, InterfaceType),
     SAI_ATTR_MAP(Port, PktTxEnable),

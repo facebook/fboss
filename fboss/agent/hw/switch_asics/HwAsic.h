@@ -18,6 +18,7 @@ class HwAsic {
           cfg::SwitchType::NPU});
   enum class Feature {
     // ACL Features::
+    // ==============
     //
     // ACL Entry:
     //   - Consists of Matcher and Action
@@ -164,7 +165,102 @@ class HwAsic {
     //  - Candidate for removal: YES.
     //  - Only used by non-SAI. Once we completely migrate to SAI, remove.
     INGRESS_FIELD_PROCESSOR_FLEX_COUNTER,
+
     SAI_ACL_TABLE_UPDATE,
+
+    // ECMP, Hashing Feature::
+    // =======================
+    //
+    // ECMP (Equal Cost Multi Path):
+    //  - Routing technique to efficiently utilize multiple paths
+    //    between two endpoints when those paths have the same cost.
+    //
+    // UCMP (Unequal Cost Multi Path):
+    //  - Routing technique to distribute traffic across multiple paths
+    //    with different costs, in proportion to their assigned weights.
+    //  - Native UCMP: Can program weights directly to hardware.
+    //  - Legacy UCMP: Replicate ECMP members in proportion to their weights.
+    //
+    // Hash Algorithm:
+    //  - Acts on a set of configured fields (L4 src/dst port, src/dst IP etc.)
+    //    and computes a hash value. The value is used to select a path.
+    //
+    // ECMP Width:
+    //  - Number of next hops (paths) in a ECMP group.
+    //  - Property of ASIC/SAI implementation.
+    //
+    // Wide ECMP:
+    //  - Some ASICs support every ECMP width value [0, ecmp_width]
+    //  - For > ecmp_width, they only support fixed values.
+    //  - e.g. TH4 ECMP widths: [1-512], 1K, 2K, 4K
+
+    // Set to true if the ASIC supports Native UCMP.
+    // Only used by BcmSwitch.
+    // Thus, remove after migration to SaiSwitch is completed.
+    WEIGHTED_NEXTHOPGROUP_MEMBER,
+
+    // Set to true if the ASIC or SAI implementation supports Native UCMP.
+    // In either case, FBOSS need not implement replication.
+    // Only used by SaiSwitch.
+    // TODO:
+    //  - Candidate for removal: YES, enabled everywhere except Fake, Trident2.
+    //    Remove Trident2 support (no longer needed), fix Fake support, then
+    //    remove.
+    //  - Rename to carry ECMP_ prefix.
+    SAI_WEIGHTED_NEXTHOPGROUP_MEMBER,
+
+    // Set to true if Wide ECMP (possibly with some restriction like fixed power
+    // of 2) is supported by the ASIC.
+    WIDE_ECMP,
+
+    // Set to true if the SAI implementation supports querying the number of
+    // ECMP members supported across all nexthop groups of the switch.
+    // This maps to SAI_SWITCH_ATTR_MAX_ECMP_MEMBER_COUNT.
+    // TODO:
+    //  - Candidate for removal: YES, enabled everywhere except Chenab.
+    //  - Collaborate to add this support on Chenab, then remove.
+    ECMP_MEMBER_WIDTH_INTROSPECTION,
+
+    // Set to true if the SAI implementation supports bulk add and
+    // remove of the nexthop group members.
+    // Bulk add/remove is signifacntly faster than individual member add/remove.
+    // TODO:
+    //  - Rename to carry ECMP_ prefix.
+    BULK_CREATE_ECMP_MEMBER,
+
+    // Set to true if the SAI implementation supports associating a specific
+    // hashing policy for IPv4 packets.
+    // This maps to SAI_SWITCH_ATTR_ECMP_HASH_IPV4.
+    // Some ASICs support hashing natively and thus do not support this
+    // configuration.
+    // TODO:
+    //  - Candidate for removal: YES, but non-trivial.
+    //  - Extend SAI spec to introduce sai_hash_capability_t to return the list
+    //    of hash configuraton supported.
+    ECMP_HASH_V4,
+
+    // Set to true if the SAI implementation supports associating a specific
+    // hashing policy for IPv6 packets.
+    // This maps to SAI_SWITCH_ATTR_ECMP_HASH_IPV6.
+    // Some ASICs support hashing natively and thus do not support this
+    // configuration.
+    // TODO:
+    //  - Candidate for removal: YES, but non-trivial.
+    //  - Extend SAI spec to introduce sai_hash_capability_t to return the list
+    //    of hash configuraton supported.
+    ECMP_HASH_V6,
+
+    // Set to true if ECMP configuration is supported with MPLS.
+    // TODO:
+    //  - Rename to carry ECMP_ prefix.
+    MPLS_ECMP,
+
+    HASH_FIELDS_CUSTOMIZATION,
+    TRAFFIC_HASHING,
+    SAI_ECMP_HASH_ALGORITHM,
+    SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
+    ECMP_DLB_OFFSET,
+
     // Other features
     SPAN,
     ERSPANv4,
@@ -172,9 +268,7 @@ class HwAsic {
     SFLOWv4,
     SFLOWv6,
     MPLS,
-    MPLS_ECMP,
     SAI_MPLS_QOS,
-    HASH_FIELDS_CUSTOMIZATION,
     ECN,
     L3_QOS,
     QOS_MAP_GLOBAL,
@@ -184,7 +278,6 @@ class HwAsic {
     NEXTHOP_TTL_DECREMENT_DISABLE,
     PORT_TTL_DECREMENT_DISABLE,
     PORT_INTERFACE_TYPE,
-    WEIGHTED_NEXTHOPGROUP_MEMBER,
     BLACKHOLE_ROUTE_DROP_COUNTER,
     RESOURCE_USAGE_STATS,
     HSDK,
@@ -210,7 +303,6 @@ class HwAsic {
     DETAILED_L2_UPDATE,
     COUNTER_REFRESH_INTERVAL,
     TELEMETRY_AND_MONITORING,
-    WIDE_ECMP,
     ALPM_ROUTE_PROJECTION,
     MAC_AGING,
     SAI_PORT_SPEED_CHANGE,
@@ -220,7 +312,6 @@ class HwAsic {
     EGRESS_SFLOW,
     DEFAULT_VLAN,
     SAI_LAG_HASH,
-    TRAFFIC_HASHING,
     MACSEC,
     CPU_PORT,
     VRF,
@@ -230,7 +321,6 @@ class HwAsic {
     ROUTE_FLEX_COUNTERS,
     BRIDGE_PORT_8021Q,
     FEC_DIAG_COUNTERS,
-    SAI_WEIGHTED_NEXTHOPGROUP_MEMBER,
     PORT_EYE_VALUES,
     SAI_MPLS_TTL_1_TRAP,
     SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER,
@@ -240,15 +330,12 @@ class HwAsic {
     SAI_PORT_ERR_STATUS,
     EXACT_MATCH,
     ROUTE_PROGRAMMING,
-    ECMP_HASH_V4,
-    ECMP_HASH_V6,
     FEC_CORRECTED_BITS,
     MEDIA_TYPE,
     FEC,
     RX_FREQUENCY_PPM,
     RX_SERDES_PARAMETERS,
     FABRIC_PORTS,
-    ECMP_MEMBER_WIDTH_INTROSPECTION,
     SAI_FIRMWARE_PATH,
     EXTENDED_FEC,
     LINK_TRAINING,
@@ -293,7 +380,6 @@ class HwAsic {
     L3_MTU_ERROR_TRAP,
     SAI_USER_DEFINED_TRAP,
     CREDIT_WATCHDOG,
-    ECMP_DLB_OFFSET,
     SAI_FEC_CORRECTED_BITS,
     SAI_FEC_CODEWORDS_STATS,
     LINK_INACTIVE_BASED_ISOLATE,
@@ -312,7 +398,6 @@ class HwAsic {
     FABRIC_LINK_DOWN_CELL_DROP_COUNTER,
     CRC_ERROR_DETECT,
     EVENTOR_PORT_FOR_SFLOW,
-    SAI_ECMP_HASH_ALGORITHM,
     SWITCH_REACHABILITY_CHANGE_NOTIFY,
     CABLE_PROPOGATION_DELAY,
     DRAM_BLOCK_TIME,
@@ -355,8 +440,6 @@ class HwAsic {
     TEMPERATURE_MONITORING,
     ROUTER_INTERFACE_STATISTICS,
     CPU_PORT_EGRESS_BUFFER_POOL,
-    SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
-    BULK_CREATE_ECMP_MEMBER,
     TECH_SUPPORT,
     DRAM_QUARANTINED_BUFFER_STATS,
     MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA,
@@ -370,6 +453,15 @@ class HwAsic {
     // pool size given the buffer pool size determination is
     // left to vendor SAI implementation.
     INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM,
+    // Set to true if port level buffer configuration is supported.
+    // This is configured via bufer profiles and attached to ports
+    // with SAI_PORT_ATTR_QOS_INGRESS_BUFFER_PROFILE_LIST
+    // and SAI_PORT_ATTR_QOS_EGRESS_BUFFER_PROFILE_LIST.
+    PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT,
+    // This feature should be true for platforms supporting CPU
+    // side queuing along with CPU ports given not all platforms
+    // are capable of CPU queuing.
+    CPU_QUEUES,
   };
 
   enum class AsicMode {

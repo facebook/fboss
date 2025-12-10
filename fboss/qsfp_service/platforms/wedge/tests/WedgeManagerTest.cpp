@@ -1056,4 +1056,41 @@ TEST_F(WedgeManagerTest, testGetNumNonValidatedTransceiverConfigs) {
   expectNumNonValidatedConfigs(infoMap, 2);
 }
 
+TEST_F(WedgeManagerTest, managementInterfaceError) {
+  auto tcvrID = 0;
+  std::map<int32_t, TransceiverInfo> tcvrInfo;
+
+  transceiverManager_->setReadException(
+      false /* throwReadExceptionForMgmtInterface */,
+      false /* throwReadExceptionForDomQuery */);
+  transceiverManager_->refreshStateMachines();
+  tcvrInfo.clear();
+  transceiverManager_->getTransceiversInfo(
+      tcvrInfo, std::make_unique<std::vector<int32_t>>());
+  ASSERT_TRUE(tcvrInfo.find(tcvrID) != tcvrInfo.end());
+  EXPECT_FALSE(*tcvrInfo[tcvrID].tcvrState()->communicationError());
+
+  transceiverManager_->setReadException(
+      true /* throwReadExceptionForMgmtInterface */,
+      true /* throwReadExceptionForDomQuery */);
+  transceiverManager_->refreshStateMachines();
+  // Verify that the transceiver reports a communication error
+  tcvrInfo.clear();
+  transceiverManager_->getTransceiversInfo(
+      tcvrInfo, std::make_unique<std::vector<int32_t>>());
+  ASSERT_TRUE(tcvrInfo.find(tcvrID) != tcvrInfo.end());
+  EXPECT_TRUE(*tcvrInfo[tcvrID].tcvrState()->communicationError());
+
+  // transceiver should no longer report communication error
+  transceiverManager_->setReadException(
+      false /* throwReadExceptionForMgmtInterface */,
+      false /* throwReadExceptionForDomQuery */);
+  transceiverManager_->refreshStateMachines();
+  tcvrInfo.clear();
+  transceiverManager_->getTransceiversInfo(
+      tcvrInfo, std::make_unique<std::vector<int32_t>>());
+  ASSERT_TRUE(tcvrInfo.find(tcvrID) != tcvrInfo.end());
+  EXPECT_FALSE(*tcvrInfo[tcvrID].tcvrState()->communicationError());
+}
+
 } // namespace facebook::fboss

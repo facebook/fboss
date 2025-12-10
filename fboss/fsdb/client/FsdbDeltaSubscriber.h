@@ -18,6 +18,10 @@ class FsdbDeltaSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
   ~FsdbDeltaSubscriberImpl() override {
     BaseT::cancel();
   }
+  FsdbDeltaSubscriberImpl(const FsdbDeltaSubscriberImpl&) = delete;
+  FsdbDeltaSubscriberImpl& operator=(const FsdbDeltaSubscriberImpl&) = delete;
+  FsdbDeltaSubscriberImpl(FsdbDeltaSubscriberImpl&&) = delete;
+  FsdbDeltaSubscriberImpl& operator=(FsdbDeltaSubscriberImpl&&) = delete;
 
  private:
 #if FOLLY_HAS_COROUTINES

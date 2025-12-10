@@ -58,6 +58,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(TamEvent, SwitchEventId)
   SAI_EXT_ATTR_MAP(TamEvent, ExtensionsCollectorList)
   SAI_EXT_ATTR_MAP(TamEvent, PacketDropTypeMmu)
+  SAI_EXT_ATTR_MAP(TamEvent, PacketDropTypeIngress)
   SAI_EXT_ATTR_MAP(TamEvent, AgingGroup)
   SAI_EXT_ATTR_MAP(TamTransport, SrcMacAddress)
   SAI_EXT_ATTR_MAP(TamTransport, DstMacAddress)

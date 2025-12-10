@@ -129,6 +129,7 @@ sai_status_t create_tam_event(
   sai_int32_t eventId{};
   std::vector<sai_object_id_t> extensionsCollectorList{};
   std::vector<sai_int32_t> packetDropTypeMmu{};
+  std::vector<sai_int32_t> packetDropTypeIngress{};
   sai_object_id_t agingGroup{};
 
   for (auto i = 0; i < attr_count; i++) {
@@ -180,6 +181,13 @@ sai_status_t create_tam_event(
             std::back_inserter(packetDropTypeMmu));
         break;
 
+      case SAI_TAM_EVENT_ATTR_FAKE_PACKET_DROP_TYPE_INGRESS:
+        std::copy(
+            attr_list[i].value.s32list.list,
+            attr_list[i].value.s32list.list + attr_list[i].value.s32list.count,
+            std::back_inserter(packetDropTypeIngress));
+        break;
+
       case SAI_TAM_EVENT_ATTR_FAKE_AGING_GROUP:
         agingGroup = attr_list[i].value.oid;
         break;
@@ -198,6 +206,7 @@ sai_status_t create_tam_event(
       eventId,
       extensionsCollectorList,
       packetDropTypeMmu,
+      packetDropTypeIngress,
       agingGroup);
   return SAI_STATUS_SUCCESS;
 }
@@ -276,12 +285,25 @@ sai_status_t get_tam_event_attribute(
         if (attr_list[i].value.s32list.count <
             eventAction.packetDropTypeMmu_.size()) {
           attr_list[i].value.s32list.count =
-              eventAction.packetDropTypeMmu_.size();
+              static_cast<uint32_t>(eventAction.packetDropTypeMmu_.size());
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
         for (auto j = 0; j < attr_list[i].value.s32list.count; j++) {
           attr_list[i].value.s32list.list[j] =
               eventAction.packetDropTypeMmu_[j];
+        }
+        break;
+
+      case SAI_TAM_EVENT_ATTR_FAKE_PACKET_DROP_TYPE_INGRESS:
+        if (attr_list[i].value.s32list.count <
+            eventAction.packetDropTypeIngress_.size()) {
+          attr_list[i].value.s32list.count =
+              static_cast<uint32_t>(eventAction.packetDropTypeIngress_.size());
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (auto j = 0; j < attr_list[i].value.s32list.count; j++) {
+          attr_list[i].value.s32list.list[j] =
+              eventAction.packetDropTypeIngress_[j];
         }
         break;
 
@@ -353,6 +375,14 @@ sai_status_t set_tam_event_attribute(
             attr->value.s32list.list,
             attr->value.s32list.list + attr->value.s32list.count,
             std::back_inserter(tamEvent.packetDropTypeMmu_));
+        break;
+
+      case SAI_TAM_EVENT_ATTR_FAKE_PACKET_DROP_TYPE_INGRESS:
+        tamEvent.packetDropTypeIngress_.clear();
+        std::copy(
+            attr->value.s32list.list,
+            attr->value.s32list.list + attr->value.s32list.count,
+            std::back_inserter(tamEvent.packetDropTypeIngress_));
         break;
 
       case SAI_TAM_EVENT_ATTR_FAKE_AGING_GROUP:

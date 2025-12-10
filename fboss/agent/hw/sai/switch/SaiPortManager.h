@@ -123,6 +123,9 @@ struct SaiPortHandle {
       IngressPriorityGroupID,
       SaiIngressPriorityGroupHandleAndProfile>
       configuredIngressPriorityGroups;
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+      ingressPortBufferProfiles;
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>> egressPortBufferProfiles;
 };
 
 class SaiPortManager {
@@ -334,6 +337,7 @@ class SaiPortManager {
       const PortID& portId,
       sai_object_id_t sysPortObj);
   void resetFabricLinkMonitoringSystemPortId(const PortID& portId);
+  void processPortBufferPoolConfigs(const std::shared_ptr<Port>& swPort);
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
@@ -353,6 +357,20 @@ class SaiPortManager {
   void setQosMapsOnPort(
       PortID portID,
       std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps);
+  template <typename SaiPortAttribute>
+  void setPortQosBufferProfiles(
+      const PortID& portID,
+      const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+          bufferProfileHandles,
+      const char* direction);
+  void setPortQosEgressBufferProfiles(
+      const PortID& portID,
+      const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+          bufferProfileHandles);
+  void setPortQosIngressBufferProfiles(
+      const PortID& portID,
+      const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+          bufferProfileHandles);
   const std::vector<sai_stat_id_t>& supportedStats(PortID port);
   void fillInSupportedStats(PortID port);
   bool fecStatsSupported(PortID portID) const;

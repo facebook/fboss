@@ -45,6 +45,15 @@
             "upperCriticalVal": 1000
           },
           "compute": "@/1000000"
+        },
+        {
+          "name": "PSU1_VIN",
+          "sysfsPath": "/run/devmap/sensors/PSU1_2GH_SENSOR/in1_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 300
+          },
+          "compute": "@/1000.0"
         }
       ]
     }
@@ -63,6 +72,9 @@
         "name": "PSU1",
         "powerSensorName": "PSU1_PIN"
       }
+    ],
+    "inputVoltageSensors": [
+      "PSU1_VIN"
     ]
   }
 }

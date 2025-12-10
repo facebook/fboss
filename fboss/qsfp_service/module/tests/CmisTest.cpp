@@ -47,6 +47,8 @@ class MockCmisModule : public CmisModule {
   using CmisModule::frequencyGridToGridSelection;
   using CmisModule::getApplicationField;
   using CmisModule::getChannelNumFromFrequency;
+  using CmisModule::getCurrentAppSelCode;
+  using CmisModule::getInterfaceCodeForAppSel;
   using CmisModule::getTunableLaserStatus;
   using CmisModule::isTunableOptics;
 
@@ -1246,6 +1248,10 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
   EXPECT_EQ(
       tunableLaserStatus->wavelengthLockingStatus(),
       LaserStatusBitMask::WAVELENGTH_LOCKED);
+  EXPECT_EQ(
+      xcvr->getInterfaceCodeForAppSel(1, 1),
+      static_cast<uint8_t>(SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G));
+  EXPECT_EQ(xcvr->getCurrentAppSelCode(1), 0x1);
 }
 
 TEST_F(CmisTest, cmisCredo800AecInfoTest) {

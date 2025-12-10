@@ -3373,7 +3373,7 @@ void SwSwitch::sendL3Packet(
   }
 
   // Extract primary Vlan associated with this interface, if any
-  auto vlanID = intf->getVlanIDIf();
+  auto vlanID = intf->getVlanIDIf_DEPRECATED();
 
   try {
     uint16_t protocol{0};
@@ -3778,7 +3778,7 @@ bool SwSwitch::sendArpRequestHelper(
   if (entry == nullptr) {
     // No entry in ARP table, send ARP request
     ArpHandler::sendArpRequest(
-        this, intf->getVlanIDIf(), intf->getMac(), source, target);
+        this, intf->getVlanIDIf_DEPRECATED(), intf->getMac(), source, target);
 
     // Notify the updater that we sent an arp request
     sentArpRequest(intf, target);
@@ -3802,7 +3802,7 @@ bool SwSwitch::sendNdpSolicitationHelper(
   if (entry == nullptr) {
     // No entry in NDP table, create a neighbor solicitation packet
     IPv6Handler::sendMulticastNeighborSolicitation(
-        this, target, intf->getMac(), intf->getVlanIDIf());
+        this, target, intf->getMac(), intf->getVlanIDIf_DEPRECATED());
 
     // Notify the updater that we sent a solicitation out
     sentNeighborSolicitation(intf, target);
@@ -3852,7 +3852,8 @@ void SwSwitch::sentArpRequest(
     getNeighborUpdater()->sentArpRequestForIntf(intf->getID(), target);
   } else {
     getNeighborUpdater()->sentArpRequest(
-        getVlanIDHelper(intf->getVlanIDIf(), intf->getType()), target);
+        getVlanIDHelper(intf->getVlanIDIf_DEPRECATED(), intf->getType()),
+        target);
   }
 }
 
@@ -3864,7 +3865,8 @@ void SwSwitch::sentNeighborSolicitation(
         intf->getID(), target);
   } else {
     getNeighborUpdater()->sentNeighborSolicitation(
-        getVlanIDHelper(intf->getVlanIDIf(), intf->getType()), target);
+        getVlanIDHelper(intf->getVlanIDIf_DEPRECATED(), intf->getType()),
+        target);
   }
 }
 

@@ -28,6 +28,7 @@ constexpr auto kFbossPortAlert("PORT");
 constexpr auto kFbossRouteAlert("ROUTE");
 constexpr auto kFbossLinkSnapshotAlert("LINK_SNAPSHOT");
 constexpr auto kFbossQsfpTransceiverValidationAlert("TRANSCEIVER_VALIDATION");
+constexpr auto kFbossFirmwareUpgradeAlert("TRANSCEIVER_FW_UPGRADE");
 
 // Alert tag by type
 AlertTag::AlertTag(std::string prefix, std::string sub_type)
@@ -49,9 +50,12 @@ LinkSnapshotAlert::LinkSnapshotAlert()
     : AlertTag(kLinkSnapshotAlertPrefix, kFbossLinkSnapshotAlert) {}
 TransceiverValidationAlert::TransceiverValidationAlert()
     : AlertTag(kFbossAlertPrefix, kFbossQsfpTransceiverValidationAlert) {}
+FirmwareUpgradeAlert::FirmwareUpgradeAlert()
+    : AlertTag(kFbossAlertPrefix, kFbossFirmwareUpgradeAlert) {}
 
 // Alert param types
 constexpr auto kFbossPort("port");
+constexpr auto kFbossTransceiver("transceiver");
 constexpr auto kFbossVlan("vlan");
 constexpr auto kFbossIpv4Addr("ipv4");
 constexpr auto kFbossIpv6Addr("ipv6");
@@ -63,6 +67,8 @@ AlertParam::AlertParam(std::string type, std::string value)
     : type_(std::move(type)), value_(std::move(value)) {}
 
 PortParam::PortParam(std::string value) : AlertParam(kFbossPort, value) {}
+TransceiverParam::TransceiverParam(int value)
+    : AlertParam(kFbossTransceiver, std::to_string(value)) {}
 VlanParam::VlanParam(std::string value) : AlertParam(kFbossVlan, value) {}
 Ipv4Param::Ipv4Param(std::string value) : AlertParam(kFbossIpv4Addr, value) {}
 Ipv6Param::Ipv6Param(std::string value) : AlertParam(kFbossIpv6Addr, value) {}

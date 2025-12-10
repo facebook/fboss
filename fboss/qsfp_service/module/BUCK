@@ -66,6 +66,7 @@ cpp_library(
     ],
     exported_external_deps = [
         ("boost", None, "boost_algorithm"),
+        ("boost", None, "boost_assign"),
         ("boost", None, "boost_bimap"),
     ],
 )

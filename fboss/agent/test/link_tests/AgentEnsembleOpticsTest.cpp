@@ -315,6 +315,12 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
  *       transceivers don't have a DSP and there are no VDM stats.
  */
 TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
+#ifdef IS_OSS
+  GTEST_SKIP() << "opticsVdmPerformanceMonitoring is currently not supported "
+                  "in OSS until we add an OSS implementation for "
+                  "fbcode/fboss/qsfp_service/oss/StatsPublisher.cpp";
+#endif
+
   // 1. Find the list of optical ports with VDM supported optics
   auto connectedPairPortIds = getConnectedOpticalAndActivePortPairWithFeature(
       TransceiverFeature::VDM, phy::Side::LINE);

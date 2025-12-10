@@ -211,9 +211,9 @@ SaiTamManager::SaiTamManager(
     SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
-void SaiTamManager::addMirrorOnDropReport(
-    const std::shared_ptr<MirrorOnDropReport>& report) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+void SaiTamManager::addDnxMirrorOnDropReport(
+    const std::shared_ptr<MirrorOnDropReport>& report) {
   std::string destMac = report->getFirstInterfaceMac();
   if (!FLAGS_mod_dest_mac_override.empty()) {
     destMac = FLAGS_mod_dest_mac_override;
@@ -336,6 +336,12 @@ void SaiTamManager::addMirrorOnDropReport(
 
   bindTamObjectToSwitchAndPort(
       managerTable_, tamHandles_, tam->adapterKey(), report->getMirrorPortId());
+}
+#endif
+void SaiTamManager::addMirrorOnDropReport(
+    const std::shared_ptr<MirrorOnDropReport>& report) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  addDnxMirrorOnDropReport(report);
 #endif
 }
 

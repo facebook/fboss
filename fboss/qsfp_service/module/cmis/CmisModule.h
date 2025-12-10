@@ -94,6 +94,7 @@ class CmisModule : public QsfpModule {
   static constexpr int kHostInterfaceCodeOffset = 0;
   static constexpr int kMediaInterfaceCodeOffset = 1;
   static constexpr int32_t kDefaultFrequencyMhz = 193100000;
+  static constexpr uint8_t kInvalidApplication = 0;
 
   using ApplicationAdvertisingFields = std::vector<ApplicationAdvertisingField>;
 
@@ -233,8 +234,8 @@ class CmisModule : public QsfpModule {
   virtual bool ensureTransceiverReadyLocked() override;
 
   /*
-   * Based on identifier, sets whether the upper memory of the module is flat or
-   * paged.
+   * Based on identifier, sets whether the upper memory of the module is flat
+   * or paged.
    */
   void setQsfpFlatMem() override;
   /*
@@ -258,11 +259,54 @@ class CmisModule : public QsfpModule {
       const cfg::OpticalChannelConfig& opticalChannelConfig);
   /*
    * Set appropriate application code for PortSpeed, if supported
+   * if newAppSelCode is provided, use that directly instead of deriving
    */
   void setApplicationCodeLocked(
       cfg::PortSpeed speed,
       uint8_t startHostLane,
+      uint8_t numHostLanesForPort,
+      uint8_t newAppSelCode);
+
+  /*
+   * Helper function to discover and return the appropriate application
+   * capability based on module capabilities and speed requirements. Returns
+   * the full ApplicationAdvertisingField if a suitable application is found,
+   * or std::nullopt if no matching application is available or if the current
+   * config already matches.
+   */
+  std::optional<ApplicationAdvertisingField> getAppSelCodeForSpeed(
+      cfg::PortSpeed speed,
+      uint8_t startHostLane,
       uint8_t numHostLanesForPort);
+
+  /*
+   * Helper function to program a given AppSel code to the module.
+   * This contains the common logic for resetting datapath, programming,
+   * and verifying the application code.
+   *
+   * If appSelectFunc is provided, it will be used for programming.
+   * Otherwise, the default setApplicationSelectCode will be used.
+   */
+  void programApplicationSelectCode(
+      uint8_t appSelCode,
+      uint8_t moduleMediaInterfaceCode,
+      uint8_t startHostLane,
+      uint8_t numHostLanes,
+      std::optional<std::function<void()>> appSelectFunc = std::nullopt);
+
+  /*
+   * Helper function to read an interface code (host or media) for a given
+   * AppSel code from the EEPROM based on the byte offset.
+   * - For media interface code, use byteOffset = kMediaInterfaceCodeOffset (1)
+   * - For host interface code, use byteOffset = kHostInterfaceCodeOffset (0)
+   */
+  uint8_t getInterfaceCodeForAppSel(uint8_t appSelCode, int byteOffset);
+
+  /*
+   * Helper function to read the current application select code for a given
+   * lane.
+   */
+  uint8_t getCurrentAppSelCode(uint8_t startHostLane);
   /*
    * returns individual sensor values after scaling
    */
@@ -388,10 +432,9 @@ class CmisModule : public QsfpModule {
   /*
    * Get the curent application set for the lane (i.e. programmed in the
    * transceiver). Based on Interface codes from SFF-8024.
-   * For Optical SMF transceivers, the application is the media interface code,
-   * so the offset is 1.
-   * For Active Cables, the application is the host interface code, so the
-   * offset is 0.
+   * For Optical SMF transceivers, the application is the media interface
+   * code, so the offset is 1. For Active Cables, the application is the host
+   * interface code, so the offset is 0.
    */
   uint8_t getCurrentApplication(uint8_t lane, int offset) const;
 
@@ -430,8 +473,8 @@ class CmisModule : public QsfpModule {
    */
   bool getHostLaneSettings(std::vector<HostLaneSettings>& laneSettings);
   /*
-   * Gather media side per lane configuration settings and return false when it
-   * fails
+   * Gather media side per lane configuration settings and return false when
+   * it fails
    */
   bool getMediaLaneSettings(std::vector<MediaLaneSettings>& laneSettings);
   /*
@@ -489,8 +532,8 @@ class CmisModule : public QsfpModule {
    */
   std::optional<TunableLaserStatus> getTunableLaserStatus() override;
   /*
-   * Returns the ApplicationAdvertisingField corresponding to the application or
-   * nullopt if it doesn't exist
+   * Returns the ApplicationAdvertisingField corresponding to the application
+   * or nullopt if it doesn't exist
    */
   std::optional<ApplicationAdvertisingField> getApplicationField(
       uint8_t application,
@@ -533,15 +576,17 @@ class CmisModule : public QsfpModule {
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
   CmisModule& operator=(CmisModule const&) = delete;
+  CmisModule(CmisModule&&) = delete;
+  CmisModule& operator=(CmisModule&&) = delete;
 
   // VDM data location of each VDM config types
   std::map<VdmConfigType, VdmDiagsLocationStatus> vdmConfigDataLocations_;
 
   /* Helper function to read/write a CmisField. The function will extract the
-   * page number, offset and length information from the CmisField and then make
-   * the corresponding qsfpImpl->readTransceiver and qsfpImpl->writeTransceiver
-   * calls. The user should avoid making direct calls to
-   * qsfpImpl->read/writeTransceiver and instead do register IO using
+   * page number, offset and length information from the CmisField and then
+   * make the corresponding qsfpImpl->readTransceiver and
+   * qsfpImpl->writeTransceiver calls. The user should avoid making direct
+   * calls to qsfpImpl->read/writeTransceiver and instead do register IO using
    * readCmisField/writeCmisField helper functions. The helper function will
    * also change the page when it's supported by the transceiver and when not
    * specifically asked to skip page change (for batch operations). */
@@ -582,7 +627,8 @@ class CmisModule : public QsfpModule {
   bool checkLaneConfigError(uint8_t startHostLane, uint8_t hostLaneCount);
 
   /*
-   * This function veifies the Module eeprom register checksum for a given page
+   * This function veifies the Module eeprom register checksum for a given
+   * page
    */
   bool verifyEepromChecksum(CmisPages pageId);
 
@@ -669,8 +715,16 @@ class CmisModule : public QsfpModule {
     return getIdentifier() == TransceiverModuleIdentifier::OSFP;
   }
 
+  // Utility functions for power state management
+  PowerControlState getCurrentPowerControlState();
+  bool isModuleInReadyState();
+  bool moduleReadyStatePoll();
+
   // Check if module should be kept in low power mode for AppSel programming.
   bool programAppSelInLowPowerMode() const;
+
+  // Apply Rx-SNR correction and return the corrected value
+  double applyRxSnrCorrection(uint16_t rawValue, double snrValue) const;
 
   // Private functions to extract and fill in VDM performance monitoring stats
   bool fillVdmPerfMonitorSnr(VdmPerfMonitorStats& vdmStats);

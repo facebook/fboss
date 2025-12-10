@@ -73,6 +73,7 @@ cpp_library(
         "//thrift/lib/cpp2:thrift-core",
         "//thrift/lib/cpp2:type_class",
         "//thrift/lib/cpp2/protocol:protocol",
+        "//thrift/lib/cpp2/reflection:invoke_by_field_name",
         "//thrift/lib/cpp2/reflection:reflection",
     ],
     exported_external_deps = [

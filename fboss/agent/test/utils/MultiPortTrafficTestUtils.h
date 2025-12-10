@@ -7,6 +7,8 @@
 namespace facebook::fboss::utility {
 std::vector<folly::IPAddressV6> getOneRemoteHostIpPerInterfacePort(
     facebook::fboss::AgentEnsemble* ensemble);
+std::vector<folly::IPAddressV6> getOneRemoteHostIpPerHyperPort(
+    facebook::fboss::AgentEnsemble* ensemble);
 void setupEcmpDataplaneLoopOnAllPorts(facebook::fboss::AgentEnsemble* ensemble);
 void createTrafficOnMultiplePorts(
     facebook::fboss::AgentEnsemble* ensemble,

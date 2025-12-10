@@ -12,7 +12,7 @@ void MinipackBaseSystemContainer::initHW(bool /* forceReset */) {
   isHwInitialized_ = true;
 }
 
-uint32_t MinipackBaseSystemContainer::getPimOffset(int pim) {
+uint32_t MinipackBaseSystemContainer::getPimOffset(int pim) const {
   // To avoid ambiguity, we explicitly decided the pim number starts from 2.
   return kFacebookFpgaPimBase + kFacebookFpgaPimSize * (pim - 2);
 }

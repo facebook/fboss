@@ -49,6 +49,17 @@ std::pair<uint64_t, uint64_t> MultiSwitchFibInfoMap::getRouteCount() const {
   return {v4Count, v6Count};
 }
 
+size_t MultiSwitchFibInfoMap::getVrfCount() const {
+  size_t totalVrfs{0};
+  for (const auto& [_, fibInfo] : std::as_const(*this)) {
+    auto fibsMap = fibInfo->getfibsMap();
+    if (fibsMap) {
+      totalVrfs += fibsMap->size();
+    }
+  }
+  return totalVrfs;
+}
+
 std::shared_ptr<ForwardingInformationBaseMap>
 MultiSwitchFibInfoMap::getAllFibNodes() const {
   auto mergedMap = std::make_shared<ForwardingInformationBaseMap>();

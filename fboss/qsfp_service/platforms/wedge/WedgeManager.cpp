@@ -198,6 +198,9 @@ void WedgeManager::createQsfpToBmcSyncInterface() {
   }
 }
 
+// TODO(ccpowers): we should probably modify this function signature to just
+// return the map instead of passing it as an argument. It's easy to forget to
+// clear this between calls in tests
 void WedgeManager::getTransceiversInfo(
     std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::vector<int32_t>> ids) {
@@ -753,6 +756,11 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
           if (!qsfpImpls_[idx]->detectTransceiver()) {
             XLOG(DBG3) << "Transceiver is not present. TransceiverID=" << idx;
             continue;
+          } else {
+            // If we fail to read the management interface, but the module is
+            // detected, mark it as errored
+            auto erroredTransceivers = erroredTransceivers_.wlock();
+            erroredTransceivers->insert(TransceiverID(idx));
           }
         } catch (const std::exception& ex) {
           XLOG(ERR) << "Failed to detect transceiver. TransceiverID=" << idx

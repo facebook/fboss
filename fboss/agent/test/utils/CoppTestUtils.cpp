@@ -354,6 +354,11 @@ void setDefaultCpuTrafficPolicyConfig(
     const std::vector<const HwAsic*>& asics,
     bool isSai) {
   auto hwAsic = checkSameAndGetAsic(asics);
+
+  if (!hwAsic->isSupported(HwAsic::Feature::CPU_QUEUES)) {
+    return;
+  }
+
   std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> cpuAcls;
 
   if (!isSai) {
@@ -1625,7 +1630,7 @@ void verifyCoppInvariantHelper(
     throw FbossError(
         "No eligible uplink/downlink interfaces in config to verify COPP invariant");
   }
-  for (auto iter : std::as_const(*intf->getAddresses())) {
+  for (const auto& iter : std::as_const(*intf->getAddresses())) {
     auto destIp = folly::IPAddress(iter.first);
     if (destIp.isLinkLocal()) {
       // three elements in the address vector: ipv4, ipv6 and a link local one

@@ -11,7 +11,7 @@ cpp_library(
     name = "wedge-platform-default",
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
-        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
+        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",  # @manual
     ],
 )
 

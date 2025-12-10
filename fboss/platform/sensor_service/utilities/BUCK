@@ -41,6 +41,7 @@ cpp_unittest(
         "ConfigDifferTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         ":config_differ",
     ],
 )

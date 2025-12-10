@@ -92,6 +92,9 @@ class MultiSwitchFibInfoMap
   // Get total route count across all FibInfo objects (v4, v6)
   std::pair<uint64_t, uint64_t> getRouteCount() const;
 
+  // Get total number of VRFs across all FibInfo objects
+  size_t getVrfCount() const;
+
   MultiSwitchFibInfoMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:

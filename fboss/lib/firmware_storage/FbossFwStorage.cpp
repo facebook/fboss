@@ -192,13 +192,16 @@ std::unique_ptr<FbossFirmware> FbossFwStorage::getFirmware(
   // Get the module/product firmware record for this given module/product name
   auto fwRecIt = firmwareRecord_.find(name);
   if (fwRecIt == firmwareRecord_.end()) {
-    throw FbossFirmwareError("Bad Yaml file format, module not found");
+    throw FbossFirmwareError(
+        fmt::format("Bad Yaml file format, module not found: {}", name));
   }
 
   // Get the version record for this given firmware version id
   auto verRecIt = fwRecIt->second.versionRecord.find(version);
   if (verRecIt == fwRecIt->second.versionRecord.end()) {
-    throw FbossFirmwareError("Bad Yaml file format, version info not found");
+    throw FbossFirmwareError(
+        fmt::format(
+            "Bad Yaml file format, version info not found: {}", version));
   }
 
   // Create FbossFirmware object and return

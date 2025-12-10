@@ -625,6 +625,13 @@ void PlatformExplorer::explorePciDevices(
         });
     createPciSubDevices(
         slotPath,
+        *pciDeviceConfig.sysLedCtrlConfigs(),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_LED_CTRL,
+        [&](const auto& sysLedCtrlConfig) {
+          pciExplorer_.createFpgaIpBlock(pciDevice, sysLedCtrlConfig, instId++);
+        });
+    createPciSubDevices(
+        slotPath,
         Utils::createXcvrCtrlConfigs(pciDeviceConfig),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_XCVR_CTRL,
         [&](const auto& xcvrCtrlConfig) {
@@ -668,12 +675,20 @@ void PlatformExplorer::explorePciDevices(
         });
     createPciSubDevices(
         slotPath,
-        *pciDeviceConfig.mdioBusConfigs(),
+        Utils().createMdioBusConfigs(pciDeviceConfig),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MDIO_BUS,
         [&](const auto& mdioBusConfig) {
-          auto mdioBusSysfsPath =
+          auto instanceId = instId;
+          auto mdioBusCharDevPath =
               pciExplorer_.createMdioBus(pciDevice, mdioBusConfig, instId++);
           dataStore_.updateCharDevPath(
+              Utils().createDevicePath(
+                  slotPath, *mdioBusConfig.pmUnitScopedName()),
+              mdioBusCharDevPath);
+
+          auto mdioBusSysfsPath = pciExplorer_.getMdioBusSysfsPath(
+              pciDevice, mdioBusConfig, instanceId);
+          dataStore_.updateSysfsPath(
               Utils().createDevicePath(
                   slotPath, *mdioBusConfig.pmUnitScopedName()),
               mdioBusSysfsPath);
@@ -724,8 +739,7 @@ void PlatformExplorer::createDeviceSymLink(
     } else if (
         linkParentPath.string() == "/run/devmap/gpiochips" ||
         linkParentPath.string() == "/run/devmap/flashes" ||
-        linkParentPath.string() == "/run/devmap/watchdogs" ||
-        linkParentPath.string() == "/run/devmap/mdio-busses") {
+        linkParentPath.string() == "/run/devmap/watchdogs") {
       targetPath = devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
     } else if (linkParentPath.string() == "/run/devmap/xcvrs") {
       auto xcvrName = linkPath.substr(linkParentPath.string().length() + 1);
@@ -738,6 +752,15 @@ void PlatformExplorer::createDeviceSymLink(
       }
       // Legacy XCVR path
       if (re2::RE2::FullMatch(xcvrName, kLegacyXcvrName)) {
+        targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
+      }
+    } else if (linkParentPath.string() == "/run/devmap/mdio-busses") {
+      auto mdioBusName = linkPath.substr(linkParentPath.string().length() + 1);
+      if (mdioBusName.starts_with("mdio_bus_io")) {
+        targetPath =
+            devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
+      }
+      if (mdioBusName.starts_with("mdio_bus_ctrl")) {
         targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
       }
     } else {

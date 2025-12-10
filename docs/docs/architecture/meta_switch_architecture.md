@@ -471,9 +471,18 @@ A few notes:
         routine in BIOS and BMC
       * Vendors shall test the functionality and the stability of this bus
 
-### 6.2  ASIC
+### 6.2  ASIC and ASIC Protection
 
 * ASIC shall be connected to CPU through PCIe
+* Vendor HW (FPGA or CPLD) shall monitor the ASIC temperature through the
+  HW interface provided by the ASIC. (I2C, one-wire and so on.)
+* The HW (FPGA or CPLD) shall also have the logic to shut down the ASIC if
+  the temperature reading from the ASIC is above a certain threshold, in
+  order to prevent the ASIC from being damaged.
+  * The auto-shutdown logic shall work without any SW initialization or
+    control.
+  * The threshold should be high enough to prevent false positives. That is,
+    one less accurate reading from the ASIC should not turn off the ASIC.
 * Vendor SW team is responsible for directly and autonomously working with ASIC
   vendors to develop traffic tests and other diagnostic features.
 * Vendor SW team shall use the SDK and SAI version that Meta wants.

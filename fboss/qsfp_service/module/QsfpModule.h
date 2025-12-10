@@ -105,7 +105,7 @@ class QsfpModule : public Transceiver {
   std::string getNameString() const;
 
   virtual void refresh() override;
-  folly::Future<folly::Unit> futureRefresh() override;
+  folly::Future<bool> futureRefresh() override;
 
   void removeTransceiver() override;
 
@@ -337,6 +337,9 @@ class QsfpModule : public Transceiver {
   std::string getTcvrName() {
     return tcvrName_;
   }
+
+  bool upgradeFirmware(
+      std::vector<std::unique_ptr<FbossFirmware>>& fwList) override;
 
  protected:
   /* Qsfp Internal Implementation */
@@ -749,9 +752,6 @@ class QsfpModule : public Transceiver {
   folly::Future<std::pair<int32_t, bool>> futureWriteTransceiver(
       TransceiverIOParameters param,
       const std::vector<uint8_t>& data) override;
-
-  bool upgradeFirmware(
-      std::vector<std::unique_ptr<FbossFirmware>>& fwList) override;
 
   bool upgradeFirmwareLocked(
       std::vector<std::unique_ptr<FbossFirmware>>& fwList);

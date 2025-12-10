@@ -368,7 +368,7 @@ void DsfSubscription::queueRemoteStateChanged(
 
 void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
   bool needsScheduling = false;
-  std::optional<int64_t> currSeqNum;
+
   {
     auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
     // If nextDsfUpdate is not null, then just overwrite
@@ -380,7 +380,6 @@ void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
     // contents.
     needsScheduling = (*nextDsfUpdateWlock == nullptr);
     *nextDsfUpdateWlock = std::make_unique<DsfUpdate>(std::move(dsfUpdate));
-    currSeqNum = ++lastUpdateSeqNum_;
   }
   /*
    * Schedule updates async on hwUpdateEvb, so we don't
@@ -392,15 +391,12 @@ void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
    * each other for initial sync to complete.
    */
   if (needsScheduling) {
-    CHECK(currSeqNum.has_value());
-    hwUpdateEvb_->runInEventBaseThread([this, currSeqNum]() {
+    hwUpdateEvb_->runInEventBaseThread([this]() {
       DsfUpdate update;
       {
         auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
-        if (*nextDsfUpdateWlock == nullptr ||
-            currSeqNum.value() != lastUpdateSeqNum_) {
-          // Update was already done or cancelled, or there are newer updates in
-          // the queue
+        if (*nextDsfUpdateWlock == nullptr) {
+          // Update was already done or cancelled
           return;
         }
         update = std::move(**nextDsfUpdateWlock);

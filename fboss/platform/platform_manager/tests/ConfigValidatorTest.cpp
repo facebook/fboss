@@ -574,12 +574,16 @@ TEST(ConfigValidatorTest, DevicePath) {
   FpgaIpBlockConfig gpioChipFpgaIpBlock;
   gpioChipFpgaIpBlock.pmUnitScopedName() = "SCM_FPGA_GPIO_1";
   scmPci.gpioChipConfigs() = {gpioChipFpgaIpBlock};
-  LedCtrlConfig scmLedCtrl;
-  scmLedCtrl.fpgaIpBlockConfig() = FpgaIpBlockConfig();
-  scmLedCtrl.fpgaIpBlockConfig()->pmUnitScopedName() = "SCM_SYS_LED";
-  scmPci.ledCtrlConfigs() = {scmLedCtrl};
+  LedCtrlConfig scmPortLedCtrl;
+  scmPortLedCtrl.fpgaIpBlockConfig() = FpgaIpBlockConfig();
+  scmPortLedCtrl.fpgaIpBlockConfig()->pmUnitScopedName() = "SCM_PORT_LED";
+  scmPci.ledCtrlConfigs() = {scmPortLedCtrl};
+  FpgaIpBlockConfig scmSysLedCtrl;
+  scmSysLedCtrl.pmUnitScopedName() = "SCM_SYS_LED";
+  scmPci.sysLedCtrlConfigs() = {scmSysLedCtrl};
   scm.pciDeviceConfigs() = {scmPci};
   config.pmUnitConfigs() = {{"MCB", mcb}, {"JUMPER", jumper}, {"SCM", scm}};
+
   // Case-1 Syntatically incorrect
   EXPECT_FALSE(ConfigValidator().isValidDevicePath(config, "/SCM_SLOT@1/[a"));
   EXPECT_FALSE(

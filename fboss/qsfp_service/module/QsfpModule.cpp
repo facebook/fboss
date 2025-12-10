@@ -48,6 +48,10 @@ DEFINE_int32(
     60,
     "max time after firmware upgrade sequence when the the tcvr is expected to be ready for link up");
 DEFINE_bool(remediation_enabled, true, "Flag to disable/enable remediation.");
+DEFINE_int32(
+    refresh_all_pages_cycles,
+    100,
+    "Number of cycles to kick off a full refresh of all pages");
 
 using folly::IOBuf;
 using std::lock_guard;
@@ -55,9 +59,6 @@ using std::memcpy;
 using std::mutex;
 
 static constexpr int kAllowedFwUpgradeAttempts = 3;
-
-// Refresh all transceiver pages every 100 refresh cycles.
-static constexpr int kRefreshAllPagesCycles = 100;
 
 namespace facebook {
 namespace fboss {
@@ -858,7 +859,7 @@ prbs::InterfacePrbsState QsfpModule::getPortPrbsState(
 void QsfpModule::periodicUpdateQsfpData() {
   bool updatedAllPages = false;
   refreshCycleCount_++;
-  if (refreshCycleCount_ >= kRefreshAllPagesCycles) {
+  if (refreshCycleCount_ >= FLAGS_refresh_all_pages_cycles) {
     updatedAllPages = true;
     // reset cycle count
     refreshCycleCount_ = 0;
@@ -872,23 +873,27 @@ void QsfpModule::refresh() {
   refreshLocked();
 }
 
-folly::Future<folly::Unit> QsfpModule::futureRefresh() {
+// call refresh() on the module and return whether or not it was successful
+folly::Future<bool> QsfpModule::futureRefresh() {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   if (!i2cEvb) {
     try {
       refresh();
+      return folly::makeFuture(true);
     } catch (const std::exception& ex) {
       QSFP_LOG(DBG2, this) << "Error calling refresh(): " << ex.what();
+      return folly::makeFuture(false);
     }
-    return folly::makeFuture();
   }
 
   return via(i2cEvb).thenValue([&](auto&&) mutable {
     try {
       this->refresh();
+      return true;
     } catch (const std::exception& ex) {
       QSFP_LOG(DBG2, this) << "Error calling refresh(): " << ex.what();
+      return false;
     }
   });
 }

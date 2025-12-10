@@ -5,6 +5,7 @@
 #include <folly/MacAddress.h>
 #include <folly/Synchronized.h>
 #include <folly/io/async/AsyncTimeout.h>
+#include <gflags/gflags.h>
 #include <chrono>
 #include <deque>
 #include <map>
@@ -13,6 +14,10 @@
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
+
+DECLARE_int32(fabric_link_monitoring_interval_ms);
+DECLARE_int32(fabric_link_monitoring_max_outstanding_packets);
+DECLARE_int32(fabric_link_monitoring_max_pending_seq_numbers);
 
 namespace folly {
 namespace io {
@@ -26,6 +31,7 @@ class SwSwitch;
 class RxPacket;
 class TxPacket;
 class Port;
+class SwitchState;
 
 // FabricLinkMonitoringManager sends periodic monitoring packets on fabric ports
 // to verify link health and track packet loss
@@ -63,11 +69,18 @@ class FabricLinkMonitoringManager : private folly::AsyncTimeout {
   // Get pending sequence numbers for a specific port (for testing)
   std::vector<uint64_t> getPendingSequenceNumbers(const PortID& portId) const;
 
+  // Test-only methods to enable/check test mode
+  static void setTestMode(bool enabled);
+  static bool isTestMode();
+
  private:
   void timeoutExpired() noexcept override;
   void sendPacketsOnAllFabricPorts();
   void sendPacketsForPortGroup(int portGroupId);
-  void sendPacketOnPort(const std::shared_ptr<Port>& port, int portGroupId);
+  void packetSendAndOutstandingHandling(
+      const std::shared_ptr<Port>& port,
+      int portGroupId,
+      bool shouldSendPacket);
   std::unique_ptr<TxPacket> createMonitoringPacket(
       const PortID& portId,
       uint64_t sequenceNumber);

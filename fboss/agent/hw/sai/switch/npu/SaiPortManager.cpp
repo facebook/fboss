@@ -302,6 +302,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
       swPort->getIngressMirror(), swPort->getEgressMirror(), samplingMirror};
   handle->mirrorInfo = mirrorInfo;
   handles_.emplace(swPort->getID(), std::move(handle));
+  processPortBufferPoolConfigs(swPort);
   setQosPolicy(swPort->getID(), swPort->getQosPolicy());
 
   addSamplePacket(swPort);
@@ -391,6 +392,7 @@ void SaiPortManager::changePortImpl(
       updatePrbsStatsEntryRate(newPort);
     }
   }
+  processPortBufferPoolConfigs(newPort);
 
   changeMirror(oldPort, newPort);
   changeSamplePacket(oldPort, newPort);
@@ -870,6 +872,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // PfcMonitorDirection
         std::nullopt, // QosDot1pToTcMap
         std::nullopt, // QosTcAndColorToDot1pMap
+        std::nullopt, // QosIngressBufferProfileList
+        std::nullopt, // QosEgressBufferProfileList
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -964,6 +968,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // PfcMonitorDirection
       std::nullopt, // QosDot1pToTcMap
       std::nullopt, // QosTcAndColorToDot1pMap
+      std::nullopt, // QosIngressBufferProfileList
+      std::nullopt, // QosEgressBufferProfileList
   };
 }
 

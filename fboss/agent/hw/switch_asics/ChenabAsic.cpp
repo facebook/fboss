@@ -64,6 +64,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ECMP_HASH_V4:
     case HwAsic::Feature::ECMP_HASH_V6:
     case HwAsic::Feature::CPU_PORT:
+    case HwAsic::Feature::CPU_QUEUES:
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
@@ -90,6 +91,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
+    case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
       return true;
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:

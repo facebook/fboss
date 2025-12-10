@@ -39,6 +39,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TRAFFIC_HASHING:
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::CPU_PORT:
+    case HwAsic::Feature::CPU_QUEUES:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::ROUTE_COUNTERS:
@@ -223,6 +224,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_LOCK_STATUS: // CS00012426349
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT: // CS00012426349
     case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
+    case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
       return false;
   }
   return false;

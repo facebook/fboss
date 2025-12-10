@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <thrift/lib/cpp2/reflection/invoke_by_field_name.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 #include "folly/Conv.h"
 
@@ -26,8 +27,8 @@ void visitMember(const std::string& key, Func&& f) {
     fatal::scalar_search<MemberTypes, fatal::get_type::id>(
         idTry.value(), std::forward<Func>(f));
   } else {
-    fatal::trie_find<MemberTypes, fatal::get_type::name>(
-        key.begin(), key.end(), std::forward<Func>(f));
+    apache::thrift::reflection::invokeByFieldName<MemberTypes>(
+        key, std::forward<Func>(f));
   }
 }
 

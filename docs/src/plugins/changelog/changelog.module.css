@@ -1,0 +1,118 @@
+/**
+ * (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+ */
+
+.changelogList {
+  margin-top: 2rem;
+}
+
+.changelogEntry {
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.changelogEntry:last-child {
+  border-bottom: none;
+}
+
+.changelogTitle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.changelogVersion {
+  display: inline-block;
+  background-color: var(--ifm-color-primary);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.changelogDate {
+  display: block;
+  color: var(--ifm-color-emphasis-600);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.changelogContent {
+  margin-top: 1rem;
+}
+
+.commitCount {
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.commitList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.commitItem {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background-color: var(--ifm-color-emphasis-100);
+  border-radius: 0.25rem;
+  border-left: 3px solid var(--ifm-color-primary-light);
+}
+
+.commitSubject {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--ifm-color-emphasis-900);
+}
+
+.commitMeta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.commitHashLink {
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.commitHashLink:hover {
+  opacity: 0.8;
+}
+
+.commitHash {
+  background-color: var(--ifm-color-emphasis-200);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.75rem;
+  color: var(--ifm-color-primary-dark);
+}
+
+.commitHashLink:hover .commitHash {
+  background-color: var(--ifm-color-primary-lighter);
+}
+
+.commitDate {
+  color: var(--ifm-color-emphasis-600);
+}
+
+.changelogContent h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.changelogContent ul {
+  margin-left: 1.5rem;
+}
+
+.changelogContent li {
+  margin-bottom: 0.5rem;
+}

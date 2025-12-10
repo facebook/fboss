@@ -502,6 +502,15 @@ bool AgentEnsemble::waitForRateOnPort(
     XLOG(WARNING) << "Setting wait time to 1 second for tests!";
   }
 
+  if (FLAGS_hyper_port) {
+    XLOG(DBG2)
+        << "enable SRAM only through diag to achieve 3.2Tbps linerate for hyper port";
+    std::string out;
+    this->runDiagCommand(
+        "w CGM_VOQ_SRAM_DRAM_MODE 0 128 1\n", out, SwitchID(0));
+    XLOG(DBG2) << "diag output: " << out;
+  }
+
   const auto portSpeedBps =
       static_cast<uint64_t>(
           getProgrammedState()->getPorts()->getNodeIf(port)->getSpeed()) *
@@ -587,7 +596,8 @@ void AgentEnsemble::bringDownPorts(const std::vector<PortID>& ports) {
 
 std::vector<PortID> AgentEnsemble::masterLogicalPortIds(
     SwitchID switchId) const {
-  return switchId2PortIds_.at(switchId);
+  auto it = switchId2PortIds_.find(switchId);
+  return it != switchId2PortIds_.end() ? it->second : std::vector<PortID>{};
 }
 
 void AgentEnsemble::clearPortStats() {

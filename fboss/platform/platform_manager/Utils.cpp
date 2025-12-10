@@ -320,4 +320,32 @@ std::vector<LedCtrlConfig> Utils::createLedCtrlConfigs(
   }
   return ledCtrlConfigs;
 }
+
+std::vector<FpgaIpBlockConfig> Utils::createMdioBusConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<FpgaIpBlockConfig> mdioBusConfigs;
+  const auto mdioBusBlockConfigs = pciDeviceConfig.mdioBusBlockConfigs();
+  for (const auto& mdioBusBlockConfig : *mdioBusBlockConfigs) {
+    int endBusIndex = *mdioBusBlockConfig.numBuses();
+    for (int busIndex = 0; busIndex < endBusIndex; ++busIndex) {
+      FpgaIpBlockConfig mdioBusConfig;
+      mdioBusConfig.pmUnitScopedName() = fmt::format(
+          "{}_{}", *mdioBusBlockConfig.pmUnitScopedNamePrefix(), busIndex + 1);
+      mdioBusConfig.deviceName() = *mdioBusBlockConfig.deviceName();
+
+      std::string iobufExpression = fmt::format(
+          fmt::runtime(*mdioBusBlockConfig.iobufOffsetCalc()),
+          fmt::arg("busIndex", busIndex));
+      mdioBusConfig.iobufOffset() = Utils().evaluateExpression(iobufExpression);
+
+      std::string csrExpression = fmt::format(
+          fmt::runtime(*mdioBusBlockConfig.csrOffsetCalc()),
+          fmt::arg("busIndex", busIndex));
+      mdioBusConfig.csrOffset() = Utils().evaluateExpression(csrExpression);
+
+      mdioBusConfigs.push_back(mdioBusConfig);
+    }
+  }
+  return mdioBusConfigs;
+}
 } // namespace facebook::fboss::platform::platform_manager

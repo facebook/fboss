@@ -146,6 +146,7 @@ TEST_F(TamApiTest, TamEvent) {
   sai_int32_t eventId = 1;
   std::vector<sai_object_id_t> extensionsCollectorList{10};
   std::vector<sai_int32_t> packetDropTypeMmu = {3, 4};
+  std::vector<sai_int32_t> packetDropTypeIngress = {5, 6};
   sai_object_id_t agingGroup = 20;
 
   SaiTamEventTraits::CreateAttributes eventAttr;
@@ -165,6 +166,8 @@ TEST_F(TamApiTest, TamEvent) {
       eventAttr) = extensionsCollectorList;
   std::get<std::optional<SaiTamEventTraits::Attributes::PacketDropTypeMmu>>(
       eventAttr) = packetDropTypeMmu;
+  std::get<std::optional<SaiTamEventTraits::Attributes::PacketDropTypeIngress>>(
+      eventAttr) = packetDropTypeIngress;
   std::get<std::optional<SaiTamEventTraits::Attributes::AgingGroup>>(
       eventAttr) = agingGroup;
 

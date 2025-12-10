@@ -56,6 +56,14 @@ class FibInfo : public ThriftStructNode<FibInfo, state::FibInfoFields> {
   // Get route count (v4, v6)
   std::pair<uint64_t, uint64_t> getRouteCount() const;
 
+  void resetFibsMap(std::shared_ptr<ForwardingInformationBaseMap> fibsMap) {
+    if (fibsMap) {
+      ref<switch_state_tags::fibsMap>() = fibsMap;
+    } else {
+      ref<switch_state_tags::fibsMap>().reset();
+    }
+  }
+
  private:
   // Inherit constructors required for clone()
   using Base::Base;

@@ -256,7 +256,8 @@ TYPED_TEST(SwitchIdScopeResolverTest, qosPolicyScope) {
 
 TYPED_TEST(SwitchIdScopeResolverTest, controlPlaneScope) {
   if (this->isFabric()) {
-    this->expectThrow(std::shared_ptr<ControlPlane>{});
+    // Fabric switches supports CPU port and use allSwitchMatcher
+    this->expectAll(std::shared_ptr<ControlPlane>{});
   } else {
     this->expectL3(std::shared_ptr<ControlPlane>());
   }

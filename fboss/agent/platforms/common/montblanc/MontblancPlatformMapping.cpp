@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/platforms/common/montblanc/MontblancOddPort100GPlatformMapping.h"
 
 namespace {
 constexpr auto kJsonPlatformMappingStr = R"(
@@ -116734,7 +116736,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
 
 namespace facebook::fboss {
 MontblancPlatformMapping::MontblancPlatformMapping()
-    : PlatformMapping(kJsonPlatformMappingStr) {}
+    : PlatformMapping(
+          FLAGS_montblanc_odd_ports_8x100G ? kJsonOdd8x100GPlatformMappingStr
+                                           : kJsonPlatformMappingStr) {}
 
 MontblancPlatformMapping::MontblancPlatformMapping(
     const std::string& platformMappingStr)

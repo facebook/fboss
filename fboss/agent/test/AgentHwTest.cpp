@@ -174,8 +174,13 @@ const std::shared_ptr<SwitchState> AgentHwTest::getProgrammedState() const {
   return getAgentEnsemble()->getProgrammedState();
 }
 
-std::vector<PortID> AgentHwTest::masterLogicalPortIds() const {
-  return getAgentEnsemble()->masterLogicalPortIds();
+std::vector<PortID> AgentHwTest::masterLogicalPortIds(
+    std::optional<SwitchID> switchId) const {
+  // If no switchIndex provided, return default filtered ports
+  if (!switchId.has_value()) {
+    return getAgentEnsemble()->masterLogicalPortIds();
+  }
+  return getAgentEnsemble()->masterLogicalPortIds(switchId.value());
 }
 
 std::vector<PortID> AgentHwTest::masterLogicalPortIds(

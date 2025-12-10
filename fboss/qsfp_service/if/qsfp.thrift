@@ -315,4 +315,8 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
   map<string, transceiver.MediaInterfaceCode> getPortMediaInterface() throws (
     1: fboss.FbossBaseError error,
   );
+
+  map<string, list<i32>> getPortTransceiverIDs() throws (
+    1: fboss.FbossBaseError error,
+  );
 }

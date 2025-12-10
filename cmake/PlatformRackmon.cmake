@@ -77,6 +77,8 @@ add_executable(rackmon_test
   fboss/platform/rackmon/tests/RegisterMapTest.cpp
   fboss/platform/rackmon/tests/RegisterTest.cpp
   fboss/platform/rackmon/tests/RegisterValueTest.cpp
+  fboss/platform/rackmon/tests/ThriftHandlerTest.cpp
+  fboss/platform/rackmon/tests/UARTDeviceTest.cpp
 )
 
 target_link_libraries(rackmon_test

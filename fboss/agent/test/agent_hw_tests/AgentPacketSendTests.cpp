@@ -199,8 +199,15 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
     utility::setupEcmpDataplaneLoopOnAllPorts(getAgentEnsemble());
   };
   auto verify = [this]() {
-    std::vector<PortID> portsUnderTest{
-        masterLogicalInterfacePortIds()[0], masterLogicalInterfacePortIds()[1]};
+    std::vector<PortID> portsUnderTest;
+    if (FLAGS_hyper_port) {
+      portsUnderTest = {
+          masterLogicalHyperPortIds()[0], masterLogicalHyperPortIds()[1]};
+    } else {
+      portsUnderTest = {
+          masterLogicalInterfacePortIds()[0],
+          masterLogicalInterfacePortIds()[1]};
+    }
     auto createHighRateTraffic = [=, this]() {
       auto sendPacket = [=, this](
                             AgentEnsemble* ensemble,

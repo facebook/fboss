@@ -108,6 +108,10 @@ class TransceiverValidationAlert : public AlertTag {
  public:
   TransceiverValidationAlert();
 };
+class FirmwareUpgradeAlert : public AlertTag {
+ public:
+  FirmwareUpgradeAlert();
+};
 
 // Alert parameter types
 struct AlertParam {
@@ -130,6 +134,10 @@ struct AlertParam {
 class PortParam : public AlertParam {
  public:
   explicit PortParam(std::string value);
+};
+class TransceiverParam : public AlertParam {
+ public:
+  explicit TransceiverParam(int value);
 };
 class VlanParam : public AlertParam {
  public:

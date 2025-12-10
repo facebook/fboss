@@ -716,12 +716,13 @@ class SaiAttribute<
    * }
    * a2.value() // uh-oh
    */
-  SaiAttribute(const SaiAttribute& other) {
-    // NOTE: use copy assignment to implement copy ctor
-    *this = other;
+  SaiAttribute(const SaiAttribute& other) : SaiAttribute() {
+    saiAttr_.id = other.saiAttr_.id;
+    setValue(other.value());
   }
-  SaiAttribute(SaiAttribute&& other) {
-    *this = std::move(other);
+  SaiAttribute(SaiAttribute&& other) : SaiAttribute() {
+    saiAttr_.id = other.saiAttr_.id;
+    setValue(std::move(other).value());
   }
   SaiAttribute& operator=(const SaiAttribute& other) {
     saiAttr_.id = other.saiAttr_.id;

@@ -12,5 +12,14 @@ bool CmisModule::programAppSelInLowPowerMode() const {
   return false;
 }
 
+/*
+ * Always return the input SNR value for OSS (no correction applied).
+ */
+double CmisModule::applyRxSnrCorrection(
+    uint16_t /* rawValue */,
+    double snrValue) const {
+  return snrValue;
+}
+
 } // namespace fboss
 } // namespace facebook

@@ -902,7 +902,7 @@ static void populateInterfaceDetail(
     const std::shared_ptr<SwitchState> state) {
   *interfaceDetail.interfaceName() = intf->getName();
   *interfaceDetail.interfaceId() = intf->getID();
-  if (intf->getVlanIDIf().has_value()) {
+  if (intf->getVlanIDIf_DEPRECATED().has_value()) {
     *interfaceDetail.vlanId() = intf->getVlanID();
   }
   switch (intf->getType()) {
