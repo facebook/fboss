@@ -232,7 +232,7 @@ AgentMultiNodeVoqSwitchTrafficTest::configureRouteToRemoteRdswWithTwoNhops(
   return std ::make_pair(remoteRdsw, remoteNeighbors);
 }
 
-void AgentMultiNodeVoqSwitchTrafficTest::pumpRoCETraffic(
+size_t AgentMultiNodeVoqSwitchTrafficTest::pumpRoCETraffic(
     const PortID& localPort,
     int64_t numPktsToSend) const {
   auto static kSrcIP = folly::IPAddressV6("2001:0db8:85a0::");
@@ -258,6 +258,8 @@ void AgentMultiNodeVoqSwitchTrafficTest::pumpRoCETraffic(
       true /* sameDstQueue */);
 
   XLOG(DBG2) << "RoCE packet sent. Size: " << packetSize;
+
+  return packetSize * numPktsToSend;
 }
 
 bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
@@ -273,11 +275,49 @@ bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
     return PortID(portInfo.portId().value());
   };
 
+  auto getRemotePorts = [](const std::string& remoteRdsw,
+                           const std::vector<utility::Neighbor>& neighbors) {
+    auto portIdToPortInfo = utility::getPortIdToPortInfo(remoteRdsw);
+    CHECK(neighbors.size() == 2);
+    CHECK(portIdToPortInfo.find(neighbors[0].portID) != portIdToPortInfo.end());
+    CHECK(portIdToPortInfo.find(neighbors[1].portID) != portIdToPortInfo.end());
+
+    auto firstRemotePort = portIdToPortInfo[neighbors[0].portID].name().value();
+    auto secondRemotePort =
+        portIdToPortInfo[neighbors[1].portID].name().value();
+
+    return std::make_pair(firstRemotePort, secondRemotePort);
+  };
+
   auto localActivePort = getLocalActivePort();
   const auto& [remoteRdsw, neighbors] =
       configureRouteToRemoteRdswWithTwoNhops(topologyInfo);
+  const auto& [firstRemotePort, secondRemotePort] =
+      getRemotePorts(remoteRdsw, neighbors);
 
-  pumpRoCETraffic(localActivePort, 1000000 /* numPktsToSend */);
+  // Conditional Entropy is enabled, so traffic should egress on both ports.
+  {
+    constexpr auto kNumPktsToSend = 1000000;
+    XLOG(DBG2) << "Verify Traffic on both remote ports, no drops";
+    auto firstPortOutBytes =
+        utility::getPortOutBytes(remoteRdsw, firstRemotePort);
+    auto secondPortOutBytes =
+        utility::getPortOutBytes(remoteRdsw, secondRemotePort);
+    auto sentBytes = pumpRoCETraffic(localActivePort, kNumPktsToSend);
+
+    // With conditional entropy enabled, at least 80% of the traffic should
+    // egress on each port.
+    auto portOutBytesIncrement = (sentBytes / 2) * 0.8;
+
+    if (!utility::verifyPortOutBytesIncrementByMinValue(
+            remoteRdsw,
+            {{firstRemotePort, firstPortOutBytes},
+             {secondRemotePort, secondPortOutBytes}},
+            portOutBytesIncrement)) {
+      XLOG(DBG2) << "Port out bytes increment verification failed";
+      return false;
+    }
+  }
 
   return true;
 }
