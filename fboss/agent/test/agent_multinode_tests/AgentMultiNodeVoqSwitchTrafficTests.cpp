@@ -262,6 +262,22 @@ void AgentMultiNodeVoqSwitchTrafficTest::pumpRoCETraffic(
 bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
     const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
   XLOG(DBG2) << "Verifying SHEL(Self Healing ECMP LAG) and Conditional Entropy";
+
+  const auto& myHostname = topologyInfo->getMyHostname();
+  auto getLocalActivePort = [myHostname] {
+    auto upEthernetPortNameToPortInfo =
+        utility::getUpEthernetPortNameToPortInfo(myHostname);
+    CHECK(!upEthernetPortNameToPortInfo.empty());
+    const auto& [_, portInfo] = *upEthernetPortNameToPortInfo.begin();
+    return PortID(portInfo.portId().value());
+  };
+
+  auto localActivePort = getLocalActivePort();
+  const auto& [remoteRdsw, neighbors] =
+      configureRouteToRemoteRdswWithTwoNhops(topologyInfo);
+
+  pumpRoCETraffic(localActivePort);
+
   return true;
 }
 
