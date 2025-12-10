@@ -91,3 +91,16 @@ target_link_libraries(platform_manager_presence_checker_test
 )
 
 gtest_discover_tests(platform_manager_presence_checker_test)
+
+add_executable(platform_manager_pci_explorer_test
+  fboss/platform/platform_manager/tests/PciExplorerTest.cpp
+)
+
+target_link_libraries(platform_manager_pci_explorer_test
+  platform_manager_pci_explorer
+  platform_fs_utils
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_manager_pci_explorer_test)
