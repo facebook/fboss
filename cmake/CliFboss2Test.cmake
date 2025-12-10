@@ -47,6 +47,7 @@ add_executable(fboss2_cmd_test
 
 target_link_libraries(fboss2_cmd_test
   fboss2_lib
+  fboss2_config_lib
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
   Folly::folly
