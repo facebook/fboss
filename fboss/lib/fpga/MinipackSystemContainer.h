@@ -13,7 +13,7 @@ class MinipackSystemContainer : public MinipackBaseSystemContainer {
 
   static std::shared_ptr<MinipackSystemContainer> getInstance();
 
-  MultiPimPlatformPimContainer::PimType getPimType(int pim) override;
+  MultiPimPlatformPimContainer::PimType getPimType(int pim) const override;
 
  private:
   // Forbidden copy constructor and assignment operator

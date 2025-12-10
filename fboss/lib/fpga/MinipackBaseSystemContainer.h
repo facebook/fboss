@@ -30,7 +30,7 @@ class MinipackBaseSystemContainer : public MultiPimPlatformSystemContainer {
   void initHW(bool forceReset = false) override;
 
   // To avoid ambiguity, we explicitly decided the pim number starts from 2.
-  uint32_t getPimOffset(int pim) override;
+  uint32_t getPimOffset(int pim) const override;
 
   MinipackBasePimContainer* getPimContainer(int pim) const override;
 
