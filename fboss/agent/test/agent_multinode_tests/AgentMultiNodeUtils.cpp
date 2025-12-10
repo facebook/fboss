@@ -407,4 +407,37 @@ std::map<int32_t, cfg::PortState> getPortIDToPortShelState(
   return portIDToPortShelState;
 }
 
+bool verifyRemoteSystemPortShelState(
+    const std::string& switchName,
+    int32_t remoteSystemPortID,
+    const cfg::PortState& expectedPortState) {
+  auto portShelStateMatches =
+      [switchName, remoteSystemPortID, expectedPortState]() {
+        auto portIDToPortShelState = getPortIDToPortShelState(switchName);
+        auto iter = portIDToPortShelState.find(remoteSystemPortID);
+        // SHEL state is populated after the port disable and remains populated
+        // for subsequent enable/disable. So, if the port is not disabled yet,
+        // there won't be any SHEL state entry.
+        if (iter == portIDToPortShelState.end()) {
+          return false;
+        }
+
+        auto gotPortState = iter->second;
+        XLOG(DBG2) << "Verifying SHEL state for rdsw: " << switchName
+                   << " remoteSystemPortID: " << remoteSystemPortID
+                   << " expectedPortState: "
+                   << apache::thrift::util::enumNameSafe(expectedPortState)
+                   << " actualPortState: "
+                   << apache::thrift::util::enumNameSafe(gotPortState);
+
+        return expectedPortState == gotPortState;
+      };
+
+  return checkWithRetryErrorReturn(
+      portShelStateMatches,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
 } // namespace facebook::fboss::utility

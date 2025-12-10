@@ -220,4 +220,9 @@ bool verifyPortOutBytesIncrementByMinValue(
 std::map<int32_t, cfg::PortState> getPortIDToPortShelState(
     const std::string& switchName);
 
+bool verifyRemoteSystemPortShelState(
+    const std::string& switchName,
+    int32_t remoteSystemPortID,
+    const cfg::PortState& expectedPortState);
+
 } // namespace facebook::fboss::utility
