@@ -217,4 +217,7 @@ bool verifyPortOutBytesIncrementByMinValue(
     const std::map<std::string, int64_t>& beforePortToOutBytes,
     const int64_t& minIncrement);
 
+std::map<int32_t, cfg::PortState> getPortIDToPortShelState(
+    const std::string& switchName);
+
 } // namespace facebook::fboss::utility

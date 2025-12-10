@@ -390,4 +390,21 @@ bool verifyPortOutBytesIncrementByMinValue(
   return true;
 }
 
+std::map<int32_t, cfg::PortState> getPortIDToPortShelState(
+    const std::string& switchName) {
+  auto operStats = getFsdbOperStats(switchName, {"agent"});
+  AgentStats agentStats;
+  apache::thrift::SimpleJSONSerializer::deserialize(
+      *operStats.contents(), agentStats);
+  CHECK_GE(agentStats.sysPortShelStateMap()->size(), 1);
+
+  std::map<int32_t, cfg::PortState> portIDToPortShelState;
+  for (const auto& [portID, portState] :
+       agentStats.sysPortShelStateMap().value().cbegin()->second) {
+    portIDToPortShelState[portID] = cfg::PortState(portState);
+  }
+
+  return portIDToPortShelState;
+}
+
 } // namespace facebook::fboss::utility
