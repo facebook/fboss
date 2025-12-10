@@ -1,5 +1,6 @@
 // Copyright (c) 2004-present, Meta Platforms, Inc. and affiliates.
 // All Rights Reserved.
+#include <unistd.h>
 #include <algorithm>
 #include <ranges>
 #include <set>
@@ -104,6 +105,11 @@ int main(int argc, char** argv) {
     app.parse(argc, argv);
   } catch (const CLI::ParseError& e) {
     return app.exit(e);
+  }
+
+  if (geteuid() != 0) {
+    std::cerr << "Please run this program as root" << std::endl;
+    return 1;
   }
 
   try {
