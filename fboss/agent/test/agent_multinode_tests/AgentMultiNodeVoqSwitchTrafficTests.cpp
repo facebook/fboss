@@ -356,6 +356,31 @@ bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
     }
   }
 
+  // Admin re-enable that remote port, so traffic should egress on both ports.
+  {
+    XLOG(DBG2)
+        << "Re-enable disabled remote port, verify Traffic on both remote ports, no drops";
+    utility::adminEnablePort(remoteRdsw, firstRemotePortID);
+    auto firstPortOutBytes =
+        utility::getPortOutBytes(remoteRdsw, firstRemotePort);
+    auto secondPortOutBytes =
+        utility::getPortOutBytes(remoteRdsw, secondRemotePort);
+    auto sentBytes = pumpRoCETraffic(localActivePort, kNumPktsToSend);
+
+    // With conditional entropy enabled, at least 80% of the traffic should
+    // egress on each port.
+    auto portOutBytesIncrement = (sentBytes / 2) * 0.8;
+
+    if (!utility::verifyPortOutBytesIncrementByMinValue(
+            remoteRdsw,
+            {{firstRemotePort, firstPortOutBytes},
+             {secondRemotePort, secondPortOutBytes}},
+            portOutBytesIncrement)) {
+      XLOG(DBG2) << "Port out bytes increment verification failed";
+      return false;
+    }
+  }
+
   return true;
 }
 
