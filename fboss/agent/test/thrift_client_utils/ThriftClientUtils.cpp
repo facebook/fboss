@@ -390,4 +390,20 @@ std::map<std::string, int64_t> getCounterNameToCount(
   return counterNameToCount;
 }
 
+fsdb::OperState getFsdbOperStats(
+    const std::string& switchName,
+    const std::vector<std::string>& fsdbPath) {
+  fsdb::OperGetRequest req;
+  fsdb::OperPath path;
+  path.raw() = fsdbPath;
+  req.path() = path;
+  req.protocol() = fsdb::OperProtocol::SIMPLE_JSON;
+
+  fsdb::OperState operStats;
+  auto fsdbClient = getFsdbThriftClient(switchName);
+  fsdbClient->sync_getOperStats(operStats, req);
+
+  return operStats;
+}
+
 } // namespace facebook::fboss::utility
