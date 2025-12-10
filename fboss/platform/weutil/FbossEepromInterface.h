@@ -30,7 +30,6 @@ class FbossEepromInterface {
   };
 
   FbossEepromInterface(const std::string& eepromPath, const uint16_t offset);
-  static FbossEepromInterface createEepromInterface(int version);
 
   // TODO: Get rid of getContents() in the future.
   std::vector<std::pair<std::string, std::string>> getContents() const;

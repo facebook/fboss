@@ -18,9 +18,12 @@ extern "C" {
 #include <sys/ioctl.h>
 }
 
+#include <fb303/ServiceData.h>
 #include <folly/MapUtil.h>
 #include <folly/lang/CString.h>
 #include <folly/logging/xlog.h>
+
+#include <unordered_map>
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/NlError.h"
 #include "fboss/agent/RxPacket.h"
@@ -36,11 +39,22 @@ extern "C" {
 
 namespace {
 const int kDefaultMtu = 1500;
-}
+// Todo manually test
+const int maxRouteTableId = 4096;
+const int minRouteTableId = 1;
+
+} // namespace
 
 namespace facebook::fboss {
 
 using folly::IPAddress;
+
+// enable_1to1_intf_route_table_mapping feature depends on
+// cleanup_probed_kernel_data if enabling on existing platforms
+DEFINE_bool(
+    enable_1to1_intf_route_table_mapping,
+    false,
+    "Enable 1 to 1 interface id to route table id mapping");
 
 TunManager::TunManager(SwSwitch* sw, FbossEventBase* evb) : sw_(sw), evb_(evb) {
   DCHECK(sw) << "NULL pointer to SwSwitch.";
@@ -181,6 +195,8 @@ void TunManager::addProbedAddr(
     uint8_t mask) {
   for (auto& intf : intfs_) {
     if (intf.second->getIfIndex() == ifIndex) {
+      XLOG(DBG2) << "Adding probed address: " << addr.str() << "/"
+                 << static_cast<int>(mask) << " @ index " << ifIndex;
       intf.second->addAddress(addr, mask);
       return;
     }
@@ -251,14 +267,173 @@ int TunManager::getTableId(InterfaceID ifID) const {
       throw FbossError("No system port range in SwitchSettings for VOQ switch");
   }
 
-  // Sanity checks. Generated ID must be in range [1-253]
-  CHECK_GE(tableId, 1);
-  CHECK_LE(tableId, 253);
+  if (!FLAGS_enable_1to1_intf_route_table_mapping) {
+    // Sanity checks. Generated ID must be in range [1-253]
+    CHECK_GE(tableId, 1);
+    CHECK_LE(tableId, 253);
+  } else {
+    // Sanity checks. Generated ID must be in range  [minRouteTableId,
+    // maxRouteTableId]
+    CHECK_GE(tableId, minRouteTableId);
+    CHECK_LE(tableId, maxRouteTableId);
+  }
 
   return tableId;
 }
 
+std::unordered_map<InterfaceID, int> TunManager::buildIfIdToTableIdMap(
+    std::shared_ptr<SwitchState> state) const {
+  std::unordered_map<InterfaceID, int> ifIdToTableId;
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
+    for (const auto& iter : std::as_const(*intfMap)) {
+      const auto& intf = iter.second;
+      auto ifId = intf->getID();
+      auto tableId = getTableId(ifId);
+      ifIdToTableId[ifId] = tableId;
+      XLOG(DBG2) << "Created mapping from state: ifId " << ifId
+                 << " -> tableId " << tableId;
+    }
+  }
+  return ifIdToTableId;
+}
+
+std::unordered_map<int, int>
+TunManager::buildIfIndexToTableIdMapFromProbedRoutes() const {
+  std::unordered_map<int, int> ifIndexToTableId;
+  for (const auto& probedRoute : probedRoutes_) {
+    if (probedRoute.ifIndex > 0) {
+      ifIndexToTableId[probedRoute.ifIndex] = probedRoute.tableId;
+      XLOG(DBG2) << "Created mapping: ifIndex " << probedRoute.ifIndex
+                 << " -> tableId " << probedRoute.tableId;
+    } else {
+      XLOG(DBG2) << "Skipping route & source-rule cleanup for table "
+                 << probedRoute.tableId << " (no ifindex)";
+    }
+  }
+  return ifIndexToTableId;
+}
+
+std::unordered_map<int, int> TunManager::buildIfIndexToTableIdMapFromRules()
+    const {
+  std::unordered_map<int, int> ifIndexToTableId;
+
+  // For each interface, find matching source rules to determine table ID
+  for (const auto& intf : intfs_) {
+    auto ifIndex = intf.second->getIfIndex();
+    auto ifID = intf.first;
+    const auto& addresses = intf.second->getAddresses();
+
+    bool foundMapping = false;
+
+    // Look for source rules matching this interface's addresses
+    for (const auto& addr : addresses) {
+      if (addr.first.isLinkLocal()) {
+        continue; // Skip link-local addresses
+      }
+
+      for (const auto& rule : probedRules_) {
+        // Parse the rule source address to extract just the IP part
+        auto ipaddr = IPAddress::createNetwork(rule.srcAddr, -1, false).first;
+        std::string ruleAddrOnly = ipaddr.str();
+
+        // Compare the IP address parts
+        if (ruleAddrOnly == addr.first.str()) {
+          ifIndexToTableId[ifIndex] = rule.tableId;
+          XLOG(DBG2) << "Mapped ifIndex " << ifIndex << " to tableId "
+                     << rule.tableId << " via address " << addr.first.str()
+                     << " (rule: " << rule.srcAddr << ")";
+          foundMapping = true;
+          break; // Found mapping for this interface
+        }
+      }
+
+      if (foundMapping) {
+        break; // Found mapping for this interface
+      }
+    }
+
+    if (!foundMapping) {
+      XLOG(DBG2) << "No source rule found for interface " << ifID
+                 << " @ ifIndex " << ifIndex;
+    }
+  }
+
+  return ifIndexToTableId;
+}
+
+std::unordered_map<int, int> TunManager::buildIfIndextoTableMapFromProbedData()
+    const {
+  // Build a map of interface index to table ID from probed routes
+  auto ifIndexToTableId = buildIfIndexToTableIdMapFromProbedRoutes();
+
+  // Augment ifIndexToTableId with buildIfIndexToTableIdMapFromRules
+  auto ifIndexToTableIdFromRules = buildIfIndexToTableIdMapFromRules();
+  for (const auto& [ifIndex, tableId] : ifIndexToTableIdFromRules) {
+    // Add whatever was not there from probed routes
+    if (ifIndexToTableId.find(ifIndex) == ifIndexToTableId.end()) {
+      ifIndexToTableId[ifIndex] = tableId;
+      XLOG(DBG2) << "Augmented mapping from source rules: ifIndex " << ifIndex
+                 << " -> tableId " << tableId;
+    }
+  }
+
+  return ifIndexToTableId;
+}
+
+std::unordered_map<InterfaceID, int> TunManager::buildProbedIfIdToTableIdMap()
+    const {
+  std::unordered_map<InterfaceID, int> probedIfIdToTableId;
+
+  // Build a map of interface index to table ID from probed data
+  auto ifIndexToTableId = buildIfIndextoTableMapFromProbedData();
+
+  // Map interface IDs to table IDs using probed data
+  for (const auto& intf : intfs_) {
+    auto ifId = intf.first; // InterfaceID from map key
+    auto ifIndex = intf.second->getIfIndex();
+
+    // Get table ID from probed routes instead of computing new one
+    auto tableIdIter = ifIndexToTableId.find(ifIndex);
+    if (tableIdIter != ifIndexToTableId.end()) {
+      auto tableId = tableIdIter->second;
+      probedIfIdToTableId[ifId] = tableId;
+      XLOG(DBG2) << "Created mapping from probed interfaces: ifId " << ifId
+                 << " -> tableId " << tableId;
+    } else {
+      XLOG(DBG2) << "No probed table ID found for interface " << ifId
+                 << " @ ifIndex " << ifIndex;
+    }
+  }
+  return probedIfIdToTableId;
+}
+
+bool TunManager::requiresProbedDataCleanup(
+    const std::unordered_map<InterfaceID, int>& stateMap,
+    const std::unordered_map<InterfaceID, int>& probedMap) const {
+  bool mapsEqual = (stateMap == probedMap);
+
+  if (!mapsEqual) {
+    XLOG(DBG2) << "Interface mappings differ - state has " << stateMap.size()
+               << " entries, probed has " << probedMap.size() << " entries";
+    return true;
+  }
+
+  XLOG(DBG2)
+      << "Interface ID to table ID mappings are identical, skipping cleanup";
+  return false;
+}
+
 int TunManager::getTableIdForNpu(InterfaceID ifID) const {
+  int tableId = static_cast<int>(ifID);
+  // Start from TH6, table id could be larger than 256, directly use interface
+  // id as table id
+  if (FLAGS_enable_1to1_intf_route_table_mapping) {
+    if (tableId == 0 || tableId == 253 || tableId == 254 || tableId == 255) {
+      throw FbossError(
+          "Route table ID 0, 253, 254, 255 are reserved in kernel usage");
+    }
+    return tableId;
+  }
   // Kernel only supports up to 256 tables. The last few are used by kernel
   // as main, default, and local. IDs 0, 254 and 255 are not available. So we
   // use range 1-253 for our usecase.
@@ -267,7 +442,6 @@ int TunManager::getTableIdForNpu(InterfaceID ifID) const {
   // Type-1: 2000, 2001, 2002, 2003 ...
   // Type-2: 4000, 4001, 4002, 4003, 4004, ...
   // Type-3: 10, 11, 12, 13 (Virtual Interfaces)
-  int tableId = static_cast<int>(ifID);
   if (ifID >= InterfaceID(4000)) { // 4000, 4001, 4002, 4003 ...
     tableId = ifID - 4000 + 201; // 201, 202, 203, ...
   } else if (ifID >= InterfaceID(3000)) { // 3000, 3001, ...
@@ -337,12 +511,22 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
     }
   } else if (
       platform == PlatformType::PLATFORM_JANGA800BIC ||
-      FLAGS_dsf_single_stage_r192_f40_e32) {
+      FLAGS_dsf_single_stage_r192_f40_e32 ||
+      FLAGS_dsf_single_stage_r128_f40_e16_uniform_local_offset ||
+      // TODO(daiweix): remove FLAGS_hyper_port after
+      // FLAGS_dsf_single_stage_r128_f40_e16_uniform_local_offset is set for
+      // hyper port
+      FLAGS_hyper_port) {
     auto intf = sw_->getState()->getInterfaces()->getNode(ifID);
     auto constexpr kLocalIntfTableStart = 1;
     auto constexpr kGlobalIntfTableStart = 200;
     if (intf->getScope() == cfg::Scope::LOCAL) {
-      return kLocalIntfTableStart + ifID;
+      if (FLAGS_dsf_single_stage_r128_f40_e16_uniform_local_offset) {
+        auto constexpr kLocalSystemPortIdStart = 6058;
+        return kLocalIntfTableStart + ifID - kLocalSystemPortIdStart;
+      } else {
+        return kLocalIntfTableStart + ifID;
+      }
     } else {
       auto firstSwitchSysPortRange =
           getFirstSwitchSystemPortIdRange(switchIdToSwitchInfo);
@@ -365,6 +549,14 @@ cfg::InterfaceType TunManager::getInterfaceType(InterfaceID ifID) const {
 }
 
 void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
+  addRemoveRouteTable(getTableId(ifID), ifIndex, add, ifID);
+}
+
+void TunManager::addRemoveRouteTable(
+    int tableId,
+    int ifIndex,
+    bool add,
+    std::optional<InterfaceID> ifID) {
   // We just store default routes (one for IPv4 and one for IPv6) in each
   // route table.
   const folly::IPAddress addrs[] = {
@@ -381,7 +573,7 @@ void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
     auto error = rtnl_route_set_family(route, addr.family());
     nlCheckError(error, "Failed to set family to", addr.family());
 
-    rtnl_route_set_table(route, getTableId(ifID));
+    rtnl_route_set_table(route, tableId);
     rtnl_route_set_scope(route, RT_SCOPE_UNIVERSE);
     rtnl_route_set_protocol(route, RTPROT_FBOSS);
 
@@ -422,7 +614,7 @@ void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
      * routing table.
     nlCheckError(error, "Failed to ", add ? "add" : "remove",
                   " default route ", addr, " @ index ", ifIndex,
-                  " in table ", getTableId(ifID), " for interface ", ifID,
+                  " in table ", tableId, " for interface ", ifID,
                   ". ErrorCode: ", error);
       */
     if (error < 0) {
@@ -431,8 +623,9 @@ void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
                     << ". ErrorCode: " << error;
     }
     XLOG(DBG2) << (add ? "Added" : "Removed") << " default route " << addr
-               << " @ index " << ifIndex << " in table " << getTableId(ifID)
-               << " for interface " << ifID;
+               << " @ index " << ifIndex << " in table " << tableId
+               << (ifID.has_value() ? " for interface " + std::to_string(*ifID)
+                                    : "");
   }
 }
 
@@ -440,6 +633,14 @@ void TunManager::addRemoveSourceRouteRule(
     InterfaceID ifID,
     const folly::IPAddress& addr,
     bool add) {
+  addRemoveSourceRouteRule(getTableId(ifID), addr, add, ifID);
+}
+
+void TunManager::addRemoveSourceRouteRule(
+    int tableId,
+    const folly::IPAddress& addr,
+    bool add,
+    std::optional<InterfaceID> ifID) {
   // We should not add source routing rule for link-local addresses because
   // they can be re-used across interfaces.
   if (addr.isLinkLocal()) {
@@ -454,7 +655,7 @@ void TunManager::addRemoveSourceRouteRule(
   };
 
   rtnl_rule_set_family(rule, addr.family());
-  rtnl_rule_set_table(rule, getTableId(ifID));
+  rtnl_rule_set_table(rule, tableId);
   rtnl_rule_set_action(rule, FR_ACT_TO_TBL);
 
   auto sourceaddr = nl_addr_build(
@@ -477,12 +678,14 @@ void TunManager::addRemoveSourceRouteRule(
   } else {
     error = rtnl_rule_delete(sock_, rule, 0);
   }
-  // There are scenarios where the rule has already been deleted and we try to
-  // delete it again. In that case, we can ignore the error.
+  // There are scenarios where the rule has already been deleted and we try
+  // to delete it again. In that case, we can ignore the error.
   if (!add && (error == -NLE_OBJ_NOTFOUND)) {
     XLOG(WARNING) << "Rule not existing for address " << addr
-                  << " to lookup table " << getTableId(ifID)
-                  << " for interface " << ifID;
+                  << " to lookup table " << tableId
+                  << (ifID.has_value()
+                          ? " for interface " + std::to_string(*ifID)
+                          : "");
   } else {
     nlCheckError(
         error,
@@ -491,12 +694,12 @@ void TunManager::addRemoveSourceRouteRule(
         " rule for address ",
         addr,
         " to lookup table ",
-        getTableId(ifID),
-        " for interface ",
-        ifID);
+        tableId,
+        ifID.has_value() ? " for interface " + std::to_string(*ifID) : "");
     XLOG(DBG2) << (add ? "Added" : "Removed") << " rule for address " << addr
-               << " to lookup table " << getTableId(ifID) << " for interface "
-               << ifID;
+               << " to lookup table " << tableId
+               << (ifID.has_value() ? " for interface " + std::to_string(*ifID)
+                                    : "");
   }
 }
 
@@ -628,6 +831,9 @@ void TunManager::linkProcessor(struct nl_object* obj, void* data) {
     return;
   }
 
+  XLOG(DBG2) << "Adding TUN interface: " << name << " @ index "
+             << rtnl_link_get_ifindex(link);
+
   static_cast<TunManager*>(data)->addExistingIntf(
       std::string(name), rtnl_link_get_ifindex(link));
 }
@@ -664,6 +870,22 @@ void TunManager::addressProcessor(struct nl_object* obj, void* data) {
   auto ipaddr = IPAddress::createNetwork(buf, -1, false).first;
   static_cast<TunManager*>(data)->addProbedAddr(
       rtnl_addr_get_ifindex(addr), ipaddr, nl_addr_get_prefixlen(localaddr));
+}
+
+void TunManager::performInitialCleanup(std::shared_ptr<SwitchState> state) {
+  // Build a map of interface ID to table ID from state interfaces
+  auto ifIdToTableId = this->buildIfIdToTableIdMap(state);
+
+  // Build a map of interface ID to table ID from probed interfaces
+  auto probedIfIdToTableId = this->buildProbedIfIdToTableIdMap();
+
+  // Only delete probed data if there's a difference between the maps
+  if (requiresProbedDataCleanup(ifIdToTableId, probedIfIdToTableId)) {
+    deleteAllProbedData();
+    probedStateCleanedUp_ = true;
+    sw_->stats()->probedStateCleanedUp();
+  }
+  initialCleanupDone_ = true;
 }
 
 void TunManager::probe() {
@@ -705,13 +927,53 @@ void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
   };
   nl_cache_foreach(addressCache, &TunManager::addressProcessor, this);
 
+  if (FLAGS_cleanup_probed_kernel_data) {
+    // Get routes
+    struct nl_cache* routeCache;
+    error = rtnl_route_alloc_cache(sock_, AF_UNSPEC, 0, &routeCache);
+    nlCheckError(error, "Cannot get routes from Kernel");
+    SCOPE_EXIT {
+      nl_cache_free(routeCache);
+    };
+    nl_cache_foreach(routeCache, &TunManager::routeProcessor, this);
+
+    // Get source routing rules
+    struct nl_cache* ruleCache;
+    error = rtnl_rule_alloc_cache(sock_, AF_UNSPEC, &ruleCache);
+    nlCheckError(error, "Cannot get rules from Kernel");
+    SCOPE_EXIT {
+      nl_cache_free(ruleCache);
+    };
+    nl_cache_foreach(ruleCache, &TunManager::ruleProcessor, this);
+  }
+
   start();
   probeDone_ = true;
+}
+
+/**
+ * Delete all probed data from kernel including routes, addresses, rules and
+ * tunnel interfaces.
+ */
+void TunManager::deleteAllProbedData() {
+  XLOG(INFO) << "Starting to delete all probed data from kernel";
+
+  // Build a map of interface index to table ID from probed data
+  auto ifIndexToTableId = buildIfIndextoTableMapFromProbedData();
+
+  deleteProbedRoutes(ifIndexToTableId);
+  deleteProbedAddressesAndRules(ifIndexToTableId);
+  deleteProbedInterfaces();
+
+  XLOG(INFO) << "Finished deleting all probed data from kernel";
 }
 
 boost::container::flat_map<InterfaceID, bool> TunManager::getInterfaceStatus(
     std::shared_ptr<SwitchState> state) {
   boost::container::flat_map<InterfaceID, bool> statusMap;
+
+  // Derive interface status from all ports
+  const auto& portMaps = state->getPorts();
 
   // Declare all virtual or state_sync disabled interfaces as up
   for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
@@ -719,12 +981,18 @@ boost::container::flat_map<InterfaceID, bool> TunManager::getInterfaceStatus(
       const auto& intf = iter.second;
       if (intf->isVirtual() || intf->isStateSyncDisabled()) {
         statusMap.emplace(intf->getID(), true);
+      } else if (intf->getType() == cfg::InterfaceType::PORT) {
+        auto port = state->getPorts()->getNodeIf(intf->getPortID());
+        if (!port) {
+          XLOG(ERR) << "Port interface " << intf->getID()
+                    << " does not have port in state.";
+          continue;
+        }
+        statusMap.emplace(intf->getID(), port->isPortUp());
       }
     }
   }
 
-  // Derive interface status from all ports
-  auto portMaps = state->getPorts();
   auto vlanMap = state->getVlans();
   for (const auto& portMap : std::as_const(*portMaps)) {
     for (const auto& port : std::as_const(*portMap.second)) {
@@ -757,15 +1025,34 @@ bool TunManager::getIntfStatus(
   return folly::get_default(intfStatusMap, ifID, false);
 }
 
+void TunManager::performInitialSyncIfNeeded() {
+  if (numSyncs_ == 0) {
+    // no syncs occurred yet. Force initial sync. The initial sync is done
+    // with applied state, and subsequent sync's will also be done with
+    // the applied states.
+    sync(sw_->getState());
+  }
+}
+
 void TunManager::forceInitialSync() {
-  evb_->runInFbossEventBaseThread([this]() {
-    if (numSyncs_ == 0) {
-      // no syncs occurred yet. Force initial sync. The initial sync is done
-      // with applied state, and subsequent sync's will also be done with the
-      // applied states.
-      sync(sw_->getState());
-    }
-  });
+  evb_->runInFbossEventBaseThread([this]() { performInitialSyncIfNeeded(); });
+}
+
+void TunManager::forceInitialSyncBlocking() {
+  XLOG(DBG2) << "Starting forceInitialSyncBlocking()...";
+
+  StopWatch stopWatch(std::string("forceInitialSyncBlocking"), false);
+  SCOPE_EXIT {
+    XLOG(DBG2) << "forceInitialSyncBlocking() took "
+               << static_cast<int>(stopWatch.msecsElapsed().count())
+               << "ms. cleanup_done="
+               << (initialCleanupDone_ ? "true" : "false")
+               << " probed_state_cleaned_up="
+               << (probedStateCleanedUp_ ? "true" : "false");
+  };
+
+  evb_->runInFbossEventBaseThreadAndWait(
+      [this]() { performInitialSyncIfNeeded(); });
 }
 
 void TunManager::sync(std::shared_ptr<SwitchState> state) {
@@ -801,6 +1088,13 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (!probeDone_) {
     doProbe(lock);
+  }
+  if (FLAGS_cleanup_probed_kernel_data) {
+    if (!initialCleanupDone_) {
+      performInitialCleanup(state);
+    } else {
+      XLOG(DBG2) << "Initial cleanup already completed, skipping cleanup";
+    }
   }
 
   // prepare old addresses
@@ -918,9 +1212,9 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
           setIntfStatus(ifName, ifIndex, newStatus);
         }
 
-        // We need to add route-table and tun-addresses if interface is brought
-        // up recently.
-        if (!oldStatus and newStatus) {
+        // We need to add route-table and tun-addresses if interface is
+        // brought up recently.
+        if (!oldStatus && newStatus) {
           addRouteTable(ifID, ifIndex);
           // Remove old source route rules to avoid duplicates
           for (const auto& addr : oldAddrs) {
@@ -934,8 +1228,8 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
 
         // Update interface addresses only if interface is up currently
         // We would like to process address change whenever current state of
-        // interface is UP. We should not try to add addresses when interface
-        // is down as it can throw exception for v6 address.
+        // interface is UP. We should not try to add addresses when
+        // interface is down as it can throw exception for v6 address.
         if (newStatus) {
           addChangedAddress(ifID, ifName, ifIndex, oldAddrs, newAddrs);
         }
@@ -986,6 +1280,290 @@ void TunManager::applyChanges(
   for (; newIter != newMap.end(); newIter++) {
     addFn(newIter);
   }
+}
+
+/**
+ * Netlink callback for processing routes read from kernel.
+ *
+ * Process routes discovered during kernel probing and stores
+ * them for later cleanup. It filters routes based on address family
+ * (IPv4/IPv6 only), table ID (1-253 range if
+ * enable_1to1_intf_route_table_mapping enable [minRouteTableId,
+ * maxRouteTableId]), and extracts destination, nexthop, and interface
+ * information.
+ *
+ * @param obj Netlink route object to process
+ * @param data Pointer to TunManager instance for storing probed routes
+ */
+void TunManager::routeProcessor(struct nl_object* obj, void* data) {
+  struct rtnl_route* route = reinterpret_cast<struct rtnl_route*>(obj);
+
+  // Get route family
+  auto family = rtnl_route_get_family(route);
+  if (family != AF_INET && family != AF_INET6) {
+    XLOG(DBG2) << "Skip route because of unsupported address family " << family;
+    return;
+  }
+
+  // Only process routes from table-id 1 through 253
+  auto tableId = rtnl_route_get_table(route);
+  if (FLAGS_enable_1to1_intf_route_table_mapping) {
+    if (tableId < minRouteTableId || tableId > maxRouteTableId) {
+      XLOG(DBG2) << "Skip route because table ID " << tableId
+                 << " is outside range " << minRouteTableId << ", "
+                 << maxRouteTableId;
+      return;
+    }
+    if (tableId == 0 || tableId == 253 || tableId == 254 || tableId == 255) {
+      throw FbossError(
+          "Route table ID 0, 253, 254, 255 are reserved in kernel usage");
+    }
+  } else {
+    if (tableId < 1 || tableId > 253) {
+      XLOG(DBG2) << "Skip route because table ID " << tableId
+                 << " is outside range [1-253]";
+      return;
+    }
+  }
+
+  // Get destination address
+  auto dst = rtnl_route_get_dst(route);
+  std::string dstStr;
+
+  if (dst) {
+    char dstBuf[INET6_ADDRSTRLEN];
+    nl_addr2str(dst, dstBuf, sizeof(dstBuf));
+    dstStr = std::string(dstBuf);
+  }
+
+  // Check if this is a default route (kernel returns "none" for default routes)
+  if (dstStr != "none") {
+    // Ignore non-default routes and log them
+    XLOG(DBG2) << "Ignoring non-default route to " << dstStr << " in table "
+               << tableId << " with protocol "
+               << rtnl_route_get_protocol(route);
+    return;
+  }
+
+  // Convert "none" to proper default route representation
+  dstStr = (family == AF_INET) ? "0.0.0.0/0" : "::/0";
+
+  XLOG(DBG2) << "Found default route to " << dstStr << " in table " << tableId
+             << " with protocol " << rtnl_route_get_protocol(route);
+
+  // Store route information
+  auto* tunManager = static_cast<TunManager*>(data);
+  ProbedRoute probedRoute(family, tableId, dstStr);
+
+  // Get nexthop information - only store the first nexthop since we only
+  // care about default routes like those created by addRemoveRouteTable(),
+  // which are single-nexthop routes.
+  auto nexthops = rtnl_route_get_nexthops(route);
+  if (nexthops && rtnl_route_get_nnexthops(route) > 0) {
+    auto nh = rtnl_route_nexthop_n(route, 0);
+    if (nh) {
+      auto ifIndex = rtnl_route_nh_get_ifindex(nh);
+      probedRoute.ifIndex = ifIndex;
+      XLOG(DBG2) << "   dev ifindex " << ifIndex;
+    } else {
+      // Interface index 0 is never used for a real interface.
+      probedRoute.ifIndex = 0;
+    }
+  } else {
+    // No nexthops, store route anyway.
+    // Interface index 0 is never used for a real interface.
+    probedRoute.ifIndex = 0;
+  }
+
+  // Store the route
+  tunManager->probedRoutes_.push_back(probedRoute);
+}
+
+/**
+ * Netlink callback for processing source routing rules read from kernel.
+ * Process source routing rules discovered during kernel probing and stores
+ * them for later cleanup. It filters rules based on address family
+ * (IPv4/IPv6 only), table ID (1-253 range if
+ * enable_1to1_intf_route_table_mapping enable [minRouteTableId,
+ * maxRouteTableId]), and extracts source address
+ * and table information.
+ *
+ * @param obj Netlink rule object to process
+ * @param data Pointer to TunManager instance for storing probed rules
+ */
+void TunManager::ruleProcessor(struct nl_object* obj, void* data) {
+  struct rtnl_rule* rule = reinterpret_cast<struct rtnl_rule*>(obj);
+
+  // Get rule family
+  auto family = rtnl_rule_get_family(rule);
+  if (family != AF_INET && family != AF_INET6) {
+    XLOG(DBG2) << "Skip rule because of unsupported address family " << family;
+    return;
+  }
+
+  // Only process rules with table ID in our range [1-253] except
+  // enable_1to1_intf_route_table_mapping is true
+  auto tableId = rtnl_rule_get_table(rule);
+  if (FLAGS_enable_1to1_intf_route_table_mapping) {
+    if (tableId < minRouteTableId || tableId > maxRouteTableId) {
+      XLOG(DBG2) << "Skip route because table ID " << tableId
+                 << " is outside range " << minRouteTableId << ", "
+                 << maxRouteTableId;
+      return;
+    }
+    if (tableId == 0 || tableId == 253 || tableId == 254 || tableId == 255) {
+      throw FbossError(
+          "Route table ID 0, 253, 254, 255 are reserved in kernel usage");
+    }
+  } else {
+    if (tableId < 1 || tableId > 253) {
+      XLOG(DBG2) << "Skip rule because table ID " << tableId
+                 << " is outside range [1-253]";
+      return;
+    }
+  }
+
+  // Get source address
+  auto src = rtnl_rule_get_src(rule);
+  if (!src) {
+    XLOG(DBG2) << "Skip rule because it has no source address";
+    return;
+  }
+
+  char srcBuf[INET6_ADDRSTRLEN];
+  nl_addr2str(src, srcBuf, sizeof(srcBuf));
+  std::string srcAddrOnly(srcBuf);
+
+  // Get the prefix length and construct full address string like we create it
+  auto prefixLen = nl_addr_get_prefixlen(src);
+  std::string srcStr = srcAddrOnly + "/" + std::to_string(prefixLen);
+
+  // Skip link-local addresses (they don't have source rules in our
+  // implementation)
+  try {
+    auto ipaddr = IPAddress::createNetwork(srcAddrOnly, -1, false).first;
+    if (ipaddr.isLinkLocal()) {
+      XLOG(DBG2) << "Skip rule for link-local address " << srcAddrOnly;
+      return;
+    }
+  } catch (const std::exception& ex) {
+    XLOG(DBG2) << "Skip rule due to invalid address " << srcAddrOnly << ": "
+               << ex.what();
+    return;
+  }
+
+  XLOG(DBG2) << "Found source rule: " << srcStr << " -> table " << tableId;
+
+  // Store rule information
+  auto* tunManager = static_cast<TunManager*>(data);
+  tunManager->probedRules_.emplace_back(family, tableId, srcStr);
+}
+
+/**
+ * Delete probed routes from kernel routing tables.
+ *
+ * Removes default routes (0.0.0.0/0 and ::/0) that were discovered
+ * during kernel probing.
+ *
+ * @param ifIndexToTableId Map from interface index to routing table ID
+ */
+void TunManager::deleteProbedRoutes(
+    const std::unordered_map<int, int>& ifIndexToTableId) {
+  XLOG(DBG2) << "Deleting probed routes";
+
+  // Directly iterate over the provided map
+  for (const auto& [ifIndex, tableId] : ifIndexToTableId) {
+    addRemoveRouteTable(tableId, ifIndex, false, std::nullopt);
+
+    XLOG(DBG2) << "Deleted default routes in table " << tableId
+               << " for ifIndex " << ifIndex;
+  }
+
+  // Clear the probed routes after processing
+  probedRoutes_.clear();
+}
+
+/**
+ * Delete probed addresses and source routing rules from kernel.
+ *
+ * Removes IP addresses and their associated source routing rules that were
+ * discovered during kernel probing.
+ *
+ * @param ifIndexToTableId Map from interface index to routing table ID
+ */
+void TunManager::deleteProbedAddressesAndRules(
+    const std::unordered_map<int, int>& ifIndexToTableId) {
+  XLOG(DBG2) << "Deleting probed addresses and source routing rules";
+
+  // Track which rules were deleted during address cleanup
+  std::set<std::pair<int, std::string>> deletedRules;
+
+  for (const auto& intf : intfs_) {
+    const auto& addresses = intf.second->getAddresses();
+    const auto& ifName = intf.second->getName();
+    auto ifIndex = intf.second->getIfIndex();
+
+    // Get table ID from our map instead of calling getTableId
+    auto tableIdIter = ifIndexToTableId.find(ifIndex);
+    int tableId =
+        (tableIdIter != ifIndexToTableId.end()) ? tableIdIter->second : 0;
+
+    for (const auto& addr : addresses) {
+      // Delete source routing rule using existing method with explicit table
+      // ID
+      if (tableId > 0) {
+        addRemoveSourceRouteRule(tableId, addr.first, false);
+        XLOG(DBG2) << "Deleted source rule for address " << addr.first.str()
+                   << " table " << tableId;
+
+        // Track that we deleted this rule (by tableId and address)
+        std::string addrStr =
+            addr.first.str() + "/" + std::to_string(addr.first.bitCount());
+        deletedRules.insert({tableId, addrStr});
+      }
+
+      // Delete address directly
+      addRemoveTunAddress(ifName, ifIndex, addr.first, addr.second, false);
+      XLOG(DBG2) << "Deleted address " << addr.first.str() << "/"
+                 << static_cast<int>(addr.second) << " from interface "
+                 << ifName;
+    }
+  }
+
+  // Delete remaining probed rules that weren't already deleted
+  for (const auto& probedRule : probedRules_) {
+    std::pair<int, std::string> ruleKey = {
+        probedRule.tableId, probedRule.srcAddr};
+
+    // If this rule wasn't already deleted during address cleanup, delete it now
+    if (deletedRules.find(ruleKey) == deletedRules.end()) {
+      // Parse the address from the rule's srcAddr (e.g., "10.0.0.1/32" ->
+      // "10.0.0.1")
+      auto ipAddr =
+          IPAddress::createNetwork(probedRule.srcAddr, -1, false).first;
+      addRemoveSourceRouteRule(probedRule.tableId, ipAddr, false);
+      XLOG(DBG2) << "Deleted remaining probed rule: " << probedRule.srcAddr
+                 << " -> table " << probedRule.tableId;
+    }
+  }
+
+  // Clear the probed rules after processing
+  probedRules_.clear();
+}
+
+/**
+ * Delete probed interfaces from kernel.
+ */
+void TunManager::deleteProbedInterfaces() {
+  XLOG(INFO) << "Deleting probed interfaces";
+
+  for (const auto& intf : intfs_) {
+    intf.second->setDelete();
+    XLOG(INFO) << "Marked interface " << intf.first << " for deletion";
+  }
+
+  // Clear the interfaces map
+  intfs_.clear();
 }
 
 } // namespace facebook::fboss

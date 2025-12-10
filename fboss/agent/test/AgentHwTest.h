@@ -26,6 +26,8 @@ DECLARE_bool(enable_snapshot_debugs);
 DECLARE_bool(disable_looped_fabric_ports);
 DECLARE_bool(dsf_subscribe);
 DECLARE_int32(update_stats_interval_s);
+DECLARE_bool(enable_debug_sdk_dump_on_fail);
+DECLARE_bool(list_production_feature);
 
 namespace facebook::fboss {
 
@@ -109,6 +111,9 @@ class AgentHwTest : public ::testing::Test {
 
   SwSwitch* getSw() const;
   const std::map<SwitchID, const HwAsic*> getAsics() const;
+  std::vector<const HwAsic*> getL3Asics() const {
+    return getAgentEnsemble()->getL3Asics();
+  }
   const HwAsic& getAsic(SwitchID swId) const {
     return *getAsics().find(swId)->second;
   }
@@ -118,7 +123,8 @@ class AgentHwTest : public ::testing::Test {
   bool isSupportedOnAllAsics(HwAsic::Feature feature) const;
   AgentEnsemble* getAgentEnsemble() const;
   const std::shared_ptr<SwitchState> getProgrammedState() const;
-  std::vector<PortID> masterLogicalPortIds() const;
+  std::vector<PortID> masterLogicalPortIds(
+      std::optional<SwitchID> switchId = std::nullopt) const;
   std::vector<PortID> masterLogicalPortIds(
       const std::set<cfg::PortType>& portTypes) const;
   std::vector<PortID> masterLogicalPortIds(
@@ -132,6 +138,15 @@ class AgentHwTest : public ::testing::Test {
   }
   std::vector<PortID> masterLogicalFabricPortIds(SwitchID switchId) const {
     return masterLogicalPortIds({cfg::PortType::FABRIC_PORT}, switchId);
+  }
+  std::vector<PortID> masterLogicalHyperPortIds() const {
+    return masterLogicalPortIds({cfg::PortType::HYPER_PORT});
+  }
+  std::vector<PortID> masterLogicalInterfacePortIds(SwitchID switchId) const {
+    return masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}, switchId);
+  }
+  std::vector<PortID> masterLogicalHyperPortIds(SwitchID switchId) const {
+    return masterLogicalPortIds({cfg::PortType::HYPER_PORT}, switchId);
   }
   void setSwitchDrainState(
       const cfg::SwitchConfig& curConfig,
@@ -273,6 +288,8 @@ class AgentHwTest : public ::testing::Test {
 
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
 };
+
+bool isWarmbootSetupRequested();
 
 void initAgentHwTest(
     int argc,

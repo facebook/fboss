@@ -27,11 +27,12 @@ void checkSwHwAclMatch(
   ASSERT_NE(nullptr, swAcl);
   auto hwAcl = hw->getAclTable()->getAclIf(swAcl->getPriority());
   ASSERT_NE(nullptr, hwAcl);
-  ASSERT_TRUE(BcmAclEntry::isStateSame(
-      hw,
-      hw->getPlatform()->getAsic()->getDefaultACLGroupID(),
-      hwAcl->getHandle(),
-      swAcl));
+  ASSERT_TRUE(
+      BcmAclEntry::isStateSame(
+          hw,
+          hw->getPlatform()->getAsic()->getDefaultACLGroupID(),
+          hwAcl->getHandle(),
+          swAcl));
 }
 
 void assertSwitchControl(bcm_switch_control_t type, int expectedValue) {

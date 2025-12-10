@@ -146,13 +146,15 @@ class ThriftPrimitiveNode : public thrift_cow::Serializable {
   }
 
   virtual bool remove(const std::string& token) override {
-    throw std::runtime_error(folly::to<std::string>(
-        "Cannot remove a child from a primitive node: ", token));
+    throw std::runtime_error(
+        folly::to<std::string>(
+            "Cannot remove a child from a primitive node: ", token));
   }
 
   bool remove(const std::string& token) const {
-    throw std::runtime_error(folly::to<std::string>(
-        "Cannot remove a child from a primitive node: ", token));
+    throw std::runtime_error(
+        folly::to<std::string>(
+            "Cannot remove a child from a primitive node: ", token));
   }
 
   virtual void modify(const std::string&, bool = true) override {

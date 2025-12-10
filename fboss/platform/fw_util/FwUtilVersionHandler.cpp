@@ -27,7 +27,7 @@ void FwUtilVersionHandler::printDarwinVersion(const std::string& fpd) {
       if (exitStatus != 0) {
         throw std::runtime_error("Run " + versionCmd + " failed!");
       }
-      std::cout << fmt::format("{} : {}", fpd, version) << std::endl;
+      std::cout << fmt::format("{} : {}", fpd, version);
     } else {
       XLOG(INFO)
           << fpd

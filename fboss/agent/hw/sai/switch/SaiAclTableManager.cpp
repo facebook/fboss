@@ -32,6 +32,16 @@
 #include <cstdint>
 #include <memory>
 
+extern "C" {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiaclextensions.h>
+#else
+#include <saiaclextensions.h>
+#endif
+#endif
+}
+
 using namespace std::chrono;
 
 namespace facebook::fboss {
@@ -415,6 +425,11 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
         saiActionType = SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING;
         break;
 #endif
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+      case cfg::AclTableActionType::L3_SWITCH_CANCEL:
+        saiActionType = SAI_ACL_ACTION_TYPE_L3_SWITCH_CANCEL;
+        break;
+#endif
       default:
         // should return in one of the cases
         throw FbossError("Unsupported Acl Table action type");
@@ -504,7 +519,7 @@ SaiAclTableManager::addAclCounter(
 
     auto statName =
         folly::to<std::string>(*trafficCount.name(), ".", statSuffix);
-    aclCounterTypeAndName.push_back(std::make_pair(counterType, statName));
+    aclCounterTypeAndName.emplace_back(counterType, statName);
     if (aclCounterRefMap.find(statName) == aclCounterRefMap.end()) {
       // Create fb303 counter since stat is being added/readded again
       aclStats_.reinitStat(statName, std::nullopt);
@@ -692,15 +707,17 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     if (addedAclEntry->getSrcIp().first.isV6()) {
       auto srcIpV6Mask = folly::IPAddressV6(
           folly::IPAddressV6::fetchMask(addedAclEntry->getSrcIp().second));
-      fieldSrcIpV6 = SaiAclEntryTraits::Attributes::FieldSrcIpV6{
-          AclEntryFieldIpV6(std::make_pair(
-              addedAclEntry->getSrcIp().first.asV6(), srcIpV6Mask))};
+      fieldSrcIpV6 =
+          SaiAclEntryTraits::Attributes::FieldSrcIpV6{AclEntryFieldIpV6(
+              std::make_pair(
+                  addedAclEntry->getSrcIp().first.asV6(), srcIpV6Mask))};
     } else if (addedAclEntry->getSrcIp().first.isV4()) {
       auto srcIpV4Mask = folly::IPAddressV4(
           folly::IPAddressV4::fetchMask(addedAclEntry->getSrcIp().second));
-      fieldSrcIpV4 = SaiAclEntryTraits::Attributes::FieldSrcIpV4{
-          AclEntryFieldIpV4(std::make_pair(
-              addedAclEntry->getSrcIp().first.asV4(), srcIpV4Mask))};
+      fieldSrcIpV4 =
+          SaiAclEntryTraits::Attributes::FieldSrcIpV4{AclEntryFieldIpV4(
+              std::make_pair(
+                  addedAclEntry->getSrcIp().first.asV4(), srcIpV4Mask))};
     }
   }
 
@@ -712,15 +729,17 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     if (addedAclEntry->getDstIp().first.isV6()) {
       auto dstIpV6Mask = folly::IPAddressV6(
           folly::IPAddressV6::fetchMask(addedAclEntry->getDstIp().second));
-      fieldDstIpV6 = SaiAclEntryTraits::Attributes::FieldDstIpV6{
-          AclEntryFieldIpV6(std::make_pair(
-              addedAclEntry->getDstIp().first.asV6(), dstIpV6Mask))};
+      fieldDstIpV6 =
+          SaiAclEntryTraits::Attributes::FieldDstIpV6{AclEntryFieldIpV6(
+              std::make_pair(
+                  addedAclEntry->getDstIp().first.asV6(), dstIpV6Mask))};
     } else if (addedAclEntry->getDstIp().first.isV4()) {
       auto dstIpV4Mask = folly::IPAddressV4(
           folly::IPAddressV4::fetchMask(addedAclEntry->getDstIp().second));
-      fieldDstIpV4 = SaiAclEntryTraits::Attributes::FieldDstIpV4{
-          AclEntryFieldIpV4(std::make_pair(
-              addedAclEntry->getDstIp().first.asV4(), dstIpV4Mask))};
+      fieldDstIpV4 =
+          SaiAclEntryTraits::Attributes::FieldDstIpV4{AclEntryFieldIpV4(
+              std::make_pair(
+                  addedAclEntry->getDstIp().first.asV4(), dstIpV4Mask))};
     }
   }
 
@@ -787,17 +806,19 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   std::optional<SaiAclEntryTraits::Attributes::FieldL4SrcPort> fieldL4SrcPort{
       std::nullopt};
   if (addedAclEntry->getL4SrcPort()) {
-    fieldL4SrcPort = SaiAclEntryTraits::Attributes::FieldL4SrcPort{
-        AclEntryFieldU16(std::make_pair(
-            addedAclEntry->getL4SrcPort().value(), kL4PortMask))};
+    fieldL4SrcPort =
+        SaiAclEntryTraits::Attributes::FieldL4SrcPort{AclEntryFieldU16(
+            std::make_pair(
+                addedAclEntry->getL4SrcPort().value(), kL4PortMask))};
   }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldL4DstPort> fieldL4DstPort{
       std::nullopt};
   if (addedAclEntry->getL4DstPort()) {
-    fieldL4DstPort = SaiAclEntryTraits::Attributes::FieldL4DstPort{
-        AclEntryFieldU16(std::make_pair(
-            addedAclEntry->getL4DstPort().value(), kL4PortMask))};
+    fieldL4DstPort =
+        SaiAclEntryTraits::Attributes::FieldL4DstPort{AclEntryFieldU16(
+            std::make_pair(
+                addedAclEntry->getL4DstPort().value(), kL4PortMask))};
   }
 
   bool matchV4 = !addedAclEntry->getEtherType().has_value() ||
@@ -815,9 +836,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   if (qualifierSet.find(cfg::AclTableQualifier::IP_PROTOCOL_NUMBER) !=
           qualifierSet.end() &&
       matchV4 && addedAclEntry->getProto()) {
-    fieldIpProtocol = SaiAclEntryTraits::Attributes::FieldIpProtocol{
-        AclEntryFieldU8(std::make_pair(
-            addedAclEntry->getProto().value(), kIpProtocolMask))};
+    fieldIpProtocol =
+        SaiAclEntryTraits::Attributes::FieldIpProtocol{AclEntryFieldU8(
+            std::make_pair(
+                addedAclEntry->getProto().value(), kIpProtocolMask))};
   }
 
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -826,18 +848,20 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   if (qualifierSet.find(cfg::AclTableQualifier::IPV6_NEXT_HEADER) !=
           qualifierSet.end() &&
       matchV6 && addedAclEntry->getProto()) {
-    fieldIpv6NextHeader = SaiAclEntryTraits::Attributes::FieldIpv6NextHeader{
-        AclEntryFieldU8(std::make_pair(
-            addedAclEntry->getProto().value(), kIpv6NextHeaderMask))};
+    fieldIpv6NextHeader =
+        SaiAclEntryTraits::Attributes::FieldIpv6NextHeader{AclEntryFieldU8(
+            std::make_pair(
+                addedAclEntry->getProto().value(), kIpv6NextHeaderMask))};
   }
 #endif
 
   std::optional<SaiAclEntryTraits::Attributes::FieldTcpFlags> fieldTcpFlags{
       std::nullopt};
   if (addedAclEntry->getTcpFlagsBitMap()) {
-    fieldTcpFlags = SaiAclEntryTraits::Attributes::FieldTcpFlags{
-        AclEntryFieldU8(std::make_pair(
-            addedAclEntry->getTcpFlagsBitMap().value(), kTcpFlagsMask))};
+    fieldTcpFlags =
+        SaiAclEntryTraits::Attributes::FieldTcpFlags{AclEntryFieldU8(
+            std::make_pair(
+                addedAclEntry->getTcpFlagsBitMap().value(), kTcpFlagsMask))};
   }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldIpFrag> fieldIpFrag{
@@ -861,26 +885,30 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          addedAclEntry->getProto().value() == AclEntry::kProtoIcmp) ||
         (addedAclEntry->getEtherType() &&
          addedAclEntry->getEtherType().value() == cfg::EtherType::IPv4)) {
-      fieldIcmpV4Type = SaiAclEntryTraits::Attributes::FieldIcmpV4Type{
-          AclEntryFieldU8(std::make_pair(
-              addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
+      fieldIcmpV4Type =
+          SaiAclEntryTraits::Attributes::FieldIcmpV4Type{AclEntryFieldU8(
+              std::make_pair(
+                  addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
       if (addedAclEntry->getIcmpCode()) {
-        fieldIcmpV4Code = SaiAclEntryTraits::Attributes::FieldIcmpV4Code{
-            AclEntryFieldU8(std::make_pair(
-                addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
+        fieldIcmpV4Code =
+            SaiAclEntryTraits::Attributes::FieldIcmpV4Code{AclEntryFieldU8(
+                std::make_pair(
+                    addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
       }
     } else if (
         (addedAclEntry->getProto() &&
          addedAclEntry->getProto().value() == AclEntry::kProtoIcmpv6) ||
         (addedAclEntry->getEtherType() &&
          addedAclEntry->getEtherType().value() == cfg::EtherType::IPv6)) {
-      fieldIcmpV6Type = SaiAclEntryTraits::Attributes::FieldIcmpV6Type{
-          AclEntryFieldU8(std::make_pair(
-              addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
+      fieldIcmpV6Type =
+          SaiAclEntryTraits::Attributes::FieldIcmpV6Type{AclEntryFieldU8(
+              std::make_pair(
+                  addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
       if (addedAclEntry->getIcmpCode()) {
-        fieldIcmpV6Code = SaiAclEntryTraits::Attributes::FieldIcmpV6Code{
-            AclEntryFieldU8(std::make_pair(
-                addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
+        fieldIcmpV6Code =
+            SaiAclEntryTraits::Attributes::FieldIcmpV6Code{AclEntryFieldU8(
+                std::make_pair(
+                    addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
       }
     } else {
       throw FbossError(
@@ -912,8 +940,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   std::optional<SaiAclEntryTraits::Attributes::FieldTtl> fieldTtl{std::nullopt};
   if (addedAclEntry->getTtl()) {
-    fieldTtl =
-        SaiAclEntryTraits::Attributes::FieldTtl{AclEntryFieldU8(std::make_pair(
+    fieldTtl = SaiAclEntryTraits::Attributes::FieldTtl{AclEntryFieldU8(
+        std::make_pair(
             addedAclEntry->getTtl().value().getValue(),
             addedAclEntry->getTtl().value().getMask()))};
   }
@@ -948,18 +976,20 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   std::optional<SaiAclEntryTraits::Attributes::FieldOuterVlanId>
       fieldOuterVlanId{std::nullopt};
   if (addedAclEntry->getVlanID()) {
-    fieldOuterVlanId = SaiAclEntryTraits::Attributes::FieldOuterVlanId{
-        AclEntryFieldU16(std::make_pair(
-            addedAclEntry->getVlanID().value(), kOuterVlanIdMask))};
+    fieldOuterVlanId =
+        SaiAclEntryTraits::Attributes::FieldOuterVlanId{AclEntryFieldU16(
+            std::make_pair(
+                addedAclEntry->getVlanID().value(), kOuterVlanIdMask))};
   }
 
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
   std::optional<SaiAclEntryTraits::Attributes::FieldBthOpcode> fieldBthOpcode{
       std::nullopt};
   if (addedAclEntry->getRoceOpcode()) {
-    fieldBthOpcode = SaiAclEntryTraits::Attributes::FieldBthOpcode{
-        AclEntryFieldU8(std::make_pair(
-            addedAclEntry->getRoceOpcode().value(), kBthOpcodeMask))};
+    fieldBthOpcode =
+        SaiAclEntryTraits::Attributes::FieldBthOpcode{AclEntryFieldU8(
+            std::make_pair(
+                addedAclEntry->getRoceOpcode().value(), kBthOpcodeMask))};
   }
 #endif
 
@@ -1032,15 +1062,19 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionSetUserTrap{std::nullopt};
 #endif
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   std::optional<SaiAclEntryTraits::Attributes::ActionSetArsObject>
       aclActionSetArsObject{std::nullopt};
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   std::optional<SaiAclEntryTraits::Attributes::ActionDisableArsForwarding>
       aclActionDisableArsForwarding{std::nullopt};
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   std::optional<SaiAclEntryTraits::Attributes::ActionSetEcmpHashAlgorithm>
       aclActionSetEcmpHashAlgorithm{std::nullopt};
+  std::optional<SaiAclEntryTraits::Attributes::ActionL3SwitchCancel>
+      aclActionL3SwitchCancel{std::nullopt};
 #endif
 
   auto action = addedAclEntry->getAclAction();
@@ -1081,27 +1115,23 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       sendToCpu = setTc.second;
     }
 
-    auto setCopyOrTrap = [&aclActionPacketAction](
-                             bool supportCopyToCpu,
-                             const MatchAction& matchAction) {
-      if (matchAction.getToCpuAction()) {
-        switch (matchAction.getToCpuAction().value()) {
-          case cfg::ToCpuAction::COPY:
-            if (!supportCopyToCpu) {
-              throw FbossError("COPY_TO_CPU is not supported on this ASIC");
+    auto setCopyOrTrap =
+        [&aclActionPacketAction](const MatchAction& matchAction) {
+          if (matchAction.getToCpuAction()) {
+            switch (matchAction.getToCpuAction().value()) {
+              case cfg::ToCpuAction::COPY:
+                aclActionPacketAction =
+                    SaiAclEntryTraits::Attributes::ActionPacketAction{
+                        SAI_PACKET_ACTION_COPY};
+                break;
+              case cfg::ToCpuAction::TRAP:
+                aclActionPacketAction =
+                    SaiAclEntryTraits::Attributes::ActionPacketAction{
+                        SAI_PACKET_ACTION_TRAP};
+                break;
             }
-            aclActionPacketAction =
-                SaiAclEntryTraits::Attributes::ActionPacketAction{
-                    SAI_PACKET_ACTION_COPY};
-            break;
-          case cfg::ToCpuAction::TRAP:
-            aclActionPacketAction =
-                SaiAclEntryTraits::Attributes::ActionPacketAction{
-                    SAI_PACKET_ACTION_TRAP};
-            break;
-        }
-      }
-    };
+          }
+        };
 
     if (tc != std::nullopt) {
       if (!sendToCpu) {
@@ -1120,9 +1150,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          * Tajo claims to map TC i to Queue i by default as well.
          * However, explicitly set the QoS Map and associate with the CPU port.
          */
-        setCopyOrTrap(
-            platform_->getAsic()->isSupported(HwAsic::Feature::ACL_COPY_TO_CPU),
-            matchAction);
+        setCopyOrTrap(matchAction);
         aclActionSetTC = SaiAclEntryTraits::Attributes::ActionSetTC{
             AclEntryActionU8(tc.value())};
       }
@@ -1149,36 +1177,35 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             managerTable_->hostifManager().ensureHostifUserDefinedTrap(queueId);
         aclActionSetUserTrap = SaiAclEntryTraits::Attributes::ActionSetUserTrap{
             AclEntryActionSaiObjectIdT(userDefinedTrap->trap->adapterKey())};
-        setCopyOrTrap(
-            platform_->getAsic()->isSupported(HwAsic::Feature::ACL_COPY_TO_CPU),
-            matchAction);
+        setCopyOrTrap(matchAction);
       }
 #endif
     }
 
     if (matchAction.getIngressMirror().has_value()) {
+      ingressMirror = matchAction.getIngressMirror().value();
       std::vector<sai_object_id_t> aclEntryMirrorIngressOidList;
       auto mirrorHandle = managerTable_->mirrorManager().getMirrorHandle(
           matchAction.getIngressMirror().value());
       if (mirrorHandle) {
         aclEntryMirrorIngressOidList.push_back(mirrorHandle->adapterKey());
+        aclActionMirrorIngress =
+            SaiAclEntryTraits::Attributes::ActionMirrorIngress{
+                AclEntryActionSaiObjectIdList(aclEntryMirrorIngressOidList)};
       }
-      ingressMirror = matchAction.getIngressMirror().value();
-      aclActionMirrorIngress =
-          SaiAclEntryTraits::Attributes::ActionMirrorIngress{
-              AclEntryActionSaiObjectIdList(aclEntryMirrorIngressOidList)};
     }
 
     if (matchAction.getEgressMirror().has_value()) {
+      egressMirror = matchAction.getEgressMirror().value();
       std::vector<sai_object_id_t> aclEntryMirrorEgressOidList;
       auto mirrorHandle = managerTable_->mirrorManager().getMirrorHandle(
           matchAction.getEgressMirror().value());
       if (mirrorHandle) {
         aclEntryMirrorEgressOidList.push_back(mirrorHandle->adapterKey());
+        aclActionMirrorEgress =
+            SaiAclEntryTraits::Attributes::ActionMirrorEgress{
+                AclEntryActionSaiObjectIdList(aclEntryMirrorEgressOidList)};
       }
-      egressMirror = matchAction.getEgressMirror().value();
-      aclActionMirrorEgress = SaiAclEntryTraits::Attributes::ActionMirrorEgress{
-          AclEntryActionSaiObjectIdList(aclEntryMirrorEgressOidList)};
     }
 
     if (matchAction.getSetDscp()) {
@@ -1251,6 +1278,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         switch (flowletAction) {
           case cfg::FlowletAction::FORWARD: {
 #if defined(CHENAB_SAI_SDK)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
             auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
             if (arsHandlePtr->ars) {
               aclActionSetArsObject =
@@ -1258,6 +1286,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
                       AclEntryActionSaiObjectIdT(
                           arsHandlePtr->ars->adapterKey())};
             }
+#endif
 #else
             aclActionDisableArsForwarding =
                 SaiAclEntryTraits::Attributes::ActionDisableArsForwarding{
@@ -1270,6 +1299,20 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             break;
         }
       }
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      if (matchAction.getEnableAlternateArsMembers().has_value()) {
+        auto alternateMemberArsHandlePtr =
+            managerTable_->arsManager().getAlternateMemberArsHandle();
+        if (alternateMemberArsHandlePtr->ars) {
+          aclActionSetArsObject =
+              SaiAclEntryTraits::Attributes::ActionSetArsObject{
+                  AclEntryActionSaiObjectIdT(
+                      alternateMemberArsHandlePtr->ars->adapterKey())};
+        }
+        aclActionL3SwitchCancel =
+            SaiAclEntryTraits::Attributes::ActionL3SwitchCancel{true};
+      }
+#endif
     }
 #endif
   }
@@ -1322,11 +1365,12 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        || aclActionSetUserTrap.has_value()
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-       || aclActionSetArsObject.has_value() ||
-       aclActionDisableArsForwarding.has_value()
+       || aclActionDisableArsForwarding.has_value()
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-       || aclActionSetEcmpHashAlgorithm.has_value()
+       || aclActionSetArsObject.has_value() ||
+       aclActionSetEcmpHashAlgorithm.has_value() ||
+       aclActionL3SwitchCancel.has_value()
 #endif
       );
 
@@ -1395,12 +1439,15 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if !defined(TAJO_SDK)
       aclActionSetUserTrap,
 #endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       aclActionSetArsObject,
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       aclActionDisableArsForwarding,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       aclActionSetEcmpHashAlgorithm,
+      aclActionL3SwitchCancel,
 #endif
   };
 

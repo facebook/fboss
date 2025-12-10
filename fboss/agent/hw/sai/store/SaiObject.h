@@ -156,16 +156,18 @@ typename std::
     auto conditionAttributes = apiTable->nextHopApi().getAttribute(
         nextHopSaiId, SaiNextHopTraits::ConditionAttributes{});
     if (conditionAttributes == SaiIpNextHopTraits::kConditionAttributes) {
-      ret.nhopMemberSet.insert(std::make_pair(
-          apiTable->nextHopApi().getAttribute(
-              nextHopSaiId, SaiIpNextHopTraits::AdapterHostKey{}),
-          weight));
+      ret.nhopMemberSet.insert(
+          std::make_pair(
+              apiTable->nextHopApi().getAttribute(
+                  nextHopSaiId, SaiIpNextHopTraits::AdapterHostKey{}),
+              weight));
     } else if (
         conditionAttributes == SaiMplsNextHopTraits::kConditionAttributes) {
-      ret.nhopMemberSet.insert(std::make_pair(
-          apiTable->nextHopApi().getAttribute(
-              nextHopSaiId, SaiMplsNextHopTraits::AdapterHostKey{}),
-          weight));
+      ret.nhopMemberSet.insert(
+          std::make_pair(
+              apiTable->nextHopApi().getAttribute(
+                  nextHopSaiId, SaiMplsNextHopTraits::AdapterHostKey{}),
+              weight));
     }
   }
   return ret;
@@ -442,7 +444,7 @@ class SaiObject {
     if (isOwnedByAdapter() || skipRemove_) {
       return;
     }
-    if constexpr (not IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value) {
+    if constexpr (!IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value) {
       auto& api = SaiApiTable::getInstance()
                       ->getApi<typename SaiObjectTraits::SaiApiT>();
       try {

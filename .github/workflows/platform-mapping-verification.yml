@@ -26,12 +26,29 @@ jobs:
           --env-var
           GITHUB_ACTIONS_BUILD
           --local
+          &&
+          sudo
+          chown
+          -R
+          runner:runner
+          ${{ github.workspace }}
       - name: Package FBOSS binaries and library dependencies
         run: >
           sudo
-          ./fboss/oss/scripts/package-fboss.py
-          --scratch-path
-          ${{ github.workspace }}/build-output
+          docker
+          run
+          -v
+          ${{ github.workspace }}:/var/FBOSS/fboss:z
+          -v
+          ${{ github.workspace }}/build-output:/var/FBOSS/tmp_bld_dir:z
+          --cap-add=CAP_AUDIT_WRITE
+          --name
+          FBOSS_PACKAGE_CONTAINER
+          fboss_image:latest
+          python3
+          /var/FBOSS/fboss/fboss/oss/scripts/package-fboss.py
+          --copy-root-libs
+          --scratch-path=/var/FBOSS/tmp_bld_dir
           --compress
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -56,3 +73,9 @@ jobs:
           sudo
           ./fboss/oss/scripts/github_actions/docker-unittest.py
           ${{ github.workspace }}/fboss_bins.tar.zst
+          &&
+          sudo
+          chown
+          -R
+          runner:runner
+          ${{ github.workspace }}

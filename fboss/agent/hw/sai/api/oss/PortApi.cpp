@@ -154,8 +154,60 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcMonitorDirection::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeResetQueueCreditBalance::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributePgDropStatus::operator()() {
   return std::nullopt;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::macTxDataQueueMinWatermarkStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::macTxDataQueueMaxWatermarkStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeFabricSystemPort::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeStaticModuleId::operator()() {
+  return std::nullopt;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlRxPacketStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlTxPacketStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
 }
 
 std::optional<sai_attr_id_t>
@@ -336,4 +388,15 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeArsLinkState::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeIsHyperPortMember::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

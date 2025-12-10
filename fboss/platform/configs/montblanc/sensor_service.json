@@ -6341,5 +6341,29 @@
         }
       ]
     }
+  ],
+  "powerConfig": {
+    "perSlotPowerConfigs": [
+      {
+        "name": "PSU1",
+        "powerSensorName": "PSU1_L_PIN"
+      },
+      {
+        "name": "PSU2",
+        "powerSensorName": "PSU2_R_PIN"
+      }
+    ],
+    "inputVoltageSensors": [
+      "PSU1_L_VIN",
+      "PSU2_R_VIN"
+    ]
+  },
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "SMB_TH5_TEMP"
+      ]
+    }
   ]
 }

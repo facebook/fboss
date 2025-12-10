@@ -58,6 +58,7 @@ cpp_library(
         "//common/services/cpp:proc_module",
         "//common/services/cpp:proc_standalone",
         "//common/services/cpp:thrift_acl_checker_module_config",
+        "//folly/io/async:async_signal_handler",
         "//thrift/lib/cpp2:server",
         "//thrift/lib/cpp2/async:async_processor",
     ],

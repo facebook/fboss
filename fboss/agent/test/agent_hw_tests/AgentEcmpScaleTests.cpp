@@ -44,7 +44,7 @@ class AgentEcmpTest : public AgentHwTest {
     std::vector<PortDescriptor> portDescriptorIds;
     portDescriptorIds.reserve(portIds.size());
     for (const auto& portId : portIds) {
-      portDescriptorIds.push_back(PortDescriptor(portId));
+      portDescriptorIds.emplace_back(portId);
     }
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
@@ -121,7 +121,8 @@ TEST_F(AgentEcmpTest, CreateMaxEcmpGroupsAndMembers) {
 TEST_F(AgentEcmpTest, CreateMaxUcmpMembers) {
   const auto kMaxUcmpMembers =
       utility::getMaxUcmpMembers(getAgentEnsemble()->getL3Asics());
-
+  const auto kMaxVariableEcmpWidth =
+      utility::getMaxVariableWidthEcmpSize(getAgentEnsemble()->getL3Asics());
   auto setup = [&]() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
@@ -148,8 +149,9 @@ TEST_F(AgentEcmpTest, CreateMaxUcmpMembers) {
     } else {
       allCombinations =
           utility::generateEcmpMemberScale(portDescriptorIds, kMaxUcmpMembers);
+      CHECK_GE(allCombinations.size() * kMaxVariableEcmpWidth, kMaxUcmpMembers);
       allCombinations = utility::getUcmpMembersAndWeight(
-          allCombinations, swWeights, kMaxUcmpMembers);
+          allCombinations, swWeights, kMaxUcmpMembers, kMaxVariableEcmpWidth);
     }
 
     std::vector<flat_set<PortDescriptor>> nhopSets;
@@ -166,4 +168,46 @@ TEST_F(AgentEcmpTest, CreateMaxUcmpMembers) {
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
+
+TEST_F(AgentEcmpTest, CreateMaxUcmpGroups) {
+  const auto kMaxEcmpGroup =
+      utility::getMaxEcmpGroups(getAgentEnsemble()->getL3Asics());
+  auto setup = [&]() {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    std::vector<PortID> portIds = masterLogicalInterfacePortIds();
+    std::vector<PortDescriptor> portDescriptorIds;
+    std::vector<RoutePrefixV6> prefixes;
+    std::vector<std::vector<PortDescriptor>> allCombinations;
+    std::vector<std::vector<NextHopWeight>> swWeights;
+    for (const auto& portId : portIds) {
+      portDescriptorIds.emplace_back(portId);
+    }
+    applyNewState([&portDescriptorIds,
+                   &ecmpHelper](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(
+          in,
+          flat_set<PortDescriptor>(
+              std::make_move_iterator(portDescriptorIds.begin()),
+              std::make_move_iterator(portDescriptorIds.end())));
+    });
+    allCombinations = utility::generateEcmpGroupScale(
+        portDescriptorIds, kMaxEcmpGroup, portDescriptorIds.size());
+    utility::assignUcmpWeights(allCombinations, swWeights);
+
+    std::vector<flat_set<PortDescriptor>> nhopSets;
+    for (const auto& combination : allCombinations) {
+      nhopSets.emplace_back(combination.begin(), combination.end());
+    }
+    std::generate_n(
+        std::back_inserter(prefixes), nhopSets.size(), [i = 0]() mutable {
+          return RoutePrefixV6{
+              folly::IPAddressV6(folly::to<std::string>(2401, "::", i++)), 128};
+        });
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&wrapper, nhopSets, prefixes, swWeights);
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
+
 } // namespace facebook::fboss

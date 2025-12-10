@@ -105,12 +105,20 @@ class SaiBufferManager {
       const std::vector<IngressPriorityGroupSaiId>& ingressPriorityGroupSaiIds);
   SaiBufferPoolHandle* getIngressBufferPoolHandle() const;
   static uint64_t getMaxEgressPoolBytes(const SaiPlatform* platform);
-
- private:
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+  getIngressPortBufferProfiles(
+      cfg::MMUScalingFactor scalingFactor,
+      int reservedSizeBytes);
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+  getEgressPortBufferProfiles(
+      cfg::MMUScalingFactor losslessScalingFactor,
+      cfg::MMUScalingFactor lossyScalingFactor,
+      int reservedSizeBytes);
   void setupBufferPool(const PortQueue& queue);
   void setupBufferPool(const state::PortPgFields& portPgConfig);
-  void loadCpuPortEgressBufferPool();
 
+ private:
+  void loadCpuPortEgressBufferPool();
   void updateIngressBufferPoolStats();
   void updateEgressBufferPoolStats();
 
@@ -165,6 +173,10 @@ class SaiBufferManager {
   supportedIngressPriorityGroupWatermarkStats() const;
   const std::vector<sai_stat_id_t>&
   supportedIngressPriorityGroupNonWatermarkStats() const;
+  std::shared_ptr<SaiBufferProfileHandle> getOrCreatePortProfile(
+      SaiDynamicBufferProfileTraits::Attributes::PoolId pool,
+      cfg::MMUScalingFactor scalingFactor,
+      int reservedSizeBytes);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

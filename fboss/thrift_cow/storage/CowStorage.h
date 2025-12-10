@@ -130,9 +130,10 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
         rootNode, begin, end, options, [&](auto& path, auto& node) {
           using NodeT = typename folly::remove_cvref_t<decltype(node)>;
           if constexpr (!thrift_cow::is_cow_type_v<NodeT>) {
-            throw std::runtime_error(fmt::format(
-                "get_encoded_extended_impl: unexpected type with ExtendedPathVisitor::visit(path={})",
-                folly::join("/", path)));
+            throw std::runtime_error(
+                fmt::format(
+                    "get_encoded_extended_impl: unexpected type with ExtendedPathVisitor::visit(path={})",
+                    folly::join("/", path)));
           }
           TaggedOperState state;
           state.path()->path() = path;
@@ -195,41 +196,56 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   std::optional<StorageError> patch_impl(Patch&& patch) {
     auto begin = patch.basePath()->begin();
     auto end = patch.basePath()->end();
+
     auto modifyResult = StorageImpl::modifyPath(&root_, begin, end);
     if (!modifyResult) {
       XLOG(DBG1) << "Error:patch: modifyPath(" << folly::join("/", begin, end)
                  << "): " << modifyResult.toString();
       return detail::parseTraverseResult(modifyResult);
     }
-    thrift_cow::PatchApplyResult patchResult;
-    std::optional<std::pair<
-        thrift_cow::pv_detail::PathIter,
-        thrift_cow::pv_detail::PathIter>>
-        errorPath;
+
+    bool isDelPatch =
+        (patch.patch()->getType() == thrift_cow::PatchNode::Type::del);
+    std::optional<StorageError> patchResult;
     auto op = thrift_cow::pvlambda([&](auto& node,
-                                       thrift_cow::pv_detail::PathIter begin,
-                                       thrift_cow::pv_detail::PathIter end) {
+                                       thrift_cow::pv_detail::PathIter v_begin,
+                                       thrift_cow::pv_detail::PathIter v_end) {
+      if (isDelPatch && (v_begin != v_end)) {
+        // visiting container node for patch basePath
+        thrift_cow::pv_detail::PathIter basePath_begin = begin;
+        patchResult = this->remove_impl(basePath_begin, v_begin + 1);
+        return;
+      }
       using NodeT = typename folly::remove_cvref_t<decltype(node)>;
       using TC = typename NodeT::TC;
+      thrift_cow::PatchApplyResult patchApplyResult;
       if constexpr (std::is_same_v<
                         typename NodeT::CowType,
                         thrift_cow::ThriftObject>) {
-        patchResult = thrift_cow::PatchApplier<TC>::apply(
+        patchApplyResult = thrift_cow::PatchApplier<TC>::apply(
             node.toThrift(), std::move(*patch.patch()), *patch.protocol());
         XLOG(DBG5) << "Visited base path in Thrift obj. patch result "
-                   << apache::thrift::util::enumNameSafe(patchResult);
+                   << apache::thrift::util::enumNameSafe(patchApplyResult);
       } else {
-        patchResult = thrift_cow::PatchApplier<TC>::apply(
+        patchApplyResult = thrift_cow::PatchApplier<TC>::apply(
             node, std::move(*patch.patch()), *patch.protocol());
         XLOG(DBG5) << "Visited base path. patch result "
-                   << apache::thrift::util::enumNameSafe(patchResult);
+                   << apache::thrift::util::enumNameSafe(patchApplyResult);
       }
-      if (patchResult != thrift_cow::PatchApplyResult::OK) {
-        *errorPath = std::make_pair(begin, end);
+      if (patchApplyResult != thrift_cow::PatchApplyResult::OK) {
+        patchResult = detail::parsePatchResult(
+            patchApplyResult, std::make_pair(begin, end));
       }
     });
+
     auto visitResult = thrift_cow::RootPathVisitor::visit(
-        *root_, begin, end, thrift_cow::PathVisitOptions::visitLeaf(), op);
+        *root_,
+        begin,
+        end,
+        thrift_cow::PathVisitOptions::visitLeaf(
+            false /* skipOptionalOrImmutablePrimitiveNode */,
+            isDelPatch /* visitContainerForPrimitiveNode */),
+        op);
     auto visitError = detail::parseTraverseResult(visitResult);
     if (visitError) {
       XLOG(DBG1) << "Error:patch: PathVisit(path: "
@@ -237,7 +253,7 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
                  << "): " << visitResult.toString();
       return visitError;
     }
-    return detail::parsePatchResult(patchResult, errorPath);
+    return patchResult;
   }
 
   std::optional<StorageError> patch_impl(const fsdb::OperDelta& delta) {

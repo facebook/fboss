@@ -2,10 +2,13 @@
 
 #pragma once
 
+#include <fboss/fsdb/oper/PathConverter.h>
 #include "fboss/fsdb/client/FsdbSubManagerBase.h"
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
+
+#include <chrono>
 
 namespace facebook::fboss::fsdb {
 
@@ -52,6 +55,12 @@ class FsdbSubManager : public FsdbSubManagerBase {
     std::vector<SubscriptionKey> updatedKeys;
     // concrete paths that changed
     std::vector<std::vector<std::string>> updatedPaths;
+    // Minimum lastServedAt timestamp in milliseconds across all paths
+    // (optional, only if metadata available)
+    std::optional<int64_t> lastServedAt;
+    // Maximum lastPublishedAt timestamps in milliseconds across all paths
+    // (optional, only if metadata available)
+    std::optional<int64_t> lastPublishedAt;
   };
 
   using DataCallback = std::function<void(SubUpdate)>;
@@ -84,18 +93,31 @@ class FsdbSubManager : public FsdbSubManagerBase {
   }
 
   /*
+   * Takes a ExtendedOperPath, and returns a SubscriptionKey that can be used
+   * in the callback to efficiently check what data changed.
+   * Must be called before subscribe.
+   */
+  template <typename ExtendedOperPath>
+  SubscriptionKey addExtendedPath(ExtendedOperPath path) {
+    return addExtendedPathImpl(
+        PathConverter<Root>::extPathToIdTokens(*path.path()));
+  }
+
+  /*
    * Initiate subscription. Must be called after all interested paths are added.
    * See DataCallback for callback signature.
    */
   void subscribe(
       DataCallback cb,
       std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb =
-          std::nullopt) {
+          std::nullopt,
+      std::optional<FsdbStreamHeartbeatCb> heartbeatCb = std::nullopt) {
     subscribeImpl(
         [this, cb = std::move(cb)](SubscriberChunk chunk) {
           parseChunkAndInvokeCallback(std::move(chunk), std::move(cb));
         },
-        std::move(subscriptionStateChangeCb));
+        std::move(subscriptionStateChangeCb),
+        std::move(heartbeatCb));
   }
 
   // Returns a synchronized data object that is always kept up to date
@@ -116,19 +138,47 @@ class FsdbSubManager : public FsdbSubManagerBase {
     changedKeys.reserve(chunk.patchGroups()->size());
     std::vector<std::vector<std::string>> changedPaths;
     changedPaths.reserve(chunk.patchGroups()->size());
+    std::optional<int64_t> lastServedAt;
+    std::optional<int64_t> lastPublishedAt;
+
     for (auto& [key, patchGroup] : *chunk.patchGroups()) {
-      // FsdbSubManager only supports non-wildcard subs, which will always have
-      // a single patch per path
-      CHECK_EQ(patchGroup.size(), 1);
-      auto& patch = patchGroup.front();
-      changedKeys.push_back(key);
-      changedPaths.emplace_back(*patch.basePath());
-      // TODO: support patching a raw thrift object
-      root_.patch(std::move(patch));
+      for (auto& patch : patchGroup) {
+        // Calculate served delay and track minimum lastServedAt timestamp
+        const auto& metadata = *patch.metadata();
+
+        if (metadata.lastServedAt().has_value()) {
+          auto patchLastServedAt = *metadata.lastServedAt();
+          auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                         std::chrono::system_clock::now().time_since_epoch())
+                         .count();
+          auto delay = now - patchLastServedAt;
+
+          XLOG(DBG2) << "FsdbSubManager subscription delay: " << delay
+                     << " ms for path: " << folly::join("/", *patch.basePath());
+
+          if (!lastServedAt.has_value() || patchLastServedAt < *lastServedAt) {
+            lastServedAt = patchLastServedAt;
+          }
+        }
+        if (metadata.lastPublishedAt().has_value()) {
+          auto patchLastPublishedAt = *metadata.lastPublishedAt();
+          if (!lastPublishedAt.has_value() ||
+              patchLastPublishedAt > *lastPublishedAt) {
+            lastPublishedAt = patchLastPublishedAt;
+          }
+        }
+        changedKeys.push_back(key);
+        changedPaths.emplace_back(*patch.basePath());
+        root_.patch(std::move(patch));
+      }
     }
     root_.publish();
     SubUpdate update{
-        root_.root(), std::move(changedKeys), std::move(changedPaths)};
+        root_.root(),
+        std::move(changedKeys),
+        std::move(changedPaths),
+        lastServedAt,
+        lastPublishedAt};
     cb(std::move(update));
   }
 

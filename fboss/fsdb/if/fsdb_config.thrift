@@ -1,3 +1,5 @@
+package "facebook.com/fboss/fsdb"
+
 namespace cpp2 facebook.fboss.fsdb
 namespace py neteng.fboss.fsdb.fsdb_config
 namespace py3 neteng.fboss.fsdb

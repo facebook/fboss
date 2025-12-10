@@ -46,6 +46,7 @@ target_link_libraries(hw_fsw_scale_route_add_speed
   config_factory
   hw_packet_utils
   ecmp_helper
+  hw_route_benchmark_helpers
   function_call_time_reporter
   Folly::folly
   Folly::follybenchmark
@@ -61,6 +62,7 @@ target_link_libraries(hw_fsw_scale_route_del_speed
   config_factory
   hw_packet_utils
   ecmp_helper
+  hw_route_benchmark_helpers
   function_call_time_reporter
   Folly::folly
   Folly::follybenchmark
@@ -76,6 +78,7 @@ target_link_libraries(hw_th_alpm_scale_route_add_speed
   config_factory
   hw_packet_utils
   ecmp_helper
+  hw_route_benchmark_helpers
   function_call_time_reporter
   Folly::folly
   Folly::follybenchmark
@@ -91,6 +94,7 @@ target_link_libraries(hw_th_alpm_scale_route_del_speed
   config_factory
   hw_packet_utils
   ecmp_helper
+  hw_route_benchmark_helpers
   function_call_time_reporter
   Folly::folly
   Folly::follybenchmark
@@ -106,6 +110,7 @@ target_link_libraries(hw_hgrid_du_scale_route_add_speed
   config_factory
   hw_packet_utils
   ecmp_helper
+  hw_route_benchmark_helpers
   function_call_time_reporter
   Folly::folly
   Folly::follybenchmark
@@ -121,6 +126,7 @@ target_link_libraries(hw_hgrid_du_scale_route_del_speed
   config_factory
   hw_packet_utils
   ecmp_helper
+  hw_route_benchmark_helpers
   function_call_time_reporter
   Folly::folly
   Folly::follybenchmark
@@ -136,6 +142,7 @@ target_link_libraries(hw_hgrid_uu_scale_route_add_speed
   config_factory
   hw_packet_utils
   ecmp_helper
+  hw_route_benchmark_helpers
   function_call_time_reporter
   Folly::folly
   Folly::follybenchmark
@@ -151,6 +158,7 @@ target_link_libraries(hw_hgrid_uu_scale_route_del_speed
   config_factory
   hw_packet_utils
   ecmp_helper
+  hw_route_benchmark_helpers
   function_call_time_reporter
   Folly::folly
   Folly::follybenchmark
@@ -224,6 +232,7 @@ target_link_libraries(hw_ecmp_shrink_with_competing_route_updates_speed
   ecmp_helper
   mono_agent_ensemble
   mono_agent_benchmarks
+  hw_route_benchmark_helpers
   function_call_time_reporter
   Folly::folly
   Folly::follybenchmark
@@ -371,6 +380,24 @@ target_link_libraries(hw_init_and_exit_fabric
   hw_init_and_exit_benchmark_helper
 )
 
+add_library(hw_route_benchmark_helpers
+  fboss/agent/hw/benchmarks/HwRouteScaleBenchmarkHelpers.cpp
+)
+
+target_link_libraries(hw_route_benchmark_helpers
+  config_factory
+  dsf_config_utils
+  fabric_test_utils
+  voq_test_utils
+  mono_agent_ensemble
+  mono_agent_benchmarks
+  route_scale_gen
+  prod_config_utils
+  Folly::folly
+  Folly::follybenchmark
+  function_call_time_reporter
+)
+
 add_library(hw_anticipated_scale_route_add_speed
   fboss/agent/hw/benchmarks/HwAnticipatedScaleRouteAddBenchmark.cpp
 )
@@ -381,6 +408,7 @@ target_link_libraries(hw_anticipated_scale_route_add_speed
   ecmp_helper
   mono_agent_ensemble
   mono_agent_benchmarks
+  hw_route_benchmark_helpers
   function_call_time_reporter
   Folly::folly
   Folly::follybenchmark
@@ -396,6 +424,7 @@ target_link_libraries(hw_anticipated_scale_route_del_speed
   ecmp_helper
   mono_agent_ensemble
   mono_agent_benchmarks
+  hw_route_benchmark_helpers
   function_call_time_reporter
   Folly::folly
   Folly::follybenchmark
@@ -410,6 +439,7 @@ target_link_libraries(hw_voq_scale_route_add_speed
   route_scale_gen
   dsf_config_utils
   voq_test_utils
+  hw_route_benchmark_helpers
   Folly::folly
   Folly::follybenchmark
 )
@@ -423,6 +453,7 @@ target_link_libraries(hw_voq_scale_route_del_speed
   route_scale_gen
   dsf_config_utils
   voq_test_utils
+  hw_route_benchmark_helpers
   Folly::folly
   Folly::follybenchmark
 )
@@ -455,6 +486,17 @@ target_link_libraries(hw_voq_sys_port_programming
   Folly::follybenchmark
 )
 
+add_library(hw_voq_remote_entity_programming
+  fboss/agent/hw/benchmarks/HwVoqRemoteEntityProgrammingBenchmark.cpp
+)
+
+target_link_libraries(hw_voq_remote_entity_programming
+  voq_test_utils
+  dsf_config_utils
+  Folly::folly
+  Folly::follybenchmark
+)
+
 add_library(hw_system_scale_memory_benchmark
   fboss/agent/hw/benchmarks/HwSystemScaleMemoryBenchmark.cpp
 )
@@ -477,4 +519,21 @@ target_link_libraries(hw_clear_interface_counters_phy_benchmark
   Folly::follybenchmark
   port_flap_helper
   mac_learning_flood_helper
+)
+
+add_library(hw_ucmp_scale_benchmark
+  fboss/agent/hw/benchmarks/HwUcmpScaleBenchmark.cpp
+)
+
+target_link_libraries(hw_ucmp_scale_benchmark
+  fib_helpers
+  agent_ensemble
+  ecmp_helper
+  config_utils
+  scale_test_utils
+  config_factory
+  mono_agent_ensemble
+  mono_agent_benchmarks
+  Folly::folly
+  Folly::follybenchmark
 )

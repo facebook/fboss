@@ -55,6 +55,12 @@ MonolithicTestAgentInitializer::getThrifthandlers() {
   return handlers;
 }
 
+cfg::SwitchingMode MonoAgentEnsemble::getFwdSwitchingMode(
+    const RouteNextHopEntry& entry) {
+  return agentInitializer_.platform()->getHwSwitch()->getFwdSwitchingMode(
+      entry);
+}
+
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     AgentEnsembleSwitchConfigFn initialConfigFn,
     bool disableLinkStateToggler,

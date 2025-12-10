@@ -39,6 +39,7 @@ cpp_unittest(
         "//fboss/fsdb/client:fsdb_stream_client",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/oper:extended_path_builder",
+        "//fboss/fsdb/server:handler",
         "//fboss/fsdb/tests/utils:fsdb_test_server",
         "//fboss/lib:common_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",

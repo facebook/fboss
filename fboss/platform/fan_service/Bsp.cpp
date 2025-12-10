@@ -226,6 +226,7 @@ std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
       case MediaInterfaceCode::FR8_800G:
       case MediaInterfaceCode::LR4_2x400G_10KM:
       case MediaInterfaceCode::ZR_800G:
+      case MediaInterfaceCode::CR8_800G:
         opticType = constants::OPTIC_TYPE_800_GENERIC();
         break;
       default:
@@ -422,8 +423,20 @@ bool Bsp::setFanPwmSysfs(const std::string& path, int pwm) {
   return writeSysfs(path, pwm);
 }
 
-bool Bsp::setFanLedSysfs(const std::string& path, int val) {
-  return writeSysfs(path, val);
+bool Bsp::turnOnLedSysfs(const std::string& path) {
+  auto max_brightness = getLedMaxBrightness(path);
+  return writeSysfs(
+      path + "/brightness",
+      max_brightness.has_value() ? max_brightness.value() : 255);
+}
+
+std::optional<int> Bsp::getLedMaxBrightness(const std::string& path) const {
+  try {
+    return std::stoi(facebook::fboss::readSysfs(path + "/max_brightness"));
+  } catch (const std::exception&) {
+    XLOG(ERR) << "Failed to read max brightness from " << path;
+  }
+  return std::nullopt;
 }
 
 Bsp::~Bsp() {

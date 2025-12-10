@@ -56,6 +56,11 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
   // Chenab SDK supports both early drop and ECN, setting up defaults for both
   std::tie(greenMin, greenMax, greenDropProbability, ecnGreenMin, ecnGreenMax) =
       std::make_tuple(0, 0, kDefaultDropProbability, 0, 0);
+#if defined(CHENAB_SAI_SDK)
+  // as per SAI spec, ecn green min/max must have ecn mark mode set, and these
+  // values are set to 0 even for wred, so set the mode to green here
+  std::get<Attributes::EcnMarkMode>(attrs) = SAI_ECN_MARK_MODE_GREEN;
+#endif
 #elif !defined(BRCM_SAI_SDK_XGS_AND_DNX)
   std::tie(greenMin, greenMax, greenDropProbability, ecnGreenMin, ecnGreenMax) =
       std::make_tuple(

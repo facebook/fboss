@@ -14,6 +14,7 @@ enum ChipType {
   NPU = 0,
   TRANSCEIVER = 1,
   BACKPLANE = 2,
+  XPHY = 3,
 }
 
 // One of these is what is expected in the A/Z_CORE_TYPE fields in the CSVs
@@ -37,6 +38,10 @@ enum CoreType {
 
   // Backplane Connectors
   EXAMAX = 200,
+
+  // XPHY cores
+  AGERA3_SYSTEM = 300,
+  AGERA3_LINE = 301,
 }
 
 // Stores the A/Z_CORE_LANE, A/Z_TX_PHYSICAL_LANE, A/Z_RX_PHYSICAL_LANE, A/Z_TX_POLARITY_SWAP, A/Z_RX_POLARITY_SWAP fields from the static mapping CSV
@@ -69,6 +74,7 @@ struct Port {
   7: optional i32 virtual_device_id;
   8: switch_config.PortType port_type;
   9: switch_config.Scope scope;
+  10: optional i32 parent_port_id;
 }
 
 struct ChipSetting {
@@ -87,11 +93,17 @@ struct SpeedSetting {
   7: transceiver.TransmitterTechnology media_type;
 }
 
+struct TransceiverOverrideSetting {
+  1: transceiver.Vendor vendor;
+  2: transceiver.MediaInterfaceCode media_interface_code;
+}
+
 // Represents all the factors in the SI Settings CSV
 struct SiSettingFactor {
   1: optional switch_config.PortSpeed lane_speed;
   2: optional transceiver.TransmitterTechnology media_type;
   3: optional float cable_length;
+  4: optional TransceiverOverrideSetting tcvr_override_setting;
 }
 
 struct SiSettingPinConnection {

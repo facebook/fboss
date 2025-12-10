@@ -16,8 +16,8 @@
 #include <folly/coro/GtestHelpers.h>
 #include <folly/coro/Task.h>
 #include <folly/coro/Timeout.h>
-#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
+#include "fboss/fsdb/oper/tests/TestHelpers.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
 
@@ -31,30 +31,16 @@ using namespace facebook::fboss::fsdb;
 // TODO: templatize test cases
 using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
 
-dynamic createTestDynamic() {
-  return dynamic::object("tx", true)("rx", false)("name", "testname")(
-      "optionalString", "bla")("enumeration", 1)("enumMap", dynamic::object)(
-      "member", dynamic::object("min", 10)("max", 20))(
-      "variantMember", dynamic::object("integral", 99))(
-      "structMap", dynamic::object(3, dynamic::object("min", 100)("max", 200)))(
-      "structList", dynamic::array())("enumSet", dynamic::array())(
-      "integralSet", dynamic::array())("mapOfStringToI32", dynamic::object())(
-      "listOfPrimitives", dynamic::array())("setOfI32", dynamic::array());
-}
-
-TestStruct createTestStructForExtendedTests() {
-  auto testDyn = createTestDynamic();
-  for (int i = 0; i <= 20; ++i) {
-    testDyn["mapOfStringToI32"][fmt::format("test{}", i)] = i;
-    testDyn["listOfPrimitives"].push_back(i);
-    testDyn["setOfI32"].push_back(i);
-  }
-
-  return facebook::thrift::from_dynamic<TestStruct>(
-      testDyn, facebook::thrift::dynamic_format::JSON_1);
-}
-
 constexpr auto kSubscriber = "testSubscriber";
+
+template <typename value_type>
+folly::coro::Task<value_type> consumeOne(
+    SubscriptionStreamReader<value_type>& reader) {
+  auto& generator = reader.generator_;
+  auto item = co_await generator.next();
+  auto&& value = *item;
+  co_return std::move(value);
+}
 
 template <typename Gen>
 folly::coro::Task<typename Gen::value_type> consumeOne(Gen& generator) {
@@ -77,25 +63,13 @@ template <typename TestParams>
 class SubscribableStorageTests : public Test {
  public:
   void SetUp() override {
-    auto testDyn = createTestDynamic();
-    testStruct = facebook::thrift::from_dynamic<TestStruct>(
-        testDyn, facebook::thrift::dynamic_format::JSON_1);
+    testStruct = initializeTestStruct();
   }
 
   auto initStorage(auto& val) {
     auto constexpr isHybridStorage = TestParams::hybridStorage;
     using RootType = std::remove_cvref_t<decltype(val)>;
     return NaivePeriodicSubscribableCowStorage<RootType, isHybridStorage>(val);
-  }
-
-  auto initHybridStorage(auto& val) {
-    using RootType = std::remove_cvref_t<decltype(val)>;
-    return NaivePeriodicSubscribableCowStorage<RootType, true>(val);
-  }
-
-  auto initPureCowStorage(auto& val) {
-    using RootType = std::remove_cvref_t<decltype(val)>;
-    return NaivePeriodicSubscribableCowStorage<RootType, false>(val);
   }
 
   auto createCowStorage(auto val) {
@@ -205,16 +179,17 @@ TYPED_TEST(SubscribableStorageTests, SubscribeDelta) {
   FLAGS_serveHeartbeats = true;
   auto storage = this->initStorage(this->testStruct);
 
-  auto generator = storage.subscribe_delta(
+  auto streamReader = storage.subscribe_delta(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       this->root,
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
   storage.start();
   // First sync post subscription setup
   auto deltaVal = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
-  EXPECT_EQ(deltaVal.changes()->size(), 1);
-  auto first = deltaVal.changes()->at(0);
+  EXPECT_EQ(deltaVal.val.changes()->size(), 1);
+  auto first = deltaVal.val.changes()->at(0);
   // Synced entire tree from root
   EXPECT_THAT(
       *first.path()->raw(),
@@ -226,8 +201,8 @@ TYPED_TEST(SubscribableStorageTests, SubscribeDelta) {
   deltaVal = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
 
-  EXPECT_EQ(deltaVal.changes()->size(), 1);
-  first = deltaVal.changes()->at(0);
+  EXPECT_EQ(deltaVal.val.changes()->size(), 1);
+  first = deltaVal.val.changes()->at(0);
   EXPECT_THAT(
       *first.path()->raw(),
       ::testing::ContainerEq(std::vector<std::string>({"tx"})));
@@ -235,22 +210,24 @@ TYPED_TEST(SubscribableStorageTests, SubscribeDelta) {
   // Should eventually recv heartbeat
   deltaVal = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(20)));
-  EXPECT_EQ(deltaVal.changes()->size(), 0);
+  EXPECT_EQ(deltaVal.val.changes()->size(), 0);
 }
 
 TYPED_TEST(SubscribableStorageTests, SubscribeHybridDelta) {
   FLAGS_serveHeartbeats = true;
   auto storage = this->initStorage(this->testStruct);
 
-  auto generator = storage.subscribe_delta(
+  auto streamReader = storage.subscribe_delta(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       this->root,
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
   storage.start();
 
   // First sync post subscription setup
-  auto deltaVal = folly::coro::blockingWait(
+  auto element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  auto deltaVal = std::move(element.val);
   EXPECT_EQ(deltaVal.changes()->size(), 1);
   auto first = deltaVal.changes()->at(0);
   // Synced entire tree from root
@@ -264,8 +241,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeHybridDelta) {
   newStruct.max() = 1001;
   EXPECT_EQ(storage.set(this->root.structMap()[99], newStruct), std::nullopt);
 
-  deltaVal = folly::coro::blockingWait(
+  element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  deltaVal = std::move(element.val);
 
   EXPECT_EQ(deltaVal.changes()->size(), 1);
   EXPECT_TRUE(deltaVal.metadata());
@@ -287,8 +265,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeHybridDelta) {
 
   // now delete the parent and verify we see the deletion delta too
   storage.remove(this->root.structMap()[99]);
-  deltaVal = folly::coro::blockingWait(
+  element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  deltaVal = std::move(element.val);
 
   EXPECT_EQ(deltaVal.changes()->size(), 1);
   EXPECT_TRUE(deltaVal.metadata());
@@ -307,232 +286,10 @@ TYPED_TEST(SubscribableStorageTests, SubscribeHybridDelta) {
   EXPECT_EQ(deserialized.min(), 999);
 
   // Should eventually recv heartbeat
-  deltaVal = folly::coro::blockingWait(
+  element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(20)));
+  deltaVal = std::move(element.val);
   EXPECT_EQ(deltaVal.changes()->size(), 0);
-}
-
-TYPED_TEST(SubscribableStorageTests, PublishPatchesFromPureCowStorage) {
-  auto srcStorage = this->initPureCowStorage(this->testStruct);
-  srcStorage.setConvertToIDPaths(true);
-  srcStorage.start();
-  auto tgtStorage = this->initStorage(this->testStruct);
-
-  auto genPatch = srcStorage.subscribe_patch(
-      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), this->root);
-
-  auto awaitPatch = [](auto& patchSubStream, bool isInitial = false) -> Patch {
-    SubscriberMessage patchMsg = folly::coro::blockingWait(folly::coro::timeout(
-        consumeOne(patchSubStream), std::chrono::seconds(5)));
-    auto patchGroups = *patchMsg.get_chunk().patchGroups();
-    EXPECT_EQ(patchGroups.size(), 1);
-    auto patches = patchGroups.begin()->second;
-    EXPECT_EQ(patches.size(), 1);
-    Patch patch = patches.front();
-    if (isInitial) {
-      // make sure Patch.PatchNode has a value
-      auto rootPatch = patch.patch()->val();
-      EXPECT_TRUE(rootPatch);
-    } else {
-      auto rootPatch = patch.patch()->struct_node();
-      EXPECT_TRUE(rootPatch);
-    }
-    return patch;
-  };
-
-  auto patchAndVerify =
-      [this](Patch& patch, const auto& srcStorage, auto& tgtStorage) {
-        TestStruct srcState = srcStorage.get(this->root).value();
-        std::optional<StorageError> result = tgtStorage.patch(std::move(patch));
-        EXPECT_EQ(result.has_value(), false);
-        tgtStorage.publishCurrentState();
-        TestStruct tgtState = tgtStorage.get(this->root).value();
-        EXPECT_EQ(srcState, tgtState);
-      };
-
-  // 1. initial sync: patch initial sync, and verify target storage state
-  Patch patch = awaitPatch(genPatch, true);
-  patchAndVerify(patch, srcStorage, tgtStorage);
-
-  // 2. add new entry to map
-  int newKey = 99;
-  TestStructSimple newStruct;
-  newStruct.min() = 999;
-  newStruct.max() = 1001;
-  EXPECT_EQ(
-      srcStorage.set(this->root.structMap()[newKey], newStruct), std::nullopt);
-  patch = awaitPatch(genPatch);
-  patchAndVerify(patch, srcStorage, tgtStorage);
-
-  // 3. deep update existing entry in map
-  int newIntVal = 12345;
-  int oldKey = 3;
-  EXPECT_EQ(
-      srcStorage.set(
-          this->root.structMap()[oldKey].optionalIntegral(), newIntVal),
-      std::nullopt);
-  patch = awaitPatch(genPatch);
-  patchAndVerify(patch, srcStorage, tgtStorage);
-
-  // 4. delete existing entry from map
-  srcStorage.remove(this->root.structMap()[newKey]);
-  patch = awaitPatch(genPatch);
-  patchAndVerify(patch, srcStorage, tgtStorage);
-}
-
-TYPED_TEST(SubscribableStorageTests, HybridStorageDeltaPubSub) {
-  auto srcStorage = this->initHybridStorage(this->testStruct);
-  srcStorage.start();
-  auto tgtStorage = this->initStorage(this->testStruct);
-
-  auto generator = srcStorage.subscribe_delta(
-      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
-      this->root,
-      OperProtocol::SIMPLE_JSON);
-
-  auto awaitDelta = [](auto& deltaSubStream) -> OperDelta {
-    OperDelta deltaVal = folly::coro::blockingWait(folly::coro::timeout(
-        consumeOne(deltaSubStream), std::chrono::seconds(5)));
-    EXPECT_EQ(deltaVal.changes()->size(), 1);
-    return deltaVal;
-  };
-
-  auto patchAndVerify =
-      [this](OperDelta& delta, const auto& srcStorage, auto& tgtStorage) {
-        TestStruct srcState = srcStorage.get(this->root).value();
-        std::optional<StorageError> result = tgtStorage.patch(std::move(delta));
-        EXPECT_EQ(result.has_value(), false);
-        tgtStorage.publishCurrentState();
-        TestStruct tgtState = tgtStorage.get(this->root).value();
-        EXPECT_EQ(srcState, tgtState);
-      };
-
-  // 1. initial sync: patch initial sync, and verify target storage state
-  OperDelta deltaVal = awaitDelta(generator);
-  patchAndVerify(deltaVal, srcStorage, tgtStorage);
-
-  // 2. add new entry to map
-  int newKey = 99;
-  TestStructSimple newStruct;
-  newStruct.min() = 999;
-  newStruct.max() = 1001;
-  EXPECT_EQ(
-      srcStorage.set(this->root.structMap()[newKey], newStruct), std::nullopt);
-  deltaVal = awaitDelta(generator);
-  patchAndVerify(deltaVal, srcStorage, tgtStorage);
-
-  // 3. deep update existing entry in map
-  int newIntVal = 12345;
-  int oldKey = 3;
-  EXPECT_EQ(
-      srcStorage.set(
-          this->root.structMap()[oldKey].optionalIntegral(), newIntVal),
-      std::nullopt);
-  deltaVal = awaitDelta(generator);
-  patchAndVerify(deltaVal, srcStorage, tgtStorage);
-
-  // 4. delete existing entry from map
-  srcStorage.remove(this->root.structMap()[newKey]);
-  deltaVal = awaitDelta(generator);
-  patchAndVerify(deltaVal, srcStorage, tgtStorage);
-}
-
-TYPED_TEST(SubscribableStorageTests, verifySubscriberDeltaGranularity) {
-  auto storage = this->initStorage(this->testStruct);
-  storage.start();
-
-  auto generator = storage.subscribe_delta(
-      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
-      this->root,
-      OperProtocol::SIMPLE_JSON);
-
-  // 1. verify initial sync
-  auto deltaMsg = folly::coro::blockingWait(
-      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
-  // expect full tree
-  EXPECT_EQ(deltaMsg.changes()->size(), 1);
-  auto first = deltaMsg.changes()->at(0);
-  EXPECT_THAT(
-      *first.path()->raw(),
-      ::testing::ContainerEq(std::vector<std::string>({})));
-
-  // 2. add new entry to map
-  int newKey = 99;
-  TestStructSimple newStruct;
-  newStruct.min() = 999;
-  newStruct.max() = 1001;
-  EXPECT_EQ(
-      storage.set(this->root.structMap()[newKey], newStruct), std::nullopt);
-  deltaMsg = folly::coro::blockingWait(
-      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
-  // expect newly added entry
-  EXPECT_EQ(deltaMsg.changes()->size(), 1);
-  first = deltaMsg.changes()->at(0);
-  EXPECT_THAT(
-      *first.path()->raw(),
-      ::testing::ContainerEq(std::vector<std::string>({"structMap", "99"})));
-  EXPECT_FALSE(first.oldState());
-  TestStructSimple deserialized = facebook::fboss::thrift_cow::
-      deserialize<apache::thrift::type_class::structure, TestStructSimple>(
-          OperProtocol::SIMPLE_JSON, *first.newState());
-  EXPECT_EQ(deserialized, newStruct);
-
-  // 2. deep update existing entry in map
-  int newIntVal = 12345;
-  int oldKey = 3;
-  EXPECT_EQ(
-      storage.set(this->root.structMap()[oldKey].optionalIntegral(), newIntVal),
-      std::nullopt);
-  deltaMsg = folly::coro::blockingWait(
-      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
-  EXPECT_EQ(deltaMsg.changes()->size(), 1);
-  first = deltaMsg.changes()->at(0);
-  if (this->isHybridStorage()) {
-    // expect full struct
-    EXPECT_EQ(first.path()->raw()->size(), 2);
-    EXPECT_THAT(
-        *first.path()->raw(),
-        ::testing::ContainerEq(std::vector<std::string>({"structMap", "3"})));
-    deserialized = facebook::fboss::thrift_cow::
-        deserialize<apache::thrift::type_class::structure, TestStructSimple>(
-            OperProtocol::SIMPLE_JSON, *first.newState());
-    storage.publishCurrentState();
-    TestStructSimple updated =
-        storage.get(this->root.structMap()[oldKey]).value();
-    EXPECT_EQ(deserialized, updated);
-    EXPECT_EQ(deserialized.min(), 100);
-    EXPECT_EQ(deserialized.max(), 200);
-    EXPECT_EQ(deserialized.optionalIntegral(), 12345);
-  } else {
-    // expect only changed field
-    EXPECT_EQ(first.path()->raw()->size(), 3);
-    EXPECT_THAT(
-        *first.path()->raw(),
-        ::testing::ContainerEq(
-            std::vector<std::string>({"structMap", "3", "optionalIntegral"})));
-    EXPECT_FALSE(first.oldState());
-    auto deserializedInt32 = facebook::fboss::thrift_cow::
-        deserialize<apache::thrift::type_class::integral, int>(
-            OperProtocol::SIMPLE_JSON, *first.newState());
-    EXPECT_EQ(deserializedInt32, 12345);
-  }
-
-  // 3. delete existing entry from map
-  storage.remove(this->root.structMap()[newKey]);
-  deltaMsg = folly::coro::blockingWait(
-      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
-  // expect deleted entry
-  EXPECT_EQ(deltaMsg.changes()->size(), 1);
-  first = deltaMsg.changes()->at(0);
-  EXPECT_THAT(
-      *first.path()->raw(),
-      ::testing::ContainerEq(std::vector<std::string>({"structMap", "99"})));
-  EXPECT_TRUE(first.oldState());
-  EXPECT_FALSE(first.newState());
-  deserialized = facebook::fboss::thrift_cow::
-      deserialize<apache::thrift::type_class::structure, TestStructSimple>(
-          OperProtocol::SIMPLE_JSON, *first.oldState());
-  EXPECT_EQ(deserialized, newStruct);
 }
 
 TYPED_TEST(SubscribableStorageTests, SubscribePatch) {
@@ -542,13 +299,15 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatch) {
   auto storage = this->initStorage(this->testStruct);
   storage.setConvertToIDPaths(true);
 
-  auto generator = storage.subscribe_patch(
+  auto streamReader = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), this->root);
+  auto generator = std::move(streamReader.generator_);
   storage.start();
 
   // Initial sync post subscription setup
-  auto msg = folly::coro::blockingWait(
+  auto element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  auto msg = std::move(element.val);
   auto patchGroups = *msg.get_chunk().patchGroups();
   EXPECT_EQ(patchGroups.size(), 1);
   auto patches = patchGroups.begin()->second;
@@ -564,18 +323,20 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatch) {
 
   // Make changes, we should see that come in as a patch now
   EXPECT_EQ(storage.set(this->root.tx(), false), std::nullopt);
-  msg = folly::coro::blockingWait(
+  element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  msg = std::move(element.val);
   patchGroups = *msg.get_chunk().patchGroups();
   EXPECT_EQ(patchGroups.size(), 1);
   patches = patchGroups.begin()->second;
   EXPECT_EQ(patches.size(), 1);
   patch = patches.front();
-  using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
+  using LocalTestStructMembers =
+      apache::thrift::reflect_struct<TestStruct>::member;
   auto newVal = patch.patch()
                     ->struct_node_ref()
                     ->children()
-                    ->at(TestStructMembers::tx::id::value)
+                    ->at(LocalTestStructMembers::tx::id::value)
                     .val_ref();
   auto deserializedVal = facebook::fboss::thrift_cow::
       deserializeBuf<apache::thrift::type_class::integral, bool>(
@@ -592,13 +353,15 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchUpdate) {
   storage.start();
 
   const auto& path = this->root.stringToStruct()["test"].max();
-  auto generator = storage.subscribe_patch(
+  auto streamReader = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), path);
+  auto generator = std::move(streamReader.generator_);
 
   // set and check
   EXPECT_EQ(storage.set(path, 1), std::nullopt);
-  auto msg = folly::coro::blockingWait(
+  auto element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
+  auto msg = std::move(element.val);
   auto patchGroups = *msg.get_chunk().patchGroups();
   EXPECT_EQ(patchGroups.size(), 1);
   auto patches = patchGroups.begin()->second;
@@ -612,8 +375,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchUpdate) {
 
   // update and check
   EXPECT_EQ(storage.set(path, 10), std::nullopt);
-  msg = folly::coro::blockingWait(
+  element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
+  msg = std::move(element.val);
   patchGroups = *msg.get_chunk().patchGroups();
   EXPECT_EQ(patchGroups.size(), 1);
   patches = patchGroups.begin()->second;
@@ -640,17 +404,19 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchMulti) {
   // validate both tokens and idTokens work
   p1.path() = path1.tokens();
   p2.path() = path2.idTokens();
-  auto generator = storage.subscribe_patch(
+  auto streamReader = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       {
           {1, std::move(p1)},
           {2, std::move(p2)},
       });
+  auto generator = std::move(streamReader.generator_);
 
   // set and check, should only recv one patch on the path that exists
   EXPECT_EQ(storage.set(path1, 123), std::nullopt);
-  auto msg = folly::coro::blockingWait(
+  auto element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
+  auto msg = std::move(element.val);
   auto patchGroups = *msg.get_chunk().patchGroups();
   EXPECT_EQ(patchGroups.size(), 1);
   EXPECT_EQ(patchGroups.begin()->first, 1);
@@ -672,19 +438,20 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchMulti) {
   stringToStruct["test2"].max() = 200;
   EXPECT_EQ(
       storage.set(this->root.stringToStruct(), stringToStruct), std::nullopt);
-  msg = folly::coro::blockingWait(
+  element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
+  msg = std::move(element.val);
   patchGroups = *msg.get_chunk().patchGroups();
 
   EXPECT_EQ(patchGroups.size(), 2);
   for (auto& [key, patchGroup] : patchGroups) {
     EXPECT_EQ(patchGroup.size(), 1); // only one patch per raw path
-    auto& patch = patchGroup.front();
-    EXPECT_EQ(patch.basePath()[1], fmt::format("test{}", key));
-    auto rootPatch = patch.patch()->move_val();
+    auto& currentPatch = patchGroup.front();
+    EXPECT_EQ(currentPatch.basePath()[1], fmt::format("test{}", key));
+    auto currentRootPatch = currentPatch.patch()->move_val();
     deserialized = facebook::fboss::thrift_cow::
         deserializeBuf<apache::thrift::type_class::integral, int32_t>(
-            *patch.protocol(), std::move(rootPatch));
+            *currentPatch.protocol(), std::move(currentRootPatch));
     // above we set values such that it's sub key * 100 for easier testing
     EXPECT_EQ(deserialized, key * 100);
   }
@@ -696,16 +463,19 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchHeartbeat) {
   storage.setConvertToIDPaths(true);
   storage.start();
 
-  auto generator = storage.subscribe_patch(
+  auto streamReader = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), this->root);
+  auto generator = std::move(streamReader.generator_);
 
-  auto msg = folly::coro::blockingWait(
+  auto element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(20)));
+  auto msg = std::move(element.val);
   // first message is initial sync
   EXPECT_EQ(msg.getType(), SubscriberMessage::Type::chunk);
   // Should eventually recv heartbeat
-  msg = folly::coro::blockingWait(
+  element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(20)));
+  msg = std::move(element.val);
   EXPECT_EQ(msg.getType(), SubscriberMessage::Type::heartbeat);
 }
 
@@ -718,32 +488,35 @@ TYPED_TEST(SubscribableStorageTests, SubscribeHeartbeatConfigured) {
   SubscriptionStorageParams params1(std::chrono::seconds(2));
   SubscriptionStorageParams params2(std::chrono::seconds(10));
 
-  auto generator1 = storage.subscribe_patch(
+  auto streamReader1 = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       this->root,
       params1);
-  auto generator2 = storage.subscribe_patch(
-      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
-      this->root,
-      params2);
+  auto generator1 = std::move(streamReader1.generator_);
+  auto streamReader2 = storage.subscribe_patch(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), this->root);
+  auto generator2 = std::move(streamReader2.generator_);
 
-  auto msg1 = folly::coro::blockingWait(
+  auto element1 = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator1), std::chrono::seconds(20)));
+  auto msg1 = std::move(element1.val);
   // first message is initial sync
   EXPECT_EQ(msg1.getType(), SubscriberMessage::Type::chunk);
   // Should recv heartbeat every 2 seconds. Allow leeway incase previous
   // heartbeat was just sent
-  msg1 = folly::coro::blockingWait(
+  element1 = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator1), std::chrono::seconds(3)));
+  msg1 = std::move(element1.val);
   EXPECT_EQ(msg1.getType(), SubscriberMessage::Type::heartbeat);
 
   // First sync post subscription setup
-  auto msg2 = folly::coro::blockingWait(
+  auto element2 = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator2), std::chrono::seconds(5)));
+  auto msg2 = std::move(element2.val);
 
   // Heartbeat configured for 10 seconds, so we should not see one within 8
   try {
-    msg2 = folly::coro::blockingWait(
+    element2 = folly::coro::blockingWait(
         folly::coro::timeout(consumeOne(generator2), std::chrono::seconds(3)));
   } catch (const std::exception& ex) {
     EXPECT_EQ(typeid(ex), typeid(folly::FutureTimeout));
@@ -758,33 +531,38 @@ TYPED_TEST(SubscribableStorageTests, SubscribeHeartbeatNotReceived) {
 
   SubscriptionStorageParams params(std::chrono::seconds(30));
 
-  auto generator1 = storage.subscribe_patch(
+  auto streamReader1 = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       this->root,
       params);
+  auto generator1 = std::move(streamReader1.generator_);
   // Keep default subscription hearbeat interval of 5 seconds
-  auto generator2 = storage.subscribe_patch(
+  auto streamReader2 = storage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), this->root);
+  auto generator2 = std::move(streamReader2.generator_);
 
-  auto msg1 = folly::coro::blockingWait(
+  auto element1 = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator1), std::chrono::seconds(20)));
+  auto msg1 = std::move(element1.val);
   // first message is initial sync
   EXPECT_EQ(msg1.getType(), SubscriberMessage::Type::chunk);
   // Should not receive any heartbeat
   try {
-    msg1 = folly::coro::blockingWait(
+    element1 = folly::coro::blockingWait(
         folly::coro::timeout(consumeOne(generator1), std::chrono::seconds(20)));
   } catch (const std::exception& ex) {
     EXPECT_EQ(typeid(ex), typeid(folly::FutureTimeout));
   }
   // First sync post subscription setup
-  auto msg2 = folly::coro::blockingWait(
+  auto element2 = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator2), std::chrono::seconds(5)));
+  auto msg2 = std::move(element2.val);
 
   // Should recv heartbeat every 5 seconds(default interval). Allow leeway
   // incase previous heartbeat was just sent
-  msg2 = folly::coro::blockingWait(
+  element2 = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator2), std::chrono::seconds(6)));
+  msg2 = std::move(element2.val);
   EXPECT_EQ(msg2.getType(), SubscriberMessage::Type::heartbeat);
 }
 
@@ -793,15 +571,17 @@ TYPED_TEST(SubscribableStorageTests, SubscribeDeltaUpdate) {
   storage.start();
 
   const auto& path = this->root.stringToStruct()["test"].max();
-  auto generator = storage.subscribe_delta(
+  auto streamReader = storage.subscribe_delta(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       path,
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
 
   // set value and subscribe
   EXPECT_EQ(storage.set(path, 1), std::nullopt);
-  auto deltaVal = folly::coro::blockingWait(
+  auto element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
+  auto deltaVal = std::move(element.val);
   EXPECT_EQ(deltaVal.changes()->size(), 1);
   auto first = deltaVal.changes()->at(0);
   EXPECT_THAT(
@@ -812,8 +592,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeDeltaUpdate) {
 
   // update value
   EXPECT_EQ(storage.set(path, 10), std::nullopt);
-  deltaVal = folly::coro::blockingWait(
+  element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
+  deltaVal = std::move(element.val);
   EXPECT_EQ(deltaVal.changes()->size(), 1);
   auto second = deltaVal.changes()->at(0);
   EXPECT_THAT(
@@ -827,10 +608,11 @@ TYPED_TEST(SubscribableStorageTests, SubscribeDeltaAddRemoveParent) {
   // add subscription for a path that doesn't exist yet, then add parent
   auto storage = this->initStorage(this->testStruct);
   auto path = this->root.structMap()[99].min();
-  auto generator = storage.subscribe_delta(
+  auto streamReader = storage.subscribe_delta(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       std::move(path),
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
   if (this->isHybridStorage()) {
     // extended subscription under HybridNode is unsupported
     return;
@@ -842,8 +624,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeDeltaAddRemoveParent) {
   newStruct.min() = 999;
   newStruct.max() = 1001;
   EXPECT_EQ(storage.set(this->root.structMap()[99], newStruct), std::nullopt);
-  auto deltaVal = folly::coro::blockingWait(
+  auto element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  auto deltaVal = std::move(element.val);
 
   EXPECT_EQ(deltaVal.changes()->size(), 1);
   EXPECT_TRUE(deltaVal.metadata());
@@ -858,8 +641,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeDeltaAddRemoveParent) {
 
   // now delete the parent and verify we see the deletion delta too
   storage.remove(this->root.structMap()[99]);
-  deltaVal = folly::coro::blockingWait(
+  element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  deltaVal = std::move(element.val);
 
   EXPECT_EQ(deltaVal.changes()->size(), 1);
   EXPECT_TRUE(deltaVal.metadata());
@@ -1022,10 +806,11 @@ TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaSimple) {
   // add subscription for a path that doesn't exist yet, then add parent
   auto storage = this->initStorage(this->testStruct);
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
-  auto generator = storage.subscribe_delta_extended(
+  auto streamReader = storage.subscribe_delta_extended(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       {path},
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
   if (this->isHybridStorage()) {
     // extended subscription under HybridNode is unsupported
     return;
@@ -1035,8 +820,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaSimple) {
 
   EXPECT_EQ(
       storage.set(this->root.mapOfStringToI32()["test1"], 998), std::nullopt);
-  auto streamedVal = folly::coro::blockingWait(
+  auto element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  auto streamedVal = std::move(element.val);
 
   EXPECT_EQ(streamedVal.size(), 1);
   EXPECT_EQ(streamedVal.at(0).delta()->changes()->size(), 1);
@@ -1066,10 +852,11 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaUpdate) {
 
   const auto& path =
       ext_path_builder::raw("stringToStruct").regex("test1.*").raw("max").get();
-  auto generator = storage.subscribe_delta_extended(
+  auto streamReader = storage.subscribe_delta_extended(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       {path},
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
   if (this->isHybridStorage()) {
     // extended subscription under HybridNode is unsupported
   } else {
@@ -1091,10 +878,11 @@ TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaMultipleChanges) {
   // add subscription for a path that doesn't exist yet, then add parent
   auto storage = this->initStorage(this->testStruct);
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
-  auto generator = storage.subscribe_delta_extended(
+  auto streamReader = storage.subscribe_delta_extended(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       {path},
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
   if (this->isHybridStorage()) {
     // extended subscription under HybridNode is unsupported
     return;
@@ -1105,8 +893,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaMultipleChanges) {
   EXPECT_EQ(
       storage.set(this->root, createTestStructForExtendedTests()),
       std::nullopt);
-  auto streamedVal = folly::coro::blockingWait(
+  auto element = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  auto streamedVal = std::move(element.val);
 
   std::map<std::vector<std::string>, int> expected = {
       {{"mapOfStringToI32", "test1"}, 1},
@@ -1317,16 +1106,17 @@ TYPED_TEST(SubscribableStorageTests, PruneSubscriptionPathStores) {
 
   // create subscriber
   const auto& path = this->root.stringToStruct()["test"].max();
-  auto generator = storage.subscribe_delta(
+  auto streamReader = storage.subscribe_delta(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       path,
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
 
   // add path and wait for it to be served (publishAndAddPaths)
   EXPECT_EQ(storage.set(path, 1), std::nullopt);
   auto deltaVal = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
-  EXPECT_EQ(deltaVal.changes()->size(), 1);
+  EXPECT_EQ(deltaVal.val.changes()->size(), 1);
 
   auto initialNumPathStores = storage.numPathStoresRecursive_Expensive();
   XLOG(DBG2) << "initialNumPathStores: " << initialNumPathStores;
@@ -1336,7 +1126,7 @@ TYPED_TEST(SubscribableStorageTests, PruneSubscriptionPathStores) {
   EXPECT_EQ(storage.set(path, 2), std::nullopt);
   deltaVal = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
-  EXPECT_EQ(deltaVal.changes()->size(), 1);
+  EXPECT_EQ(deltaVal.val.changes()->size(), 1);
 
   auto maxNumPathStores = storage.numPathStoresRecursive_Expensive();
   // with lazy PathStore creation, numPathStores should not change
@@ -1348,7 +1138,7 @@ TYPED_TEST(SubscribableStorageTests, PruneSubscriptionPathStores) {
   EXPECT_EQ(storage.set(path, 3), std::nullopt);
   deltaVal = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
-  EXPECT_EQ(deltaVal.changes()->size(), 1);
+  EXPECT_EQ(deltaVal.val.changes()->size(), 1);
 
   // after path deletion, numPathStores should drop
   auto finalNumPathStores = storage.numPathStoresRecursive_Expensive();
@@ -1375,9 +1165,10 @@ TYPED_TEST(SubscribableStorageTests, ApplyPatch) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStructSimple>>(
       std::move(newStruct));
 
-  using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
+  using LocalTestStructMembers =
+      apache::thrift::reflect_struct<TestStruct>::member;
   std::vector<std::string> path = {
-      folly::to<std::string>(TestStructMembers::member::id::value)};
+      folly::to<std::string>(LocalTestStructMembers::member::id::value)};
   auto patch = PatchBuilder::build(nodeA, nodeB, std::move(path));
 
   auto memberStruct = storage.get(this->root.member());
@@ -1429,8 +1220,9 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchSimple) {
 
     EXPECT_EQ(
         storage.set(this->root.mapOfStringToI32()["test1"], 998), std::nullopt);
-    auto msg = co_await folly::coro::timeout(
+    auto element = co_await folly::coro::timeout(
         consumeOne(generator), std::chrono::seconds(5));
+    auto msg = std::move(element.val);
     auto chunk = msg.get_chunk();
 
     EXPECT_EQ(
@@ -1454,6 +1246,8 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
   storage.setConvertToIDPaths(true);
   storage.start();
 
+  auto tgtStorage = this->createCowStorage(this->testStruct);
+
   const auto& path =
       ext_path_builder::raw("stringToStruct").regex("test1.*").raw("max").get();
   auto generator = storage.subscribe_patch_extended(
@@ -1468,18 +1262,26 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
         folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
     EXPECT_FALSE(ret.hasException());
 
+    for (auto& patch : ret.value().val.chunk_ref()->patchGroups()->at(0)) {
+      EXPECT_EQ(tgtStorage.patch(std::move(patch)), std::nullopt);
+    }
+
     // update value
     EXPECT_EQ(storage.set(setPath, 10), std::nullopt);
     ret = co_await co_awaitTry(
         folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
     EXPECT_FALSE(ret.hasException());
 
+    for (auto& patch : ret.value().val.chunk_ref()->patchGroups()->at(0)) {
+      EXPECT_EQ(tgtStorage.patch(std::move(patch)), std::nullopt);
+    }
+
     // remove value
     storage.remove(this->root.stringToStruct()["test1"]);
     ret = co_await co_awaitTry(
         folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
     EXPECT_FALSE(ret.hasException());
-    SubscriberChunk subChunk = *ret->chunk_ref();
+    SubscriberChunk subChunk = *ret.value().val.chunk_ref();
     EXPECT_EQ(subChunk.patchGroups()->size(), 1);
     EXPECT_EQ(subChunk.patchGroups()->at(0).size(), 1);
     auto patch = subChunk.patchGroups()->at(0).front();
@@ -1487,6 +1289,9 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
     EXPECT_EQ(
         patch.patch()->getType(),
         facebook::fboss::thrift_cow::PatchNode::Type::del);
+    for (auto& subPatch : ret.value().val.chunk_ref()->patchGroups()->at(0)) {
+      EXPECT_EQ(tgtStorage.patch(std::move(subPatch)), std::nullopt);
+    }
   }
 }
 
@@ -1507,8 +1312,9 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchMultipleChanges) {
     EXPECT_EQ(
         storage.set(this->root, createTestStructForExtendedTests()),
         std::nullopt);
-    auto msg = co_await folly::coro::timeout(
+    auto element = co_await folly::coro::timeout(
         consumeOne(generator), std::chrono::seconds(5));
+    auto msg = std::move(element.val);
     auto chunk = msg.get_chunk();
 
     EXPECT_EQ(
@@ -1551,9 +1357,7 @@ class SubscribableStorageTestsPathDelta
   void SetUp() override {
     const std::tuple<bool> params = GetParam();
     isPath = get<0>(params);
-    auto testDyn = createTestDynamic();
-    testStruct = facebook::thrift::from_dynamic<TestStruct>(
-        testDyn, facebook::thrift::dynamic_format::JSON_1);
+    testStruct = initializeTestStruct();
   }
 
  protected:
@@ -1586,8 +1390,9 @@ CO_TEST_P(SubscribableStorageTestsPathDelta, UnregisterSubscriber) {
           folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
       EXPECT_FALSE(ret.hasException());
     } else {
-      auto generator = storage.subscribe_delta_extended(
+      auto streamReader = storage.subscribe_delta_extended(
           std::move(subId), {path}, OperProtocol::SIMPLE_JSON);
+      auto generator = std::move(streamReader.generator_);
       auto ret = co_await co_awaitTry(
           folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
       EXPECT_FALSE(ret.hasException());
@@ -1622,8 +1427,9 @@ CO_TEST_P(SubscribableStorageTestsPathDelta, UnregisterSubscriberMulti) {
       co_await folly::coro::sleep(
           std::chrono::milliseconds(folly::Random::rand32(0, 5000)));
     } else {
-      auto generator = storage.subscribe_delta_extended(
+      auto streamReader = storage.subscribe_delta_extended(
           std::move(subId), {path}, OperProtocol::SIMPLE_JSON);
+      auto generator = std::move(streamReader.generator_);
       co_await folly::coro::sleep(
           std::chrono::milliseconds(folly::Random::rand32(0, 5000)));
     }

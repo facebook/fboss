@@ -32,6 +32,18 @@ extern "C" {
 #endif
 }
 
+#include "common/stats/DynamicStats.h"
+
+namespace {
+
+DEFINE_dynamic_quantile_stat(
+    buffer_watermark_cpu,
+    "buffer_watermark_cpu.queue{}",
+    facebook::fb303::ExportTypeConsts::kNone,
+    std::array<double, 1>{{1.0}});
+
+} // unnamed namespace
+
 using namespace std::chrono;
 
 namespace facebook::fboss {
@@ -732,7 +744,10 @@ void SaiHostifManager::loadCpuPort() {
     }
 #endif
   }
-  loadCpuPortQueues();
+  // Load CPU queues only for switches with CPU queues
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_QUEUES)) {
+    loadCpuPortQueues();
+  }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::VOQ)) {
     loadCpuSystemPortVoqs();
   }
@@ -773,6 +788,11 @@ HwPortStats SaiHostifManager::getCpuPortStats() const {
 
 uint32_t SaiHostifManager::getMaxCpuQueues() const {
   auto asic = platform_->getAsic();
+  if (asic->isSupported(HwAsic::Feature::CPU_PORT) &&
+      !asic->isSupported(HwAsic::Feature::CPU_QUEUES)) {
+    // Switch with CPU port support, but not CPU queues
+    return 0;
+  }
   auto cpuQueueTypes = asic->getQueueStreamTypes(cfg::PortType::CPU_PORT);
   CHECK_EQ(cpuQueueTypes.size(), 1);
   return asic->getDefaultNumPortQueues(
@@ -931,6 +951,11 @@ void SaiHostifManager::setCpuSystemPortQosPolicy(QosMapSaiId tcToQueue) {
         cpuPortHandle_->cpuSystemPortId.value(),
         SaiSystemPortTraits::Attributes::QosTcToQueueMap{tcToQueue});
   }
+}
+
+void SaiHostifManager::publishCpuQueueWatermark(int queue, uint64_t peakBytes)
+    const {
+  STATS_buffer_watermark_cpu.addValue(peakBytes, queue);
 }
 
 } // namespace facebook::fboss

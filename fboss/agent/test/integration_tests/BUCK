@@ -57,6 +57,7 @@ cpp_library(
         deps = [
             "fbsource//third-party/googletest:gtest",
             "//fboss/agent:main-bcm",
+            "//fboss/agent:setup_thrift_prod",
             "//fboss/agent/hw/bcm/tests:agent_hw_test_thrift_handler",
             "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
             "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",

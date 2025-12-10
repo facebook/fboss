@@ -47,16 +47,23 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
   }
   // Add the action
   rd.action() = forwardActionStr(fwd().getAction());
-  auto nhopSet = normalizedNhopWeights ? fwd().normalizedNextHops()
-                                       : fwd().getNextHopSet();
   // Add the forwarding info
-  for (const auto& nh : nhopSet) {
-    IfAndIP ifAndIp;
-    *ifAndIp.interfaceID() = nh.intf();
-    *ifAndIp.ip() = toBinaryAddress(nh.addr());
-    rd.fwdInfo()->push_back(ifAndIp);
-    rd.nextHops()->push_back(nh.toThrift());
-  }
+  auto fillNextHops = [](const auto& nhopSet, auto& rdetails) {
+    rdetails.fwdInfo()->clear();
+    std::vector<NextHopThrift> nhops;
+    for (const auto& nh : nhopSet) {
+      IfAndIP ifAndIp;
+      *ifAndIp.interfaceID() = nh.intf();
+      *ifAndIp.ip() = toBinaryAddress(nh.addr());
+      rdetails.fwdInfo()->push_back(ifAndIp);
+      nhops.push_back(nh.toThrift());
+    }
+    return nhops;
+  };
+  // if no overrideNextHops nonOverrideNormalizedNextHops == normalizedNextHops
+  auto nhopSet = normalizedNhopWeights ? fwd().nonOverrideNormalizedNextHops()
+                                       : fwd().getNextHopSet();
+  rd.nextHops() = fillNextHops(nhopSet, rd);
 
   // Add the multi-nexthops
   rd.nextHopMulti() = nexthopsmulti().toThriftLegacy();
@@ -68,6 +75,14 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
   // add class id
   if (getClassID().has_value()) {
     rd.classID() = *getClassID();
+  }
+  if (isResolved() && fwd().getOverrideEcmpSwitchingMode().has_value()) {
+    rd.overridenEcmpMode() = *fwd().getOverrideEcmpSwitchingMode();
+  }
+  if (isResolved() && fwd().getOverrideNextHops().has_value()) {
+    auto overrideNhopSet = normalizedNhopWeights ? fwd().normalizedNextHops()
+                                                 : *fwd().getOverrideNextHops();
+    rd.overridenNextHops() = fillNextHops(overrideNhopSet, rd);
   }
   return rd;
 }
@@ -86,7 +101,7 @@ bool RouteFields<AddrT>::has(ClientID clientId, const RouteNextHopEntry& entry)
     const {
   auto found = RouteNextHopsMulti::getEntryForClient(
       clientId, *(this->data().nexthopsmulti()));
-  return found and *found == entry;
+  return found && *found == entry;
 }
 
 template <typename AddrT>
@@ -155,12 +170,7 @@ template struct RouteFields<LabelID>;
 template <typename AddrT>
 RouteDetails Route<AddrT>::toRouteDetails(bool normalizedNhopWeights) const {
   RouteFields<AddrT> fields{this->toThrift()};
-  auto rd = fields.toRouteDetails(normalizedNhopWeights);
-  if (isResolved() &&
-      getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
-    rd.overridenEcmpMode() = *getForwardInfo().getOverrideEcmpSwitchingMode();
-  }
-  return rd;
+  return fields.toRouteDetails(normalizedNhopWeights);
 }
 
 template <typename AddrT>

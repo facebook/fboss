@@ -35,9 +35,9 @@ class BcmPortStressTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(BcmPortStressTest, statEnableLoop) {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
+  auto setup = [=, this]() { applyNewConfig(initialConfig()); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto portTable = static_cast<BcmSwitch*>(getHwSwitch())->getPortTable();
     for (auto i = 0; i < 500; ++i) {
       for (const auto& portMap :

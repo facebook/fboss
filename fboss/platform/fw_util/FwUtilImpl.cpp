@@ -16,6 +16,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
+#include "fboss/platform/fw_util/ConfigValidator.h"
 #include "fboss/platform/fw_util/FwUtilImpl.h"
 #include "fboss/platform/fw_util/fw_util_helpers.h"
 #include "fboss/platform/helpers/PlatformNameLib.h"
@@ -33,6 +34,11 @@ void FwUtilImpl::init() {
   } catch (const std::exception& e) {
     XLOG(ERR) << "Error deserializing FwUtilConfig: " << e.what();
   }
+  if (!ConfigValidator().isValid(fwUtilConfig_)) {
+    XLOG(ERR) << "Invalid fw_util config! Aborting...";
+    throw std::runtime_error("Invalid fw_util Config. Aborting...");
+  }
+
   for (const auto& [fpd, fwConfigs] : *fwUtilConfig_.fwConfigs()) {
     fwDeviceNamesByPrio_.emplace_back(fpd, *fwConfigs.priority());
   }
@@ -48,14 +54,14 @@ void FwUtilImpl::init() {
       fwDeviceNamesByPrio_, fwUtilConfig_);
 }
 
-std::string FwUtilImpl::printFpdList() {
-  // get list of firmware devide name
-  std::string fpdList;
+std::vector<std::string> FwUtilImpl::getFpdNameList() {
+  std::vector<std::string> fpdNameList;
+  fpdNameList.reserve(fwDeviceNamesByPrio_.size());
   for (const auto& fpd : fwDeviceNamesByPrio_) {
-    fpdList += fpd.first + " ";
+    fpdNameList.emplace_back(fpd.first);
   }
 
-  return fpdList;
+  return fpdNameList;
 }
 
 std::tuple<std::string, FwConfig> FwUtilImpl::getFpd(
@@ -70,9 +76,10 @@ std::tuple<std::string, FwConfig> FwUtilImpl::getFpd(
       return std::tuple(fpdName, fpd);
     }
   }
-  throw std::runtime_error(fmt::format(
-      "Invalid firmware target name: {}\nUse fw-util --fw_action=list to see available firmware targets",
-      searchFpdName));
+  throw std::runtime_error(
+      fmt::format(
+          "Invalid firmware target name: {}\nUse fw-util --fw_action=list to see available firmware targets",
+          searchFpdName));
 }
 
 void FwUtilImpl::doFirmwareAction(
@@ -165,7 +172,7 @@ void FwUtilImpl::printVersion(const std::string& fpd) {
 void FwUtilImpl::doVersionAudit() {
   bool mismatch = false;
   for (const auto& [fpdName, fwConfig] : *fwUtilConfig_.fwConfigs()) {
-    std::string desiredVersion = *fwConfig.desiredVersion();
+    std::string desiredVersion = fwConfig.desiredVersion().value_or("");
     if (desiredVersion.empty()) {
       XLOGF(
           INFO,

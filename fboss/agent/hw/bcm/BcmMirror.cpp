@@ -356,12 +356,12 @@ void BcmMirror::applyPortMirrorActions(MirrorAction action) {
 
 void BcmMirror::applyAclMirrorActions(MirrorAction action) {
   hw_->getAclTable()->forFilteredEach(
-      [=](const auto& aclTableEntry) {
+      [=, this](const auto& aclTableEntry) {
         const auto& bcmAclEntry = aclTableEntry.second;
         return bcmAclEntry->getIngressAclMirror() == mirrorName_ ||
             bcmAclEntry->getEgressAclMirror() == mirrorName_;
       },
-      [=](const auto& aclTableEntry) {
+      [=, this](const auto& aclTableEntry) {
         const auto& bcmAclEntry = aclTableEntry.second;
         const auto bcmAclEntryHandle = bcmAclEntry->getHandle();
 

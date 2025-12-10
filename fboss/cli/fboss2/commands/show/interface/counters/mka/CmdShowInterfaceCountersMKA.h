@@ -54,8 +54,9 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
     return createModel(intfsMKAStatsMap);
   }
 
-  RetType createModel(const std::map<std::string, facebook::fboss::MacsecStats>&
-                          intfsMKAStatsMap) {
+  RetType createModel(
+      const std::map<std::string, facebook::fboss::MacsecStats>&
+          intfsMKAStatsMap) {
     RetType model;
     model.intfMKAStats() = intfsMKAStatsMap;
 

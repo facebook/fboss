@@ -1,3 +1,5 @@
+package "facebook.com/fboss/fsdb"
+
 namespace py3 neteng.fboss
 namespace py neteng.fboss.fsdb
 namespace py.asyncio neteng.fboss.asyncio.fsdb
@@ -44,6 +46,9 @@ struct OperSubscriberInfo {
   7: optional map<fsdb_oper.SubscriptionKey, fsdb_oper.RawOperPath> paths;
   8: optional i64 subscriptionUid;
   9: optional i32 subscriptionQueueWatermark;
+  10: optional i32 subscriptionChunksCoalesced;
+  11: optional i64 enqueuedDataSize;
+  12: optional i64 servedDataSize;
 }
 
 @cpp.Type{template = "folly::F14FastMap"}
@@ -179,6 +184,14 @@ service FsdbService extends fb303.FacebookService {
   > subscribeStats(1: fsdb_oper.SubRequest request) throws (
     1: fsdb_common.FsdbException e,
   );
+
+  fsdb_oper.OperSubInitResponse, stream<
+    fsdb_oper.SubscriberMessage throws (1: fsdb_common.FsdbException e)
+  > subscribeStateExtended(1: fsdb_oper.SubRequest request);
+
+  fsdb_oper.OperSubInitResponse, stream<
+    fsdb_oper.SubscriberMessage throws (1: fsdb_common.FsdbException e)
+  > subscribeStatsExtended(1: fsdb_oper.SubRequest request);
 
   // Custom Oper getters: add specific state getters here if
   // desired.

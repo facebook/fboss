@@ -20,6 +20,11 @@ DEFINE_bool(
     false,
     "Used by certain tests where we don't want to bring up ports by toggler");
 
+DEFINE_bool(
+    enable_sdk_dump_on_fail,
+    false,
+    "generate sdk debug dump on failure");
+
 namespace {
 int kArgc;
 char** kArgv;
@@ -113,6 +118,10 @@ void AgentHwTest::TearDown() {
       (::testing::Test::HasFailure() && FLAGS_run_forever_on_failure)) {
     runForever();
   }
+  if (FLAGS_enable_sdk_dump_on_fail &&
+      (testing::Test::HasFatalFailure() || testing::Test::HasFailure())) {
+    agentEnsemble_->getHwDebugDump();
+  }
   tearDownAgentEnsemble();
 }
 
@@ -165,8 +174,13 @@ const std::shared_ptr<SwitchState> AgentHwTest::getProgrammedState() const {
   return getAgentEnsemble()->getProgrammedState();
 }
 
-std::vector<PortID> AgentHwTest::masterLogicalPortIds() const {
-  return getAgentEnsemble()->masterLogicalPortIds();
+std::vector<PortID> AgentHwTest::masterLogicalPortIds(
+    std::optional<SwitchID> switchId) const {
+  // If no switchIndex provided, return default filtered ports
+  if (!switchId.has_value()) {
+    return getAgentEnsemble()->masterLogicalPortIds();
+  }
+  return getAgentEnsemble()->masterLogicalPortIds(switchId.value());
 }
 
 std::vector<PortID> AgentHwTest::masterLogicalPortIds(
@@ -630,6 +644,13 @@ void AgentHwTest::populateNdpNeighborsToCache(
         ->runInFbossEventBaseThread(
             [vlan, ndpCache] { ndpCache->repopulate(vlan->getNdpTable()); });
   }
+}
+
+bool isWarmbootSetupRequested() {
+  // Parse gflags to read the setup_for_warmboot flag
+  // The false parameter means don't remove parsed flags from argc/argv
+  gflags::ParseCommandLineFlags(&kArgc, &kArgv, false);
+  return FLAGS_setup_for_warmboot;
 }
 
 void initAgentHwTest(

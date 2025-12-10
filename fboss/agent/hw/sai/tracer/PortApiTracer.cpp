@@ -30,10 +30,14 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, PortVlanId),
     SAI_ATTR_MAP(Port, Mtu),
     SAI_ATTR_MAP(Port, QosDscpToTcMap),
+    SAI_ATTR_MAP(Port, QosDot1pToTcMap),
+    SAI_ATTR_MAP(Port, QosTcAndColorToDot1pMap),
     SAI_ATTR_MAP(Port, QosTcToQueueMap),
     SAI_ATTR_MAP(Port, DisableTtlDecrement),
     SAI_ATTR_MAP(Port, QosNumberOfQueues),
     SAI_ATTR_MAP(Port, QosQueueList),
+    SAI_ATTR_MAP(Port, QosEgressBufferProfileList),
+    SAI_ATTR_MAP(Port, QosIngressBufferProfileList),
     SAI_ATTR_MAP(Port, Type),
     SAI_ATTR_MAP(Port, InterfaceType),
     SAI_ATTR_MAP(Port, PktTxEnable),
@@ -150,6 +154,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, FabricDataCellsFilterStatus)
   SAI_EXT_ATTR_MAP(Port, ReachabilityGroup)
   SAI_EXT_ATTR_MAP(Port, FecErrorDetectEnable)
+  SAI_EXT_ATTR_MAP(Port, AmIdles)
+  SAI_EXT_ATTR_MAP(Port, ResetQueueCreditBalance)
   SAI_EXT_ATTR_MAP(PortSerdes, TxDiffEncoderEn)
   SAI_EXT_ATTR_MAP(PortSerdes, TxDigGain)
   SAI_EXT_ATTR_MAP(PortSerdes, TxFfeCoeff0)
@@ -187,7 +193,10 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, CondEntropyRehashSeed)
   SAI_EXT_ATTR_MAP(Port, ShelEnable)
   SAI_EXT_ATTR_MAP(Port, PgDropStatus)
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  SAI_EXT_ATTR_MAP(Port, FabricSystemPort)
+  SAI_EXT_ATTR_MAP(Port, StaticModuleId)
+  SAI_EXT_ATTR_MAP(Port, PfcMonitorDirection)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   SAI_EXT_ATTR_MAP(PortSerdes, Dco)
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)
   SAI_EXT_ATTR_MAP(PortSerdes, FltS)
@@ -208,6 +217,8 @@ void handleExtensionAttributes() {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
   SAI_EXT_ATTR_MAP(Port, ArsLinkState)
 #endif
+  SAI_EXT_ATTR_MAP(Port, IsHyperPortMember)
+  SAI_EXT_ATTR_MAP(Port, HyperPortMemberList)
 }
 
 } // namespace

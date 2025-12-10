@@ -15,7 +15,7 @@ include "fboss/platform/weutil/if/eeprom_contents.thrift"
 @hack.Attributes{
   attributes = [
     "\Oncalls('net_ui')",
-    "\JSEnum",
+    "\JSEnum(shape('flow_enum' => false))",
     "\GraphQLEnum('NetengFbossPlatformManagerExplorationStatus')",
     "\SelfDescriptive",
     "\RelayFlowEnum",
@@ -32,7 +32,7 @@ enum ExplorationStatus {
 @hack.Attributes{
   attributes = [
     "\Oncalls('net_ui')",
-    "\JSEnum",
+    "\JSEnum(shape('flow_enum' => false))",
     "\GraphQLEnum('NetengFbossPlatformManagerErrorCode')",
     "\SelfDescriptive",
     "\RelayFlowEnum",
@@ -64,7 +64,6 @@ struct ExplorationError {
 struct PlatformManagerStatus {
   1: ExplorationStatus explorationStatus;
   2: i64 lastExplorationTime;
-  @cpp.Type{template = "std::unordered_map"}
   3: optional map<string, list<ExplorationError>> failedDevices;
 }
 

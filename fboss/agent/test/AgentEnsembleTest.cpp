@@ -23,6 +23,10 @@ char** argVec{nullptr};
 DECLARE_string(config);
 DECLARE_bool(disable_looped_fabric_ports);
 DECLARE_bool(intf_nbr_tables);
+DEFINE_bool(
+    enable_sdk_dump,
+    false,
+    "Generate sdk debug dump when exiting test");
 
 namespace facebook::fboss {
 
@@ -66,6 +70,10 @@ void AgentEnsembleTest::TearDown() {
       (::testing::Test::HasFailure() && FLAGS_run_forever_on_failure)) {
     runForever();
   }
+  if (FLAGS_enable_sdk_dump) {
+    agentEnsemble_->getHwDebugDump();
+  }
+
   if (FLAGS_setup_for_warmboot &&
       isSupportedOnAllAsics(HwAsic::Feature::WARMBOOT)) {
     XLOG(DBG2) << "tearDownAgentEnsemble() for warmboot";
@@ -108,8 +116,8 @@ std::map<PortID, HwPortStats> AgentEnsembleTest::getPortStats(
       [&portStats, &ports, this]() {
         portStats = getSw()->getHwPortStats(ports);
         // Check collect timestamp is valid
-        for (const auto& [portId, portStats] : portStats) {
-          if (*portStats.timestamp_() ==
+        for (const auto& [portId, portStat] : portStats) {
+          if (*portStat.timestamp_() ==
               hardware_stats_constants::STAT_UNINITIALIZED()) {
             return false;
           }
@@ -341,8 +349,8 @@ std::map<std::string, HwPortStats> AgentEnsembleTest::getNextUpdatedHwPortStats(
           return false;
         }
         // Make sure that the other ports have valid stats
-        for (const auto& [port, portStats] : portStats) {
-          if (*portStats.timestamp_() ==
+        for (const auto& [port, portStat] : portStats) {
+          if (*portStat.timestamp_() ==
               hardware_stats_constants::STAT_UNINITIALIZED()) {
             return false;
           }

@@ -22,16 +22,6 @@
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
-namespace {
-using namespace facebook::fboss;
-sai_macsec_direction_t mkaDirectionToSaiDirection(
-    facebook::fboss::mka::MacsecDirection direction) {
-  return direction == mka::MacsecDirection::INGRESS
-      ? SAI_MACSEC_DIRECTION_INGRESS
-      : SAI_MACSEC_DIRECTION_EGRESS;
-}
-} // namespace
-
 namespace facebook::fboss {
 
 SaiPhyManager::SaiPhyManager(const PlatformMapping* platformMapping)
@@ -110,45 +100,77 @@ SaiSwitch* SaiPhyManager::getSaiSwitch(PortID portID) {
   return static_cast<SaiSwitch*>(getSaiPlatform(portID)->getHwSwitch());
 }
 
+void SaiPhyManager::collectXphyStats(
+    GlobalXphyID xphyID,
+    PlatformInfo* platformInfo) {
+  try {
+    if (!platformInfo->getHwSwitch() ||
+        !platformInfo->getHwSwitch()->isFullyConfigured()) {
+      XLOG(WARN) << "Skipping xphy stats collection for xphy " << xphyID
+                 << " as it's not fully configured";
+      return;
+    }
+    platformInfo->getHwSwitch()->updateStats();
+    platformInfo->getHwSwitch()->updateAllPhyInfo();
+    auto phyInfos = platformInfo->getHwSwitch()->getAllPhyInfo();
+    for (auto& [portId, phyInfo] : phyInfos) {
+      updateXphyInfo(portId, std::move(phyInfo));
+    }
+  } catch (const std::exception& e) {
+    XLOG(INFO) << "Stats collection failed on : " << "switch: "
+               << platformInfo->getHwSwitch()->getSaiSwitchId()
+               << " xphy: " << xphyID << " error: " << e.what();
+  }
+}
+
 void SaiPhyManager::updateAllXphyPortsStats() {
   for (auto& pimAndXphyToPlatforms : saiPlatforms_) {
     auto pimId = pimAndXphyToPlatforms.first;
-    auto& ongoingStatsCollection = pim2OngoingStatsCollection_[pimId];
-    if (ongoingStatsCollection && !ongoingStatsCollection->isReady()) {
-      XLOG(DBG4) << " Sai stats collection for PIM : " << pimId
-                 << "is still ongoing";
-    } else {
-      pim2OngoingStatsCollection_[pimId] =
-          folly::via(getPimEventBase(pimId)).thenValue([this, pimId](auto&&) {
-            steady_clock::time_point begin = steady_clock::now();
-            auto& xphyToPlatform = saiPlatforms_.find(pimId)->second;
-            for (auto& [xphy, platformInfo] : xphyToPlatform) {
-              try {
-                if (!platformInfo->getHwSwitch() ||
-                    !platformInfo->getHwSwitch()->isFullyConfigured()) {
-                  XLOG(WARN) << "Skipping xphy stats collection for xphy "
-                             << xphy << " as it's not fully configured";
-                  continue;
-                }
-                platformInfo->getHwSwitch()->updateStats();
-                platformInfo->getHwSwitch()->updateAllPhyInfo();
-                auto phyInfos = platformInfo->getHwSwitch()->getAllPhyInfo();
-                for (auto& [portId, phyInfo] : phyInfos) {
-                  updateXphyInfo(portId, std::move(phyInfo));
-                }
-              } catch (const std::exception& e) {
-                XLOG(INFO) << "Stats collection failed on : " << "switch: "
-                           << platformInfo->getHwSwitch()->getSaiSwitchId()
-                           << " xphy: " << xphy << " error: " << e.what();
+
+    // For XPHY_LEVEL threading, we spawn a task per xphy instead of per pim
+    if (getXphyThreadingModel() == XphyThreadingModel::XPHY_LEVEL) {
+      for (auto& [xphy, platformInfo] : pimAndXphyToPlatforms.second) {
+        // Spawn a task for each xphy in this pim
+        auto evb = getXphyEventBase(xphy);
+        folly::via(evb).thenValue([xphy,
+                                   platformInfo = platformInfo.get(),
+                                   this](auto&&) {
+          steady_clock::time_point begin = steady_clock::now();
+          collectXphyStats(xphy, platformInfo);
+          XLOG(DBG3) << "Xphy " << static_cast<int>(xphy)
+                     << " stat collection took "
+                     << duration_cast<milliseconds>(steady_clock::now() - begin)
+                            .count()
+                     << "ms";
+        });
+      }
+      continue;
+    }
+
+    // PIM_LEVEL threading (legacy behavior)
+    {
+      auto wLockedStatsCollection = pim2OngoingStatsCollection_.wlock();
+      auto& ongoingStatsCollection = (*wLockedStatsCollection)[pimId];
+      if (ongoingStatsCollection && !ongoingStatsCollection->isReady()) {
+        XLOG(DBG4) << " Sai stats collection for PIM : " << pimId
+                   << "is still ongoing";
+      } else {
+        ongoingStatsCollection =
+            folly::via(getPimEventBase(pimId)).thenValue([pimId, this](auto&&) {
+              steady_clock::time_point begin = steady_clock::now();
+              auto& xphyToPlatform = saiPlatforms_.find(pimId)->second;
+              for (auto& [xphy, platformInfo] : xphyToPlatform) {
+                collectXphyStats(xphy, platformInfo.get());
               }
-            }
-            XLOG(DBG3) << "Pim " << static_cast<int>(pimId) << ": all "
-                       << xphyToPlatform.size() << " xphy stat collection took "
-                       << duration_cast<milliseconds>(
-                              steady_clock::now() - begin)
-                              .count()
-                       << "ms";
-          });
+              XLOG(DBG3) << "Pim " << static_cast<int>(pimId) << ": all "
+                         << xphyToPlatform.size()
+                         << " xphy stat collection took "
+                         << duration_cast<milliseconds>(
+                                steady_clock::now() - begin)
+                                .count()
+                         << "ms";
+            });
+      }
     }
   }
 }
@@ -157,8 +179,9 @@ void SaiPhyManager::addSaiPlatform(
     GlobalXphyID xphyID,
     std::unique_ptr<SaiPlatform> platform) {
   const auto phyIDInfo = getPhyIDInfo(xphyID);
-  saiPlatforms_[phyIDInfo.pimID].emplace(std::make_pair(
-      xphyID, std::make_unique<PlatformInfo>(std::move(platform))));
+  saiPlatforms_[phyIDInfo.pimID].emplace(
+      std::make_pair(
+          xphyID, std::make_unique<PlatformInfo>(std::move(platform))));
 }
 
 void SaiPhyManager::sakInstallTx(const mka::MKASak& sak) {
@@ -467,8 +490,9 @@ PortOperState SaiPhyManager::macsecGetPhyLinkInfo(PortID swPort) {
       saiSwitch->managerTable()->portManager().getPortHandle(swPort);
 
   if (portHandle == nullptr) {
-    throw FbossError(folly::sformat(
-        "PortHandle not found for port {}", static_cast<int>(swPort)));
+    throw FbossError(
+        folly::sformat(
+            "PortHandle not found for port {}", static_cast<int>(swPort)));
   }
 
   auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
@@ -518,10 +542,11 @@ std::string SaiPhyManager::getSaiPortInfo(PortID swPort) {
     return "";
   }
 
-  output.append(folly::sformat(
-      "SwPort {:d} \n Switch Id {:d}\n",
-      static_cast<int>(swPort),
-      static_cast<uint64_t>(switchId)));
+  output.append(
+      folly::sformat(
+          "SwPort {:d} \n Switch Id {:d}\n",
+          static_cast<int>(swPort),
+          static_cast<uint64_t>(switchId)));
 
   auto linePortAdapter = portHandle->port->adapterKey();
   auto sysPortAdapter = portHandle->sysPort->adapterKey();
@@ -531,15 +556,17 @@ std::string SaiPhyManager::getSaiPortInfo(PortID swPort) {
                          phy::Side side,
                          SaiPortTraits::AdapterKey& portAdapter,
                          std::string& output) {
-    output.append(folly::sformat(
-        "  {:s} Port Obj = {}\n",
-        ((side == phy::Side::LINE) ? "Line" : "System"),
-        portAdapter.t));
+    output.append(
+        folly::sformat(
+            "  {:s} Port Obj = {}\n",
+            ((side == phy::Side::LINE) ? "Line" : "System"),
+            portAdapter.t));
 
     auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
         portAdapter, SaiPortTraits::Attributes::OperStatus{});
-    output.append(folly::sformat(
-        "    Link Status: {:d}\n", static_cast<int>(portOperStatus)));
+    output.append(
+        folly::sformat(
+            "    Link Status: {:d}\n", static_cast<int>(portOperStatus)));
     auto portSpeed = SaiApiTable::getInstance()->portApi().getAttribute(
         portAdapter, SaiPortTraits::Attributes::Speed{});
     output.append(folly::sformat("    Speed: {:d}\n", portSpeed));
@@ -558,10 +585,12 @@ std::string SaiPhyManager::getSaiPortInfo(PortID swPort) {
       fecMode = SaiApiTable::getInstance()->portApi().getAttribute(
           portAdapter, SaiPortTraits::Attributes::FecMode{});
     }
-    output.append(folly::sformat(
-        "    Extended Fec : {:s}\n", (extendedFec ? "True" : "False")));
-    output.append(folly::sformat(
-        "    Fec mode: {:d}\n", (extendedFec ? extFecMode : fecMode)));
+    output.append(
+        folly::sformat(
+            "    Extended Fec : {:s}\n", (extendedFec ? "True" : "False")));
+    output.append(
+        folly::sformat(
+            "    Fec mode: {:d}\n", (extendedFec ? extFecMode : fecMode)));
 
     auto interfaceType = SaiApiTable::getInstance()->portApi().getAttribute(
         portAdapter, SaiPortTraits::Attributes::InterfaceType{});
@@ -1129,6 +1158,21 @@ void SaiPhyManager::gracefulExit() {
       saiSwitch->gracefulExit();
     }
   }
+}
+
+bool SaiPhyManager::isXphyStatsCollectionDone(PortID portID) const {
+  const auto& rLockedCache = getRLockedCache(portID);
+  auto xphyID = getGlobalXphyIDbyPortIDLocked(rLockedCache);
+  auto pimID = getPhyIDInfo(xphyID).pimID;
+
+  auto rLockedStatsCollection = pim2OngoingStatsCollection_.rlock();
+  auto itr = rLockedStatsCollection->find(pimID);
+  if (itr == rLockedStatsCollection->end()) {
+    // No stats collection entry found - consider it not done (never started)
+    return false;
+  }
+
+  return itr->second.has_value() && itr->second->isReady();
 }
 
 } // namespace facebook::fboss

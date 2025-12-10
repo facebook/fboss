@@ -1,8 +1,12 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include "fboss/agent/hw/sai/api/AclApi.h"
+#include "fboss/agent/hw/sai/api/ArsProfileApi.h"
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
+#include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/MirrorApi.h"
+#include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
@@ -76,6 +80,11 @@ SaiTamEventTraits::Attributes::AttributePacketDropTypeMmu::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributePacketDropTypeIngress::operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_PACKET_DROP_TYPE_INGRESS;
+}
+
+std::optional<sai_attr_id_t>
 SaiTamEventTraits::Attributes::AttributeAgingGroup::operator()() {
   return SAI_TAM_EVENT_ATTR_FAKE_AGING_GROUP;
 }
@@ -113,6 +122,21 @@ SaiPortTraits::Attributes::AttributeArsLinkState::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiArsProfileTraits::Attributes::
+    AttributeExtensionSamplingIntervalNanosec::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeIsHyperPortMember::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
+  return std::nullopt;
+}
+
 std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
     AttributeRxAfeAdaptiveEnableWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_ADAPTIVE_ENABLE;
@@ -126,6 +150,11 @@ SaiSwitchTraits::Attributes::AttributeDllPathWrapper::operator()() {
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeSerdesLaneList::operator()() {
   return SAI_PORT_ATTR_SERDES_LANE_LIST;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeStaticModuleId::operator()() {
+  return SAI_PORT_ATTR_STATIC_MODULE_ID;
 }
 
 std::optional<sai_attr_id_t>
@@ -146,6 +175,11 @@ SaiPortTraits::Attributes::AttributeCrcErrorDetect::operator()() {
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeRxLaneSquelchEnable::operator()() {
   return SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeFabricSystemPort::operator()() {
+  return SAI_PORT_ATTR_FABRIC_SYSTEM_PORT;
 }
 
 std::optional<sai_attr_id_t>
@@ -249,6 +283,21 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcMonitorDirection::operator()() {
+  return SAI_PORT_ATTR_PFC_MONITOR_DIRECTION;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeResetQueueCreditBalance::operator()() {
+  return SAI_PORT_ATTR_RESET_QUEUE_CREDIT_BALANCE;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributePgDropStatus::operator()() {
   return SAI_PORT_ATTR_PORT_PG_PKT_DROP_STATUS;
 }
@@ -338,6 +387,11 @@ SaiStaticBufferProfileTraits::Attributes::AttributeSramDynamicTh::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiStaticBufferProfileTraits::Attributes::
+    AttributePgPipelineLatencyBytes::operator()() {
+  return std::nullopt;
+}
+
 std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
     AttributeSharedFadtMaxTh::operator()() {
   return std::nullopt;
@@ -368,6 +422,11 @@ std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributePgPipelineLatencyBytes::operator()() {
+  return std::nullopt;
+}
+
 std::optional<sai_attr_id_t> SaiIngressPriorityGroupTraits::Attributes::
     AttributeLosslessEnable::operator()() {
   return std::nullopt;
@@ -390,6 +449,11 @@ std::optional<sai_attr_id_t> SaiEnhancedRemoteMirrorTraits::Attributes::
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeNoAclsForTrapsWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiTxPacketTraits::Attributes::AttributePacketType::operator()() {
   return std::nullopt;
 }
 
@@ -768,6 +832,33 @@ SaiPortTraits::Attributes::AttributeShelEnable::operator()() {
   return std::nullopt;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::macTxDataQueueMinWatermarkStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::macTxDataQueueMaxWatermarkStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlRxPacketStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlTxPacketStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 std::optional<sai_attr_id_t>
 SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
   return std::nullopt;
@@ -795,6 +886,11 @@ SaiSwitchTraits::Attributes::AttributeMaxSwitchId::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeArsAvailableFlows::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSystemPortTraits::Attributes::AttributePushQueueEnable::operator()() {
   return std::nullopt;
 }
 
@@ -866,5 +962,56 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeDefaultCpuEgressBufferPool::operator()() {
   return SAI_SWITCH_ATTR_DEFAULT_CPU_EGRESS_BUFFER_POOL;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeModuleIdFabricPortList::operator()() {
+  return SAI_SWITCH_ATTR_MODULE_ID_FABRIC_PORT_LIST;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePfcMonitorEnable::operator()() {
+  return SAI_SWITCH_ATTR_PFC_MONITOR_ENABLE;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeCablePropagationDelayMeasurement::operator()() {
+  return SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT;
+}
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+std::optional<sai_attr_id_t>
+SaiArsProfileTraits::Attributes::AttributeArsMaxGroups::operator()() {
+  return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_MAX_GROUPS;
+}
+
+std::optional<sai_attr_id_t> SaiArsProfileTraits::Attributes::
+    AttributeArsAlternateMembersRouteMetaData::operator()() {
+  return SAI_ARS_PROFILE_ATTR_ROUTE_ARS_ALTERNATE_MEMBERS_META_DATA;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsProfileTraits::Attributes::AttributeArsRouteMetaDataMask::operator()() {
+  return SAI_ARS_PROFILE_ATTR_ROUTE_ARS_META_DATA_MASK;
+}
+
+std::optional<sai_attr_id_t> SaiArsProfileTraits::Attributes::
+    AttributeArsPrimaryMembersRouteMetaData::operator()() {
+  return SAI_ARS_PROFILE_ATTR_ROUTE_ARS_PRIMARY_MEMBERS_META_DATA;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsProfileTraits::Attributes::AttributeArsBaseIndex::operator()() {
+  return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_BASE_INDEX;
+}
+
+std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
+    AttributeArsNextHopGroupMetaData::operator()() {
+  return SAI_NEXT_HOP_GROUP_ATTR_ARS_NEXT_HOP_GROUP_META_DATA;
+}
+
+std::optional<sai_attr_id_t>
+SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
+  return SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL;
+}
+#endif
 
 } // namespace facebook::fboss

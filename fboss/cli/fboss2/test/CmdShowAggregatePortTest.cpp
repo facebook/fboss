@@ -26,6 +26,7 @@ std::vector<AggregatePortThrift> createAggregatePortEntries() {
   aggregatePortEntry1.name() = "Port-Channel1";
   aggregatePortEntry1.description() = "Port Channel 1";
   aggregatePortEntry1.minimumLinkCount() = 2;
+  aggregatePortEntry1.minimumLinkCountToUp() = 2;
   AggregatePortMemberThrift member1, member2;
   member1.memberPortID() = 1;
   member1.isForwarding() = true;
@@ -117,6 +118,7 @@ cli::ShowAggregatePortModel createAggregatePortModel() {
   entry1.activeMembers() = 2;
   entry1.configuredMembers() = 2;
   entry1.minMembers() = 2;
+  entry1.minMembersToUp() = 2;
   cli::AggregateMemberPortEntry member1, member2;
   member1.name() = "eth1/5/1";
   member1.id() = 1;
@@ -174,7 +176,7 @@ TEST_F(CmdShowAggregatePortTestFixture, queryClient) {
   CmdShowAggregatePortTraits::ObjectArgType queriedEntries;
   auto model = cmd.queryClient(localhost(), queriedEntries);
 
-  EXPECT_THRIFT_EQ(model, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
 TEST_F(CmdShowAggregatePortTestFixture, printOutput) {
@@ -185,7 +187,7 @@ TEST_F(CmdShowAggregatePortTestFixture, printOutput) {
   std::string expectOutput =
       "\nPort name: Port-Channel1"
       "\nDescription: Port Channel 1"
-      "\nActive members/Configured members/Min members: 2/2/2"
+      "\nActive members/Configured members/Min members: 2/2/[2, 2]"
       "\n\t Member:   eth1/5/1, id:   1, Up:  True, Rate: Fast"
       "\n\t Member:   eth1/5/2, id:   2, Up:  True, Rate: Fast"
       "\n"

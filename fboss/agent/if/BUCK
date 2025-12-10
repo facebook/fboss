@@ -377,3 +377,22 @@ thrift_library(
         ":fboss",
     ],
 )
+
+thrift_library(
+    name = "test_ctrl",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {
+        "test_ctrl.thrift": [
+            "TestCtrl",
+        ],
+    },
+    deps = [
+        ":ctrl",
+        ":fboss",
+        "//common/network/if:if",
+        "//fboss/agent:switch_config",
+    ],
+)

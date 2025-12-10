@@ -18,10 +18,11 @@ namespace facebook::fboss {
 
 TEST_F(BcmTest, onlyExpectedQueueStatsSeen) {
   auto setup = [this] {
-    applyNewConfig(utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getHwSwitch()->getPlatform()->getAsic()->desiredLoopbackModes()));
+    applyNewConfig(
+        utility::onePortPerInterfaceConfig(
+            getHwSwitch(),
+            masterLogicalPortIds(),
+            getHwSwitch()->getPlatform()->getAsic()->desiredLoopbackModes()));
   };
   auto verify = [this] {
     for (auto i = 0; i < 10; ++i) {
@@ -36,20 +37,22 @@ TEST_F(BcmTest, onlyExpectedQueueStatsSeen) {
       auto queueStatMaps = {
           *hwStats->queueOutBytes_(), *hwStats->queueOutDiscardBytes_()};
       // Only expected number of queue stats should be present
-      EXPECT_TRUE(std::all_of(
-          queueStatMaps.begin(),
-          queueStatMaps.end(),
-          [numUcastQueues, port](const auto& queueStatMap) {
-            return numUcastQueues == queueStatMap.size();
-          }));
+      EXPECT_TRUE(
+          std::all_of(
+              queueStatMaps.begin(),
+              queueStatMaps.end(),
+              [numUcastQueues, port](const auto& queueStatMap) {
+                return numUcastQueues == queueStatMap.size();
+              }));
       for (auto queueId = 0; queueId < numUcastQueues; ++queueId) {
         // Stats for all queues must be present
-        EXPECT_TRUE(std::all_of(
-            queueStatMaps.begin(),
-            queueStatMaps.end(),
-            [queueId](const auto& queueStatMap) {
-              return queueStatMap.find(queueId) != queueStatMap.end();
-            }));
+        EXPECT_TRUE(
+            std::all_of(
+                queueStatMaps.begin(),
+                queueStatMaps.end(),
+                [queueId](const auto& queueStatMap) {
+                  return queueStatMap.find(queueId) != queueStatMap.end();
+                }));
       }
     }
   };

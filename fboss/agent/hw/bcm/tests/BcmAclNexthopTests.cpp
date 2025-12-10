@@ -120,11 +120,12 @@ class BcmAclNexthopTest : public BcmTest {
             expectedEgressId = getHwSwitch()->getDropEgressId();
           }
           EXPECT_EQ(egressId, static_cast<uint32_t>(expectedEgressId));
-          EXPECT_TRUE(BcmAclEntry::isStateSame(
-              bcmSwitch,
-              bcmSwitch->getPlatform()->getAsic()->getDefaultACLGroupID(),
-              bcmAclHandle,
-              swAcl));
+          EXPECT_TRUE(
+              BcmAclEntry::isStateSame(
+                  bcmSwitch,
+                  bcmSwitch->getPlatform()->getAsic()->getDefaultACLGroupID(),
+                  bcmAclHandle,
+                  swAcl));
         });
   }
 };
@@ -148,14 +149,14 @@ TEST_F(BcmAclNexthopTest, AddAclWithRedirect) {
         nhIp, InterfaceID(intf1), UCMP_DEFAULT_WEIGHT, labelAction));
     ++idx;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     std::string vipIp = "10.10.10.1";
     std::string vipNexthopIp = "123.0.1.1";
     applyNewConfig(testConfig(vipIp, vipNexthopIp));
     updateAcl(kAclName, nexthops);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     const auto& acl = getProgrammedState()->getAcls()->getNodeIf(kAclName);
     verifyAclEntryProgramming(acl, nexthops);
   };
@@ -165,14 +166,14 @@ TEST_F(BcmAclNexthopTest, AddAclWithRedirect) {
 
 TEST_F(BcmAclNexthopTest, NoResolvedNexthops) {
   RouteNextHopSet nexthops;
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     std::string vipIp = "10.10.10.1";
     std::string vipNexthopIp = "123.0.1.1";
     applyNewConfig(testConfig(vipIp, vipNexthopIp));
     updateAcl(kAclName, nexthops);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     const auto& acl = getProgrammedState()->getAcls()->getNodeIf(kAclName);
     verifyAclEntryProgramming(acl, nexthops);
   };
@@ -199,13 +200,13 @@ TEST_F(BcmAclNexthopTest, AddAclWithRedirectV6) {
         nhIp, InterfaceID(intf1), UCMP_DEFAULT_WEIGHT, labelAction));
     ++idx;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     std::string vipIp = "1010:1010::1";
     std::string vipNexthopIp = "1001::1";
     applyNewConfig(testConfig(vipIp, vipNexthopIp));
     updateAcl(kAclName, nexthops);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     const auto& acl = getProgrammedState()->getAcls()->getNodeIf(kAclName);
     verifyAclEntryProgramming(acl, nexthops);
   };
@@ -214,14 +215,14 @@ TEST_F(BcmAclNexthopTest, AddAclWithRedirectV6) {
 
 TEST_F(BcmAclNexthopTest, NoResolvedNexthopsV6) {
   RouteNextHopSet nexthops;
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     std::string vipIp = "1010:1010::1";
     std::string vipNexthopIp = "1001::1";
     applyNewConfig(testConfig(vipIp, vipNexthopIp));
     updateAcl(kAclName, nexthops);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     const auto& acl = getProgrammedState()->getAcls()->getNodeIf(kAclName);
     verifyAclEntryProgramming(acl, nexthops);
   };

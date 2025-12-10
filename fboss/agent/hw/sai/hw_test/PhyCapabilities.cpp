@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/hw/test/PhyCapabilities.h"
+// NOLINTNEXTLINE(facebook-unused-include-check)
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 
 extern "C" {

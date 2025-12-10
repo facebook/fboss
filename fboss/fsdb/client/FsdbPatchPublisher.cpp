@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/client/FsdbPatchPublisher.h"
+#include "fboss/fsdb/oper/DeltaValue.h"
 
 #include <folly/logging/xlog.h>
 #include <chrono>
@@ -22,10 +23,15 @@ FsdbPatchPublisher::setupStream() {
       [&](const OperPubInitResponse& /* initResponse */) -> bool {
     return !isCancelled();
   };
-  auto result = co_await (
-      isStats() ? client_->co_publishStats(createRequest())
-                : client_->co_publishState(createRequest()));
+  // Workaround for GCC coroutine bug: Keep the request alive and materialize
+  // the Task before co_await to prevent premature destruction.
+  auto request = createRequest();
+  auto task = isStats() ? client_->co_publishStats(request)
+                        : client_->co_publishState(request);
+  auto result = co_await std::move(task);
+
   initResponseReceiver(result.response);
+
   co_return std::move(result.sink);
 }
 
@@ -59,6 +65,10 @@ folly::coro::Task<void> FsdbPatchPublisher::serveStream(StreamT&& stream) {
                     .count();
             message.set_heartbeat(std::move(heartbeat));
           } else {
+            if (publishQueueMemoryLimit_ > 0) {
+              size_t pubUnitSize = getPubUnitSize(*patch);
+              servedDataSize_.fetch_add(pubUnitSize);
+            }
             message.set_patch(std::move(*patch));
             if (!initialSyncComplete_) {
               initialSyncComplete_ = true;
@@ -71,4 +81,9 @@ folly::coro::Task<void> FsdbPatchPublisher::serveStream(StreamT&& stream) {
   finalResponseReceiver(finalResponse);
   co_return;
 }
+
+size_t FsdbPatchPublisher::getPubUnitSize(const Patch& patch) {
+  return getPatchNodeSize(*patch.patch());
+}
+
 } // namespace facebook::fboss::fsdb

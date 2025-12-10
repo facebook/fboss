@@ -349,7 +349,6 @@ hw_dataplane_test_srcs = [
     "dataplane_tests/HwInPauseDiscardsTests.cpp",
     "dataplane_tests/HwLoadBalancerTests.cpp",
     "dataplane_tests/HwLoadBalancerTestsV6Flowlet.cpp",
-    "dataplane_tests/HwLoadBalancerTestsV6Roce.cpp",
     "dataplane_tests/HwMPLSTests.cpp",
     "dataplane_tests/HwProdInvariantHelper.cpp",
     "dataplane_tests/HwProdInvariantTests.cpp",
@@ -379,6 +378,7 @@ cpp_library(
     undefined_symbols = True,
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/re2:re2",
         ":config_factory",
         ":golden_data",
         ":hw_copp_utils",
@@ -463,7 +463,6 @@ cpp_library(
         "//folly/logging:logging",
     ],
     exported_external_deps = [
-        "re2",
         ("boost", None, "boost_container"),
     ],
 )
@@ -494,7 +493,6 @@ cpp_library(
         ":load_balancer_utils",
         ":phy_capabilities",
         ":prod_config_factory",
-        ":teflow_utils",
         "//fboss/agent:address_utils",
         "//fboss/agent:apply_thrift_config",
         "//fboss/agent:constants",

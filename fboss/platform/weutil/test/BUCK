@@ -44,3 +44,15 @@ cpp_unittest(
         "//folly/testing:test_util",
     ],
 )
+
+cpp_unittest(
+    name = "config_utils_test",
+    srcs = [
+        "ConfigUtilsTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/weutil:config_utils_lib",
+        "//folly:file_util",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)

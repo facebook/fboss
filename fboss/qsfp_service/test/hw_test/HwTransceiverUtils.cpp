@@ -9,14 +9,14 @@
  */
 #include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
+#include <folly/logging/xlog.h>
+#include <gtest/gtest.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
-
-#include <folly/logging/xlog.h>
-#include <gtest/gtest.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/qsfp_service/TransceiverManager.h"
 
 namespace facebook::fboss::utility {
 
@@ -62,11 +62,11 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
     EXPECT_NE(hostLanesFromPlatformMapping.size(), 0);
     auto platformPortItr = platformPorts.find(static_cast<int32_t>(portID));
     ASSERT_NE(platformPortItr, platformPorts.end());
-    auto tcvrID = utility::getTransceiverId(platformPortItr->second, chips);
-    ASSERT_TRUE(tcvrID.has_value());
+    auto tcvrIds = utility::getTransceiverIds(platformPortItr->second, chips);
+    ASSERT_EQ(tcvrIds.size(), 1);
     auto portName = *platformPortItr->second.mapping()->name();
 
-    auto tcvrInfoItr = tcvrInfos.find(*tcvrID);
+    auto tcvrInfoItr = tcvrInfos.find(tcvrIds[0]);
     ASSERT_NE(tcvrInfoItr, tcvrInfos.end());
 
     auto& hostLaneMap = *tcvrInfoItr->second.tcvrState()->portNameToHostLanes();
@@ -112,7 +112,6 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::FR4_400G:
       case MediaInterfaceCode::DR4_400G:
       case MediaInterfaceCode::LR4_400G_10KM:
-      case MediaInterfaceCode::DR4_800G:
         expectedMediaLanes = {0, 1, 2, 3};
         break;
       case MediaInterfaceCode::FR4_2x400G:
@@ -121,7 +120,6 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::LR4_2x400G_10KM:
       case MediaInterfaceCode::DR4_2x400G:
       case MediaInterfaceCode::DR4_2x800G:
-      case MediaInterfaceCode::CR8_800G:
         switch (profile) {
           case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_OPTICAL:
           case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
@@ -144,6 +142,63 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
             expectedMediaLanes = {*hostLaneMap[portName].begin()};
             break;
           case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
+            expectedMediaLanes = {0, 1, 2, 3, 4, 5, 6, 7};
+            break;
+          case cfg::PortProfileID::PROFILE_400G_2_PAM4_RS544X2N_OPTICAL:
+            if (std::find(
+                    hostLaneMap[portName].begin(),
+                    hostLaneMap[portName].end(),
+                    0) != hostLaneMap[portName].end()) {
+              // When lane 0 is one of the host lanes, the media lanes are
+              // expected to be 0,1
+              expectedMediaLanes = {0, 1};
+            } else if (
+                std::find(
+                    hostLaneMap[portName].begin(),
+                    hostLaneMap[portName].end(),
+                    2) != hostLaneMap[portName].end()) {
+              // When lane 2 is one of the host lanes, the media lanes are
+              // expected to be 2,3
+              expectedMediaLanes = {2, 3};
+            } else if (
+                std::find(
+                    hostLaneMap[portName].begin(),
+                    hostLaneMap[portName].end(),
+                    4) != hostLaneMap[portName].end()) {
+              // When lane 4 is one of the host lanes, the media lanes are
+              // expected to be 4,5
+              expectedMediaLanes = {4, 5};
+            } else {
+              expectedMediaLanes = {6, 7};
+            }
+            break;
+          default:
+            throw FbossError(
+                "Unhandled profile ",
+                apache::thrift::util::enumNameSafe(profile));
+        }
+        break;
+      case MediaInterfaceCode::CR8_800G:
+        switch (profile) {
+          case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544X2N_COPPER: {
+            auto itr = hostLaneMap.find(portName);
+            CHECK(itr != hostLaneMap.end());
+            auto& hostLaneVector = itr->second;
+            CHECK_EQ(hostLaneVector.size(), 1);
+            expectedMediaLanes = hostLaneVector;
+          } break;
+          case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_COPPER:
+            if (std::find(
+                    hostLaneMap[portName].begin(),
+                    hostLaneMap[portName].end(),
+                    0) != hostLaneMap[portName].end()) {
+              // When lane 0 is one of the host lanes, the media lanes are
+              // expected to be 0,1,2,3.
+              expectedMediaLanes = {0, 1, 2, 3};
+            } else {
+              expectedMediaLanes = {4, 5, 6, 7};
+            }
+            break;
           case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
             expectedMediaLanes = {0, 1, 2, 3, 4, 5, 6, 7};
             break;
@@ -158,8 +213,8 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::SR_10G:
       case MediaInterfaceCode::BASE_T_10G:
       case MediaInterfaceCode::CR_10G:
-      case MediaInterfaceCode::DR1_200G:
       case MediaInterfaceCode::ZR_800G:
+      case MediaInterfaceCode::CR1_100G:
         expectedMediaLanes = {0};
         break;
       case MediaInterfaceCode::UNKNOWN:
@@ -171,6 +226,15 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
         break;
       case MediaInterfaceCode::FR8_800G:
         expectedMediaLanes = {0, 1, 2, 3, 4, 5, 6, 7};
+        break;
+      case MediaInterfaceCode::DR2_400G:
+      case MediaInterfaceCode::DR4_800G:
+      case MediaInterfaceCode::DR1_200G:
+      case MediaInterfaceCode::DR1_100G: {
+        throw FbossError(
+            "Unsupported moduleMediaInterface ",
+            apache::thrift::util::enumNameSafe(moduleMediaInterface));
+      }
     }
 
     XLOG(INFO) << "Verifying that " << portName << " uses media lanes "
@@ -205,10 +269,9 @@ void HwTransceiverUtils::verifyTransceiverSettings(
       *tcvrState.transceiver() == TransceiverType::QSFP ||
       *tcvrState.transceiver() == TransceiverType::SFP);
 
-  if (TransmitterTechnology::COPPER ==
-      *(tcvrState.cable().value_or({}).transmitterTech())) {
-    XLOG(INFO) << " Skip verifying optics settings: " << *tcvrState.port()
-               << ", for copper cable";
+  if (!TransceiverManager::opticalOrActiveCable(tcvrState)) {
+    XLOG(INFO) << " Skip verifying tcvr settings: " << *tcvrState.port()
+               << ", for passive copper cable";
   } else if (
       profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER &&
       profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL) {
@@ -274,8 +337,19 @@ void HwTransceiverUtils::verifyOpticsSettings(
     EXPECT_TRUE(
         *settings.powerControl() == PowerControlState::POWER_OVERRIDE ||
         *settings.powerControl() == PowerControlState::HIGH_POWER_OVERRIDE);
-    EXPECT_EQ(*settings.cdrTx(), FeatureState::ENABLED);
-    EXPECT_EQ(*settings.cdrRx(), FeatureState::ENABLED);
+
+    // TODO: T236126124 - Disable checking this in Molex AEC cables
+    // until we get EEPROM fix.
+    auto vendor = apache::thrift::can_throw(*tcvrState.vendor());
+    bool isMolex =
+        (vendor.name() == "Molex" && vendor.partNumber() == "2253611207");
+
+    // LPO Modules dont have a DSP, so we dont need to check for CDR.
+    bool isLpoModule = tcvrState.lpoModule().value();
+    if (!(isMolex || isLpoModule)) {
+      EXPECT_EQ(*settings.cdrTx(), FeatureState::ENABLED);
+      EXPECT_EQ(*settings.cdrRx(), FeatureState::ENABLED);
+    }
 
     for (auto& hostLane :
          apache::thrift::can_throw(*settings.hostLaneSettings())) {
@@ -344,18 +418,22 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N:
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL:
+    case cfg::PortProfileID::PROFILE_200G_1_PAM4_RS544X2N_OPTICAL:
       verify200gProfile(mgmtInterface, mediaInterfaces);
       break;
 
     case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_400G_2_PAM4_RS544X2N_OPTICAL:
       verify400gProfile(mgmtInterface, mediaInterfaces);
       break;
 
     case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER:
+    case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_COPPER:
       verifyCopper400gProfile(tcvrState, mediaInterfaces);
       break;
 
+    case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER:
       verifyCopper100gProfile(tcvrState, mediaInterfaces);
@@ -373,7 +451,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       verifyOptical800gProfile(mgmtInterface, mediaInterfaces);
       break;
     case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
-      verifyActiveCopper800gProfile(mgmtInterface, mediaInterfaces);
+      verifyCopper800gProfile(tcvrState, mediaInterfaces);
       break;
     default:
       throw FbossError(
@@ -441,10 +519,12 @@ void HwTransceiverUtils::verify100gProfile(
     } else if (mgmtInterface == TransceiverManagementInterface::CMIS) {
       EXPECT_TRUE(
           *mediaId.media()->smfCode() == SMFMediaInterfaceCode::CWDM4_100G ||
-          *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR1_100G);
+          *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR1_100G ||
+          *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR1_100G);
       EXPECT_TRUE(
           *mediaId.code() == MediaInterfaceCode::CWDM4_100G ||
-          *mediaId.code() == MediaInterfaceCode::FR1_100G);
+          *mediaId.code() == MediaInterfaceCode::FR1_100G ||
+          *mediaId.code() == MediaInterfaceCode::DR1_100G);
     }
   }
 }
@@ -475,26 +555,37 @@ void HwTransceiverUtils::verify400gProfile(
     EXPECT_TRUE(
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR4_400G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::LR4_10_400G ||
-        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR4_400G);
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR4_400G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR2_400G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR4_400G ||
         *mediaId.code() == MediaInterfaceCode::LR4_400G_10KM ||
-        *mediaId.code() == MediaInterfaceCode::DR4_400G);
+        *mediaId.code() == MediaInterfaceCode::DR4_400G ||
+        *mediaId.code() == MediaInterfaceCode::DR2_400G);
   }
 }
 
 void HwTransceiverUtils::verifyCopper400gProfile(
     const TcvrState& tcvrState,
     const std::vector<MediaInterfaceId>& mediaInterfaces) {
-  EXPECT_EQ(
-      tcvrState.transceiverManagementInterface().value_or({}),
-      TransceiverManagementInterface::CMIS);
-  EXPECT_EQ(
-      TransmitterTechnology::COPPER,
-      *(tcvrState.cable().value_or({}).transmitterTech()));
+  const auto& cable = *tcvrState.cable();
+  const auto& transmitterTech = *cable.transmitterTech();
+  const bool isActive = TransceiverManager::activeCable(tcvrState);
+  auto mgmtInterface =
+      apache::thrift::can_throw(*tcvrState.transceiverManagementInterface());
+
+  EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
+  EXPECT_EQ(TransmitterTechnology::COPPER, transmitterTech);
 
   for (const auto& mediaId : mediaInterfaces) {
-    EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR8_400G);
+    if (isActive) {
+      EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR4_400G);
+      EXPECT_TRUE(
+          *mediaId.media()->activeCuCode() ==
+          ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G);
+    } else {
+      EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR8_400G);
+    }
   }
 }
 
@@ -505,8 +596,17 @@ void HwTransceiverUtils::verifyCopper100gProfile(
       TransmitterTechnology::COPPER,
       *(tcvrState.cable().value_or({}).transmitterTech()));
 
+  const bool isActive = TransceiverManager::activeCable(tcvrState);
+  if (!isActive) {
+  }
   for (const auto& mediaId : mediaInterfaces) {
-    EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR4_100G);
+    if (isActive) {
+      EXPECT_TRUE(
+          *mediaId.media()->activeCuCode() ==
+          ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G);
+    } else {
+      EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR4_100G);
+    }
   }
 }
 
@@ -543,22 +643,36 @@ void HwTransceiverUtils::verifyOptical800gProfile(
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_TRUE(
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR8_800G ||
-        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR4_800G);
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR4_800G ||
+        *mediaId.media()->smfCode() ==
+            SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::ZR_OIF_ZRA_800G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR8_800G ||
-        *mediaId.code() == MediaInterfaceCode::DR4_800G);
+        *mediaId.code() == MediaInterfaceCode::DR4_800G ||
+        *mediaId.code() == MediaInterfaceCode::ZR_800G);
   }
 }
 
-void HwTransceiverUtils::verifyActiveCopper800gProfile(
-    const TransceiverManagementInterface mgmtInterface,
+void HwTransceiverUtils::verifyCopper800gProfile(
+    const TcvrState& tcvrState,
     const std::vector<MediaInterfaceId>& mediaInterfaces) {
+  const auto& cable = *tcvrState.cable();
+  const auto& transmitterTech = *cable.transmitterTech();
+  const bool isActive = TransceiverManager::activeCable(tcvrState);
+  auto mgmtInterface =
+      apache::thrift::can_throw(*tcvrState.transceiverManagementInterface());
+
   EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
+  EXPECT_EQ(TransmitterTechnology::COPPER, transmitterTech);
+
   for (const auto& mediaId : mediaInterfaces) {
-    EXPECT_TRUE(
-        *mediaId.media()->activeCuCode() ==
-        ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G);
     EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR8_800G);
+    if (isActive) {
+      EXPECT_TRUE(
+          *mediaId.media()->activeCuCode() ==
+          ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G);
+    }
   }
 }
 
@@ -628,16 +742,15 @@ void HwTransceiverUtils::verifyDiagsCapability(
              << apache::thrift::util::enumNameSafe(*mediaIntfCode);
 
   switch (*mgmtInterface) {
-    case TransceiverManagementInterface::CMIS:
-      if (TransmitterTechnology::COPPER ==
-          *(tcvrState.cable().value_or({}).transmitterTech())) {
+    case TransceiverManagementInterface::CMIS: {
+      if (!TransceiverManager::opticalOrActiveCable(tcvrState)) {
         // FlatMem modules don't support diagsCapability
         return;
       }
       EXPECT_TRUE(diagsCapability.has_value());
       if (!skipCheckingIndividualCapability) {
         EXPECT_TRUE(*diagsCapability->diagnostics());
-        // Only 400G CMIS supports VDM
+        // Only 400G CMIS supports VDM (excluding AEC cables)
         EXPECT_EQ(
             *diagsCapability->vdm(),
             (*mediaIntfCode == MediaInterfaceCode::FR4_400G ||
@@ -661,11 +774,13 @@ void HwTransceiverUtils::verifyDiagsCapability(
             *mediaIntfCode == MediaInterfaceCode::LR4_2x400G_10KM ||
             *mediaIntfCode == MediaInterfaceCode::DR4_2x400G ||
             *mediaIntfCode == MediaInterfaceCode::DR4_2x800G ||
-            *mediaIntfCode == MediaInterfaceCode::ZR_800G) {
+            *mediaIntfCode == MediaInterfaceCode::ZR_800G ||
+            *mediaIntfCode == MediaInterfaceCode::CR8_800G) {
           EXPECT_TRUE(*diagsCapability->rxOutputControl());
         }
       }
       return;
+    }
     case TransceiverManagementInterface::SFF:
       // Only FR1_100G has diagsCapability
       if (*mediaIntfCode == MediaInterfaceCode::FR1_100G) {
@@ -696,46 +811,20 @@ void HwTransceiverUtils::verifyDatapathResetTimestamp(
     const TcvrStats& tcvrStats,
     time_t timeReference,
     bool expectedReset) {
-  auto mgmtInterface =
-      apache::thrift::can_throw(tcvrState.transceiverManagementInterface());
-  auto cable = apache::thrift::can_throw(tcvrState.cable());
-  if (mgmtInterface != TransceiverManagementInterface::CMIS ||
-      folly::copy(cable->transmitterTech().value()) ==
-          TransmitterTechnology::COPPER) {
-    // Datapath reset timestamp is only supported for CMIS optical modules
-    return;
-  }
-  auto& datapathResetTimestamp = *tcvrStats.lastDatapathResetTime();
-  if (expectedReset) {
-    ASSERT_TRUE(
-        datapathResetTimestamp.find(portName) != datapathResetTimestamp.end());
-    EXPECT_GT(datapathResetTimestamp.at(portName), timeReference);
-  } else {
-    if (datapathResetTimestamp.find(portName) != datapathResetTimestamp.end()) {
-      EXPECT_LE(datapathResetTimestamp.at(portName), timeReference);
+  if (TransceiverManager::opticalOrActiveCmisCable(tcvrState)) {
+    auto& datapathResetTimestamp = *tcvrStats.lastDatapathResetTime();
+    if (expectedReset) {
+      ASSERT_TRUE(
+          datapathResetTimestamp.find(portName) !=
+          datapathResetTimestamp.end());
+      EXPECT_GT(datapathResetTimestamp.at(portName), timeReference);
+    } else {
+      if (datapathResetTimestamp.find(portName) !=
+          datapathResetTimestamp.end()) {
+        EXPECT_LE(datapathResetTimestamp.at(portName), timeReference);
+      }
     }
   }
-}
-
-bool HwTransceiverUtils::opticalOrActiveCmisCable(const TcvrState& tcvrState) {
-  if (tcvrState.transceiverManagementInterface().has_value() &&
-      tcvrState.transceiverManagementInterface().value() ==
-          TransceiverManagementInterface::CMIS &&
-      opticalOrActiveCable(tcvrState)) {
-    return true;
-  }
-  return false;
-}
-
-bool HwTransceiverUtils::opticalOrActiveCable(const TcvrState& tcvrState) {
-  if (tcvrState.cable().has_value() &&
-      ((tcvrState.cable()->transmitterTech() ==
-        TransmitterTechnology::OPTICAL) ||
-       (tcvrState.cable()->mediaTypeEncoding() ==
-        MediaTypeEncodings::ACTIVE_CABLES))) {
-    return true;
-  }
-  return false;
 }
 
 } // namespace facebook::fboss::utility

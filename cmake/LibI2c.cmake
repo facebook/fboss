@@ -13,3 +13,12 @@ target_link_libraries(i2c_ctrl
   i2c_controller_stats_cpp2
   Folly::folly
 )
+
+add_library(platform_i2c_api
+  fboss/lib/i2c/PCA9541.cpp
+)
+
+target_link_libraries(platform_i2c_api
+  base_i2c_dependencies
+  Folly::folly
+)

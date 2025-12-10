@@ -69,10 +69,11 @@ auto NeighborUpdaterImpl::createCachesForIntf(
   // These fields will be removed as we migrate to intfCaches_
   VlanID vlanID{0};
   std::string vlanName = "--";
-  if (intf->getVlanIDIf()) {
-    auto vlan = state->getVlans()->getNodeIf(intf->getVlanIDIf().value());
+  if (intf->getVlanIDIf_DEPRECATED()) {
+    auto vlan =
+        state->getVlans()->getNodeIf(intf->getVlanIDIf_DEPRECATED().value());
     CHECK(vlan);
-    vlanID = intf->getVlanIDIf().value();
+    vlanID = intf->getVlanIDIf_DEPRECATED().value();
     vlanName = vlan->getName();
   }
 
@@ -494,6 +495,21 @@ void NeighborUpdaterImpl::updateNdpEntryClassIDForIntf(
     std::optional<cfg::AclLookupClass> classID = std::nullopt) {
   auto cache = getNdpCacheForIntf(intfID);
   cache->updateEntryClassID(ip, classID);
+}
+
+uint32_t NeighborUpdaterImpl::getProbesLeft(
+    const InterfaceID& intfID,
+    const folly::IPAddressV6& ip) {
+  auto cache = getNdpCacheForIntf(intfID);
+  auto ndpEntry = cache->getNdpCacheData(ip);
+  return ndpEntry.has_value() && ndpEntry->probesLeft().has_value()
+      ? *ndpEntry->probesLeft()
+      : 0;
+}
+
+uint32_t NeighborUpdaterImpl::getMaxNeighborProbes(const InterfaceID& intfID) {
+  auto cache = getNdpCacheForIntf(intfID);
+  return cache->getMaxNeighborProbes();
 }
 
 } // namespace facebook::fboss

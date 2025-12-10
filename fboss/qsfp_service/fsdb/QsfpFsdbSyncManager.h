@@ -24,6 +24,7 @@ namespace fboss {
 class QsfpFsdbSyncManager {
  public:
   using TcvrStatsMap = std::map<int32_t, TcvrStats>;
+  using TcvrStateMap = std::map<int32_t, TcvrState>;
   using PhyStatsMap = std::map<std::string, phy::PhyStats>;
   using PortStatsMap = std::map<std::string, HwPortStats>;
   using PimStatesMap = std::map<int, PimState>;
@@ -38,7 +39,7 @@ class QsfpFsdbSyncManager {
   void stop();
 
   void updateConfig(cfg::QsfpServiceConfig newConfig);
-  void updateTcvrState(int32_t tcvrId, TcvrState&& newState);
+  void updateTcvrStates(TcvrStateMap&& states);
   void updateTcvrStats(TcvrStatsMap&& stats);
   void updatePimState(int pimId, PimState&& PimState);
   void updatePhyState(

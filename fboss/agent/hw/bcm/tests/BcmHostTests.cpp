@@ -92,9 +92,10 @@ int hostRouteTraversalCallback(
     void* userData) {
   VrfAndIP2Route* l3HostRouteMap = static_cast<VrfAndIP2Route*>(userData);
   bool isIPv6 = route->l3a_flags & BCM_L3_IP6;
-  auto ip = isIPv6 ? folly::IPAddress::fromBinary(folly::ByteRange(
-                         route->l3a_ip6_net, sizeof(route->l3a_ip6_net)))
-                   : folly::IPAddress::fromLongHBO(route->l3a_subnet);
+  auto ip = isIPv6
+      ? folly::IPAddress::fromBinary(
+            folly::ByteRange(route->l3a_ip6_net, sizeof(route->l3a_ip6_net)))
+      : folly::IPAddress::fromLongHBO(route->l3a_subnet);
   if ((isIPv6 &&
        memcmp(
            route->l3a_ip6_mask,
@@ -244,8 +245,8 @@ class BcmHostTest : public BcmTest {
 };
 
 TEST_F(BcmHostTest, CreateV4AndV6L3Host) {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { applyNewConfig(initialConfig()); };
+  auto verify = [=, this]() {
     InterfaceID intfID = InterfaceID(utility::kBaseVlanId);
     const auto& swIntf = getProgrammedState()->getInterfaces()->getNode(intfID);
     int expectedHostNum{0};
@@ -262,16 +263,17 @@ TEST_F(BcmHostTest, CreateV4AndV6L3Host) {
 }
 
 TEST_F(BcmHostTest, CreateInterfaceWithoutIp) {
-  auto setup = [=]() {
-    applyNewConfig(utility::oneL3IntfNoIPAddrConfig(
-        getHwSwitch(), masterLogicalPortIds()[0]));
+  auto setup = [=, this]() {
+    applyNewConfig(
+        utility::oneL3IntfNoIPAddrConfig(
+            getHwSwitch(), masterLogicalPortIds()[0]));
   };
-  auto verify = [=]() { checkSwHwBcmHostNum(0); };
+  auto verify = [=, this]() { checkSwHwBcmHostNum(0); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(BcmHostTest, CreateInterfaceWithHostIp) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = utility::oneL3IntfNoIPAddrConfig(
         getHwSwitch(), masterLogicalPortIds()[0]);
     config.interfaces()[0].ipAddresses()->resize(2);
@@ -279,12 +281,12 @@ TEST_F(BcmHostTest, CreateInterfaceWithHostIp) {
     config.interfaces()[0].ipAddresses()[1] = "1::/128";
     applyNewConfig(config);
   };
-  auto verify = [=]() { checkSwHwBcmHostNum(2); };
+  auto verify = [=, this]() { checkSwHwBcmHostNum(2); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(BcmHostTest, DeleteV4AndV6L3Host) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // first apply config which interface has ip addresses assigned
     applyNewConfig(initialConfig());
     // check HW side should has only 2 l3_host created
@@ -295,10 +297,11 @@ TEST_F(BcmHostTest, DeleteV4AndV6L3Host) {
       CHECK_EQ(getL3HostRouteFromHw(getUnit()).size(), 2);
     }
     // then we re-apply config with 0 ip address assigned interface
-    applyNewConfig(utility::oneL3IntfNoIPAddrConfig(
-        getHwSwitch(), masterLogicalPortIds()[0]));
+    applyNewConfig(
+        utility::oneL3IntfNoIPAddrConfig(
+            getHwSwitch(), masterLogicalPortIds()[0]));
   };
-  auto verify = [=]() { checkSwHwBcmHostNum(0); };
+  auto verify = [=, this]() { checkSwHwBcmHostNum(0); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -314,7 +317,7 @@ TEST_F(BcmHostTest, HostRouteLookupClassNotSet) {
           CIDRNetwork(IPAddress("20.1.1.0"), 32), IPAddress("2.2.2.10")),
       std::make_pair(
           CIDRNetwork(IPAddress("2001::0"), 128), IPAddress("2::10"))};
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     applyNewConfig(initialConfig());
     auto updater = getHwSwitchEnsemble()->getRouteUpdater();
     for (const auto& networkAndNexthop : networkAndNexthops) {
@@ -330,7 +333,7 @@ TEST_F(BcmHostTest, HostRouteLookupClassNotSet) {
     }
     updater.program();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (const auto& networkAndNexthop : networkAndNexthops) {
       const BcmHostTableIf* hostTableIf;
       if (getHwSwitch()->getPlatform()->getAsic()->isSupported(

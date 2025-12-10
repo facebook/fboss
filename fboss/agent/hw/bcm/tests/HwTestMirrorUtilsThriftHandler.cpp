@@ -5,6 +5,7 @@
 #include "fboss/agent/hw/bcm/BcmMirror.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/test/utils/MirrorTestUtils.h"
 
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 
@@ -36,8 +37,9 @@ bool HwTestThriftHandler::isMirrorProgrammed(
 
   BcmSwitch* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch_);
   const auto* bcmMirrorTable = bcmSwitch->getBcmMirrorTable();
-  auto* bcmMirror = bcmMirrorTable->getNodeIf(mirror->name().value());
-  if (!bcmMirror || bcmMirror->isProgrammed()) {
+  std::string& mirrorName{mirror->name().value()};
+  auto* bcmMirror = bcmMirrorTable->getNodeIf(mirrorName);
+  if (!bcmMirror || !bcmMirror->isProgrammed()) {
     return false;
   }
 
@@ -63,7 +65,11 @@ bool HwTestThriftHandler::isMirrorProgrammed(
     return false;
   }
 
-  if (mirror_dest.tos != folly::copy(mirror->dscp().value())) {
+  // SPAN tests are excluded because Tos/DSCP is not set and is not relevant for
+  // local port mirroring because the packet is not sent to a remote host.
+  if (mirrorName != utility::kIngressSpan &&
+      mirrorName != utility::kEgressSpan &&
+      mirror_dest.tos != mirror->dscp().value()) {
     return false;
   }
   if (bool(mirror_dest.truncate & BCM_MIRROR_PAYLOAD_TRUNCATE) !=
@@ -78,6 +84,7 @@ bool HwTestThriftHandler::isMirrorProgrammed(
     if (mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_IP_GRE) {
       return false;
     }
+    return true;
   }
 
   auto dstPort = apache::thrift::get_pointer(tunnel->udpDstPort());

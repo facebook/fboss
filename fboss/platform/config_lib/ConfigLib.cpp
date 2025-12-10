@@ -14,6 +14,11 @@ DEFINE_string(
     "Optional configuration file. "
     "If empty we pick the platform default config");
 
+DEFINE_bool(
+    run_in_netos,
+    false,
+    "Setup platform services to run within netos environment");
+
 using namespace facebook::fboss::platform;
 
 namespace {
@@ -24,7 +29,12 @@ std::string getPlatformName(const std::optional<std::string>& platformName) {
       : *helpers::PlatformNameLib().getPlatformName();
   std::transform(
       platformStr.begin(), platformStr.end(), platformStr.begin(), ::tolower);
-  XLOG(INFO) << "The inferred platform is " << platformStr;
+  if (platformStr == "darwin" && FLAGS_run_in_netos) {
+    platformStr =
+        "darwin_netos"; // Bypass Darwin config for netos, Remove after all
+                        // Darwin platforms are onboarded to netos
+  }
+  XLOG(DBG1) << "The inferred platform is " << platformStr;
   return platformStr;
 }
 
@@ -71,20 +81,6 @@ std::string ConfigLib::getFanServiceConfig(
   } catch (const std::out_of_range&) {
     throw std::runtime_error(
         "fan_service configuration not found for platform: " +
-        getPlatformName(platformName));
-  }
-}
-
-std::string ConfigLib::getWeutilConfig(
-    const std::optional<std::string>& platformName) const {
-  if (auto configJson = getConfigFromFile()) {
-    return *configJson;
-  }
-  try {
-    return configs::weutil.at(getPlatformName(platformName));
-  } catch (const std::out_of_range&) {
-    throw std::runtime_error(
-        "weutil configuration not found for platform: " +
         getPlatformName(platformName));
   }
 }

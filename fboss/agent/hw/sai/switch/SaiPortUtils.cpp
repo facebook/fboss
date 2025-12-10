@@ -115,7 +115,8 @@ sai_port_media_type_t getSaiPortMediaType(
         case cfg::PortSpeed::FORTYG:
         case cfg::PortSpeed::HUNDREDG:
           return SAI_PORT_MEDIA_TYPE_FIBER;
-
+        case cfg::PortSpeed::THREEPOINTTWOT:
+          return SAI_PORT_MEDIA_TYPE_NOT_PRESENT;
         default:
           return SAI_PORT_MEDIA_TYPE_COPPER;
       }
@@ -203,6 +204,7 @@ phy::FecMode getFecModeFromSaiFecMode(
         case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
           mode = phy::FecMode::RS528;
           break;
+        case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544X2N_COPPER:
         case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL:
         case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER:
         case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N:
@@ -215,6 +217,11 @@ phy::FecMode getFecModeFromSaiFecMode(
         case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
         case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_COPPER:
         case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
+        case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_OPTICAL:
+        case cfg::PortProfileID::PROFILE_200G_1_PAM4_RS544X2N_OPTICAL:
+        case cfg::PortProfileID::PROFILE_200G_2_PAM4_RS544_COPPER:
+        case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544_COPPER:
+        case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_COPPER:
           mode = phy::FecMode::RS544_2N;
           break;
         case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER:

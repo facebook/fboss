@@ -79,6 +79,14 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("Wedge400") == 0 || modelName.find("WEDGE400") == 0) {
       type_ = PlatformType::PLATFORM_WEDGE400;
+    } else if (
+        modelName.find("Wedge800BACT") == 0 ||
+        modelName.find("WEDGE800BACT") == 0) {
+      type_ = PlatformType::PLATFORM_WEDGE800BACT;
+    } else if (
+        modelName.find("Wedge800CACT") == 0 ||
+        modelName.find("WEDGE800CACT") == 0) {
+      type_ = PlatformType::PLATFORM_WEDGE800CACT;
     } else if (modelName.find("DARWIN48V") == 0) {
       type_ = PlatformType::PLATFORM_DARWIN48V;
     } else if (
@@ -182,12 +190,18 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("JANGA800BIC") == 0 || modelName.find("JANGA") == 0) {
       type_ = PlatformType::PLATFORM_JANGA800BIC;
+    } else if (modelName.find("TAHANSB800BC") == 0) {
+      type_ = PlatformType::PLATFORM_TAHANSB800BC;
     } else if (
         modelName.find("TAHAN") == 0 || modelName.find("TAHAN800BC") == 0 ||
         modelName.find("R4063-F9001-01") == 0) {
       type_ = PlatformType::PLATFORM_TAHAN800BC;
     } else if (modelName.find("ICECUBE") == 0) {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
+    } else if (modelName.find("ICETEA") == 0) {
+      type_ = PlatformType::PLATFORM_ICETEA800BC;
+    } else if (modelName.find("LADAKH800BCLS") == 0) {
+      type_ = PlatformType::PLATFORM_LADAKH800BCLS;
     } else {
       throw FbossError("invalid model name " + modelName);
     }
@@ -242,6 +256,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MONTBLANC;
     } else if (FLAGS_mode == "icecube800bc") {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
+    } else if (FLAGS_mode == "icetea800bc") {
+      type_ = PlatformType::PLATFORM_ICETEA800BC;
     } else if (FLAGS_mode == "fake_sai") {
       type_ = PlatformType::PLATFORM_FAKE_SAI;
     } else if (FLAGS_mode == "janga800bic") {
@@ -254,6 +270,14 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_YANGRA;
     } else if (FLAGS_mode == "minipack3n") {
       type_ = PlatformType::PLATFORM_MINIPACK3N;
+    } else if (FLAGS_mode == "wedge800bact") {
+      type_ = PlatformType::PLATFORM_WEDGE800BACT;
+    } else if (FLAGS_mode == "tahansb800bc") {
+      type_ = PlatformType::PLATFORM_TAHANSB800BC;
+    } else if (FLAGS_mode == "wedge800cact") {
+      type_ = PlatformType::PLATFORM_WEDGE800CACT;
+    } else if (FLAGS_mode == "ladakh800bcls") {
+      type_ = PlatformType::PLATFORM_LADAKH800BCLS;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }
@@ -275,18 +299,21 @@ std::string PlatformProductInfo::getField(
 void PlatformProductInfo::parse(std::string data) {
   dynamic info;
   try {
-    info = parseJson(data).at(kInfo);
-  } catch (const std::exception& err) {
-    XLOG(ERR) << err.what();
-    // Handle fruid data present outside of "Information" i.e.
+    // Fruid data can be in two formats.
+    // old format (deprecated). If used, it is probably in old BMC Classic
+    // hardware
     // {
     //   "Information" : fruid json
     // }
-    // vs
+    // new format (BMC Lite Devices)
     // {
     //  Fruid json
     // }
-    info = parseJson(data);
+    info = data.find(kInfo) != std::string::npos ? parseJson(data).at(kInfo)
+                                                 : parseJson(data);
+  } catch (const std::exception& err) {
+    XLOG(ERR) << err.what();
+    throw;
   }
 
   productInfo_.product() = getField(info, {kProdName});

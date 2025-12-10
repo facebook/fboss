@@ -19,6 +19,12 @@
 #include "fboss/lib/ThreadHeartbeat.h"
 #include "re2/re2.h"
 
+DECLARE_int32(statsSubscriptionServeQueueSize);
+DECLARE_int32(deltaSubscriptionQueueFullMinSize);
+DECLARE_int32(deltaSubscriptionQueueMemoryLimit_mb);
+DECLARE_int32(statsSubscriptionHeartbeat_s);
+DECLARE_int32(stateSubscriptionHeartbeat_s);
+
 DECLARE_bool(checkSubscriberConfig);
 DECLARE_bool(enforceSubscriberConfig);
 DECLARE_bool(checkOperOwnership);
@@ -158,6 +164,16 @@ class ServiceHandler : public FsdbServiceSvIf,
       SubscriberMessage>>
   co_subscribeStats(std::unique_ptr<SubRequest> request) override;
 
+  folly::coro::Task<apache::thrift::ResponseAndServerStream<
+      OperSubInitResponse,
+      SubscriberMessage>>
+  co_subscribeStateExtended(std::unique_ptr<SubRequest> request) override;
+
+  folly::coro::Task<apache::thrift::ResponseAndServerStream<
+      OperSubInitResponse,
+      SubscriberMessage>>
+  co_subscribeStatsExtended(std::unique_ptr<SubRequest> request) override;
+
   // Management Plane related ---------------------------------------
 
   folly::coro::Task<std::unique_ptr<PublisherIdToOperPublisherInfo>>
@@ -236,7 +252,8 @@ class ServiceHandler : public FsdbServiceSvIf,
       bool isStats,
       SubscriptionIdentifier&& subId);
 
-  folly::coro::AsyncGenerator<OperDelta&&> makeDeltaStreamGenerator(
+  SubscriptionStreamReader<SubscriptionServeQueueElement<OperDelta>>
+  makeDeltaStreamGenerator(
       std::unique_ptr<OperSubRequest> request,
       bool isStats,
       SubscriptionIdentifier&& subId);
@@ -247,12 +264,14 @@ class ServiceHandler : public FsdbServiceSvIf,
       bool isStats,
       SubscriptionIdentifier&& subId);
 
-  folly::coro::AsyncGenerator<SubscriberMessage&&> makePatchStreamGenerator(
+  SubscriptionStreamReader<SubscriptionServeQueueElement<SubscriberMessage>>
+  makePatchStreamGenerator(
       std::unique_ptr<SubRequest> request,
       bool isStats,
       SubscriptionIdentifier&& subId);
 
-  folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
+  SubscriptionStreamReader<
+      SubscriptionServeQueueElement<std::vector<TaggedOperDelta>>>
   makeExtendedDeltaStreamGenerator(
       std::unique_ptr<OperSubRequestExtended> request,
       bool isStats,

@@ -52,17 +52,20 @@ using ThriftMapTypeClass = apache::thrift::type_class::map<
 DsfSubscriber::DsfSubscriber(SwSwitch* sw)
     : sw_(sw),
       localNodeName_(getLocalHostnameUqdn()),
-      streamConnectPool_(std::make_unique<folly::IOThreadPoolExecutor>(
-          FLAGS_dsf_num_fsdb_connect_threads,
-          std::make_shared<folly::NamedThreadFactory>(
-              "DsfSubscriberStreamConnect"))),
-      streamServePool_(std::make_unique<folly::IOThreadPoolExecutor>(
-          FLAGS_dsf_num_fsdb_stream_threads,
-          std::make_shared<folly::NamedThreadFactory>(
-              "DsfSubscriberStreamServe"))),
-      hwUpdatePool_(std::make_unique<folly::IOThreadPoolExecutor>(
-          1,
-          std::make_shared<folly::NamedThreadFactory>("DsfHwUpdate"))) {
+      streamConnectPool_(
+          std::make_unique<folly::IOThreadPoolExecutor>(
+              FLAGS_dsf_num_fsdb_connect_threads,
+              std::make_shared<folly::NamedThreadFactory>(
+                  "DsfSubscriberStreamConnect"))),
+      streamServePool_(
+          std::make_unique<folly::IOThreadPoolExecutor>(
+              FLAGS_dsf_num_fsdb_stream_threads,
+              std::make_shared<folly::NamedThreadFactory>(
+                  "DsfSubscriberStreamServe"))),
+      hwUpdatePool_(
+          std::make_unique<folly::IOThreadPoolExecutor>(
+              1,
+              std::make_shared<folly::NamedThreadFactory>("DsfHwUpdate"))) {
   // TODO(aeckert): add dedicated config field for localNodeName
   sw_->registerStateObserver(this, "DsfSubscriber");
   // Since we want to schedule destruction of DSFSubscription

@@ -5,25 +5,6 @@ load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 oncall("fboss_agent_push")
 
 cpp_unittest(
-    name = "hybrid_storage_tests",
-    srcs = [
-        "HybridCowStorageTests.cpp",
-    ],
-    compiler_flags = ["-ftemplate-backtrace-limit=0"],
-    deps = [
-        "//fboss/fsdb/oper:extended_path_builder",
-        "//fboss/fsdb/tests:hybrid_storage_test-cpp2-thriftpath",
-        "//fboss/fsdb/tests:hybrid_storage_test-cpp2-types",
-        "//fboss/thrift_cow/nodes:serializer",
-        "//fboss/thrift_cow/storage:cow_storage",
-        "//fboss/thrift_cow/visitors:visitors",
-        "//folly:string",
-        "//folly/json:dynamic",
-        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
-    ],
-)
-
-cpp_unittest(
     name = "storage_tests",
     srcs = [
         "CowStorageMgrTests.cpp",
@@ -49,12 +30,51 @@ cpp_unittest(
 
 cpp_library(
     name = "data_factory",
+    srcs = ["TestDataFactory.cpp"],
     headers = [
         "TestDataFactory.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/agent:agent_stats-cpp2-types",
+        "//fboss/agent:switch_state-cpp2-types",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/if:common-cpp2-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/fsdb/benchmarks:state_generator",
+        "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/lib/if:fboss_io_stats-cpp2-types",
+        "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/thrift_cow/nodes:serializer",
+        "//folly:network_address",
+    ],
+)
+
+cpp_library(
+    name = "benchmark_helper",
+    srcs = ["CowStorageBenchHelper.cpp"],
+    headers = [
+        "CowStorageBenchHelper.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":data_factory",
+        "//common/base:proc",
+        "//fboss/thrift_cow/storage:cow_storage",
+        "//folly:benchmark",
+        "//folly/init:init",
+        "//folly/json:dynamic",
+    ],
+)
+
+cpp_benchmark(
+    name = "cowstorage_fsdb_state_bench",
+    srcs = [
+        "CowStorageFsdbStateBench.cpp",
+    ],
+    deps = [
+        ":benchmark_helper",
     ],
 )
 
@@ -64,12 +84,16 @@ cpp_benchmark(
         "CowStorageBench.cpp",
     ],
     deps = [
-        "fbsource//third-party/googletest:gtest",
-        ":data_factory",
-        "//fboss/thrift_cow/storage:cow_storage",
-        "//folly:benchmark",
-        "//folly/init:init",
-        "//folly/json:dynamic",
-        "//folly/logging:logging",
+        ":benchmark_helper",
+    ],
+)
+
+cpp_benchmark(
+    name = "cowstorage_fsdb_stats_bench",
+    srcs = [
+        "CowStorageFsdbStatsBench.cpp",
+    ],
+    deps = [
+        ":benchmark_helper",
     ],
 )

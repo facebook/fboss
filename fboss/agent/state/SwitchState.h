@@ -27,6 +27,7 @@
 #include "fboss/agent/state/BufferPoolConfigMap.h"
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/DsfNodeMap.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
@@ -78,6 +79,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::fibsMap,
     MultiSwitchForwardingInformationBaseMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::fibsInfoMap,
+    MultiSwitchFibInfoMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::mirrorMaps,
@@ -153,6 +158,10 @@ RESOLVE_STRUCT_MEMBER(
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::systemPortMaps,
+    MultiSwitchSystemPortMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::fabricLinkMonitoringSystemPortMaps,
     MultiSwitchSystemPortMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
@@ -442,6 +451,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<MultiSwitchMirrorMap>& getMirrors() const;
   const std::shared_ptr<MultiSwitchMirrorOnDropReportMap>&
   getMirrorOnDropReports() const;
+  const std::shared_ptr<MultiSwitchFibInfoMap>& getFibsInfoMap() const;
   const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& getFibs()
       const;
   const std::shared_ptr<MultiLabelForwardingInformationBase>&
@@ -449,6 +459,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   const std::shared_ptr<MultiSwitchTransceiverMap>& getTransceivers() const;
   const std::shared_ptr<MultiSwitchSystemPortMap>& getSystemPorts() const;
+  const std::shared_ptr<MultiSwitchSystemPortMap>&
+  getFabricLinkMonitoringSystemPorts() const;
   const std::shared_ptr<MultiSwitchIpTunnelMap>& getTunnels() const;
 
   const std::shared_ptr<MultiSwitchDsfNodeMap>& getDsfNodes() const;
@@ -514,6 +526,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       std::shared_ptr<MultiLabelForwardingInformationBase> labelFib);
   void resetForwardingInformationBases(
       std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs);
+  void resetFibsInfoMap(std::shared_ptr<MultiSwitchFibInfoMap> fibsInfoMap);
   void resetSwitchSettings(std::shared_ptr<MultiSwitchSettings> switchSettings);
   void resetBufferPoolCfgs(std::shared_ptr<MultiSwitchBufferPoolCfgMap> cfgs);
   void resetTransceivers(
@@ -522,6 +535,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetSystemPorts(
       const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
   void resetRemoteSystemPorts(
+      const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
+  void resetFabricLinkMonitoringSystemPorts(
       const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
 
   void resetTunnels(std::shared_ptr<MultiSwitchIpTunnelMap> tunnels);

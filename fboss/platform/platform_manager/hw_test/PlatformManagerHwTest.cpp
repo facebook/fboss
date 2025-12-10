@@ -24,6 +24,38 @@ const std::map<ExplorationStatus, std::vector<ExplorationStatus>>
         {ExplorationStatus::SUCCEEDED, {}},
         {ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS, {}},
         {ExplorationStatus::FAILED, {}}};
+
+// Find the number of LEDs configured for a given xcvr number.
+int getNumLedsForXcvr(int xcvrNum, const PlatformConfig& platformConfig) {
+  int ledCount = 0;
+
+  for (const auto& [pmUnitName, pmUnitConfig] :
+       *platformConfig.pmUnitConfigs()) {
+    for (const auto& pciDeviceConfig : *pmUnitConfig.pciDeviceConfigs()) {
+      // Check individual LED control configs
+      for (const auto& ledCtrlConfig : *pciDeviceConfig.ledCtrlConfigs()) {
+        if (*ledCtrlConfig.portNumber() == xcvrNum) {
+          ledCount++;
+        }
+      }
+
+      // Check LED control block configs
+      for (const auto& ledBlockConfig :
+           *pciDeviceConfig.ledCtrlBlockConfigs()) {
+        int startPort = *ledBlockConfig.startPort();
+        int numPorts = *ledBlockConfig.numPorts();
+        int ledPerPort = *ledBlockConfig.ledPerPort();
+
+        // Check if xcvrNum falls within this block's port range
+        if (xcvrNum >= startPort && xcvrNum < startPort + numPorts) {
+          ledCount += ledPerPort;
+        }
+      }
+    }
+  }
+
+  return ledCount;
+}
 }; // namespace
 
 namespace fs = std::filesystem;
@@ -34,9 +66,6 @@ class PlatformExplorerWrapper : public PlatformExplorer {
       : PlatformExplorer(config) {
     // Store the initial PlatformManagerStatus defined in PlatformExplorer.
     updatedPmStatuses_.push_back(getPMStatus());
-  }
-  bool isDeviceExpectedToFail(const std::string& devicePath) {
-    return explorationSummary_.isDeviceExpectedToFail(devicePath);
   }
   std::vector<PlatformManagerStatus> updatedPmStatuses_;
 
@@ -141,10 +170,6 @@ TEST_F(PlatformManagerHwTest, Symlinks) {
   explorationOk();
   for (const auto& [symlink, devicePath] :
        *platformConfig_.symbolicLinkToDevicePath()) {
-    // Skip unsupported device in this hardware.
-    if (platformExplorer_.isDeviceExpectedToFail(devicePath)) {
-      continue;
-    }
     EXPECT_TRUE(fs::exists(symlink))
         << fmt::format("{} doesn't exist", symlink);
     EXPECT_TRUE(fs::is_symlink(symlink))
@@ -165,9 +190,6 @@ TEST_F(PlatformManagerHwTest, XcvrCtrlFiles) {
     if (*platformConfig_.bspKmodsRpmName() == "cisco_bsp_kmods") {
       presenceFileName = "xcvr_present";
       resetFileName = "xcvr_reset";
-    } else if (*platformConfig_.bspKmodsRpmName() == "arista_bsp_kmods") {
-      presenceFileName = fmt::format("xcvr{}_present", xcvrId);
-      resetFileName = fmt::format("xcvr{}_reset", xcvrId);
     } else {
       presenceFileName = fmt::format("xcvr_present_{}", xcvrId);
       resetFileName = fmt::format("xcvr_reset_{}", xcvrId);
@@ -206,24 +228,32 @@ TEST_F(PlatformManagerHwTest, XcvrLedFiles) {
   fs::remove_all("/run/devmap/xcvrs");
   EXPECT_FALSE(fs::exists("/run/devmap/xcvrs"));
   explorationOk();
-  // Note: We are not checking the LED files of the last xcvr (typically the
-  // PIE/Management port). This PIE/Management port has different number of LEDs
-  // on different platforms. We can augment this test later by reading from
-  // `ledCtrlConfigs` and perform this check even for PIE ports.
-  for (auto xcvrNum = 1; xcvrNum < *platformConfig_.numXcvrs(); xcvrNum++) {
-    auto blueLed1 = fs::path(
-        fmt::format("/sys/class/leds/port{}_led1:blue:status", xcvrNum));
-    auto blueLed2 = fs::path(
-        fmt::format("/sys/class/leds/port{}_led2:blue:status", xcvrNum));
-    auto yellowLed1 = fs::path(
-        fmt::format("/sys/class/leds/port{}_led1:yellow:status", xcvrNum));
-    auto yellowLed2 = fs::path(
-        fmt::format("/sys/class/leds/port{}_led2:yellow:status", xcvrNum));
-    for (auto& ledDir : {blueLed1, blueLed2, yellowLed1, yellowLed2}) {
-      for (auto& ledFile : {"brightness", "max_brightness", "trigger"}) {
-        auto ledFullPath = ledDir / fs::path(ledFile);
-        EXPECT_TRUE(fs::exists(ledFullPath))
-            << fmt::format("{} doesn't exist", ledFullPath.string());
+  for (auto xcvrNum = 1; xcvrNum <= *platformConfig_.numXcvrs(); xcvrNum++) {
+    auto numLeds = getNumLedsForXcvr(xcvrNum, platformConfig_);
+    for (auto ledNum = 1; ledNum <= numLeds; ledNum++) {
+      for (auto& color : {"blue", "amber"}) {
+        auto ledDir = fs::path(
+            fmt::format(
+                "/sys/class/leds/port{}_led{}:{}:status",
+                xcvrNum,
+                ledNum,
+                color));
+        XLOG(DBG2) << fmt::format("Checking {}", ledDir.string());
+        for (auto& ledFile : {"brightness", "max_brightness", "trigger"}) {
+          auto fullPath = ledDir / fs::path(ledFile);
+          EXPECT_TRUE(fs::exists(fullPath))
+              << fmt::format("{} doesn't exist", fullPath.string());
+          if (std::string(ledFile) == "trigger") {
+            auto ledFileContent =
+                PlatformFsUtils().getStringFileContent(fullPath);
+            ASSERT_TRUE(ledFileContent);
+            EXPECT_TRUE(ledFileContent->find("timer") != std::string::npos)
+                << fmt::format(
+                       "{} has unexpected content `{}`",
+                       fullPath.string(),
+                       *ledFileContent);
+          }
+        }
       }
     }
   }

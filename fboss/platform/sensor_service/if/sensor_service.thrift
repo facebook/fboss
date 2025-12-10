@@ -27,6 +27,8 @@ struct SensorData {
   3: optional i64 timeStamp;
   4: sensor_config.Thresholds thresholds;
   5: sensor_config.SensorType sensorType;
+  6: string slotPath;
+  7: string sysfsPath;
 }
 
 @hack.Attributes{

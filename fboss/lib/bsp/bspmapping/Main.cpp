@@ -43,7 +43,27 @@ const std::map<PlatformType, folly::StringPiece> kHardwareNameMap = {
      kPortMappingMorgan800ccCsv},
     {facebook::fboss::PlatformType::PLATFORM_ICECUBE800BC,
      kPortMappingIcecube800bcCsv},
+    {facebook::fboss::PlatformType::PLATFORM_ICETEA800BC,
+     kPortMappingIcetea800bcCsv},
+    {facebook::fboss::PlatformType::PLATFORM_TAHANSB800BC,
+     kPortMappingTahansb800bcCsv},
+    {facebook::fboss::PlatformType::PLATFORM_WEDGE800BACT,
+     kPortMappingWedge800BACTCsv},
+    {facebook::fboss::PlatformType::PLATFORM_WEDGE800CACT,
+     kPortMappingWedge800CACTCsv},
+    {facebook::fboss::PlatformType::PLATFORM_LADAKH800BCLS,
+     kPortMappingLadakh800bclsCsv},
 };
+
+// Helper function to generate PHY CSV filename from regular CSV filename
+std::string getPhyCsvFilename(const std::string& regularCsv) {
+  std::string phyCsv = regularCsv;
+  size_t pos = phyCsv.find("_BspMapping.csv");
+  if (pos != std::string::npos) {
+    phyCsv.replace(pos, 15, "_PhyBspMapping.csv");
+  }
+  return phyCsv;
+}
 
 int cliMain(int argc, char* argv[]) {
   std::map<std::string, BspPlatformMappingThrift> bspPlatformMap;
@@ -55,8 +75,24 @@ int cliMain(int argc, char* argv[]) {
   std::filesystem::create_directory(outputDir);
 
   for (auto& [hardware, csv] : kHardwareNameMap) {
-    auto bspPlatformMapping = Parser::getBspPlatformMappingFromCsv(
-        kInputConfigPrefix.toString() + csv.data());
+    BspPlatformMappingThrift bspPlatformMapping;
+
+    // Dynamically check if PHY CSV exists for this platform
+    std::string phyCsvFilename = getPhyCsvFilename(csv.str());
+    std::string phyCsvPath = kInputConfigPrefix.toString() + phyCsvFilename;
+
+    if (std::filesystem::exists(phyCsvPath)) {
+      std::cout << "Found PHY CSV for " << Parser::getNameFor(hardware) << ": "
+                << phyCsvPath << std::endl;
+      bspPlatformMapping = Parser::getBspPlatformMappingFromCsv(
+          kInputConfigPrefix.toString() + csv.data(), phyCsvPath);
+    } else {
+      std::cout << "PHY CSV not found for " << Parser::getNameFor(hardware)
+                << ", using transceiver-only mapping" << std::endl;
+      bspPlatformMapping = Parser::getBspPlatformMappingFromCsv(
+          kInputConfigPrefix.toString() + csv.data());
+    }
+
     bspPlatformMap[Parser::getNameFor(hardware).data()] = bspPlatformMapping;
 
     auto output = apache::thrift::SimpleJSONSerializer::serialize<std::string>(

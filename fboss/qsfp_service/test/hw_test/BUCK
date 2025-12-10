@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 load(
     "//fboss/qsfp_service/test/hw_test:hw_test.bzl",
     "all_hw_qsfp_ensemble_libs",
@@ -17,12 +18,14 @@ cpp_library(
     headers = [
         "HwTransceiverUtils.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/agent:fboss-error",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/lib/config:fboss_config_utils",
+        "//fboss/qsfp_service:transceiver-manager",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",

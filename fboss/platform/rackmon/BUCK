@@ -154,6 +154,7 @@ cpp_unittest(
         "tests/RegisterSpanTest.cpp",
         "tests/RegisterTest.cpp",
         "tests/RegisterValueTest.cpp",
+        "tests/UARTDeviceTest.cpp",
     ],
     headers = [
         "Device.h",
@@ -175,7 +176,6 @@ cpp_unittest(
         ".",
     ],
     deps = [
-        "fbsource//third-party/googletest:gtest",
         "//common/services/cpp:cpp",
         "//fboss/platform/rackmon:core",
         "//fboss/platform/rackmon:handler",

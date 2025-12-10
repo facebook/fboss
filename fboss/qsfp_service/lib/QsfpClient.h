@@ -33,6 +33,10 @@ class QsfpClient {
  public:
   QsfpClient() {}
   ~QsfpClient() {}
+  QsfpClient(const QsfpClient&) = default;
+  QsfpClient& operator=(const QsfpClient&) = default;
+  QsfpClient(QsfpClient&&) = default;
+  QsfpClient& operator=(QsfpClient&&) = default;
 
   static folly::Future<std::unique_ptr<apache::thrift::Client<QsfpService>>>
   createClient(folly::EventBase* eb);

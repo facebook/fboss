@@ -15,6 +15,7 @@
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/RouteUpdater.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
 #include <folly/Synchronized.h>
@@ -30,8 +31,9 @@ namespace facebook::fboss {
 class SwitchState;
 class MultiSwitchForwardingInformationBaseMap;
 class SwitchIdScopeResolver;
+class StateDelta;
 
-using FibUpdateFunction = std::function<std::shared_ptr<SwitchState>(
+using FibUpdateFunction = std::function<StateDelta(
     const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -68,19 +70,15 @@ class RibRouteTables {
       std::optional<cfg::AclLookupClass> classId,
       void* cookie);
   void setOverrideEcmpMode(
-      const SwitchIdScopeResolver* resolver,
       RouterID rid,
-      const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
-          prefix2EcmpMode,
-      const FibUpdateFunction& fibUpdateCallback,
-      void* cookie);
+      const std::unordered_map<
+          folly::CIDRNetwork,
+          std::optional<cfg::SwitchingMode>>& prefix2EcmpMode);
   void setOverrideEcmpNhops(
-      const SwitchIdScopeResolver* resolver,
       RouterID rid,
-      const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
-          prefix2Nhops,
-      const FibUpdateFunction& fibUpdateCallback,
-      void* cookie);
+      const std::unordered_map<
+          folly::CIDRNetwork,
+          std::optional<RouteNextHopSet>>& prefix2Nhops);
   /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
    * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
@@ -145,6 +143,8 @@ class RibRouteTables {
       const std::map<int32_t, state::RouteTableFields>&);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
+  void updateEcmpOverrides(const StateDelta& delta);
+
  private:
   struct RouteTable {
     IPv4NetworkToRouteMap v4NetworkToRoute;
@@ -180,6 +180,7 @@ class RibRouteTables {
       void* cookie);
   template <typename RibUpdateFn>
   void updateRib(RouterID vrf, const RibUpdateFn& updateRib);
+  void updateEcmpOverrides(RouterID vrf, const StateDelta& delta);
 
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
@@ -208,6 +209,8 @@ class RoutingInformationBase {
  public:
   RoutingInformationBase(const RoutingInformationBase& o) = delete;
   RoutingInformationBase& operator=(const RoutingInformationBase& o) = delete;
+  RoutingInformationBase(RoutingInformationBase&&) = delete;
+  RoutingInformationBase& operator=(RoutingInformationBase&&) = delete;
   RoutingInformationBase();
   ~RoutingInformationBase();
 
@@ -325,21 +328,7 @@ class RoutingInformationBase {
     setClassIDImpl(
         resolver, rid, prefixes, fibUpdateCallback, classId, cookie, true);
   }
-  void setOverrideEcmpModeAsync(
-      const SwitchIdScopeResolver* resolver,
-      RouterID rid,
-      const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
-          prefix2EcmpMode,
-      const FibUpdateFunction& fibUpdateCallback,
-      void* cookie);
-  void setOverrideEcmpNhopsAsync(
-      const SwitchIdScopeResolver* resolver,
-      RouterID rid,
-      const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
-          prefix2Nhops,
-      const FibUpdateFunction& fibUpdateCallback,
-      void* cookie);
-
+  void updateEcmpOverrides(const StateDelta& delta);
   void updateStateInRibThread(const std::function<void()>& fn);
 
   /*

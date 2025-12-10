@@ -24,7 +24,7 @@ namespace thriftpath {
         copyAndExtendVec(this->extendedTokens_, std::move(elem)),   \
         this->hasWildcards_);                                       \
   }                                                                 \
-  TypeFor<strings::child> child()&& {                               \
+  TypeFor<strings::child> child() && {                              \
     this->tokens_.push_back(#child);                                \
     const std::string childIdStr = folly::to<std::string>(childId); \
     this->idTokens_.push_back(childIdStr);                          \
@@ -48,7 +48,7 @@ namespace thriftpath {
         copyAndExtendVec(this->extendedTokens_, std::move(elem)),     \
         this->hasWildcards_);                                         \
   }                                                                   \
-  Child operator[](key_type token)&& {                                \
+  Child operator[](key_type token) && {                               \
     const std::string strToken = folly::to<std::string>(token);       \
     this->tokens_.push_back(strToken);                                \
     this->idTokens_.push_back(strToken);                              \
@@ -68,7 +68,7 @@ namespace thriftpath {
         copyAndExtendVec(this->extendedTokens_, std::move(elem)),     \
         true /* hasWildcards */);                                     \
   }                                                                   \
-  Child operator[](facebook::fboss::fsdb::OperPathElem elem)&& {      \
+  Child operator[](facebook::fboss::fsdb::OperPathElem elem) && {     \
     this->tokens_.push_back(pathElemToString(elem));                  \
     this->idTokens_.push_back(pathElemToString(elem));                \
     this->extendedTokens_.push_back(std::move(elem));                 \

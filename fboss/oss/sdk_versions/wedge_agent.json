@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<4c0b39ef347d9364da235410708aaf7b>>"
+        "@generated SignedSource<<b0e8025115e5bf91911e9c8d1cc213c4>>"
     ],
     "MINIPACK": [
         {
@@ -42,9 +42,9 @@
         },
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "6.5.29",
-            "saiSdk": "13.0_ea_odp",
-            "saiVersion": "1.15.7"
+            "asicSdk": "6.5.32",
+            "saiSdk": "13.3.0.0_odp",
+            "saiVersion": "1.16.1"
         }
     ],
     "ELBERT": [
@@ -92,20 +92,14 @@
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
-            "asicSdk": "6.5.29",
-            "saiSdk": "13.0_ea_odp",
-            "saiVersion": "1.15.7"
+            "asicSdk": "6.5.32",
+            "saiSdk": "13.3.0.0_odp",
+            "saiVersion": "1.16.1"
         }
     ],
     "MORGAN800CC": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "24.8.3001_yuba",
-            "saiSdk": "24.8.3001_yuba",
-            "saiVersion": "1.14.0"
-        },
-        {
-            "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "24.8.3001",
             "saiSdk": "24.8.3001",
             "saiVersion": "1.14.0"
@@ -166,9 +160,9 @@
         },
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "6.5.29",
-            "saiSdk": "13.0_ea_odp",
-            "saiVersion": "1.15.7"
+            "asicSdk": "6.5.32",
+            "saiSdk": "13.3.0.0_odp",
+            "saiVersion": "1.16.1"
         }
     ],
     "DARWIN": [
@@ -206,9 +200,9 @@
     "MINIPACK3N": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "4.8.1054",
-            "saiSdk": "116.133.2508.1",
-            "saiVersion": "1.16.1"
+            "asicSdk": "4.8.2060",
+            "saiSdk": "2505.34",
+            "saiVersion": "1.16.2"
         }
     ],
     "MERU400BIU": [
@@ -290,9 +284,9 @@
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
-            "asicSdk": "6.5.29",
-            "saiSdk": "13.0_ea_odp",
-            "saiVersion": "1.15.7"
+            "asicSdk": "6.5.32",
+            "saiSdk": "13.3.0.0_odp",
+            "saiVersion": "1.16.1"
         }
     ]
 }

@@ -21,6 +21,7 @@ function(BUILD_AGENT_ENSEMBLE_SAI_LINK_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     sai_ecmp_utils
     sai_port_utils
     sai_traced_api
+    setup_thrift_prod
     trap_packet_utils
     -Wl,--no-whole-archive
     ref_map
@@ -52,6 +53,7 @@ function(BUILD_AGENT_ENSEMBLE_SAI_LINK_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     sai_ecmp_utils
     sai_port_utils
     sai_traced_api
+    setup_thrift_prod
     trap_packet_utils
     -Wl,--no-whole-archive
     ref_map
@@ -81,12 +83,6 @@ endif()
 # If libsai_impl is provided, build link test linking with it
 find_library(SAI_IMPL sai_impl)
 message(STATUS "SAI_IMPL: ${SAI_IMPL}")
-
-if (SAI_BRCM_IMPL)
-  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES saiswitchextensions.h)
-  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
-  message(STATUS, "SAI_EXPERIMENTAL_INCLUDE_DIR: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
-endif()
 
 if(SAI_IMPL)
   BUILD_AGENT_ENSEMBLE_SAI_LINK_TEST("sai_impl" ${SAI_IMPL})

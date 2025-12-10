@@ -113,6 +113,13 @@ cfg::AgentConfig makeAgentConfig(
   return cfg;
 }
 
+cfg::AgentConfig
+makeLargeAgentConfig(const std::string& argName, uint32_t bytes, char val) {
+  std::map<std::string, std::string> cmdLineArgs;
+  cmdLineArgs[argName] = std::string(bytes, val);
+  return makeAgentConfig(cmdLineArgs);
+}
+
 folly::F14FastMap<std::string, HwPortStats> makePortStats(
     int64_t inBytes,
     const std::string& portName) {
@@ -120,6 +127,23 @@ folly::F14FastMap<std::string, HwPortStats> makePortStats(
   HwPortStats stats;
   stats.inBytes_() = inBytes;
   portStats[portName] = stats;
+  return portStats;
+}
+
+folly::F14FastMap<std::string, HwPortStats> makeLargePortStats(
+    int64_t counterValue,
+    int64_t numPorts) {
+  folly::F14FastMap<std::string, HwPortStats> portStats;
+  for (int i = 0; i < numPorts; i++) {
+    HwPortStats stats;
+    std::map<int16_t, int64_t> queueBytes;
+    for (int16_t queueId = 1; queueId <= 1024; queueId++) {
+      queueBytes[queueId] = counterValue;
+    }
+    stats.queueOutBytes_() = queueBytes;
+    std::string portName = folly::sformat("eth1/1/{}", i);
+    portStats[portName] = stats;
+  }
   return portStats;
 }
 
@@ -160,6 +184,30 @@ Patch makePatch(const folly::F14FastMap<std::string, HwPortStats>& portStats) {
   p.patch() = std::move(root);
   p.basePath() = {"agent"};
   return p;
+}
+
+OperDelta makeSwitchStateOperDelta(const state::SwitchState& switchState) {
+  OperPath deltaPath;
+  thriftpath::RootThriftPath<FsdbOperStateRoot> root;
+  deltaPath.raw() = root.agent().switchState().tokens();
+  OperDeltaUnit deltaUnit;
+  deltaUnit.path() = deltaPath;
+  deltaUnit.newState() =
+      apache::thrift::BinarySerializer::serialize<std::string>(switchState);
+  OperDelta delta;
+  delta.changes()->push_back(deltaUnit);
+  delta.protocol() = OperProtocol::BINARY;
+  return delta;
+}
+
+OperState makeSwitchStateOperState(const state::SwitchState& switchState) {
+  AgentData agentData;
+  agentData.switchState() = switchState;
+  OperState stateUnit;
+  stateUnit.contents() =
+      apache::thrift::BinarySerializer::serialize<std::string>(agentData);
+  stateUnit.protocol() = OperProtocol::BINARY;
+  return stateUnit;
 }
 
 } // namespace facebook::fboss::fsdb::test

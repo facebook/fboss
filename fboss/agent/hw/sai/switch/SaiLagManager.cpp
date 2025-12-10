@@ -18,6 +18,11 @@ namespace facebook::fboss {
 
 LagSaiId SaiLagManager::addLag(
     const std::shared_ptr<AggregatePort>& aggregatePort) {
+  if (aggregatePort->getAggregatePortType() ==
+      cfg::AggregatePortType::HYPER_PORT) {
+    // TODO(daiuweix): update HYPER port through SaiPortManager
+    return LagSaiId(0);
+  }
   XLOG(DBG2) << "adding aggregate port : " << aggregatePort->getID();
 
   auto name = aggregatePort->getName();
@@ -49,8 +54,9 @@ LagSaiId SaiLagManager::addLag(
   LagSaiId lagSaiId = lag->adapterKey();
   std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members;
   for (auto iter : folly::enumerate(aggregatePort->subportAndFwdState())) {
-    auto [subPort, fwdState] = *iter;
-    auto member = addMember(lag, aggregatePort->getID(), subPort, fwdState);
+    auto [currentSubPort, fwdState] = *iter;
+    auto member =
+        addMember(lag, aggregatePort->getID(), currentSubPort, fwdState);
     members.emplace(std::move(member));
   }
   concurrentIndices_->vlanIds.emplace(
@@ -67,13 +73,17 @@ LagSaiId SaiLagManager::addLag(
       aggregatePort->getID(), aggregatePort->getName());
   handles_.emplace(aggregatePort->getID(), std::move(handle));
   managerTable_->vlanManager().createVlanMember(
-      vlanID, SaiPortDescriptor(aggregatePort->getID()));
+      vlanID, SaiPortDescriptor(aggregatePort->getID()), false);
 
   return lagSaiId;
 }
 
 void SaiLagManager::removeLag(
     const std::shared_ptr<AggregatePort>& aggregatePort) {
+  if (aggregatePort->getAggregatePortType() ==
+      cfg::AggregatePortType::HYPER_PORT) {
+    return;
+  }
   XLOG(DBG2) << "removing aggregate port : " << aggregatePort->getID();
   auto iter = handles_.find(aggregatePort->getID());
   if (iter == handles_.end()) {
@@ -87,6 +97,11 @@ void SaiLagManager::removeLag(
 void SaiLagManager::changeLag(
     const std::shared_ptr<AggregatePort>& oldAggregatePort,
     const std::shared_ptr<AggregatePort>& newAggregatePort) {
+  if (newAggregatePort->getAggregatePortType() ==
+      cfg::AggregatePortType::HYPER_PORT) {
+    // TODO(daiuweix): update HYPER port through SaiPortManager
+    return;
+  }
   auto handleIter = handles_.find(oldAggregatePort->getID());
   CHECK(handleIter != handles_.end());
   auto& saiLagHandle = handleIter->second;
@@ -211,7 +226,7 @@ SaiLagHandle* SaiLagManager::getLagHandle(
   throw FbossError("handle for aggregate port ", aggregatePortID, " not found");
 }
 
-bool SaiLagManager::isMinimumLinkMet(AggregatePortID aggregatePortID) const {
+bool SaiLagManager::isLagUp(const AggregatePortID& aggregatePortID) const {
   const auto* handle = getLagHandle(aggregatePortID);
   return handle->minimumLinkCount <= getActiveMemberCount(aggregatePortID);
 }

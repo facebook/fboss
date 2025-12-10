@@ -6,6 +6,7 @@
 add_library(platform_mapping
   fboss/agent/platforms/common/MultiPimPlatformMapping.cpp
   fboss/agent/platforms/common/PlatformMapping.cpp
+  fboss/agent/platforms/common/oss/PlatformMapping.cpp
 )
 
 target_link_libraries(platform_mapping
@@ -48,5 +49,10 @@ target_link_libraries(platform_mapping_utils
   janga800bic_platform_mapping
   tahan800bc_platform_mapping
   icecube800bc_platform_mapping
+  wedge800bact_platform_mapping
+  icetea800bc_platform_mapping
+  tahansb800bc_platform_mapping
+  wedge800cact_platform_mapping
+  ladakh800bcls_platform_mapping
   ${RE2}
 )

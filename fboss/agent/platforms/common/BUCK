@@ -7,8 +7,10 @@ cpp_library(
     srcs = [
         "MultiPimPlatformMapping.cpp",
         "PlatformMapping.cpp",
+        "facebook/PlatformMapping.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:platform_config-cpp2-types",
@@ -18,9 +20,6 @@ cpp_library(
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
-    ],
-    exported_external_deps = [
-        "re2",
     ],
 )
 
@@ -41,7 +40,9 @@ cpp_library(
         "//fboss/agent/platforms/common/fuji:fuji_platform_mapping",
         "//fboss/agent/platforms/common/galaxy:galaxy_platform_mapping",
         "//fboss/agent/platforms/common/icecube800bc:icecube800bc_platform_mapping",
+        "//fboss/agent/platforms/common/icetea800bc:icetea800bc_platform_mapping",
         "//fboss/agent/platforms/common/janga800bic:janga800bic_platform_mapping",
+        "//fboss/agent/platforms/common/ladakh800bcls:ladakh800bcls_platform_mapping",
         "//fboss/agent/platforms/common/meru400bfu:meru400bfu_platform_mapping",
         "//fboss/agent/platforms/common/meru400bia:meru400bia_platform_mapping",
         "//fboss/agent/platforms/common/meru400biu:meru400biu_platform_mapping",
@@ -52,11 +53,14 @@ cpp_library(
         "//fboss/agent/platforms/common/montblanc:montblanc_platform_mapping",
         "//fboss/agent/platforms/common/morgan800cc:morgan800cc_platform_mapping",
         "//fboss/agent/platforms/common/tahan800bc:tahan800bc_platform_mapping",
+        "//fboss/agent/platforms/common/tahansb800bc:tahansb800bc_platform_mapping",
         "//fboss/agent/platforms/common/wedge100:wedge100_platform_mapping",
         "//fboss/agent/platforms/common/wedge40:wedge40_platform_mapping",
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_mapping",
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_utils",
         "//fboss/agent/platforms/common/wedge400c:wedge400c_platform_mapping",
+        "//fboss/agent/platforms/common/wedge800bact:wedge800bact_platform_mapping",
+        "//fboss/agent/platforms/common/wedge800cact:wedge800cact_platform_mapping",
         "//fboss/agent/platforms/common/yamp:yamp_platform_mapping",
         "//fboss/agent/platforms/common/yangra:yangra_platform_mapping",
         "//fboss/lib/platforms:platform_mode",

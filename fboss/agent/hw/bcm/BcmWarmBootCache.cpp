@@ -90,13 +90,15 @@ struct AddrTables {
 };
 
 folly::IPAddress getFullMaskIPv4Address() {
-  return folly::IPAddress(folly::IPAddressV4(
-      folly::IPAddressV4::fetchMask(folly::IPAddressV4::bitCount())));
+  return folly::IPAddress(
+      folly::IPAddressV4(
+          folly::IPAddressV4::fetchMask(folly::IPAddressV4::bitCount())));
 }
 
 folly::IPAddress getFullMaskIPv6Address() {
-  return folly::IPAddress(folly::IPAddressV6(
-      folly::IPAddressV6::fetchMask(folly::IPAddressV6::bitCount())));
+  return folly::IPAddress(
+      folly::IPAddressV6(
+          folly::IPAddressV6::fetchMask(folly::IPAddressV6::bitCount())));
 }
 } // namespace
 
@@ -1022,8 +1024,10 @@ void BcmWarmBootCache::removeUnclaimedStations() {
 
 void BcmWarmBootCache::removeUnclaimedVlans() {
   bcm_vlan_t defaultVlan;
-  auto rv = bcm_vlan_default_get(hw_->getUnit(), &defaultVlan);
-  bcmLogFatal(rv, hw_, "failed to get default VLAN");
+  {
+    auto rv = bcm_vlan_default_get(hw_->getUnit(), &defaultVlan);
+    bcmLogFatal(rv, hw_, "failed to get default VLAN");
+  }
   // Finally delete the vlans
   for (auto vlanItr = vlan2VlanInfo_.begin();
        vlanItr != vlan2VlanInfo_.end();) {

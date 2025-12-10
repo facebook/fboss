@@ -25,6 +25,7 @@ set(fsdb_stream_client_libs
 target_link_libraries(fsdb_stream_client ${fsdb_stream_client_libs})
 
 set(fsdb_pub_sub_files
+  fboss/fsdb/oper/DeltaValue.h
   fboss/fsdb/client/FsdbSubscriber.cpp
   fboss/fsdb/client/FsdbPublisher.cpp
   fboss/fsdb/client/FsdbPubSubManager.cpp
@@ -34,6 +35,7 @@ set(fsdb_pub_sub_files
   fboss/fsdb/client/FsdbStateSubscriber.cpp
   fboss/fsdb/client/FsdbPatchPublisher.cpp
   fboss/fsdb/client/FsdbPatchSubscriber.cpp
+  fboss/fsdb/oper/DeltaValue.cpp
 )
 
 add_library(fsdb_pub_sub ${fsdb_pub_sub_files})
@@ -60,6 +62,7 @@ add_library(fsdb_sub_mgr
 target_link_libraries(fsdb_sub_mgr
   fsdb_pub_sub
   fsdb_model
+  oper_path_helpers
 )
 
 add_library(fsdb_syncer

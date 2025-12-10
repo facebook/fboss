@@ -4,6 +4,7 @@
     "enable_route_resource_protection": "false",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
+    "sai_configure_six_tap": "true",
     "skip_transceiver_programming": "true",
     "use_full_dlb_scale": "true"
   },
@@ -198,7 +199,7 @@
           "loopbackIps": [
             
           ],
-          "nodeMac": "18*800G-8",
+          "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 14,
           "platformType": 28,
           "localSystemPortOffset": 10,

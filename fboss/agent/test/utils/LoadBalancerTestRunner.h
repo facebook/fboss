@@ -156,6 +156,19 @@
   RUN_ALL_HW_LOAD_BALANCER_TEST_FRONT_PANEL(TEST_FIXTURE) \
   RUN_SHRINK_EXPAND_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE)
 
+// 6 (not 8) to allow for the members to stay within same core
+#define RUN_HW_LOAD_BALANCER_TEST_SPRAY(                              \
+    TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE)                          \
+  TEST_F(TEST_FIXTURE, TEST_NAME(MULTIPATH_TYPE, HASH_TYPE, Cpu)) {   \
+    runLoadBalanceTest(                                               \
+        6,                                                            \
+        facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(     \
+            {getHwAsic()}),                                           \
+        facebook::fboss::utility::kHwTest##MULTIPATH_TYPE##Weights(), \
+        false,                                                        \
+        true);                                                        \
+  }
+
 namespace facebook::fboss::utility {
 
 template <typename EcmpTestHelperT, bool kFlowLetSwitching = false>

@@ -180,12 +180,12 @@ class BcmInterfaceTest : public BcmTest {
 };
 
 TEST_F(BcmInterfaceTest, InterfaceApplyConfig) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     newCfg.interfaces()[0].mtu() = 9000;
     applyNewConfig(newCfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // FakeAsic not supported (not all APIs are defined in FakeSDK) T92705046
     bool verifyIngress = getHwSwitch()->getPlatform()->getAsic()->isSupported(
                              HwAsic::Feature::INGRESS_L3_INTERFACE) &&
@@ -208,7 +208,7 @@ TEST_F(BcmInterfaceTest, InterfaceApplyConfig) {
 }
 
 TEST_F(BcmInterfaceTest, fromJumboToNonJumboInterface) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     newCfg.interfaces()[0].mtu() = 9000;
     applyNewConfig(newCfg);
@@ -216,7 +216,7 @@ TEST_F(BcmInterfaceTest, fromJumboToNonJumboInterface) {
     newCfg.interfaces()[0].mtu() = Interface::kDefaultMtu;
     applyNewConfig(newCfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     bcm_l3_info_t l3HwStatus;
     auto rv = bcm_l3_info(getUnit(), &l3HwStatus);
     bcmCheckError(rv, "failed get L3 hw info");
@@ -231,8 +231,8 @@ TEST_F(BcmInterfaceTest, fromJumboToNonJumboInterface) {
 }
 
 TEST_F(BcmInterfaceTest, checkMplsEnabled) {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { applyNewConfig(initialConfig()); };
+  auto verify = [=, this]() {
     std::vector<bcm_l2_addr_t> l2_addrs;
     bcm_l2_traverse(
         getHwSwitch()->getUnit(),

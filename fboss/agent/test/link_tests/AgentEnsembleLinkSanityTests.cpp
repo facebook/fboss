@@ -46,9 +46,14 @@ bool isEqual(
 // For some reason this flag always evaluates as false if we hardcode the string
 // So return it from a function instead
 const std::string qsfpUtilPrefix() {
-  return FLAGS_multi_npu_platform_mapping
-      ? "wedge_qsfp_util --multi-npu-platform-mapping "
-      : "wedge_qsfp_util ";
+  std::string extraFlags;
+  if (FLAGS_multi_npu_platform_mapping) {
+    extraFlags += " --multi-npu-platform-mapping ";
+  }
+  if (FLAGS_janga_test) {
+    extraFlags += " --janga-test ";
+  }
+  return "wedge_qsfp_util " + extraFlags;
 }
 
 const std::vector<std::string> l1LinkTestNames = {"qsfpWarmbootIsHitLess"};
@@ -100,8 +105,12 @@ TEST_F(AgentEnsembleLinkTest, asicLinkFlap) {
         setPortStatus(port, false);
       }
       ASSERT_NO_THROW(waitForAllCabledPorts(false));
-      ASSERT_NO_THROW(utility::waitForAllTransceiverStates(
-          false, getCabledTranceivers(), 60, 5s));
+      ASSERT_NO_THROW(
+          utility::waitForAllTransceiverStates(
+              false, getCabledTranceivers(), 60, 5s));
+      EXPECT_NO_THROW(
+          utility::waitForPortStateMachineState(
+              false, getCabledPorts(), 60, 5s));
 
       // Set the port status on all cabled ports to true. The link should come
       // back up
@@ -109,8 +118,12 @@ TEST_F(AgentEnsembleLinkTest, asicLinkFlap) {
         setPortStatus(port, true);
       }
       ASSERT_NO_THROW(waitForAllCabledPorts(true));
-      ASSERT_NO_THROW(utility::waitForAllTransceiverStates(
-          true, getCabledTranceivers(), 60, 5s));
+      ASSERT_NO_THROW(
+          utility::waitForAllTransceiverStates(
+              true, getCabledTranceivers(), 60, 5s));
+      EXPECT_NO_THROW(
+          utility::waitForPortStateMachineState(
+              true, getCabledPorts(), 60, 5s));
       ASSERT_NO_THROW(checkAgentMemoryInBounds());
     }
   };
@@ -176,6 +189,8 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, warmbootIsHitLess) {
         EXPECT_NO_THROW(waitForAllCabledPorts(true));
         EXPECT_NO_THROW(
             utility::waitForAllTransceiverStates(true, getCabledTranceivers()));
+        EXPECT_NO_THROW(
+            utility::waitForPortStateMachineState(true, getCabledPorts()));
       });
 }
 
@@ -187,11 +202,18 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
         createL3DataplaneFlood();
         utility::restartQsfpService(false /* coldboot */);
         // Wait for all transceivers to converge to Active state
-        EXPECT_NO_THROW(utility::waitForAllTransceiverStates(
-            true,
-            getCabledTranceivers(),
-            60 /* retries */,
-            5s /* retry interval */));
+        EXPECT_NO_THROW(
+            utility::waitForAllTransceiverStates(
+                true,
+                getCabledTranceivers(),
+                60 /* retries */,
+                5s /* retry interval */));
+        EXPECT_NO_THROW(
+            utility::waitForPortStateMachineState(
+                true,
+                getCabledPorts(),
+                60 /* retries */,
+                5s /* retry interval */));
       },
       [this]() {
         // Assert no traffic loss and no ecmp shrink. If ports flap
@@ -208,6 +230,8 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
         EXPECT_NO_THROW(waitForAllCabledPorts(true));
         EXPECT_NO_THROW(
             utility::waitForAllTransceiverStates(true, getCabledTranceivers()));
+        EXPECT_NO_THROW(
+            utility::waitForPortStateMachineState(true, getCabledPorts()));
       });
 }
 
@@ -472,8 +496,12 @@ TEST_F(AgentEnsembleLinkTest, qsfpColdbootAfterAgentUp) {
         sleep(5);
         // Assert all cabled ports are up and transceivers have ACTIVE state
         EXPECT_NO_THROW(waitForAllCabledPorts(true, 60, 5s));
-        EXPECT_NO_THROW(utility::waitForAllTransceiverStates(
-            true, getCabledTranceivers(), 60, 5s));
+        EXPECT_NO_THROW(
+            utility::waitForAllTransceiverStates(
+                true, getCabledTranceivers(), 60, 5s));
+        EXPECT_NO_THROW(
+            utility::waitForPortStateMachineState(
+                true, getCabledPorts(), 60, 5s));
       });
 }
 

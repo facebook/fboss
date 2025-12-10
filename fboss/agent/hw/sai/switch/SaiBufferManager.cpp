@@ -30,9 +30,39 @@
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/PortQueue.h"
 
+#include "common/stats/DynamicStats.h"
+
 namespace facebook::fboss {
 
+DEFINE_quantile_stat(
+    buffer_watermark_global_headroom,
+    facebook::fb303::ExportTypeConsts::kNone,
+    std::array<double, 1>{{1.0}});
+
+DEFINE_quantile_stat(
+    buffer_watermark_global_shared,
+    facebook::fb303::ExportTypeConsts::kNone,
+    std::array<double, 1>{{1.0}});
+
+DEFINE_dynamic_quantile_stat(
+    buffer_watermark_pg_headroom,
+    "buffer_watermark_pg_headroom.{}.{}",
+    facebook::fb303::ExportTypeConsts::kNone,
+    std::array<double, 1>{{1.0}});
+
+DEFINE_dynamic_quantile_stat(
+    buffer_watermark_pg_shared,
+    "buffer_watermark_pg_shared.{}.{}",
+    facebook::fb303::ExportTypeConsts::kNone,
+    std::array<double, 1>{{1.0}});
+
 namespace {
+#if defined(CHENAB_SAI_SDK)
+// Buffer size (39 KB) to accommodate pipeline latency for lossy PGs
+// from AR / ACLs in Chenab.
+constexpr uint32_t kChenabPgBufferForPipelineLatencyInBytes = 39 * 1024;
+#endif
+
 uint64_t getSwitchEgressPoolAvailableSize(const SaiPlatform* platform) {
   auto saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());
   const auto switchId = saiSwitch->getSaiSwitchId();
@@ -60,6 +90,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
@@ -168,6 +199,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       return SaiApiTable::getInstance()->switchApi().getAttribute(
           switchId, SaiSwitchTraits::Attributes::EgressPoolAvailableSize{});
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
@@ -247,10 +279,30 @@ void SaiBufferManager::setupIngressBufferPool(
   ingressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   auto& store = saiStore_->get<SaiBufferPoolTraits>();
 
-  // Pool size is the sum of (shared + headroom) * number of memory buffers
-  auto poolSize =
-      (*bufferPoolCfg.sharedBytes() + *bufferPoolCfg.headroomBytes()) *
-      platform_->getAsic()->getNumMemoryBuffers();
+  // Pool size determination is different for the various asics we support.
+  // Below are the various combinations of pool sizes we support:
+  // 1. Shared size
+  // 2. Shared + headroom sizes
+  // 3. Shared + headroom + reserved sizes
+  // This size is then multiplied by the number of buffers.
+  auto poolSize = *bufferPoolCfg.sharedBytes();
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM)) {
+    if (auto headroomBytes = bufferPoolCfg.headroomBytes()) {
+      poolSize += *headroomBytes;
+    }
+  }
+  // When programming the shared limit in HW, XGS excludes any reserved
+  // space from the size configured. Reserved bytes will ensure we configure
+  // this additional buffer so the shared limit programmed is actually what we
+  // want to program.
+  // TODO(ravi) This reserved size is currently statically computed in CFGR. A
+  // better way would be dynamically, based on pg/q min, compute it from config
+  // in SwSwitch.
+  if (auto reservedBytes = bufferPoolCfg.reservedBytes()) {
+    poolSize += *reservedBytes;
+  }
+  poolSize *= platform_->getAsic()->getNumMemoryBuffers();
   // XoffSize configuration is needed only when PFC is supported
   std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
   if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
@@ -588,7 +640,7 @@ template <typename BufferProfileTraits>
 BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
     typename BufferProfileTraits::Attributes::PoolId pool,
     const PortQueue& queue,
-    cfg::PortType /*type*/) const {
+    cfg::PortType portType) const {
   std::optional<typename BufferProfileTraits::Attributes::ReservedBytes>
       reservedBytes;
   if (queue.getReservedBytes()) {
@@ -611,6 +663,9 @@ BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
       sramFadtXonOffset{};
   std::optional<typename BufferProfileTraits::Attributes::SramDynamicTh>
       sramDynamicTh{};
+  std::optional<
+      typename BufferProfileTraits::Attributes::PgPipelineLatencyBytes>
+      pgPipelineLatencyBytes{};
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (queue.getMaxDynamicSharedBytes()) {
     sharedFadtMaxTh = queue.getMaxDynamicSharedBytes().value();
@@ -630,6 +685,10 @@ BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
 #endif
 #endif
 
+#if defined(CHENAB_SAI_SDK)
+  // Not applicable for egress
+  pgPipelineLatencyBytes = 0;
+#endif
   if constexpr (std::is_same_v<
                     BufferProfileTraits,
                     SaiStaticBufferProfileTraits>) {
@@ -662,7 +721,8 @@ BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
         sramFadtMaxTh,
         sramFadtMinTh,
         sramFadtXonOffset,
-        sramDynamicTh};
+        sramDynamicTh,
+        pgPipelineLatencyBytes};
   } else {
     typename BufferProfileTraits::Attributes::ThresholdMode mode{
         SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
@@ -693,7 +753,8 @@ BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
         sramFadtMaxTh,
         sramFadtMinTh,
         sramFadtXonOffset,
-        sramDynamicTh};
+        sramDynamicTh,
+        pgPipelineLatencyBytes};
   }
 }
 
@@ -814,6 +875,19 @@ SaiBufferManager::ingressProfileCreateAttrs(
 #endif
 #endif
 
+  std::optional<
+      typename BufferProfileTraits::Attributes::PgPipelineLatencyBytes>
+      pgPipelineLatencyBytes;
+#if defined(CHENAB_SAI_SDK)
+  // Additional buffering to compensate for pipeline latency in Chenab
+  // for lossy PGs.
+  if (!config.headroomLimitBytes().has_value() ||
+      *config.headroomLimitBytes() == 0) {
+    pgPipelineLatencyBytes = kChenabPgBufferForPipelineLatencyInBytes;
+  } else {
+    pgPipelineLatencyBytes = 0;
+  }
+#endif
   if constexpr (std::is_same_v<
                     BufferProfileTraits,
                     SaiStaticBufferProfileTraits>) {
@@ -826,6 +900,13 @@ SaiBufferManager::ingressProfileCreateAttrs(
     std::optional<
         typename BufferProfileTraits::Attributes::SharedStaticThreshold>
         staticThresh{*config.staticLimitBytes()};
+#if defined(BRCM_SAI_SDK_GTE_11_0) && not defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+    // TODO(maxgg): Temp workaround for CS00012420573
+    if (platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+      *staticThresh = staticThresh.value().value() * 2;
+    }
+#endif
 
     return typename BufferProfileTraits::CreateAttributes{
         pool,
@@ -842,7 +923,8 @@ SaiBufferManager::ingressProfileCreateAttrs(
         sramFadtMaxTh,
         sramFadtMinTh,
         sramFadtXonOffset,
-        sramDynamicTh};
+        sramDynamicTh,
+        pgPipelineLatencyBytes};
   } else {
     typename BufferProfileTraits::Attributes::ThresholdMode mode{
         SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
@@ -868,7 +950,8 @@ SaiBufferManager::ingressProfileCreateAttrs(
         sramFadtMaxTh,
         sramFadtMinTh,
         sramFadtXonOffset,
-        sramDynamicTh};
+        sramDynamicTh,
+        pgPipelineLatencyBytes};
   }
 }
 
@@ -944,4 +1027,94 @@ SaiIngressPriorityGroupHandles SaiBufferManager::loadIngressPriorityGroups(
   return ingressPriorityGroupHandles;
 }
 
+void SaiBufferManager::publishGlobalWatermarks(
+    const uint64_t& globalHeadroomBytes,
+    const uint64_t& globalSharedBytes) const {
+  STATS_buffer_watermark_global_headroom.addValue(globalHeadroomBytes);
+  STATS_buffer_watermark_global_shared.addValue(globalSharedBytes);
+}
+
+void SaiBufferManager::publishPgWatermarks(
+    const std::string& portName,
+    const int& pg,
+    const uint64_t& pgHeadroomBytes,
+    const uint64_t& pgSharedBytes) const {
+  STATS_buffer_watermark_pg_headroom.addValue(
+      pgHeadroomBytes, portName, folly::to<std::string>("pg", pg));
+  STATS_buffer_watermark_pg_shared.addValue(
+      pgSharedBytes, portName, folly::to<std::string>("pg", pg));
+}
+
+std::shared_ptr<SaiBufferProfileHandle>
+SaiBufferManager::getOrCreatePortProfile(
+    SaiDynamicBufferProfileTraits::Attributes::PoolId pool,
+    cfg::MMUScalingFactor scalingFactor,
+    int reservedSizeBytes) {
+  // Create a PortQueue with the params of interest
+  PortQueue portProfileParams;
+  portProfileParams.setReservedBytes(reservedSizeBytes);
+  portProfileParams.setScalingFactor(scalingFactor);
+
+  // The buffer profile to apply on port is a base profile with just
+  // the scaling factor, reserved size and pool ID specified. Using
+  // the existing profile creation flow for egress queues to create
+  // this profile.
+  auto attributes = profileCreateAttrs<SaiDynamicBufferProfileTraits>(
+      pool, portProfileParams, cfg::PortType::INTERFACE_PORT);
+  SaiDynamicBufferProfileTraits::AdapterHostKey k = tupleProjection<
+      SaiDynamicBufferProfileTraits::CreateAttributes,
+      SaiDynamicBufferProfileTraits::AdapterHostKey>(attributes);
+
+  auto& store = saiStore_->get<SaiDynamicBufferProfileTraits>();
+  return std::make_shared<SaiBufferProfileHandle>(
+      store.setObject(k, attributes));
+}
+
+std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+SaiBufferManager::getIngressPortBufferProfiles(
+    cfg::MMUScalingFactor scalingFactor,
+    int reservedSizeBytes) {
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>> profileHandles;
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT)) {
+    auto ingressBufferPoolHandle = getIngressBufferPoolHandle();
+    if (ingressBufferPoolHandle) {
+      SaiDynamicBufferProfileTraits::Attributes::PoolId pool{
+          ingressBufferPoolHandle->bufferPool->adapterKey()};
+      profileHandles.emplace_back(
+          getOrCreatePortProfile(pool, scalingFactor, reservedSizeBytes));
+    }
+  }
+  return profileHandles;
+}
+std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+SaiBufferManager::getEgressPortBufferProfiles(
+    cfg::MMUScalingFactor losslessScalingFactor,
+    cfg::MMUScalingFactor lossyScalingFactor,
+    int reservedSizeBytes) {
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>> profileHandles;
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT)) {
+    for (const auto& egressPoolHdl : egressBufferPoolHandle_) {
+      // TODO(nivinl): Look for a better way to identify lossy and lossless
+      // egress pools
+      cfg::MMUScalingFactor scalingFactor;
+      if (egressPoolHdl.first == "egress_lossless_pool") {
+        scalingFactor = losslessScalingFactor;
+      } else if (
+          egressPoolHdl.first == "egress_lossy_pool" ||
+          egressPoolHdl.first == "default") {
+        scalingFactor = lossyScalingFactor;
+      } else {
+        throw FbossError(
+            "Pool name handling is not in place for ", egressPoolHdl.first);
+      }
+      SaiDynamicBufferProfileTraits::Attributes::PoolId pool{
+          egressPoolHdl.second->bufferPool->adapterKey()};
+      profileHandles.emplace_back(
+          getOrCreatePortProfile(pool, scalingFactor, reservedSizeBytes));
+    }
+  }
+  return profileHandles;
+}
 } // namespace facebook::fboss

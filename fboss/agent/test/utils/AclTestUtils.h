@@ -76,6 +76,10 @@ std::shared_ptr<AclEntry> getAclEntryByName(
     const std::shared_ptr<SwitchState> state,
     const std::string& aclName);
 
+std::optional<std::string> getAclTableNameForEntry(
+    const std::shared_ptr<SwitchState> state,
+    const std::string& aclEntryId);
+
 std::optional<cfg::TrafficCounter> getAclTrafficCounter(
     const std::shared_ptr<SwitchState> state,
     const std::string& aclName);

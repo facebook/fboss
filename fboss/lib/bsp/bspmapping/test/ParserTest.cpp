@@ -56,12 +56,32 @@ TEST(ParserTest, GetNameForTests) {
       facebook::fboss::Parser::getNameFor(
           facebook::fboss::PlatformType::PLATFORM_ICECUBE800BC),
       "icecube");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_ICETEA800BC),
+      "icetea");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_TAHANSB800BC),
+      "tahansb800bc");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_WEDGE800BACT),
+      "wedge800bact");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_WEDGE800CACT),
+      "wedge800cact");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_LADAKH800BCLS),
+      "ladakh800bcls");
 }
 
 TEST(ParserTest, GetTransceiverConfigRowFromCsvLine) {
   // First line taken from Montblanc_BspMapping.csv
   std::string line =
-      "1,1 2 3 4,1,1,CPLD,/run/devmap/xcvrs/xcvr_1/xcvr_reset_1,1,1,/run/devmap/xcvrs/xcvr_1/xcvr_present_1,1,0,1,I2C,/run/devmap/i2c-busses/XCVR_1,1,/sys/class/leds/port1_led1:blue:status,/sys/class/leds/port1_led1:yellow:status";
+      "1,1 2 3 4,1,1,CPLD,/run/devmap/xcvrs/xcvr_ctrl_1/xcvr_reset_1,1,1,/run/devmap/xcvrs/xcvr_ctrl_1/xcvr_present_1,1,0,1,I2C,/run/devmap/xcvrs/xcvr_io_1,1,/sys/class/leds/port1_led1:blue:status,/sys/class/leds/port1_led1:yellow:status";
   auto transceiverConfigRow =
       facebook::fboss::Parser::getTransceiverConfigRowFromCsvLine(line);
   EXPECT_EQ(transceiverConfigRow.get_tcvrId(), 1);
@@ -76,19 +96,19 @@ TEST(ParserTest, GetTransceiverConfigRowFromCsvLine) {
       facebook::fboss::ResetAndPresenceAccessType::CPLD);
   EXPECT_EQ(
       transceiverConfigRow.get_resetPath(),
-      "/run/devmap/xcvrs/xcvr_1/xcvr_reset_1");
+      "/run/devmap/xcvrs/xcvr_ctrl_1/xcvr_reset_1");
   EXPECT_EQ(transceiverConfigRow.get_resetMask(), 1);
   EXPECT_EQ(transceiverConfigRow.get_resetHoldHi(), 1);
   EXPECT_EQ(
       transceiverConfigRow.get_presentPath(),
-      "/run/devmap/xcvrs/xcvr_1/xcvr_present_1");
+      "/run/devmap/xcvrs/xcvr_ctrl_1/xcvr_present_1");
   EXPECT_EQ(transceiverConfigRow.get_presentMask(), 1);
   EXPECT_EQ(transceiverConfigRow.get_presentHoldHi(), 0);
   EXPECT_EQ(transceiverConfigRow.get_ioCtrlId(), "1");
   EXPECT_EQ(
       transceiverConfigRow.get_ioCtrlType(),
       facebook::fboss::TransceiverIOType::I2C);
-  EXPECT_EQ(transceiverConfigRow.get_ioPath(), "/run/devmap/i2c-busses/XCVR_1");
+  EXPECT_EQ(transceiverConfigRow.get_ioPath(), "/run/devmap/xcvrs/xcvr_io_1");
   EXPECT_TRUE(transceiverConfigRow.get_ledId() != nullptr);
   EXPECT_EQ(*transceiverConfigRow.get_ledId(), 1);
   EXPECT_TRUE(transceiverConfigRow.get_ledBluePath() != nullptr);
@@ -153,8 +173,9 @@ TEST(ParserTest, GetTransceiverConfigRowsFromCsvTest) {
 
 TEST(ParserTest, GetBspPlatformMappingFromCsvTest) {
   auto bspPlatformMapping =
-      facebook::fboss::Parser::getBspPlatformMappingFromCsv(folly::StringPiece(
-          "fboss/lib/bsp/bspmapping/test/test_data/test_example.csv"));
+      facebook::fboss::Parser::getBspPlatformMappingFromCsv(
+          folly::StringPiece(
+              "fboss/lib/bsp/bspmapping/test/test_data/test_example.csv"));
   EXPECT_EQ(bspPlatformMapping.get_pimMapping().size(), 1);
   EXPECT_TRUE(
       bspPlatformMapping.get_pimMapping().find(1) !=
@@ -175,7 +196,7 @@ TEST(ParserTest, GetBspPlatformMappingFromCsvTest) {
       nullptr);
   EXPECT_EQ(
       *tcvrMapping.at(1).get_accessControl().get_reset().get_sysfsPath(),
-      "/run/devmap/xcvrs/xcvr_1/xcvr_reset_1");
+      "/run/devmap/xcvrs/xcvr_ctrl_1/xcvr_reset_1");
   EXPECT_TRUE(
       tcvrMapping.at(1).get_accessControl().get_reset().get_mask() != nullptr);
   EXPECT_EQ(*tcvrMapping.at(1).get_accessControl().get_reset().get_mask(), 1);
@@ -225,7 +246,7 @@ TEST(ParserTest, GetBspPlatformMappingFromCsvTest) {
       facebook::fboss::TransceiverIOType::I2C);
   EXPECT_EQ(
       tcvrMapping.at(1).get_io().get_devicePath(),
-      "/run/devmap/i2c-busses/XCVR_1");
+      "/run/devmap/xcvrs/xcvr_io_1");
 
   EXPECT_EQ(tcvrMapping.at(1).get_tcvrLaneToLedId().size(), 4);
   std::map<int, int> expectedLaneToLedId = {{1, 1}, {2, 1}, {3, 1}, {4, 1}};

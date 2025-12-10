@@ -1,3 +1,5 @@
+package "facebook.com/fboss/fsdb"
+
 namespace py3 neteng.fboss
 namespace py neteng.fboss.fsdb_oper
 namespace py.asyncio neteng.fboss.asyncio.fsdb_oper
@@ -143,6 +145,7 @@ struct SubRequest {
   // Forcefully subscribe even if there is already a subscriber with the same SubscriberId
   4: bool forceSubscribe = false;
   5: optional i64 heartbeatInterval;
+  6: map<SubscriptionKey, ExtendedOperPath> extPaths;
 }
 
 struct Patch {

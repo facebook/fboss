@@ -13,6 +13,7 @@
 #include <folly/Subprocess.h>
 #include <folly/logging/xlog.h>
 #include <folly/system/Shell.h>
+#include <gtest/gtest_prod.h>
 #include <algorithm>
 #include <filesystem>
 #include <string>
@@ -40,13 +41,22 @@ class FwUtilImpl {
     init();
   }
   void doVersionAudit();
-  std::string printFpdList();
+  std::vector<std::string> getFpdNameList();
   void doFirmwareAction(const std::string&, const std::string&);
   void printVersion(const std::string&);
   // Finds matching fpd case-insensitive
   std::tuple<std::string, FwConfig> getFpd(const std::string&);
 
  private:
+  // Friend declarations for unit tests
+  FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationValidPath);
+  FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationEmptyPath);
+  FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationVariousValues);
+  FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationFileOverwrite);
+  FRIEND_TEST(FwUtilVerifyTest, PerformVerifyFlashromWithArgs);
+  FRIEND_TEST(FwUtilVerifyTest, PerformVerifyFlashromWithoutArgs);
+  FRIEND_TEST(FwUtilVerifyTest, PerformVerifyUnsupportedCommandType);
+
   void doPreUpgrade(const std::string&);
 
   void doPreUpgradeOperation(

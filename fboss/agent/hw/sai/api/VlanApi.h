@@ -57,15 +57,24 @@ struct SaiVlanMemberTraits {
         SaiObjectIdT>;
     using VlanId =
         SaiAttribute<EnumType, SAI_VLAN_MEMBER_ATTR_VLAN_ID, SaiObjectIdT>;
+    using VlanTaggingMode = SaiAttribute<
+        EnumType,
+        SAI_VLAN_MEMBER_ATTR_VLAN_TAGGING_MODE,
+        sai_int32_t,
+        SaiIntDefault<sai_uint32_t>>;
   };
 
   using AdapterKey = VlanMemberSaiId;
   using AdapterHostKey =
       std::tuple<Attributes::VlanId, Attributes::BridgePortId>;
-  using CreateAttributes = AdapterHostKey;
+  using CreateAttributes = std::tuple<
+      Attributes::VlanId,
+      Attributes::BridgePortId,
+      std::optional<Attributes::VlanTaggingMode>>;
 };
 SAI_ATTRIBUTE_NAME(VlanMember, BridgePortId);
 SAI_ATTRIBUTE_NAME(VlanMember, VlanId);
+SAI_ATTRIBUTE_NAME(VlanMember, VlanTaggingMode);
 
 class VlanApi : public SaiApi<VlanApi> {
  public:

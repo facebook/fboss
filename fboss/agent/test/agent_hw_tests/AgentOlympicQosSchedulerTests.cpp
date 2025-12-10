@@ -44,8 +44,9 @@ class AgentOlympicQosSchedulerTest : public AgentQosSchedulerTestBase {
       }
     }
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(utility::verifyQueueMappings(
-          portStatsBefore, queueToDscp, getAgentEnsemble(), portId));
+      EXPECT_EVENTUALLY_TRUE(
+          utility::verifyQueueMappings(
+              portStatsBefore, queueToDscp, getAgentEnsemble(), portId));
     });
   }
 
@@ -114,9 +115,8 @@ void AgentOlympicQosSchedulerTest::verifySP(bool frontPanelTraffic) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6(
       getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
 
-  auto setup = [=, this]() { _setup(ecmpHelper6); };
-
   auto verify = [=, this]() {
+    _setup(ecmpHelper6);
     EXPECT_TRUE(verifySPHelper(
         // SP queue with highest queueId
         // should starve other SP queues
@@ -125,9 +125,12 @@ void AgentOlympicQosSchedulerTest::verifySP(bool frontPanelTraffic) {
         utility::kOlympicSPQueueIds(),
         utility::kOlympicQueueToDscp(),
         frontPanelTraffic));
+    // stop the traffic
+    bringDownPort(outPort());
+    bringUpPort(outPort());
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBoots([] {}, verify);
 }
 
 void AgentOlympicQosSchedulerTest::verifyWRRAndSP(

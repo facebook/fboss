@@ -9,6 +9,8 @@
 
 namespace facebook::fboss::fsdb::test {
 
+constexpr int32_t kSubscriptionServeQueueSize = 100;
+
 namespace {
 template <typename Gen>
 folly::coro::Task<typename Gen::value_type> consumeOne(Gen& generator) {
@@ -35,7 +37,8 @@ class SubscriptionTests : public ::testing::Test {
           OperProtocol::BINARY,
           std::nullopt,
           heartbeatThread_->getEventBase(),
-          std::chrono::milliseconds(100));
+          std::chrono::milliseconds(100),
+          kSubscriptionServeQueueSize);
     } else {
       return SubscriptionT::create(
           SubscriptionIdentifier("test-sub"),
@@ -44,7 +47,8 @@ class SubscriptionTests : public ::testing::Test {
           OperProtocol::BINARY,
           std::nullopt,
           heartbeatThread_->getEventBase(),
-          std::chrono::milliseconds(100));
+          std::chrono::milliseconds(100),
+          kSubscriptionServeQueueSize);
     }
   }
 

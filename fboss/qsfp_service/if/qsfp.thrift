@@ -26,6 +26,13 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
   ) throws (1: fboss.FbossBaseError error);
 
   /*
+   * Get state information about a port
+   */
+  map<i32, transceiver.PortStateMachineState> getPortStateMachineState(
+    1: list<i32> idx,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
    * Get config validation status of a transceiver
    */
   map<i32, string> getTransceiverConfigValidationInfo(
@@ -306,6 +313,10 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
   > triggerAllOpticsFwUpgrade() throws (1: fboss.FbossBaseError error);
 
   map<string, transceiver.MediaInterfaceCode> getPortMediaInterface() throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  map<string, list<i32>> getPortTransceiverIDs() throws (
     1: fboss.FbossBaseError error,
   );
 }

@@ -220,7 +220,7 @@ class EcmpSetupTargetedPorts
             std::nullopt,
             routerId,
             false,
-            {cfg::PortType::INTERFACE_PORT}) {}
+            {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}) {}
 
   EcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
@@ -242,7 +242,8 @@ class EcmpSetupTargetedPorts
       RouterID routerId = RouterID(0),
       bool forProdConfig = false,
       const std::set<cfg::PortType>& portTypes = {
-          cfg::PortType::INTERFACE_PORT});
+          cfg::PortType::INTERFACE_PORT,
+          cfg::PortType::HYPER_PORT});
 
   virtual ~EcmpSetupTargetedPorts() override {}
   EcmpNextHopT nhop(PortDescriptor portDesc) const override;
@@ -256,15 +257,23 @@ class EcmpSetupTargetedPorts
       const boost::container::flat_set<PortDescriptor>& nhops,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
-      std::optional<RouteCounterID> counterID = std::nullopt) const {
-    programRoutes(wrapper.get(), nhops, prefixes, weights, counterID);
+      std::optional<RouteCounterID> counterID = std::nullopt,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const {
+    programRoutes(
+        wrapper.get(),
+        nhops,
+        prefixes,
+        weights,
+        counterID,
+        disableTTLDecrement);
   }
   void programRoutes(
       RouteUpdateWrapper* wrapper,
       const boost::container::flat_set<PortDescriptor>& nhops,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
-      std::optional<RouteCounterID> counterID = std::nullopt) const;
+      std::optional<RouteCounterID> counterID = std::nullopt,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const;
 
   void programRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
@@ -272,8 +281,15 @@ class EcmpSetupTargetedPorts
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<std::vector<NextHopWeight>>& weights =
           std::vector<std::vector<NextHopWeight>>(),
-      std::optional<RouteCounterID> counterID = std::nullopt) const {
-    programRoutes(wrapper.get(), nhops, prefixes, weights, counterID);
+      std::optional<RouteCounterID> counterID = std::nullopt,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const {
+    programRoutes(
+        wrapper.get(),
+        nhops,
+        prefixes,
+        weights,
+        counterID,
+        disableTTLDecrement);
   }
   void programRoutes(
       RouteUpdateWrapper* wrapper,
@@ -281,7 +297,8 @@ class EcmpSetupTargetedPorts
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<std::vector<NextHopWeight>>& weights =
           std::vector<std::vector<NextHopWeight>>(),
-      std::optional<RouteCounterID> counterID = std::nullopt) const;
+      std::optional<RouteCounterID> counterID = std::nullopt,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const;
 
   void programMplsRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
@@ -315,7 +332,8 @@ class EcmpSetupTargetedPorts
       std::optional<folly::MacAddress> mac = std::nullopt,
       bool forProdConfig = false,
       const std::set<cfg::PortType>& portTypes = {
-          cfg::PortType::INTERFACE_PORT}) override;
+          cfg::PortType::INTERFACE_PORT,
+          cfg::PortType::HYPER_PORT}) override;
   RouteNextHopSet setupMplsNexthops(
       const boost::container::flat_set<PortDescriptor>& portDescriptors,
       std::map<PortDescriptor, LabelForwardingAction::LabelStack>& stacks,
@@ -326,7 +344,8 @@ class EcmpSetupTargetedPorts
       const boost::container::flat_set<PortDescriptor>& nhops,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
-      const std::optional<RouteCounterID>& counterID = std::nullopt) const;
+      const std::optional<RouteCounterID>& counterID = std::nullopt,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const;
 
   RouterID routerId_;
 };
@@ -353,7 +372,7 @@ class MplsEcmpSetupTargetedPorts
       LabelForwardingAction::LabelForwardingType actionType,
       bool forProdConfig = false,
       const std::set<cfg::PortType>& portTypes =
-          {cfg::PortType::INTERFACE_PORT})
+          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})
       : BaseEcmpSetupHelper<IPAddrT, EcmpMplsNextHop<IPAddrT>>(
             needL2EntryForNeighbor),
         topLabel_(topLabel),
@@ -378,7 +397,8 @@ class MplsEcmpSetupTargetedPorts
       std::optional<folly::MacAddress> mac = std::nullopt,
       bool forProdConfig = false,
       const std::set<cfg::PortType>& portTypes = {
-          cfg::PortType::INTERFACE_PORT}) override;
+          cfg::PortType::INTERFACE_PORT,
+          cfg::PortType::HYPER_PORT}) override;
 
   Label topLabel_;
   LabelForwardingAction::LabelForwardingType actionType_;
@@ -394,7 +414,7 @@ class EcmpSetupAnyNPorts {
       bool needL2EntryForNeighbor,
       RouterID routerId = RouterID(0),
       const std::set<cfg::PortType>& portTypes =
-          {cfg::PortType::INTERFACE_PORT})
+          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})
       : EcmpSetupAnyNPorts(
             inputState,
             needL2EntryForNeighbor,
@@ -410,7 +430,7 @@ class EcmpSetupAnyNPorts {
       RouterID routerId = RouterID(0),
       bool forProdConfig = false,
       const std::set<cfg::PortType>& portTypes =
-          {cfg::PortType::INTERFACE_PORT})
+          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})
       : ecmpSetupTargetedPorts_(
             inputState,
             needL2EntryForNeighbor,
@@ -493,17 +513,19 @@ class EcmpSetupAnyNPorts {
       std::unique_ptr<RouteUpdateWrapper> updater,
       const boost::container::flat_set<PortDescriptor>& portDescs,
       const std::vector<RouteT>& prefixes,
-      const std::vector<NextHopWeight>& weights =
-          std::vector<NextHopWeight>()) const {
-    programRoutes(updater.get(), portDescs, prefixes, weights);
+      const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const {
+    programRoutes(
+        updater.get(), portDescs, prefixes, weights, disableTTLDecrement);
   }
 
   void programRoutes(
       RouteUpdateWrapper* updater,
       const boost::container::flat_set<PortDescriptor>& portDescs,
       const std::vector<RouteT>& prefixes,
-      const std::vector<NextHopWeight>& weights =
-          std::vector<NextHopWeight>()) const;
+      const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const;
+
   void programIp2MplsRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
       size_t width,

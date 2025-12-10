@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include <algorithm>
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/logging/xlog.h>
@@ -40,20 +41,22 @@ namespace facebook::fboss {
 cfg::PlatformPortConfigOverrideFactor buildPlatformPortConfigOverrideFactor(
     const TransceiverInfo& transceiverInfo) {
   cfg::PlatformPortConfigOverrideFactor factor;
-  if (auto cable = transceiverInfo.tcvrState()->cable();
-      cable && cable->length()) {
+  const auto& state = transceiverInfo.tcvrState();
+  if (auto cable = state->cable(); cable && cable->length()) {
     factor.cableLengths() = {*cable->length()};
   }
-  if (auto settings = transceiverInfo.tcvrState()->settings()) {
+  if (auto settings = state->settings()) {
     if (auto mediaInterfaces = settings->mediaInterface();
         mediaInterfaces && !mediaInterfaces->empty()) {
       // Use the first lane mediaInterface
       factor.mediaInterfaceCode() = *(*mediaInterfaces)[0].code();
     }
   }
-  if (auto interface =
-          transceiverInfo.tcvrState()->transceiverManagementInterface()) {
+  if (auto interface = state->transceiverManagementInterface()) {
     factor.transceiverManagementInterface() = *interface;
+  }
+  if (auto vendor = state->vendor(); vendor.has_value()) {
+    factor.vendor() = vendor.value();
   }
   return factor;
 }
@@ -116,6 +119,21 @@ bool PlatformPortProfileConfigMatcher::matchOverrideWithFactor(
       }
     }
   }
+  if (auto overrideVendor = factor.vendor()) {
+    if (!portConfigOverrideFactor_ || !portConfigOverrideFactor_->vendor()) {
+      return false;
+    }
+    // compare only the name and part number of the current optics to the
+    // override factor.
+    if (!isTransceiverVendorOverrideMatch(
+            overrideVendor->name().value(),
+            overrideVendor->partNumber().value(),
+            portConfigOverrideFactor_->vendor()->name().value(),
+            portConfigOverrideFactor_->vendor()->partNumber().value())) {
+      return false;
+    }
+  }
+  XLOGF(DBG3, "Found override for matcher {}", toString());
   return true;
 }
 
@@ -154,12 +172,16 @@ std::string PlatformPortProfileConfigMatcher::toString() const {
         apache::thrift::SimpleJSONSerializer::serialize<std::string>(
             *portConfigOverrideFactor_));
   }
+
+  std::replace(str.begin(), str.end(), '{', '(');
+  std::replace(str.begin(), str.end(), '}', ')');
   return str;
 }
 
 PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
-  init(apache::thrift::SimpleJSONSerializer::deserialize<cfg::PlatformMapping>(
-      jsonPlatformMappingStr));
+  init(
+      apache::thrift::SimpleJSONSerializer::deserialize<cfg::PlatformMapping>(
+          jsonPlatformMappingStr));
 }
 
 PlatformMapping::PlatformMapping(const cfg::PlatformMapping& mapping) {
@@ -435,12 +457,12 @@ int PlatformMapping::getTransceiverIdFromSwPort(PortID swPort) const {
     throw FbossError("Can't find Platform Port for portId ", swPort);
   }
 
-  auto tcvrID = utility::getTransceiverId(platformPortItr->second, chips);
-  if (!tcvrID.has_value()) {
+  auto tcvrIds = utility::getTransceiverIds(platformPortItr->second, chips);
+  if (tcvrIds.empty()) {
     throw FbossError("Can't find Tcvr ID for portId ", swPort);
   }
 
-  return tcvrID.value();
+  return tcvrIds[0];
 }
 
 std::vector<PortID> PlatformMapping::getSwPortListFromTransceiverId(
@@ -618,7 +640,8 @@ void PlatformMapping::mergePortConfigOverrides(
               curOverride.factor()->cableLengths() ||
           portOverrides.factor()->mediaInterfaceCode() !=
               curOverride.factor()->mediaInterfaceCode() ||
-          portOverrides.factor()->chips() != curOverride.factor()->chips()) {
+          portOverrides.factor()->chips() != curOverride.factor()->chips() ||
+          portOverrides.factor()->vendor() != curOverride.factor()->vendor()) {
         numMismatch++;
         continue;
       }

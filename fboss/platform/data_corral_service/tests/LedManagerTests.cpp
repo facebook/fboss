@@ -42,8 +42,10 @@ TEST_F(LedManagerTests, UnknownFruType) {
 TEST_F(LedManagerTests, FruLedPresent) {
   EXPECT_TRUE(ledManager_->programFruLed("FAN", true));
   std::string presentVal, absentVal;
-  EXPECT_TRUE(folly::readFile(
-      fruTypeLedConfigs_["FAN"].presentLedSysfsPath()->c_str(), presentVal));
+  EXPECT_TRUE(
+      folly::readFile(
+          fruTypeLedConfigs_["FAN"].presentLedSysfsPath()->c_str(),
+          presentVal));
   EXPECT_EQ(presentVal, "1");
   folly::readFile(
       fruTypeLedConfigs_["FAN"].absentLedSysfsPath()->c_str(), absentVal);

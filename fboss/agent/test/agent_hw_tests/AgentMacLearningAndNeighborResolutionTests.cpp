@@ -394,7 +394,7 @@ class AgentMacLearningAndNeighborResolutionTest
     auto firstVlanID = getProgrammedState()->getVlans()->getFirstVlanID();
 
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), firstVlanID);
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto srcIp =
         dstIp.isV6() ? folly::IPAddress("1::3") : folly::IPAddress("1.1.1.3");
     auto txPacket = utility::makeUDPTxPacket(
@@ -515,6 +515,7 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     FLAGS_enable_hw_update_protection = true;
     // set max neighbor resource percentage to 200% to bypass resourceAccountant
     // check
+    FLAGS_enforce_resource_hw_limits = false;
     FLAGS_neighbhor_resource_percentage = 200;
     FLAGS_max_ndp_entries = 9000;
   }

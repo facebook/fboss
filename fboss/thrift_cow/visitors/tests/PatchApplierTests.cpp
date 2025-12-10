@@ -25,8 +25,9 @@ TEST(PatchApplierTests, ModifyPrimitive) {
   auto structA = createSimpleTestStruct();
 
   PatchNode n;
-  n.set_val(serializeBuf<apache::thrift::type_class::string>(
-      fsdb::OperProtocol::COMPACT, "new val"));
+  n.set_val(
+      serializeBuf<apache::thrift::type_class::string>(
+          fsdb::OperProtocol::COMPACT, "new val"));
 
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
   auto ret = PatchApplier<apache::thrift::type_class::string>::apply(
@@ -41,8 +42,9 @@ TEST(PatchApplierTests, ModifyPrimitive) {
   EXPECT_EQ(*structA.inlineString(), "new val");
 
   n = PatchNode();
-  n.set_val(serializeBuf<apache::thrift::type_class::integral>(
-      fsdb::OperProtocol::COMPACT, 1234));
+  n.set_val(
+      serializeBuf<apache::thrift::type_class::integral>(
+          fsdb::OperProtocol::COMPACT, 1234));
 
   ret = PatchApplier<apache::thrift::type_class::integral>::apply(
       *nodeA->template ref<k::inlineInt>(), std::move(n));
@@ -56,8 +58,9 @@ TEST(PatchApplierTests, ModifyStructMember) {
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   PatchNode inlineString;
-  inlineString.set_val(serializeBuf<apache::thrift::type_class::string>(
-      fsdb::OperProtocol::COMPACT, "new val"));
+  inlineString.set_val(
+      serializeBuf<apache::thrift::type_class::string>(
+          fsdb::OperProtocol::COMPACT, "new val"));
 
   StructPatch structPatch;
   structPatch.children() = {
@@ -77,8 +80,9 @@ TEST(PatchApplierTests, ModifyMapMember) {
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   PatchNode intPatch;
-  intPatch.set_val(serializeBuf<apache::thrift::type_class::integral>(
-      fsdb::OperProtocol::COMPACT, 42));
+  intPatch.set_val(
+      serializeBuf<apache::thrift::type_class::integral>(
+          fsdb::OperProtocol::COMPACT, 42));
 
   MapPatch mapPatch;
   mapPatch.children() = {{"123", intPatch}};
@@ -107,8 +111,9 @@ TEST(PatchApplierTests, AddRemoveMapMember) {
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   PatchNode intPatch;
-  intPatch.set_val(serializeBuf<apache::thrift::type_class::integral>(
-      fsdb::OperProtocol::COMPACT, 42));
+  intPatch.set_val(
+      serializeBuf<apache::thrift::type_class::integral>(
+          fsdb::OperProtocol::COMPACT, 42));
   PatchNode delPatch;
   delPatch.set_del();
 
@@ -145,8 +150,9 @@ TEST(PatchApplierTests, ModifyListMember) {
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   PatchNode intPatch;
-  intPatch.set_val(serializeBuf<apache::thrift::type_class::integral>(
-      fsdb::OperProtocol::COMPACT, 42));
+  intPatch.set_val(
+      serializeBuf<apache::thrift::type_class::integral>(
+          fsdb::OperProtocol::COMPACT, 42));
 
   ListPatch listPatch;
   listPatch.children() = {{1, intPatch}};
@@ -174,11 +180,13 @@ TEST(PatchApplierTests, AddListMembers) {
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   PatchNode intPatch1;
-  intPatch1.set_val(serializeBuf<apache::thrift::type_class::integral>(
-      fsdb::OperProtocol::COMPACT, 12));
+  intPatch1.set_val(
+      serializeBuf<apache::thrift::type_class::integral>(
+          fsdb::OperProtocol::COMPACT, 12));
   PatchNode intPatch2;
-  intPatch2.set_val(serializeBuf<apache::thrift::type_class::integral>(
-      fsdb::OperProtocol::COMPACT, 34));
+  intPatch2.set_val(
+      serializeBuf<apache::thrift::type_class::integral>(
+          fsdb::OperProtocol::COMPACT, 34));
 
   ListPatch listPatch;
   listPatch.children() = {{1, intPatch1}, {2, intPatch2}};
@@ -232,8 +240,9 @@ TEST(PatchApplierTests, ModifyVariantValue) {
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   PatchNode intPatch;
-  intPatch.set_val(serializeBuf<apache::thrift::type_class::integral>(
-      fsdb::OperProtocol::COMPACT, 42));
+  intPatch.set_val(
+      serializeBuf<apache::thrift::type_class::integral>(
+          fsdb::OperProtocol::COMPACT, 42));
 
   VariantPatch variantPatch;
   variantPatch.id() = folly::to_underlying(TestUnionMembers::inlineInt::value);
@@ -254,8 +263,9 @@ TEST(PatchApplierTests, ModifyVariantType) {
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   PatchNode intPatch;
-  intPatch.set_val(serializeBuf<apache::thrift::type_class::integral>(
-      fsdb::OperProtocol::COMPACT, 42));
+  intPatch.set_val(
+      serializeBuf<apache::thrift::type_class::integral>(
+          fsdb::OperProtocol::COMPACT, 42));
 
   VariantPatch variantPatch;
   variantPatch.id() = folly::to_underlying(TestUnionMembers::inlineInt::value);
@@ -304,8 +314,9 @@ TEST(PatchApplierTests, AddRemoveSetItems) {
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   PatchNode intPatch;
-  intPatch.set_val(serializeBuf<apache::thrift::type_class::integral>(
-      fsdb::OperProtocol::COMPACT, 3));
+  intPatch.set_val(
+      serializeBuf<apache::thrift::type_class::integral>(
+          fsdb::OperProtocol::COMPACT, 3));
 
   PatchNode delPatch;
   delPatch.set_del();
@@ -341,8 +352,9 @@ TEST(PatchApplierTests, FailPatchingSetEntry) {
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   PatchNode intPatch;
-  intPatch.set_val(serializeBuf<apache::thrift::type_class::integral>(
-      fsdb::OperProtocol::COMPACT, 3));
+  intPatch.set_val(
+      serializeBuf<apache::thrift::type_class::integral>(
+          fsdb::OperProtocol::COMPACT, 3));
 
   std::vector<std::string> path = {
       folly::to<std::string>(TestStructMembers::setOfI32::id::value), "1"};

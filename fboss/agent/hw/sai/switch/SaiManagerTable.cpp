@@ -195,7 +195,9 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   aclTableGroupManager_.reset();
   aclTableManager_.reset();
 
-  switchManager_->resetArsProfile();
+  if (!skipSwitchManager) {
+    switchManager_->resetArsProfile();
+  }
   arsProfileManager_.reset();
   arsManager_.reset();
 

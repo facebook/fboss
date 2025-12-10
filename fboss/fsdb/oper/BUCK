@@ -5,8 +5,15 @@ oncall("fboss_agent_push")
 
 cpp_library(
     name = "delta_value",
+    srcs = [
+        "DeltaValue.cpp",
+    ],
     headers = [
         "DeltaValue.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow:patch-cpp2-types",
     ],
 )
 
@@ -41,9 +48,11 @@ cpp_library(
         "SubscriptionManager.h",
         "SubscriptionMetadataServer.h",
         "SubscriptionPathStore.h",
+        "SubscriptionServeQueue.h",
         "SubscriptionStore.h",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         ":delta_value",
         ":subscription_common",
         "//fboss/fsdb/common:utils",
@@ -61,6 +70,7 @@ cpp_library(
         "//folly:string",
         "//folly:traits",
         "//folly/container:f14_hash",
+        "//folly/coro:async_generator",
         "//folly/coro:async_pipe",
         "//folly/coro:async_scope",
         "//folly/coro:blocking_wait",
@@ -71,7 +81,6 @@ cpp_library(
     ],
     exported_external_deps = [
         "boost",
-        "re2",
         ("boost", None, "boost_uuid"),
     ],
 )
@@ -85,6 +94,7 @@ cpp_library(
         "NaivePeriodicSubscribableStorage.h",
         "NaivePeriodicSubscribableStorageBase.h",
         "SubscribableStorage.h",
+        "SubscriptionServeQueue.h",
     ],
     exported_deps = [
         ":delta_value",
@@ -127,15 +137,13 @@ cpp_library(
         "PathValidator.h",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         "//fboss/fsdb/common:utils",
         "//fboss/fsdb/if:fsdb_config-cpp2-types",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/thrift_visitors:visitors",
         "//folly/json:dynamic",
-    ],
-    exported_external_deps = [
-        "re2",
     ],
 )
 

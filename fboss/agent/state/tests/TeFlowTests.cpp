@@ -417,8 +417,6 @@ TYPED_TEST(TeFlowTest, TeFlowCounter) {
   };
   updateCounter("counter0.bytes");
   updateCounter("counter1.bytes");
-  CounterCache counters(this->sw_);
-  counters.update();
   auto teFlowStats = this->sw_->getTeFlowStats();
   auto hwTeFlowStats = teFlowStats.hwTeFlowStats();
   EXPECT_EQ(hwTeFlowStats->size(), 2);

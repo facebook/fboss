@@ -707,6 +707,21 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  std::optional<bool> getResetQueueCreditBalance() const {
+    if (auto value = cref<switch_state_tags::resetQueueCreditBalance>()) {
+      return value->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setResetQueueCreditBalance(std::optional<bool> resetQueueCreditBalance) {
+    if (resetQueueCreditBalance.has_value()) {
+      set<switch_state_tags::resetQueueCreditBalance>(*resetQueueCreditBalance);
+    } else {
+      ref<switch_state_tags::resetQueueCreditBalance>().reset();
+    }
+  }
+
   std::vector<PortError> getActiveErrors() const {
     return safe_cref<switch_state_tags::activeErrors>()->toThrift();
   }
@@ -798,6 +813,56 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     } else {
       set<switch_state_tags::desiredSelfHealingECMPLagEnable>(
           desiredSelfHealingECMPLagEnable.value());
+    }
+  }
+
+  /** @brief Get inter-packet gap state bits */
+  std::optional<int32_t> getInterPacketGapBits() const {
+    if (auto interPacketGapBits =
+            cref<switch_state_tags::interPacketGapBits>()) {
+      return interPacketGapBits->cref();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set inter-packet gap state bits */
+  void setInterPacketGapBits(std::optional<int32_t> interPacketGapBits) {
+    if (!interPacketGapBits.has_value()) {
+      ref<switch_state_tags::interPacketGapBits>().reset();
+    } else {
+      set<switch_state_tags::interPacketGapBits>(interPacketGapBits.value());
+    }
+  }
+
+  /** @brief Get AM idles state */
+  std::optional<bool> getAmIdles() const {
+    if (auto amIdles = cref<switch_state_tags::amIdles>()) {
+      return amIdles->cref();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set AM idles state */
+  void setAmIdles(std::optional<bool> amIdles) {
+    if (!amIdles.has_value()) {
+      ref<switch_state_tags::amIdles>().reset();
+    } else {
+      set<switch_state_tags::amIdles>(amIdles.value());
+    }
+  }
+
+  std::optional<int32_t> getPortSwitchId() const {
+    if (auto portSwitchId = cref<switch_state_tags::portSwitchId>()) {
+      return portSwitchId->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setPortSwitchId(std::optional<int32_t> portSwitchId) {
+    if (!portSwitchId.has_value()) {
+      ref<switch_state_tags::portSwitchId>().reset();
+    } else {
+      set<switch_state_tags::portSwitchId>(portSwitchId.value());
     }
   }
 

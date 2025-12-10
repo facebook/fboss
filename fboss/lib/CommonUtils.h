@@ -30,11 +30,20 @@ void checkWithRetry(
     int retries = 10,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
         std::chrono::milliseconds(1000),
-    std::optional<std::string> conditionFailedLog = std::nullopt) {
+    std::optional<std::string> conditionFailedLog = std::nullopt,
+    bool retryOnException = false) {
   while (retries--) {
-    if (condition()) {
-      return;
+    try {
+      if (condition()) {
+        return;
+      }
+    } catch (...) {
+      if (!retryOnException) {
+        throw;
+      }
+      // fall-through to sleep and retry
     }
+
     std::this_thread::sleep_for(msBetweenRetry);
   }
 
@@ -45,6 +54,60 @@ void checkWithRetry(
   } else {
     throw FbossError(kFailedConditionLog);
   }
+}
+
+template <typename CONDITION_FN>
+bool checkWithRetryErrorReturn(
+    CONDITION_FN condition,
+    int retries = 10,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+        std::chrono::milliseconds(1000),
+    bool retryOnException = false) {
+  try {
+    checkWithRetry(
+        condition, retries, msBetweenRetry, std::nullopt, retryOnException);
+  } catch (const FbossError& e) {
+    XLOG(DBG2) << __func__ << " error: " << e.what();
+    return false;
+  }
+
+  return true;
+}
+
+template <typename CONDITION_FN>
+void checkAlwaysTrueWithRetry(
+    CONDITION_FN condition,
+    int retries = 10,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+        std::chrono::milliseconds(1000),
+    std::optional<std::string> conditionFailedLog = std::nullopt) {
+  while (retries--) {
+    if (!condition()) {
+      constexpr auto kFailedConditionLog =
+          "Verify always true with retry failed, condition was not satisfied";
+      if (conditionFailedLog) {
+        throw FbossError(kFailedConditionLog, " : ", *conditionFailedLog);
+      } else {
+        throw FbossError(kFailedConditionLog);
+      }
+    }
+    std::this_thread::sleep_for(msBetweenRetry);
+  }
+}
+
+template <typename CONDITION_FN>
+bool checkAlwaysTrueWithRetryErrorReturn(
+    CONDITION_FN condition,
+    int retries = 10,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+        std::chrono::milliseconds(1000)) {
+  try {
+    checkAlwaysTrueWithRetry(condition, retries, msBetweenRetry);
+  } catch (const FbossError&) {
+    return false;
+  }
+
+  return true;
 }
 
 template <typename StatT>

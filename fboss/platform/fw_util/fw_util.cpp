@@ -9,7 +9,6 @@
 #include <folly/logging/xlog.h>
 
 #include "fboss/platform/fw_util/FwUtilImpl.h"
-#include "fboss/platform/fw_util/fw_util_helpers.h"
 #include "fboss/platform/helpers/InitCli.h"
 
 using namespace facebook::fboss::platform::fw_util;
@@ -39,19 +38,22 @@ int main(int argc, char* argv[]) {
       "Firmware Options",
       "Specify firmware action, target, and optional binary file");
 
-  fwGroup->add_option(
-      "--fw_target_name",
-      fw_target_name,
-      "Firmware target name, to see list of targets, run fw_util --list");
+  fwGroup
+      ->add_option(
+          "--fw_target_name",
+          fw_target_name,
+          "Firmware target name, to see list of targets, run fw_util --list")
+      ->default_val("all");
 
   fwGroup
       ->add_option(
           "--fw_action",
           fw_action,
           "Firmware action (program, verify, read, version, list, audit)")
-      ->check(CLI::IsMember(
-          {"program", "verify", "read", "version", "list", "audit"}))
-      ->required();
+      ->check(
+          CLI::IsMember(
+              {"program", "verify", "read", "version", "list", "audit"}))
+      ->default_val("version");
 
   fwGroup->add_option(
       "--fw_binary_file",
@@ -71,6 +73,7 @@ int main(int argc, char* argv[]) {
   // Add examples in the footer/help
   app.footer(
       "Examples:\n"
+      "  fw_util  (defaults to --fw_action=version --fw_target_name=all)\n"
       "  fw_util --fw_action=program --fw_target_name=bios --fw_binary_file=/path/to/firmware.bin\n"
       "  fw_util --fw_action=verify --fw_target_name=FPGA --fw_binary_file=/path/to/firmware.bin\n"
       "  fw_util --fw_action=version --fw_target_name=CPLD\n"
@@ -85,10 +88,11 @@ int main(int argc, char* argv[]) {
   const std::filesystem::path logPath = logFolder / "fw_util.log";
   folly::LoggerDB::get().registerHandlerFactory(
       std::make_unique<folly::FileHandlerFactory>(), false);
-  folly::LoggerDB::get().updateConfig(folly::parseLogConfig(
-      "INFO:filehandler:default;"
-      "filehandler=file:path=" +
-      logPath.string() + ",async=true"));
+  folly::LoggerDB::get().updateConfig(
+      folly::parseLogConfig(
+          "INFO:filehandler:default;"
+          "filehandler=file:path=" +
+          logPath.string() + ",async=true"));
 
   // TODO: To be removed once XFN change the commands in their codes
   if (fw_action.empty()) {
@@ -138,7 +142,9 @@ int main(int argc, char* argv[]) {
         ->setLevel(folly::LogLevel::DBG2);
     fwUtilImpl.doFirmwareAction(fw_target_name, fw_action);
   } else if (fw_action == "list") {
-    XLOG(INFO) << "supported Binary names are: " << fwUtilImpl.printFpdList();
+    XLOG(INFO) << fmt::format(
+        "Supported binary names: {}",
+        folly::join(" ", fwUtilImpl.getFpdNameList()));
   } else if (fw_action == "audit") {
     fwUtilImpl.doVersionAudit();
   } else {

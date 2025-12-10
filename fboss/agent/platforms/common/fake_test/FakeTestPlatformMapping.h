@@ -17,7 +17,8 @@ class FakeTestPlatformMapping : public PlatformMapping {
  public:
   explicit FakeTestPlatformMapping(
       std::vector<int> controllingPortIds,
-      int portsPerSlot = 4);
+      int portsPerSlot = 4,
+      bool twoTransceiversPerPort = false);
   ~FakeTestPlatformMapping() = default;
 
  private:
@@ -35,7 +36,13 @@ class FakeTestPlatformMapping : public PlatformMapping {
 
   std::vector<cfg::PlatformPortEntry> getPlatformPortEntriesByGroup(
       int groupID,
-      int portsPerSlot);
+      int portsPerSlot,
+      bool twoTransceiversPerPort = false);
+
+  void createPlatformMapping(int portsPerSlot);
+
+  void createDualTransceiverPlatformMapping(int portsPerSlot);
+
   static phy::TxSettings getFakeTxSetting();
   static phy::RxSettings getFakeRxSetting();
 };

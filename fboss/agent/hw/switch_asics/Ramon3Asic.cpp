@@ -41,6 +41,9 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
     case HwAsic::Feature::TECH_SUPPORT:
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
+    case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
+    case HwAsic::Feature::FABRIC_LINK_MONITORING:
+    case HwAsic::Feature::CPU_PORT:
       return true;
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
@@ -50,6 +53,7 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     // Dual stage L1 (FE13) fabric features
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
       return fabricNodeRole_ == FabricNodeRole::DUAL_STAGE_L1;
+    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
     default:
       return false;
@@ -60,10 +64,15 @@ std::set<cfg::StreamType> Ramon3Asic::getQueueStreamTypes(
     cfg::PortType portType) const {
   switch (portType) {
     case cfg::PortType::CPU_PORT:
+      // Fabric switches support CPU port for packet send/receive,
+      // but don't have CPU queues
+      return {};
     case cfg::PortType::INTERFACE_PORT:
     case cfg::PortType::MANAGEMENT_PORT:
     case cfg::PortType::RECYCLE_PORT:
     case cfg::PortType::EVENTOR_PORT:
+    case cfg::PortType::HYPER_PORT:
+    case cfg::PortType::HYPER_PORT_MEMBER:
       break;
     case cfg::PortType::FABRIC_PORT:
       return {cfg::StreamType::FABRIC_TX};
@@ -76,11 +85,17 @@ std::set<cfg::StreamType> Ramon3Asic::getQueueStreamTypes(
 int Ramon3Asic::getDefaultNumPortQueues(
     cfg::StreamType /* streamType */,
     cfg::PortType portType) const {
-  if (portType != cfg::PortType::FABRIC_PORT) {
-    throw FbossError("Only fabric ports expected on Ramon asic");
+  if (portType == cfg::PortType::CPU_PORT) {
+    // Fabric switches support CPU port for packet send/receive,
+    // but don't have CPU queues
+    return 0;
   }
-  // On Ramons we use a single fabric queue for all
-  // traffic
+  if (portType != cfg::PortType::FABRIC_PORT) {
+    throw FbossError(
+        "Ramon3 Asic does not support port type: ",
+        apache::thrift::util::enumNameSafe(portType));
+  }
+  // On Ramons we use a single fabric queue for all traffic
   return 1;
 }
 std::optional<uint64_t> Ramon3Asic::getDefaultReservedBytes(

@@ -347,8 +347,10 @@ void SaiQueueManager::changeQueue(
   if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL) &&
       (queueType != SAI_QUEUE_TYPE_FABRIC_TX)) {
     if (portType && (*portType == cfg::PortType::CPU_PORT) &&
-        platform_->getAsic()->isSupported(
-            HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL)) {
+        (platform_->getAsic()->isSupported(
+             HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL) ||
+         (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK6))) {
       // Skip configuring a buffer pool on CPU queues for platforms like
       // YUBA where a dedicated buffer pool is used for CPU traffic. As
       // of now, the same buffer pool used for data traffic on all ports
@@ -359,18 +361,19 @@ void SaiQueueManager::changeQueue(
       // or configs on CPU queues for such platforms, need to provide an
       // option to use a dedicated CPU queue config with buffer pool
       // specified explicitly as the reserved buffer pool.
+      //
+      //
+      // TODO(ruinanhu): Avoid applying buffer profile as buffer profile
+      // application on CPU queues is failing for TH6. Working with Broadcom in
+      // CS00012418940 to address the same.
     } else if (!swPort) {
       changeQueueBufferProfile(queueHandle, newPortQueue, *portType);
-    } else if (swPort->getPortType() != cfg::PortType::MANAGEMENT_PORT) {
+    } else if (
+        swPort->getPortType() != cfg::PortType::MANAGEMENT_PORT ||
+        platform_->getAsic()->isSupported(
+            HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA)) {
       changeQueueBufferProfile(
           queueHandle, newPortQueue, swPort->getPortType());
-    } else if (platform_->getAsic()->isSupported(
-                   HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA)) {
-      // TODO(maxgg): Call changeQueueBufferProfile after next push.
-      XLOG(DBG2) << "Cleaning up buffer profiles on queue "
-                 << queueHandle->queue->adapterKey();
-      queueHandle->queue->setOptionalAttribute(
-          SaiQueueTraits::Attributes::BufferProfileId(SAI_NULL_OBJECT_ID));
     }
   }
   if (queueType == SAI_QUEUE_TYPE_UNICAST) {

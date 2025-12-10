@@ -613,6 +613,21 @@ TEST(Acl, AclGeneration) {
       ->ecmpHashAction()
       ->switchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
 
+  // Add ACL with enableAlternateArsMembers action
+  config.acls()->resize(8);
+  *config.acls()[7].name() = "acl8";
+  config.acls()[7].proto() = kUdpProto;
+  config.acls()[7].l4DstPort() = 2048;
+
+  config.dataPlaneTrafficPolicy()->matchToAction()->resize(6);
+  *config.dataPlaneTrafficPolicy()->matchToAction()[5].matcher() = "acl8";
+  *config.dataPlaneTrafficPolicy()->matchToAction()[5].action() =
+      cfg::MatchAction();
+  config.dataPlaneTrafficPolicy()
+      ->matchToAction()[5]
+      .action()
+      ->enableAlternateArsMembers() = true;
+
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(stateV1, nullptr);
   auto acls = stateV1->getAcls();
@@ -668,6 +683,13 @@ TEST(Acl, AclGeneration) {
           ->getAclAction()
           ->cref<switch_state_tags::ecmpHashAction>()
           ->cref<switch_config_tags::switchingMode>()
+          ->cref());
+  EXPECT_TRUE(acls->getNodeIf("acl8")->getAclAction() != nullptr);
+  EXPECT_EQ(
+      true,
+      acls->getNodeIf("acl8")
+          ->getAclAction()
+          ->cref<switch_state_tags::enableAlternateArsMembers>()
           ->cref());
 }
 
@@ -807,8 +829,8 @@ TEST(Acl, SerializeRedirectToNextHop) {
 
   // Update nexthops
   nexthops.pop_back();
-  nexthops.push_back("1000:db00:e112:9103:1028::1b");
-  nexthops.push_back("10.0.0.3");
+  nexthops.emplace_back("1000:db00:e112:9103:1028::1b");
+  nexthops.emplace_back("10.0.0.3");
   redirectToNextHop.first.redirectNextHops()->clear();
   intfID = 0;
   for (auto nh : nexthops) {
@@ -824,8 +846,8 @@ TEST(Acl, SerializeRedirectToNextHop) {
 
   nhAddrs.pop_back();
   nhAddrs.pop_back();
-  nhAddrs.push_back(folly::IPAddress("fe80:db00:e113:9103:1028::2a"));
-  nhAddrs.push_back(folly::IPAddress("100.0.0.3"));
+  nhAddrs.emplace_back("fe80:db00:e113:9103:1028::2a");
+  nhAddrs.emplace_back("100.0.0.3");
   nhset = MatchAction::NextHopSet();
   setNhAddrs(nhset, nhAddrs);
 

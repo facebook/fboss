@@ -167,8 +167,9 @@ folly::dynamic LaneConfig::toDynamic() const {
 folly::dynamic PhySideConfig::toDynamic() const {
   folly::dynamic elements = folly::dynamic::array;
   for (auto pair : lanes) {
-    elements.push_back(folly::dynamic::object(
-        std::to_string(pair.first), pair.second.toDynamic()));
+    elements.push_back(
+        folly::dynamic::object(
+            std::to_string(pair.first), pair.second.toDynamic()));
   }
 
   return elements;

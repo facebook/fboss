@@ -37,9 +37,9 @@ DEFINE_string(
     "",
     "[OSS-Only] Path to led_manager.json file used for DataCorral service configuration during HwTest.");
 DEFINE_string(
-    weutil_config_file,
+    platform_manager_config_file,
     "",
-    "[OSS-Only] Path to weutil.json file used for weutil configuration during HWTest. "
+    "[OSS-Only] Path to platform_manager.json file used for weutil configuration during HWTest. "
     "This will overwrite FLAGS_config_file when weutil initializes the config.");
 
 class DataCorralServiceHwTest : public ::testing::Test {
@@ -54,8 +54,8 @@ class DataCorralServiceHwTest : public ::testing::Test {
       folly::readFile(
           FLAGS_led_manager_config_file.c_str(), jsonLedManagerConfig);
     }
-    if (!FLAGS_weutil_config_file.empty()) {
-      FLAGS_config_file = FLAGS_weutil_config_file;
+    if (!FLAGS_platform_manager_config_file.empty()) {
+      FLAGS_config_file = FLAGS_platform_manager_config_file;
     }
     apache::thrift::SimpleJSONSerializer::deserialize<LedManagerConfig>(
         jsonLedManagerConfig, ledManagerConfig_);

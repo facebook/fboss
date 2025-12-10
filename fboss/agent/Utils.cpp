@@ -44,6 +44,7 @@
 
 #include <boost/filesystem/operations.hpp>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <thrift/lib/cpp2/FieldRef.h>
 
 #include <re2/re2.h>
 #include <chrono>
@@ -448,6 +449,24 @@ SystemPortID getSystemPortID(
       switchId);
 }
 
+// API to get SystemPortID associated with fabric link monitoring fabric port
+// IDs
+SystemPortID getFabricLinkMonitoringSystemPortID(
+    const PortID& portId,
+    const std::shared_ptr<SwitchSettings>& switchSettings) {
+  CHECK(switchSettings->getFabricLinkMonitoringSystemPortOffset().has_value());
+  return SystemPortID(
+      portId + *switchSettings->getFabricLinkMonitoringSystemPortOffset());
+}
+
+// API to derive the PortID associated with fabric link monitoring fabric
+// SystemPortID
+PortID getPortIdFromFabricLinkMonSystemPortID(
+    const SystemPortID& systemPortId,
+    const int32_t fabricLinkMonitoringSystemPortOffset) {
+  return PortID(systemPortId - fabricLinkMonitoringSystemPortOffset);
+}
+
 SystemPortID getInbandSystemPortID(
     const std::shared_ptr<SwitchState>& state,
     SwitchID switchId) {
@@ -536,7 +555,7 @@ std::vector<PortID> getPortsForInterface(
       auto vlan = state->getVlans()->getNodeIf(vlanId);
       if (vlan) {
         for (const auto& memberPort : vlan->getPorts()) {
-          ports.push_back(PortID(memberPort.first));
+          ports.emplace_back(memberPort.first);
         }
       }
     } break;
@@ -733,7 +752,7 @@ std::optional<VlanID> getVlanIDFromVlanOrIntf(
     if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
       vlanID = vlanOrIntf->getID();
     } else {
-      vlanID = vlanOrIntf->getVlanIDIf();
+      vlanID = vlanOrIntf->getVlanIDIf_DEPRECATED();
     }
   }
 
@@ -1182,6 +1201,70 @@ int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes) {
   return maxFabricLevel;
 }
 
+// Get set of L1 fabric ports that are connected to L2 switches by examining DSF
+// nodes in switch state. This function is only valid for L1 fabric nodes in a
+// dual stage topology. First identifies all L2 nodes (fabricLevel == 2),
+// then finds fabric ports whose expected neighbor matches an L2 node name.
+// Returns a set of PortIDs for efficient lookup. Returns empty set with error
+// log if called on non-L1 fabric node or in non-dual stage topology.
+std::set<PortID> getL2ConnectedL1FabricPorts(
+    const std::shared_ptr<SwitchState>& state) {
+  std::set<PortID> l2ConnectedPorts;
+  std::set<std::string> l2NodeNames;
+
+  // Find all DSF nodes with fabricLevel == 2 (L2 nodes)
+  bool isDualStage = false;
+  bool isL1FabricNode = false;
+  for (const auto& matcherAndNodes : std::as_const(*state->getDsfNodes())) {
+    for (const auto& [switchId, dsfNode] :
+         std::as_const(*matcherAndNodes.second)) {
+      if (dsfNode->getType() == cfg::DsfNodeType::FABRIC_NODE &&
+          dsfNode->getFabricLevel().has_value()) {
+        if (dsfNode->getFabricLevel().value() == 2) {
+          isDualStage = true;
+          l2NodeNames.insert(dsfNode->getName());
+        } else if (dsfNode->getFabricLevel().value() == 1) {
+          isL1FabricNode = true;
+        }
+      }
+    }
+  }
+
+  // Check if this is a dual stage topology and return early otherwise
+  if (!isDualStage) {
+    XLOG(DBG3) << "getL2ConnectedL1FabricPorts called on non-dual stage "
+               << "topology. No L2 fabric nodes found!";
+    return l2ConnectedPorts;
+  }
+
+  if (!isL1FabricNode) {
+    XLOG(ERR) << "getL2ConnectedL1FabricPorts called on non-L1 fabric node."
+              << " This function is only valid for L1 fabric nodes in dual "
+              << "stage topology.";
+    return l2ConnectedPorts;
+  }
+
+  // Find all fabric ports that have expected neighbor as L2 node
+  for (const auto& portMap : std::as_const(*state->getPorts())) {
+    for (const auto& [portIdRaw, port] : std::as_const(*portMap.second)) {
+      PortID portId = PortID(portIdRaw);
+      if (port->getPortType() == cfg::PortType::FABRIC_PORT &&
+          !port->getExpectedNeighborValues()->empty()) {
+        const auto& expectedNeighbors =
+            port->getExpectedNeighborValues()->toThrift();
+        const auto& neighbor = expectedNeighbors.front();
+        if (apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+                neighbor.remoteSystem()) &&
+            l2NodeNames.find(*neighbor.remoteSystem()) != l2NodeNames.end()) {
+          l2ConnectedPorts.insert(portId);
+        }
+      }
+    }
+  }
+
+  return l2ConnectedPorts;
+}
+
 const std::vector<cfg::AclLookupClass>& getToCpuClassIds() {
   static const std::vector<cfg::AclLookupClass> toCpuClassIds = {
       cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1,
@@ -1223,6 +1306,42 @@ std::optional<VlanID> getDefaultTxVlanId(
     throw FbossError("default tx vlan not found");
   }
   return vlanId;
+}
+
+InterfaceID getInterfaceIDForPort(
+    PortID portID,
+    const std::shared_ptr<SwitchState>& state) {
+  auto port = state->getPorts()->getNodeIf(portID);
+  if (!port) {
+    throw FbossError("Port ", portID, " not found");
+  }
+
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
+    for (const auto& intfIter : std::as_const(*intfMap)) {
+      const auto& intf = intfIter.second;
+      switch (intf->getType()) {
+        case cfg::InterfaceType::SYSTEM_PORT: {
+          auto sysPortID = intf->getSystemPortID();
+          CHECK(sysPortID.has_value());
+          if (portID == getPortID(sysPortID.value(), state)) {
+            return intf->getID();
+          }
+        } break;
+        case cfg::InterfaceType::VLAN:
+          if (intf->getVlanID() == port->getIngressVlan()) {
+            return intf->getID();
+          }
+          break;
+        case cfg::InterfaceType::PORT:
+          if (intf->getPortID() == portID) {
+            return intf->getID();
+          }
+          break;
+      }
+    }
+  }
+
+  throw FbossError("Interface not found for port ", portID);
 }
 
 } // namespace facebook::fboss

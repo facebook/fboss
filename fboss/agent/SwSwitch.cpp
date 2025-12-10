@@ -18,6 +18,7 @@
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/FabricLinkMonitoringManager.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
@@ -74,7 +75,6 @@
 #include "fboss/agent/TeFlowNexthopHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PcapPkt.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -101,7 +101,6 @@
 #include <fb303/ServiceData.h>
 #include <folly/Demangle.h>
 #include <folly/FileUtil.h>
-#include <folly/GLog.h>
 #include <folly/MacAddress.h>
 #include <folly/MapUtil.h>
 #include <folly/SocketAddress.h>
@@ -162,11 +161,6 @@ DEFINE_int32(
     minimum_ethernet_packet_length,
     64,
     "Expected minimum ethernet packet length");
-
-DEFINE_int32(
-    fsdbStatsStreamIntervalSeconds,
-    5,
-    "Interval at which stats subscriptions are served");
 
 DECLARE_bool(intf_nbr_tables);
 
@@ -613,6 +607,10 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
     lagManager_.reset();
   }
 
+  if (fabricLinkMonitoringManager_) {
+    fabricLinkMonitoringManager_->stop();
+  }
+
   // Need to destroy IPv6Handler as it is a state observer,
   // but we must do it after we've stopped TunManager.
   // Otherwise, we might attempt to call sendL3Packet which
@@ -658,14 +656,11 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   pktObservers_.reset();
   l2LearnEventObservers_.reset();
 
-  // Unregister and reset PreUpdateStateModifiers
   if (FLAGS_enable_ecmp_resource_manager && ecmpResourceManager_) {
-    unregisterStateModifier(ecmpResourceManager_.get());
     ecmpResourceManager_.reset();
   }
 
   if (!hwAsicTable_->getVoqAsics().empty() && shelManager_) {
-    unregisterStateModifier(shelManager_.get());
     shelManager_.reset();
   }
 
@@ -681,8 +676,17 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   // state. Thus, directly calling underlying getHw_DEPRECATED()->stateChanged()
   if (revertToMinAlpmState) {
     XLOG(DBG3) << "setup min ALPM state";
-    stateChanged(
-        StateDelta(getState(), getMinAlpmRouteState(getState())), false);
+    auto minAlpmStateDelta =
+        StateDelta(getState(), getMinAlpmRouteState(getState()));
+    if (stateDeltaLogger_ && FLAGS_enable_state_delta_logging) {
+      stateDeltaLogger_->logStateDelta(
+          minAlpmStateDelta, "Setup min ALPM state");
+    }
+    stateChanged(minAlpmStateDelta, false);
+  }
+
+  if (stateDeltaLogger_ && FLAGS_enable_state_delta_logging) {
+    stateDeltaLogger_.reset();
   }
 }
 
@@ -1089,6 +1093,28 @@ void SwSwitch::updateStats() {
 
   phySnapshotManager_->updatePhyInfos(phyInfo);
   updatePhyFb303Stats(phyInfo);
+  updateFabricLinkMonitoringStats();
+}
+
+void SwSwitch::updateFabricLinkMonitoringStats() {
+  // Check if fabricLinkMonitoringManager is instantiated
+  auto fabricLinkMonMgr = getFabricLinkMonitoringManager();
+  if (!fabricLinkMonMgr) {
+    return;
+  }
+
+  // Get all fabric link monitoring stats in a single call (more efficient
+  // than calling getFabricLinkMonPortStats() for each port individually)
+  auto allPortStats = fabricLinkMonMgr->getAllFabricLinkMonPortStats();
+
+  // Update fb303 counters for each monitored port
+  for (const auto& [portId, stats] : allPortStats) {
+    auto portStat = portStats(portId);
+
+    // Update RX and TX counters
+    portStat->fabricLinkMonitoringRxPackets(*stats.rxCount());
+    portStat->fabricLinkMonitoringTxPackets(*stats.txCount());
+  }
 }
 
 void SwSwitch::updateRouteStats() {
@@ -1247,7 +1273,9 @@ TeFlowStats SwSwitch::getTeFlowStats() {
         auto statName = folly::to<std::string>(counter->toThrift(), ".bytes");
         // returns default stat if statName does not exists
         auto statPtr = statMap->getStatPtrNoExport(statName);
-        auto lockedStatPtr = statPtr->lock();
+        auto lockedStatPtr = statPtr->wlock();
+        lockedStatPtr->update(
+            std::chrono::seconds(facebook::fb303::get_legacy_stats_time()));
         auto numLevels = lockedStatPtr->numLevels();
         // Cumulative (ALLTIME) counters are at (numLevels - 1)
         HwTeFlowStats flowStat;
@@ -1344,16 +1372,19 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
     auto l3Asics = hwAsicTable_->getL3Asics();
     if (l3Asics.size()) {
       auto asic = checkSameAndGetAsic(l3Asics);
-      ecmpResourceManager_ = makeEcmpResourceManager(state, asic, stats());
-      registerStateModifier(
-          ecmpResourceManager_.get(), "Ecmp Resource Manager");
+      ecmpResourceManager_ =
+          makeEcmpResourceManager(state, asic, [this] { return stats(); });
     }
   }
   if (!hwAsicTable_->getVoqAsics().empty()) {
-    // Register ShelManager
     shelManager_ = std::make_unique<ShelManager>();
-    registerStateModifier(shelManager_.get(), "Shel Manager");
   }
+
+  // Init StateDeltaLogger for logging state deltas
+  if (FLAGS_enable_state_delta_logging) {
+    stateDeltaLogger_ = std::make_unique<StateDeltaLogger>();
+  }
+
   XLOG(DBG2)
       << "Time to init switch and start all threads "
       << duration_cast<duration<float>>(steady_clock::now() - begin).count();
@@ -1390,22 +1421,24 @@ void SwSwitch::init(
   auto emptyState = std::make_shared<SwitchState>();
   auto origInitialState = initialState;
   emptyState->publish();
-  auto deltas = reconstructStateModifierFromSwitchState(initialState);
-  const auto initialStateDelta =
-      StateDelta(emptyState, deltas.back().newState());
+  auto deltas = reconstructStateFromErmAndShelManager(emptyState, initialState);
 
   // Notify resource accountant of the initial state.
-  if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
-    stats()->resourceAccountantRejectedUpdates();
-    throw FbossError(
-        "Not enough resource to apply initialState. ",
-        "This should not happen given the state was previously applied, ",
-        "but possible if calculation or threshold changes across warmboot.");
+  for (const auto& delta : deltas) {
+    if (!resourceAccountant_->isValidUpdate(delta)) {
+      stats()->resourceAccountantRejectedUpdates();
+      throw FbossError(
+          "Not enough resource to apply initialState. ",
+          "This should not happen given the state was previously applied, ",
+          "but possible if calculation or threshold changes across warmboot.");
+    }
   }
   multiHwSwitchHandler_->stateChanged(deltas, false, hwWriteBehavior);
-  notifyStateModifierUpdateDone();
   if (ecmpResourceManager_) {
-    updateRibEcmpOverrides(StateDelta(origInitialState, initialState));
+    ecmpResourceManager_->updateDone();
+  }
+  if (shelManager_) {
+    shelManager_->updateDone();
   }
   // For cold boot there will be discripancy between applied state and state
   // that exists in hardware. this discrepancy is until config is applied, after
@@ -1474,30 +1507,31 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
     throw FbossError("Waiting for HwSwitch to be connected cancelled");
   }
   auto origInitialState = initialState;
-  auto deltas = reconstructStateModifierFromSwitchState(initialState);
-  const auto initialStateDelta =
-      StateDelta(emptyState, deltas.back().newState());
+  auto deltas = reconstructStateFromErmAndShelManager(emptyState, initialState);
   // Notify resource accountant of the initial state.
-  if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
-    stats()->resourceAccountantRejectedUpdates();
-    throw FbossError(
-        "Not enough resource to apply initialState. ",
-        "This should not happen given the state was previously applied, ",
-        "but possible if calculation or threshold changes across warmboot.");
+  for (const auto& delta : deltas) {
+    if (!resourceAccountant_->isValidUpdate(delta)) {
+      stats()->resourceAccountantRejectedUpdates();
+      throw FbossError(
+          "Not enough resource to apply initialState. ",
+          "This should not happen given the state was previously applied, ",
+          "but possible if calculation or threshold changes across warmboot.");
+    }
   }
   // Do not send cold boot state to hwswitch. This is to avoid
   // deleting any cold boot state entries that hwswitch has learned from sdk
   if (bootType_ == BootType::WARM_BOOT) {
     try {
-      getHwSwitchHandler()->stateChanged(
-          initialStateDelta, false, hwWriteBehavior);
+      getHwSwitchHandler()->stateChanged(deltas, false, hwWriteBehavior);
     } catch (const std::exception& ex) {
       throw FbossError("Failed to sync initial state to HwSwitch: ", ex.what());
     }
   }
-  notifyStateModifierUpdateDone();
   if (ecmpResourceManager_) {
-    updateRibEcmpOverrides(StateDelta(origInitialState, initialState));
+    ecmpResourceManager_->updateDone();
+  }
+  if (shelManager_) {
+    shelManager_->updateDone();
   }
   // for cold boot discrepancy may exist between applied state in software
   // switch and state that already exist in hardware. this discrepancy is
@@ -1519,47 +1553,44 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   postInit();
 }
 
-void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
-  setSwitchRunState(SwitchRunState::CONFIGURED);
-
-  if (flags_ & SwitchFlags::ENABLE_TUN) {
-    // skip if mock tun manager was set by tests or during monolithic agent
+void SwSwitch::initialConfigApplied(
+    const std::chrono::steady_clock::time_point& startTime) {
+  if (FLAGS_cleanup_probed_kernel_data) {
+    // New behavior: perform blocking initial sync (that may cleanup) before
+    // transitioning to CONFIGURED state
+    createAndProbeTunManager();
+    initializeTunManager(/*useBlocking=*/true);
+    setSwitchRunState(SwitchRunState::CONFIGURED);
+  } else {
+    // Legacy behavior: Transition to configured state before Tunnel manager
     // initialization.
-    // this is created only for split software agent after config is applied
-    if (!tunMgr_) {
-      tunMgr_ = std::make_unique<TunManager>(this, &packetTxEventBase_);
-      tunMgr_->probe();
-    }
-  }
-
-  if (tunMgr_) {
-    // We check for syncing tun interface only on state changes after the
-    // initial configuration is applied. This is really a hack to get around
-    // 2 issues
-    // a) On warm boot the initial state constructed from warm boot cache
-    // does not know of interface addresses. This means if we sync tun
-    // interface on applying initial boot up state we would blow away tunnel
-    // interferace addresses, causing connectivity disruption. Once t4155406
-    // is fixed we should be able to remove this check. b) Even if we were
-    // willing to live with the above, the TunManager code does not properly
-    // track deleting of interface addresses, viz. when we delete a
-    // interface's primary address, secondary addresses get blown away as
-    // well. TunManager does not track this and tries to delete the
-    // secondaries as well leading to errors, t4746261 is tracking this.
-    tunMgr_->startObservingUpdates();
-
-    // Perform initial sync of interfaces
-    tunMgr_->forceInitialSync();
+    setSwitchRunState(SwitchRunState::CONFIGURED);
+    createAndProbeTunManager();
+    initializeTunManager(/*useBlocking=*/false);
   }
 
   if (lldpManager_) {
     lldpManager_->start();
   }
 
+  if (fabricLinkMonitoringManager_) {
+    fabricLinkMonitoringManager_->start();
+  }
+
+  // Send neighbor solicitation for configured interfaces after
+  // initialConfigApplied existing interfaces with desiredPeerAddressIPv6
+  // need to send neighbor solicitation. By this time we should have all
+  // interface configured, and this also handle warmboot case, when agent
+  // do not get port UP event from SDK
+  XLOG(DBG4)
+      << "SwSwitch::initialConfigApplied - Checking for existing interfaces that need neighbor solicitation after warm boot";
+  sendNeighborSolicitationForConfiguredInterfaces("warm boot");
+
   if (flags_ & SwitchFlags::PUBLISH_STATS) {
-    stats()->switchConfiguredMs(duration_cast<std::chrono::milliseconds>(
-                                    steady_clock::now() - startTime)
-                                    .count());
+    stats()->switchConfiguredMs(
+        duration_cast<std::chrono::milliseconds>(
+            steady_clock::now() - startTime)
+            .count());
   }
 #if FOLLY_HAS_COROUTINES
   if (flags_ & SwitchFlags::ENABLE_MACSEC) {
@@ -1643,66 +1674,20 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
   runFsdbSyncFunction([&delta](auto& syncer) { syncer->stateUpdated(delta); });
 }
 
-void SwSwitch::registerStateModifier(
-    PreUpdateStateModifier* modifier,
-    const std::string& name) {
-  if (stateModifiers_.find(modifier) != stateModifiers_.end()) {
-    throw FbossError("State modifier add failed: ", name, " already exists");
-  }
-  stateModifiers_.emplace(modifier, name);
-}
-
-void SwSwitch::unregisterStateModifier(PreUpdateStateModifier* modifier) {
-  auto erased = stateModifiers_.erase(modifier);
-  if (!erased) {
-    throw FbossError("State modifier remove failed: modifier does not exist");
-  }
-}
-
-bool SwSwitch::preUpdateModifyState(std::vector<StateDelta>& deltas) {
-  CHECK_EQ(deltas.size(), 1);
-  auto oldState = deltas.begin()->oldState();
-  for (auto modifierIter = stateModifiers_.begin();
-       modifierIter != stateModifiers_.end();
-       modifierIter++) {
-    try {
-      deltas = modifierIter->first->modifyState(deltas);
-    } catch (const FbossError& e) {
-      XLOG(DBG2) << modifierIter->second
-                 << " StateModifier rejected update: " << e.what();
-      for (auto rollbackIter = stateModifiers_.begin();
-           rollbackIter != modifierIter;
-           rollbackIter++) {
-        XLOG(DBG2) << "Notify " << rollbackIter->second << " update failed";
-        rollbackIter->first->updateFailed(oldState);
-      }
-      return false;
-    }
-  }
-  return true;
-}
-
-std::vector<StateDelta> SwSwitch::reconstructStateModifierFromSwitchState(
+std::vector<StateDelta> SwSwitch::reconstructStateFromErmAndShelManager(
+    const std::shared_ptr<SwitchState>& emptyState,
     const std::shared_ptr<SwitchState>& initialState) {
   std::vector<StateDelta> deltas;
-  deltas.emplace_back(std::make_shared<SwitchState>(), initialState);
-  for (auto [modifier, _] : stateModifiers_) {
-    deltas = modifier->reconstructFromSwitchState(deltas.back().newState());
+  deltas.emplace_back(emptyState, initialState);
+
+  if (ecmpResourceManager_) {
+    deltas = ecmpResourceManager_->reconstructFromSwitchState(
+        deltas.back().newState());
+  }
+  if (shelManager_) {
+    deltas = shelManager_->reconstructFromSwitchState(deltas.back().newState());
   }
   return deltas;
-}
-
-void SwSwitch::notifyStateModifierUpdateFailed(
-    const std::shared_ptr<SwitchState>& state) {
-  for (auto [modifier, _] : stateModifiers_) {
-    modifier->updateFailed(state);
-  }
-}
-
-void SwSwitch::notifyStateModifierUpdateDone() {
-  for (auto [modifier, _] : stateModifiers_) {
-    modifier->updateDone();
-  }
 }
 
 template <typename FsdbFunc>
@@ -1880,12 +1865,17 @@ void SwSwitch::handlePendingUpdates() {
         applyUpdate(oldAppliedState, newDesiredState, isTransaction);
     if (newDesiredState != newAppliedState) {
       /*
-       * Send newAppliedState to State Modifier to reconstruct its
-       * data structures from. In case of platforms where we have
-       * transactions newAppliedState will be the same as oldState. In
+       * Send newAppliedState to EcmpResourceManager and Shel Manager to
+       * reconstruct its data structures from. In case of platforms where we
+       * have transactions newAppliedState will be the same as oldState. In
        * others HW will get to the point of failure and return that state.
        */
-      notifyStateModifierUpdateFailed(newAppliedState);
+      if (ecmpResourceManager_) {
+        ecmpResourceManager_->updateFailed(newAppliedState);
+      }
+      if (shelManager_) {
+        shelManager_->updateFailed(newAppliedState);
+      }
       if (isExiting()) {
         /*
          * If we started exit, applyUpdate will reject updates leading
@@ -1925,7 +1915,12 @@ void SwSwitch::handlePendingUpdates() {
                "HW failure protection";
       }
     } else {
-      notifyStateModifierUpdateDone();
+      if (ecmpResourceManager_) {
+        ecmpResourceManager_->updateDone();
+      }
+      if (shelManager_) {
+        shelManager_->updateDone();
+      }
       // Update successful, update hw update counter to zero.
       fb303::fbData->setCounter(kHwUpdateFailures, 0);
     }
@@ -1980,17 +1975,46 @@ SwSwitch::applyUpdate(
   }
   std::vector<StateDelta> deltas;
   deltas.emplace_back(oldState, newDesiredState);
-  if (!preUpdateModifyState(deltas)) {
+
+  auto modifyState = [&deltas, &newDesiredState](
+                         auto& manager, const std::string& name) {
+    if (manager) {
+      try {
+        deltas = manager->modifyState(deltas);
+      } catch (const FbossError& e) {
+        XLOG(DBG2) << name << " rejected update: " << e.what();
+        return false;
+      }
+      CHECK(!deltas.empty());
+      newDesiredState = deltas.back().newState();
+    }
+    return true;
+  };
+  if (!modifyState(ecmpResourceManager_, "Ecmp Resource Manager") ||
+      !modifyState(shelManager_, "Shel Manager")) {
     return std::make_pair(oldState, newDesiredState);
   }
-  newDesiredState = deltas.back().newState();
 
-  StateDelta delta(oldState, newDesiredState);
-  if (!resourceAccountant_->isValidUpdate(delta)) {
+  bool updateRejected{false};
+  for (const auto& delta : deltas) {
+    if (!resourceAccountant_->isValidUpdate(delta)) {
+      updateRejected = true;
+      break;
+    }
+  }
+  if (updateRejected) {
     stats()->resourceAccountantRejectedUpdates();
-    // Notify resource account to revert back to previous state
-    resourceAccountant_->stateChanged(StateDelta(newDesiredState, oldState));
+    resourceAccountant_ = std::make_unique<ResourceAccountant>(
+        getHwAsicTable(), getScopeResolver());
+    resourceAccountant_->stateChanged(
+        StateDelta(std::make_shared<SwitchState>(), oldState));
     return std::make_pair(oldState, newDesiredState);
+  }
+
+  // Log state deltas that are sent to HwSwitch
+  if (stateDeltaLogger_ && FLAGS_enable_state_delta_logging) {
+    stateDeltaLogger_->logStateDeltas(
+        deltas, "Update after ERM and Shel Manager");
   }
 
   std::shared_ptr<SwitchState> newAppliedState;
@@ -2025,9 +2049,6 @@ SwSwitch::applyUpdate(
     dumpBadStateUpdate(oldState, newDesiredState);
     XLOG(FATAL) << "encountered a fatal error: " << folly::exceptionStr(ex);
   }
-  if (ecmpResourceManager_ && newAppliedState != oldState) {
-    updateRibEcmpOverrides(StateDelta(origDesiredState, newAppliedState));
-  }
 
   setStateInternal(newAppliedState);
 
@@ -2045,72 +2066,6 @@ SwSwitch::applyUpdate(
 
   XLOG(DBG0) << "Update state took " << duration.count() << "us";
   return std::make_pair(newAppliedState, newDesiredState);
-}
-
-void SwSwitch::updateRibEcmpOverrides(const StateDelta& delta) {
-  std::map<
-      RouterID,
-      std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>>
-      rid2prefix2SwitchingMode;
-  std::map<
-      RouterID,
-      std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>>
-      rid2prefix2Nhops;
-
-  forEachChangedRoute(
-      delta,
-      [&rid2prefix2SwitchingMode, &rid2prefix2Nhops](
-          RouterID rid, const auto& oldRoute, const auto& newRoute) {
-        if (!newRoute->isResolved()) {
-          return;
-        }
-        if (!oldRoute->isResolved()) {
-          if (newRoute->getForwardInfo()
-                  .getOverrideEcmpSwitchingMode()
-                  .has_value()) {
-            rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
-                newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
-          }
-          if (newRoute->getForwardInfo().getOverrideNextHops().has_value()) {
-            rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
-                newRoute->getForwardInfo().getOverrideNextHops();
-          }
-        } else {
-          // both are resolved
-          if (oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode() !=
-              newRoute->getForwardInfo().getOverrideEcmpSwitchingMode()) {
-            rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
-                newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
-          }
-          if (oldRoute->getForwardInfo().getOverrideNextHops() !=
-              newRoute->getForwardInfo().getOverrideNextHops()) {
-            rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
-                newRoute->getForwardInfo().getOverrideNextHops();
-          }
-        }
-      },
-      [&rid2prefix2SwitchingMode, &rid2prefix2Nhops](
-          RouterID rid, const auto& newRoute) {
-        if (newRoute->isResolved() &&
-            newRoute->getForwardInfo()
-                .getOverrideEcmpSwitchingMode()
-                .has_value()) {
-          rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
-              newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
-        }
-        if (newRoute->getForwardInfo().getOverrideNextHops().has_value()) {
-          rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
-              newRoute->getForwardInfo().getOverrideNextHops();
-        }
-      },
-      [&rid2prefix2SwitchingMode](RouterID /*rid*/, const auto& /*oldRoute*/) {
-      });
-  for (const auto& [rid, prefixes] : rid2prefix2SwitchingMode) {
-    getRouteUpdater().programEcmpSwitchingModeAsync(rid, prefixes);
-  }
-  for (const auto& [rid, prefixes] : rid2prefix2Nhops) {
-    getRouteUpdater().programEcmpNhopOverridesAsync(rid, prefixes);
-  }
 }
 
 void SwSwitch::dumpBadStateUpdate(
@@ -2252,6 +2207,21 @@ PortDescriptor SwSwitch::getPortFromPkt(const RxPacket* pkt) const {
 }
 
 void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
+  if (getFabricLinkMonitoringManager()) {
+    // This flow will be hit only for a subset of VoQ and Fabric switches
+    // where fabric link monitoring manager is running.
+    auto* port =
+        getState()->getPorts()->getNodeIf(PortID(pkt->getSrcPort())).get();
+    if (port && (port->getPortType() == cfg::PortType::FABRIC_PORT)) {
+      // TODO(nivinl): Once Broadcom implements the new attribute to specify
+      // packet type as requested in CS00012430577, the check for port type
+      // can be avoided.
+      Cursor c(pkt->buf());
+      getFabricLinkMonitoringManager()->handlePacket(std::move(pkt), c);
+      return;
+    }
+  }
+
   if (FLAGS_intf_nbr_tables) {
     auto intf = getState()->getInterfaces()->getNodeIf(
         getState()->getInterfaceIDForPort(getPortFromPkt(pkt.get())));
@@ -2552,9 +2522,9 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
           setPortActiveStatusCounter(portID, isActive);
           portStats(portID)->linkActiveStateChange(isActive);
 
-          auto getActiveStr = [](std::optional<bool> isActive) {
-            return isActive.has_value()
-                ? (isActive.value() ? "ACTIVE" : "INACTIVE")
+          auto getActiveStr = [](std::optional<bool> activeState) {
+            return activeState.has_value()
+                ? (activeState.value() ? "ACTIVE" : "INACTIVE")
                 : "NONE";
           };
           XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
@@ -2579,12 +2549,8 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
       if (isSwitchErrorFirmwareIsolate(
               numActiveFabricPortsAtFwIsolate, switchSettings)) {
         stats()->fwDrainedWithHighNumActiveFabricLinks();
-        if (FLAGS_fw_drained_unrecoverable_error) {
-          newActualSwitchDrainState =
-              cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR;
-        } else {
-          newActualSwitchDrainState = cfg::SwitchDrainState::DRAINED;
-        }
+        newActualSwitchDrainState =
+            cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR;
       } else {
         newActualSwitchDrainState = cfg::SwitchDrainState::DRAINED;
       }
@@ -2721,13 +2687,13 @@ void SwSwitch::validateSwitchReachabilityInformation(
       inactivePortsWithSwitchReachability) {
     // Increment the number of switch reachability inconsistency seen!
     stats()->switchReachabilityInconsistencyDetected(switchIndex);
-    XLOG(WARN) << "Switch reachability inconsistency seen on switch"
+    XLOG(WARN) << "Switch reachability inconsistency seen on switch index"
                << switchIndex << ", active ports w/o reachability: "
                << activePortsWithoutSwitchReachability
                << ", inactive ports w/ reachability: "
                << inactivePortsWithSwitchReachability;
   } else {
-    XLOG(DBG2) << "No switch reachability inconsistency seen for switch"
+    XLOG(DBG2) << "No switch reachability inconsistency seen for switch index"
                << switchIndex;
   }
 }
@@ -2881,6 +2847,7 @@ void SwSwitch::startThreads() {
 
 void SwSwitch::postInit() {
   initLldpManager();
+  initFabricLinkMonitoringManager();
   publishBootTypeStats();
   initThreadHeartbeats();
   startHeartbeatWatchdog();
@@ -2890,6 +2857,69 @@ void SwSwitch::postInit() {
 void SwSwitch::initLldpManager() {
   if (flags_ & SwitchFlags::ENABLE_LLDP) {
     lldpManager_ = std::make_unique<LldpManager>(this);
+  }
+}
+
+void SwSwitch::initFabricLinkMonitoringManager() {
+  if (flags_ & SwitchFlags::ENABLE_FABRIC_LINK_MONITORING) {
+    // Fabric link monitoring manager is needed to send/receive packets
+    // from VoQ switch to L1 fabric and from L1 to L2 fabric. It is not
+    // needed on single stage fabric or dual stage L2 fabric devices.
+    bool isVoqSwitch =
+        getSwitchInfoTable().getSwitchIdsOfType(cfg::SwitchType::VOQ).size();
+    auto hwAsic = getHwAsicTable()->getHwAsicIf(
+        *getSwitchInfoTable().getSwitchIDs().begin());
+    bool isDualStageL1 = isVoqSwitch
+        ? false
+        : hwAsic->getFabricNodeRole() == HwAsic::FabricNodeRole::DUAL_STAGE_L1;
+    if (isVoqSwitch || isDualStageL1) {
+      fabricLinkMonitoringManager_ =
+          std::make_unique<FabricLinkMonitoringManager>(this);
+    } else {
+      XLOG(DBG3) << "Fabric Link Monitoring Manager packet send/receive is not"
+                    " enabled on single stage fabric and dual stage L2 fabric!";
+    }
+  }
+}
+
+void SwSwitch::createAndProbeTunManager() {
+  if (flags_ & SwitchFlags::ENABLE_TUN) {
+    // skip if mock tun manager was set by tests or during monolithic agent
+    // initialization.
+    // this is created only for split software agent after config is applied
+    if (!tunMgr_) {
+      tunMgr_ = std::make_unique<TunManager>(this, &packetTxEventBase_);
+      tunMgr_->probe();
+    }
+  }
+}
+
+void SwSwitch::initializeTunManager(bool useBlocking) {
+  if (tunMgr_) {
+    // We check for syncing tun interface only on state changes after the
+    // initial configuration is applied. This is really a hack to get around
+    // 2 issues
+    // a) On warm boot the initial state constructed from warm boot cache
+    // does not know of interface addresses. This means if we sync tun
+    // interface on applying initial boot up state we would blow away tunnel
+    // interferace addresses, causing connectivity disruption. Once t4155406
+    // is fixed we should be able to remove this check. b) Even if we were
+    // willing to live with the above, the TunManager code does not properly
+    // track deleting of interface addresses, viz. when we delete a
+    // interface's primary address, secondary addresses get blown away as
+    // well. TunManager does not track this and tries to delete the
+    // secondaries as well leading to errors, t4746261 is tracking this.
+
+    if (useBlocking) {
+      // New behavior: blocking sync first, then start observing
+      tunMgr_->forceInitialSyncBlocking();
+      tunMgr_->startObservingUpdates();
+    } else {
+      // Legacy behavior: start observing first, then async sync
+      tunMgr_->startObservingUpdates();
+      // Perform initial sync of interfaces
+      tunMgr_->forceInitialSync();
+    }
   }
 }
 
@@ -3092,45 +3122,47 @@ std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(
   return pkt;
 }
 
-void SwSwitch::sendNetworkControlPacketAsync(
+bool SwSwitch::sendNetworkControlPacketAsync(
     std::unique_ptr<TxPacket> pkt,
     std::optional<PortDescriptor> portDescriptor) noexcept {
   // TODO(joseph5wu): Control this by distinguishing the highest priority
   // queue from the config.
   static const uint8_t kNCStrictPriorityQueue = 7;
 
-  sendPacketAsync(
+  return sendPacketAsync(
       std::move(pkt),
       portDescriptor,
       portDescriptor ? std::make_optional(kNCStrictPriorityQueue)
                      : std::nullopt);
 }
 
-void SwSwitch::sendPacketAsync(
+bool SwSwitch::sendPacketAsync(
     std::unique_ptr<TxPacket> pkt,
     std::optional<PortDescriptor> portDescriptor,
     std::optional<uint8_t> queueId) noexcept {
   if (portDescriptor.has_value()) {
     switch (portDescriptor.value().type()) {
       case PortDescriptor::PortType::PHYSICAL:
-        sendPacketOutOfPortAsync(
+        return sendPacketOutOfPortAsync(
             std::move(pkt), portDescriptor.value().phyPortID(), queueId);
         break;
       case PortDescriptor::PortType::AGGREGATE:
-        sendPacketOutOfPortAsync(
+        return sendPacketOutOfPortAsync(
             std::move(pkt), portDescriptor.value().aggPortID(), queueId);
         break;
       case PortDescriptor::PortType::SYSTEM_PORT:
         XLOG(FATAL) << " Packet send over system ports not handled yet";
+        return false;
         break;
     };
   } else {
     CHECK(!queueId.has_value());
-    this->sendPacketSwitchedAsync(std::move(pkt));
+    return this->sendPacketSwitchedAsync(std::move(pkt));
   }
+  return true;
 }
 
-void SwSwitch::sendPacketOutOfPortAsync(
+bool SwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
     std::optional<uint8_t> queue) noexcept {
@@ -3139,7 +3171,7 @@ void SwSwitch::sendPacketOutOfPortAsync(
     XLOG(ERR) << "SendPacketOutOfPortAsync: dropping packet to unexpected port "
               << portID;
     stats()->pktDropped();
-    return;
+    return false;
   }
 
   pcapMgr_->packetSent(pkt.get());
@@ -3162,10 +3194,12 @@ void SwSwitch::sendPacketOutOfPortAsync(
     // send may ultimately fail since it occurs asynchronously in the
     // background.
     XLOG(ERR) << "failed to send packet out port " << portID;
+    return false;
   }
+  return true;
 }
 
-void SwSwitch::sendPacketOutOfPortAsync(
+bool SwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     AggregatePortID aggPortID,
     std::optional<uint8_t> queue) noexcept {
@@ -3173,14 +3207,14 @@ void SwSwitch::sendPacketOutOfPortAsync(
   if (!aggPort) {
     XLOG(ERR) << "failed to send packet out aggregate port " << aggPortID
               << ": no aggregate port corresponding to identifier";
-    return;
+    return false;
   }
 
   auto subportAndFwdStates = aggPort->subportAndFwdState();
   if (subportAndFwdStates.begin() == subportAndFwdStates.end()) {
     XLOG(ERR) << "failed to send packet out aggregate port " << aggPortID
               << ": aggregate port has no constituent physical ports";
-    return;
+    return false;
   }
 
   // Ideally, we would select the same (physical) sub-port to send this
@@ -3199,25 +3233,55 @@ void SwSwitch::sendPacketOutOfPortAsync(
   for (auto elem : subportAndFwdStates) {
     std::tie(subport, fwdState) = elem;
     if (fwdState == AggregatePort::Forwarding::ENABLED) {
-      sendPacketOutOfPortAsync(std::move(pkt), subport, queue);
-      return;
+      return sendPacketOutOfPortAsync(std::move(pkt), subport, queue);
     }
   }
   XLOG(DBG2) << "failed to send packet out aggregate port" << aggPortID
              << ": aggregate port has no enabled physical ports";
+  return false;
 }
 
-void SwSwitch::sendPacketOutViaThriftStream(
+bool SwSwitch::sendPacketOutOfPortSyncForPktType(
+    std::unique_ptr<TxPacket> pkt,
+    const PortID& portId,
+    TxPacketType packetType) noexcept {
+  auto state = getState();
+  if (!state->getPorts()->getNodeIf(portId)) {
+    XLOG(ERR)
+        << "sendPacketOutOfPortSyncForPktType: dropping packet to unexpected port "
+        << portId;
+    stats()->pktDropped();
+    return false;
+  }
+
+  pcapMgr_->packetSent(pkt.get());
+
+  if (!multiHwSwitchHandler_->sendPacketOutOfPortSyncForPktType(
+          std::move(pkt), portId, packetType)) {
+    // Log error
+    XLOG(ERR) << "Failed to send packet type "
+              << apache::thrift::util::enumNameSafe(packetType) << " out port "
+              << portId;
+    return false;
+  }
+  return true;
+}
+
+bool SwSwitch::sendPacketOutViaThriftStream(
     std::unique_ptr<TxPacket> pkt,
     SwitchID switchId,
     std::optional<PortID> portID,
-    std::optional<uint8_t> queue) noexcept {
+    std::optional<uint8_t> queue,
+    std::optional<TxPacketType> packetType) noexcept {
   multiswitch::TxPacket txPacket;
   if (portID) {
     txPacket.port() = portID.value();
   }
   if (queue) {
     txPacket.queue() = queue.value();
+  }
+  if (packetType) {
+    txPacket.packetType() = packetType.value();
   }
   txPacket.length() = pkt->buf()->computeChainDataLength();
   txPacket.data() = Packet::extractIOBuf(std::move(pkt));
@@ -3230,10 +3294,12 @@ void SwSwitch::sendPacketOutViaThriftStream(
     stats()->pktDropped();
     XLOG(DBG2) << "Error sending packet via thrift stream to switch "
                << switchId;
+    return false;
   }
+  return true;
 }
 
-void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
+bool SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
   pcapMgr_->packetSent(pkt.get());
   if (!multiHwSwitchHandler_->sendPacketSwitchedAsync(std::move(pkt))) {
     // Just log an error for now.  There's not much the caller can do about
@@ -3241,7 +3307,9 @@ void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
     // the send may ultimately fail since it occurs asynchronously in the
     // background.
     XLOG(ERR) << "failed to send switched packet";
+    return false;
   }
+  return true;
 }
 
 std::optional<folly::MacAddress> SwSwitch::getSourceMac(
@@ -3305,7 +3373,7 @@ void SwSwitch::sendL3Packet(
   }
 
   // Extract primary Vlan associated with this interface, if any
-  auto vlanID = intf->getVlanIDIf();
+  auto vlanID = intf->getVlanIDIf_DEPRECATED();
 
   try {
     uint16_t protocol{0};
@@ -3511,6 +3579,17 @@ void SwSwitch::applyConfigImpl(
         }
         return newState;
       });
+  if (FLAGS_enable_ecmp_resource_manager) {
+    // Since config update can also update ecmp overrides - in
+    // case of config changing ecmp switching mode. Sync these
+    // route overrides to rib
+    updateEventBase_.runInFbossEventBaseThreadAndWait([this]() {
+      if (rib_) {
+        rib_->updateEcmpOverrides(
+            StateDelta(std::make_shared<SwitchState>(), getState()));
+      }
+    });
+  }
   // Since we're using blocking state update, once we reach here, the new
   // config should be already applied and programmed into hardware.
   updateConfigAppliedInfo();
@@ -3531,7 +3610,6 @@ void SwSwitch::applyConfigImpl(
    * and applyConfig. So ensure programming allways goes through the route
    * update wrapper abstraction
    */
-
   routeUpdater.program();
   runFsdbSyncFunction([&oldConfig, &newConfig](auto& syncer) {
     syncer->cfgUpdated(oldConfig, newConfig);
@@ -3700,7 +3778,7 @@ bool SwSwitch::sendArpRequestHelper(
   if (entry == nullptr) {
     // No entry in ARP table, send ARP request
     ArpHandler::sendArpRequest(
-        this, intf->getVlanIDIf(), intf->getMac(), source, target);
+        this, intf->getVlanIDIf_DEPRECATED(), intf->getMac(), source, target);
 
     // Notify the updater that we sent an arp request
     sentArpRequest(intf, target);
@@ -3724,7 +3802,7 @@ bool SwSwitch::sendNdpSolicitationHelper(
   if (entry == nullptr) {
     // No entry in NDP table, create a neighbor solicitation packet
     IPv6Handler::sendMulticastNeighborSolicitation(
-        this, target, intf->getMac(), intf->getVlanIDIf());
+        this, target, intf->getMac(), intf->getVlanIDIf_DEPRECATED());
 
     // Notify the updater that we sent a solicitation out
     sentNeighborSolicitation(intf, target);
@@ -3774,7 +3852,8 @@ void SwSwitch::sentArpRequest(
     getNeighborUpdater()->sentArpRequestForIntf(intf->getID(), target);
   } else {
     getNeighborUpdater()->sentArpRequest(
-        getVlanIDHelper(intf->getVlanIDIf(), intf->getType()), target);
+        getVlanIDHelper(intf->getVlanIDIf_DEPRECATED(), intf->getType()),
+        target);
   }
 }
 
@@ -3786,7 +3865,8 @@ void SwSwitch::sentNeighborSolicitation(
         intf->getID(), target);
   } else {
     getNeighborUpdater()->sentNeighborSolicitation(
-        getVlanIDHelper(intf->getVlanIDIf(), intf->getType()), target);
+        getVlanIDHelper(intf->getVlanIDIf_DEPRECATED(), intf->getType()),
+        target);
   }
 }
 
@@ -3835,10 +3915,10 @@ std::shared_ptr<SwitchState> SwSwitch::modifyTransceivers(
     std::unordered_map<PortID, TransceiverID> portIdToTransceiverID;
     const auto& platformPorts = platformMapping->getPlatformPorts();
     for (const auto& [portId, platformPort] : platformPorts) {
-      auto transceiverId =
-          utility::getTransceiverId(platformPort, platformMapping->getChips());
-      if (transceiverId) {
-        portIdToTransceiverID.emplace(PortID(portId), *transceiverId);
+      auto transceiverIds =
+          utility::getTransceiverIds(platformPort, platformMapping->getChips());
+      if (!transceiverIds.empty()) {
+        portIdToTransceiverID.emplace(PortID(portId), transceiverIds[0]);
       }
     }
     auto getPortIdsForTransceiver = [&portIdToTransceiverID](
@@ -4178,4 +4258,137 @@ template std::optional<VlanID> SwSwitch::getVlanIDForTx(
 template std::optional<VlanID> SwSwitch::getVlanIDForTx(
     const std::shared_ptr<Interface>& vlanOrIntf) const;
 
+void SwSwitch::sendNeighborSolicitationForConfiguredInterfaces(
+    const std::string& reason,
+    const std::optional<folly::IPAddressV6>& targetIP) {
+  // Check if NDP static neighbor is enabled
+  if (!FLAGS_ndp_static_neighbor) {
+    return;
+  }
+
+  auto currentState = getState();
+  if (!currentState) {
+    XLOG(WARN)
+        << "SwSwitch::sendNeighborSolicitationForConfiguredInterfaces - No current state available";
+    return;
+  }
+
+  auto interfaces = currentState->getInterfaces();
+  for (const auto& [_, intfMap] : std::as_const(*interfaces)) {
+    for (const auto& [_, intf] : std::as_const(*intfMap)) {
+      // Check if this interface has desiredPeerAddressIPv6 configured
+      // and RA enabled
+      if (intf->getDesiredPeerAddressIPv6().has_value()) {
+        auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv6();
+        // Use folly's built-in network parsing for CIDR notation
+        auto cidrNetwork = folly::IPAddress::createNetwork(
+            *desiredPeerAddressString, -1, false);
+        auto desiredPeerAddressIPv6 = cidrNetwork.first.asV6();
+
+        // If targetIP is specified, only process that specific IP
+        if (targetIP.has_value() && desiredPeerAddressIPv6 != targetIP) {
+          continue;
+        }
+
+        // Check if desiredPeer is reachable from this interface
+        if (!intf->canReachAddress(desiredPeerAddressIPv6)) {
+          continue;
+        }
+
+        // Check if interface is operationally UP
+        bool isInterfaceOperationallyUp = false;
+
+        switch (intf->getType()) {
+          case cfg::InterfaceType::PORT: {
+            break;
+          }
+          case cfg::InterfaceType::VLAN: {
+            if (auto vlanID = intf->getVlanID()) {
+              // Check if any port is a member of this VLAN and is UP
+              auto vlanMap = currentState->getVlans();
+              if (vlanMap) {
+                auto vlan = vlanMap->getNodeIf(vlanID);
+                if (vlan) {
+                  for (auto memberPort : vlan->getPorts()) {
+                    auto port =
+                        currentState->getPorts()->getNodeIf(memberPort.first);
+                    if (port && port->isPortUp()) {
+                      isInterfaceOperationallyUp = true;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+            break;
+          }
+          case cfg::InterfaceType::SYSTEM_PORT: {
+            if (auto sysPortID = intf->getSystemPortID()) {
+              if (sysPortID.has_value()) {
+                auto physPortID = getPortID(sysPortID.value(), getState());
+                auto port = currentState->getPorts()->getNodeIf(physPortID);
+                if (port && port->isPortUp()) {
+                  isInterfaceOperationallyUp = true;
+                }
+              }
+            }
+            break;
+          }
+        }
+
+        if (isInterfaceOperationallyUp) {
+          XLOG(DBG4)
+              << "SwSwitch::sendNeighborSolicitationForConfiguredInterfaces - Sending neighbor solicitation for interface "
+              << intf->getID() << " (" << intf->getName()
+              << ") with desiredPeerAddressIPv6 "
+              << desiredPeerAddressIPv6.str() << " - reason: " << reason;
+
+          try {
+            sendNdpSolicitationHelper(
+                intf, currentState, desiredPeerAddressIPv6);
+          } catch (const std::exception& e) {
+            XLOG(ERR)
+                << "SwSwitch::sendNeighborSolicitationForConfiguredInterfaces - Failed to send neighbor solicitation for interface "
+                << intf->getID() << " - reason: " << reason << ": " << e.what();
+            folly::rethrow_current_exception();
+          }
+        }
+      }
+    }
+  }
+}
+
+bool SwSwitch::hasQualifiedConfiguredDesiredPeer(const InterfaceID& intfId) {
+  auto switchState = getState();
+  auto* intf = switchState->getInterfaces()->getNode(intfId).get();
+  if (intf->getDesiredPeerAddressIPv6().has_value()) {
+    auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv6();
+    // check if this is correct ipv6 address
+    // Check if desiredPeerAddressString is a valid IPv6 address or CIDR
+    auto cidrNetwork =
+        folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
+    if (!cidrNetwork.first.isV6()) {
+      XLOG(ERR) << "Desired peer address is not a valid IPv6 address: "
+                << *desiredPeerAddressString;
+      return false;
+    }
+    // Check if interface has any operational ports
+    auto portIds = getPortsForInterface(intfId, switchState);
+    bool hasOperationalPort = false;
+    for (auto portId : portIds) {
+      auto port = switchState->getPorts()->getNodeIf(portId);
+      if (port && port->isUp()) {
+        hasOperationalPort = true;
+        break;
+      }
+    }
+    if (!hasOperationalPort) {
+      XLOG(DBG4) << "Interface " << intfId
+                 << " has no operational ports, skipping desired peer check";
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
 } // namespace facebook::fboss

@@ -48,7 +48,9 @@ class RouteNextHopEntry
       std::optional<AclLookupClass> classID = std::nullopt,
       std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
           std::nullopt,
-      std::optional<NextHopSet> overrideNextHops = std::nullopt);
+      std::optional<NextHopSet> overrideNextHops = std::nullopt,
+      std::optional<NextHopSetID> normalizedResolvedNextHopSetID = std::nullopt,
+      std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt);
   RouteNextHopEntry(
       NextHopSet nhopSet,
       AdminDistance distance,
@@ -56,7 +58,9 @@ class RouteNextHopEntry
       std::optional<AclLookupClass> classID = std::nullopt,
       std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
           std::nullopt,
-      std::optional<NextHopSet> overrideNextHops = std::nullopt);
+      std::optional<NextHopSet> overrideNextHops = std::nullopt,
+      std::optional<NextHopSetID> normalizedResolvedNextHopSetID = std::nullopt,
+      std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt);
 
   RouteNextHopEntry(
       NextHop nhop,
@@ -65,7 +69,9 @@ class RouteNextHopEntry
       std::optional<AclLookupClass> classID = std::nullopt,
       std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
           std::nullopt,
-      std::optional<NextHopSet> overrideNextHops = std::nullopt);
+      std::optional<NextHopSet> overrideNextHops = std::nullopt,
+      std::optional<NextHopSetID> normalizedResolvedNextHopSetID = std::nullopt,
+      std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt);
 
   RouteNextHopEntry(RouteNextHopEntry&& other) noexcept {
     this->fromThrift(other.toThrift());
@@ -92,6 +98,40 @@ class RouteNextHopEntry
     return std::nullopt;
   }
 
+  const std::optional<NextHopSetID> getNormalizedResolvedNextHopSetID() const {
+    if (auto nhopSetID =
+            safe_cref<switch_state_tags::normalizedResolvedNextHopSetID>()) {
+      return NextHopSetID(nhopSetID->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setNormalizedResolvedNextHopSetID(
+      std::optional<NextHopSetID>& nhopSetID) {
+    if (nhopSetID) {
+      ref<switch_state_tags::normalizedResolvedNextHopSetID>() =
+          static_cast<int64_t>(*nhopSetID);
+    } else {
+      ref<switch_state_tags::normalizedResolvedNextHopSetID>().reset();
+    }
+  }
+
+  const std::optional<NextHopSetID> getResolvedNextHopSetID() const {
+    if (auto nhopSetID = safe_cref<switch_state_tags::resolvedNextHopSetID>()) {
+      return NextHopSetID(nhopSetID->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setResolvedNextHopSetID(std::optional<NextHopSetID>& nhopSetID) {
+    if (nhopSetID) {
+      ref<switch_state_tags::resolvedNextHopSetID>() =
+          static_cast<int64_t>(*nhopSetID);
+    } else {
+      ref<switch_state_tags::resolvedNextHopSetID>().reset();
+    }
+  }
+
   const std::optional<AclLookupClass> getClassID() const {
     if (auto classID = safe_cref<switch_state_tags::classID>()) {
       return classID->cref();
@@ -114,6 +154,7 @@ class RouteNextHopEntry
   const std::optional<NextHopSet> getOverrideNextHops() const;
   void setOverrideNextHops(const std::optional<NextHopSet>& nhops);
   bool hasOverrideSwitchingModeOrNhops() const;
+  bool hasOverrideSwitchingMode() const;
   bool hasOverrideNextHops() const;
   NextHopSet normalizedNextHops() const {
     return normalizedNextHopsImpl(false /*ignoreOverride*/);
@@ -185,7 +226,9 @@ class RouteNextHopEntry
       std::optional<RouteCounterID> counterID,
       std::optional<AclLookupClass> classID,
       std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
-      const std::optional<NextHopSet>& overridNextHops);
+      const std::optional<NextHopSet>& overridNextHops,
+      const std::optional<NextHopSetID>& normalizedResolvedNextHopSetID,
+      const std::optional<NextHopSetID>& resolvedNextHopSetID);
   void normalize(
       std::vector<NextHopWeight>& scaledWeights,
       NextHopWeight totalWeight) const;

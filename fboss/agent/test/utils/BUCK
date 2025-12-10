@@ -148,6 +148,7 @@ cpp_library(
         ":voq_test_utils",
         "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
+        "//fboss/agent:platform_config-cpp2-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
     ],
@@ -189,6 +190,8 @@ cpp_library(
     ],
     headers = ["MacTestUtils.h"],
     exported_deps = [
+        "//fboss/agent:core",
+        "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/state:state",
         "//fboss/agent/test:test_ensemble_if",
         "//folly:network_address",
@@ -272,6 +275,7 @@ cpp_library(
         ":acl_test_utils",
         ":config_utils",
         ":voq_test_utils",
+        "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent:loadbalancer_utils",
@@ -613,6 +617,25 @@ cpp_library(
         "//fboss/agent/state:state",
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:test_ensemble_if",
+    ],
+)
+
+cpp_library(
+    name = "ecmp_resource_mgr_test_utils",
+    srcs = [
+        "EcmpResourceManagerTestUtils.cpp",
+    ],
+    headers = [
+        "EcmpResourceManagerTestUtils.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:agent_features",
+        "//fboss/agent:ecmp_resource_manager",
+        "//fboss/agent:fib_helpers",
+        "//fboss/agent:utils",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:utils",
     ],
 )
 

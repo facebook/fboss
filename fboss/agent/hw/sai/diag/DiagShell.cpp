@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/diag/PythonRepl.h"
 #include "fboss/agent/hw/sai/diag/SaiRepl.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/hw/sai/tracer/SaiTracer.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <boost/uuid/uuid.hpp>
@@ -31,10 +32,10 @@ DEFINE_bool(
     true,
     "Log SAI shell commands and output to scribe");
 
-namespace {
-// Commands such as 'port status' on DNX take longer than 1.2 seconds.
-constexpr int kReadOutputTimeoutMs = 2000;
-} // namespace
+DEFINE_int32(
+    diag_shell_read_timeout_ms,
+    2000,
+    "Timeout for reading output of diag shell");
 
 namespace facebook::fboss {
 
@@ -86,17 +87,6 @@ PtySlave::PtySlave(const PtyMaster& ptyMaster)
 TerminalSession::TerminalSession(
     const PtySlave& ptySlave,
     const std::vector<folly::File>& streams) {
-  struct termios oldSettings;
-  int ret = ::tcgetattr(ptySlave.file.fd(), &oldSettings);
-  folly::checkUnixError(ret, "Failed to get current terminal settings");
-
-  auto newSettings = oldSettings;
-  ::cfmakeraw(&newSettings);
-
-  ret = ::tcsetattr(ptySlave.file.fd(), TCSANOW, &newSettings);
-  folly::checkUnixError(
-      ret, "Failed to set new terminal settings on PTY slave");
-
   for (const auto& stream : streams) {
     XLOG(DBG2) << "Redirect stream to PTY slave: " << stream.fd();
     // Save old stream (OWNING File objects!)
@@ -163,6 +153,18 @@ void DiagShell::initTerminal() {
   if (!repl_) {
     // Set up REPL on connect if needed
     repl_ = makeRepl();
+
+    // Set up terminal to raw mode
+    // For python repl, py_main will override the setting so not actually needed
+    struct termios oldSettings{};
+    int ret = ::tcgetattr(ptys_->file.fd(), &oldSettings);
+    folly::checkUnixError(ret, "Failed to get current terminal settings");
+    auto newSettings = oldSettings;
+    ::cfmakeraw(&newSettings);
+    ret = ::tcsetattr(ptys_->file.fd(), TCSANOW, &newSettings);
+    folly::checkUnixError(
+        ret, "Failed to set new terminal settings on PTY slave");
+
     ts_.reset(new detail::TerminalSession(*ptys_, repl_->getStreams()));
     repl_->run();
   } else if (!ts_) {
@@ -194,13 +196,8 @@ bool DiagShell::tryConnect() {
 
 void DiagShell::disconnect() {
   try {
-    // TODO: look into restore stdin/stdout after session closed for PythonRepl.
-    // Currrently, the following sessions from diag_shell_client on tajo
-    // switches might got stuck if terminal session is reset.
-    if (hw_->getPlatform()->getAsic()->getAsicVendor() ==
-        HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
-      ts_.reset();
-    }
+    // Reset terminal session to restore stdin/stdout
+    ts_.reset();
     diagShellLock_.unlock();
   } catch (const std::system_error&) {
     XLOG(WARNING) << "Trying to disconnect when it was never connected";
@@ -226,6 +223,20 @@ void DiagShell::consumeInput(
   folly::checkUnixError(ret, "Failed to write diag shell input to PTY master");
   if (*input == "quit") {
     // TODO: block until repl loop is completed
+  }
+}
+
+void DiagShell::logCommandToReplayer(const std::string& command) {
+  // Skip logging shell initialization command "\r\n"
+  if (command == "\r\n") {
+    return;
+  }
+
+  // Log the shell command as a comment in the SAI replayer log
+  if (auto tracer = SaiTracer::getInstance()) {
+    tracer->logShellCommand(command);
+  } else {
+    XLOG(ERR) << "DiagShell: SaiTracer instance not found!";
   }
 }
 
@@ -324,7 +335,7 @@ void StreamingDiagShellServer::streamOutput() {
      * If the client is still connected, will continue to wait.
      * If the client has disconnected, will clean up the client states.
      */
-    std::string toPublish = readOutput(kReadOutputTimeoutMs);
+    std::string toPublish = readOutput(FLAGS_diag_shell_read_timeout_ms);
     if (toPublish.length() > 0) {
       // publish string on stream
       auto locked = publisher_.lock();
@@ -410,11 +421,14 @@ std::string DiagCmdServer::diagCmd(
   produceOutput();
   diagShell_->consumeInput(
       std::make_unique<std::string>(inputStr), std::move(client));
+  if (FLAGS_enable_replayer) {
+    diagShell_->logCommandToReplayer(inputStr);
+  }
   diagShell_->consumeInput(
       std::make_unique<std::string>(getDelimiterDiagCmd(uuid_)),
       std::move(client));
   // TODO: Look into requesting results that take a long time
-  std::string output = produceOutput(kReadOutputTimeoutMs);
+  std::string output = produceOutput(FLAGS_diag_shell_read_timeout_ms);
   cleanUpOutput(output, inputStr);
   diagShell_->disconnect();
   return output;

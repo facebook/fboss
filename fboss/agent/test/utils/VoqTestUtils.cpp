@@ -298,7 +298,8 @@ void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<SystemPortMap>>& switchId2SystemPorts,
     std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Rifs,
     const cfg::SwitchConfig& config,
-    bool useEncapIndex) {
+    bool useEncapIndex,
+    bool addNeighborToIntf) {
   for (const auto& [remoteSwitchId, remoteDsfNode] : *config.dsfNodes()) {
     if ((*config.switchSettings())
             .switchIdToSwitchInfo()
@@ -334,8 +335,9 @@ void populateRemoteIntfAndSysPorts(
           auto firstOctet = 100 + switchId / 256;
           auto secondOctet = switchId % 256;
           auto thirdOctet = i - minPortID;
-          folly::IPAddressV6 neighborIp(folly::to<std::string>(
-              firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
+          folly::IPAddressV6 neighborIp(
+              folly::to<std::string>(
+                  firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
           auto portSpeed = i == minPortID + kRemoteSysPortOffset
               ? cfg::PortSpeed::HUNDREDG
               : numPorts == kNumRdswSysPort ? cfg::PortSpeed::FOURHUNDREDG
@@ -354,11 +356,23 @@ void populateRemoteIntfAndSysPorts(
           auto remoteRif = makeRemoteInterface(
               remoteIntfId,
               {
-                  {folly::IPAddress(folly::to<std::string>(
-                       firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
+                  {folly::IPAddress(
+                       folly::to<std::string>(
+                           firstOctet,
+                           ":",
+                           secondOctet,
+                           ":",
+                           thirdOctet,
+                           "::1")),
                    64},
-                  {folly::IPAddress(folly::to<std::string>(
-                       firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
+                  {folly::IPAddress(
+                       folly::to<std::string>(
+                           firstOctet,
+                           ".",
+                           secondOctet,
+                           ".",
+                           thirdOctet,
+                           ".1")),
                    24},
               });
 
@@ -369,7 +383,10 @@ void populateRemoteIntfAndSysPorts(
       }
     };
 
-    auto addDualStageSysPort = [&remoteSysPorts, &remoteRifs, useEncapIndex](
+    auto addDualStageSysPort = [&remoteSysPorts,
+                                &remoteRifs,
+                                useEncapIndex,
+                                addNeighborToIntf](
                                    const auto& dsfNode, const auto& switchId) {
       CHECK_EQ(dsfNode.systemPortRanges()->systemPortRanges()->size(), 2);
       // TODO(zecheng): Initialize correct global offset for DsfNode
@@ -408,8 +425,9 @@ void populateRemoteIntfAndSysPorts(
           auto secondOctet = switchId % 256;
           // For >16K ports, use the second half of 128 range in the octet.
           auto thirdOctet = portID < 256 ? portID : (portID + 128) % 256;
-          folly::IPAddressV6 neighborIp(folly::to<std::string>(
-              firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
+          folly::IPAddressV6 neighborIp(
+              folly::to<std::string>(
+                  firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
           auto portSpeed = *mapping.portType() == cfg::PortType::MANAGEMENT_PORT
               ? cfg::PortSpeed::HUNDREDG
               : (*dsfNode.clusterId() >= k2StageEdgePodClusterId
@@ -431,16 +449,30 @@ void populateRemoteIntfAndSysPorts(
           auto remoteRif = makeRemoteInterface(
               remoteIntfId,
               {
-                  {folly::IPAddress(folly::to<std::string>(
-                       firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
+                  {folly::IPAddress(
+                       folly::to<std::string>(
+                           firstOctet,
+                           ":",
+                           secondOctet,
+                           ":",
+                           thirdOctet,
+                           "::1")),
                    64},
-                  {folly::IPAddress(folly::to<std::string>(
-                       firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
+                  {folly::IPAddress(
+                       folly::to<std::string>(
+                           firstOctet,
+                           ".",
+                           secondOctet,
+                           ".",
+                           thirdOctet,
+                           ".1")),
                    24},
               });
 
-          updateRemoteIntfWithNeighbor(
-              remoteRif, remoteIntfId, portDesc, neighborIp, encapEndx);
+          if (addNeighborToIntf) {
+            updateRemoteIntfWithNeighbor(
+                remoteRif, remoteIntfId, portDesc, neighborIp, encapEndx);
+          }
           remoteRifs->addNode(remoteRif);
         }
       }
@@ -476,10 +508,8 @@ std::optional<uint64_t> getDummyEncapIndex(TestEnsembleIf* ensemble) {
   return dummyEncapIndex;
 }
 
-// Resolve and return list of remote nhops
-boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
-    TestEnsembleIf* ensemble,
-    utility::EcmpSetupTargetedPorts6& ecmpHelper) {
+boost::container::flat_set<PortDescriptor> getRemoteSysPorts(
+    TestEnsembleIf* ensemble) {
   auto remoteSysPorts =
       ensemble->getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
   boost::container::flat_set<PortDescriptor> sysPortDescs;
@@ -492,6 +522,16 @@ boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
               PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
         }
       });
+  return sysPortDescs;
+}
+
+// Resolve and return list of remote nhops
+boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
+    TestEnsembleIf* ensemble,
+    utility::EcmpSetupTargetedPorts6& ecmpHelper) {
+  auto remoteSysPorts =
+      ensemble->getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
+  auto sysPortDescs = getRemoteSysPorts(ensemble);
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
     return ecmpHelper.resolveNextHops(
         in, sysPortDescs, false, getDummyEncapIndex(ensemble));
@@ -504,16 +544,7 @@ boost::container::flat_set<PortDescriptor> unresolveRemoteNhops(
     utility::EcmpSetupTargetedPorts6& ecmpHelper) {
   auto remoteSysPorts =
       ensemble->getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
-  boost::container::flat_set<PortDescriptor> sysPortDescs;
-  std::for_each(
-      remoteSysPorts->begin(),
-      remoteSysPorts->end(),
-      [&sysPortDescs](const auto& idAndPort) {
-        if (!idAndPort.second->isStatic()) {
-          sysPortDescs.insert(
-              PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
-        }
-      });
+  auto sysPortDescs = getRemoteSysPorts(ensemble);
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
     return ecmpHelper.unresolveNextHops(in, sysPortDescs, false);
   });
@@ -547,6 +578,7 @@ std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
     cfg::PortType portType) {
   switch (portType) {
     case cfg::PortType::INTERFACE_PORT:
+    case cfg::PortType::HYPER_PORT_MEMBER:
       return QueueConfigAndName{"defaultVoqCofig", getDefaultNifVoqCfg()};
     case cfg::PortType::CPU_PORT:
       if (isDualStage3Q2QMode()) {
@@ -556,6 +588,7 @@ std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
     case cfg::PortType::MANAGEMENT_PORT:
     case cfg::PortType::RECYCLE_PORT:
     case cfg::PortType::EVENTOR_PORT:
+    case cfg::PortType::HYPER_PORT:
       if (isDualStage3Q2QMode()) {
         return QueueConfigAndName{"2VoqConfig", get2VoqCfg()};
       }

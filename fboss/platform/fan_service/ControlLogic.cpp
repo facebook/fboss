@@ -26,6 +26,7 @@ auto constexpr kFanReadRpmFailure = "{}.rpm_read.failure";
 auto constexpr kFanReadRpmValue = "{}.rpm_read.value";
 auto constexpr kSensorReadFailure = "{}.sensor_read.failure";
 auto constexpr kSensorReadValue = "{}.sensor_read.value";
+auto constexpr kLedWriteFailure = "{}.led_write.failure";
 auto constexpr kFanFailThresholdInSec = 300;
 auto constexpr kSensorFailThresholdInSec = 300;
 
@@ -202,17 +203,22 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
     float previousSensorValue = readCache.processedReadValue;
     float sensorValue = readCache.lastReadValue;
     bool deadFanExists = (numFanFailed_ > 0);
+    bool moreThanOneDeadFanExists = (numFanFailed_ > 1);
     bool accelerate =
-        ((previousSensorValue == 0) || (sensorValue > previousSensorValue));
-    if (accelerate && !deadFanExists) {
-      tableToUse = *sensor.normalUpTable();
-    } else if (!accelerate && !deadFanExists) {
-      tableToUse = *sensor.normalDownTable();
-    } else if (accelerate && deadFanExists) {
-      tableToUse = *sensor.failUpTable();
+        (previousSensorValue == 0) || (sensorValue > previousSensorValue);
+    if (!deadFanExists) {
+      tableToUse =
+          accelerate ? *sensor.normalUpTable() : *sensor.normalDownTable();
+    } else if (moreThanOneDeadFanExists) {
+      tableToUse = accelerate
+          ? (sensor.twoRotorsFailUpTable() ? *sensor.twoRotorsFailUpTable()
+                                           : *sensor.failUpTable())
+          : (sensor.twoRotorsFailDownTable() ? *sensor.twoRotorsFailDownTable()
+                                             : *sensor.failDownTable());
     } else {
-      tableToUse = *sensor.failDownTable();
+      tableToUse = accelerate ? *sensor.failUpTable() : *sensor.failDownTable();
     }
+
     // Start with the lowest value
     targetPwm = tableToUse.begin()->second;
     for (const auto& [temp, pwm] : tableToUse) {
@@ -453,20 +459,24 @@ bool ControlLogic::programFan(
 }
 
 void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
-  if (!fan.ledSysfsPath()->empty()) {
-    unsigned int valueToWrite =
-        (fanFailed ? *fan.fanFailLedVal() : *fan.fanGoodLedVal());
-    pBsp_->setFanLedSysfs(*fan.ledSysfsPath(), valueToWrite);
-    XLOG(INFO) << fmt::format(
-        "{}: Setting LED to {} (value: {})",
-        *fan.fanName(),
-        (fanFailed ? "Fail" : "Good"),
-        valueToWrite);
-  } else {
+  auto ledToWriteRef =
+      fanFailed ? fan.failLedSysfsPath() : fan.goodLedSysfsPath();
+  if (!ledToWriteRef.has_value()) {
     XLOG(INFO) << fmt::format(
         "{}: FAN LED sysfs path is empty. It's likely that FAN LED is controlled by hardware.",
         *fan.fanName());
+    return;
   }
+  std::string ledPath = *ledToWriteRef;
+  XLOG(INFO) << fmt::format(
+      "{}: Turning LED on ({})", *fan.fanName(), (fanFailed ? "Fail" : "Good"));
+  bool ret = pBsp_->turnOnLedSysfs(ledPath);
+  if (!ret) {
+    XLOG(ERR) << fmt::format(
+        "{}: Failed to set LED sysfs path {}", *fan.fanName(), ledPath);
+  }
+  fb303::fbData->setCounter(
+      fmt::format(kLedWriteFailure, *fan.fanName()), !ret);
 }
 
 int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {

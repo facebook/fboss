@@ -54,21 +54,25 @@ class CmdShowRouteDetails
 
   void populateAggregatePortMap(
       const std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient>& client) {
-    std::map<std::string, std::string> vlanAggregatePortMap;
+    std::map<int32_t, PortInfoThrift> portInfoEntries;
+    client->sync_getAllPortInfo(portInfoEntries);
+
     std::vector<::facebook::fboss::AggregatePortThrift> aggregatePortThrift;
     client->sync_getAggregatePortTable(aggregatePortThrift);
 
     for (auto aggregatePort : aggregatePortThrift) {
       std::string aggPortName = *aggregatePort.name();
       for (auto memberPort : *aggregatePort.memberPorts()) {
-        facebook::fboss::PortInfoThrift portInfoThrift;
-        client->sync_getPortInfo(portInfoThrift, memberPort.get_memberPortID());
-        auto vlans = portInfoThrift.vlans();
-        // If L3 routing with multiple vlans, we can skip this port
-        if (vlans->size() > 1) {
-          continue;
+        auto memberPortID = memberPort.memberPortID().value();
+        auto it = portInfoEntries.find(memberPortID);
+        if (it != portInfoEntries.end()) {
+          auto vlans = it->second.vlans();
+          // If L3 routing with multiple vlans, we can skip this port
+          if (vlans->size() > 1) {
+            continue;
+          }
+          this->vlanAggregatePortMap[std::to_string(vlans[0])] = aggPortName;
         }
-        vlanAggregatePortMap[std::to_string(vlans[0])] = aggPortName;
       }
     }
   }
@@ -85,7 +89,7 @@ class CmdShowRouteDetails
         continue;
       }
       auto vlan = std::to_string(portInfo.second.vlans()[0]);
-      auto portName = portInfo.second.get_name();
+      auto portName = portInfo.second.name().value();
       auto rootPort = parseRootPort(portName);
       vlanPortMap[vlan][rootPort].push_back(portName);
     }
@@ -115,7 +119,7 @@ class CmdShowRouteDetails
             auto addr =
                 facebook::network::toAddress(folly::IPAddress(queryRoute));
             client->sync_getIpRouteDetails(route, addr, 0);
-            if (route.get_nextHopMulti().size() > 0) {
+            if (route.nextHopMulti().value().size() > 0) {
               auto ipStr = utils::getAddrStr(*route.dest()->ip());
               auto ipPrefix =
                   ipStr + "/" + std::to_string(*route.dest()->prefixLength());
@@ -130,39 +134,47 @@ class CmdShowRouteDetails
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    for (const auto& entry : model.get_routeEntries()) {
+    for (const auto& entry : model.routeEntries().value()) {
       out << fmt::format(
           "\nNetwork Address: {}/{}{}\n",
-          entry.get_ip(),
-          entry.get_prefixLength(),
-          entry.get_isConnected() ? " (connected)" : "");
+          entry.ip().value(),
+          folly::copy(entry.prefixLength().value()),
+          folly::copy(entry.isConnected().value()) ? " (connected)" : "");
 
-      for (const auto& clAndNxthops : entry.get_nextHopMulti()) {
+      for (const auto& clAndNxthops : entry.nextHopMulti().value()) {
         auto clientId = static_cast<ClientID>(*clAndNxthops.clientId());
         auto clientName = apache::thrift::util::enumNameSafe(clientId);
         out << fmt::format("  Nexthops from client {}\n", clientName);
-        for (const auto& nextHop : clAndNxthops.get_nextHops()) {
+        for (const auto& nextHop : clAndNxthops.nextHops().value()) {
           out << fmt::format(
               "    {}\n", show::route::utils::getNextHopInfoStr(nextHop));
         }
       }
 
-      out << fmt::format("  Action: {}\n", entry.get_action());
+      out << fmt::format("  Action: {}\n", entry.action().value());
 
-      std::map<int, int> planeIdToPathCount;
-      auto& nextHops = entry.get_nextHops();
-      if (nextHops.size() > 0) {
-        out << fmt::format("  Forwarding via:\n");
+      auto printNextHops = [this, &out](
+                               const std::string& header,
+                               const auto& nextHops,
+                               bool isOverride,
+                               const auto& nhToTopoInfo) {
+        out << fmt::format("  {}\n", header);
+        std::string overrideStr = (isOverride ? "(override) :" : "");
+        std::map<int, int> planeIdToPathCount;
         for (const auto& nextHop : nextHops) {
           out << fmt::format(
-              "    {}\n",
+              "  {}  {}\n",
+              overrideStr,
               show::route::utils::getNextHopInfoStr(
                   nextHop, vlanAggregatePortMap, vlanPortMap));
-          auto topologyInfo =
-              apache::thrift::get_pointer(nextHop.topologyInfo());
-          if (topologyInfo) {
-            CHECK(topologyInfo->plane_id().has_value());
-            planeIdToPathCount[topologyInfo->plane_id().value()]++;
+
+          auto it = nhToTopoInfo.find(nextHop.addr().value());
+          if (it != nhToTopoInfo.end()) {
+            const auto& topologyInfo = it->second;
+            if (topologyInfo.plane_id().has_value()) {
+              int planeId = topologyInfo.plane_id().value();
+              planeIdToPathCount[planeId]++;
+            }
           }
         }
         if (planeIdToPathCount.size() > 0) {
@@ -171,15 +183,38 @@ class CmdShowRouteDetails
             out << fmt::format("    Plane {}: {}\n", planeId, pathCount);
           }
         }
-      } else {
+      };
+      auto& nextHops = entry.nextHops().value();
+      auto& nhToTopoInfo = entry.nhAddressToTopologyInfo().value();
+      if (nextHops.size() > 0) {
+        std::string header =
+            (entry.overridenNextHops() ? "Original next hops:"
+                                       : "Forwarding via:");
+        printNextHops(header, nextHops, false /*isOverride*/, nhToTopoInfo);
+      } else if (!entry.overridenNextHops().has_value()) {
         out << "  No Forwarding Info\n";
       }
+      if (entry.overridenNextHops()) {
+        if (entry.overridenNextHops()->size()) {
+          printNextHops(
+              "Forwarding via:",
+              *entry.overridenNextHops(),
+              true /*isOverride*/,
+              nhToTopoInfo);
+        } else if (!entry.overridenNextHops().has_value()) {
+          out << "  No Forwarding Info\n";
+        }
+        out << fmt::format(
+            " Num next hops lost: {}\n",
+            nextHops.size() - entry.overridenNextHops()->size());
+      }
 
-      out << fmt::format("  Admin Distance: {}\n", entry.get_adminDistance());
-      out << fmt::format("  Counter Id: {}\n", entry.get_counterID());
-      out << fmt::format("  Class Id: {}\n", entry.get_classID());
       out << fmt::format(
-          "  Overridden ECMP mode: {}\n", entry.get_overridenEcmpMode());
+          "  Admin Distance: {}\n", entry.adminDistance().value());
+      out << fmt::format("  Counter Id: {}\n", entry.counterID().value());
+      out << fmt::format("  Class Id: {}\n", entry.classID().value());
+      out << fmt::format(
+          "  Overridden ECMP mode: {}\n", entry.overridenEcmpMode().value());
     }
   }
 
@@ -200,13 +235,17 @@ class CmdShowRouteDetails
         routeDetails.prefixLength() = *entry.dest()->prefixLength();
         routeDetails.action() = *entry.action();
         routeDetails.isConnected() = *entry.isConnected();
+        // Map to hold address to topologyInfo from client (NextHopsMulti
+        // fields)
+        std::map<std::string, NetworkTopologyInformation> nhToTopoInfo;
 
-        auto& nextHopMulti = entry.get_nextHopMulti();
+        auto& nextHopMulti = entry.nextHopMulti().value();
         for (const auto& clAndNxthops : nextHopMulti) {
           cli::ClientAndNextHops clAndNxthopsCli;
-          clAndNxthopsCli.clientId() = clAndNxthops.get_clientId();
-          auto& nextHopAddrs = clAndNxthops.get_nextHopAddrs();
-          auto& nextHops = clAndNxthops.get_nextHops();
+          clAndNxthopsCli.clientId() =
+              folly::copy(clAndNxthops.clientId().value());
+          auto& nextHopAddrs = clAndNxthops.nextHopAddrs().value();
+          auto& nextHops = clAndNxthops.nextHops().value();
           if (nextHopAddrs.size() > 0) {
             for (const auto& address : nextHopAddrs) {
               cli::NextHopInfo nextHopInfo;
@@ -218,13 +257,22 @@ class CmdShowRouteDetails
               cli::NextHopInfo nextHopInfo;
               show::route::utils::getNextHopInfoThrift(nextHop, nextHopInfo);
               clAndNxthopsCli.nextHops()->emplace_back(nextHopInfo);
+              auto topologyInfo =
+                  apache::thrift::get_pointer(nextHop.topologyInfo());
+              if (topologyInfo) {
+                nhToTopoInfo[facebook::network::toIPAddress(*nextHop.address())
+                                 .str()] = *topologyInfo;
+              }
             }
           }
           routeDetails.nextHopMulti()->emplace_back(clAndNxthopsCli);
         }
 
+        routeDetails.nhAddressToTopologyInfo() = nhToTopoInfo;
+
         auto& fwdInfo = *entry.fwdInfo();
-        auto& nextHops = entry.get_nextHops();
+        auto& nextHops = entry.nextHops().value();
+
         if (nextHops.size() > 0) {
           for (const auto& nextHop : nextHops) {
             cli::NextHopInfo nextHopInfo;
@@ -234,26 +282,40 @@ class CmdShowRouteDetails
         } else if (fwdInfo.size() > 0) {
           for (const auto& ifAndIp : fwdInfo) {
             cli::NextHopInfo nextHopInfo;
-            nextHopInfo.interfaceID() = ifAndIp.get_interfaceID();
+            nextHopInfo.interfaceID() =
+                folly::copy(ifAndIp.interfaceID().value());
             show::route::utils::getNextHopInfoAddr(
-                ifAndIp.get_ip(), nextHopInfo);
+                ifAndIp.ip().value(), nextHopInfo);
             routeDetails.nextHops()->emplace_back(nextHopInfo);
           }
         }
 
-        auto adminDistancePtr = entry.get_adminDistance();
+        if (entry.overridenNextHops().has_value()) {
+          routeDetails.overridenNextHops() = std::vector<cli::NextHopInfo>();
+          for (const auto& nextHop : *entry.overridenNextHops()) {
+            cli::NextHopInfo nextHopInfo;
+            show::route::utils::getNextHopInfoThrift(nextHop, nextHopInfo);
+            routeDetails.overridenNextHops()->emplace_back(nextHopInfo);
+          }
+          routeDetails.nhopsLostDueToOverride() =
+              nextHops.size() - entry.overridenNextHops()->size();
+        }
+
+        auto adminDistancePtr =
+            apache::thrift::get_pointer(entry.adminDistance());
         routeDetails.adminDistance() = adminDistancePtr == nullptr
             ? "None"
             : utils::getAdminDistanceStr(*adminDistancePtr);
 
-        auto counterIDPtr = entry.get_counterID();
+        auto counterIDPtr = apache::thrift::get_pointer(entry.counterID());
         routeDetails.counterID() =
             counterIDPtr == nullptr ? "None" : *counterIDPtr;
 
-        auto classIDPtr = entry.get_classID();
+        auto classIDPtr = apache::thrift::get_pointer(entry.classID());
         routeDetails.classID() =
             classIDPtr == nullptr ? "None" : getClassID(*classIDPtr);
-        auto overrideEcmpModePtr = entry.get_overridenEcmpMode();
+        auto overrideEcmpModePtr =
+            apache::thrift::get_pointer(entry.overridenEcmpMode());
         routeDetails.overridenEcmpMode() = overrideEcmpModePtr == nullptr
             ? "None"
             : apache::thrift::util::enumNameSafe(*overrideEcmpModePtr);
@@ -298,6 +360,8 @@ class CmdShowRouteDetails
         return fmt::format("CLASS_UNRESOLVED_ROUTE_TO_CPU({})", classId);
       case cfg::AclLookupClass::DEPRECATED_CLASS_CONNECTED_ROUTE_TO_INTF:
         return fmt::format("CLASS_CONNECTED_ROUTE_TO_INTF({})", classId);
+      case cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS:
+        return fmt::format("ARS_ALTERNATE_MEMBERS_CLASS({})", classId);
     }
     throw std::runtime_error(
         "Unsupported ClassID: " + std::to_string(static_cast<int>(classID)));

@@ -21,6 +21,14 @@
 
 namespace facebook::fboss {
 
+struct PfcPriorityInfo {
+  std::vector<PfcPriority> enabledPfcPriorities{};
+  bool txPfcDurationEnabled{false};
+  bool rxPfcDurationEnabled{false};
+  bool inCongestionDiscardCountSupported{false};
+  bool inCongestionDiscardSeenSupported{false};
+};
+
 class HwBasePortFb303Stats {
  public:
   using QueueId2Name = folly::F14FastMap<int, std::string>;
@@ -28,11 +36,27 @@ class HwBasePortFb303Stats {
       const std::string& portName,
       QueueId2Name queueId2Name = {},
       std::vector<PfcPriority> enabledPfcPriorities = {},
+      std::optional<cfg::PortPfc> pfcCfg = std::nullopt,
+      bool inCongestionDiscardCountSupported = false,
+      bool inCongestionDiscardSeenSupported = false,
       std::optional<std::string> multiSwitchStatsPrefix = std::nullopt)
       : queueId2Name_(std::move(queueId2Name)),
         portName_(portName),
-        portCounters_(HwFb303Stats(multiSwitchStatsPrefix)),
-        enabledPfcPriorities_(enabledPfcPriorities) {}
+        portCounters_(HwFb303Stats(std::move(multiSwitchStatsPrefix))) {
+    pfcInfo_.inCongestionDiscardCountSupported =
+        inCongestionDiscardCountSupported;
+    pfcInfo_.inCongestionDiscardSeenSupported =
+        inCongestionDiscardSeenSupported;
+    pfcInfo_.enabledPfcPriorities = std::move(enabledPfcPriorities);
+    pfcInfo_.rxPfcDurationEnabled =
+        pfcCfg.has_value() && pfcCfg->rxPfcDurationEnable().has_value()
+        ? *pfcCfg->rxPfcDurationEnable()
+        : false;
+    pfcInfo_.txPfcDurationEnabled =
+        pfcCfg.has_value() && pfcCfg->txPfcDurationEnable().has_value()
+        ? *pfcCfg->txPfcDurationEnable()
+        : false;
+  }
 
   virtual ~HwBasePortFb303Stats() = default;
 
@@ -47,7 +71,9 @@ class HwBasePortFb303Stats {
   }
   virtual void queueChanged(int queueId, const std::string& queueName);
   virtual void queueRemoved(int queueId);
-  void pfcPriorityChanged(std::vector<PfcPriority> enabledPriorities);
+  void pfcConfigChanged(
+      std::vector<PfcPriority> enabledPriorities,
+      std::optional<cfg::PortPfc> pfc);
   void updateLeakyBucketFlapCnt(int cnt);
 
   /*
@@ -103,6 +129,8 @@ class HwBasePortFb303Stats {
   virtual const std::vector<folly::StringPiece>& kPfcMonotonicCounterStatKeys()
       const = 0;
   virtual const std::vector<folly::StringPiece>&
+  kPfcDeadlockMonotonicCounterStatKeys() const = 0;
+  virtual const std::vector<folly::StringPiece>&
   kPriorityGroupMonotonicCounterStatKeys() const = 0;
   virtual const std::vector<folly::StringPiece>& kPriorityGroupCounterStatKeys()
       const = 0;
@@ -110,6 +138,7 @@ class HwBasePortFb303Stats {
  protected:
   void reinitStats(std::optional<std::string> oldPortName);
   void reinitMacsecStats(std::optional<std::string> oldPortName);
+  void reinitPfcStats(std::optional<std::string> oldPortName);
   /*
    * update port stat
    */
@@ -162,8 +191,8 @@ class HwBasePortFb303Stats {
   const QueueId2Name& queueId2Name() const {
     return queueId2Name_;
   }
-  const std::vector<PfcPriority> getEnabledPfcPriorities() const {
-    return enabledPfcPriorities_;
+  const std::vector<PfcPriority>& getEnabledPfcPriorities() const {
+    return pfcInfo_.enabledPfcPriorities;
   }
 
  protected:
@@ -188,7 +217,7 @@ class HwBasePortFb303Stats {
   std::string portName_;
   HwFb303Stats portCounters_;
   bool macsecStatsInited_{false};
-  std::vector<PfcPriority> enabledPfcPriorities_{};
+  PfcPriorityInfo pfcInfo_;
 };
 
 } // namespace facebook::fboss

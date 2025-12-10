@@ -52,8 +52,9 @@ std::vector<int32_t> getPortIDList(
       if (it != portEntries.end()) {
         portIDList.push_back(it->first);
       } else {
-        throw std::runtime_error(fmt::format(
-            "{} is not a valid interface name on this device", interface));
+        throw std::runtime_error(
+            fmt::format(
+                "{} is not a valid interface name on this device", interface));
       }
     }
   }
@@ -136,10 +137,11 @@ bool comparePortName(
           &moduleNumStrA,
           &portNumStrA,
           &subportNumStrA)) {
-    throw std::invalid_argument(folly::to<std::string>(
-        "Invalid port name: ",
-        nameA,
-        "\nPort name must match 'moduleNum/port/subport' pattern"));
+    throw std::invalid_argument(
+        folly::to<std::string>(
+            "Invalid port name: ",
+            nameA,
+            "\nPort name must match 'moduleNum/port/subport' pattern"));
   }
 
   if (!RE2::FullMatch(
@@ -149,10 +151,11 @@ bool comparePortName(
           &moduleNumStrB,
           &portNumStrB,
           &subportNumStrB)) {
-    throw std::invalid_argument(folly::to<std::string>(
-        "Invalid port name: ",
-        nameB,
-        "\nPort name must match 'moduleNum/port/subport' pattern"));
+    throw std::invalid_argument(
+        folly::to<std::string>(
+            "Invalid port name: ",
+            nameB,
+            "\nPort name must match 'moduleNum/port/subport' pattern"));
   }
 
   int ret;
@@ -187,10 +190,11 @@ bool compareSystemPortName(
           &moduleNumStrA,
           &portNumStrA,
           &subportNumStrA)) {
-    throw std::invalid_argument(folly::to<std::string>(
-        "Invalid port name: ",
-        nameA,
-        "\nSystemPort name must match 'moduleNum/port/subport' pattern"));
+    throw std::invalid_argument(
+        folly::to<std::string>(
+            "Invalid port name: ",
+            nameA,
+            "\nSystemPort name must match 'moduleNum/port/subport' pattern"));
   }
 
   if (!RE2::FullMatch(
@@ -201,10 +205,11 @@ bool compareSystemPortName(
           &moduleNumStrB,
           &portNumStrB,
           &subportNumStrB)) {
-    throw std::invalid_argument(folly::to<std::string>(
-        "Invalid port name: ",
-        nameB,
-        "\nSystemPort name must match 'moduleNum/port/subport' pattern"));
+    throw std::invalid_argument(
+        folly::to<std::string>(
+            "Invalid port name: ",
+            nameB,
+            "\nSystemPort name must match 'moduleNum/port/subport' pattern"));
   }
 
   int ret;
@@ -276,18 +281,6 @@ std::string runCmd(const std::string& cmd) {
   }
 
   return result;
-}
-
-bool isFbossFeatureEnabled(
-    const std::string& hostname,
-    const std::string& feature) {
-  auto featureCheckCmd = utils::getCmdToRun(
-      hostname,
-      folly::to<std::string>(
-          "file -b /etc/coop/.METADATA/features/", feature, "/current/on"));
-  auto result = utils::runCmd(featureCheckCmd);
-  // An empty file should be present if the feature is enabled
-  return result.find("empty") != std::string::npos ? true : false;
 }
 
 std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
@@ -371,12 +364,13 @@ cfg::SwitchType getSwitchType(
   // Assert that all switches have the same switch type
   auto switchType =
       folly::copy(switchIdToSwitchInfo.begin()->second.switchType().value());
-  CHECK(std::all_of(
-      switchIdToSwitchInfo.begin(),
-      switchIdToSwitchInfo.end(),
-      [switchType](const auto& pair) {
-        return pair.second.get_switchType() == switchType;
-      }));
+  CHECK(
+      std::all_of(
+          switchIdToSwitchInfo.begin(),
+          switchIdToSwitchInfo.end(),
+          [switchType](const auto& pair) {
+            return pair.second.get_switchType() == switchType;
+          }));
 
   return switchType;
 }
@@ -415,7 +409,7 @@ std::map<std::string, int64_t> getAgentFb303RegexCounters(
   std::map<std::string, int64_t> counters;
 #ifndef IS_OSS
   // TODO: sync_getRegexCounters is not available in OSS
-  if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
+  if (utils::isMultiSwitchEnabled(hostInfo)) {
     auto hwAgentQueryFn =
         [&counters,
          &regex](apache::thrift::Client<facebook::fboss::FbossCtrl>& client) {

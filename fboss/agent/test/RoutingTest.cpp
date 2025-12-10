@@ -210,7 +210,7 @@ class RoutingFixture : public ::testing::Test {
 
     // Add some ARP/NDP entries so that link-local addresses can be routed
     // as well.
-    auto updateFn = [=](const std::shared_ptr<SwitchState>& state) {
+    auto updateFn = [=, this](const std::shared_ptr<SwitchState>& state) {
       std::shared_ptr<SwitchState> newState{state};
 
       ArpTable *arpTable1, *arpTable2;

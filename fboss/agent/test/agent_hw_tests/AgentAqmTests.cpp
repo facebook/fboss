@@ -154,7 +154,7 @@ class AgentAqmTest : public AgentHwTest {
 
     auto vlanId = getVlanIDForTx();
     auto intfMac = getIntfMac();
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto txPacket = utility::makeTCPTxPacket(
         getSw(),
         vlanId,
@@ -526,7 +526,7 @@ class AgentAqmTest : public AgentHwTest {
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{
           getProgrammedState(),
           getSw()->needL2EntryForNeighbor(),
-          utility::MacAddressGenerator().get(getIntfMac().u64NBO() + 10)};
+          utility::MacAddressGenerator().get(getIntfMac().u64HBO() + 10)};
       resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     };
 
@@ -947,7 +947,11 @@ TEST_F(AgentAqmTest, verifyEct1) {
   runTest(kECT1, true /* enableWred */, true /* enableEcn */);
 }
 
-TEST_F(AgentAqmEcnOnlyTest, verifyEcnWithoutWredConfig) {
+TEST_F(AgentAqmEcnOnlyTest, verifyEcnEct0WithoutWredConfig) {
+  runTest(kECT0, false /* enableWred */, true /* enableEcn */);
+}
+
+TEST_F(AgentAqmEcnOnlyTest, verifyEcnEct1WithoutWredConfig) {
   runTest(kECT1, false /* enableWred */, true /* enableEcn */);
 }
 

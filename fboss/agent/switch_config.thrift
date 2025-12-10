@@ -84,6 +84,8 @@ struct PortPfc {
   2: bool rx = false;
   3: PortPgConfigName portPgConfigName;
   4: optional PfcWatchdog watchdog;
+  5: optional bool txPfcDurationEnable;
+  6: optional bool rxPfcDurationEnable;
 }
 
 /**
@@ -116,6 +118,7 @@ enum PortSpeed {
   TWOHUNDREDG = 200000, // 200G
   FOURHUNDREDG = 400000, // 400G
   EIGHTHUNDREDG = 800000, // 800G
+  THREEPOINTTWOT = 3200000, // 3.2T
 }
 
 // <speed>_<num_lanes>_<modulation>_<fec>
@@ -177,6 +180,13 @@ enum PortProfileID {
   PROFILE_400G_2_PAM4_RS544X2N_OPTICAL = 51,
   PROFILE_800G_4_PAM4_RS544X2N_OPTICAL = 52,
   PROFILE_200G_1_PAM4_RS544X2N_OPTICAL = 53,
+  PROFILE_200G_2_PAM4_RS544_COPPER = 54,
+  PROFILE_100G_2_PAM4_RS544_COPPER = 55,
+  PROFILE_100G_1_PAM4_RS544_COPPER = 56,
+  PROFILE_800G_4_PAM4_RS544X2N_COPPER = 57,
+  PROFILE_400G_2_PAM4_RS544X2N_COPPER = 58,
+  PROFILE_200G_1_PAM4_RS544X2N_COPPER = 59,
+  PROFILE_100G_1_PAM4_RS544X2N_COPPER = 60,
 }
 
 enum Scope {
@@ -502,6 +512,8 @@ enum AclLookupClass {
   // will be replaced by DST_CLASS_L3_LOCAL_1 and DST_CLASS_L3_LOCAL_2
   DEPRECATED_CLASS_UNRESOLVED_ROUTE_TO_CPU = 21,
   DEPRECATED_CLASS_CONNECTED_ROUTE_TO_INTF = 22,
+
+  ARS_ALTERNATE_MEMBERS_CLASS = 32,
 }
 
 enum PacketLookupResultType {
@@ -641,6 +653,7 @@ enum AclTableActionType {
   SET_USER_DEFINED_TRAP = 6,
   DISABLE_ARS_FORWARDING = 7,
   SET_ARS_OBJECT = 8,
+  L3_SWITCH_CANCEL = 9,
 }
 
 enum AclTableQualifier {
@@ -797,6 +810,7 @@ struct MatchAction {
   11: optional UserDefinedTrapAction userDefinedTrap;
   12: optional FlowletAction flowletAction;
   13: optional SetEcmpHashAction ecmpHashAction;
+  14: optional bool enableAlternateArsMembers;
 }
 
 struct MatchToAction {
@@ -818,6 +832,7 @@ enum MMUScalingFactor {
   TWO = 9,
   FOUR = 10,
   ONE_32768TH = 11,
+  ONE_HUNDRED_TWENTY_EIGHT = 12,
 }
 
 // This determines how packets are scheduled on a per queue basis
@@ -958,6 +973,12 @@ struct ExpQosMap {
   3: optional byte fromTrafficClassToExp;
 }
 
+struct PcpQosMap {
+  1: i16 internalTrafficClass;
+  2: list<byte> fromPcpToTrafficClass;
+  3: optional byte fromTrafficClassToPcp;
+}
+
 struct QosMap {
   1: list<DscpQosMap> dscpMaps;
   2: list<ExpQosMap> expMaps;
@@ -981,6 +1002,8 @@ struct QosMap {
   // we still generate config for NIF ports on VOQ  platforms even
   // when they are the same as trafficClassToQueueId.
   7: optional map<i16, i16> trafficClassToVoqId;
+  //  dot1q priority code point to traffic class
+  8: optional list<PcpQosMap> pcpMaps;
 }
 
 struct QosRule {
@@ -1092,6 +1115,8 @@ enum PortType {
   RECYCLE_PORT = 3,
   MANAGEMENT_PORT = 4,
   EVENTOR_PORT = 5,
+  HYPER_PORT = 6,
+  HYPER_PORT_MEMBER = 7,
 }
 
 struct PortNeighbor {
@@ -1285,6 +1310,17 @@ struct Port {
    * errored cells from making it to the forwarding pipeline.
    */
   35: optional bool fecErrorDetectEnable;
+
+  /*
+   * Inter-packet gap configuration in bits.
+   */
+  36: optional i32 interPacketGapBits;
+
+  /*
+   * AM (Alignment Marker) idles configuration.
+   * Controls whether AM idles are enabled on the port.
+   */
+  37: optional bool amIdles;
 }
 
 enum LacpPortRate {
@@ -1298,6 +1334,11 @@ enum LacpPortActivity {
 }
 
 const i16 DEFAULT_LACP_HOLD_TIMER_MULTIPLIER = 3;
+
+enum AggregatePortType {
+  LAG_PORT = 0,
+  HYPER_PORT = 1,
+}
 
 struct AggregatePortMember {
   /**
@@ -1330,6 +1371,16 @@ struct AggregatePort {
    * pre-aggregated ODS counters
    */
   6: optional list<string> counterTags;
+  7: AggregatePortType aggregatePortType = LAG_PORT;
+  /*
+   * If minimumCapacityToUp is provided, it will be used with minimumCapacity to
+   * provide a flap-resistant way to decide AggregatePort Up/Down.
+   * a. If active link count < minimumCapacity, bring AggregatePort down.
+   * b. If active link count >= minimumCapacityToUp, bring AggregatePort up.
+   * c. If minimumCapacity <= active link count < minimumCapacityToUp,
+   * keep AggregatePort current oper state.
+   */
+  8: optional MinimumCapacity minimumCapacityToUp;
 }
 
 struct Lacp {
@@ -1479,6 +1530,7 @@ enum AsicType {
   ASIC_TYPE_RAMON3 = 16,
   ASIC_TYPE_CHENAB = 17,
   ASIC_TYPE_TOMAHAWK6 = 18,
+  ASIC_TYPE_AGERA3 = 19,
 }
 /**
  * The configuration for an interface
@@ -1542,6 +1594,10 @@ struct Interface {
 
   /* valid only for port type of interface */
   17: optional i32 portID;
+  /* valid only for port type of interface
+   * These fields contains information of remote GPU */
+  18: optional string desiredPeerName;
+  19: optional string desiredPeerAddressIPv6;
 }
 
 struct StaticRouteWithNextHops {
@@ -1656,6 +1712,7 @@ struct TrafficCounter {
 enum L2LearningMode {
   HARDWARE = 0,
   SOFTWARE = 1,
+  DISABLED = 2,
 }
 
 enum SwitchDrainState {
@@ -1914,6 +1971,11 @@ struct SwitchSettings {
   // PFC watchdog timer granularity which can be 1ms, 10ms or 100ms.
   32: optional i32 pfcWatchdogTimerGranularityMsec;
   33: optional i32 ecmpCompressionThresholdPct;
+  // Offset from where to start connected system port ID allocation from.
+  // Connected system ports are for fabric links and used in fabric link
+  // monitoring feature.
+  34: optional i32 fabricLinkMonitoringSystemPortOffset;
+  35: optional bool measureCableLengths;
 }
 
 // Global buffer pool
@@ -2179,6 +2241,21 @@ struct FlowletSwitchingConfig {
   12: SwitchingMode switchingMode = FLOWLET_QUALITY;
   // fall back switching mode if DLB groups are exhausted
   13: SwitchingMode backupSwitchingMode = FIXED_ASSIGNMENT;
+  // primary path quality threshold
+  14: optional i32 primaryPathQualityThreshold;
+  // alternate path cost
+  15: optional i32 alternatePathCost;
+  // alternate path bias
+  16: optional i32 alternatePathBias;
+}
+
+/*
+ * configuration for a static MAC entry
+ */
+struct StaticMacEntry {
+  1: i32 vlanID;
+  2: string macAddress;
+  3: i32 egressLogicalPortID;
 }
 
 /**
@@ -2315,4 +2392,5 @@ struct SwitchConfig {
   // list of ACL table groups, prefer this over aclTableGroup, aclTableGroup will be deprecated
   56: optional list<AclTableGroup> aclTableGroups;
   57: list<MirrorOnDropReport> mirrorOnDropReports = [];
+  58: optional list<StaticMacEntry> staticMacAddrs;
 }

@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
@@ -109,9 +110,13 @@ TEST_F(AgentPfcWatchdogGranularityTest, verifyPfcWatchdogTimerGranularity) {
     portCfg->pfc().ensure().watchdog() = pfcWatchdog;
 
     // Try different combinations of granularity and detection time.
-    cfg.switchSettings()->pfcWatchdogTimerGranularityMsec() = 1;
-    portCfg->pfc().ensure().watchdog().ensure().detectionTimeMsecs() = 5;
-    applyNewConfig(cfg);
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    // TH3 does not support granularity of 1ms
+    if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
+      cfg.switchSettings()->pfcWatchdogTimerGranularityMsec() = 1;
+      portCfg->pfc().ensure().watchdog().ensure().detectionTimeMsecs() = 5;
+      applyNewConfig(cfg);
+    }
 
     cfg.switchSettings()->pfcWatchdogTimerGranularityMsec() = 10;
     portCfg->pfc().ensure().watchdog().ensure().detectionTimeMsecs() = 150;

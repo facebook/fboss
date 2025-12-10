@@ -442,7 +442,8 @@ class LookupClassUpdaterTest : public ::testing::Test {
   void updateLookupClasses(
       const std::vector<cfg::AclLookupClass>& lookupClasses) {
     this->updateState(
-        "Reset lookupclasses", [=](const std::shared_ptr<SwitchState>& state) {
+        "Reset lookupclasses",
+        [=, this](const std::shared_ptr<SwitchState>& state) {
           auto newState = state->clone();
           auto newPortMaps = newState->getPorts()->modify(&newState);
 
@@ -465,7 +466,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
 
   void updateMacOuis(bool add = true) {
     this->updateState(
-        "mac ouis", [=](const std::shared_ptr<SwitchState>& state) {
+        "mac ouis", [=, this](const std::shared_ptr<SwitchState>& state) {
           auto newState = state->clone();
           auto matcher =
               HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
@@ -528,7 +529,7 @@ TYPED_TEST_SUITE(LookupClassUpdaterTest, TestTypes);
 TYPED_TEST(LookupClassUpdaterTest, VerifyClassID) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
   this->resolveLinkLocals(this->kMacAddress());
-  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+  this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
     this->verifyClassIDHelper(
         this->getIpAddress(),
         this->kMacAddress(),
@@ -536,7 +537,7 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassID) {
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
   });
 
-  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+  this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
     for (const auto& ip : this->getLinkLocalIpAddresses()) {
       this->verifyClassIDHelper(
           ip,
@@ -558,7 +559,7 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
    *  - ARP/NDP neighbors go to pending state, and classID is disassociated.
    *  - L2 entries should get pruned with neighbor dereference
    */
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     if constexpr (std::is_same_v<
                       TypeParam,
                       IpAddrAndEnableIntfNbrTableT<folly::MacAddress, false>>) {
@@ -639,7 +640,7 @@ TYPED_TEST(LookupClassUpdaterTest, MacMove) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
 
   this->updateState(
-      "Trigger MAC Move", [=](const std::shared_ptr<SwitchState>& state) {
+      "Trigger MAC Move", [=, this](const std::shared_ptr<SwitchState>& state) {
         std::shared_ptr<SwitchState> newState{state};
 
         auto vlan = state->getVlans()->getNodeIf(this->kVlan()).get();
@@ -719,14 +720,14 @@ class LookupClassUpdaterNeighborTest
     }
 
     updateMacAddrsToBlock(this->getSw(), macAddrsToBlock);
-    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
       this->verifyClassIDHelper(
           this->getIpAddress(),
           this->kMacAddress(),
           classID1 /* ipClassID */,
           classID1 /* macClassID */);
     });
-    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
       this->verifyClassIDHelper(
           this->getIpAddress2(),
           this->kMacAddress2(),
@@ -796,7 +797,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyMaxNumHostsPerQueue) {
 TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyQueuePerPhysicalHost) {
   auto verifyClassIDs =
       [this](IPAddress ip, MacAddress mac, cfg::AclLookupClass queue) {
-        this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+        this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
           this->verifyClassIDHelper(
               ip, mac, queue /* ipClassID */, queue /* macClassID */);
         });
@@ -861,7 +862,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyQueuePerPhysicalHost) {
 TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyMacOuiUpdate) {
   auto verifyClassIDs =
       [this](IPAddress ip, MacAddress mac, cfg::AclLookupClass queue) {
-        this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+        this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
           this->verifyClassIDHelper(
               ip, mac, queue /* ipClassID */, queue /* macClassID */);
         });
@@ -990,7 +991,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyRebalanceByMacOuiUpdate) {
   this->updateMacOuis();
   auto verifyClassIDs =
       [this](IPAddress ip, MacAddress mac, cfg::AclLookupClass queue) {
-        this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+        this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
           this->verifyClassIDHelper(
               ip, mac, queue /* ipClassID */, queue /* macClassID */);
         });
@@ -1029,7 +1030,7 @@ TYPED_TEST(
     LookupClassUpdaterNeighborTest,
     ResolveUnresolveResolveVerifyClassID) {
   auto verifyClassIDs = [this]() {
-    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
       this->verifyClassIDHelper(
           this->getIpAddress(),
           this->kMacAddress(),
@@ -1037,7 +1038,7 @@ TYPED_TEST(
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
     });
 
-    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
       for (const auto& ip : this->getLinkLocalIpAddresses()) {
         this->verifyClassIDHelper(
             ip,
@@ -1071,7 +1072,7 @@ TYPED_TEST(
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, StressNeighborEntryFlap) {
   auto verifyClassIDs = [this]() {
-    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
       this->verifyClassIDHelper(
           this->getIpAddress(),
           this->kMacAddress(),
@@ -1122,7 +1123,7 @@ TYPED_TEST(
     LookupClassUpdaterNeighborTest,
     NeighborEntryFlapWithBusyUpdateThread) {
   auto verifyClassIDs = [this]() {
-    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
       this->verifyClassIDHelper(
           this->getIpAddress(),
           this->kMacAddress(),
@@ -1207,7 +1208,8 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyClassIDSameMacDifferentIPs) {
   this->resolve(this->getIpAddress2(), this->kMacAddress());
 
   // Two IPs with same MAC get same classID
-  this->verifyStateUpdate([=]() { this->verifySameMacDifferentIpsHelper(); });
+  this->verifyStateUpdate(
+      [=, this]() { this->verifySameMacDifferentIpsHelper(); });
 }
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveUnresolveResolve) {
@@ -1215,10 +1217,11 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveUnresolveResolve) {
   this->resolve(this->getIpAddress2(), this->kMacAddress());
 
   // Two IPs with same MAC get same classID
-  this->verifyStateUpdate([=]() { this->verifySameMacDifferentIpsHelper(); });
+  this->verifyStateUpdate(
+      [=, this]() { this->verifySameMacDifferentIpsHelper(); });
 
   this->unresolveNeighbor(this->getIpAddress());
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto vlan = state->getVlans()->getNode(this->kVlan());
     auto intf = state->getInterfaces()->getNodeIf(this->kInterfaceID());
@@ -1270,7 +1273,8 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveUnresolveResolve) {
 
   // Resolve the IP with same MAC, gets same classID as other IP with same MAC
   this->resolveNeighbor(this->getIpAddress(), this->kMacAddress());
-  this->verifyStateUpdate([=]() { this->verifySameMacDifferentIpsHelper(); });
+  this->verifyStateUpdate(
+      [=, this]() { this->verifySameMacDifferentIpsHelper(); });
 }
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, staticL2EntriesForResolvedNeighbor) {
@@ -1315,7 +1319,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborMacChange) {
 TYPED_TEST(LookupClassUpdaterNeighborTest, BlockMacThenResolveNeighbor) {
   updateMacAddrsToBlock(this->getSw(), {{this->kVlan(), this->kMacAddress()}});
   this->resolve(this->getIpAddress(), this->kMacAddress());
-  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+  this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
     this->verifyClassIDHelper(
         this->getIpAddress(),
         this->kMacAddress(),
@@ -1327,7 +1331,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, BlockMacThenResolveNeighbor) {
 TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveNeighborThenBlockMac) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
   updateMacAddrsToBlock(this->getSw(), {{this->kVlan(), this->kMacAddress()}});
-  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+  this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
     this->verifyClassIDHelper(
         this->getIpAddress(),
         this->kMacAddress(),
@@ -1483,7 +1487,7 @@ TYPED_TEST(
 
   updateMacAddrsToBlock(this->getSw(), {{this->kVlan(), this->kMacAddress()}});
   this->resolve(this->getIpAddress(), this->kMacAddress());
-  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+  this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
     this->verifyClassIDHelper(
         this->getIpAddress(),
         this->kMacAddress(),
@@ -1499,7 +1503,7 @@ TYPED_TEST(
   this->updateLookupClasses({});
 
   this->resolve(this->getIpAddress(), this->kMacAddress());
-  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+  this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
     this->verifyClassIDHelper(
         this->getIpAddress(),
         this->kMacAddress(),
@@ -1508,7 +1512,7 @@ TYPED_TEST(
   });
 
   updateMacAddrsToBlock(this->getSw(), {{this->kVlan(), this->kMacAddress()}});
-  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+  this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
     this->verifyClassIDHelper(
         this->getIpAddress(),
         this->kMacAddress(),
@@ -1616,7 +1620,7 @@ TYPED_TEST(LookupClassUpdaterWarmbootTest, VerifyClassID) {
   this->resolveNeighbor(this->getIpAddress2(), this->kMacAddress2());
   this->resolveNeighbor(this->getIpAddress3(), this->kMacAddress());
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     this->verifyNeighborClassIDHelper(
         this->getIpAddress(),
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* ipClassID */,
@@ -1652,18 +1656,20 @@ class LookupClassUpdaterWarmbootWithQueuePerPhysicalHostTest
     auto vlanID = this->kVlan();
     auto vlan = newState->getVlans()->getNodeIf(vlanID);
     auto macTable = vlan->getMacTable();
-    macTable->addEntry(std::make_shared<MacEntry>(
-        this->kMacAddress(),
-        PortDescriptor(this->kPortID()),
-        std::optional<cfg::AclLookupClass>(
-            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
-        MacEntryType::DYNAMIC_ENTRY));
-    macTable->addEntry(std::make_shared<MacEntry>(
-        this->kMetaMacAddress(),
-        PortDescriptor(this->kPortID()),
-        std::optional<cfg::AclLookupClass>(
-            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
-        MacEntryType::DYNAMIC_ENTRY));
+    macTable->addEntry(
+        std::make_shared<MacEntry>(
+            this->kMacAddress(),
+            PortDescriptor(this->kPortID()),
+            std::optional<cfg::AclLookupClass>(
+                cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
+            MacEntryType::DYNAMIC_ENTRY));
+    macTable->addEntry(
+        std::make_shared<MacEntry>(
+            this->kMetaMacAddress(),
+            PortDescriptor(this->kPortID()),
+            std::optional<cfg::AclLookupClass>(
+                cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
+            MacEntryType::DYNAMIC_ENTRY));
 
     std::shared_ptr<NeighborTableT> neighborTable;
     if (this->isIntfNbrTable()) {
@@ -1737,7 +1743,7 @@ TYPED_TEST(
   EXPECT_EQ(this->kMacAddress().u64HBO() & 0b111, 6);
   this->resolveNeighbor(this->getIpAddress3(), this->kMacAddress());
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     this->verifyNeighborClassIDHelper(
         this->getIpAddress(),
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* ipClassID */,
@@ -1791,12 +1797,13 @@ class LookupClassUpdaterWarmbootRebalanceTest
 
     // imbalanced assignment results from warmboot state
     for (int i = 0; i < 5; i++) {
-      macTable->addEntry(std::make_shared<MacEntry>(
-          this->kMacAddressN(i),
-          PortDescriptor(this->kPortID()),
-          std::optional<cfg::AclLookupClass>(
-              cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
-          MacEntryType::DYNAMIC_ENTRY));
+      macTable->addEntry(
+          std::make_shared<MacEntry>(
+              this->kMacAddressN(i),
+              PortDescriptor(this->kPortID()),
+              std::optional<cfg::AclLookupClass>(
+                  cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
+              MacEntryType::DYNAMIC_ENTRY));
 
       neighborTable->addEntry(NeighborEntryFields(
           this->getIpAddrN(i),
@@ -1841,7 +1848,7 @@ TYPED_TEST(LookupClassUpdaterWarmbootRebalanceTest, VerifyRebalance) {
   // remove mac ouis
   this->updateMacOuis(false);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     this->verifyNeighborClassIDHelper(
         this->getIpAddrN(0),
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* ipClassID */,

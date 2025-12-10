@@ -118,7 +118,7 @@ class MultiNodeMacsecTest : public MultiNodeTest {
 };
 
 TEST_F(MultiNodeMacsecTest, verifyMkaSession) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // Get ports
     auto ports = testPortNames();
     XLOG(INFO) << " No of test ports: " << ports.size();

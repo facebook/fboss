@@ -63,9 +63,9 @@ agent_benchmark_lib(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/test/utils:acl_test_utils",
+        "//fboss/agent/test/utils:asic_test_utils",
         "//fboss/agent/test/utils:copp_test_utils",
         "//fboss/agent/test/utils:qos_test_utils",
-        "//fboss/agent/test/utils:asic_test_utils",
         "//folly:network_address",
         "//folly/init:init",
     ],
@@ -75,9 +75,9 @@ agent_benchmark_lib(
     name = "hw_system_scale_memory_benchmark",
     srcs = ["HwSystemScaleMemoryBenchmark.cpp"],
     extra_deps = [
+        "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//fboss/agent/test/utils:agent_fsdb_integ_bench_helper",
         "//fboss/agent/test/utils:system_scale_test_utils",
-        "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//folly/init:init",
     ],
 )
@@ -86,27 +86,26 @@ agent_benchmark_lib(
     name = "hw_system_scale_churn_memory_benchmark",
     srcs = ["HwSystemScaleChurnMemoryBenchmark.cpp"],
     extra_deps = [
+        "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//fboss/agent/test/utils:agent_fsdb_integ_bench_helper",
         "//fboss/agent/test/utils:system_scale_test_utils",
-        "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//folly/init:init",
     ],
 )
 
 cpp_library(
     name = "hw_route_scale_benchmark_helpers",
+    srcs = ["HwRouteScaleBenchmarkHelpers.cpp"],
     headers = [
         "HwRouteScaleBenchmarkHelpers.h",
     ],
+    undefined_symbols = True,
     exported_deps = [
         "//fboss/agent:agent_features",
         "//fboss/agent:core",
-        "//fboss/agent:fib_helpers",
-        "//fboss/agent:hw_switch",
         "//fboss/agent:utils",
         "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//fboss/agent/hw/test:config_factory",
-        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:resourcelibutil",
@@ -118,13 +117,32 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "hw_stats_collection_benchmark_helper",
+    headers = [
+        "HwStatsCollectionBenchmarkHelper.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent:asic_utils",
+        "//fboss/agent:sw_agent_initializer",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test/utils:copp_test_utils",
+        "//fboss/agent/test/utils:dsf_config_utils",
+        "//fboss/agent/test/utils:load_balancer_test_utils",
+        "//fboss/agent/test/utils:network_ai_qos_utils",
+        "//fboss/agent/test/utils:voq_test_utils",
+        "//folly:benchmark",
+        "//folly:network_address",
+    ],
+)
+
 agent_benchmark_lib(
     name = "hw_stats_collection_speed",
     srcs = ["HwStatsCollectionBenchmark.cpp"],
     extra_deps = [
-        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
-        "//fboss/agent/test/utils:olympic_qos_utils",
-        "//fboss/agent/test/utils:network_ai_qos_utils",
+        ":hw_stats_collection_benchmark_helper",
     ],
 )
 
@@ -212,9 +230,9 @@ agent_benchmark_lib(
     name = "hw_ecmp_shrink_speed",
     srcs = ["HwEcmpShrinkSpeedBenchmark.cpp"],
     extra_deps = [
+        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
         "//fboss/agent/hw/test:hw_test_port_utils",
-        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
         "//fboss/agent/test/utils:ecmp_test_utils",
     ],
 )
@@ -249,8 +267,8 @@ agent_benchmark_lib(
     name = "hw_init_and_exit_40Gx10G",
     srcs = ["HwInitAndExit40Gx10GBenchmark.cpp"],
     extra_deps = [
-        "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_benchmark_helper",
+        "//fboss/agent/hw/test:config_factory",
     ],
 )
 
@@ -258,8 +276,8 @@ agent_benchmark_lib(
     name = "hw_init_and_exit_100Gx10G",
     srcs = ["HwInitAndExit100Gx10GBenchmark.cpp"],
     extra_deps = [
-        "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_benchmark_helper",
+        "//fboss/agent/hw/test:config_factory",
     ],
 )
 
@@ -267,8 +285,8 @@ agent_benchmark_lib(
     name = "hw_init_and_exit_100Gx25G",
     srcs = ["HwInitAndExit100Gx25GBenchmark.cpp"],
     extra_deps = [
-        "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_benchmark_helper",
+        "//fboss/agent/hw/test:config_factory",
     ],
 )
 
@@ -276,8 +294,8 @@ agent_benchmark_lib(
     name = "hw_init_and_exit_100Gx50G",
     srcs = ["HwInitAndExit100Gx50GBenchmark.cpp"],
     extra_deps = [
-        "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_benchmark_helper",
+        "//fboss/agent/hw/test:config_factory",
     ],
 )
 
@@ -285,8 +303,8 @@ agent_benchmark_lib(
     name = "hw_init_and_exit_100Gx100G",
     srcs = ["HwInitAndExit100Gx100GBenchmark.cpp"],
     extra_deps = [
-        "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_benchmark_helper",
+        "//fboss/agent/hw/test:config_factory",
     ],
 )
 
@@ -294,8 +312,8 @@ agent_benchmark_lib(
     name = "hw_init_and_exit_400Gx400G",
     srcs = ["HwInitAndExit400Gx400GBenchmark.cpp"],
     extra_deps = [
-        "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_benchmark_helper",
+        "//fboss/agent/hw/test:config_factory",
     ],
 )
 
@@ -303,8 +321,8 @@ agent_benchmark_lib(
     name = "hw_init_and_exit_voq",
     srcs = ["HwInitAndExitVoqBenchmark.cpp"],
     extra_deps = [
-        "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_benchmark_helper",
+        "//fboss/agent/hw/test:config_factory",
     ],
 )
 
@@ -312,8 +330,8 @@ agent_benchmark_lib(
     name = "hw_init_and_exit_fabric",
     srcs = ["HwInitAndExitFabricBenchmark.cpp"],
     extra_deps = [
-        "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_benchmark_helper",
+        "//fboss/agent/hw/test:config_factory",
     ],
 )
 
@@ -321,11 +339,11 @@ agent_benchmark_lib(
     name = "hw_ecmp_shrink_with_competing_route_updates_speed",
     srcs = ["HwEcmpShrinkWithCompetingRouteUpdatesBenchmark.cpp"],
     extra_deps = [
+        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
+        "//fboss/agent/hw/test:hw_test_ecmp_utils",
+        "//fboss/agent/hw/test:hw_test_port_utils",
         "//fboss/agent/test:route_distribution_gen",
         "//fboss/agent/test:route_scale_gen",
-        "//fboss/agent/hw/test:hw_test_ecmp_utils",
-        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
-        "//fboss/agent/hw/test:hw_test_port_utils",
         "//fboss/agent/test/utils:ecmp_test_utils",
     ],
 )
@@ -350,9 +368,9 @@ agent_benchmark_lib(
     name = "hw_rib_resolution_speed",
     srcs = ["HwRibResolutionBenchmark.cpp"],
     extra_deps = [
-        "//fboss/agent/test:route_scale_gen",
-        "//fboss/agent/test:route_gen_test_utils",
         "//fboss/agent/hw/test:hw_switch_ensemble_factory",
+        "//fboss/agent/test:route_gen_test_utils",
+        "//fboss/agent/test:route_scale_gen",
     ],
 )
 
@@ -360,9 +378,9 @@ agent_benchmark_lib(
     name = "hw_rib_sync_fib_speed",
     srcs = ["HwRibSyncFibBenchmark.cpp"],
     extra_deps = [
-        "//fboss/agent/test:route_scale_gen",
-        "//fboss/agent/test:route_gen_test_utils",
         "//fboss/agent/hw/test:hw_switch_ensemble_factory",
+        "//fboss/agent/test:route_gen_test_utils",
+        "//fboss/agent/test:route_scale_gen",
     ],
 )
 
@@ -411,21 +429,137 @@ agent_benchmark_lib(
     extra_deps = [],
 )
 
+cpp_library(
+    name = "hw_voq_remote_entity_benchmark_helpers",
+    headers = [
+        "HwVoqRemoteEntityBenchmarkHelper.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent:core",
+        "//fboss/agent:fib_helpers",
+        "//fboss/agent:utils",
+        "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test/utils:dsf_config_utils",
+        "//fboss/agent/test/utils:voq_test_utils",
+        "//fboss/lib:function_call_time_reporter",
+        "//folly:benchmark",
+    ],
+)
+
+agent_benchmark_lib(
+    name = "hw_voq_remote_entity_programming",
+    srcs = ["HwVoqRemoteEntityProgrammingBenchmark.cpp"],
+    extra_deps = [":hw_voq_remote_entity_benchmark_helpers"],
+)
+
+cpp_library(
+    name = "hw_voq_route_competing_remote_neighbor_benchmark_helper",
+    headers = [
+        "HwVoqRouteCompetingRemoteNeighborBenchmarkHelper.h",
+    ],
+    exported_deps = [
+        ":hw_route_scale_benchmark_helpers",
+        "//fboss/agent:agent_features",
+        "//fboss/agent:core",
+        "//fboss/agent:fib_helpers",
+        "//fboss/agent:utils",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test/utils:dsf_config_utils",
+        "//fboss/agent/test/utils:voq_test_utils",
+        "//fboss/lib:function_call_time_reporter",
+        "//folly:benchmark",
+        "//folly:synchronized",
+    ],
+)
+
+agent_benchmark_lib(
+    name = "hw_voq_route_competing_remote_neighbor_benchmark",
+    srcs = ["HwVoqRouteCompetingRemoteNeighborBenchmark.cpp"],
+    extra_deps = [
+        ":hw_voq_route_competing_remote_neighbor_benchmark_helper",
+    ],
+)
+
 agent_benchmark_lib(
     name = "hw_clear_interface_phy_counters",
     srcs = ["HwClearInterfacePhyCountersBenchmark.cpp"],
     extra_deps = [],
 )
 
+cpp_library(
+    name = "hw_tun_manager_probe_benchmark_helper",
+    headers = [
+        "HwTunManagerProbeBenchmarkHelper.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent:core",
+        "//fboss/agent:sw_agent_initializer",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test:utils",
+        "//folly:benchmark",
+    ],
+)
+
+agent_benchmark_lib(
+    name = "hw_tun_manager_probe_and_cleanup_speed",
+    srcs = ["HwTunManagerProbeBenchmark.cpp"],
+    extra_deps = [
+        ":hw_tun_manager_probe_benchmark_helper",
+    ],
+)
+
 agent_benchmark_lib(
     name = "hw_ecmp_backup_group_spillover",
     srcs = ["HwEcmpBackupGroupSpilloverBenchmark.cpp"],
     extra_deps = [
+        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
         "//fboss/agent/hw/test:hw_test_port_utils",
-        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
         "//fboss/agent/test/utils:ecmp_test_utils",
-        "//fboss/agent/test/utils:scale_test_utils",
         "//fboss/agent/test/utils:load_balancer_test_utils",
+        "//fboss/agent/test/utils:scale_test_utils",
+    ],
+)
+
+agent_benchmark_lib(
+    name = "hw_ecmp_group_scale_benchmark",
+    srcs = ["HwEcmpGroupScaleBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
+        "//fboss/agent/hw/test:hw_test_ecmp_utils",
+        "//fboss/agent/hw/test:hw_test_port_utils",
+        "//fboss/agent/test/utils:ecmp_test_utils",
+        "//fboss/agent/test/utils:load_balancer_test_utils",
+        "//fboss/agent/test/utils:scale_test_utils",
+    ],
+)
+
+cpp_library(
+    name = "hw_ucmp_group_scale_helper",
+    headers = ["HwUcmpScaleBenchmarkHelper.h"],
+    exported_deps = [
+        "//fboss/agent:fib_helpers",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test/utils:config_utils",
+        "//fboss/agent/test/utils:scale_test_utils",
+        "//folly:benchmark",
+        "//folly:network_address",
+        "//folly/logging:logging",
+    ],
+)
+
+agent_benchmark_lib(
+    name = "hw_ucmp_scale_benchmark",
+    srcs = ["HwUcmpScaleBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_ucmp_group_scale_helper",
+        "//fboss/agent/hw/test:config_factory",
     ],
 )

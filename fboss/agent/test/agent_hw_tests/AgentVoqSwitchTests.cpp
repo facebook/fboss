@@ -37,7 +37,7 @@ constexpr auto kDefaultEgressQueue = 0;
 using namespace facebook::fb303;
 namespace facebook::fboss {
 
-std::string AgentVoqSwitchTest::getSdkMajorVersion() {
+std::string AgentVoqSwitchTest::getSdkMajorVersion(const SwitchID& switchId) {
   std::string majorVersion;
 
   static const re2::RE2 bcmSaiPattern("BRCM SAI ver: \\[(\\d+)\\.");
@@ -45,8 +45,8 @@ std::string AgentVoqSwitchTest::getSdkMajorVersion() {
   // Start with a blank command first and then get the BCM SAI version
   // This is because, sometimes first diag command doesn't work in some SDK
   // versions
-  getAgentEnsemble()->runDiagCommand("\n", output);
-  getAgentEnsemble()->runDiagCommand("bcmsai ver\n", output);
+  getAgentEnsemble()->runDiagCommand("\n", output, switchId);
+  getAgentEnsemble()->runDiagCommand("bcmsai ver\n", output, switchId);
   if (RE2::PartialMatch(output, bcmSaiPattern, &majorVersion)) {
     return majorVersion;
   }
@@ -164,7 +164,7 @@ void AgentVoqSwitchTest::sendLocalServiceDiscoveryMulticastPacket(
       utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   auto srcIp = folly::IPAddressV6("fe80::ff:fe00:f0b");
   auto dstIp = folly::IPAddressV6("ff15::efc0:988f");
-  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
   std::vector<uint8_t> serviceDiscoveryPayload = {
       0x42, 0x54, 0x2d, 0x53, 0x45, 0x41, 0x52, 0x43, 0x48, 0x20, 0x2a, 0x20,
       0x48, 0x54, 0x54, 0x50, 0x2f, 0x31, 0x2e, 0x31, 0x0d, 0x0a, 0x48, 0x6f,
@@ -332,8 +332,9 @@ TEST_F(AgentVoqSwitchTest, fdrRciAndCoreRciWatermarks) {
 
 TEST_F(AgentVoqSwitchTest, addRemoveNeighbor) {
   auto setup = [this]() {
-    const PortDescriptor kPortDesc(getAgentEnsemble()->masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[0]);
+    const PortDescriptor kPortDesc(
+        getAgentEnsemble()->masterLogicalPortIds(
+            {cfg::PortType::INTERFACE_PORT})[0]);
     // Add neighbor
     addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
     // Remove neighbor
@@ -485,6 +486,9 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
             if (asic->getAsicMode() != HwAsic::AsicMode::ASIC_MODE_SIM) {
               // Account for Ethernet FCS being counted in TX out bytes.
               extraByteOffset = utility::EthFrame::FCS_SIZE;
+              if (FLAGS_hyper_port) {
+                extraByteOffset += utility::EthFrame::HYPER_PORT_HEADER_SIZE;
+              }
             }
             EXPECT_EVENTUALLY_EQ(
                 afterOutBytes - txPacketSize - extraByteOffset, beforeOutBytes);
@@ -653,7 +657,11 @@ TEST_F(AgentVoqSwitchTest, localSystemPortEcmp) {
     for (auto& systemPortMap :
          std::as_const(*getProgrammedState()->getSystemPorts())) {
       for (auto& [_, localSysPort] : std::as_const(*systemPortMap.second)) {
-        localSysPorts.insert(PortDescriptor(localSysPort->getID()));
+        PortDescriptor portDesc = PortDescriptor(localSysPort->getID());
+        // no need to configure RIF interface for hyper port members
+        if (ecmpHelper.getInterface(portDesc, getProgrammedState())) {
+          localSysPorts.insert(portDesc);
+        }
       }
     }
     applyNewState([=](const std::shared_ptr<SwitchState>& in) {
@@ -1006,29 +1014,33 @@ TEST_F(AgentVoqSwitchTest, verifySendPacketOutOfEventorBlocked) {
 TEST_F(AgentVoqSwitchTest, verifyAI23ModeConfig) {
   auto setup = []() {};
   auto verify = [this]() {
-    // Get the SDK major version
-    auto sdkMajorVersionStr = getSdkMajorVersion();
-    auto sdkMajorVersionNum = std::stoi(sdkMajorVersionStr);
-    // Check if SDK major version is valid
-    EXPECT_GT(sdkMajorVersionNum, 0);
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      // Get the SDK major version
+      auto sdkMajorVersionStr = getSdkMajorVersion(switchId);
+      auto sdkMajorVersionNum = std::stoi(sdkMajorVersionStr);
+      // Check if SDK major version is valid
+      EXPECT_GT(sdkMajorVersionNum, 0);
 
-    // If major version is >= 12, check for AI23_mode
-    if (sdkMajorVersionNum >= 12) {
-      std::string configOutput;
-      getAgentEnsemble()->runDiagCommand("config show\n", configOutput);
+      // If major version is >= 12, check for AI23_mode
+      if (sdkMajorVersionNum >= 12) {
+        std::string configOutput;
+        getAgentEnsemble()->runDiagCommand(
+            "config show\n", configOutput, switchId);
 
-      // Check if AI23_mode is enabled in the config
-      bool isAI23ModeEnabled =
-          configOutput.find("AI23_mode=1") != std::string::npos;
-      XLOG(DBG2) << "AI23_mode enabled? " << (isAI23ModeEnabled ? "yes" : "no");
+        // Check if AI23_mode is enabled in the config
+        bool isAI23ModeEnabled =
+            configOutput.find("AI23_mode=1") != std::string::npos;
+        XLOG(DBG2) << "Switch ID: " << switchId << ", AI23_mode enabled? "
+                   << (isAI23ModeEnabled ? "yes" : "no");
 
-      EXPECT_TRUE(isAI23ModeEnabled)
-          << "AI23_mode=1 is not enabled for SAI major version "
-          << sdkMajorVersionNum;
-    } else {
-      XLOG(DBG2)
-          << "Skipping AI23_mode config verification for SAI major version "
-          << sdkMajorVersionNum;
+        EXPECT_TRUE(isAI23ModeEnabled)
+            << "AI23_mode=1 is not enabled for SAI major version "
+            << sdkMajorVersionNum << " on switch ID " << switchId;
+      } else {
+        XLOG(DBG2)
+            << "Skipping AI23_mode config verification for SAI major version "
+            << sdkMajorVersionNum << " on switch ID " << switchId;
+      }
     }
   };
 

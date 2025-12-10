@@ -1,5 +1,36 @@
 {
   "i2cBusIgnore": [
     "SMBus iSMT adapter at 914c1000"
-  ]
+  ],
+  "i2cDumpDevices": [
+    "/run/devmap/cplds/MERU800BFA_SMB_CPLD",
+    "/run/devmap/cplds/FAN0_CPLD",
+    "/run/devmap/cplds/FAN1_CPLD",
+    "/run/devmap/cplds/FAN2_CPLD",
+    "/run/devmap/sensors/SMB_RAA228926_R3R0_CORE",
+    "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG0",
+    "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG1",
+    "/run/devmap/sensors/SMB_RAA228926_R3R1_CORE",
+    "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0",
+    "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1",
+    "/run/devmap/sensors/SMB_ISL68226_OSFP_TL",
+    "/run/devmap/sensors/SMB_ISL68226_OSFP_TR",
+    "/run/devmap/sensors/SMB_ISL68226_OSFP_BL",
+    "/run/devmap/sensors/SMB_ISL68226_OSFP_BR"
+  ],
+  "psus": [
+    "/run/devmap/sensors/PSU1_PMBUS",
+    "/run/devmap/sensors/PSU2_PMBUS",
+    "/run/devmap/sensors/PSU3_PMBUS",
+    "/run/devmap/sensors/PSU4_PMBUS"
+  ],
+  "gpios": [],
+  "pems": [],
+  "fanspinners": [],
+  "scPowerGood": {
+    "sysfsAttribute": {
+      "name": "SMB_POWERGOOD",
+      "path": "/run/devmap/cplds/MERU800BFA_SMB_CPLD/switch_card_pwr_status"
+    }
+  }
 }

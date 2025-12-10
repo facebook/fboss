@@ -37,6 +37,7 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
       uint16_t systemPriority,
       folly::MacAddress systemID,
       uint8_t minLinkCount,
+      std::optional<uint8_t> minLinkCountToUp,
       LacpServicerIf* servicer);
 
   ~LacpController();
@@ -78,6 +79,8 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
 
   void startPeriodicTransmissionMachine();
   void select();
+  bool getLacpLastTransmissionResult();
+  std::chrono::seconds getCurrentTransmissionPeriod() const;
 
  private:
   const AggregatePortID aggPortID_{0};

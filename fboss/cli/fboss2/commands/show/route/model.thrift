@@ -1,3 +1,5 @@
+package "facebook.com/fboss/cli"
+
 namespace cpp2 facebook.fboss.cli
 
 include "fboss/agent/if/common.thrift"
@@ -41,6 +43,8 @@ struct ClientAndNextHops {
 struct RouteEntry {
   1: string networkAddress;
   2: list<NextHopInfo> nextHops;
+  3: string overridenEcmpMode;
+  4: optional list<NextHopInfo> overridenNextHops;
 }
 
 struct RouteDetailEntry {
@@ -54,4 +58,7 @@ struct RouteDetailEntry {
   8: string counterID;
   9: string classID;
   10: string overridenEcmpMode;
+  11: optional list<NextHopInfo> overridenNextHops;
+  12: i32 nhopsLostDueToOverride = 0;
+  13: map<string, common.NetworkTopologyInformation> nhAddressToTopologyInfo;
 }

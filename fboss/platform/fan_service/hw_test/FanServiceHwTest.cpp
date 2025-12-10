@@ -107,8 +107,9 @@ TEST_F(FanServiceHwTest, ODSCounters) {
         continue;
       }
       EXPECT_EQ(
-          fb303::fbData->getCounter(fmt::format(
-              "{}.{}.pwm_write.failure", *zone.zoneName(), *fan.fanName())),
+          fb303::fbData->getCounter(
+              fmt::format(
+                  "{}.{}.pwm_write.failure", *zone.zoneName(), *fan.fanName())),
           0);
       EXPECT_EQ(
           fb303::fbData->getCounter(
@@ -116,6 +117,20 @@ TEST_F(FanServiceHwTest, ODSCounters) {
           0);
       EXPECT_EQ(
           fb303::fbData->getCounter(fmt::format("{}.absent", *fan.fanName())),
+          0);
+    }
+  }
+}
+
+TEST_F(FanServiceHwTest, LedWriteDidNotFail) {
+  controlLogic_->controlFan();
+
+  for (const auto& fan : *fanServiceConfig_.fans()) {
+    if (fan.goodLedSysfsPath().has_value() ||
+        fan.failLedSysfsPath().has_value()) {
+      EXPECT_EQ(
+          fb303::fbData->getCounter(
+              fmt::format("{}.led_write.failure", *fan.fanName())),
           0);
     }
   }

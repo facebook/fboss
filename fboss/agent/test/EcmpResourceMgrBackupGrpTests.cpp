@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
+#include "fboss/agent/test/CounterCache.h"
+#include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 
 namespace facebook::fboss {
 
@@ -20,13 +22,6 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
   }
   static constexpr auto kNumStartRoutes = 5;
 
-  std::shared_ptr<EcmpResourceManager> makeResourceMgrWithEcmpLimit(
-      int ecmpGroupLimit) const {
-    return std::make_shared<EcmpResourceManager>(
-        ecmpGroupLimit,
-        0 /*compressionPenaltyThresholdPct*/,
-        cfg::SwitchingMode::PER_PACKET_RANDOM);
-  }
   int numStartRoutes() const override {
     return kNumStartRoutes;
   }
@@ -71,8 +66,24 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
     newState->publish();
     consolidate(newState);
     assertEndState(newState, {});
+    setupState = state_->clone();
+    setupState->publish();
     XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
   }
+  void TearDown() override {
+    StateDelta delta(setupState, sw_->getState());
+    if (delta.getFlowletSwitchingConfigDelta().getOld() ==
+        delta.getFlowletSwitchingConfigDelta().getNew()) {
+      // If test didn't change flowlet settings, check for rollbacks. During
+      // rollbacks we will explicitly fail updates and we don't allow
+      // for failures of updates across a backup ecmp mode (stored in
+      // flowlet switch settings) change
+      auto newEcmpResourceMgr = makeResourceMgr();
+      assertRollbacks(*newEcmpResourceMgr, setupState, sw_->getState());
+    }
+    BaseEcmpResourceManagerTest::TearDown();
+  }
+  std::shared_ptr<SwitchState> setupState;
 };
 
 TEST_F(EcmpBackupGroupTypeTest, addSingleNhopRoutesBelowEcmpLimit) {
@@ -284,7 +295,7 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
   assertEndState(newState, overflowPrefixes);
 }
 
-TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimitAndReplay) {
+TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimitAndSyncFibReplay) {
   // Add new routes pointing to new nhops. ECMP limit is breached.
   auto nhopSets = nextNhopSets();
   auto oldState = state_;
@@ -311,6 +322,11 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimitAndReplay) {
     fib6 = fib(newerState);
     for (const auto& pfx : overflowPrefixes) {
       auto route = fib6->getRouteIf(pfx)->clone();
+      // Clear any overrides. This test mimics routes
+      // coming over thrift (say on FibSync) which would
+      // come w/o any overrides set.
+      route->setResolved(RouteNextHopEntry(
+          route->getForwardInfo().getNextHopSet(), kDefaultAdminDistance));
       route->publish();
       fib6->updateNode(route);
     }
@@ -863,4 +879,22 @@ TEST_F(EcmpBackupGroupTypeTest, reclaimOnReplay) {
       newConsolidator.get(),
       false /*checkStats*/);
 }
+
+TEST_F(EcmpBackupGroupTypeTest, checkPrimaryEcmpExhaustedEvents) {
+  // Add new routes pointing to new nhops. ECMP limit is breached.
+  CounterCache counters(sw_);
+  auto nhopSets = nextNhopSets();
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+  auto routesBefore = getPostConfigResolvedRoutes(newState).size();
+  auto route = makeRoute(makePrefix(routesBefore), *nhopSets.begin());
+  fib6->addNode(route);
+  consolidate(newState);
+  counters.update();
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "primary_ecmp_groups_exhausted_events.sum",
+      1);
+}
+
 } // namespace facebook::fboss

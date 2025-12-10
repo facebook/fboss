@@ -279,6 +279,17 @@ Controller has 2+ root ports):
       3. Solid Blue
       4. Blinking Blue
       5. Blinking Amber
+4. Fan LEDs
+   1. The Fan LEDs must support the following colors:
+      1. Blue
+      2. Amber
+   2. Each fan LED shall be able to support the following fan LED behaviors
+      controlled by FBOSS Software
+      1. No light
+      2. Solid Amber
+      3. Solid Blue
+      4. Blinking Blue
+      5. Blinking Amber
 
 ## 3. Power Sequencing
 
@@ -460,9 +471,18 @@ A few notes:
         routine in BIOS and BMC
       * Vendors shall test the functionality and the stability of this bus
 
-### 6.2  ASIC
+### 6.2  ASIC and ASIC Protection
 
 * ASIC shall be connected to CPU through PCIe
+* Vendor HW (FPGA or CPLD) shall monitor the ASIC temperature through the
+  HW interface provided by the ASIC. (I2C, one-wire and so on.)
+* The HW (FPGA or CPLD) shall also have the logic to shut down the ASIC if
+  the temperature reading from the ASIC is above a certain threshold, in
+  order to prevent the ASIC from being damaged.
+  * The auto-shutdown logic shall work without any SW initialization or
+    control.
+  * The threshold should be high enough to prevent false positives. That is,
+    one less accurate reading from the ASIC should not turn off the ASIC.
 * Vendor SW team is responsible for directly and autonomously working with ASIC
   vendors to develop traffic tests and other diagnostic features.
 * Vendor SW team shall use the SDK and SAI version that Meta wants.

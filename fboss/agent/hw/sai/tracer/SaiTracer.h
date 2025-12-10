@@ -27,27 +27,9 @@
 
 extern "C" {
 #include <sai.h>
-
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-#include <saiextensions.h>
-#ifndef IS_OSS_BRCM_SAI
-#include <experimental/saiexperimentalfirmware.h>
-#include <experimental/saiexperimentaltameventaginggroup.h>
-#else
-#include <saiexperimentalfirmware.h>
-#include <saiexperimentaltameventaginggroup.h>
-#endif
-#endif
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-#include <saiextensions.h>
-#ifndef IS_OSS_BRCM_SAI
-#include <experimental/saiexperimentalswitchpipeline.h>
-#include <experimental/saiexperimentalvendorswitch.h>
-#else
-#include <saiexperimentalswitchpipeline.h>
-#include <saiexperimentalvendorswitch.h>
-#endif
-#endif
+// Note: All SAI extension headers are managed in SaiExtensionsIncludes.h.
+// Please add new SAI extension headers there.
+#include "fboss/agent/hw/sai/tracer/SaiExtensionsIncludes.h"
 }
 
 DECLARE_bool(enable_replayer);
@@ -172,7 +154,24 @@ class SaiTracer {
       sai_object_type_t object_type,
       sai_status_t rv);
 
+  void logBulkGetAttrFn(
+      const std::string& fn_name,
+      uint32_t object_count,
+      const sai_object_id_t* object_id,
+      const uint32_t* attr_count,
+      sai_attribute_t** attr_list,
+      sai_bulk_op_error_mode_t mode,
+      sai_status_t* object_statuses,
+      sai_object_type_t object_type,
+      sai_status_t rv);
+
   void logSetAttrFn(
+      const std::string& fn_name,
+      sai_object_id_t set_object_id,
+      const sai_attribute_t* attr,
+      sai_object_type_t object_type);
+
+  void logCommentedAttrFn(
       const std::string& fn_name,
       sai_object_id_t set_object_id,
       const sai_attribute_t* attr,
@@ -213,6 +212,8 @@ class SaiTracer {
       const sai_stat_id_t* counter_ids,
       sai_object_type_t object_type,
       sai_status_t rv);
+
+  void logShellCommand(const std::string& command);
 
   std::string getVariable(sai_object_id_t object_id);
 
@@ -303,6 +304,7 @@ class SaiTracer {
       {TYPE_INDEX(AclEntryFieldU16), &aclEntryFieldU16Attr},
       {TYPE_INDEX(AclEntryFieldU8), &aclEntryFieldU8Attr},
       {TYPE_INDEX(AclEntryActionU8), &aclEntryActionU8Attr},
+      {TYPE_INDEX(AclEntryActionBool), &aclEntryActionBoolAttr},
       {TYPE_INDEX(AclEntryFieldMac), &aclEntryFieldMacAttr},
       // System port
       {TYPE_INDEX(sai_system_port_config_t), &systemPortConfigAttr},
@@ -341,6 +343,14 @@ class SaiTracer {
   std::vector<std::string> setAttrList(
       const sai_attribute_t* attr_list,
       uint32_t attr_count,
+      sai_object_type_t object_type,
+      sai_status_t rv = 0);
+
+  // Dedicated method for operations with 2D attribute arrays
+  std::vector<std::string> setBulkAttrList(
+      uint32_t object_count,
+      const uint32_t* attr_count,
+      sai_attribute_t** attr_list,
       sai_object_type_t object_type,
       sai_status_t rv = 0);
 
@@ -606,8 +616,8 @@ class SaiTracer {
       "  else if (rv != 0) printf(\"Non 0 rv at %d with status %d\\n\", count, rv);\n"
       "}\n"
       "\n"
-      "inline void attrCheck(sai_attribute_t *expected, sai_attribute_t *actual, int count) {\n"
-      "  if (memcmp((void*)expected, (void*)actual, ATTR_SIZE * 1024)) printf(\"Diff in GET attribute %d\\n\", count);\n"
+      "inline void attrCheck(sai_attribute_t *expected, sai_attribute_t *actual, int32_t num, int count) {\n"
+      "  if (memcmp((void*)expected, (void*)actual, ATTR_SIZE * num)) printf(\"Diff in GET attribute %d\\n\", count);\n"
       "}\n"
       "\n"
       "sai_object_id_t assignObject(sai_object_key_t* object_list, int object_count, int i, sai_object_id_t default_id) {\n"
@@ -668,11 +678,27 @@ class SaiTracer {
     return rv;                                                             \
   }
 
-#define WRAP_SET_ATTR_FUNC(obj_type, sai_obj_type, api_type)                  \
+// Sentinel value for attribute filtering - a very large number guaranteed
+// not to match any real attribute ID
+#define SAI_TRACER_ATTR_FILTER_SENTINEL 0xFFFFFFFF
+
+// Default wrapper for attribute setter function - uses sentinel value to
+// disable filtering
+#define WRAP_SET_ATTR_FUNC(obj_type, sai_obj_type, api_type) \
+  WRAP_SET_ATTR_FUNC_WITH_FILTER(                            \
+      obj_type, sai_obj_type, api_type, SAI_TRACER_ATTR_FILTER_SENTINEL)
+
+#define WRAP_SET_ATTR_FUNC_WITH_FILTER(                                       \
+    obj_type, sai_obj_type, api_type, filter_attr_id)                         \
   sai_status_t wrap_set_##obj_type##_attribute(                               \
       sai_object_id_t obj_type##_id, const sai_attribute_t* attr) {           \
-    SaiTracer::getInstance()->logSetAttrFn(                                   \
-        "set_" #obj_type "_attribute", obj_type##_id, attr, sai_obj_type);    \
+    if (attr->id == filter_attr_id) {                                         \
+      SaiTracer::getInstance()->logCommentedAttrFn(                           \
+          "set_" #obj_type "_attribute", obj_type##_id, attr, sai_obj_type);  \
+    } else {                                                                  \
+      SaiTracer::getInstance()->logSetAttrFn(                                 \
+          "set_" #obj_type "_attribute", obj_type##_id, attr, sai_obj_type);  \
+    }                                                                         \
     auto begin = FLAGS_enable_elapsed_time_log                                \
         ? std::chrono::system_clock::now()                                    \
         : std::chrono::system_clock::time_point::min();                       \
@@ -729,7 +755,17 @@ class SaiTracer {
             attr_list,                                                         \
             mode,                                                              \
             object_statuses);                                                  \
-    /* TODO add logBulkGetAttrFn */                                            \
+                                                                               \
+    SaiTracer::getInstance()->logBulkGetAttrFn(                                \
+        "get_" #obj_type "s_attribute",                                        \
+        object_count,                                                          \
+        object_id,                                                             \
+        attr_count,                                                            \
+        attr_list,                                                             \
+        mode,                                                                  \
+        object_statuses,                                                       \
+        sai_obj_type,                                                          \
+        rv);                                                                   \
     return rv;                                                                 \
   }
 
@@ -895,26 +931,26 @@ class SaiTracer {
     return rv;                                                              \
   }
 
-#define SAI_ATTR_MAP(obj_type, attr_name)                                   \
-  {                                                                         \
-    facebook::fboss::Sai##obj_type##Traits::Attributes::attr_name::Id,      \
-        std::make_pair(                                                     \
-            #attr_name,                                                     \
-            TYPE_INDEX(facebook::fboss::Sai##obj_type##Traits::Attributes:: \
-                           attr_name::ExtractSelectionType))                \
-  }
+#define SAI_ATTR_MAP(obj_type, attr_name)                                  \
+  {facebook::fboss::Sai##obj_type##Traits::Attributes::attr_name::Id,      \
+   std::make_pair(                                                         \
+       #attr_name,                                                         \
+       TYPE_INDEX(                                                         \
+           facebook::fboss::Sai##obj_type##Traits::Attributes::attr_name:: \
+               ExtractSelectionType))}
 
-#define SAI_EXT_ATTR_MAP(obj_type, attr_name)                               \
-  if (facebook::fboss::Sai##obj_type##Traits::Attributes::attr_name::       \
-          AttributeId()()                                                   \
-              .has_value()) {                                               \
-    _##obj_type##Map[facebook::fboss::Sai##obj_type##Traits::Attributes::   \
-                         attr_name::AttributeId()()                         \
-                             .value()] =                                    \
-        std::make_pair(                                                     \
-            #attr_name,                                                     \
-            TYPE_INDEX(facebook::fboss::Sai##obj_type##Traits::Attributes:: \
-                           attr_name::ExtractSelectionType));               \
+#define SAI_EXT_ATTR_MAP(obj_type, attr_name)                             \
+  if (facebook::fboss::Sai##obj_type##Traits::Attributes::attr_name::     \
+          AttributeId()()                                                 \
+              .has_value()) {                                             \
+    _##obj_type##Map[facebook::fboss::Sai##obj_type##Traits::Attributes:: \
+                         attr_name::AttributeId()()                       \
+                             .value()] =                                  \
+        std::make_pair(                                                   \
+            #attr_name,                                                   \
+            TYPE_INDEX(                                                   \
+                facebook::fboss::Sai##obj_type##Traits::Attributes::      \
+                    attr_name::ExtractSelectionType));                    \
   }
 
 #define SAI_EXT_ATTR_MAP_2(obj_type, obj_sub_type, attr_name)                 \
@@ -926,8 +962,9 @@ class SaiTracer {
                              .value()] =                                      \
         std::make_pair(                                                       \
             #attr_name,                                                       \
-            TYPE_INDEX(facebook::fboss::Sai##obj_sub_type##Traits::           \
-                           Attributes::attr_name::ExtractSelectionType));     \
+            TYPE_INDEX(                                                       \
+                facebook::fboss::Sai##obj_sub_type##Traits::Attributes::      \
+                    attr_name::ExtractSelectionType));                        \
   }
 
 #define SET_SAI_REGULAR_ATTRIBUTES(obj_type)                                 \

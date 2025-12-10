@@ -363,18 +363,19 @@ cfg::SwitchConfig testConfigBImpl() {
     auto maxPort = (switchIndex == 0) ? 12 : 28;
     CHECK(!myNode.systemPortRanges()->systemPortRanges()->empty());
     auto sysPortRange = *myNode.systemPortRanges()->systemPortRanges()->begin();
-    cfg.switchSettings()->switchIdToSwitchInfo()->emplace(std::make_pair(
-        switchId,
-        createSwitchInfo(
-            cfg::SwitchType::VOQ,
-            cfg::AsicType::ASIC_TYPE_MOCK,
-            minPort, /* port id range min */
-            maxPort, /* port id range max */
-            switchIndex, /* switchIndex */
-            *sysPortRange.minimum(),
-            *sysPortRange.maximum(),
-            "02:00:00:00:0F:0B", /* switchMac */
-            "68:00" /* connection handle */)));
+    cfg.switchSettings()->switchIdToSwitchInfo()->emplace(
+        std::make_pair(
+            switchId,
+            createSwitchInfo(
+                cfg::SwitchType::VOQ,
+                cfg::AsicType::ASIC_TYPE_MOCK,
+                minPort, /* port id range min */
+                maxPort, /* port id range max */
+                switchIndex, /* switchIndex */
+                *sysPortRange.minimum(),
+                *sysPortRange.maximum(),
+                "02:00:00:00:0F:0B", /* switchMac */
+                "68:00" /* connection handle */)));
   }
 
   auto switchId2SwitchInfo = *cfg.switchSettings()->switchIdToSwitchInfo();
@@ -923,8 +924,9 @@ unique_ptr<HwTestHandle> createTestHandle(
       switchIdToSwitchInfo = *config->switchSettings()->switchIdToSwitchInfo();
 
     } else {
-      switchIdToSwitchInfo.emplace(std::make_pair(
-          0, createSwitchInfo(*config->switchSettings()->switchType())));
+      switchIdToSwitchInfo.emplace(
+          std::make_pair(
+              0, createSwitchInfo(*config->switchSettings()->switchType())));
     }
   } else {
     switchIdToSwitchInfo.emplace(
@@ -1311,6 +1313,46 @@ ResolvedNextHop makeResolvedNextHop(
       std::nullopt, // label action
       false, // disableTTLDecrement
       topologyInfo);
+}
+
+std::vector<RouteNextHopSet>
+getUcmpNextHops(int maxWidth, int numGroups, uint32_t seed) {
+  // Weight constants for alternating pattern
+  constexpr auto oddWeight = 3;
+  constexpr auto evenWeight = 2;
+  constexpr auto kMaxOctetValue = 255;
+
+  std::vector<RouteNextHopSet> result;
+  for (int i = 0; i < numGroups; ++i) {
+    RouteNextHopSet ecmpNexthopsCur;
+    int groupWeight = 0;
+
+    // We need Ip address of NextHops to be unique across calls.
+    // Using 4096 separation to avoid IP collisions when called sequentially
+    int totalGroupIndex = seed * 4096 + i;
+    int firstOctet = ((totalGroupIndex / kMaxOctetValue) + 1) % kMaxOctetValue;
+    int secondOctet = (totalGroupIndex % kMaxOctetValue) + 1;
+
+    for (int j = 0; j < maxWidth; j++) {
+      int ucmpWeight = j % 2 == 0 ? oddWeight : evenWeight;
+      if (groupWeight + ucmpWeight > maxWidth) {
+        ucmpWeight = 1;
+      }
+      groupWeight += ucmpWeight;
+      ecmpNexthopsCur.insert(ResolvedNextHop(
+          folly::IPAddress(
+              folly::to<std::string>(
+                  firstOctet, ".", secondOctet, ".1.", j + 1)),
+          InterfaceID(j + 1),
+          ucmpWeight));
+      if (groupWeight == maxWidth) {
+        break;
+      }
+    }
+    result.push_back(std::move(ecmpNexthopsCur));
+  }
+
+  return result;
 }
 
 RoutePrefixV4 makePrefixV4(std::string str) {

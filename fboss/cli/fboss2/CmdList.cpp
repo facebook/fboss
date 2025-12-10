@@ -39,6 +39,8 @@
 #include "fboss/cli/fboss2/commands/show/example/CmdShowExample.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
 #include "fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h"
+#include "fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringCounters.h"
+#include "fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringDetails.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
@@ -148,7 +150,17 @@ const CommandTree& kCommandTree() {
            {"inputBalance",
             "Show Fabric input balanced given destination switch name(s)",
             commandHandler<CmdShowFabricInputBalance>,
-            argTypeHandler<CmdShowFabricInputBalanceTraits>}}},
+            argTypeHandler<CmdShowFabricInputBalanceTraits>},
+           {"monitoring",
+            "Show Fabric monitoring information",
+            {{"counters",
+              "Show Fabric link monitoring counters",
+              commandHandler<CmdShowFabricMonitoringCounters>,
+              argTypeHandler<CmdShowFabricMonitoringCountersTraits>},
+             {"details",
+              "Show Fabric link monitoring details",
+              commandHandler<CmdShowFabricMonitoringDetails>,
+              argTypeHandler<CmdShowFabricMonitoringDetailsTraits>}}}}},
 
       {"show",
        "flowlet",
@@ -355,10 +367,14 @@ const CommandTree& kCommandTree() {
           "sdk",
           "Show SDK state",
           {
-              {"dump",
-               "dump",
-               commandHandler<CmdShowSdkDump>,
-               argTypeHandler<CmdShowSdkDumpTraits>},
+              {"dump", // rename this to "qsfp", "dump" is too generic
+               "Get QSFP SDK state (NOTE: this only dumps qsfp sdk state)",
+               commandHandler<CmdShowQsfpSdkDump>,
+               argTypeHandler<CmdShowQsfpSdkDumpTraits>},
+              {"agent",
+               "Get Agent SDK state",
+               commandHandler<CmdShowAgentSdkDump>,
+               argTypeHandler<CmdShowAgentSdkDumpTraits>},
           },
       },
 

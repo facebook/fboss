@@ -92,7 +92,7 @@ class BcmAddDelEcmpTest : public BcmTest {
         [](RoutePrefixV6 prefix) {
           return IPAddress::createNetwork(prefix.str());
         });
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       EXPECT_LT(cidrNetworks_.size(), masterLogicalPortIds().size());
       auto ecmpWidth = cidrNetworks_.size() + 1;
       for (auto& cidrNetwork : cidrNetworks_) {
@@ -141,11 +141,11 @@ class BcmAddDelEcmpTest : public BcmTest {
       }
       cidrNetworks_.resize(routesRemaining);
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       auto ecmpCount = utility::getEcmpsInHw(getHwSwitch()).size();
       EXPECT_EQ(cidrNetworks_.size(), ecmpCount);
     };
-    auto verifyPostWB = [=]() {
+    auto verifyPostWB = [=, this]() {
       auto ecmpCount = utility::getEcmpsInHw(getHwSwitch()).size();
       EXPECT_EQ(cidrNetworks_.size(), ecmpCount);
     };

@@ -24,6 +24,8 @@ class FunctionCallTimeReporter {
   static std::shared_ptr<FunctionCallTimeReporter> getInstance();
   FunctionCallTimeReporter(const FunctionCallTimeReporter&) = delete;
   FunctionCallTimeReporter& operator=(const FunctionCallTimeReporter&) = delete;
+  FunctionCallTimeReporter(FunctionCallTimeReporter&&) = delete;
+  FunctionCallTimeReporter& operator=(FunctionCallTimeReporter&&) = delete;
   FunctionCallTimeReporter() = default;
   ~FunctionCallTimeReporter() = default;
   void start();
@@ -42,6 +44,11 @@ class FunctionCallTimeReporter {
  private:
   struct CallTimeTracker {
     ~CallTimeTracker();
+    CallTimeTracker() = default;
+    CallTimeTracker(const CallTimeTracker&) = delete;
+    CallTimeTracker& operator=(const CallTimeTracker&) = delete;
+    CallTimeTracker(CallTimeTracker&&) = delete;
+    CallTimeTracker& operator=(CallTimeTracker&&) = delete;
     void callStart() {
       startTime_ = std::chrono::steady_clock::now();
     }
@@ -78,5 +85,7 @@ class ScopedCallTimer {
   ~ScopedCallTimer();
   ScopedCallTimer(const ScopedCallTimer&) = delete;
   ScopedCallTimer& operator=(const ScopedCallTimer&) = delete;
+  ScopedCallTimer(ScopedCallTimer&&) = delete;
+  ScopedCallTimer& operator=(ScopedCallTimer&&) = delete;
 };
 } // namespace facebook::fboss

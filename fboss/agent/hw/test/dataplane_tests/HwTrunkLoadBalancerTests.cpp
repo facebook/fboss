@@ -80,8 +80,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
   std::vector<PortDescriptor> getPhysicalPorts(AggPortInfo aggInfo) const {
     std::vector<PortDescriptor> physicalPorts;
     for (auto i = 0; i < aggInfo.numPhysicalPorts(); ++i) {
-      physicalPorts.push_back(
-          PortDescriptor(PortID(masterLogicalPortIds()[i])));
+      physicalPorts.emplace_back(PortID(masterLogicalPortIds()[i]));
     }
     return physicalPorts;
   }
@@ -307,22 +306,25 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       auto config = configureAggregatePorts(aggInfo);
       applyConfigAndEnableTrunks(config);
       setupIPECMP(aggInfo);
-      applyNewState(utility::addLoadBalancers(
-          getHwSwitchEnsemble(),
-          getProgrammedState(),
-          loadBalancers,
-          scopeResolver()));
+      applyNewState(
+          utility::addLoadBalancers(
+              getHwSwitchEnsemble(),
+              getProgrammedState(),
+              loadBalancers,
+              scopeResolver()));
       if (getProgrammedState()->getLoadBalancers()->getNodeIf(
               LoadBalancerID::AGGREGATE_PORT)) {
-        EXPECT_TRUE(utility::isHwDeterministicSeed(
-            getHwSwitch(),
-            getProgrammedState(),
-            LoadBalancerID::AGGREGATE_PORT));
+        EXPECT_TRUE(
+            utility::isHwDeterministicSeed(
+                getHwSwitch(),
+                getProgrammedState(),
+                LoadBalancerID::AGGREGATE_PORT));
       }
       if (getProgrammedState()->getLoadBalancers()->getNodeIf(
               LoadBalancerID::ECMP)) {
-        EXPECT_TRUE(utility::isHwDeterministicSeed(
-            getHwSwitch(), getProgrammedState(), LoadBalancerID::ECMP));
+        EXPECT_TRUE(
+            utility::isHwDeterministicSeed(
+                getHwSwitch(), getProgrammedState(), LoadBalancerID::ECMP));
       }
     };
     auto verify = [=, this]() {
@@ -348,11 +350,12 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       auto config = configureAggregatePorts(aggInfo);
       applyConfigAndEnableTrunks(config);
       setupIP2MPLSECMP(aggInfo);
-      applyNewState(utility::addLoadBalancers(
-          getHwSwitchEnsemble(),
-          getProgrammedState(),
-          loadBalancers,
-          scopeResolver()));
+      applyNewState(
+          utility::addLoadBalancers(
+              getHwSwitchEnsemble(),
+              getProgrammedState(),
+              loadBalancers,
+              scopeResolver()));
     };
     auto verify = [=, this]() {
       pumpIPTrafficAndVerifyLoadBalanced(
@@ -385,11 +388,12 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       auto config = configureAggregatePorts(aggInfo);
       applyConfigAndEnableTrunks(config);
       setupMPLSECMP(aggInfo);
-      applyNewState(utility::addLoadBalancers(
-          getHwSwitchEnsemble(),
-          getProgrammedState(),
-          loadBalancers,
-          scopeResolver()));
+      applyNewState(
+          utility::addLoadBalancers(
+              getHwSwitchEnsemble(),
+              getProgrammedState(),
+              loadBalancers,
+              scopeResolver()));
     };
     auto verify = [=, this]() {
       pumpMPLSTrafficAndVerifyLoadBalanced(
@@ -414,11 +418,12 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       auto config = configureAggregatePorts(aggInfo);
       applyNewConfig(config);
       setupMPLSECMP(aggInfo);
-      applyNewState(utility::addLoadBalancers(
-          getHwSwitchEnsemble(),
-          getProgrammedState(),
-          loadBalancers,
-          scopeResolver()));
+      applyNewState(
+          utility::addLoadBalancers(
+              getHwSwitchEnsemble(),
+              getProgrammedState(),
+              loadBalancers,
+              scopeResolver()));
     };
     auto verify = [=, this]() {
       pumpMPLSTrafficAndVerifyLoadBalanced(

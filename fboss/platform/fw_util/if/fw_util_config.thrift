@@ -148,7 +148,7 @@ struct FwConfig {
   // SHA-1 sum for firmware
   8: optional string sha1sum;
   // Desired version for firmware
-  9: string desiredVersion;
+  9: optional string desiredVersion;
 }
 
 typedef string DeviceName

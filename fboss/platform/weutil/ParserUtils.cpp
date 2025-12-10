@@ -78,7 +78,7 @@ std::vector<uint8_t> ParserUtils::loadEeprom(
   } catch (std::exception& ex) {
     std::cout << "Failed to detect EEPROM size (" << eeprom
               << "): " << ex.what() << std::endl;
-    throw std::runtime_error("Unabled to detect EEPROM size.");
+    throw std::runtime_error("Unable to detect EEPROM size.");
   }
 
   // Now, read the eeprom
@@ -92,20 +92,6 @@ std::vector<uint8_t> ParserUtils::loadEeprom(
   return result;
 }
 
-std::string ParserUtils::parseLeUint(int len, unsigned char* ptr) {
-  if (len > 4) {
-    throw std::runtime_error("Unsigned int can only be up to 4 bytes.");
-  }
-  unsigned int readVal = 0;
-  int cursor = len - 1;
-  for (int i = 0; i < len; i++) {
-    readVal <<= 8;
-    readVal |= (unsigned int)ptr[cursor];
-    cursor -= 1;
-  }
-  return std::to_string(readVal);
-}
-
 std::string ParserUtils::parseBeUint(int len, unsigned char* ptr) {
   if (len > 4) {
     throw std::runtime_error("Unsigned int can only be up to 4 bytes.");
@@ -116,19 +102,6 @@ std::string ParserUtils::parseBeUint(int len, unsigned char* ptr) {
     readVal |= (unsigned int)ptr[i];
   }
   return std::to_string(readVal);
-}
-
-std::string ParserUtils::parseLeHex(int len, unsigned char* ptr) {
-  std::string retVal;
-  int cursor = len - 1;
-  for (int i = 0; i < len; i++) {
-    int val = ptr[cursor];
-    std::string converter = "0123456789abcdef";
-    retVal =
-        retVal + converter[static_cast<int>(val / 16)] + converter[val % 16];
-    cursor -= 1;
-  }
-  return "0x" + retVal;
 }
 
 std::string ParserUtils::parseBeHex(int len, unsigned char* ptr) {
@@ -161,23 +134,6 @@ std::string ParserUtils::parseMac(int len, unsigned char* ptr) {
   retVal =
       parseMacHelper(len - 2, ptr, true) + "," + parseBeUint(2, &ptr[len - 2]);
   return retVal;
-}
-
-std::string ParserUtils::parseDate(int len, unsigned char* ptr) {
-  std::string retVal;
-  if (len != 4) {
-    throw std::runtime_error("Date field must be 4 Bytes Long!");
-  }
-  unsigned int year = (unsigned int)ptr[1] + (unsigned int)ptr[0];
-  unsigned int month = (unsigned int)ptr[2];
-  unsigned int day = (unsigned int)ptr[3];
-  std::string yearString = std::to_string(year % 100);
-  std::string monthString = std::to_string(month);
-  std::string dayString = std::to_string(day);
-  yearString = (yearString.length() == 1 ? "0" : "") + yearString;
-  monthString = (monthString.length() == 1 ? "0" : "") + monthString;
-  dayString = (dayString.length() == 1 ? "0" : "") + dayString;
-  return monthString + "-" + dayString + "-" + yearString;
 }
 
 } // namespace facebook::fboss::platform

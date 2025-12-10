@@ -68,6 +68,7 @@ struct TxPacket {
   2: optional i32 port;
   3: optional i32 queue;
   4: i32 length;
+  5: common.TxPacketType packetType;
 }
 
 struct RxPacket {
@@ -113,6 +114,7 @@ struct HwSwitchStats {
   20: hardware_stats.HwSwitchTemperatureStats switchTemperatureStats;
   @cpp.Type{template = "folly::F14FastMap"}
   21: map<string, hardware_stats.HwRouterInterfaceStats> hwRouterInterfaceStats;
+  22: hardware_stats.HwSwitchHardResetStats hardResetStats;
 }
 
 service MultiSwitchCtrl {

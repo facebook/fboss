@@ -123,7 +123,8 @@ void setupPfc(
     cfg.cpuTrafficPolicy() = std::move(cpuPolicy);
     std::map<int, std::string> portIdToQosPolicy{};
     for (const auto& portId : ensemble->masterLogicalPortIds(
-             {cfg::PortType::CPU_PORT, cfg::PortType::RECYCLE_PORT})) {
+             std::set<cfg::PortType>{
+                 cfg::PortType::CPU_PORT, cfg::PortType::RECYCLE_PORT})) {
       portIdToQosPolicy[static_cast<int>(portId)] = kCpuQueueingPolicy;
     }
     if (portIdToQosPolicy.size()) {
@@ -388,7 +389,7 @@ std::unique_ptr<TxPacket> makePfcFramePacket(
   folly::MacAddress intfMac =
       utility::getMacForFirstInterfaceWithPorts(ensemble.getProgrammedState());
   MacAddressGenerator::ResourceT srcMac =
-      utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+      utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
   return utility::makeEthTxPacket(
       ensemble.getSw(),
       vlanId,

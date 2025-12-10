@@ -126,6 +126,22 @@
             }
           ]
       },
+      "EOLO-13T-5H-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.1"
+            }
+          ]
+      },
+      "EOLO-13T-5H-SDR1": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.1"
+            }
+          ]
+      },
       "EOLO-168HG-02-1B": {
           "versions": [
             {
@@ -135,6 +151,22 @@
           ]
       },
       "EOLO-168HG-02-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.12"
+            }
+          ]
+      },
+      "EOLO-168HG-02-9B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.12"
+            }
+          ]
+      },
+      "EOLO-168HG-02-9T": {
           "versions": [
             {
               "fwType": 1,
@@ -234,7 +266,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "2.9"
+              "version": "2.11"
             }
           ]
       },
@@ -243,6 +275,30 @@
             {
               "fwType": 1,
               "version": "1.16"
+            }
+          ]
+      },
+      "FTCE4717E1PCBFB1": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.16"
+            }
+          ]
+      },
+      "FTCE4717E1PCBFB3": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.16"
+            }
+          ]
+      },
+      "FTCF2519E3PCA-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.4"
             }
           ]
       },
@@ -430,7 +486,15 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "103.134"
+              "version": "103.137"
+            }
+          ]
+      },
+      "T-OL8CNT-NFB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "103.137"
             }
           ]
       },
@@ -438,7 +502,31 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "103.134"
+              "version": "103.137"
+            }
+          ]
+      },
+      "T-OL8CNT-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "103.137"
+            }
+          ]
+      },
+      "T-RH8ENH-N00": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "86.245"
+            }
+          ]
+      },
+      "T-RH8ENH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "86.245"
             }
           ]
       }

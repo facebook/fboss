@@ -71,6 +71,8 @@ class MockAsic : public HwAsic {
       case cfg::PortType::MANAGEMENT_PORT:
       case cfg::PortType::RECYCLE_PORT:
       case cfg::PortType::EVENTOR_PORT:
+      case cfg::PortType::HYPER_PORT:
+      case cfg::PortType::HYPER_PORT_MEMBER:
         return {cfg::StreamType::UNICAST};
       case cfg::PortType::FABRIC_PORT:
         return {cfg::StreamType::FABRIC_TX};
@@ -147,14 +149,14 @@ class MockAsic : public HwAsic {
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     return 512;
   }
-  std::optional<uint32_t> getMaxDlbEcmpGroups() const override {
-    return 7;
-  }
   std::optional<uint32_t> getMaxNdpTableSize() const override {
     return 8;
   }
   std::optional<uint32_t> getMaxArpTableSize() const override {
     return 8;
+  }
+  std::optional<uint32_t> getMaxUnifiedNeighborTableSize() const override {
+    return 12;
   }
   AsicVendor getAsicVendor() const override {
     return HwAsic::AsicVendor::ASIC_VENDOR_MOCK;
@@ -191,6 +193,7 @@ class MockAsic : public HwAsic {
         return 1;
       case cfg::MMUScalingFactor::FOUR:
         return 2;
+      case cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT:
       case cfg::MMUScalingFactor::ONE_32768TH:
         // Unsupported
         throw FbossError(
@@ -223,6 +226,16 @@ class MockAsic : public HwAsic {
   }
   int getHiPriCpuQueueId() const override {
     throw FbossError("Mock ASIC does not support cpu queue");
+  }
+  std::optional<uint32_t> getMaxArsGroups() const override {
+    return 7;
+  }
+  std::optional<uint32_t> getArsBaseIndex() const override {
+    return std::nullopt;
+  }
+  const std::set<uint16_t>& getL1FabricPortsToConnectToL2() const override {
+    static const std::set<uint16_t> l1FabricPortsToConnectToL2{};
+    return l1FabricPortsToConnectToL2;
   }
 };
 

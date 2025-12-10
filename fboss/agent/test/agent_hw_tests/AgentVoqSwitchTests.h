@@ -99,7 +99,8 @@ class AgentVoqSwitchTest : public AgentHwTest {
         ports->end(),
         [this, &portDescs](const auto& idAndPort) {
           const auto port = idAndPort.second;
-          if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
+          if (port->getPortType() == cfg::PortType::INTERFACE_PORT ||
+              port->getPortType() == cfg::PortType::HYPER_PORT) {
             portDescs.push_back(PortDescriptor(getSystemPortID(
                 PortDescriptor(port->getID()), cfg::Scope::GLOBAL)));
           }
@@ -122,6 +123,6 @@ class AgentVoqSwitchTest : public AgentHwTest {
     return portDescs;
   }
 
-  std::string getSdkMajorVersion();
+  std::string getSdkMajorVersion(const SwitchID& switchId);
 };
 } // namespace facebook::fboss

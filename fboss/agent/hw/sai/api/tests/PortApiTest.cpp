@@ -84,6 +84,16 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // CondEntropyRehashSeed
         std::nullopt, // ShelEnable
         std::nullopt, // FecErrorDetectEnable
+        std::nullopt, // AmIdles
+        std::nullopt, // FabricSystemPort
+        std::nullopt, // StaticModuleId
+        std::nullopt, // IsHyperPortMember
+        std::nullopt, // HyperPortMemberList
+        std::nullopt, // PfcMonitorDirection
+        std::nullopt, // QosDot1pToTcMap
+        std::nullopt, // QosTcAndColorToDot1pMap
+        std::nullopt, // QosIngressBufferProfileList
+        std::nullopt, // QosEgressBufferProfileList
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -340,6 +350,22 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   auto gotPortTcToQueue = portApi->getAttribute(portId, portTcToQueue);
   EXPECT_EQ(gotPortTcToQueue, qosMapTcToQueue);
 
+  // Port Dot1p (PCP) to TC map get/set
+  sai_object_id_t qosMapDot1pToTc{44};
+  SaiPortTraits::Attributes::QosDot1pToTcMap portDot1pToTc{qosMapDot1pToTc};
+  portApi->setAttribute(portId, portDot1pToTc);
+  auto gotPortDot1pToTc = portApi->getAttribute(portId, portDot1pToTc);
+  EXPECT_EQ(gotPortDot1pToTc, qosMapDot1pToTc);
+
+  // Port TC and Color to Dot1p (PCP) map get/set
+  sai_object_id_t qosMapTcAndColorToDot1p{45};
+  SaiPortTraits::Attributes::QosTcAndColorToDot1pMap portTcAndColorToDot1p{
+      qosMapTcAndColorToDot1p};
+  portApi->setAttribute(portId, portTcAndColorToDot1p);
+  auto gotPortTcAndColorToDot1p =
+      portApi->getAttribute(portId, portTcAndColorToDot1p);
+  EXPECT_EQ(gotPortTcAndColorToDot1p, qosMapTcAndColorToDot1p);
+
   // Port TTL decrement
   SaiPortTraits::Attributes::DisableTtlDecrement disableTtlDec{true};
   portApi->setAttribute(portId, disableTtlDec);
@@ -535,4 +561,90 @@ TEST_F(PortApiTest, getFabricReachability) {
       id, SaiPortTraits::Attributes::FabricReachability{reachability});
   EXPECT_EQ(reachabilityGot.switch_id, switchId);
   EXPECT_TRUE(reachabilityGot.reachable);
+}
+
+TEST_F(PortApiTest, getQosEgressBufferProfileListPresized) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+  std::vector<sai_object_id_t> tempProfileList;
+  tempProfileList.resize(4);
+  SaiPortTraits::Attributes::QosEgressBufferProfileList profileListAttr{
+      tempProfileList};
+  auto gotProfiles = portApi->getAttribute(portId, profileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 0);
+}
+
+TEST_F(PortApiTest, getQosEgressBufferProfileListUnsized) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+  SaiPortTraits::Attributes::QosEgressBufferProfileList profileListAttr;
+  auto gotProfiles = portApi->getAttribute(portId, profileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 0);
+}
+
+TEST_F(PortApiTest, setQosEgressBufferProfileList) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+
+  // Set a list of buffer profile IDs
+  std::vector<sai_object_id_t> profileIds{10, 20, 30};
+  SaiPortTraits::Attributes::QosEgressBufferProfileList profileListAttr{
+      profileIds};
+  portApi->setAttribute(portId, profileListAttr);
+
+  // Get the list back and verify
+  SaiPortTraits::Attributes::QosEgressBufferProfileList getProfileListAttr;
+  auto gotProfiles = portApi->getAttribute(portId, getProfileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 3);
+  EXPECT_EQ(gotProfiles, profileIds);
+
+  // Clear the list
+  std::vector<sai_object_id_t> emptyList;
+  SaiPortTraits::Attributes::QosEgressBufferProfileList emptyListAttr{
+      emptyList};
+  portApi->setAttribute(portId, emptyListAttr);
+
+  // Verify it's empty
+  auto gotEmptyProfiles = portApi->getAttribute(portId, getProfileListAttr);
+  EXPECT_EQ(gotEmptyProfiles.size(), 0);
+}
+
+TEST_F(PortApiTest, getQosIngressBufferProfileListPresized) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+  std::vector<sai_object_id_t> tempProfileList;
+  tempProfileList.resize(4);
+  SaiPortTraits::Attributes::QosIngressBufferProfileList profileListAttr{
+      tempProfileList};
+  auto gotProfiles = portApi->getAttribute(portId, profileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 0);
+}
+
+TEST_F(PortApiTest, getQosIngressBufferProfileListUnsized) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+  SaiPortTraits::Attributes::QosIngressBufferProfileList profileListAttr;
+  auto gotProfiles = portApi->getAttribute(portId, profileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 0);
+}
+
+TEST_F(PortApiTest, setQosIngressBufferProfileList) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+
+  // Set a list of buffer profile IDs
+  std::vector<sai_object_id_t> profileIds{40, 50, 60};
+  SaiPortTraits::Attributes::QosIngressBufferProfileList profileListAttr{
+      profileIds};
+  portApi->setAttribute(portId, profileListAttr);
+
+  // Get the list back and verify
+  SaiPortTraits::Attributes::QosIngressBufferProfileList getProfileListAttr;
+  auto gotProfiles = portApi->getAttribute(portId, getProfileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 3);
+  EXPECT_EQ(gotProfiles, profileIds);
+
+  // Clear the list
+  std::vector<sai_object_id_t> emptyList;
+  SaiPortTraits::Attributes::QosIngressBufferProfileList emptyListAttr{
+      emptyList};
+  portApi->setAttribute(portId, emptyListAttr);
+
+  // Verify it's empty
+  auto gotEmptyProfiles = portApi->getAttribute(portId, getProfileListAttr);
+  EXPECT_EQ(gotEmptyProfiles.size(), 0);
 }

@@ -12,8 +12,10 @@ add_fbthrift_cpp_library(
 )
 
 add_executable(showtech
+  fboss/platform/showtech/FanImpl.cpp
   fboss/platform/showtech/I2cHelper.cpp
   fboss/platform/showtech/Main.cpp
+  fboss/platform/showtech/PsuHelper.cpp
   fboss/platform/showtech/Utils.cpp
 )
 
@@ -24,6 +26,13 @@ target_link_libraries(showtech
   showtech_config_cpp2
   platform_config_lib
   platform_name_lib
+  common_file_utils
+  i2c_ctrl
+  gpiod_line
+  fan_service_config_types_cpp2
+  ${LIBGPIOD}
+  ${RE2}
+  CLI11::CLI11
 )
 
 install(TARGETS showtech)

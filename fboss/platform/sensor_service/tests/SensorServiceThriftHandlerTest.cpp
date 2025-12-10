@@ -13,15 +13,15 @@ namespace facebook::fboss::platform::sensor_service {
 class SensorServiceThriftHandlerTest : public testing::Test {
  public:
   void SetUp() override {
-    auto tmpDir = folly::test::TemporaryDirectory();
-    auto sensorServiceImpl =
-        createSensorServiceImplForTest(tmpDir.path().string());
-    sensorServiceImpl->fetchSensorData();
-    sensorServiceHandler_ = std::make_unique<SensorServiceThriftHandler>(
-        std::move(sensorServiceImpl));
+    folly::test::TemporaryDirectory tmpDir;
+    auto config = getMockSensorConfig(tmpDir.path().string());
+    auto impl = std::make_shared<SensorServiceImpl>(config);
+    impl->fetchSensorData();
+    sensorServiceHandler_ =
+        std::make_unique<SensorServiceThriftHandler>(std::move(impl));
   }
   std::unique_ptr<SensorServiceThriftHandler> sensorServiceHandler_;
-  std::map<std::string, float> sensorMockData_{getDefaultMockSensorData()};
+  std::map<std::string, float> sensorMockData_{getMockSensorData()};
 };
 
 TEST_F(
@@ -33,13 +33,24 @@ TEST_F(
   EXPECT_EQ(response.sensorData()->size(), sensorMockData_.size());
   for (auto& sensorDatum : *response.sensorData()) {
     EXPECT_EQ(sensorMockData_.at(*sensorDatum.name()), *sensorDatum.value());
+    EXPECT_EQ(*sensorDatum.slotPath(), "/");
+    if (*sensorDatum.name() == "MOCK_FRU_SENSOR1") {
+      EXPECT_TRUE(
+          sensorDatum.sysfsPath()->ends_with("mock_fru_sensor_1_path:temp1"));
+    } else if (*sensorDatum.name() == "MOCK_FRU_SENSOR2") {
+      EXPECT_TRUE(
+          sensorDatum.sysfsPath()->ends_with("mock_fru_sensor_2_path:fan1"));
+    } else if (*sensorDatum.name() == "MOCK_FRU_SENSOR3") {
+      EXPECT_TRUE(
+          sensorDatum.sysfsPath()->ends_with("mock_fru_sensor_3_path:vin"));
+    }
   }
 }
 
 TEST_F(
     SensorServiceThriftHandlerTest,
     getSensorValuesByNameWithNonEmptySensorName) {
-  auto mockSensorData = getDefaultMockSensorData();
+  auto mockSensorData = getMockSensorData();
   auto mockSensorNamesIt = std::views::keys(mockSensorData).begin();
 
   auto sensorNames = std::vector<std::string>{*mockSensorNamesIt};

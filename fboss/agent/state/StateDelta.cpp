@@ -251,6 +251,11 @@ MultiSwitchForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
       old_->getFibs().get(), new_->getFibs().get());
 }
 
+MultiSwitchFibInfoMapDelta StateDelta::getFibsInfoDelta() const {
+  return MultiSwitchFibInfoMapDelta(
+      old_->getFibsInfoMap().get(), new_->getFibsInfoMap().get());
+}
+
 ThriftMapDelta<MultiSwitchSettings> StateDelta::getSwitchSettingsDelta() const {
   return ThriftMapDelta<MultiSwitchSettings>(
       old_->getSwitchSettings().get(), new_->getSwitchSettings().get());
@@ -287,6 +292,13 @@ StateDelta::getRemoteSystemPortsDelta() const {
       old_->getRemoteSystemPorts().get(), new_->getRemoteSystemPorts().get());
 }
 
+MultiSwitchMapDelta<MultiSwitchSystemPortMap>
+StateDelta::getFabricLinkMonitoringSystemPortsDelta() const {
+  return MultiSwitchMapDelta<MultiSwitchSystemPortMap>(
+      old_->getFabricLinkMonitoringSystemPorts().get(),
+      new_->getFabricLinkMonitoringSystemPorts().get());
+}
+
 ThriftMapDelta<IpTunnelMap> StateDelta::getIpTunnelsDelta() const {
   return getFirstMapDelta<IpTunnelMap>(old_->getTunnels(), new_->getTunnels());
 }
@@ -299,8 +311,9 @@ MultiSwitchMapDelta<MultiTeFlowTable> StateDelta::getTeFlowEntriesDelta()
 
 const fsdb::OperDelta& StateDelta::getOperDelta() const {
   if (!operDelta_.has_value()) {
-    operDelta_.emplace(fsdb::computeOperDelta(
-        old_, new_, {}, FLAGS_state_oper_delta_use_id_paths));
+    operDelta_.emplace(
+        fsdb::computeOperDelta(
+            old_, new_, {}, FLAGS_state_oper_delta_use_id_paths));
   }
   return operDelta_.value();
 }
@@ -351,13 +364,15 @@ bool isStateDeltaEmpty(const StateDelta& stateDelta) {
           if constexpr (
               std::is_same_v<Name, switch_state_tags::switchSettingsMap> ||
               std::is_same_v<Name, switch_state_tags::controlPlaneMap>) {
-            isEmpty = (DeltaFunctions::isEmpty(ThriftMapDelta<ChildType>(
-                stateDelta.oldState()->get<Name>().get(),
-                stateDelta.newState()->get<Name>().get())));
+            isEmpty = (DeltaFunctions::isEmpty(
+                ThriftMapDelta<ChildType>(
+                    stateDelta.oldState()->get<Name>().get(),
+                    stateDelta.newState()->get<Name>().get())));
           } else {
-            isEmpty = (DeltaFunctions::isEmpty(MultiSwitchMapDelta<ChildType>(
-                stateDelta.oldState()->get<Name>().get(),
-                stateDelta.newState()->get<Name>().get())));
+            isEmpty = (DeltaFunctions::isEmpty(
+                MultiSwitchMapDelta<ChildType>(
+                    stateDelta.oldState()->get<Name>().get(),
+                    stateDelta.newState()->get<Name>().get())));
           }
           if (!isEmpty) {
             XLOG(INFO) << "Delta for " << utility::TagName<Name>::value()

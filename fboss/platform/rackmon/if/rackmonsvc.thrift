@@ -4,6 +4,7 @@ namespace py rackmonsvc.rackmonsvc
 namespace hack Rackmonsvc
 
 include "fboss/agent/if/fboss.thrift"
+include "thrift/annotation/thrift.thrift"
 
 /*
  * Please refer to below document for the Modbus protocal and terms:
@@ -44,6 +45,10 @@ enum ModbusDeviceType {
   ORV3_HPR_BBU = 6,
   ORV3_HPR_PMM_PSU = 7,
   ORV3_HPR_PMM_BBU = 8,
+  ORV3_HPR_CBU = 9,
+  ORV3_HPR_PMM_CBU = 10,
+  MINIUPS = 11,
+  ORV3_RPU2 = 12,
 }
 
 /*
@@ -54,7 +59,10 @@ struct ModbusDeviceInfo {
      The same address may be discovered across other physical ports/buses.
      Considering this no longer uniquely represents a physical address,
      callers are urged to migrate to the uniqueDevAddress */
-  1: i16 devAddress (deprecated = "Use uniqueDevAddress");
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Use uniqueDevAddress"},
+  }
+  1: i16 devAddress;
   2: ModbusDeviceMode mode;
   3: i32 baudrate;
   4: i32 timeouts;

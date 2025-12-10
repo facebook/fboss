@@ -5,6 +5,7 @@
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
@@ -83,6 +84,18 @@ const HwSwitchMatcher& SwitchIdScopeResolver::voqSwitchMatcher() const {
   return *voqSwitchMatcher_;
 }
 
+const HwSwitchMatcher& SwitchIdScopeResolver::scope(
+    const std::shared_ptr<ControlPlane>& /*c*/) const {
+  // ControlPlane (CPU port) is supported for L3 switches (VOQ/NPU) and FABRIC
+  // switches. For L3 switches, use l3SwitchMatcher and for FABRIC switches
+  //  use allSwitchMatcher
+  if (l3SwitchMatcher_) {
+    return *l3SwitchMatcher_;
+  }
+  // Non l3 switches with CPU ports
+  return allSwitchMatcher();
+}
+
 HwSwitchMatcher SwitchIdScopeResolver::scope(PortID portId) const {
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo_) {
     auto switchInfo = switchIdAndSwitchInfo.second;
@@ -90,8 +103,9 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(PortID portId) const {
             *switchIdAndSwitchInfo.second.portIdRange()->minimum() &&
         static_cast<int64_t>(portId) <=
             *switchIdAndSwitchInfo.second.portIdRange()->maximum()) {
-      return HwSwitchMatcher(std::unordered_set<SwitchID>(
-          {SwitchID(switchIdAndSwitchInfo.first)}));
+      return HwSwitchMatcher(
+          std::unordered_set<SwitchID>(
+              {SwitchID(switchIdAndSwitchInfo.first)}));
     }
   }
   throw FbossError("No switch found for port ", portId);
@@ -269,6 +283,11 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 }
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<FibInfo>& /*fibInfo*/) const {
+  return l3SwitchMatcher();
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<LabelForwardingEntry>& /*entry*/) const {
   return l3SwitchMatcher();
 }
@@ -334,7 +353,7 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(cfg::SwitchType type) const {
   std::unordered_set<SwitchID> switchIds;
-  for (auto entry : switchIdToSwitchInfo_) {
+  for (const auto& entry : switchIdToSwitchInfo_) {
     if (entry.second.switchType().value() != type) {
       continue;
     }

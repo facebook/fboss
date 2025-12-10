@@ -40,7 +40,7 @@ std::unique_ptr<apache::thrift::Client<FbossCtrl>> fbossAgentClient() {
 } // namespace facebook
 
 int main(int argc, char** argv) {
-  folly::init(&argc, &argv);
+  const folly::Init init(&argc, &argv);
 
   folly::EventBase evb;
   facebook::fboss::QsfpCache qc;

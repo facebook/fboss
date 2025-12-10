@@ -148,6 +148,14 @@ struct PortFields {
   // errored cells from making it to the forwarding pipeline.
   58: optional bool fecErrorDetectEnable;
   59: optional bool desiredSelfHealingECMPLagEnable;
+  // Inter-packet gap in bits for this port
+  60: optional i32 interPacketGapBits;
+  // AM (Alignment Marker) idles configuration for this port
+  61: optional bool amIdles;
+  // Option to reset the initial credits for a port, primarily for tests
+  62: optional bool resetQueueCreditBalance;
+  // Switch ID for use with fabric links in Fabric Link Monitoring
+  63: optional i32 portSwitchId;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -157,6 +165,7 @@ struct TransceiverSpecFields {
   2: optional double cableLength;
   3: optional transceiver.MediaInterfaceCode mediaInterface;
   4: optional transceiver.TransceiverManagementInterface managementInterface;
+  5: optional transceiver.Vendor vendor;
 }
 
 struct AclTtl {
@@ -192,6 +201,7 @@ struct MatchAction {
   10: optional switch_config.UserDefinedTrapAction userDefinedTrap;
   11: optional switch_config.FlowletAction flowletAction;
   12: optional switch_config.SetEcmpHashAction ecmpHashAction;
+  13: optional bool enableAlternateArsMembers;
 }
 
 struct AclEntryFields {
@@ -268,6 +278,7 @@ struct MacEntryFields {
   2: switch_config.PortDescriptor portId;
   3: optional switch_config.AclLookupClass classID;
   4: MacEntryType type = MacEntryType.DYNAMIC_ENTRY;
+  5: optional bool configured;
 }
 
 struct NeighborResponseEntryFields {
@@ -453,6 +464,8 @@ struct SwitchSettingsFields {
   // PFC watchdog timer granularity which can be 1ms, 10ms or 100ms.
   58: optional i32 pfcWatchdogTimerGranularityMsec;
   59: optional i32 ecmpCompressionThresholdPct;
+  // System port offset for fabric link monitoring
+  60: optional i32 fabricLinkMonitoringSystemPortOffset;
 }
 
 struct RoutePrefix {
@@ -475,6 +488,8 @@ struct RouteNextHopEntry {
   // endup compressing nexthops due ECMP/DLB resources getting
   // exhausted.
   7: optional list<common.NextHopThrift> overrideNextHops;
+  8: optional i64 normalizedResolvedNextHopSetID;
+  9: optional i64 resolvedNextHopSetID;
 }
 
 struct RouteNextHopsMulti {
@@ -504,8 +519,18 @@ struct LabelForwardingEntryFields {
 
 struct FibContainerFields {
   1: i16 vrf;
-  2: map<string, RouteFields> fibV4 (allow_skip_thrift_cow = true);
-  3: map<string, RouteFields> fibV6 (allow_skip_thrift_cow = true);
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"allow_skip_thrift_cow": "1"},
+  }
+  2: map<string, RouteFields> fibV4;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"allow_skip_thrift_cow": "1"},
+  }
+  3: map<string, RouteFields> fibV6;
+}
+
+struct FibInfoFields {
+  1: map<i16, FibContainerFields> fibsMap;
 }
 
 struct TrafficClassToQosAttributeEntry {
@@ -543,6 +568,7 @@ struct QosPolicyFields {
   6: optional map<i16, i16> trafficClassToPgId;
   7: optional map<i16, i16> pfcPriorityToPgId;
   8: optional map<i16, i16> trafficClassToVoqId;
+  9: optional TrafficClassToQosAttributeMap pcpMap;
 }
 
 struct SocketAddress {
@@ -555,6 +581,7 @@ struct SflowCollectorFields {
   2: SocketAddress address;
 }
 
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
 struct InterfaceFields {
   1: i32 interfaceId;
   2: i32 routerId;
@@ -577,7 +604,6 @@ struct InterfaceFields {
   17: optional string dhcpV6Relay;
   18: map<string, string> dhcpRelayOverridesV4;
   19: map<string, string> dhcpRelayOverridesV6;
-
   /*
    * Set only on Remote Interfaces of VOQ switches.
    */
@@ -591,6 +617,9 @@ struct InterfaceFields {
 
   /* applicable only for port type of interface */
   23: optional i32 portId;
+  /* These fields contains information of remote GPU */
+  24: optional string desiredPeerName;
+  25: optional string desiredPeerAddressIPv6;
 }
 
 enum LacpState {
@@ -629,6 +658,9 @@ struct AggregatePortFields {
   4: i32 systemPriority;
   // network byte order
   5: i64 systemID;
+  // Minimum active link count to bring up/down the aggregate port
+  // If minimumLinkCountToUp is set, minimumLinkCount will be used as
+  // the lower bound to bring down the aggregate port
   6: i16 minimumLinkCount;
   7: list<Subport> ports;
   // portId to forwarding {ture -> enabled; false -> disabled};
@@ -637,6 +669,9 @@ struct AggregatePortFields {
   9: map<i32, ParticipantInfo> portToPartnerState;
   // List of interfaces for given aggregate port
   10: list<i32> interfaceIDs;
+  // Used as the upper bound to bring up the aggregate port
+  11: optional i16 minimumLinkCountToUp;
+  12: switch_config.AggregatePortType aggregatePortType = switch_config.AggregatePortType.LAG_PORT;
 }
 
 struct TeFlowEntryFields {
@@ -723,9 +758,15 @@ struct SwitchState {
     SwitchIdList,
     map<string, MirrorOnDropReportFields>
   > mirrorOnDropReportMaps;
+  124: map<SwitchIdList, FibInfoFields> fibsInfoMap;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;
+  // Fabric Link Monitoring system ports
+  602: map<
+    SwitchIdList,
+    map<i64, SystemPortFields>
+  > fabricLinkMonitoringSystemPortMaps;
 }
 
 struct RouteTableFields {

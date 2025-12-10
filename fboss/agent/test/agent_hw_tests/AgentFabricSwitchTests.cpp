@@ -181,7 +181,7 @@ TEST_F(AgentFabricSwitchTest, fabricPortIsolate) {
 
   auto verify = [=, this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    for (auto [switchId, fabricPortId] : switchId2FabricPortId) {
+    for (const auto& [switchId, fabricPortId] : switchId2FabricPortId) {
       utility::checkPortFabricReachability(
           getAgentEnsemble(), switchId, fabricPortId);
     }
@@ -250,13 +250,13 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
   void verifyState(cfg::PortState desiredState, const PortMap& ports) const {
     std::vector<PortID> portIds;
     for (const auto& [portId, _] : ports) {
-      portIds.push_back(PortID(portId));
+      portIds.emplace_back(portId);
     }
     verifyState(desiredState, portIds);
   }
   void verifyState(cfg::PortState desiredState, std::vector<PortID>& ports)
       const {
-    WITH_RETRIES_N(120, {
+    WITH_RETRIES_N(180, {
       if (desiredState == cfg::PortState::DISABLED) {
         auto numPorts = ports.size();
         auto switch2SwitchStats = getSw()->getHwSwitchStatsExpensive();
@@ -460,9 +460,8 @@ TEST_F(AgentFabricSwitchTest, switchReachability) {
       bool switchReachabilityWorking = false;
       WITH_RETRIES({
         auto switchReachability = getSw()->getSwitchReachability();
+        ASSERT_EVENTUALLY_TRUE(switchReachability.contains(switchId));
         auto switchIter = switchReachability.find(switchId);
-        EXPECT_EVENTUALLY_TRUE(
-            switchIter != getSw()->getSwitchReachability().end());
         for (auto& [destinationSwitchId, portGroupId] :
              *switchIter->second.switchIdToFabricPortGroupMap()) {
           auto portGroupIter =

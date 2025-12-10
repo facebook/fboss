@@ -1,13 +1,18 @@
-#include <time.h>
+#include <algorithm>
+#include <cctype>
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
 
+#include <CLI/CLI.hpp>
+#include <folly/String.h>
+#include <folly/init/Init.h>
 #include <tabulate/table.hpp>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
 #include "fboss/platform/helpers/InitCli.h"
@@ -70,6 +75,21 @@ std::string formatSensorValue(const T& val) {
   return oss.str();
 }
 
+std::string formatLastUpdatedAt(const auto& timestamp) {
+  if (!timestamp) {
+    return "never";
+  }
+  auto now = std::chrono::system_clock::now();
+  auto sensorTime = std::chrono::system_clock::from_time_t(*timestamp);
+  auto diff = now - sensorTime;
+  if (diff.count() < 0) {
+    return "never";
+  }
+  auto seconds = std::chrono::duration_cast<std::chrono::seconds>(diff).count();
+  auto timeStr = folly::prettyPrint(seconds, folly::PRETTY_TIME_HMS, false);
+  return folly::rtrimWhitespace(timeStr).str() + " ago";
+}
+
 void printSensorTable(const std::vector<sensor_service::SensorData>& sensors) {
   tabulate::Table table;
 
@@ -77,10 +97,10 @@ void printSensorTable(const std::vector<sensor_service::SensorData>& sensors) {
       {"name",
        "value",
        "status",
-       "upperCriticalVal",
-       "maxAlarmVal",
-       "minAlarmVal",
-       "lowerCriticalVal"});
+       "criticalRange",
+       "alarmRange",
+       "lastUpdated",
+       "sysfsPath"});
 
   size_t rowIndex = 1;
   for (const auto& sensor : sensors) {
@@ -89,10 +109,16 @@ void printSensorTable(const std::vector<sensor_service::SensorData>& sensors) {
         {*sensor.name(),
          formatSensorValue(sensor.value()),
          status,
-         formatValue(sensor.thresholds()->upperCriticalVal()),
-         formatValue(sensor.thresholds()->maxAlarmVal()),
-         formatValue(sensor.thresholds()->minAlarmVal()),
-         formatValue(sensor.thresholds()->lowerCriticalVal())});
+         fmt::format(
+             "[{}, {}]",
+             formatValue(sensor.thresholds()->lowerCriticalVal()),
+             formatValue(sensor.thresholds()->upperCriticalVal())),
+         fmt::format(
+             "[{}, {}]",
+             formatValue(sensor.thresholds()->minAlarmVal()),
+             formatValue(sensor.thresholds()->maxAlarmVal())),
+         formatLastUpdatedAt(sensor.timeStamp()),
+         *sensor.sysfsPath()});
     if (status == kStatusFail) {
       table[rowIndex].format().font_color(tabulate::Color::red);
     } else if (status == kStatusWarn) {
@@ -120,7 +146,30 @@ void printSensorTable(const std::vector<sensor_service::SensorData>& sensors) {
 // A sample sensor service plain text thrift client to be used by vendors.
 // This is not for internal production use.
 int main(int argc, char** argv) {
-  helpers::initCli(&argc, &argv, "sensor_service_client");
+  // Initialize folly with gflags disabled
+  folly::InitOptions options;
+  options.useGFlags(false);
+  folly::Init init(&argc, &argv, options);
+
+  CLI::App app{"Sensor service client for querying sensor data"};
+  app.set_version_flag("--version", helpers::getBuildVersion());
+
+  std::string slotPathFilter;
+
+  app.add_option(
+         "--slotpath", slotPathFilter, "Filter sensors by slotpath substring")
+      ->transform([](const std::string& input) {
+        std::string upper = input;
+        std::transform(upper.begin(), upper.end(), upper.begin(), ::toupper);
+        return upper;
+      });
+
+  try {
+    app.parse(argc, argv);
+  } catch (const CLI::ParseError& e) {
+    return app.exit(e);
+  }
+
   folly::EventBase eb;
   folly::SocketAddress sockAddr("::1", 5970);
   auto socket = folly::AsyncSocket::newSocket(&eb, sockAddr, 5000);
@@ -139,22 +188,38 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  std::map<sensor_config::SensorType, std::vector<sensor_service::SensorData>>
-      sensorsByType;
+  std::map<std::string, std::vector<sensor_service::SensorData>>
+      sensorsBySlotPath;
   int failureCount = 0;
 
+  std::set<std::string> uniqueSlotPaths;
   for (const auto& sensor : *res.sensorData()) {
-    sensorsByType[*sensor.sensorType()].push_back(sensor);
+    uniqueSlotPaths.insert(*sensor.slotPath());
+    // Filter by slotpath if specified
+    if (!slotPathFilter.empty() &&
+        sensor.slotPath()->find(slotPathFilter) == std::string::npos) {
+      continue;
+    }
+
+    sensorsBySlotPath[*sensor.slotPath()].push_back(sensor);
     if (getSensorStatus(sensor) != kStatusPass) {
       failureCount++;
     }
   }
 
+  // If no sensors match the filter, show available slotpaths
+  if (sensorsBySlotPath.empty() && !slotPathFilter.empty()) {
+    std::cout << "No sensors found for slotpath: " << slotPathFilter
+              << std::endl;
+    std::cout << "\nAvailable slotpaths:" << std::endl;
+    std::cout << folly::join("\n", uniqueSlotPaths) << std::endl;
+    return 1;
+  }
+
   std::cout << "\nSensor Service Output:\n";
 
-  for (const auto& [sensorType, sensors] : sensorsByType) {
-    std::cout << "\nSensor Type "
-              << apache::thrift::util::enumNameSafe(sensorType) << ":\n\n";
+  for (const auto& [slotPath, sensors] : sensorsBySlotPath) {
+    std::cout << "\nSlot Path: " << slotPath << ":\n\n";
     printSensorTable(sensors);
   }
 

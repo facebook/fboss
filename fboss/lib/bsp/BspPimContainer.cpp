@@ -38,15 +38,32 @@ BspPimContainer::BspPimContainer(BspPimMapping& bspPimMapping)
   }
   // Create PHY containers, 1 per PHY in a PIM
   for (auto phyMapping : *bspPimMapping.phyMapping()) {
-    CHECK(
-        phyIOControllers_.find(*phyMapping.second.phyIOControllerId()) !=
-        phyIOControllers_.end());
+    auto phyIOControllerId = *phyMapping.second.phyIOControllerId();
+    CHECK(phyIOControllers_.find(phyIOControllerId) != phyIOControllers_.end());
+
+    // Create an event base and thread if not already created for this PHY I/O
+    // controller.
+    if (phyIOToEvbThread_.find(phyIOControllerId) == phyIOToEvbThread_.end()) {
+      phyIOToEvbThread_[phyIOControllerId] = {};
+      phyIOToEvbThread_[phyIOControllerId].first =
+          std::make_unique<folly::EventBase>();
+      auto evb = phyIOToEvbThread_[phyIOControllerId].first.get();
+      phyIOToEvbThread_[phyIOControllerId].second =
+          std::make_unique<std::thread>([evb] { evb->loopForever(); });
+      XLOG(DBG3) << "Created PHY EventBase for PHY I/O controller "
+                 << phyIOControllerId;
+    }
+
+    // Map this PHY ID to the EventBase of its controller
+    phyToIOEvb_[phyMapping.first] =
+        phyIOToEvbThread_[phyIOControllerId].first.get();
+
     phyContainers_.emplace(
         phyMapping.first,
         std::make_unique<BspPhyContainer>(
             *bspPimMapping.pimID(),
             phyMapping.second,
-            phyIOControllers_[*phyMapping.second.phyIOControllerId()].get()));
+            phyIOControllers_[phyIOControllerId].get()));
   }
 }
 
@@ -74,10 +91,11 @@ const BspPhyContainer* BspPimContainer::getPhyContainerFromMdioID(
       return phyContainers_.at(phy.first).get();
     }
   }
-  throw FbossError(fmt::format(
-      "Couldn't find phy container for mdioID {:d}, PimID {:d}",
-      mdioControllerID,
-      *bspPimMapping_.pimID()));
+  throw FbossError(
+      fmt::format(
+          "Couldn't find phy container for mdioID {:d}, PimID {:d}",
+          mdioControllerID,
+          *bspPimMapping_.pimID()));
 }
 
 const std::map<uint32_t, const BspLedContainer*>
@@ -168,7 +186,14 @@ std::pair<uint64_t, uint64_t> BspPimContainer::getI2cTimeProfileMsec(
 }
 
 BspPimContainer::~BspPimContainer() {
+  // Gracefully terminate transceiver I/O EventBase threads
   for (auto& evb : ioToEvbThread_) {
+    evb.second.first->terminateLoopSoon();
+    evb.second.second->join();
+  }
+
+  // Gracefully terminate PHY I/O EventBase threads
+  for (auto& evb : phyIOToEvbThread_) {
     evb.second.first->terminateLoopSoon();
     evb.second.second->join();
   }

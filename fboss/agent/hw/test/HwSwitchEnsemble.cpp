@@ -558,12 +558,12 @@ std::map<PortID, HwPortStats> HwSwitchEnsemble::getLatestPortStats(
 
   auto swState = getProgrammedState();
   auto stats = getHwSwitch()->getPortStats();
-  for (auto [portName, stats] : stats) {
+  for (auto [portName, portStats] : stats) {
     auto portId = swState->getPorts()->getPort(portName)->getID();
     if (std::find(ports.begin(), ports.end(), (PortID)portId) == ports.end()) {
       continue;
     }
-    portIdStatsMap.emplace((PortID)portId, stats);
+    portIdStatsMap.emplace((PortID)portId, portStats);
   }
   return portIdStatsMap;
 }
@@ -595,7 +595,7 @@ std::map<SystemPortID, HwSysPortStats> HwSwitchEnsemble::getLatestSysPortStats(
 
   auto swState = getProgrammedState();
   auto stats = getHwSwitch()->getSysPortStats();
-  for (auto [portStatName, stats] : stats) {
+  for (auto [portStatName, sysPortStats] : stats) {
     // Sysport stats names are suffixed with _switchIndex. Remove that
     // to get at sys port name
     auto portName = portStatName.substr(0, portStatName.find_last_of('_'));
@@ -614,7 +614,7 @@ std::map<SystemPortID, HwSysPortStats> HwSwitchEnsemble::getLatestSysPortStats(
     if (std::find(ports.begin(), ports.end(), portId) == ports.end()) {
       continue;
     }
-    portIdStatsMap.emplace(portId, stats);
+    portIdStatsMap.emplace(portId, sysPortStats);
   }
   return portIdStatsMap;
 }
@@ -639,8 +639,8 @@ void HwSwitchEnsemble::setupEnsemble(
   cfg::Range64 portIdRange;
   portIdRange.minimum() =
       cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
-  portIdRange.maximum() =
-      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
+  portIdRange.maximum() = cfg::switch_config_constants::
+      DEFAULT_DUAL_STAGE_3Q_2Q_PORT_ID_RANGE_MAX();
   switchInfo.portIdRange() = portIdRange;
   auto switchIdToSwitchInfo = std::map<int64_t, cfg::SwitchInfo>(
       {{asic->getSwitchId() ? *asic->getSwitchId() : 0, switchInfo}});
@@ -709,8 +709,9 @@ void HwSwitchEnsemble::setupEnsemble(
         scopeResolver_->switchIdToSwitchInfo());
     // this is supporting single ASIC (or switch only)
     for (auto& switchIdAndSwitchInfo : switchIdToSwitchInfo) {
-      auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>(
-          {static_cast<SwitchID>(switchIdAndSwitchInfo.first)}));
+      auto matcher = HwSwitchMatcher(
+          std::unordered_set<SwitchID>(
+              {static_cast<SwitchID>(switchIdAndSwitchInfo.first)}));
       multiSwitchSwitchSettings->addNode(
           matcher.matcherString(), switchSettings);
     }

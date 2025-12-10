@@ -1,0 +1,42 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fbpkg:fbpkg.bzl", "fbpkg")
+
+oncall("fboss_platform")
+
+cpp_library(
+    name = "result_printer",
+    srcs = [
+        "ResultPrinter.cpp",
+    ],
+    headers = [
+        "ResultPrinter.h",
+    ],
+    exported_deps = [
+        "//fboss/platform/platform_checks:check_types-cpp2-types",
+    ],
+)
+
+cpp_binary(
+    name = "fixmyfboss",
+    srcs = [
+        "main.cpp",
+    ],
+    deps = [
+        ":result_printer",
+        "//fboss/platform/helpers:platform_name_lib",
+        "//fboss/platform/platform_checks:platform_check",
+        "//fboss/platform/platform_checks:platform_checks",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "CLI11",
+    ],
+)
+
+fbpkg.builder(
+    name = "fboss.fixmyfboss",
+    path_actions = {
+        "fixmyfboss": "//fboss/platform/fixmyfboss:fixmyfboss",
+    },
+)

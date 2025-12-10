@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/VoqConstants.h"
 
 DEFINE_bool(janga_test, false, "Enable Janga test fixture platform mapping");
 
@@ -55,6 +56,7 @@ DEFINE_int32(
     dsf_subscriber_stream_thread_heartbeat_ms,
     1000,
     "DSF subscriber stream thread heartbeat interval in msec");
+DEFINE_bool(hyper_port, false, "Enable hyper port on edsw front panel ports");
 // Remote neighbor entries are always flushed to avoid blackholing the traffic.
 // However, by default, remote{systemPorts, Rifs} are not flushed but marked
 // STALE in the software. This is to avoid hardware programmign churn.
@@ -224,6 +226,11 @@ DEFINE_int32(
     "Maximum ARP entries supported by Resource Accountant");
 
 DEFINE_bool(
+    enforce_resource_hw_limits,
+    true,
+    "Weather to cap the configured maximum entries to the harwdware limit by Resource Accountant");
+
+DEFINE_bool(
     fw_drained_unrecoverable_error,
     false,
     "Enable or disable whether firmware drained(isolation) can be unrecoverable error");
@@ -267,6 +274,11 @@ DEFINE_int32(
     switch_index_for_testing,
     0,
     "switch index under test. Used for testing NPU specific features.");
+
+DEFINE_int32(
+    switch_id_for_testing,
+    0,
+    "switch ID under test. Used for testing NPU specific features.");
 
 DEFINE_uint32(
     counter_refresh_interval,
@@ -339,3 +351,84 @@ DEFINE_bool(
     cleanup_probed_kernel_data,
     false,
     "Remove probed routes, addresses, rules, and interfaces from the kernel");
+
+DEFINE_bool(
+    ndp_static_neighbor,
+    false,
+    "Initiate neighbor solicitation for static neighbors");
+
+DEFINE_bool(
+    dsf_single_stage_r128_f40_e16_8k_sys_ports,
+    false,
+    "Allow upto 8K system ports on single stage DSF (default=6144)");
+
+DEFINE_bool(
+    dsf_single_stage_r128_f40_e16_uniform_local_offset,
+    false,
+    "Use uniform local system port offset for single stage DSF");
+
+DEFINE_uint32(
+    ecmp_width,
+    64,
+    "Max ecmp width. Also implies ucmp normalization factor");
+
+DEFINE_bool(enable_th5_ars_scale_mode, false, "Enable ARS scale mode");
+
+DEFINE_bool(
+    check_wb_handles,
+    false,
+    "Fail if any warm boot handles are left unclaimed.");
+
+// DSF specific feature to monitor fabric side links
+DEFINE_bool(
+    enable_fabric_link_monitoring,
+    false,
+    "Enable fabric link monitoring feature in DSF");
+
+DEFINE_bool(
+    lldp_port_drain_state,
+    false,
+    "Enable sending and receiving port drain state in LLDP packets");
+
+DEFINE_bool(
+    enable_state_delta_logging,
+    false,
+    "Enable logging of state deltas applied in applyUpdate()");
+
+DEFINE_string(
+    state_delta_log_file,
+    "/tmp/state_delta.log",
+    "Path to the state delta log file.");
+
+DEFINE_bool(
+    strip_vlan_for_pipeline_bypass,
+    true,
+    "Strip vlan tag for packet injected with pipeline bypass");
+
+DEFINE_string(
+    state_delta_log_protocol,
+    "COMPACT",
+    "Serialization protocol for state delta logging (BINARY, SIMPLE_JSON, COMPACT)");
+
+DEFINE_int32(
+    state_delta_log_timeout_ms,
+    100,
+    "Log timeout value in milliseconds. Logger will periodically"
+    "flush logs even if the buffer is not full");
+
+DEFINE_int32(
+    fsdbStatsStreamIntervalSeconds,
+    5,
+    "Interval at which stats subscriptions are served");
+
+DEFINE_bool(
+    recover_from_hw_switch,
+    false,
+    "On SW agent only crash, it can collect the switch state from hw"
+    " switches and recover from it. This enables hitless restarts"
+    " on SW agent. This is only used for Sw Switch.");
+
+DEFINE_int32(
+    fabric_link_monitoring_max_l1_l2_switch_ids,
+    facebook::fboss::kDualStageMaxL1L2FabricLinkMonitoringSwitchIds,
+    "Max number of L1-L2 fabric link monitoring switch IDs to allocate");

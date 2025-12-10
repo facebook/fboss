@@ -49,7 +49,7 @@ class Error(Status):
     def info(self) -> Optional[str]:
         parts = []
         if self.exception is not None:
-            parts.append(self.exception)
+            parts.append(str(self.exception))
         if self.description is not None:
             parts.append(self.description)
         if self.cmd_status:

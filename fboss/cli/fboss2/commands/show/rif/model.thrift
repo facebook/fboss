@@ -1,3 +1,5 @@
+package "facebook.com/fboss/cli"
+
 namespace cpp2 facebook.fboss.cli
 
 struct ShowRifModel {
@@ -15,4 +17,5 @@ struct RifEntry {
   8: string remoteInterfaceType;
   9: string remoteInterfaceLivenessStatus;
   10: string scope;
+  11: list<string> portNames;
 }

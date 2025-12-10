@@ -15,6 +15,7 @@ class HwPortProfileTest : public HwTest {
  protected:
   void SetUp() override {
     utility::enableTransceiverProgramming(true);
+    utility::enableSixtapProgramming();
     HwTest::SetUp();
   }
 
@@ -218,7 +219,6 @@ class HwPortProfileTest : public HwTest {
 #endif
       return;
     }
-    utility::enableSixtapProgramming();
     auto setup = [=, this]() {
       auto config = initialConfig(availablePorts);
       for (auto port : {availablePorts[0], availablePorts[1]}) {
@@ -338,6 +338,8 @@ TEST_PROFILE(PROFILE_400G_4_PAM4_RS544X2N_OPTICAL)
 TEST_PROFILE(PROFILE_800G_8_PAM4_RS544X2N_OPTICAL)
 
 TEST_PROFILE(PROFILE_800G_8_PAM4_RS544X2N_COPPER)
+
+TEST_PROFILE(PROFILE_100G_1_PAM4_RS544X2N_COPPER)
 
 TEST_PROFILE(PROFILE_100G_2_PAM4_RS544X2N_COPPER)
 

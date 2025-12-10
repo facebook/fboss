@@ -46,9 +46,13 @@ struct FakePort {
   sai_port_media_type_t mediaType{SAI_PORT_MEDIA_TYPE_NOT_PRESENT};
   sai_vlan_id_t vlanId{0};
   std::vector<sai_object_id_t> queueIdList;
+  std::vector<sai_object_id_t> egressBufferProfileIdList;
+  std::vector<sai_object_id_t> ingressBufferProfileIdList;
   std::vector<uint32_t> preemphasis;
   sai_uint32_t mtu{1514};
   sai_object_id_t qosDscpToTcMap{SAI_NULL_OBJECT_ID};
+  sai_object_id_t qosDot1pToTcMap{SAI_NULL_OBJECT_ID};
+  sai_object_id_t qosTcAndColorToDot1pMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosTcToQueueMap{SAI_NULL_OBJECT_ID};
   bool disableTtlDecrement{false};
   sai_port_interface_type_t interface_type{SAI_PORT_INTERFACE_TYPE_NONE};
@@ -104,6 +108,10 @@ struct FakePort {
   sai_uint32_t ars_port_load_past_weight{60};
   sai_uint32_t ars_port_load_future_weight{20};
   std::vector<sai_map_t> portPgPktDropStatus{};
+  sai_object_id_t fabricSystemPort{};
+  sai_uint32_t staticModuleId{};
+  bool resetQueueCreditBalance{false};
+  sai_int32_t pfcMonitorDirection{0};
 };
 
 struct FakePortSerdes {

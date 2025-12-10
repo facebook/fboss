@@ -90,13 +90,13 @@ class AgentAclPriorityTest : public AgentHwTest {
 // This test verifies that trafficPolicy configuration have no influence on
 // ACL entry priority
 TEST_F(AgentAclPriorityTest, CheckAclPriorityOrder) {
-  const folly::IPAddress kIp("2400::1");
-  auto setup = [this, kIp]() {
+  const folly::IPAddress testIp("2400::1");
+  auto setup = [this, testIp]() {
     auto newCfg = this->getSw()->getConfig();
     this->addDenyPortAcl(newCfg, "A");
-    this->addPermitIpAcl(newCfg, "B", kIp);
+    this->addPermitIpAcl(newCfg, "B", testIp);
     this->addDenyPortAcl(newCfg, "C");
-    this->addPermitIpAcl(newCfg, "D", kIp);
+    this->addPermitIpAcl(newCfg, "D", testIp);
 
     auto l3Asics = this->getAgentEnsemble()->getL3Asics();
     cfg::TrafficPolicyConfig trafficConfig;
@@ -188,23 +188,23 @@ TEST_F(AgentAclPriorityTest, AclNameChange) {
 }
 
 TEST_F(AgentAclPriorityTest, AclsChanged) {
-  const folly::IPAddress kIp("2400::1");
-  auto setup = [this, kIp]() {
+  const folly::IPAddress testIp("2400::1");
+  auto setup = [this, testIp]() {
     auto config = this->getSw()->getConfig();
     this->addDenyPortAcl(config, "acl0");
     auto l3Asics = this->getAgentEnsemble()->getL3Asics();
     // Get Acls from COPP policy
     utility::setDefaultCpuTrafficPolicyConfig(
         config, l3Asics, this->getAgentEnsemble()->isSai());
-    this->addPermitIpAcl(config, "acl1", kIp);
+    this->addPermitIpAcl(config, "acl1", testIp);
     this->applyNewConfig(config);
   };
 
-  auto setupPostWb = [this, kIp]() {
+  auto setupPostWb = [this, testIp]() {
     auto config = this->getSw()->getConfig();
     // Drop COPP acls
     this->addDenyPortAcl(config, "acl0");
-    this->addPermitIpAcl(config, "acl1", kIp);
+    this->addPermitIpAcl(config, "acl1", testIp);
     this->applyNewConfig(config);
   };
 

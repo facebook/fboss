@@ -138,18 +138,20 @@ class AgentHighFrequencyStatsTest : public AgentHwTest {
     auto dscpsIt = kOlympicQueueToDscp.find(queueId);
     ASSERT_NE(dscpsIt, kOlympicQueueToDscp.end());
     for (int i = 0; i < cnt; i++) {
-      getSw()->sendPacketSwitchedAsync(utility::makeUDPTxPacket(
-          getSw(),
-          getVlanIDForTx() /*vlan*/,
-          utility::MacAddressGenerator().get(intfMac.u64NBO() + 1) /*srcMac*/,
-          intfMac /*dstMac*/,
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::3") /*srcIp*/,
-          dstIp,
-          8000 /*srcPort*/,
-          8001 /*dstPort*/,
-          static_cast<uint8_t>(dscpsIt->second.at(0) << 2) /*dscp*/,
-          255 /*hopLimit*/,
-          std::vector<uint8_t>(payloadSize, 0xff) /*payload*/));
+      getSw()->sendPacketSwitchedAsync(
+          utility::makeUDPTxPacket(
+              getSw(),
+              getVlanIDForTx() /*vlan*/,
+              utility::MacAddressGenerator().get(
+                  intfMac.u64HBO() + 1) /*srcMac*/,
+              intfMac /*dstMac*/,
+              folly::IPAddressV6("2620:0:1cfe:face:b00c::3") /*srcIp*/,
+              dstIp,
+              8000 /*srcPort*/,
+              8001 /*dstPort*/,
+              static_cast<uint8_t>(dscpsIt->second.at(0) << 2) /*dscp*/,
+              255 /*hopLimit*/,
+              std::vector<uint8_t>(payloadSize, 0xff) /*payload*/));
     }
   }
 
@@ -335,8 +337,9 @@ TEST_F(AgentHighFrequencyStatsTest, DeviceWatermarkTest) {
     });
     EXPECT_THAT(
         statsList,
-        Contains(ThriftField<field::itmPoolSharedWatermarkBytes>(
-            Contains(Pair(_, Gt(0))))));
+        Contains(
+            ThriftField<field::itmPoolSharedWatermarkBytes>(
+                Contains(Pair(_, Gt(0))))));
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -392,11 +395,13 @@ TEST_F(AgentHighFrequencyStatsTest, QueueWatermarkTest) {
     });
     EXPECT_THAT(
         statsList,
-        Contains(ThriftField<field::portStats>(Contains(Pair(
-            Eq(port->getName()),
-            ThriftField<field::queueWatermarkBytes>(Contains(Pair(
-                Eq(utility::getOlympicQueueId(utility::OlympicQueueType::ECN1)),
-                Gt(0)))))))));
+        Contains(
+            ThriftField<field::portStats>(Contains(Pair(
+                Eq(port->getName()),
+                ThriftField<field::queueWatermarkBytes>(Contains(Pair(
+                    Eq(utility::getOlympicQueueId(
+                        utility::OlympicQueueType::ECN1)),
+                    Gt(0)))))))));
   };
 
   verifyAcrossWarmBoots(setup, verify);

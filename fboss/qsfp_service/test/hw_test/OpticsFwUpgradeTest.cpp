@@ -14,6 +14,18 @@ using namespace ::testing;
 
 namespace facebook::fboss {
 
+namespace {
+std::vector<std::string> transceiverStatesToNames(
+    const std::vector<TransceiverStateMachineState>& states) {
+  std::vector<std::string> stateNames;
+  stateNames.reserve(states.size());
+  for (const auto& state : states) {
+    stateNames.push_back(apache::thrift::util::enumNameSafe(state));
+  }
+  return stateNames;
+}
+} // namespace
+
 class OpticsFwUpgradeTest : public HwTest {
  public:
   OpticsFwUpgradeTest(bool setupOverrideTcvrToPortAndProfile = true)
@@ -143,18 +155,42 @@ class OpticsFwUpgradeTest : public HwTest {
   // transitioned to ACTIVE or INACTIVE states.
   void setPortStatus(bool status) {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
-    wedgeMgr->setOverrideAgentPortStatusForTesting(status, true /* enabled */);
-    wedgeMgr->refreshStateMachines();
+    auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
+    qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
+        status, true /* enabled */);
+    qsfpServiceHandler->refreshStateMachines();
 
     auto cabledTransceivers = utility::legacyTransceiverIds(
         utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
     for (auto id : cabledTransceivers) {
       auto curState = wedgeMgr->getCurrentState(TransceiverID(id));
       if (status) {
-        EXPECT_EQ(curState, TransceiverStateMachineState::ACTIVE)
+        auto expectedState = FLAGS_port_manager_mode
+            ? TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED
+            : TransceiverStateMachineState::ACTIVE;
+        EXPECT_EQ(curState, expectedState)
             << "Transceiver:" << id
             << " Actual: " << apache::thrift::util::enumNameSafe(curState)
-            << ", Expected: ACTIVE";
+            << ", Expected: "
+            << apache::thrift::util::enumNameSafe(expectedState);
+
+        if (FLAGS_port_manager_mode) {
+          auto portMgr = qsfpServiceHandler->getPortManager();
+          const auto& portToPortInfo =
+              wedgeMgr->getProgrammedIphyPortToPortInfo(TransceiverID(id));
+          for (const auto& [portId, tcvrPortInfo] : portToPortInfo) {
+            if (!tcvrPortInfo.status.has_value()) {
+              continue;
+            }
+            auto portStatus = tcvrPortInfo.status.value();
+            if (portStatus.portEnabled && portStatus.operState) {
+              auto portState = portMgr->getPortState(portId);
+              EXPECT_EQ(portState, PortStateMachineState::PORT_UP)
+                  << "PortID(" << portId << ") for Transceiver " << id
+                  << " is not UP";
+            }
+          }
+        }
       } else {
         // When forcing link down in tests, we also end up triggering
         // remediation since initial_remediate_interval is set to 0 in HwTest
@@ -164,13 +200,22 @@ class OpticsFwUpgradeTest : public HwTest {
         // transitions from INACTIVE to UPGRADING to NOT_PRESENT and then
         // eventually to IPHY_PORTS_PROGRAMMED state. Therefore expect that too
         // when forcing link down
+        std::vector<TransceiverStateMachineState> expectedStates =
+            FLAGS_port_manager_mode
+            ? std::vector<
+                  TransceiverStateMachineState>{TransceiverStateMachineState::TRANSCEIVER_READY, TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED}
+            : std::vector<TransceiverStateMachineState>{
+                  TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+                  TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+                  TransceiverStateMachineState::INACTIVE};
+
         EXPECT_TRUE(
-            curState == TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED ||
-            curState == TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED ||
-            curState == TransceiverStateMachineState::INACTIVE)
+            std::find(expectedStates.begin(), expectedStates.end(), curState) !=
+            expectedStates.end())
             << "Transceiver:" << id
             << " Actual: " << apache::thrift::util::enumNameSafe(curState)
-            << ", Expected: IPHY_PORTS_PROGRAMMED or XPHY_PORTS_PROGRAMMED or INACTIVE";
+            << ", Expected one of the states in expectedStates: "
+            << folly::join(",", transceiverStatesToNames(expectedStates));
       }
     }
   }
@@ -184,9 +229,9 @@ class OpticsFwUpgradeTestNoIPhySetup : public OpticsFwUpgradeTest {
 TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
   // In this test, firmware versions in qsfp config is not changed. Hence, the
   // firmware upgrade shouldn't be triggered under any circumstances.
-  // 1. Coldboot init might still trigger firmware upgrade depending on what the
-  // firmware version was before the test started and what the firmware version
-  // is in the qsfp config the test is run with
+  // 1. Coldboot init might still trigger firmware upgrade depending on what
+  // the firmware version was before the test started and what the firmware
+  // version is in the qsfp config the test is run with
   // 2. Warmboot init, verify there were no upgrades done during warm boot.
   // 3. Force links to go down and verify there are no upgrades done
 
@@ -243,28 +288,28 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
 
   auto tcvrsToTest = transceiversToTest();
 
+  auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+  auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
+
   // Setup function is only called for cold boot iteration of the test
   // The setup below will create a new qsfp config with the different firmware
   // version and then load the new config
   auto setup = [&]() {
-    // At the end of init, there should not be any modules that require firmware
-    // upgrade. All of them should have already been upgraded by now. Trigger a
-    // refresh to update current firmware version
-    getHwQsfpEnsemble()->getWedgeManager()->refreshStateMachines();
-    auto portsForFwUpgrade = getHwQsfpEnsemble()
-                                 ->getWedgeManager()
-                                 ->getPortsRequiringOpticsFwUpgrade();
+    // At the end of init, there should not be any modules that require
+    // firmware upgrade. All of them should have already been upgraded by now.
+    // Trigger a refresh to update current firmware version
+    qsfpServiceHandler->refreshStateMachines();
+    auto portsForFwUpgrade = wedgeMgr->getPortsRequiringOpticsFwUpgrade();
     std::vector<std::string> fwUpgradePorts;
-    for (auto& [portName, _] : portsForFwUpgrade) {
-      fwUpgradePorts.push_back(portName);
+    for (auto& [port, _] : portsForFwUpgrade) {
+      fwUpgradePorts.push_back(port);
     }
     EXPECT_TRUE(portsForFwUpgrade.empty())
         << "Some modules still require firmware upgrade: " +
             folly::join(",", fwUpgradePorts);
 
     // During cold boot setup, update the firmware versions in the config
-    auto qsfpCfg =
-        getHwQsfpEnsemble()->getWedgeManager()->getQsfpConfig()->thrift;
+    auto qsfpCfg = wedgeMgr->getQsfpConfig()->thrift;
     qsfpCfg.transceiverFirmwareVersions() =
         *qsfpCfg.qsfpTestConfig()->firmwareForUpgradeTest();
     std::string newCfgStr =
@@ -275,15 +320,14 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
         tmpDir.path().string() + "/optics_upgrade_test_config";
     newQsfpCfg->dumpConfig(newCfgPath);
     FLAGS_qsfp_config = newCfgPath;
-    getHwQsfpEnsemble()->getWedgeManager()->loadConfig();
+    wedgeMgr->loadConfig();
 
     // At this point, we have overwritten the config and changed the desired
-    // firmware vesions. We should expect to see some modules requiring firmware
-    // upgrade now. Trigger a refresh to update current firmware version
-    getHwQsfpEnsemble()->getWedgeManager()->refreshStateMachines();
-    portsForFwUpgrade = getHwQsfpEnsemble()
-                            ->getWedgeManager()
-                            ->getPortsRequiringOpticsFwUpgrade();
+    // firmware vesions. We should expect to see some modules requiring
+    // firmware upgrade now. Trigger a refresh to update current firmware
+    // version
+    qsfpServiceHandler->refreshStateMachines();
+    portsForFwUpgrade = wedgeMgr->getPortsRequiringOpticsFwUpgrade();
 
     EXPECT_FALSE(portsForFwUpgrade.empty())
         << "No modules requiring firmware upgrade";
@@ -320,7 +364,7 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
     setPortStatus(false);
     WITH_RETRIES_N_TIMED(
         8 /* retries */, std::chrono::milliseconds(1000) /* msBetweenRetry */, {
-          getHwQsfpEnsemble()->getWedgeManager()->refreshStateMachines();
+          qsfpServiceHandler->refreshStateMachines();
           EXPECT_EVENTUALLY_TRUE(verifyUpgrade(
               true /* upgradeExpected */,
               initDoneTimestampSec /* upgradeSinceTsSec */,
@@ -332,11 +376,9 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
         10 /* retries */,
         std::chrono::milliseconds(10000) /* msBetweenRetry */,
         {
-          getHwQsfpEnsemble()->getWedgeManager()->refreshStateMachines();
+          qsfpServiceHandler->refreshStateMachines();
           for (auto tcvrID : tcvrsToTest) {
-            auto tcvrInfo =
-                getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
-                    TransceiverID(tcvrID));
+            auto tcvrInfo = wedgeMgr->getTransceiverInfo(TransceiverID(tcvrID));
             auto& tcvrState = *tcvrInfo.tcvrState();
             EXPECT_EVENTUALLY_FALSE(*tcvrState.fwUpgradeInProgress());
           }
@@ -360,11 +402,13 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
 
   auto tcvrsToTest = transceiversToTest();
 
-  // Lambda to refresh state machine and return true if all transceivers are in
-  // TRANSCEIVER_PROGRAMMED state
-  auto refreshStateMachinesAndCheckTcvrProgrammed = [this, &tcvrsToTest]() {
-    auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
-    wedgeMgr->refreshStateMachines();
+  auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+  auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
+
+  // Lambda to refresh state machine and return true if all transceivers are
+  // in TRANSCEIVER_PROGRAMMED state
+  auto refreshStateMachinesAndCheckTcvrProgrammed = [&]() {
+    qsfpServiceHandler->refreshStateMachines();
     for (auto id : tcvrsToTest) {
       auto curState = wedgeMgr->getCurrentState(TransceiverID(id));
       if (curState != TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
@@ -376,7 +420,7 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
 
   // Lambda to toggle port status to trigger firmware download. It waits till
   // firmware download is complete
-  auto togglePortsAndWaitForFwDownload = [this, &tcvrsToTest]() {
+  auto togglePortsAndWaitForFwDownload = [&, this]() {
     setPortStatus(true);
     // Bring the port down, this should trigger firmware download
     setPortStatus(false);
@@ -386,11 +430,9 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
         10 /* retries */,
         std::chrono::milliseconds(10000) /* msBetweenRetry */,
         {
-          getHwQsfpEnsemble()->getWedgeManager()->refreshStateMachines();
+          qsfpServiceHandler->refreshStateMachines();
           for (auto tcvrID : tcvrsToTest) {
-            auto tcvrInfo =
-                getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
-                    TransceiverID(tcvrID));
+            auto tcvrInfo = wedgeMgr->getTransceiverInfo(TransceiverID(tcvrID));
             auto& tcvrState = *tcvrInfo.tcvrState();
             EXPECT_EVENTUALLY_FALSE(*tcvrState.fwUpgradeInProgress());
           }
@@ -401,9 +443,13 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
     // Set everything up so that ports get programmed
     gflags::SetCommandLineOptionWithMode(
         "override_program_iphy_ports_for_test", "1", gflags::SET_FLAGS_DEFAULT);
-    getHwQsfpEnsemble()
-        ->getWedgeManager()
-        ->setOverrideTcvrToPortAndProfileForTesting();
+    wedgeMgr->setOverrideTcvrToPortAndProfileForTesting();
+    if (FLAGS_port_manager_mode) {
+      getHwQsfpEnsemble()
+          ->getQsfpServiceHandler()
+          ->setOverrideAgentPortStatusForTesting(
+              false /* up */, true /* enabled */);
+    }
     WITH_RETRIES_N_TIMED(
         10 /* retries */,
         std::chrono::milliseconds(10000) /* msBetweenRetry */,
@@ -412,8 +458,7 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
         });
 
     // Update the firmware versions in the config
-    auto qsfpCfg =
-        getHwQsfpEnsemble()->getWedgeManager()->getQsfpConfig()->thrift;
+    auto qsfpCfg = wedgeMgr->getQsfpConfig()->thrift;
     qsfpCfg.transceiverFirmwareVersions() =
         *qsfpCfg.qsfpTestConfig()->firmwareForUpgradeTest();
     std::string newCfgStr =
@@ -424,7 +469,7 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
         tmpDir.path().string() + "/optics_upgrade_test_config";
     newQsfpCfg->dumpConfig(newCfgPath);
     FLAGS_qsfp_config = newCfgPath;
-    getHwQsfpEnsemble()->getWedgeManager()->loadConfig();
+    wedgeMgr->loadConfig();
 
     // Now that the config has changed, toggling port status will re-trigger
     // firmware download
@@ -434,11 +479,11 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
   auto verify = [&]() {
     // If we just did a warm boot, we expect no upgrades to have happened
     if (didWarmBoot()) {
-      getHwQsfpEnsemble()->getWedgeManager()->refreshStateMachines();
+      qsfpServiceHandler->refreshStateMachines();
       // Another one to ensure if the upgrade was incorrectly triggered by
-      // previous refresh, this refresh will update the latest firmware upgrade
-      // timestamps in transceiverInfo causing verifyUpgrade to fail
-      getHwQsfpEnsemble()->getWedgeManager()->refreshStateMachines();
+      // previous refresh, this refresh will update the latest firmware
+      // upgrade timestamps in transceiverInfo causing verifyUpgrade to fail
+      qsfpServiceHandler->refreshStateMachines();
       CHECK(verifyUpgrade(
           false /* upgradeExpected */,
           0 /* upgradeSinceTsSec */,

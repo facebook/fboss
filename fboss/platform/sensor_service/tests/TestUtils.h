@@ -4,7 +4,7 @@
 
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 
-std::shared_ptr<facebook::fboss::platform::sensor_service::SensorServiceImpl>
-createSensorServiceImplForTest(const std::string& tmpDirPath);
+std::map<std::string, float> getMockSensorData();
 
-std::map<std::string, float> getDefaultMockSensorData();
+facebook::fboss::platform::sensor_service::SensorConfig getMockSensorConfig(
+    const std::string& tmpDir);

@@ -138,12 +138,13 @@ bool PlatformFsUtils::writeStringToSysfs(
 std::optional<std::string> PlatformFsUtils::getStringFileContent(
     const fs::path& path) const {
   std::string value{};
-  if (!folly::readFile(concat(rootDir_, path).c_str(), value)) {
+  const fs::path& prefixedPath = concat(rootDir_, path);
+  if (!folly::readFile(prefixedPath.c_str(), value)) {
     int errorCode = errno;
     XLOG(ERR) << fmt::format(
         "Received error code {} from reading from path {}: {}",
         errorCode,
-        path.string(),
+        prefixedPath.string(),
         folly::errnoStr(errorCode));
     return std::nullopt;
   }

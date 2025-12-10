@@ -1,1 +1,16 @@
-{}
+{
+  "expectedErrors": {
+    "SMB_FRU.SMB_U20_XDPE12284_1": {
+      "1": ""
+    },
+    "SMB_FRU.SMB_U86_XDPE12284_2": {
+      "1": ""
+    },
+    "SMB_FRU.SMB_U229_XDPE12284_1": {
+      "1": ""
+    },
+    "SMB_FRU.SMB_U92_XDPE12284_2": {
+      "1": ""
+    }
+  }
+}

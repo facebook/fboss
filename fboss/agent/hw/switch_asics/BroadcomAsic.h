@@ -58,6 +58,7 @@ class BroadcomAsic : public HwAsic {
       case cfg::MMUScalingFactor::FOUR:
         return 2;
       case cfg::MMUScalingFactor::ONE_32768TH:
+      case cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT:
         // Unsupported
         throw FbossError(
             "Unsupported scaling factor : ",
@@ -76,6 +77,12 @@ class BroadcomAsic : public HwAsic {
         prbs::PrbsPolynomial::PRBS9,
         prbs::PrbsPolynomial::PRBS11,
         prbs::PrbsPolynomial::PRBS58};
+  }
+  std::optional<uint32_t> getMaxArsGroups() const override {
+    return std::nullopt;
+  }
+  std::optional<uint32_t> getArsBaseIndex() const override {
+    return std::nullopt;
   }
 };
 } // namespace facebook::fboss

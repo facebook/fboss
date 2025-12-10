@@ -1,0 +1,55 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_platform")
+
+cpp_unittest(
+    name = "config_validator_test",
+    srcs = [
+        "ConfigValidatorTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_helpers_test",
+    srcs = [
+        "FwUtilHelpersTests.cpp",
+    ],
+    deps = [
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_operations_test",
+    srcs = [
+        "FwUtilOperationsTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_version_handler_test",
+    srcs = [
+        "FwUtilVersionHandlerTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_verify_test",
+    srcs = [
+        "FwUtilVerifyTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)

@@ -108,10 +108,14 @@ struct SaiPortHandle {
   std::shared_ptr<SaiSamplePacket> ingressSamplePacket;
   std::shared_ptr<SaiSamplePacket> egressSamplePacket;
   std::shared_ptr<SaiQosMap> dscpToTcQosMap;
+  std::shared_ptr<SaiQosMap> pcpToTcQosMap;
+  std::shared_ptr<SaiQosMap> tcToPcpQosMap;
   std::shared_ptr<SaiQosMap> tcToQueueQosMap;
   std::optional<std::string> qosPolicy;
   SaiQueueHandles queues;
   bool prbsEnabled;
+  bool txPfcDurationStatsEnabled;
+  bool rxPfcDurationStatsEnabled;
 
   void resetQueues();
   SaiPortMirrorInfo mirrorInfo;
@@ -119,6 +123,9 @@ struct SaiPortHandle {
       IngressPriorityGroupID,
       SaiIngressPriorityGroupHandleAndProfile>
       configuredIngressPriorityGroups;
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+      ingressPortBufferProfiles;
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>> egressPortBufferProfiles;
 };
 
 class SaiPortManager {
@@ -260,6 +267,10 @@ class SaiPortManager {
       PortSaiId saiPortId,
       uint8_t numPmdLanes) const;
 #endif
+  std::vector<phy::SerdesParameters> getSerdesParameters(
+      PortSerdesSaiId serdesSaiPortId,
+      const PortID& swPortID,
+      uint8_t numPmdLanes) const;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
   std::vector<sai_port_lane_latch_status_t> getRxSignalDetect(
       PortSaiId saiPortId,
@@ -318,6 +329,15 @@ class SaiPortManager {
    * incremented.
    */
   void incrementPfcRecoveryCounter(const PortID& portId);
+  void updateFabricMacTransmitQueueStuck(
+      const PortID& portId,
+      HwPortStats& currPortStats,
+      const HwPortStats& prevPortStats);
+  void setFabricLinkMonitoringSystemPortId(
+      const PortID& portId,
+      sai_object_id_t sysPortObj);
+  void resetFabricLinkMonitoringSystemPortId(const PortID& portId);
+  void processPortBufferPoolConfigs(const std::shared_ptr<Port>& swPort);
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
@@ -337,6 +357,20 @@ class SaiPortManager {
   void setQosMapsOnPort(
       PortID portID,
       std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps);
+  template <typename SaiPortAttribute>
+  void setPortQosBufferProfiles(
+      const PortID& portID,
+      const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+          bufferProfileHandles,
+      const char* direction);
+  void setPortQosEgressBufferProfiles(
+      const PortID& portID,
+      const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+          bufferProfileHandles);
+  void setPortQosIngressBufferProfiles(
+      const PortID& portID,
+      const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+          bufferProfileHandles);
   const std::vector<sai_stat_id_t>& supportedStats(PortID port);
   void fillInSupportedStats(PortID port);
   bool fecStatsSupported(PortID portID) const;
@@ -447,6 +481,9 @@ class SaiPortManager {
   void changeTxEnable(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void changeResetQueueCreditBalance(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
   void reloadSixTapAttributes(
       SaiPortHandle* portHandle,
       SaiPortSerdesTraits::CreateAttributes& attr);
@@ -462,6 +499,20 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   void clearPortFlowletConfig(const PortID& portId);
+  void programPfcDurationCounterEnable(
+      const std::shared_ptr<Port>& swPort,
+      const std::optional<cfg::PortPfc>& newPfc,
+      const std::optional<cfg::PortPfc>& oldPfc);
+  void programPfcDurationCounter(
+      const std::shared_ptr<Port>& swPort,
+      const std::optional<cfg::PortPfc>& newPfc,
+      const std::optional<cfg::PortPfc>& oldPfc);
+  void setPfcDurationStatsEnabled(
+      const PortID& portId,
+      bool txEnabled,
+      bool rxEnabled);
+  const std::vector<sai_stat_id_t>& getSupportedPfcDurationStats(
+      const PortID& portId);
 
   /**
    * Enum to specify which PFC counter to increment.

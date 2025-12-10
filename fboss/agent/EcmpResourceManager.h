@@ -8,57 +8,84 @@
  *
  */
 #pragma once
-#include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/PreUpdateStateModifier.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/RouteNextHopEntry.h"
-#include "fboss/agent/state/StateDelta.h"
-#include "fboss/lib/RefMap.h"
 
 #include <memory>
 #include <ostream>
+#include "fboss/agent/EcmpResourceManagerConfig.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/types.h"
+#include "fboss/lib/RefMap.h"
 
 namespace facebook::fboss {
 class StateDelta;
 class SwitchState;
 class SwitchStats;
 class NextHopGroupInfo;
+class HwAsic;
+class Prefix;
+class StateDelta;
+template <typename AddrT>
+class Route;
 
-class EcmpResourceManager : public PreUpdateStateModifier {
+class EcmpResourceManager {
+ public:
+  using SwitchStatsGetter = std::function<SwitchStats*()>;
+
+ private:
+  EcmpResourceManager(
+      const EcmpResourceManagerConfig& config,
+      const SwitchStatsGetter& switchStatsGetter);
+
  public:
   explicit EcmpResourceManager(
       uint32_t maxHwEcmpGroups,
       int compressionPenaltyThresholdPct = 0,
+      SwitchStatsGetter statsGetter = []() { return nullptr; })
+      : EcmpResourceManager(
+            EcmpResourceManagerConfig(
+                maxHwEcmpGroups,
+                std::nullopt,
+                std::nullopt,
+                compressionPenaltyThresholdPct),
+            statsGetter) {}
+
+  explicit EcmpResourceManager(
+      uint32_t maxHwEcmpGroups,
       std::optional<cfg::SwitchingMode> backupEcmpGroupType = std::nullopt,
-      SwitchStats* stats = nullptr);
-  using NextHopGroupId = uint32_t;
+      SwitchStatsGetter statsGetter = []() { return nullptr; })
+      : EcmpResourceManager(
+            EcmpResourceManagerConfig(maxHwEcmpGroups, backupEcmpGroupType),
+            statsGetter) {}
+  using NextHopGroupId = uint64_t;
   using NextHopGroupIds = std::set<NextHopGroupId>;
   using NextHops2GroupId = std::map<RouteNextHopSet, NextHopGroupId>;
   using Prefix = std::pair<RouterID, folly::CIDRNetwork>;
   using PrefixToGroupInfo =
       std::unordered_map<Prefix, std::shared_ptr<NextHopGroupInfo>>;
+  using NextHopGroupIdToPrefixes =
+      std::unordered_map<NextHopGroupId, std::vector<Prefix>>;
 
-  std::vector<StateDelta> modifyState(
-      const std::vector<StateDelta>& deltas) override;
-  std::vector<StateDelta> consolidate(const StateDelta& delta);
+  std::vector<StateDelta> modifyState(const std::vector<StateDelta>& deltas);
+  std::vector<StateDelta> consolidate(
+      const StateDelta& delta,
+      bool rollingBack = false);
   std::vector<StateDelta> reconstructFromSwitchState(
-      const std::shared_ptr<SwitchState>& curState) override;
+      const std::shared_ptr<SwitchState>& curState);
   const auto& getNhopsToId() const {
     return nextHopGroup2Id_;
   }
   size_t getRouteUsageCount(NextHopGroupId nhopGrpId) const;
   size_t getCost(NextHopGroupId nhopGrpId) const;
-  void updateDone() override;
-  void updateFailed(const std::shared_ptr<SwitchState>& curState) override;
+  void updateDone();
+  void updateFailed(const std::shared_ptr<SwitchState>& knownGoodState);
   std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode() const {
-    return backupEcmpGroupType_;
+    return config_.getBackupEcmpSwitchingMode();
   }
   int32_t getEcmpCompressionThresholdPct() const {
-    return compressionPenaltyThresholdPct_;
+    return config_.getEcmpCompressionThresholdPct();
   }
   uint32_t getMaxPrimaryEcmpGroups() const {
-    return maxEcmpGroups_;
+    return config_.getMaxPrimaryEcmpGroups();
   }
 
   struct ConsolidationInfo {
@@ -67,12 +94,24 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       return std::tie(mergedNhops, groupId2Penalty) ==
           std::tie(other.mergedNhops, other.groupId2Penalty);
     }
+    std::string str() const;
+    std::string verboseStr() const;
     RouteNextHopSet mergedNhops;
     std::map<NextHopGroupId, int> groupId2Penalty;
+    // mergedGroupInfo is set when the merged nhops get
+    // used as part of a merged group
+    std::shared_ptr<NextHopGroupInfo> mergedGroupInfo;
   };
+  ConsolidationInfo computeConsolidationInfo(
+      const NextHopGroupIds& grpIds) const;
   using GroupIds2ConsolidationInfo =
       std::map<NextHopGroupIds, ConsolidationInfo>;
   using GroupIds2ConsolidationInfoItr = GroupIds2ConsolidationInfo::iterator;
+  NextHopGroupIds getUnMergedGids() const;
+  NextHopGroupIds getMergedGids() const;
+  std::vector<NextHopGroupIds> getMergedGroups() const;
+  std::pair<uint32_t, uint32_t> getPrimaryEcmpAndMemberCounts() const;
+  NextHopGroupIdToPrefixes getGidToPrefixes() const;
   /*
    * Test helper APIs. Used mainly in UTs. Not neccessarily opimized for
    * non test code.
@@ -82,44 +121,25 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   GroupIds2ConsolidationInfo getCandidateMergeConsolidationInfo(
       NextHopGroupId grpId) const;
   std::set<NextHopGroupId> getOptimalMergeGroupSet() const;
-  std::map<NextHopGroupId, std::set<Prefix>> getGroupIdToPrefix() const;
   const NextHopGroupInfo* getGroupInfo(
       RouterID rid,
       const folly::CIDRNetwork& nw) const;
+  const NextHopGroupInfo* getGroupInfo(NextHopGroupId gid) const {
+    auto grpInfo = nextHopGroupIdToInfo_.ref(gid);
+    return grpInfo ? grpInfo.get() : nullptr;
+  }
   /* Test helper API end */
 
  private:
-  GroupIds2ConsolidationInfoItr fixAndGetMergeGroupItr(
-      const NextHopGroupId newMemberGroup,
-      const RouteNextHopSet& mergedNhops);
-  void fixMergeItreators(
-      const NextHopGroupIds& newMergeSet,
-      GroupIds2ConsolidationInfoItr mitr,
-      const NextHopGroupIds& toIgnore);
-  void nextHopGroupDeleted(NextHopGroupId groupId);
-  bool pruneFromCandidateMerges(const NextHopGroupIds& groupIds);
-  bool pruneFromMergedGroups(const NextHopGroupIds& groupIds);
-  template <typename AddrT>
-  bool routeFwdEqual(
-      const std::shared_ptr<Route<AddrT>>& oldRoute,
-      const std::shared_ptr<Route<AddrT>>& newRoute) const;
-
-  struct PreUpdateState {
-    std::map<NextHopGroupIds, ConsolidationInfo> mergedGroups;
-    std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
-    std::optional<cfg::SwitchingMode> backupEcmpGroupType;
-  };
-  void decRouteUsageCount(NextHopGroupInfo& groupInfo);
-  void updateConsolidationPenalty(NextHopGroupInfo& groupInfo);
+  RouteNextHopSet getCommonNextHops(const NextHopGroupIds& grpIds) const;
   struct InputOutputState {
     InputOutputState(
-        uint32_t _nonBackupEcmpGroupsCnt,
+        uint32_t _primaryEcmpGroupsCnt,
+        uint32_t ecmpMemberCnt,
         const StateDelta& _in,
-        const PreUpdateState& _groupIdCache = PreUpdateState());
+        bool rollingBack = false);
     /*
-     * addOrUpdateRoute has 2 interesting knobs
-     * ecmpDemandExceeded - used for checking that new route now
-     * either has overrideEcmpType set or points to a merged group
+     * addOrUpdateRoute has 1 interesting knobs
      * addNewDelta - This route update should be placed on a new
      * delta. This only applies to when we are merging groups at
      * ECMP limit. When doing so we will
@@ -144,7 +164,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     void addOrUpdateRoute(
         RouterID rid,
         const std::shared_ptr<Route<AddrT>>& newRoute,
-        bool ecmpDemandExceeded,
         bool addNewDelta = false);
 
     template <typename AddrT>
@@ -155,22 +174,84 @@ class EcmpResourceManager : public PreUpdateStateModifier {
      * StateDelta to use as base state when building the
      * next delta or updating current delta.
      */
-    StateDelta getCurrentStateDelta() const {
-      CHECK(!out.empty());
-      return StateDelta(out.back().oldState(), out.back().newState());
+    StateDelta getCurrentStateDelta() const;
+    /*
+     * We adopt a lazy publish strategy for InputOutputState.out deltas. In
+     * that, when a change is made (say route update),
+     *  - We clone the state to make this change on
+     *  - Make the change.
+     *  At this point, we *don't publish* this new state, but just
+     *  replace/append the cur delta to list of deltas.
+     *  We then publish at a later point
+     *  - When appending a new delta, before appending, we publish
+     *  the last delta in queue.
+     *  - When finishing a functional block, e.g.
+     *  finishing route processing, reclaimingEcmpGroups we publish
+     *  the last delta in queue.
+     * Lazy publishing is much more efficient than a simpler always
+     * (eager) publishing approach. Consider the eager publish approach
+     * where we publish after every change. Now consider that we
+     * get a large route update (say 50K routes). Most of these will
+     * just be grafted onto current delta. If we publish after every
+     * individual route update, the next update will end up cloning
+     * the FIB and copying the prefix->shared_ptr<Route> for FIB
+     * for every update. This is a expensive O(N^2) operation.
+     */
+    /*
+     * Publish last delta in queue
+     * */
+    void publishLastDelta();
+    /*
+     * Append to current set of queued deltas
+     * */
+    void appendDelta(const StateDelta& delta);
+    /*
+     * Replace current delta and back of out_ queue
+     * */
+    void replaceLastDelta(const StateDelta& delta);
+    size_t numDeltas() const {
+      return out_.size();
+    }
+
+    /*
+     * Return and empty out_ deltas
+     */
+    std::vector<StateDelta> moveDeltas() {
+      return std::move(out_);
+    }
+    bool rollingBack() const {
+      return rollingBack_;
     }
     /*
      * Number of ECMP groups of primary ECMP type. Once these
      * reach the maxEcmpGroups limit, we either compress groups
      * by combining 2 or more groups.
      */
-    uint32_t nonBackupEcmpGroupsCnt;
-    std::vector<StateDelta> out;
-    PreUpdateState groupIdCache;
+    uint32_t primaryEcmpGroupsCnt{0};
+    uint32_t ecmpMemberCnt{0};
     bool updated{false};
+
+   private:
+    std::vector<StateDelta> out_;
+    bool rollingBack_{false};
   };
+  std::pair<std::shared_ptr<NextHopGroupInfo>, bool> getOrCreateGroupInfo(
+      const RouteNextHopSet& nhops,
+      const InputOutputState& inOutState);
+  bool pruneFromCandidateMerges(const NextHopGroupIds& groupIds);
+  template <typename AddrT>
+  bool routeFwdEqual(
+      const std::shared_ptr<Route<AddrT>>& oldRoute,
+      const std::shared_ptr<Route<AddrT>>& newRoute) const;
+
+  void decRouteUsageCount(NextHopGroupInfo& groupInfo);
+  void updateConsolidationPenalty(NextHopGroupInfo& groupInfo);
+  bool checkPrimaryGroupAndMemberCounts(
+      const InputOutputState& inOutState) const;
+  bool checkNoUnitializedGroups() const;
   std::optional<InputOutputState> handleFlowletSwitchConfigDelta(
-      const StateDelta& delta);
+      const StateDelta& delta,
+      bool rollingBack);
   void handleSwitchSettingsDelta(const StateDelta& delta);
   std::vector<StateDelta> consolidateImpl(
       const StateDelta& delta,
@@ -181,22 +262,87 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
       const NextHopGroupIds& groupIdsToReclaimIn,
       InputOutputState* inOutState);
+
+  /*
+   * Migrate groups and prefixes to new merge info
+   */
+
+  void updateMergeInfo(
+      const NextHopGroupIdToPrefixes& gid2Prefix,
+      const NextHopGroupIds& newMergeSet,
+      std::optional<GroupIds2ConsolidationInfoItr> newMergeItr,
+      std::shared_ptr<SwitchState>& newState);
+
+  /*
+   * Lookup merge iterator for a set of next hops
+   */
+  std::optional<GroupIds2ConsolidationInfoItr> getMergeGroupItr(
+      const RouteNextHopSet& mergedNhops);
+  std::optional<GroupIds2ConsolidationInfoItr> getMergeGroupItr(
+      const std::optional<RouteNextHopSet>& mergedNhops) {
+    return mergedNhops ? getMergeGroupItr(*mergedNhops) : std::nullopt;
+  }
+  /*
+   * Append to or create new merge group and get its iterator.
+   * Only updates internal data structures, no delta update
+   */
+  GroupIds2ConsolidationInfoItr appendToOrCreateMergeGroup(
+      NextHopGroupIds newMemberGroups,
+      const RouteNextHopSet& mergedNhops,
+      std::optional<GroupIds2ConsolidationInfoItr> existingMitr,
+      const InputOutputState& inOutState);
+  /*
+   * Update merge itertor for a set of groups
+   */
+  void fixMergeItreators(
+      const NextHopGroupIds& newMergeSet,
+      GroupIds2ConsolidationInfoItr mitr,
+      const NextHopGroupIds& toIgnore);
+  /*
+   * Reclaim any single member merge groups that may be left over
+   * during rollbacks
+   */
+  void reclaimSingleMemberMergeGroups(InputOutputState* inOutState);
+  /*
+   * Unmerge and reclaim a set of merge groups
+   */
   void reclaimMergeGroups(
       const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
       const NextHopGroupIds& groupIdsToReclaim,
       InputOutputState* inOutState);
+  enum class MergeGroupUpdateOp { RECLAIM_GROUPS, DELETE_GROUPS };
+  /*
+   * Reclaim or delete a set of groups from existing merged
+   * groups.
+   */
   void updateMergedGroups(
       const std::set<NextHopGroupIds>& mergeSetsToUpdate,
+      MergeGroupUpdateOp op,
       const NextHopGroupIds& groupIdsToReclaim,
       InputOutputState* inOutState);
+  /*
+   * Merge a set of groups to make a larger set.
+   * Update the corresponding prefixes to
+   * point to the new merged next hops
+   */
+  void mergeGroupAndMigratePrefixes(
+      const NextHopGroupIds& mergeSet,
+      InputOutputState* inOutState);
+  /*
+   * Pick a optimal set of groups to merge (based on cost).
+   * Merge them and update prefixes to point to the new
+   * merged next hops
+   */
+  void mergeGroupAndMigratePrefixes(InputOutputState* inOutState);
+
   void reclaimEcmpGroups(InputOutputState* inOutState);
   template <typename AddrT>
   std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(
       RouterID rid,
-      const std::shared_ptr<Route<AddrT>>& route,
-      NextHops2GroupId::iterator nhops2IdItr,
-      bool ecmpDemandExceeded,
-      InputOutputState* inOutState);
+      const folly::CIDRNetwork& pfx,
+      std::shared_ptr<NextHopGroupInfo>& grpInfo,
+      InputOutputState* inOutState,
+      bool addNewDelta);
   template <typename AddrT>
   std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(
       RouterID rid,
@@ -231,6 +377,30 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const std::shared_ptr<Route<AddrT>>& oldRoute,
       const std::shared_ptr<Route<AddrT>>& added,
       InputOutputState* inOutState);
+
+  template <typename AddrT>
+  std::pair<std::shared_ptr<NextHopGroupInfo>, bool>
+  routeAddedNoCompressionThreshold(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& added,
+      bool ecmpLimitReached,
+      InputOutputState* inOutState);
+
+  template <typename AddrT>
+  std::pair<std::shared_ptr<NextHopGroupInfo>, bool> routeAddedNoOverrideNhops(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& added,
+      bool ecmpLimitReached,
+      InputOutputState* inOutState);
+
+  template <typename AddrT>
+  std::pair<std::shared_ptr<NextHopGroupInfo>, bool>
+  routeAddedWithOverrideNhops(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& added,
+      bool ecmpLimitReached,
+      InputOutputState* inOutState);
+
   template <typename AddrT>
   void routeDeleted(
       RouterID rid,
@@ -242,30 +412,27 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const RouteNextHopSet& nhops,
       const InputOutputState& inOutState) const;
   void validateCfgUpdate(
-      int32_t compressionPenaltyThresholdPct,
+      uint32_t compressionPenaltyThresholdPct,
       const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;
-  NextHopGroupId findNextAvailableId() const;
-  ConsolidationInfo computeConsolidationInfo(
-      const NextHopGroupIds& grpIds) const;
   template <std::forward_iterator ForwardIt>
-  void computeCandidateMerges(ForwardIt begin, ForwardIt end);
-  void computeCandidateMerges(const std::vector<NextHopGroupId>& gids) {
-    computeCandidateMerges(gids.begin(), gids.end());
+  void computeCandidateMergesForNewUnmergedGroups(
+      ForwardIt begin,
+      ForwardIt end);
+  void computeCandidateMergesForNewUnmergedGroups(
+      const std::vector<NextHopGroupId>& gids) {
+    computeCandidateMergesForNewUnmergedGroups(gids.begin(), gids.end());
   }
+  void computeCandidateMergesForNewMergedGroup(
+      const NextHopGroupIds& newMergeSet);
+  void addCandidateMerge(const NextHopGroupIds& candidateMerge);
 
   NextHops2GroupId nextHopGroup2Id_;
   StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;
   PrefixToGroupInfo prefixToGroupInfo_;
   std::map<NextHopGroupIds, ConsolidationInfo> mergedGroups_;
   std::map<NextHopGroupIds, ConsolidationInfo> candidateMergeGroups_;
-  // Cached pre update state, will be used in case of roll back
-  // if update fails
-  std::optional<PreUpdateState> preUpdateState_;
-  // Knobs to control resource mgt policy
-  uint32_t maxEcmpGroups_{0};
-  int compressionPenaltyThresholdPct_{0};
-  std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
-  SwitchStats* switchStats_;
+  SwitchStatsGetter statsGetter_;
+  EcmpResourceManagerConfig config_;
 };
 
 class NextHopGroupInfo {
@@ -274,28 +441,51 @@ class NextHopGroupInfo {
   using NextHopGroupItr = EcmpResourceManager::NextHops2GroupId::iterator;
   using GroupIds2ConsolidationInfoItr =
       EcmpResourceManager::GroupIds2ConsolidationInfo::iterator;
+
+  enum class NextHopGroupState {
+    UNINITIALIZED,
+    UNMERGED_NHOPS_ONLY,
+    MERGED_NHOPS_ONLY,
+    // Matching MERGED and UMERGED NHOPS group
+    UNMERGED_AND_MERGED_NHOPS,
+  };
   NextHopGroupInfo(
       NextHopGroupId id,
       NextHopGroupItr ngItr,
       bool isBackupEcmpGroupType = false,
       std::optional<GroupIds2ConsolidationInfoItr> mergedGroupsToInfoItr =
-          std::nullopt)
-      : id_(id),
-        ngItr_(ngItr),
-        isBackupEcmpGroupType_(isBackupEcmpGroupType),
-        mergedGroupsToInfoItr_(mergedGroupsToInfoItr) {}
+          std::nullopt);
+
+  bool isUninitialized() const {
+    return state_ == NextHopGroupState::UNINITIALIZED;
+  }
+  bool hasUnmergedNhops() const {
+    return state_ == NextHopGroupState::UNMERGED_NHOPS_ONLY ||
+        state_ == NextHopGroupState::UNMERGED_AND_MERGED_NHOPS;
+  }
+  bool hasMergedNhops() const {
+    return state_ == NextHopGroupState::MERGED_NHOPS_ONLY ||
+        state_ == NextHopGroupState::UNMERGED_AND_MERGED_NHOPS;
+  }
+  bool hasMergedNhopsOnly() const {
+    return state_ == NextHopGroupState::MERGED_NHOPS_ONLY;
+  }
   NextHopGroupId getID() const {
     return id_;
   }
   size_t getRouteUsageCount() const {
-    CHECK_GT(routeUsageCount_, 0);
+    CHECK_GE(routeUsageCount_, 0);
     return routeUsageCount_;
   }
   void incRouteUsageCount() {
+    CHECK_GE(routeUsageCount_, 0);
     ++routeUsageCount_;
+    routeUsageCountChanged(routeUsageCount_ - 1, routeUsageCount_);
   }
   void decRouteUsageCount() {
+    CHECK_GT(routeUsageCount_, 0);
     --routeUsageCount_;
+    routeUsageCountChanged(routeUsageCount_ + 1, routeUsageCount_);
   }
   bool isBackupEcmpGroupType() const {
     return isBackupEcmpGroupType_;
@@ -306,12 +496,16 @@ class NextHopGroupInfo {
   void setMergedGroupInfoItr(
       std::optional<GroupIds2ConsolidationInfoItr> gitr) {
     mergedGroupsToInfoItr_ = gitr;
+    mergeInfoItrChanged();
   }
   std::optional<GroupIds2ConsolidationInfoItr> getMergedGroupInfoItr() const {
     return mergedGroupsToInfoItr_;
   }
   const RouteNextHopSet& getNhops() const {
     return ngItr_->first;
+  }
+  size_t numNhops() const {
+    return getNhops().size();
   }
   bool hasOverrideNextHops() const {
     return mergedGroupsToInfoItr_.has_value();
@@ -326,6 +520,9 @@ class NextHopGroupInfo {
         : routeUsageCount_;
   }
 
+  NextHopGroupState getState() const {
+    return state_;
+  }
   std::optional<RouteNextHopSet> getOverrideNextHops() const {
     std::optional<RouteNextHopSet> overrideNhops;
     if (mergedGroupsToInfoItr_.has_value()) {
@@ -334,19 +531,28 @@ class NextHopGroupInfo {
     return overrideNhops;
   }
 
+  bool mergedAndUnmergedNhopsMatch() const {
+    return mergedGroupsToInfoItr_ &&
+        (*mergedGroupsToInfoItr_)->second.mergedNhops == getNhops();
+  }
+
  private:
-  static constexpr int kInvalidRouteUsageCount = 0;
+  void routeUsageCountChanged(int prevRouteUsageCount, int curRouteUsageCount);
+  void mergeInfoItrChanged();
   NextHopGroupId id_;
   NextHopGroupItr ngItr_;
   bool isBackupEcmpGroupType_{false};
   std::optional<GroupIds2ConsolidationInfoItr> mergedGroupsToInfoItr_;
-  int routeUsageCount_{kInvalidRouteUsageCount};
+  int routeUsageCount_{0};
+  NextHopGroupState state_{NextHopGroupState::UNINITIALIZED};
 };
 
 std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
     const std::shared_ptr<SwitchState>& state,
     const HwAsic* asic,
-    SwitchStats* stats = nullptr);
+    const EcmpResourceManager::SwitchStatsGetter& switchStatsGetter = []() {
+      return nullptr;
+    });
 
 std::ostream& operator<<(
     std::ostream& os,
@@ -355,4 +561,10 @@ std::ostream& operator<<(
 std::ostream& operator<<(
     std::ostream& os,
     const EcmpResourceManager::Prefix& pfx);
+
+std::ostream& operator<<(
+    std::ostream& os,
+    NextHopGroupInfo::NextHopGroupState state);
+
+std::ostream& operator<<(std::ostream& os, const NextHopGroupInfo& grpInfo);
 } // namespace facebook::fboss

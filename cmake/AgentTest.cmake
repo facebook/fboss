@@ -199,6 +199,7 @@ target_link_libraries(agent_ensemble
   test_ensemble_if
   pkt_test_utils
   agent_hw_test_ctrl_cpp2
+  hw_switch_thrift_client_table
   FBThrift::thriftcpp2
   ${GTEST}
 )
@@ -235,6 +236,8 @@ target_link_libraries(linkstate_toggler
 
 add_library(system_scale_test_utils
   fboss/agent/test/utils/SystemScaleTestUtils.cpp
+  fboss/agent/test/utils/PortFlapHelper.cpp
+  fboss/agent/test/utils/MacLearningFloodHelper.cpp
 )
 
 target_link_libraries(system_scale_test_utils
@@ -250,6 +253,8 @@ target_link_libraries(system_scale_test_utils
   scale_test_utils
   route_scale_gen
   qos_test_utils
+  Folly::folly
+  Folly::follybenchmark
 )
 
 add_library(acl_scale_test_utils

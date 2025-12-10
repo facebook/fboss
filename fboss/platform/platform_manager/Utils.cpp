@@ -2,6 +2,7 @@
 
 #include "fboss/platform/platform_manager/Utils.h"
 
+#include <exprtk.hpp>
 #include <gpiod.h>
 #include <filesystem>
 #include <stdexcept>
@@ -22,6 +23,7 @@ const std::string kGpioChip = "gpiochip";
 const re2::RE2 kWatchdogNameRe{"watchdog(\\d+)"};
 const std::string kWatchdog = "watchdog";
 constexpr auto kWatchdogDevCreationWaitSecs = std::chrono::seconds(5);
+constexpr auto kMdioBusCharDevCreationWaitSecs = std::chrono::seconds(5);
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
@@ -58,13 +60,19 @@ std::string Utils::resolveGpioChipCharDevPath(const std::string& sysfsPath) {
     }
   }
   if (!gpioChipNum) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: Couldn't find gpio chip under {}", failMsg, sysfsPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: Couldn't find gpio chip under {}",
+            failMsg,
+            sysfsPath));
   }
   auto charDevPath = fmt::format("/dev/gpiochip{}", *gpioChipNum);
   if (!fs::exists(charDevPath)) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: {} does not exist in the system", failMsg, charDevPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: {} does not exist in the system",
+            failMsg,
+            charDevPath));
   }
   return charDevPath;
 }
@@ -83,10 +91,11 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
               "Watchdog SysfsPath is not created. Waited for at most {}s",
               kWatchdogDevCreationWaitSecs.count()),
           kWatchdogDevCreationWaitSecs)) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: Couldn't find watchdog directory under {}",
-        failMsg,
-        sysfsPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: Couldn't find watchdog directory under {}",
+            failMsg,
+            sysfsPath));
   }
 
   std::optional<uint16_t> watchdogNum{std::nullopt};
@@ -98,8 +107,9 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
     }
   }
   if (!watchdogNum) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: Couldn't find watchdog under {}", failMsg, sysfsPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: Couldn't find watchdog under {}", failMsg, sysfsPath));
   }
   auto charDevPath = fmt::format("/dev/watchdog{}", *watchdogNum);
   if (!Utils().checkDeviceReadiness(
@@ -108,8 +118,29 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
               "Watchdog CharDevPath is not created. Waited for at most {}s",
               kWatchdogDevCreationWaitSecs.count()),
           kWatchdogDevCreationWaitSecs)) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: {} does not exist in the system", failMsg, charDevPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: {} does not exist in the system",
+            failMsg,
+            charDevPath));
+  }
+  return charDevPath;
+}
+
+std::string Utils::resolveMdioBusCharDevPath(uint32_t instanceId) {
+  auto failMsg = "Failed to resolve mdio_bus CharDevPath";
+  auto charDevPath = fmt::format("/dev/fb-mdio-{}", instanceId);
+  if (!Utils().checkDeviceReadiness(
+          [&]() -> bool { return fs::exists(charDevPath); },
+          fmt::format(
+              "MdioBus CharDevPath is not created. Waited for at most {}s",
+              kMdioBusCharDevCreationWaitSecs.count()),
+          kMdioBusCharDevCreationWaitSecs)) {
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: {} does not exist in the system",
+            failMsg,
+            charDevPath));
   }
   return charDevPath;
 }
@@ -141,4 +172,177 @@ int Utils::getGpioLineValue(const std::string& charDevPath, int lineIndex)
   gpiod_chip_close(chip);
   return value;
 };
+
+std::string Utils::formatExpression(
+    const std::string& expression,
+    int port,
+    int startPort,
+    std::optional<int> led) {
+  if (led.has_value()) {
+    return fmt::format(
+        fmt::runtime(expression),
+        fmt::arg("portNum", port),
+        fmt::arg("ledNum", *led),
+        fmt::arg("startPort", startPort));
+  } else {
+    return fmt::format(
+        fmt::runtime(expression),
+        fmt::arg("portNum", port),
+        fmt::arg("startPort", startPort));
+  }
+}
+
+std::string Utils::evaluateExpression(const std::string& expression) {
+  std::string decimalExpression = convertHexLiteralsToDecimal(expression);
+  exprtk::symbol_table<double> symbolTable;
+  exprtk::expression<double> expr;
+  expr.register_symbol_table(symbolTable);
+  exprtk::parser<double> parser;
+
+  if (!parser.compile(decimalExpression, expr)) {
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to parse offset expression: {}", decimalExpression));
+  }
+
+  uint64_t value = static_cast<uint64_t>(expr.value());
+  return fmt::format("0x{:x}", value);
+}
+
+std::string Utils::computeHexExpression(
+    const std::string& expression,
+    int port,
+    int startPort,
+    std::optional<int> led) {
+  std::string formattedExpression =
+      formatExpression(expression, port, startPort, led);
+  return evaluateExpression(formattedExpression);
+}
+
+std::string Utils::convertHexLiteralsToDecimal(const std::string& expression) {
+  std::string result = expression;
+
+  // Convert hexadecimal literals to decimal since exprtk doesn't support hex
+  static const re2::RE2 hexRegex("(0x[0-9a-fA-F]+)");
+  std::string hexMatch;
+  std::string::size_type pos = 0;
+
+  while (re2::RE2::PartialMatch(result.substr(pos), hexRegex, &hexMatch)) {
+    // Find the position of this hex pattern
+    std::string::size_type hexPos = result.find(hexMatch, pos);
+
+    if (hexPos != std::string::npos) {
+      // Convert hex string to decimal using our utility function
+      uint64_t decimalValue = std::stoi(hexMatch, nullptr, 16);
+      std::string decimalStr = std::to_string(decimalValue);
+
+      // Replace the hex pattern with decimal value
+      result.replace(hexPos, hexMatch.length(), decimalStr);
+      pos = hexPos + decimalStr.length();
+    } else {
+      break;
+    }
+  }
+
+  return result;
+}
+
+std::vector<XcvrCtrlConfig> Utils::createXcvrCtrlConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<XcvrCtrlConfig> xcvrCtrlConfigs;
+  const auto xcvrCtrlBlockConfigs = pciDeviceConfig.xcvrCtrlBlockConfigs();
+  for (const auto& xcvrCtrlBlockConfig : *xcvrCtrlBlockConfigs) {
+    int endPort =
+        *xcvrCtrlBlockConfig.startPort() + *xcvrCtrlBlockConfig.numPorts();
+    for (int port = *xcvrCtrlBlockConfig.startPort(); port < endPort; ++port) {
+      XcvrCtrlConfig xcvrCtrlConfig;
+      xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
+          "{}_XCVR_CTRL_PORT_{}",
+          *xcvrCtrlBlockConfig.pmUnitScopedNamePrefix(),
+          port);
+      xcvrCtrlConfig.fpgaIpBlockConfig()->deviceName() =
+          *xcvrCtrlBlockConfig.deviceName();
+      xcvrCtrlConfig.fpgaIpBlockConfig()->csrOffset() =
+          Utils().computeHexExpression(
+              *xcvrCtrlBlockConfig.csrOffsetCalc(),
+              port,
+              *xcvrCtrlBlockConfig.startPort());
+      xcvrCtrlConfig.portNumber() = port;
+      if (!xcvrCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+        xcvrCtrlConfig.fpgaIpBlockConfig()->iobufOffset() =
+            Utils().computeHexExpression(
+                *xcvrCtrlBlockConfig.iobufOffsetCalc(),
+                port,
+                *xcvrCtrlBlockConfig.startPort());
+      }
+      xcvrCtrlConfigs.push_back(xcvrCtrlConfig);
+    }
+  }
+  return xcvrCtrlConfigs;
+}
+
+std::vector<LedCtrlConfig> Utils::createLedCtrlConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<LedCtrlConfig> ledCtrlConfigs;
+  const auto ledCtrlBlockConfigs = pciDeviceConfig.ledCtrlBlockConfigs();
+  for (const auto& ledCtrlBlockConfig : *ledCtrlBlockConfigs) {
+    int endPort =
+        *ledCtrlBlockConfig.startPort() + *ledCtrlBlockConfig.numPorts();
+    for (int port = *ledCtrlBlockConfig.startPort(); port < endPort; ++port) {
+      for (int led = 1; led <= ledCtrlBlockConfig.ledPerPort(); ++led) {
+        LedCtrlConfig ledCtrlConfig;
+        ledCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
+            "{}_PORT_{}_LED_{}",
+            *ledCtrlBlockConfig.pmUnitScopedNamePrefix(),
+            port,
+            led);
+        ledCtrlConfig.fpgaIpBlockConfig()->deviceName() =
+            *ledCtrlBlockConfig.deviceName();
+        ledCtrlConfig.fpgaIpBlockConfig()->csrOffset() =
+            Utils().computeHexExpression(
+                *ledCtrlBlockConfig.csrOffsetCalc(),
+                port,
+                *ledCtrlBlockConfig.startPort(),
+                led);
+        ledCtrlConfig.portNumber() = port;
+        ledCtrlConfig.ledId() = led;
+        if (!ledCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+          ledCtrlConfig.fpgaIpBlockConfig()->iobufOffset() =
+              Utils().computeHexExpression(
+                  *ledCtrlBlockConfig.iobufOffsetCalc(),
+                  port,
+                  *ledCtrlBlockConfig.startPort(),
+                  led);
+        }
+        ledCtrlConfigs.push_back(ledCtrlConfig);
+      }
+    }
+  }
+  return ledCtrlConfigs;
+}
+
+std::vector<FpgaIpBlockConfig> Utils::createMdioBusConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<FpgaIpBlockConfig> mdioBusConfigs;
+  const auto mdioBusBlockConfigs = pciDeviceConfig.mdioBusBlockConfigs();
+  for (const auto& mdioBusBlockConfig : *mdioBusBlockConfigs) {
+    int endBusIndex = *mdioBusBlockConfig.numBuses();
+    for (int busIndex = 0; busIndex < endBusIndex; ++busIndex) {
+      FpgaIpBlockConfig mdioBusConfig;
+      mdioBusConfig.pmUnitScopedName() = fmt::format(
+          "{}_{}", *mdioBusBlockConfig.pmUnitScopedNamePrefix(), busIndex + 1);
+      mdioBusConfig.deviceName() = *mdioBusBlockConfig.deviceName();
+      // Set iobufOffset to invalid value to let BSP calculate the reset address
+      // automatically
+      mdioBusConfig.iobufOffset() = fmt::format("0x{:x}", -1);
+      std::string formattedExpression = fmt::format(
+          fmt::runtime(*mdioBusBlockConfig.csrOffsetCalc()),
+          fmt::arg("busIndex", busIndex));
+      mdioBusConfig.csrOffset() =
+          Utils().evaluateExpression(formattedExpression);
+      mdioBusConfigs.push_back(mdioBusConfig);
+    }
+  }
+  return mdioBusConfigs;
+}
 } // namespace facebook::fboss::platform::platform_manager

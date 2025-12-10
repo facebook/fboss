@@ -50,10 +50,10 @@ class BcmUdfTest : public BcmTest {
 };
 
 TEST_F(BcmUdfTest, checkUdfHashGroupConfiguration) {
-  auto setupUdfConfig = [=]() {
+  auto setupUdfConfig = [=, this]() {
     applyNewState(setupUdfConfiguration(true, true));
   };
-  auto verifyUdfConfig = [=]() {
+  auto verifyUdfConfig = [=, this]() {
     int udfGroupId;
     udfGroupId = getHwSwitch()->getUdfMgr()->getBcmUdfGroupId(
         utility::kUdfHashDstQueuePairGroupName);
@@ -73,10 +73,10 @@ TEST_F(BcmUdfTest, checkUdfHashGroupConfiguration) {
 };
 
 TEST_F(BcmUdfTest, checkUdfAclGroupConfiguration) {
-  auto setupUdfConfig = [=]() {
+  auto setupUdfConfig = [=, this]() {
     applyNewState(setupUdfConfiguration(true, false));
   };
-  auto verifyUdfConfig = [=]() {
+  auto verifyUdfConfig = [=, this]() {
     int udfGroupId;
     udfGroupId = getHwSwitch()->getUdfMgr()->getBcmUdfGroupId(
         utility::kUdfAclRoceOpcodeGroupName);
@@ -95,8 +95,10 @@ TEST_F(BcmUdfTest, checkUdfAclGroupConfiguration) {
 };
 
 TEST_F(BcmUdfTest, checkUdfPktMatcherConfiguration) {
-  auto setupUdfConfig = [=]() { applyNewState(setupUdfConfiguration(true)); };
-  auto verifyUdfConfig = [=]() {
+  auto setupUdfConfig = [=, this]() {
+    applyNewState(setupUdfConfiguration(true));
+  };
+  auto verifyUdfConfig = [=, this]() {
     const int udfPacketMatcherId =
         getHwSwitch()->getUdfMgr()->getBcmUdfPacketMatcherId(
             utility::kUdfL4UdpRocePktMatcherName);
@@ -129,7 +131,7 @@ TEST_F(BcmUdfTest, deleteUdfConfiguration) {
   // Undo Udf Config
   applyNewState(setupUdfConfiguration(false));
 
-  auto verifyUdfConfig = [=]() {
+  auto verifyUdfConfig = [=, this]() {
     EXPECT_THROW(
         getHwSwitch()->getUdfMgr()->getBcmUdfGroupId(
             utility::kUdfHashDstQueuePairGroupName),

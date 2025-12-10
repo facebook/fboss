@@ -8,43 +8,49 @@
  *
  */
 
-#include "fboss/platform/weutil/hw_test/WeutilTest.h"
-
 #include <gtest/gtest.h>
+
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/helpers/PlatformNameLib.h"
+#include "fboss/platform/weutil/ConfigUtils.h"
 #include "fboss/platform/weutil/ContentValidator.h"
 #include "fboss/platform/weutil/Weutil.h"
+#include "fboss/platform/weutil/WeutilInterface.h"
 
 namespace facebook::fboss::platform {
 
-WeutilTest::~WeutilTest() {}
+class WeutilTest : public ::testing::Test {
+ public:
+  void SetUp() override {
+    auto platformName = helpers::PlatformNameLib().getPlatformName();
+    weutilInstance_ = createWeUtilIntf("chassis", "", 0);
+    for (const auto& [eepromName, eepromConfig] :
+         weutil::ConfigUtils(platformName).getFruEepromList()) {
+      fruList_[eepromName] = eepromConfig;
+    }
+  }
 
-void WeutilTest::SetUp() {
-  weutilInstance = createWeUtilIntf("chassis", "", 0);
-}
-
-void WeutilTest::TearDown() {}
+ protected:
+  std::unique_ptr<WeutilInterface> weutilInstance_;
+  std::unordered_map<std::string, weutil::FruEeprom> fruList_;
+};
 
 TEST_F(WeutilTest, getWedgeInfo) {
-  EXPECT_GT(weutilInstance->getContents().size(), 0);
+  EXPECT_GT(weutilInstance_->getContents().size(), 0);
 }
 
 TEST_F(WeutilTest, getEepromPaths) {
-  auto config = getWeUtilConfig();
-  EXPECT_GT(config.fruEepromList()->size(), 0);
+  EXPECT_GT(fruList_.size(), 0);
 }
 
 TEST_F(WeutilTest, ValidateAllEepromContents) {
-  auto config = getWeUtilConfig();
   auto platformName = helpers::PlatformNameLib().getPlatformName();
   bool isDarwin = platformName && *platformName == "DARWIN";
-  EXPECT_GT(config.fruEepromList()->size(), 0);
-  for (const auto& [eepromName, eepromConfig] : *config.fruEepromList()) {
+  EXPECT_GT(fruList_.size(), 0);
+  for (const auto& [eepromName, eepromConfig] : fruList_) {
     std::string fruName = eepromName;
-    std::transform(fruName.begin(), fruName.end(), fruName.begin(), ::tolower);
     try {
-      auto weutilInstance = createWeUtilIntf(fruName, "", 0);
+      auto weutilInstance = createWeUtilIntf(fruName, "", eepromConfig.offset);
       auto contents = weutilInstance->getContents();
       EXPECT_GT(contents.size(), 0)
           << "EEPROM " << fruName << " returned empty contents";
@@ -59,6 +65,26 @@ TEST_F(WeutilTest, ValidateAllEepromContents) {
   }
 }
 
+TEST_F(WeutilTest, getInfoJson) {
+  auto constexpr kDarwinJsonSize = 22;
+  auto constexpr kBmcLiteJsonSize = 29;
+
+  for (const auto& [fruName, eepromConfig] : fruList_) {
+    try {
+      auto weutilInstance =
+          createWeUtilIntf(fruName, eepromConfig.path, eepromConfig.offset);
+      auto contents = weutilInstance->getContents();
+      EXPECT_GT(contents.size(), 0)
+          << "EEPROM " << fruName << " returned empty contents";
+      auto json = weutilInstance->getInfoJson();
+      EXPECT_GE(json.size(), std::min(kDarwinJsonSize, kBmcLiteJsonSize))
+          << "EEPROM " << fruName << " returned empty json";
+    } catch (const std::exception& e) {
+      FAIL() << "Exception when testing EEPROM content in JSON format "
+             << fruName << ": " << e.what();
+    }
+  }
+}
 } // namespace facebook::fboss::platform
 
 int main(int argc, char* argv[]) {

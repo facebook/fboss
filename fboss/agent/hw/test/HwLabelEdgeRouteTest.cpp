@@ -171,12 +171,13 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
     // setup ecmp helper for network and mask, with labeled and unlabaled paths
     typename Route<AddrT>::Prefix prefix{network, mask};
 
-    auto emplaced = ecmpHelpers_.emplace(std::make_pair(
-        prefix,
-        std::make_unique<EcmpSetupTargetedPorts>(
-            getProgrammedState(),
-            getHwSwitch()->needL2EntryForNeighbor(),
-            kRouter0)));
+    auto emplaced = ecmpHelpers_.emplace(
+        std::make_pair(
+            prefix,
+            std::make_unique<EcmpSetupTargetedPorts>(
+                getProgrammedState(),
+                getHwSwitch()->needL2EntryForNeighbor(),
+                kRouter0)));
 
     EXPECT_TRUE(emplaced.second);
     const auto& ecmpHelper = emplaced.first->second;

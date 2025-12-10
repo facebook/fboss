@@ -26,6 +26,17 @@ thrift_library(
 )
 
 cpp_library(
+    name = "common",
+    srcs = ["Common.cpp"],
+    headers = [
+        "Common.h",
+    ],
+    exported_deps = [
+        "//folly:conv",
+    ],
+)
+
+cpp_library(
     name = "visitors",
     srcs = [
         "PatchApplier.cpp",
@@ -45,6 +56,8 @@ cpp_library(
         "VisitorUtils.h",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
+        ":common",
         ":results-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/thrift_cow:patch-cpp2-types",
@@ -60,11 +73,11 @@ cpp_library(
         "//thrift/lib/cpp2:thrift-core",
         "//thrift/lib/cpp2:type_class",
         "//thrift/lib/cpp2/protocol:protocol",
+        "//thrift/lib/cpp2/reflection:invoke_by_field_name",
         "//thrift/lib/cpp2/reflection:reflection",
     ],
     exported_external_deps = [
         "boost",
         "glog",
-        "re2",
     ],
 )

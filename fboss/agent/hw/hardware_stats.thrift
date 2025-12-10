@@ -100,6 +100,19 @@ struct HwPortStats {
   66: optional i64 pfcDeadlockDetection_;
   67: optional i64 pfcDeadlockRecovery_;
   68: map<i16, bool> pgInCongestionDiscardSeen_ = {};
+  // MAC transmit data queue min/max watermark is added to
+  // monitor for TX stuck conditions which could result in
+  // RCI stuck like in S545783. Watermark is in cells and
+  // not converted to bytes, details in CS00012417758.
+  69: optional i64 macTransmitQueueMinWatermarkCells_;
+  70: optional i64 macTransmitQueueMaxWatermarkCells_;
+  71: optional bool macTransmitQueueStuck_;
+  72: optional i64 fabricControlRxPackets_;
+  73: optional i64 fabricControlTxPackets_;
+  // The total duration for which a specific priority was
+  // paused in RX / TX direction.
+  74: map<i16, i64> txPfcDurationUsec_ = {};
+  75: map<i16, i64> rxPfcDurationUsec_ = {};
 }
 
 struct HwSysPortStats {
@@ -445,6 +458,10 @@ struct HwSwitchFb303GlobalStats {
   36: optional i64 asic_revision;
   37: optional i64 sram_low_buffer_limit_hit_count;
   38: optional i64 dram_quarantined_buffer_count;
+}
+
+struct HwSwitchHardResetStats {
+  1: i16 hard_reset_notification_received;
 }
 
 struct HwFlowletStats {

@@ -12,7 +12,6 @@
 #include <fboss/thrift_cow/nodes/ThriftMapNode-inl.h>
 #include <folly/FileUtil.h>
 #include <folly/gen/Base.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -25,11 +24,13 @@
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/BufferUtils.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/FabricLinkMonitoring.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/LoadBalancerUtils.h"
+#include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
@@ -110,12 +111,14 @@ using namespace facebook::fboss;
 namespace {
 
 const uint8_t kV6LinkLocalAddrMask{64};
+constexpr auto kMcQueueScalingFactor = cfg::MMUScalingFactor::ONE_8TH;
+constexpr auto kHyperPortSpeed = cfg::PortSpeed::THREEPOINTTWOT;
 
 // Only one buffer pool is supported systemwide. Variable to track the name
 // and validate during a config change.
 std::optional<std::string> sharedBufferPoolName;
 
-std::shared_ptr<facebook::fboss::SwitchState> updateFibFromConfig(
+StateDelta updateFibFromConfig(
     const facebook::fboss::SwitchIdScopeResolver* resolver,
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -129,7 +132,9 @@ std::shared_ptr<facebook::fboss::SwitchState> updateFibFromConfig(
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
 
   fibUpdater(*nextStatePtr);
-  return *nextStatePtr;
+  auto lastDelta = fibUpdater.getLastDelta();
+  CHECK(lastDelta.has_value());
+  return StateDelta(lastDelta->oldState(), *nextStatePtr);
 }
 
 template <typename MultiMap, typename EntryT>
@@ -224,6 +229,45 @@ bool checkParallelLinksToInterfaceNodes(
   }
   return hasParallelLinks;
 }
+
+bool isValidRxReasonToQueue(const auto& rxReasonToQueue) {
+  // FBOSS config exposes two different reason codes for TTLs: TTL_0 and TTL_1.
+  // For TTL_0, FBOSS configures packet action FORWARD.
+  // For TTL_1, FBOSS configures packet action TRAP.
+  //
+  // However, SAI spec defines a single attribute to match for TTL 0 and TTL 1
+  // viz.: SAI_HOSTIF_TRAP_TYPE_TTL_ERROR
+  //
+  // Thus, if config carries both TTL_0 and TTL_1, the second field overrides
+  // the first one and results into unexpected/buggy behavior.
+  //
+  // TTL_0 use case is for test: don't drop TTL 0 packets, allow creating loop.
+  // TTL_1 use case is for production only.
+  // Thus, explicitly fail config that attempts to set both TTL_0 and TTL1.
+
+  if (!rxReasonToQueue.has_value()) {
+    return true;
+  }
+
+  bool isTtl0 = false;
+  bool isTtl1 = false;
+  for (auto rxEntry : *rxReasonToQueue) {
+    if (*rxEntry.rxReason() == cfg::PacketRxReason::TTL_0) {
+      isTtl0 = true;
+    } else if (*rxEntry.rxReason() == cfg::PacketRxReason::TTL_1) {
+      isTtl1 = true;
+    }
+  }
+
+  if (isTtl0 && isTtl1) {
+    XLOG(ERR)
+        << "Setting RxReasons TTL_0 and TTL_1 simultaneously is unsupported";
+    return false;
+  }
+
+  return true;
+}
+
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -313,9 +357,9 @@ class ThriftConfigApplier {
   }
 
   // Interface route prefix. IPAddress has mask applied
-  typedef std::pair<InterfaceID, folly::IPAddress> IntfAddress;
-  typedef boost::container::flat_map<folly::CIDRNetwork, IntfAddress> IntfRoute;
-  typedef boost::container::flat_map<RouterID, IntfRoute> IntfRouteTable;
+  using IntfAddress = std::pair<InterfaceID, folly::IPAddress>;
+  using IntfRoute = boost::container::flat_map<folly::CIDRNetwork, IntfAddress>;
+  using IntfRouteTable = boost::container::flat_map<RouterID, IntfRoute>;
   IntfRouteTable intfRouteTables_;
 
   /* The ThriftConfigApplier object exposes a single, top-level method "run()".
@@ -353,11 +397,22 @@ class ThriftConfigApplier {
   void updateVlanInterfaces(const Interface* intf);
   std::shared_ptr<PortMap> updatePorts(
       const std::shared_ptr<MultiSwitchTransceiverMap>& transceiverMap);
+  shared_ptr<SystemPortMap> updateFabricLinkMonitoringSystemPorts(
+      const std::shared_ptr<MultiSwitchPortMap>& ports,
+      const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings);
   std::shared_ptr<SystemPortMap> updateSystemPorts(
       const std::shared_ptr<MultiSwitchPortMap>& ports,
       const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings);
   std::shared_ptr<MultiSwitchSystemPortMap> updateRemoteSystemPorts(
       const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
+  bool needFabricLinkMonSystemPortUpdate(
+      const std::shared_ptr<MultiSwitchSettings>& origMultiSwitchSettings,
+      const std::shared_ptr<MultiSwitchSettings>& newMultiSwitchSettings,
+      const SwitchIdScopeResolver& scopeResolver);
+  std::optional<int32_t> getFabricLinkMonitoringPortSwitchId(
+      const PortID& portId,
+      const cfg::PortType& type,
+      const size_t expectedNeighborCount) const;
 
   std::shared_ptr<Port> updatePort(
       const std::shared_ptr<Port>& orig,
@@ -370,6 +425,7 @@ class ThriftConfigApplier {
       uint16_t maxQueues,
       cfg::StreamType streamType,
       std::optional<cfg::QosMap> qosMap = std::nullopt,
+      std::optional<cfg::PortType> portType = std::nullopt,
       bool resetDefaultQueue = true);
   // update cfg port queue attribute to state port queue object
   void setPortQueue(
@@ -413,7 +469,9 @@ class ThriftConfigApplier {
   std::vector<int32_t> getAggregatePortInterfaceIDs(
       const std::vector<AggregatePort::Subport>& subports);
   std::pair<folly::MacAddress, uint16_t> getSystemLacpConfig();
-  uint8_t computeMinimumLinkCount(const cfg::AggregatePort& cfg);
+  uint8_t computeMinimumLinkCount(
+      const cfg::MinimumCapacity& minCapacity,
+      size_t memberPortsSize);
   std::shared_ptr<VlanMap> updateVlans();
   bool updateMacTable(
       std::shared_ptr<Vlan>& newVlan,
@@ -571,6 +629,9 @@ class ThriftConfigApplier {
   void processInterfaceForPortForVoqSwitches(int64_t switchId);
   void processInterfaceForPort();
 
+  bool processRemovedStaticMacEntries();
+  bool processAddedStaticMacEntries();
+
   shared_ptr<FlowletSwitchingConfig> updateFlowletSwitchingConfig(
       bool* changed);
   shared_ptr<FlowletSwitchingConfig> createFlowletSwitchingConfig(
@@ -603,6 +664,7 @@ class ThriftConfigApplier {
   SwitchIdScopeResolver scopeResolver_;
   const PlatformMapping* platformMapping_{nullptr};
   const HwAsicTable* hwAsicTable_{nullptr};
+  const FabricLinkMonitoring* fabricLinkMon_{nullptr};
 
   struct InterfaceIpInfo {
     InterfaceIpInfo(uint8_t mask, MacAddress mac, InterfaceID intf)
@@ -664,15 +726,21 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   processInterfaceForPort();
+  if (FLAGS_enable_fabric_link_monitoring) {
+    // Create the fabric link mon object in case we have
+    // fabric link monitoring enabled.
+    fabricLinkMon_ = new FabricLinkMonitoring(cfg_);
+  }
 
   {
     auto newPorts = updatePorts(new_->getTransceivers());
     if (newPorts) {
       new_->resetPorts(
           toMultiSwitchMap<MultiSwitchPortMap>(newPorts, scopeResolver_));
-      new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
-          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
-          scopeResolver_));
+      new_->resetSystemPorts(
+          toMultiSwitchMap<MultiSwitchSystemPortMap>(
+              updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
+              scopeResolver_));
       new_->resetRemoteSystemPorts(
           updateRemoteSystemPorts(new_->getSystemPorts()));
       changed = true;
@@ -680,10 +748,26 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   {
+    if (FLAGS_enable_fabric_link_monitoring &&
+        needFabricLinkMonSystemPortUpdate(
+            orig_->getSwitchSettings(),
+            new_->getSwitchSettings(),
+            scopeResolver_)) {
+      new_->resetFabricLinkMonitoringSystemPorts(
+          toMultiSwitchMap<MultiSwitchSystemPortMap>(
+              updateFabricLinkMonitoringSystemPorts(
+                  new_->getPorts(), new_->getSwitchSettings()),
+              scopeResolver_));
+      changed = true;
+    }
+  }
+
+  {
     auto newAggPorts = updateAggregatePorts();
     if (newAggPorts) {
-      new_->resetAggregatePorts(toMultiSwitchMap<MultiSwitchAggregatePortMap>(
-          newAggPorts, scopeResolver_));
+      new_->resetAggregatePorts(
+          toMultiSwitchMap<MultiSwitchAggregatePortMap>(
+              newAggPorts, scopeResolver_));
       changed = true;
     }
   }
@@ -703,15 +787,17 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (FLAGS_enable_acl_table_group) {
       auto newAclTableGroups = updateAclTableGroups();
       if (newAclTableGroups) {
-        new_->resetAclTableGroups(toMultiSwitchMap<MultiSwitchAclTableGroupMap>(
-            newAclTableGroups, scopeResolver_));
+        new_->resetAclTableGroups(
+            toMultiSwitchMap<MultiSwitchAclTableGroupMap>(
+                newAclTableGroups, scopeResolver_));
         changed = true;
       }
     } else {
       auto newAcls = updateAcls(cfg::AclStage::INGRESS, *cfg_->acls());
       if (newAcls) {
-        new_->resetAcls(toMultiSwitchMap<MultiSwitchAclMap>(
-            std::move(newAcls), scopeResolver_));
+        new_->resetAcls(
+            toMultiSwitchMap<MultiSwitchAclMap>(
+                std::move(newAcls), scopeResolver_));
         changed = true;
       }
     }
@@ -720,8 +806,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newQosPolicies = updateQosPolicies();
     if (newQosPolicies) {
-      new_->resetQosPolicies(toMultiSwitchMap<MultiSwitchQosPolicyMap>(
-          newQosPolicies, scopeResolver_));
+      new_->resetQosPolicies(
+          toMultiSwitchMap<MultiSwitchQosPolicyMap>(
+              newQosPolicies, scopeResolver_));
       changed = true;
     }
   }
@@ -729,11 +816,17 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newIntfs = updateInterfaces();
     if (newIntfs) {
-      new_->resetIntfs(toMultiSwitchMap<MultiSwitchInterfaceMap>(
-          std::move(newIntfs), *cfg_, scopeResolver_));
+      new_->resetIntfs(
+          toMultiSwitchMap<MultiSwitchInterfaceMap>(
+              std::move(newIntfs), *cfg_, scopeResolver_));
       new_->resetRemoteIntfs(updateRemoteInterfaces(new_->getInterfaces()));
       changed = true;
     }
+  }
+
+  // Remove static MAC entries before VLAN processing
+  if (processRemovedStaticMacEntries()) {
+    changed = true;
   }
 
   // Note: updateInterfaces() must be called before updateVlans(),
@@ -745,6 +838,11 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
           toMultiSwitchMap<MultiSwitchVlanMap>(newVlans, scopeResolver_));
       changed = true;
     }
+  }
+
+  // Process static MAC entries after VLANs are updated
+  if (processAddedStaticMacEntries()) {
+    changed = true;
   }
 
   if (routeUpdater_) {
@@ -832,8 +930,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newCollectors = updateSflowCollectors();
     if (newCollectors) {
-      new_->resetSflowCollectors(toMultiSwitchMap<MultiSwitchSflowCollectorMap>(
-          newCollectors, scopeResolver_));
+      new_->resetSflowCollectors(
+          toMultiSwitchMap<MultiSwitchSflowCollectorMap>(
+              newCollectors, scopeResolver_));
       changed = true;
     }
   }
@@ -856,8 +955,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         generateDeterministicSeed(cfg::LoadBalancerID::ECMP),
         generateDeterministicSeed(cfg::LoadBalancerID::AGGREGATE_PORT));
     if (newLoadBalancers) {
-      new_->resetLoadBalancers(toMultiSwitchMap<MultiSwitchLoadBalancerMap>(
-          newLoadBalancers, scopeResolver_));
+      new_->resetLoadBalancers(
+          toMultiSwitchMap<MultiSwitchLoadBalancerMap>(
+              newLoadBalancers, scopeResolver_));
       changed = true;
     }
   }
@@ -892,9 +992,10 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     // changes in addition to DsfNodes itself.
     if (newDsfNodes ||
         getDefaultVoqConfigIfChanged(origSwitchSettings).has_value()) {
-      new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
-          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
-          scopeResolver_));
+      new_->resetSystemPorts(
+          toMultiSwitchMap<MultiSwitchSystemPortMap>(
+              updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
+              scopeResolver_));
       changed = true;
     }
   }
@@ -957,6 +1058,7 @@ std::optional<QueueConfig> ThriftConfigApplier::getDefaultVoqConfigIfChanged(
         kNumVoqs,
         cfg::StreamType::UNICAST,
         std::nullopt,
+        std::nullopt,
         false);
     if (!origSwitchSettings ||
         (origSwitchSettings->getDefaultVoqConfig() != *defaultVoqConfig)) {
@@ -987,6 +1089,7 @@ QueueConfig ThriftConfigApplier::getVoqConfig(PortID portId) {
             0 /*baseQueueId*/,
             kNumVoqs,
             cfg::StreamType::UNICAST,
+            std::nullopt,
             std::nullopt,
             false);
       } else {
@@ -1075,6 +1178,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
           case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+          case cfg::AsicType::ASIC_TYPE_AGERA3:
           case cfg::AsicType::ASIC_TYPE_EBRO:
           case cfg::AsicType::ASIC_TYPE_GARONNE:
           case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
@@ -1590,6 +1694,7 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
         case cfg::PortType::INTERFACE_PORT:
         case cfg::PortType::RECYCLE_PORT:
         case cfg::PortType::EVENTOR_PORT:
+        case cfg::PortType::HYPER_PORT:
         case cfg::PortType::MANAGEMENT_PORT: {
           auto interfaceID = getSystemPortID(
               portID,
@@ -1600,7 +1705,8 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
         } break;
         case cfg::PortType::FABRIC_PORT:
         case cfg::PortType::CPU_PORT:
-          // no interface for fabric/cpu port
+        case cfg::PortType::HYPER_PORT_MEMBER:
+          // no interface for fabric/cpu/hyper member port
           break;
       }
     }
@@ -1757,6 +1863,63 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
   entry.addresses.emplace(IPAddress(linkLocalAddr), linkLocalInfo);
 }
 
+shared_ptr<SystemPortMap>
+ThriftConfigApplier::updateFabricLinkMonitoringSystemPorts(
+    const std::shared_ptr<MultiSwitchPortMap>& ports,
+    const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings) {
+  auto sysPorts = std::make_shared<SystemPortMap>();
+
+  for (const auto& [matcherString, portMap] : std::as_const(*ports)) {
+    auto switchId = HwSwitchMatcher(matcherString).switchId();
+    auto switchSettings = multiSwitchSettings->getNodeIf(matcherString);
+    // System port creation for fabric link monitoring is applicable
+    // to fabric ports of VOQ switches only!
+    if (!switchSettings || !switchSettings->l3SwitchType().has_value() ||
+        switchSettings->l3SwitchType().value() != cfg::SwitchType::VOQ) {
+      continue;
+    }
+    auto dsfNode = cfg_->dsfNodes()->find(switchId)->second;
+
+    for (const auto& port : std::as_const(*portMap)) {
+      auto fabricLinkSwitchId = getFabricLinkMonitoringPortSwitchId(
+          port.second->getID(),
+          port.second->getPortType(),
+          port.second->getExpectedNeighborValues()->size());
+      if (!fabricLinkSwitchId.has_value()) {
+        // Not a valid port for fabric link monitoring
+        continue;
+      }
+      auto sysPort =
+          std::make_shared<SystemPort>(getFabricLinkMonitoringSystemPortID(
+              port.second->getID(), switchSettings));
+      sysPort->setSwitchId(SwitchID(*fabricLinkSwitchId));
+      // Last 2 bits in the SwitchID determines the core ID
+      int64_t coreIdx = *fabricLinkSwitchId & 0x3;
+      sysPort->setCoreIndex(coreIdx);
+      // Populate the CPU port for the core identified above
+      for (const auto& [_, coreAndPortIdx] :
+           platformMapping_->getCpuPortsCoreAndPortIdx()) {
+        if (coreAndPortIdx.first == coreIdx) {
+          sysPort->setCorePortIndex(coreAndPortIdx.second);
+          break;
+        }
+      }
+      sysPort->setName(
+          folly::sformat("{}:{}", *dsfNode.name(), port.second->getName()));
+      sysPort->setNumVoqs(getLocalPortNumVoqs(
+          port.second->getPortType(), port.second->getScope()));
+      sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
+      sysPort->setScope(port.second->getScope());
+      sysPort->setPortType(port.second->getPortType());
+      // There is no physical port mapping to this system port and hence we need
+      // to operate in PUSH mode and not wait for credits.
+      sysPort->setPushQueueEnabled(true);
+      sysPorts->addSystemPort(sysPort);
+    }
+  }
+  return sysPorts;
+}
+
 shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     const std::shared_ptr<MultiSwitchPortMap>& ports,
     const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings) {
@@ -1764,7 +1927,9 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       cfg::PortType::INTERFACE_PORT,
       cfg::PortType::RECYCLE_PORT,
       cfg::PortType::MANAGEMENT_PORT,
-      cfg::PortType::EVENTOR_PORT};
+      cfg::PortType::EVENTOR_PORT,
+      cfg::PortType::HYPER_PORT,
+      cfg::PortType::HYPER_PORT_MEMBER};
   auto sysPorts = std::make_shared<SystemPortMap>();
 
   for (const auto& [matcherString, portMap] : std::as_const(*ports)) {
@@ -1808,10 +1973,12 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
           static_cast<int>(platformPort.mapping()->scope().value()),
           static_cast<int>(port.second->getScope()));
       sysPort->setScope(port.second->getScope());
-      sysPort->setShelDestinationEnabled(
-          cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value() &&
-          port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
-          port.second->getScope() == cfg::Scope::GLOBAL);
+      if (port.second->getPortType() != cfg::PortType::HYPER_PORT_MEMBER) {
+        sysPort->setShelDestinationEnabled(
+            cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value() &&
+            port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
+            port.second->getScope() == cfg::Scope::GLOBAL);
+      }
       sysPort->setPortType(port.second->getPortType());
       sysPorts->addSystemPort(std::move(sysPort));
     }
@@ -1849,6 +2016,58 @@ ThriftConfigApplier::updateRemoteSystemPorts(
   return remoteSystemPorts;
 }
 
+bool ThriftConfigApplier::needFabricLinkMonSystemPortUpdate(
+    const std::shared_ptr<MultiSwitchSettings>& origMultiSwitchSettings,
+    const std::shared_ptr<MultiSwitchSettings>& newMultiSwitchSettings,
+    const SwitchIdScopeResolver& scopeResolver) {
+  if (!scopeResolver.hasVoq()) {
+    // Fabric link monitoring is applicable only for voq switches
+    return false;
+  }
+
+  // Check if the fabricLinkMonitoringSystemPortOffset() configuration
+  // has changed.
+  for (auto& switchIdAndSwitchInfo : scopeResolver.switchIdToSwitchInfo()) {
+    auto switchId = switchIdAndSwitchInfo.first;
+    auto matcher = HwSwitchMatcher(
+        std::unordered_set<SwitchID>({static_cast<SwitchID>(switchId)}));
+
+    auto origSwitchSettings =
+        origMultiSwitchSettings->getNodeIf(matcher.matcherString());
+    auto newSwitchSettings =
+        newMultiSwitchSettings->getNodeIf(matcher.matcherString());
+    std::optional<int32_t> origFabricLinkMonitoringSystemPortOffset =
+        origSwitchSettings
+        ? origSwitchSettings->getFabricLinkMonitoringSystemPortOffset()
+        : std::nullopt;
+    std::optional<int32_t> newFabricLinkMonitoringSystemPortOffset =
+        newSwitchSettings
+        ? newSwitchSettings->getFabricLinkMonitoringSystemPortOffset()
+        : std::nullopt;
+    if (origFabricLinkMonitoringSystemPortOffset !=
+        newFabricLinkMonitoringSystemPortOffset) {
+      return true;
+    }
+  }
+  return false;
+}
+
+std::optional<int32_t> ThriftConfigApplier::getFabricLinkMonitoringPortSwitchId(
+    const PortID& portId,
+    const cfg::PortType& type,
+    const size_t expectedNeighborCount) const {
+  std::optional<SwitchID> linkSwitchId;
+  if (FLAGS_enable_fabric_link_monitoring &&
+      type == cfg::PortType::FABRIC_PORT && expectedNeighborCount > 0) {
+    // Fabric link mon supported only for fabric ports
+    // with valid expected neighbors.
+    CHECK(fabricLinkMon_ != nullptr)
+        << "Fabric link monitoring not initialized!";
+    linkSwitchId = fabricLinkMon_->getSwitchIdForPort(portId);
+  }
+  return linkSwitchId;
+}
+
 shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
     const std::shared_ptr<MultiSwitchTransceiverMap>& transceiverMap) {
   const auto origPorts = orig_->getPorts();
@@ -1866,8 +2085,9 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
     std::shared_ptr<TransceiverSpec> transceiver;
     auto platformPort = platformMapping_->getPlatformPort(id);
     const auto& chips = platformMapping_->getChips();
-    if (auto tcvrID = utility::getTransceiverId(platformPort, chips)) {
-      transceiver = transceiverMap->getNodeIf(*tcvrID);
+    if (auto tcvrIds = utility::getTransceiverIds(platformPort, chips);
+        !tcvrIds.empty()) {
+      transceiver = transceiverMap->getNodeIf(tcvrIds[0]);
     }
     if (!origPort) {
       state::PortFields portFields;
@@ -2192,6 +2412,7 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
     uint16_t maxQueues,
     cfg::StreamType streamType,
     std::optional<cfg::QosMap> qosMap,
+    std::optional<cfg::PortType> portType,
     bool resetDefaultQueue) {
   QueueConfig newPortQueues;
 
@@ -2263,14 +2484,30 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
       newQueues.erase(newQueueIter);
       newPortQueues.push_back(newPortQueue);
     } else if (resetDefaultQueue) {
-      // Resetting defaut queues are not applicable to VOQs - we only configure
-      // the ones present in config.
-      newPortQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(queueId));
-      newPortQueue->setStreamType(streamType);
-      if (streamType == cfg::StreamType::FABRIC_TX) {
-        newPortQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
+      if (hwAsicTable_->isFeatureSupportedOnAnyAsic(
+              HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA) &&
+          portType.has_value() && *portType == cfg::PortType::MANAGEMENT_PORT &&
+          streamType == cfg::StreamType::MULTICAST) {
+        // Program default multicast queue alpha, to enable sFlow on mgmt ports.
+        XLOG(DBG2) << "Adding multicast queue " << static_cast<int>(queueId)
+                   << " with scaling factor "
+                   << apache::thrift::util::enumNameSafe(kMcQueueScalingFactor);
+        newPortQueue =
+            std::make_shared<PortQueue>(static_cast<uint8_t>(queueId));
+        newPortQueue->setStreamType(streamType);
+        newPortQueue->setScalingFactor(kMcQueueScalingFactor);
+        newPortQueues.push_back(newPortQueue);
+      } else {
+        // Resetting defaut queues are not applicable to VOQs - we only
+        // configure the ones present in config.
+        newPortQueue =
+            std::make_shared<PortQueue>(static_cast<uint8_t>(queueId));
+        newPortQueue->setStreamType(streamType);
+        if (streamType == cfg::StreamType::FABRIC_TX) {
+          newPortQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
+        }
+        newPortQueues.push_back(newPortQueue);
       }
-      newPortQueues.push_back(newPortQueue);
     }
   }
 
@@ -2422,7 +2659,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
         baseQueueId,
         maxQueues,
         streamType,
-        qosMap);
+        qosMap,
+        *portConf->portType());
     portQueues.insert(
         portQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
   }
@@ -2547,7 +2785,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
         "No port profile config found with matcher:", matcher.toString());
   }
   if (*portConf->state() == cfg::PortState::ENABLED &&
-      *portProfileCfg->speed() != *portConf->speed()) {
+      *portProfileCfg->speed() != *portConf->speed() &&
+      *portProfileCfg->speed() != cfg::PortSpeed::DEFAULT) {
     throw FbossError(
         orig->getName(),
         " has mismatched speed on profile:",
@@ -2619,6 +2858,10 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
         isPortFlowletConfigUnchanged(portFlowletCfg, orig);
   }
 
+  auto newFabricLinkMonSwitchId = getFabricLinkMonitoringPortSwitchId(
+      PortID(*portConf->logicalID()),
+      *portConf->portType(),
+      portConf->expectedNeighborReachability()->size());
   // Ensure portConf has actually changed, before applying
   if (*portConf->state() == orig->getAdminState() &&
       VlanID(*portConf->ingressVlan()) == orig->getIngressVlan() &&
@@ -2648,7 +2891,13 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->selfHealingECMPLagEnable().value_or(false) ==
           orig->getDesiredSelfHealingECMPLagEnable().value_or(false) &&
       portConf->fecErrorDetectEnable().value_or(false) ==
-          orig->getFecErrorDetectEnable().value_or(false)) {
+          orig->getFecErrorDetectEnable().value_or(false) &&
+      portConf->interPacketGapBits().value_or(0) ==
+          orig->getInterPacketGapBits().value_or(0) &&
+      portConf->amIdles().value_or(false) ==
+          orig->getAmIdles().value_or(false) &&
+      portConf->amIdles().has_value() == orig->getAmIdles().has_value() &&
+      newFabricLinkMonSwitchId == orig->getPortSwitchId()) {
     return nullptr;
   }
 
@@ -2662,7 +2911,12 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setAdminState(*portConf->state());
   newPort->setIngressVlan(VlanID(*portConf->ingressVlan()));
   newPort->setVlans(vlans);
-  newPort->setSpeed(*portConf->speed());
+  if (portConf->portType() == cfg::PortType::HYPER_PORT &&
+      *portConf->speed() == cfg::PortSpeed::DEFAULT) {
+    newPort->setSpeed(kHyperPortSpeed);
+  } else {
+    newPort->setSpeed(*portConf->speed());
+  }
   newPort->setProfileId(*portConf->profileID());
   newPort->setPause(*portConf->pause());
   newPort->setSflowIngressRate(*portConf->sFlowIngressRate());
@@ -2692,6 +2946,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setPortFlowletConfig(portFlowletCfg);
   newPort->setScope(*portConf->scope());
   newPort->setConditionalEntropyRehash(*portConf->conditionalEntropyRehash());
+  newPort->setPortSwitchId(newFabricLinkMonSwitchId);
   if (auto selfHealingECMPLagEnable = portConf->selfHealingECMPLagEnable()) {
     if (selfHealingECMPLagEnable.value() &&
         !cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
@@ -2709,6 +2964,16 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setFecErrorDetectEnable(portConf->fecErrorDetectEnable().value());
   } else {
     newPort->setFecErrorDetectEnable(std::nullopt);
+  }
+  if (portConf->interPacketGapBits().has_value()) {
+    newPort->setInterPacketGapBits(portConf->interPacketGapBits().value());
+  } else {
+    newPort->setInterPacketGapBits(std::nullopt);
+  }
+  if (portConf->amIdles().has_value()) {
+    newPort->setAmIdles(portConf->amIdles().value());
+  } else {
+    newPort->setAmIdles(std::nullopt);
   }
   return newPort;
 }
@@ -2761,13 +3026,22 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
   folly::MacAddress cfgSystemID;
   std::tie(cfgSystemID, cfgSystemPriority) = getSystemLacpConfig();
 
-  auto cfgMinLinkCount = computeMinimumLinkCount(cfg);
+  auto cfgMinLinkCount = computeMinimumLinkCount(
+      *cfg.minimumCapacity(), (*cfg.memberPorts()).size());
+  std::optional<uint8_t> cfgMinLinkCountToUp = std::nullopt;
+  if (cfg.minimumCapacityToUp()) {
+    cfgMinLinkCountToUp = computeMinimumLinkCount(
+        *cfg.minimumCapacityToUp(), (*cfg.memberPorts()).size());
+    CHECK_GE(cfgMinLinkCountToUp.value(), cfgMinLinkCount);
+  }
 
   if (origAggPort->getName() == *cfg.name() &&
       origAggPort->getDescription() == *cfg.description() &&
       origAggPort->getSystemPriority() == cfgSystemPriority &&
       origAggPort->getSystemID() == cfgSystemID &&
       origAggPort->getMinimumLinkCount() == cfgMinLinkCount &&
+      origAggPort->getMinimumLinkCountToUp() == cfgMinLinkCountToUp &&
+      origAggPort->getAggregatePortType() == *cfg.aggregatePortType() &&
       std::equal(
           origSubports.begin(), origSubports.end(), cfgSubports.begin()) &&
       std::equal(
@@ -2785,6 +3059,8 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
   newAggPort->setMinimumLinkCount(cfgMinLinkCount);
   newAggPort->setSubports(folly::range(cfgSubports.begin(), cfgSubports.end()));
   newAggPort->setInterfaceIDs(cfgAggregatePortInterfaceIDs);
+  newAggPort->setMinimumLinkCounToUp(cfgMinLinkCountToUp);
+  newAggPort->setAggregatePortType(*cfg.aggregatePortType());
 
   return newAggPort;
 }
@@ -2798,7 +3074,15 @@ shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
   folly::MacAddress cfgSystemID;
   std::tie(cfgSystemID, cfgSystemPriority) = getSystemLacpConfig();
 
-  auto cfgMinLinkCount = computeMinimumLinkCount(cfg);
+  auto cfgMinLinkCount = computeMinimumLinkCount(
+      *cfg.minimumCapacity(), (*cfg.memberPorts()).size());
+
+  std::optional<uint8_t> cfgMinLinkCountToUp = std::nullopt;
+  if (cfg.minimumCapacityToUp()) {
+    cfgMinLinkCountToUp = computeMinimumLinkCount(
+        *cfg.minimumCapacityToUp(), (*cfg.memberPorts()).size());
+    CHECK_GE(cfgMinLinkCountToUp.value(), cfgMinLinkCount);
+  }
 
   return AggregatePort::fromSubportRange(
       AggregatePortID(*cfg.key()),
@@ -2808,7 +3092,9 @@ shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
       cfgSystemID,
       cfgMinLinkCount,
       folly::range(subports.begin(), subports.end()),
-      aggregatePortInterfaceIDs);
+      aggregatePortInterfaceIDs,
+      cfgMinLinkCountToUp,
+      *cfg.aggregatePortType());
 }
 
 std::vector<AggregatePort::Subport> ThriftConfigApplier::getSubportsSorted(
@@ -2885,10 +3171,9 @@ ThriftConfigApplier::getSystemLacpConfig() {
 }
 
 uint8_t ThriftConfigApplier::computeMinimumLinkCount(
-    const cfg::AggregatePort& cfg) {
+    const cfg::MinimumCapacity& minCapacity,
+    size_t memberPortsSize) {
   uint8_t minLinkCount = 1;
-
-  auto minCapacity = *cfg.minimumCapacity();
   switch (minCapacity.getType()) {
     case cfg::MinimumCapacity::Type::linkCount:
       // Thrift's byte type is an int8_t
@@ -2900,11 +3185,9 @@ uint8_t ThriftConfigApplier::computeMinimumLinkCount(
       CHECK_GT(minCapacity.get_linkPercentage(), 0);
       CHECK_LE(minCapacity.get_linkPercentage(), 1);
 
-      minLinkCount = std::ceil(
-          minCapacity.get_linkPercentage() *
-          std::distance(cfg.memberPorts()->begin(), cfg.memberPorts()->end()));
-      if (std::distance(cfg.memberPorts()->begin(), cfg.memberPorts()->end()) !=
-          0) {
+      minLinkCount =
+          std::ceil(minCapacity.get_linkPercentage() * memberPortsSize);
+      if (memberPortsSize != 0) {
         CHECK_GE(minLinkCount, 1);
       }
 
@@ -3245,11 +3528,17 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
       }
     }
 
+    std::optional<PcpMap> pcpMap;
+    if (qosMap->pcpMaps()) {
+      pcpMap = PcpMap(*qosMap->pcpMaps());
+    }
+
     auto qosPolicyNew = make_shared<QosPolicy>(
         *qosPolicy.name(),
         dscpMap.empty() ? ingressDscpMap : dscpMap,
         expMap,
-        *qosMap->trafficClassToQueueId());
+        *qosMap->trafficClassToQueueId(),
+        pcpMap);
 
     if (qosMap->pfcPriorityToQueueId().has_value()) {
       qosPolicyNew->setPfcPriorityToQueueIdMap(*qosMap->pfcPriorityToQueueId());
@@ -3596,6 +3885,10 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
         if (auto ecmpHashAction = mta.action()->ecmpHashAction()) {
           matchAction.setEcmpHashAction(*ecmpHashAction);
         }
+        if (auto enableAlternateArsMembers =
+                mta.action()->enableAlternateArsMembers()) {
+          matchAction.setEnableAlternateArsMembers(*enableAlternateArsMembers);
+        }
         if (auto redirectToNextHop = mta.action()->redirectToNextHop()) {
           matchAction.setRedirectToNextHop(
               std::make_pair(*redirectToNextHop, MatchAction::NextHopSet()));
@@ -3633,7 +3926,7 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
           throw FbossError("Mirror ", egMirror->cref(), " is undefined");
         }
       }
-      entries.push_back(std::make_pair(acl->getID(), acl));
+      entries.emplace_back(acl->getID(), acl);
     }
     return entries;
   };
@@ -4154,7 +4447,12 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
       : IPAddressV6("::");
   intf->setDhcpV4Relay(dhcpV4Relay);
   intf->setDhcpV6Relay(dhcpV6Relay);
-
+  if (config->desiredPeerName().has_value()) {
+    intf->setDesiredPeerName(config->desiredPeerName().value());
+  }
+  if (config->desiredPeerAddressIPv6().has_value()) {
+    intf->setDesiredPeerAddressIPv6(config->desiredPeerAddressIPv6().value());
+  }
   return intf;
 }
 
@@ -4188,10 +4486,22 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   if (auto portID = config->portID()) {
     cfgPort = PortID(*portID);
   }
+  bool changedDesiredPeer = !((!config->desiredPeerName().has_value() &&
+                               !orig->getDesiredPeerName().has_value()) ||
+                              (config->desiredPeerName().has_value() &&
+                               orig->getDesiredPeerName().has_value() &&
+                               config->desiredPeerName().value() ==
+                                   orig->getDesiredPeerName().value())) ||
+      !((!config->desiredPeerAddressIPv6().has_value() &&
+         !orig->getDesiredPeerAddressIPv6().has_value()) ||
+        (config->desiredPeerAddressIPv6().has_value() &&
+         orig->getDesiredPeerAddressIPv6().has_value() &&
+         config->desiredPeerAddressIPv6().value() ==
+             orig->getDesiredPeerAddressIPv6().value()));
 
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
-      (!orig->getVlanIDIf().has_value() ||
-       orig->getVlanIDIf().value() == VlanID(*config->vlanID())) &&
+      (!orig->getVlanIDIf_DEPRECATED().has_value() ||
+       orig->getVlanIDIf_DEPRECATED().value() == VlanID(*config->vlanID())) &&
       (orig->getPortIDf() == cfgPort) && orig->getName() == name &&
       orig->getMac() == mac && orig->getAddressesCopy() == addrs &&
       orig->getNdpConfig()->toThrift() == ndp && orig->getMtu() == mtu &&
@@ -4199,7 +4509,7 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
       orig->isStateSyncDisabled() == *config->isStateSyncDisabled() &&
       orig->getType() == *config->type() && oldDhcpV4Relay == newDhcpV4Relay &&
       oldDhcpV6Relay == newDhcpV6Relay && !changed_neighbor_table &&
-      !changed_dhcp_overrides) {
+      !changed_dhcp_overrides && !changedDesiredPeer) {
     // No change
     return nullptr;
   }
@@ -4226,6 +4536,14 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setDhcpV4Relay(newDhcpV4Relay);
   newIntf->setDhcpV6Relay(newDhcpV6Relay);
   newIntf->setScope(*config->scope());
+  if (config->desiredPeerName().has_value()) {
+    newIntf->setDesiredPeerName(config->desiredPeerName().value());
+  }
+  if (config->desiredPeerAddressIPv6().has_value()) {
+    newIntf->setDesiredPeerAddressIPv6(
+        config->desiredPeerAddressIPv6().value());
+  }
+
   return newIntf;
 }
 
@@ -4401,6 +4719,18 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
   newFlowletSwitchingConfig->setSwitchingMode(*config.switchingMode());
   newFlowletSwitchingConfig->setBackupSwitchingMode(
       *config.backupSwitchingMode());
+  if (config.primaryPathQualityThreshold()) {
+    newFlowletSwitchingConfig->setPrimaryPathQualityThreshold(
+        *config.primaryPathQualityThreshold());
+  }
+  if (config.alternatePathCost()) {
+    newFlowletSwitchingConfig->setAlternatePathCost(
+        *config.alternatePathCost());
+  }
+  if (config.alternatePathBias()) {
+    newFlowletSwitchingConfig->setAlternatePathBias(
+        *config.alternatePathBias());
+  }
   return newFlowletSwitchingConfig;
 }
 
@@ -5120,6 +5450,19 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       switchSettingsChange = true;
     }
   }
+  {
+    std::optional<int32_t> fabricLinkMonitoringSystemPortOffset;
+    if (cfg_->switchSettings()->fabricLinkMonitoringSystemPortOffset()) {
+      fabricLinkMonitoringSystemPortOffset =
+          *cfg_->switchSettings()->fabricLinkMonitoringSystemPortOffset();
+    }
+    if (fabricLinkMonitoringSystemPortOffset !=
+        origSwitchSettings->getFabricLinkMonitoringSystemPortOffset()) {
+      newSwitchSettings->setFabricLinkMonitoringSystemPortOffset(
+          fabricLinkMonitoringSystemPortOffset);
+      switchSettingsChange = true;
+    }
+  }
 
   if (switchSettingsChange) {
     return newSwitchSettings;
@@ -5138,6 +5481,28 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
     }
     return nullptr;
   }
+
+  if (!hwAsicTable_->isFeatureSupportedOnAnyAsic(HwAsic::Feature::CPU_QUEUES)) {
+    // If a switch supports a CPU port but does not support CPU queues,
+    // then the following configurations should NOT be present:
+    // - cpuTrafficPolicy
+    // - cpuQueues
+    // - cpuVoqs
+    if (cfg_->cpuTrafficPolicy().has_value() ||
+        (apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+             cfg_->cpuQueues()) &&
+         !cfg_->cpuQueues()->empty()) ||
+        (cfg_->cpuVoqs().has_value() && !cfg_->cpuVoqs()->empty())) {
+      throw FbossError(
+          "Without CPU queues, cpuTrafficPolicy, cpuQueues, or cpuVoqs "
+          "configuration cannot be applied");
+    }
+    // For these switches, a minimal ControlPlane without queues or
+    // policies is sufficient. Since there's no config to apply,
+    // return nullptr to indicate no change.
+    return nullptr;
+  }
+
   auto multiSwitchControlPlane = orig_->getControlPlane();
   CHECK_LE(multiSwitchControlPlane->size(), 1);
   auto origCPU = multiSwitchControlPlane->size()
@@ -5154,6 +5519,9 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
     }
     if (const auto rxReasonToQueue =
             cpuTrafficPolicy->rxReasonToQueueOrderedList()) {
+      if (!isValidRxReasonToQueue(rxReasonToQueue)) {
+        throw FbossError("Invalid RxReasonToQueueOrderedList specified");
+      }
       for (auto rxEntry : *rxReasonToQueue) {
         newRxReasonToQueue.push_back(rxEntry);
       }
@@ -5162,13 +5530,15 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
         rxReasonToQueueUnchanged = false;
       }
     } else if (
-        const auto rxReasonToQueue = cpuTrafficPolicy->rxReasonToCPUQueue()) {
+        const auto rxReasonToCPUQueue =
+            cpuTrafficPolicy->rxReasonToCPUQueue()) {
       // TODO(pgardideh): the map version of reason to queue is deprecated.
       // Remove
       // this read when it is safe to do so.
-      for (auto rxEntry : *rxReasonToQueue) {
-        newRxReasonToQueue.push_back(ControlPlane::makeRxReasonToQueueEntry(
-            rxEntry.first, rxEntry.second));
+      for (auto rxEntry : *rxReasonToCPUQueue) {
+        newRxReasonToQueue.push_back(
+            ControlPlane::makeRxReasonToQueueEntry(
+                rxEntry.first, rxEntry.second));
       }
       // THRIFT_COPY
       if (newRxReasonToQueue != origCPU->getRxReasonToQueue()->toThrift()) {
@@ -5223,7 +5593,8 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
         asic->getBasePortQueueId(streamType, cfg::PortType::CPU_PORT),
         asic->getDefaultNumPortQueues(streamType, cfg::PortType::CPU_PORT),
         streamType,
-        qosMap);
+        qosMap,
+        cfg::PortType::CPU_PORT);
     newQueues.insert(
         newQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
 
@@ -5235,7 +5606,8 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
           0 /*baseQueueId*/,
           getLocalPortNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL),
           streamType,
-          qosMap);
+          qosMap,
+          cfg::PortType::CPU_PORT);
       newVoqs.insert(newVoqs.begin(), tmpPortVoqs.begin(), tmpPortVoqs.end());
     }
   }
@@ -5323,7 +5695,7 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
     // TODO: For now we are allowing v4 LLs to be programmed because they
     // are used within Galaxy for LL routing. This hack should go away once
     // we move BGP sessions over non LL addresses
-    if (intfAddr.first.isV6() and intfAddr.first.isLinkLocal()) {
+    if (intfAddr.first.isV6() && intfAddr.first.isLinkLocal()) {
       continue;
     }
     auto ret2 = intfRouteTables_[RouterID(*config->routerID())].emplace(
@@ -6127,6 +6499,109 @@ std::shared_ptr<SwitchState> applyThriftConfig(
              platformMapping,
              hwAsicTable)
       .run();
+}
+
+bool ThriftConfigApplier::processRemovedStaticMacEntries() {
+  std::set<std::tuple<VlanID, folly::MacAddress, PortDescriptor>>
+      configMacEntries;
+
+  if (cfg_->staticMacAddrs().has_value() && !cfg_->staticMacAddrs()->empty()) {
+    for (const auto& staticMacEntry : *cfg_->staticMacAddrs()) {
+      auto vlanId = VlanID(*staticMacEntry.vlanID());
+      auto macAddress = folly::MacAddress(*staticMacEntry.macAddress());
+      auto portDescriptor =
+          PortDescriptor(PortID(*staticMacEntry.egressLogicalPortID()));
+      configMacEntries.insert(
+          std::make_tuple(vlanId, macAddress, portDescriptor));
+    }
+  }
+
+  std::vector<std::tuple<VlanID, folly::MacAddress>> macEntriesToRemove;
+  for (const auto& vlanMap : std::as_const(*orig_->getVlans())) {
+    for (const auto& vlanEntry : std::as_const(*vlanMap.second)) {
+      auto vlanId = VlanID(folly::to<uint16_t>(vlanEntry.first));
+      auto vlan = vlanEntry.second;
+      auto macTable = vlan->getMacTable();
+      for (const auto& [macAddr, macEntry] : std::as_const(*macTable)) {
+        if (macEntry->getConfigured().has_value() &&
+            macEntry->getConfigured().value()) {
+          auto entryTuple =
+              std::make_tuple(vlanId, macEntry->getMac(), macEntry->getPort());
+
+          // If this configured entry is not present in new config, mark for
+          // removal
+          if (configMacEntries.find(entryTuple) == configMacEntries.end()) {
+            macEntriesToRemove.emplace_back(vlanId, macEntry->getMac());
+          }
+        }
+      }
+    }
+  }
+
+  // Remove all identified MAC entries
+  bool stateChanged = false;
+  for (const auto& [vlanId, macAddr] : macEntriesToRemove) {
+    auto stateBefore = new_;
+    new_ = MacTableUtils::removeEntry(new_, vlanId, macAddr);
+
+    if (stateBefore != new_) {
+      stateChanged = true;
+    }
+
+    XLOG(DBG2) << "Removed static MAC entry: " << macAddr.toString()
+               << " from VLAN " << vlanId << " (no longer in config)";
+  }
+
+  return stateChanged;
+}
+
+bool ThriftConfigApplier::processAddedStaticMacEntries() {
+  if (!cfg_->staticMacAddrs().has_value() || cfg_->staticMacAddrs()->empty()) {
+    return false;
+  }
+
+  bool stateChanged = false;
+  for (const auto& staticMacEntry : *cfg_->staticMacAddrs()) {
+    auto vlanId = VlanID(*staticMacEntry.vlanID());
+    auto macAddress = folly::MacAddress(*staticMacEntry.macAddress());
+    auto portId = PortID(*staticMacEntry.egressLogicalPortID());
+    auto portDescriptor = PortDescriptor(portId);
+    // Verify that the VLAN exists in the current state
+    auto vlan = new_->getVlans()->getNodeIf(vlanId);
+    if (!vlan) {
+      throw FbossError(
+          "Static MAC entry ",
+          macAddress.toString(),
+          ": VLAN ",
+          vlanId,
+          " does not exist");
+    }
+    // Verify that the port exists in the current state
+    auto port = new_->getPorts()->getNodeIf(portId);
+    if (!port) {
+      throw FbossError(
+          "Static MAC entry ",
+          macAddress.toString(),
+          ": Port ",
+          portId,
+          " does not exist");
+    }
+
+    auto stateBefore = new_;
+    // Always add the entry - removal logic should have handled any conflicts
+    new_ = MacTableUtils::updateOrAddStaticEntry(
+        new_, portDescriptor, vlanId, macAddress, true);
+
+    if (stateBefore != new_) {
+      stateChanged = true;
+    }
+
+    XLOG(DBG2) << "Added static MAC entry: " << macAddress.toString()
+               << " on VLAN " << vlanId << " port " << portDescriptor.str()
+               << " (configured)";
+  }
+
+  return stateChanged;
 }
 
 } // namespace facebook::fboss

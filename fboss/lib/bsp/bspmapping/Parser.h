@@ -33,6 +33,16 @@ inline constexpr folly::StringPiece kPortMappingMorgan800ccCsv{
     "Morgan800cc_BspMapping.csv"};
 inline constexpr folly::StringPiece kPortMappingIcecube800bcCsv{
     "Icecube800bc_BspMapping.csv"};
+inline constexpr folly::StringPiece kPortMappingIcetea800bcCsv{
+    "Icetea800bc_BspMapping.csv"};
+inline constexpr folly::StringPiece kPortMappingTahansb800bcCsv{
+    "Tahansb800bc_BspMapping.csv"};
+inline constexpr folly::StringPiece kPortMappingWedge800BACTCsv{
+    "Wedge800BACT_BspMapping.csv"};
+inline constexpr folly::StringPiece kPortMappingWedge800CACTCsv{
+    "Wedge800CACT_BspMapping.csv"};
+inline constexpr folly::StringPiece kPortMappingLadakh800bclsCsv{
+    "Ladakh800bcls_BspMapping.csv"};
 
 class Parser {
  public:
@@ -41,8 +51,14 @@ class Parser {
       const std::string_view& line);
   static std::vector<TransceiverConfigRow> getTransceiverConfigRowsFromCsv(
       folly::StringPiece csv);
+  static PhyConfigRow getPhyConfigRowFromCsvLine(const std::string_view& line);
+  static std::vector<PhyConfigRow> getPhyConfigRowsFromCsv(
+      folly::StringPiece csv);
   static BspPlatformMappingThrift getBspPlatformMappingFromCsv(
       folly::StringPiece csv);
+  static BspPlatformMappingThrift getBspPlatformMappingFromCsv(
+      folly::StringPiece csv,
+      folly::StringPiece phyCsv);
 
  private:
   static std::vector<int> getTransceiverLaneIdList(
@@ -51,6 +67,7 @@ class Parser {
       const std::string_view& entry);
   static TransceiverIOType getTransceiverIOTypeFromString(
       const std::string_view& entry);
+  static PhyIOType getPhyIOTypeFromString(const std::string_view& entry);
 };
 
 } // namespace facebook::fboss

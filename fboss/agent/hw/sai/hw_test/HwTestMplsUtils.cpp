@@ -222,10 +222,13 @@ void verifyMultiPathNextHop(
     if (stack.empty()) {
       continue;
     }
-    nexthopStacks.erase(std::remove_if(
-        nexthopStacks.begin(),
-        nexthopStacks.end(),
-        [stack](const auto& nexthopStack) { return nexthopStack == stack; }));
+    nexthopStacks.erase(
+        std::remove_if(
+            nexthopStacks.begin(),
+            nexthopStacks.end(),
+            [stack](const auto& nexthopStack) {
+              return nexthopStack == stack;
+            }));
   }
   EXPECT_EQ(nexthopStacks.size(), 0);
 }

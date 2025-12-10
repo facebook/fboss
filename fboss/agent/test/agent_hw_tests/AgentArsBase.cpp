@@ -51,7 +51,14 @@ cfg::SwitchConfig AgentArsBase::initialConfig(
   return cfg;
 }
 
-std::string AgentArsBase::getAclName(AclType aclType) const {
+bool AgentArsBase::isChenab(const AgentEnsemble& ensemble) const {
+  auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+  return (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB);
+}
+
+std::string AgentArsBase::getAclName(
+    AclType aclType,
+    bool enableAlternateArsMembers) const {
   std::string aclName{};
   switch (aclType) {
     case AclType::UDF_ACK:
@@ -67,7 +74,8 @@ std::string AgentArsBase::getAclName(AclType aclType) const {
     case AclType::FLOWLET:
     case AclType::FLOWLET_WITH_UDF_ACK:
     case AclType::FLOWLET_WITH_UDF_NAK:
-      aclName = "test-flowlet-acl";
+      aclName = enableAlternateArsMembers ? "test-flowlet-acl-alt"
+                                          : "test-flowlet-acl";
       break;
     case AclType::UDF_FLOWLET:
     case AclType::UDF_FLOWLET_WITH_UDF_ACK:
@@ -83,8 +91,10 @@ std::string AgentArsBase::getAclName(AclType aclType) const {
   return aclName;
 }
 
-std::string AgentArsBase::getCounterName(AclType aclType) const {
-  return getAclName(aclType) + "-stats";
+std::string AgentArsBase::getCounterName(
+    AclType aclType,
+    bool enableAlternateArsMembers) const {
+  return getAclName(aclType, enableAlternateArsMembers) + "-stats";
 }
 
 void AgentArsBase::setup(int ecmpWidth) {
@@ -610,9 +620,20 @@ void AgentArsBase::addAclAndStat(
           std::nullopt,
           std::nullopt);
     } break;
-    case AclType::FLOWLET:
+    case AclType::FLOWLET: {
       utility::addFlowletAcl(*config, isSai, aclName, counterName, false);
-      break;
+      if (FLAGS_enable_th5_ars_scale_mode) {
+        auto alternateMemberAclName = getAclName(aclType, true);
+        auto alternateCounterName = getCounterName(aclType, true);
+        utility::addFlowletAcl(
+            *config,
+            isSai,
+            alternateMemberAclName,
+            alternateCounterName,
+            false,
+            true);
+      }
+    } break;
     case AclType::FLOWLET_WITH_UDF_ACK:
       config->udfConfig() =
           utility::addUdfAclConfig(utility::kUdfOffsetBthOpcode);
@@ -745,16 +766,7 @@ void AgentArsBase::generatePrefixes() {
 
 cfg::SwitchingMode AgentArsBase::getFwdSwitchingMode(
     const RoutePrefixV6& prefix) const {
-  auto switchId =
-      getSw()->getScopeResolver()->scope(masterLogicalPortIds()[0]).switchId();
-  auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
-  auto resolvedRoute = findRoute<folly::IPAddressV6>(
-      RouterID(0), {prefix.network(), prefix.mask()}, getProgrammedState());
-  state::RouteNextHopEntry entry{};
-  entry.adminDistance() = AdminDistance::EBGP;
-  entry.nexthops() = util::fromRouteNextHopSet(
-      resolvedRoute->getForwardInfo().getNextHopSet());
-  return client->sync_getFwdSwitchingMode(entry);
+  return getAgentEnsemble()->getFwdSwitchingMode(prefix);
 }
 
 void AgentArsBase::verifyFwdSwitchingMode(
@@ -764,11 +776,11 @@ void AgentArsBase::verifyFwdSwitchingMode(
       { EXPECT_EVENTUALLY_EQ(getFwdSwitchingMode(prefix), switchingMode); });
 }
 
-uint32_t AgentArsBase::getMaxDlbEcmpGroups() const {
+uint32_t AgentArsBase::getMaxArsGroups() const {
   auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
-  auto maxDlbGroups = asic->getMaxDlbEcmpGroups();
-  CHECK(maxDlbGroups.has_value());
-  return maxDlbGroups.value();
+  auto maxArsGroups = asic->getMaxArsGroups();
+  CHECK(maxArsGroups.has_value());
+  return maxArsGroups.value();
 }
 
 } // namespace facebook::fboss

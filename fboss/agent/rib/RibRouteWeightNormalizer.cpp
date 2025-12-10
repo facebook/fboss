@@ -105,6 +105,9 @@ int RibRouteWeightNormalizer::getNumPathsToPrune(
   if (!srcRack || srcRack > numRacks_) {
     throw FbossError("invalid src rack id ", srcRack);
   }
+  if (numFailures < 0 || numFailures > numRacks_ * numPlanePathsPerRack_) {
+    throw FbossError("invalid number of failures ", numFailures);
+  }
   return pruneLookupTable_[numFailures][dstRack - 1][srcRack - 1];
 }
 
@@ -175,10 +178,13 @@ void RibRouteWeightNormalizer::normalizeWeightsForNexthops(
     if (numRackFailures || numSpineFailures) {
       hasFailure = true;
     }
-    CHECK(topologyInfo.plane_id().has_value());
+    if (!topologyInfo.plane_id().has_value()) {
+      throw FbossError("plane id not set in topology info");
+    }
     auto planeId = PlaneId(*topologyInfo.plane_id());
-    planeIdToFailures.insert(std::make_pair(
-        planeId, std::make_pair(numRackFailures, numSpineFailures)));
+    planeIdToFailures.insert(
+        std::make_pair(
+            planeId, std::make_pair(numRackFailures, numSpineFailures)));
 
     // update local capacity information for each plane
     auto localPlaneInfo = localPlaneCapacity.find(planeId);
@@ -198,7 +204,9 @@ void RibRouteWeightNormalizer::normalizeWeightsForNexthops(
     auto rackFailures = planeFailures.second.first;
     auto spineFailures = planeFailures.second.second;
     auto localPlaneInfo = localPlaneCapacity.find(planeId);
-    CHECK(localPlaneInfo != localPlaneCapacity.end());
+    if (localPlaneInfo == localPlaneCapacity.end()) {
+      throw FbossError("Invalid plane id ", planeId);
+    }
     auto numLocalFailures = numPlanePathsPerRack_ - localPlaneInfo->second;
 
     // Determine how many paths to prune for spine failures for the src/dst pair
@@ -224,7 +232,9 @@ void RibRouteWeightNormalizer::normalizeWeightsForNexthops(
         }
       }
     }
-    CHECK(!numPrunesNeeded);
+    if (numPrunesNeeded) {
+      throw FbossError("Invalid number of prunes needed ", numPrunesNeeded);
+    }
   }
 }
 } // namespace facebook::fboss

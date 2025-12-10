@@ -27,6 +27,14 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  platform_manager_validators_cpp2
+  fboss/platform/platform_manager/platform_manager_validators.thrift
+  OPTIONS
+    json
+    reflection
+)
+
+add_fbthrift_cpp_library(
   platform_manager_config_cpp2
   fboss/platform/platform_manager/platform_manager_config.thrift
   OPTIONS
@@ -81,6 +89,7 @@ add_library(platform_manager_utils
 
 target_link_libraries(platform_manager_utils
   gpiod_line
+  platform_manager_config_cpp2
   ${RE2}
   Folly::folly
 )
@@ -116,6 +125,7 @@ target_link_libraries(platform_manager_pci_explorer
   platform_manager_config_cpp2
   platform_manager_utils
   Folly::folly
+  fb303::fb303
 )
 
 add_library(platform_manager_device_path_resolver
@@ -129,6 +139,14 @@ target_link_libraries(platform_manager_device_path_resolver
   platform_manager_config_cpp2
   platform_manager_utils
   weutil_eeprom_contents_cpp2
+)
+
+add_library(scuba_logger
+  fboss/platform/platform_manager/oss/ScubaLogger.cpp
+)
+
+target_link_libraries(scuba_logger
+  fmt::fmt
 )
 
 add_library(platform_manager_platform_explorer
@@ -150,6 +168,7 @@ target_link_libraries(platform_manager_platform_explorer
   weutil_fboss_eeprom_interface
   ioctl_smbus_eeprom_reader
   Folly::folly
+  scuba_logger
 )
 
 add_library(platform_manager_config_validator
@@ -159,6 +178,7 @@ add_library(platform_manager_config_validator
 target_link_libraries(platform_manager_config_validator
   platform_manager_i2c_explorer
   platform_manager_config_cpp2
+  platform_manager_validators_cpp2
   Folly::folly
   range-v3
 )
@@ -212,6 +232,7 @@ target_link_libraries(platform_manager
   ${SYSTEMD}
   gpiod_line
   range-v3
+  scuba_logger
 )
 
 install(TARGETS platform_manager)

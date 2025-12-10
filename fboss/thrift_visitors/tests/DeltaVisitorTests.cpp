@@ -72,8 +72,9 @@ TEST(DeltaVisitorTests, ChangeOneFieldInContainer) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(std::set<std::string>{
-          "/", "/structMap", "/structMap/3", "/structMap/3/min"}));
+      ::testing::ContainerEq(
+          std::set<std::string>{
+              "/", "/structMap", "/structMap/3", "/structMap/3/min"}));
 }
 
 TEST(DeltaVisitorTests, SetOptional) {
@@ -225,8 +226,9 @@ TEST(DeltaVisitorTests, EditVariantField) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(std::set<std::string>{
-          "/", "/variantMember", "/variantMember/integral"}));
+      ::testing::ContainerEq(
+          std::set<std::string>{
+              "/", "/variantMember", "/variantMember/integral"}));
 }
 
 TEST(DeltaVisitorTests, SwitaghVariantField) {
@@ -249,9 +251,10 @@ TEST(DeltaVisitorTests, SwitaghVariantField) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(std::set<std::string>{
-          "/",
-          "/variantMember",
-          "/variantMember/integral",
-          "/variantMember/boolean"}));
+      ::testing::ContainerEq(
+          std::set<std::string>{
+              "/",
+              "/variantMember",
+              "/variantMember/integral",
+              "/variantMember/boolean"}));
 }

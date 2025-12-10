@@ -108,7 +108,7 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     CHECK(getType() == cfg::InterfaceType::VLAN);
     return VlanID(get<switch_state_tags::vlanId>()->cref());
   }
-  std::optional<VlanID> getVlanIDIf() const {
+  std::optional<VlanID> getVlanIDIf_DEPRECATED() const {
     if (getType() == cfg::InterfaceType::VLAN) {
       return getVlanID();
     } else {
@@ -491,6 +491,29 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
   std::optional<PortID> getPortIDf() const {
     if (getType() == cfg::InterfaceType::PORT) {
       return getPortID();
+    }
+    return std::nullopt;
+  }
+
+  void setDesiredPeerName(const std::string& desiredPeerName) {
+    set<switch_state_tags::desiredPeerName>(desiredPeerName);
+  }
+
+  void setDesiredPeerAddressIPv6(const std::string& desiredPeerAddressIPv6) {
+    set<switch_state_tags::desiredPeerAddressIPv6>(desiredPeerAddressIPv6);
+  }
+
+  std::optional<std::string> getDesiredPeerName() const {
+    if (auto desiredPeerName = cref<switch_state_tags::desiredPeerName>()) {
+      return desiredPeerName->cref();
+    }
+    return std::nullopt;
+  }
+
+  std::optional<std::string> getDesiredPeerAddressIPv6() const {
+    if (auto desiredPeerAddressIPv6 =
+            cref<switch_state_tags::desiredPeerAddressIPv6>()) {
+      return desiredPeerAddressIPv6->cref();
     }
     return std::nullopt;
   }

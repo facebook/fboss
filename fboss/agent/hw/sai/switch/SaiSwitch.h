@@ -116,6 +116,17 @@ class SaiSwitch : public HwSwitch {
       PortID portID,
       std::optional<uint8_t> queueId) noexcept override;
 
+  bool sendPacketOutOfPortSyncForPktType(
+      std::unique_ptr<TxPacket> pkt,
+      const PortID& portID,
+      TxPacketType packetType) override;
+
+  bool sendPacketOutOfPortSyncCommon(
+      std::unique_ptr<TxPacket> pkt,
+      const PortSaiId& portSaiId,
+      std::optional<uint8_t> queueId,
+      std::optional<int32_t> packetType);
+
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;
   std::map<std::string, HwSysPortStats> getSysPortStats() const override;
   FabricReachabilityStats getFabricReachabilityStats() const override;
@@ -125,6 +136,7 @@ class SaiSwitch : public HwSwitch {
   HwSwitchPipelineStats getSwitchPipelineStats() const override;
   HwSwitchTemperatureStats getSwitchTemperatureStats() const override;
 
+  HwSwitchHardResetStats getHwSwitchHardResetStats() const override;
   std::map<int, cfg::PortState> getSysPortShelState() const override;
 
   folly::F14FastMap<std::string, HwRouterInterfaceStats>
@@ -134,7 +146,8 @@ class SaiSwitch : public HwSwitch {
 
   uint64_t getDeviceWatermarkBytes() const override;
 
-  void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const override;
+  void fetchL2Table(std::vector<L2EntryThrift>* l2Table, bool sdk = false)
+      const override;
 
   folly::dynamic toFollyDynamic() const override;
 
@@ -179,6 +192,7 @@ class SaiSwitch : public HwSwitch {
   void hardResetSwitchEventNotificationCallback(
       sai_size_t bufferSize,
       const void* buffer);
+  void initTechSupport();
 
   void txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId);
   void linkConnectivityChanged(
@@ -267,6 +281,8 @@ class SaiSwitch : public HwSwitch {
 
   std::shared_ptr<SwitchState> reconstructSwitchState() const override;
 
+  std::shared_ptr<SwitchState> constructSwitchStateWithFib() noexcept override;
+
   void injectSwitchReachabilityChangeNotification() override;
 
   bool getArsExhaustionStatus() override;
@@ -287,7 +303,8 @@ class SaiSwitch : public HwSwitch {
   std::shared_ptr<SwitchState> stateChangedImplLocked(
       const StateDelta& delta,
       const LockPolicyT& lk);
-  void rollback(const StateDelta& delta) noexcept override;
+  void preRollback(const StateDelta& delta) noexcept override;
+  void rollback(const std::vector<StateDelta>& deltas) noexcept override;
   std::string listObjectsLocked(
       const std::vector<sai_object_type_t>& objects,
       bool cached,
@@ -347,7 +364,8 @@ class SaiSwitch : public HwSwitch {
 
   void fetchL2TableLocked(
       const std::lock_guard<std::mutex>& lock,
-      std::vector<L2EntryThrift>* l2Table) const;
+      std::vector<L2EntryThrift>* l2Table,
+      bool sdk = false) const;
 
   const std::map<PortID, FabricEndpoint>& getFabricConnectivityLocked(
       const std::lock_guard<std::mutex>& lock) const;
@@ -425,9 +443,11 @@ class SaiSwitch : public HwSwitch {
       phy::PhySideState& sideState,
       phy::PhySideStats& sideStats,
       std::shared_ptr<SaiPort> port,
+      std::shared_ptr<SaiPortSerdes> serdes,
       phy::PmdState& lastPmdState,
       phy::PmdStats& lastPmdStats,
-      PortID portID);
+      PortID portID,
+      bool readSerdesParams);
 
   void updatePcsInfo(
       phy::PhySideState& sideState,
@@ -599,7 +619,7 @@ class SaiSwitch : public HwSwitch {
       PortSaiId inPort,
       bool allowMissingSrcPort,
       cfg::PacketRxReason rxReason,
-      uint8_t queueId);
+      std::optional<uint8_t> queueId);
 
   void packetRxCallbackLag(
       sai_size_t buffer_size,
@@ -608,7 +628,7 @@ class SaiSwitch : public HwSwitch {
       PortSaiId inPort,
       bool allowMissingSrcPort,
       cfg::PacketRxReason rxReason,
-      uint8_t queueId);
+      std::optional<uint8_t> queueId);
 
   std::shared_ptr<SwitchState> getColdBootSwitchState();
 
@@ -723,6 +743,7 @@ class SaiSwitch : public HwSwitch {
   int64_t watermarkStatsUpdateTime_{0};
   int64_t voqStatsUpdateTime_{0};
   int64_t cableLengthStatsUpdateTime_{0};
+  time_t lastSerdesParamsReadTime_{0};
   cfg::AsicType asicType_;
 
   std::map<PortID, phy::PhyInfo> lastPhyInfos_;
@@ -731,6 +752,7 @@ class SaiSwitch : public HwSwitch {
   folly::Synchronized<int> switchReachabilityChangePending_{0};
   folly::Synchronized<bool> txReadyStatusChangePending_{false};
   std::optional<uint32_t> asicRevision_;
+  std::atomic<int16_t> hardResetNotificationReceived_{0};
 };
 
 } // namespace facebook::fboss

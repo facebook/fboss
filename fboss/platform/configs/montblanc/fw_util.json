@@ -29,7 +29,7 @@
         {
           "commandType": "writeToPort",
           "writeToPortArgs": {
-            "HexByteValue": "0x16",
+            "hexByteValue": "0x16",
             "portFile": "/dev/port",
             "hexOffset": "0xb2"
           }

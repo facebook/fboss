@@ -434,6 +434,7 @@ class BcmSwitch : public BcmSwitchIf {
   HwSwitchPipelineStats getSwitchPipelineStats() const override;
   HwSwitchTemperatureStats getSwitchTemperatureStats() const override;
   HwFlowletStats getHwFlowletStats() const override;
+  HwSwitchHardResetStats getHwSwitchHardResetStats() const override;
 
   HwResourceStats getResourceStats() const override;
   std::map<int, cfg::PortState> getSysPortShelState() const override {
@@ -456,7 +457,8 @@ class BcmSwitch : public BcmSwitchIf {
     return cosManager_.get();
   };
 
-  void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const override;
+  void fetchL2Table(std::vector<L2EntryThrift>* l2Table, bool sdk = false)
+      const override;
 
   BcmHostTable* writableHostTable() const override {
     return hostTable_.get();

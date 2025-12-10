@@ -1,1 +1,7 @@
-{}
+{
+  "expectedErrors": {
+    "MINIPACK3_SCM.SCM_SENSOR": {
+      "1": ""
+    }
+  }
+}

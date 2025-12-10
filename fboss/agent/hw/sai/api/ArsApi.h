@@ -44,20 +44,59 @@ struct SaiArsTraits {
         SAI_ARS_ATTR_MAX_FLOWS,
         sai_uint32_t,
         StdNullOptDefault<sai_uint32_t>>;
+    using PrimaryPathQualityThreshold = SaiAttribute<
+        EnumType,
+        SAI_ARS_ATTR_PRIMARY_PATH_QUALITY_THRESHOLD,
+        sai_uint32_t,
+        StdNullOptDefault<sai_uint32_t>>;
+    using AlternatePathCost = SaiAttribute<
+        EnumType,
+        SAI_ARS_ATTR_ALTERNATE_PATH_COST,
+        sai_uint32_t,
+        StdNullOptDefault<sai_uint32_t>>;
+    using AlternatePathBias = SaiAttribute<
+        EnumType,
+        SAI_ARS_ATTR_ALTERNATE_PATH_BIAS,
+        sai_uint32_t,
+        StdNullOptDefault<sai_uint32_t>>;
   };
 
   using AdapterKey = ArsSaiId;
-  // single ARS object used for all ecmp groups
-  using AdapterHostKey = std::monostate;
   using CreateAttributes = std::tuple<
       Attributes::Mode,
       std::optional<Attributes::IdleTime>,
-      std::optional<Attributes::MaxFlows>>;
+      std::optional<Attributes::MaxFlows>,
+      std::optional<Attributes::PrimaryPathQualityThreshold>,
+      std::optional<Attributes::AlternatePathCost>,
+      std::optional<Attributes::AlternatePathBias>>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  using AdapterHostKey = std::tuple<
+      std::optional<Attributes::AlternatePathCost>,
+      std::optional<Attributes::AlternatePathBias>>;
+#else
+  using AdapterHostKey = std::monostate;
+#endif
 };
 
 SAI_ATTRIBUTE_NAME(Ars, Mode)
 SAI_ATTRIBUTE_NAME(Ars, IdleTime)
 SAI_ATTRIBUTE_NAME(Ars, MaxFlows)
+SAI_ATTRIBUTE_NAME(Ars, PrimaryPathQualityThreshold)
+SAI_ATTRIBUTE_NAME(Ars, AlternatePathCost)
+SAI_ATTRIBUTE_NAME(Ars, AlternatePathBias)
+
+inline SaiArsTraits::AdapterHostKey getAdapterHostKey(
+    const SaiArsTraits::CreateAttributes& createAttributes) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  return SaiArsTraits::AdapterHostKey{
+      std::get<std::optional<SaiArsTraits::Attributes::AlternatePathCost>>(
+          createAttributes),
+      std::get<std::optional<SaiArsTraits::Attributes::AlternatePathBias>>(
+          createAttributes)};
+#else
+  return SaiArsTraits::AdapterHostKey{};
+#endif
+}
 
 class ArsApi : public SaiApi<ArsApi> {
  public:

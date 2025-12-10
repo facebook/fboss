@@ -15,6 +15,7 @@
 #include "fboss/agent/platforms/common/fuji/Fuji16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/minipack/Minipack16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
@@ -1180,6 +1181,50 @@ TEST_F(PlatformMappingTest, VerifyWedge100YV3T1DownlinkPortIphyPinConfigs) {
             " in supported profile list for port:",
             port.first);
       }
+    }
+  }
+}
+
+TEST_F(PlatformMappingTest, VerifyMeru800bfaPlatformPortConfigOverrideFactor) {
+  const cfg::PortProfileID meru800bfaProfile =
+      cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL;
+  cfg::PlatformPortConfigOverrideFactor factor;
+  factor.mediaInterfaceCode() = MediaInterfaceCode::FR1_100G;
+
+  Vendor vendor = Vendor();
+  *vendor.name() = "Vendor_1";
+  *vendor.oui() = "0x1";
+  *vendor.partNumber() = "PartNum_1";
+  *vendor.rev() = "Rev_1";
+  *vendor.serialNumber() = "0x123";
+  *vendor.dateCode() = "0x1234";
+
+  factor.vendor() = vendor;
+  // Set product version to 5 to get the kJsonMultiNpuProdPlatformMappingStr
+  auto mapping = std::make_unique<Meru800bfaPlatformMapping>(
+      /*multiNpuPlatformMapping*/ true, 5);
+  auto overrides = mapping->getPortConfigOverrides();
+
+  // Check that there are overrides for this profile.
+  CHECK(!overrides.empty());
+  for (auto& override : overrides) {
+    CHECK(override.factor()->profiles().has_value());
+    CHECK_EQ(override.factor()->profiles()->size(), 1);
+    CHECK(override.factor()->profiles()->front() == meru800bfaProfile);
+    const auto& overrideFactor = override.factor();
+    EXPECT_EQ(
+        overrideFactor->mediaInterfaceCode(), factor.mediaInterfaceCode());
+    EXPECT_EQ(overrideFactor->vendor()->name(), factor.vendor()->name());
+    EXPECT_EQ(
+        overrideFactor->vendor()->partNumber(), factor.vendor()->partNumber());
+    auto pins = override.pins();
+    CHECK(pins.has_value());
+    auto iphy = pins->iphy();
+    CHECK(!iphy->empty());
+    for (auto pin : iphy.value()) {
+      auto tx = pin.tx();
+      // Check that the tx settings are set for this override.
+      CHECK(tx.has_value());
     }
   }
 }

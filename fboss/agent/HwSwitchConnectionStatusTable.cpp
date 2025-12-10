@@ -8,9 +8,11 @@
  *
  */
 #include "fboss/agent/HwSwitchConnectionStatusTable.h"
+#include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/lib/CommonFileUtils.h"
 
 #include <folly/logging/xlog.h>
 
@@ -46,7 +48,29 @@ bool HwSwitchConnectionStatusTable::disconnected(SwitchID switchId) {
   // In normal shutdown sequence, we exit SwSwitch first before shutting
   // down HwSwitch. Hence this condition can happen only if all HwSwitches crash
   if (connectedSwitches_.empty()) {
-    XLOG(FATAL) << "No active HwSwitch connections";
+    XLOG(ERR)
+        << "No active HwSwitch connections. Initiating shutdown and preventing warm boot on restart."
+        << " Please investigate the cause of the hw agent restart";
+
+    // Create cold boot marker files to prevent warm boot on next restart
+    auto dirUtil = sw_->getDirUtil();
+
+    // Create SW cold boot marker using touchFile
+    touchFile(dirUtil->getSwColdBootOnceFile());
+    XLOG(INFO) << "Created SW cold boot marker: "
+               << dirUtil->getSwColdBootOnceFile();
+
+    // Create HW cold boot markers for all switches
+    auto switchIdToSwitchInfo =
+        sw_->getSwitchInfoTable().getSwitchIdToSwitchInfo();
+    for (const auto& [switchId_, switchInfo] : switchIdToSwitchInfo) {
+      auto switchIndex = *switchInfo.switchIndex();
+      touchFile(dirUtil->getHwColdBootOnceFile(switchIndex));
+      XLOG(INFO) << "Created HW cold boot marker for switch " << switchIndex
+                 << ": " << dirUtil->getHwColdBootOnceFile(switchIndex);
+    }
+
+    std::exit(EXIT_SUCCESS);
   }
   if (FLAGS_exit_for_any_hw_disconnect) {
     XLOG(FATAL)

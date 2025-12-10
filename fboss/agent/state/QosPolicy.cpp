@@ -46,6 +46,22 @@ ExpMap::ExpMap(std::vector<cfg::ExpQosMap> cfg) {
   }
 }
 
+PcpMap::PcpMap(const std::vector<cfg::PcpQosMap>& cfg) {
+  for (auto map : cfg) {
+    auto trafficClass = *map.internalTrafficClass();
+
+    for (auto pcp : *map.fromPcpToTrafficClass()) {
+      addFromEntry(
+          static_cast<TrafficClass>(trafficClass), static_cast<PCP>(pcp));
+    }
+    if (auto fromTrafficClassToPcp = map.fromTrafficClassToPcp()) {
+      addToEntry(
+          static_cast<TrafficClass>(trafficClass),
+          static_cast<PCP>(fromTrafficClassToPcp.value()));
+    }
+  }
+}
+
 template struct ThriftStructNode<QosPolicy, state::QosPolicyFields>;
 
 } // namespace facebook::fboss

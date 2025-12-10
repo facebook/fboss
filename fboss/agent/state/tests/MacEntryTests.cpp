@@ -30,7 +30,8 @@ TEST(MacEntryTest, toFromThrift) {
       PortDescriptor(PortID(1)),
       std::optional<cfg::AclLookupClass>(
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
-      MacEntryType::STATIC_ENTRY);
+      MacEntryType::STATIC_ENTRY,
+      std::optional<bool>(true));
   EXPECT_EQ(MacEntry(entryStatic.toThrift()), entryStatic);
   validateNodeSerialization(entryStatic);
 }
@@ -47,6 +48,7 @@ TEST(MacEntryTest, Compare) {
       PortDescriptor(PortID(1)),
       std::optional<cfg::AclLookupClass>(
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
-      MacEntryType::STATIC_ENTRY);
+      MacEntryType::STATIC_ENTRY,
+      std::optional<bool>(true));
   EXPECT_NE(entryStatic, entryDynamic);
 }

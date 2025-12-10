@@ -22,6 +22,7 @@ SaiPortTraits::Attributes::AttributeSerdesLaneList::operator()() {
   return std::nullopt;
 #endif
 }
+
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeDiagModeEnable::operator()() {
 #if defined(BRCM_SAI_SDK_XGS)
@@ -51,7 +52,7 @@ SaiPortTraits::Attributes::AttributeRxLaneSquelchEnable::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRVgaWrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_RVG;
 #else
   return std::nullopt;
@@ -60,7 +61,7 @@ SaiPortSerdesTraits::Attributes::AttributeRVgaWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeDcoWrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_DCO;
 #else
   return std::nullopt;
@@ -69,7 +70,7 @@ SaiPortSerdesTraits::Attributes::AttributeDcoWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeFltMWrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_FLT_M;
 #else
   return std::nullopt;
@@ -78,7 +79,7 @@ SaiPortSerdesTraits::Attributes::AttributeFltMWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeFltSWrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_FLT_S;
 #else
   return std::nullopt;
@@ -87,7 +88,7 @@ SaiPortSerdesTraits::Attributes::AttributeFltSWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxPfWrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_PF;
 #else
   return std::nullopt;
@@ -96,7 +97,7 @@ SaiPortSerdesTraits::Attributes::AttributeRxPfWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxEqP2Wrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_EQ_P2;
 #else
   return std::nullopt;
@@ -105,7 +106,7 @@ SaiPortSerdesTraits::Attributes::AttributeRxEqP2Wrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxEqP1Wrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_EQ_P1;
 #else
   return std::nullopt;
@@ -114,7 +115,7 @@ SaiPortSerdesTraits::Attributes::AttributeRxEqP1Wrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxEqMWrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_EQ_M;
 #else
   return std::nullopt;
@@ -123,7 +124,7 @@ SaiPortSerdesTraits::Attributes::AttributeRxEqMWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxEq1Wrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_EQ_1;
 #else
   return std::nullopt;
@@ -132,7 +133,7 @@ SaiPortSerdesTraits::Attributes::AttributeRxEq1Wrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxEq2Wrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_EQ_2;
 #else
   return std::nullopt;
@@ -141,7 +142,7 @@ SaiPortSerdesTraits::Attributes::AttributeRxEq2Wrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxEq3Wrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_EQ_3;
 #else
   return std::nullopt;
@@ -150,7 +151,7 @@ SaiPortSerdesTraits::Attributes::AttributeRxEq3Wrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxTap2Wrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_TAP_2;
 #else
   return std::nullopt;
@@ -159,7 +160,7 @@ SaiPortSerdesTraits::Attributes::AttributeRxTap2Wrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxTap1Wrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_TAP_1;
 #else
   return std::nullopt;
@@ -168,7 +169,7 @@ SaiPortSerdesTraits::Attributes::AttributeRxTap1Wrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTpChn2Wrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_TP_CHN_2;
 #else
   return std::nullopt;
@@ -177,7 +178,7 @@ SaiPortSerdesTraits::Attributes::AttributeTpChn2Wrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTpChn1Wrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_TP_CHN_1;
 #else
   return std::nullopt;
@@ -186,8 +187,17 @@ SaiPortSerdesTraits::Attributes::AttributeTpChn1Wrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTpChn0Wrapper::operator()() {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_TP_CHN_0;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeFabricSystemPort::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  return SAI_PORT_ATTR_FABRIC_SYSTEM_PORT;
 #else
   return std::nullopt;
 #endif
@@ -267,9 +277,56 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcMonitorDirection::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX)
+  // Some ASICs can support PFC Monitoring only in one direction. This
+  // attribute specifies the direction to enable PFC monitoring for,
+  // either RX or TX.
+  return SAI_PORT_ATTR_PFC_MONITOR_DIRECTION;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
+#if (                                                                          \
+    defined(SAI_VERSION_11_7_0_0_ODP) || defined(BRCM_SAI_SDK_XGS_GTE_13_0) || \
+    defined(BRCM_SAI_SDK_DNX_GTE_12_0)) &&                                     \
+    !defined(SAI_VERSION_14_0_EA_ODP) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  return SAI_PORT_ATTR_EXTENSION_AM_IDLES;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeResetQueueCreditBalance::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  // The initial credit in VoQ switch ports allows a lot of packets to egress
+  // after TX is disabled on the port. This results in inaccuracies in some
+  // tests which need TX to be disabled before specific sequence is done. This
+  // new SAI attribute provides an option to reset the credit balance on a per
+  // port basis which will stop TX on a port after ~400+ 256B packets.
+  return SAI_PORT_ATTR_RESET_QUEUE_CREDIT_BALANCE;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributePgDropStatus::operator()() {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX)
   return SAI_PORT_ATTR_PORT_PG_PKT_DROP_STATUS;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeStaticModuleId::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  return SAI_PORT_ATTR_STATIC_MODULE_ID;
 #else
   return std::nullopt;
 #endif
@@ -478,5 +535,82 @@ SaiPortTraits::Attributes::AttributeArsLinkState::operator()() {
 #else
   return std::nullopt;
 #endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeIsHyperPortMember::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  return SAI_PORT_ATTR_IS_HYPERPORT_MEMBER;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  return SAI_PORT_ATTR_HYPERPORT_MEMBER_LIST;
+#else
+  return std::nullopt;
+#endif
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::macTxDataQueueMinWatermarkStats() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_PORT_STAT_MAC_TX_DATA_QUEUE_MIN_WM};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::macTxDataQueueMaxWatermarkStats() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_PORT_STAT_MAC_TX_DATA_QUEUE_MAX_WM};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlRxPacketStats() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_PORT_STAT_FABRIC_CONTROL_RX_PKTS};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlTxPacketStats() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_PORT_STAT_FABRIC_CONTROL_TX_PKTS};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_PORT_STAT_PFC_0_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_1_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_2_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_3_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_4_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_5_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_6_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_7_XOFF_TOTAL_DURATION};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
 }
 } // namespace facebook::fboss

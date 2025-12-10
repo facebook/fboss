@@ -11,7 +11,6 @@
 #pragma once
 
 #include <string>
-#include <type_traits>
 #include <vector>
 
 #include <folly/Synchronized.h>
@@ -38,6 +37,11 @@ class SensorServiceImpl {
   auto static constexpr kCriticalThresholdViolation =
       "sensor_read.sensor_{}.type_{}.critical_threshold_violation";
   auto static constexpr kAsicTemp = "asic_temp";
+  auto static constexpr kTotalPower = "TOTAL_POWER";
+  auto static constexpr kMaxInputVoltage = "MAX_INPUT_VOLTAGE";
+  auto static constexpr kDerivedFailure = "derived.{}.failure";
+  auto static constexpr kDerivedValue = "derived.{}.value";
+  auto static constexpr kPmUnitVersion = "pmunit.{}.version.{}.{}.{}";
 
   explicit SensorServiceImpl(
       const SensorConfig& sensorConfig,
@@ -56,6 +60,20 @@ class SensorServiceImpl {
     return fsdbSyncer_.get();
   }
 
+  void processPower(
+      const std::map<std::string, SensorData>& polledData,
+      const PowerConfig& powerConfig);
+
+  void processTemperature(
+      const std::map<std::string, SensorData>& polledData,
+      const std::vector<TemperatureConfig>& tempConfigs);
+
+  void processInputVoltage(
+      const std::map<std::string, SensorData>& polledData,
+      const std::vector<std::string>& inputVoltageSensors);
+
+  SensorData processAsicCmd(const AsicCommand& asicCommand);
+
  private:
   SensorData fetchSensorDataImpl(
       const std::string& name,
@@ -68,7 +86,15 @@ class SensorServiceImpl {
       const std::string& sensorName,
       std::optional<float> value);
 
-  SensorData getAsicTemp(const SwitchAsicTemp& asicTemp);
+  void publishDerivedStats(
+      const std::string& entity,
+      std::optional<float> value);
+
+  void publishVersionedSensorStats(
+      const std::string& pmUnitName,
+      int16_t productProductionState,
+      int16_t productVersion,
+      int16_t productSubVersion);
 
   folly::Synchronized<std::map<std::string, SensorData>> polledData_{};
   std::unique_ptr<FsdbSyncer> fsdbSyncer_;

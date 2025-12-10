@@ -17,7 +17,6 @@
 #include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/platform_manager/Utils.h"
-#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
 #include "fboss/platform/weutil/FbossEepromInterface.h"
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
 
@@ -133,8 +132,6 @@ PlatformManagerStatus createPmStatus(
 }
 } // namespace
 
-namespace constants = platform_manager_config_constants;
-
 PlatformExplorer::PlatformExplorer(
     const PlatformConfig& config,
     std::shared_ptr<PlatformFsUtils> platformFsUtils)
@@ -164,8 +161,11 @@ void PlatformExplorer::explore() {
        *platformConfig_.symbolicLinkToDevicePath()) {
     createDeviceSymLink(linkPath, devicePath);
   }
+  XLOG(INFO) << "Publishing firmware versions ...";
   publishFirmwareVersions();
+  XLOG(INFO) << "Generating human readable EEPROM contents ...";
   genHumanReadableEeproms();
+  XLOG(INFO) << "Publishing hardware version of the unit ...";
   publishHardwareVersions();
   auto explorationStatus = explorationSummary_.summarize();
   updatePmStatus(createPmStatus(
@@ -311,8 +311,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     with ioctl and written to the /run/devmap file.
     See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
     */
-    if ((platformConfig_.platformName().value() == "meru800bfa" ||
-         platformConfig_.platformName().value() == "meru800bia") &&
+    if ((platformConfig_.platformName().value() == "MERU800BFA" ||
+         platformConfig_.platformName().value() == "MERU800BIA") &&
         (!(idpromConfig.busName()->starts_with("INCOMING")) &&
          *idpromConfig.address() == "0x50")) {
       try {
@@ -424,10 +424,11 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     pmUnitName = *slotTypeConfig.pmUnitName();
   }
   if (!pmUnitName) {
-    throw std::runtime_error(fmt::format(
-        "PmUnitName must be configured in SlotTypeConfig::pmUnitName "
-        "or SlotTypeConfig::idpromConfig at {}",
-        slotPath));
+    throw std::runtime_error(
+        fmt::format(
+            "PmUnitName must be configured in SlotTypeConfig::pmUnitName "
+            "or SlotTypeConfig::idpromConfig at {}",
+            slotPath));
   }
   dataStore_.updatePmUnitName(slotPath, *pmUnitName);
   return pmUnitName;
@@ -453,18 +454,19 @@ void PlatformExplorer::exploreI2cDevices(
         auto channelToBusNums =
             i2cExplorer_.getMuxChannelI2CBuses(busNum, devAddr);
         if (channelToBusNums.size() != *i2cDeviceConfig.numOutgoingChannels()) {
-          throw std::runtime_error(fmt::format(
-              "Unexpected number mux channels for {}. Expected: {}. Actual: {}",
-              *i2cDeviceConfig.pmUnitScopedName(),
-              *i2cDeviceConfig.numOutgoingChannels(),
-              channelToBusNums.size()));
+          throw std::runtime_error(
+              fmt::format(
+                  "Unexpected number mux channels for {}. Expected: {}. Actual: {}",
+                  *i2cDeviceConfig.pmUnitScopedName(),
+                  *i2cDeviceConfig.numOutgoingChannels(),
+                  channelToBusNums.size()));
         }
-        for (const auto& [channelNum, busNum] : channelToBusNums) {
+        for (const auto& [channelNum, channelBusNum] : channelToBusNums) {
           dataStore_.updateI2cBusNum(
               slotPath,
               fmt::format(
                   "{}@{}", *i2cDeviceConfig.pmUnitScopedName(), channelNum),
-              busNum);
+              channelBusNum);
         }
       }
       if (*i2cDeviceConfig.isGpioChip()) {
@@ -609,10 +611,36 @@ void PlatformExplorer::explorePciDevices(
         });
     createPciSubDevices(
         slotPath,
+        Utils::createLedCtrlConfigs(pciDeviceConfig),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_LED_CTRL,
+        [&](const auto& ledCtrlConfig) {
+          pciExplorer_.createLedCtrl(pciDevice, ledCtrlConfig, instId++);
+        });
+    createPciSubDevices(
+        slotPath,
         *pciDeviceConfig.ledCtrlConfigs(),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_LED_CTRL,
         [&](const auto& ledCtrlConfig) {
           pciExplorer_.createLedCtrl(pciDevice, ledCtrlConfig, instId++);
+        });
+    createPciSubDevices(
+        slotPath,
+        *pciDeviceConfig.sysLedCtrlConfigs(),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_LED_CTRL,
+        [&](const auto& sysLedCtrlConfig) {
+          pciExplorer_.createFpgaIpBlock(pciDevice, sysLedCtrlConfig, instId++);
+        });
+    createPciSubDevices(
+        slotPath,
+        Utils::createXcvrCtrlConfigs(pciDeviceConfig),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_XCVR_CTRL,
+        [&](const auto& xcvrCtrlConfig) {
+          auto devicePath = Utils().createDevicePath(
+              slotPath,
+              *xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName());
+          auto xcvrCtrlSysfsPath =
+              pciExplorer_.createXcvrCtrl(pciDevice, xcvrCtrlConfig, instId++);
+          dataStore_.updateSysfsPath(devicePath, xcvrCtrlSysfsPath);
         });
     createPciSubDevices(
         slotPath,
@@ -645,6 +673,26 @@ void PlatformExplorer::explorePciDevices(
         [&](const auto& miscCtrlConfig) {
           pciExplorer_.createFpgaIpBlock(pciDevice, miscCtrlConfig, instId++);
         });
+    createPciSubDevices(
+        slotPath,
+        Utils().createMdioBusConfigs(pciDeviceConfig),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MDIO_BUS,
+        [&](const auto& mdioBusConfig) {
+          auto mdioBusCharDevPath =
+              pciExplorer_.createMdioBus(pciDevice, mdioBusConfig, instId);
+          dataStore_.updateCharDevPath(
+              Utils().createDevicePath(
+                  slotPath, *mdioBusConfig.pmUnitScopedName()),
+              mdioBusCharDevPath);
+
+          auto mdioBusSysfsPath = pciExplorer_.getMdioBusSysfsPath(
+              pciDevice, mdioBusConfig, instId);
+          dataStore_.updateSysfsPath(
+              Utils().createDevicePath(
+                  slotPath, *mdioBusConfig.pmUnitScopedName()),
+              mdioBusSysfsPath);
+          instId++;
+        });
   }
 }
 
@@ -662,13 +710,6 @@ uint32_t PlatformExplorer::getFpgaInstanceId(
 void PlatformExplorer::createDeviceSymLink(
     const std::string& linkPath,
     const std::string& devicePath) {
-  if (explorationSummary_.isDeviceExpectedToFail(devicePath)) {
-    XLOG(WARNING) << fmt::format(
-        "Device at ({}) is not supported in this hardware. Skipping creating symlink {}",
-        devicePath,
-        linkPath);
-    return;
-  }
   auto linkParentPath = std::filesystem::path(linkPath).parent_path();
   if (!platformFsUtils_->createDirectories(linkParentPath.string())) {
     XLOG(ERR) << fmt::format(
@@ -713,13 +754,22 @@ void PlatformExplorer::createDeviceSymLink(
       if (re2::RE2::FullMatch(xcvrName, kLegacyXcvrName)) {
         targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
       }
+    } else if (linkParentPath.string() == "/run/devmap/mdio-busses") {
+      auto mdioBusName = linkPath.substr(linkParentPath.string().length() + 1);
+      if (mdioBusName.starts_with("mdio_bus_io")) {
+        targetPath =
+            devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
+      }
+      if (mdioBusName.starts_with("mdio_bus_ctrl")) {
+        targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
+      }
     } else {
       throw std::runtime_error(
           fmt::format("Symbolic link {} is not supported.", linkPath));
     }
   } catch (const std::exception& ex) {
     auto errMsg = fmt::format(
-        "Failed to create a symlink {} for DevicePath {}. Reason: {}",
+        "Failed to create symlink {} for DevicePath {}. Reason: {}",
         linkPath,
         devicePath,
         ex.what());
@@ -799,9 +849,13 @@ void PlatformExplorer::publishHardwareVersions() {
   }
 
   auto chassisEepromContent = dataStore_.getEepromContents(chassisDevicePath);
+  auto version = chassisEepromContent.getVersion();
   auto prodState = chassisEepromContent.getProductionState();
   auto prodSubState = chassisEepromContent.getProductionSubState();
   auto variantVersion = chassisEepromContent.getVariantVersion();
+
+  // Report version
+  fb303::fbData->setCounter(fmt::format(kChassisEepromVersion, version), 1);
 
   // Report production state
   if (!prodState.empty()) {
@@ -940,7 +994,17 @@ void PlatformExplorer::genHumanReadableEeproms() {
     if (!linkPath.starts_with("/run/devmap/eeproms")) {
       continue;
     }
+
     const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
+
+    if (!dataStore_.hasPmUnit(slotPath)) {
+      XLOG(ERR) << fmt::format(
+          "No device at {}. Skipping creating parsed eeprom content for {}",
+          slotPath,
+          devicePath);
+      continue;
+    }
+
     auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
     std::optional<I2cDeviceConfig> matchingConfig;
 

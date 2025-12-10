@@ -55,10 +55,19 @@ OperState makeState(
 
 cfg::AgentConfig makeAgentConfig(
     const std::map<std::string, std::string>& cmdLinArgs);
+cfg::AgentConfig
+makeLargeAgentConfig(const std::string& argName, uint32_t bytes, char val);
 
 folly::F14FastMap<std::string, HwPortStats> makePortStats(
     int64_t inBytes,
     const std::string& portName = "eth1/1/1");
+
+folly::F14FastMap<std::string, HwPortStats> makeLargePortStats(
+    int64_t counterValue,
+    int64_t numPorts);
+
+OperDelta makeSwitchStateOperDelta(const state::SwitchState& switchState);
+OperState makeSwitchStateOperState(const state::SwitchState& switchState);
 
 template <typename PubSubT>
 class TestFsdbSubscriber : public PubSubT::SubscriberT {

@@ -55,6 +55,7 @@ sai_int32_t getPortTypeFromCfg(const cfg::PortType& cfgPortType) {
       return SAI_PORT_TYPE_EVENTOR;
 #endif
     case cfg::PortType::INTERFACE_PORT:
+    case cfg::PortType::HYPER_PORT_MEMBER:
       return SAI_PORT_TYPE_LOGICAL;
     case cfg::PortType::FABRIC_PORT:
       return SAI_PORT_TYPE_FABRIC;
@@ -65,6 +66,12 @@ sai_int32_t getPortTypeFromCfg(const cfg::PortType& cfgPortType) {
       return SAI_PORT_TYPE_RECYCLE;
 #else
       throw FbossError("RECYCLE_PORT is not supported");
+#endif
+    case cfg::PortType::HYPER_PORT:
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+      return SAI_PORT_TYPE_HYPERPORT;
+#else
+      throw FbossError("HYPER_PORT is not supported");
 #endif
   }
 
@@ -84,12 +91,19 @@ SaiPortTraits::AdapterHostKey getPortAdapterHostKeyFromAttr(
   return portKey;
 }
 
-static const std::vector<PfcPriority> allPfcPriorities() {
-  static std::vector<PfcPriority> priorities;
-  if (priorities.empty()) {
+// Return all priorities if PFC is enabled, none if PFC is not enabled
+// for the port. This will ensure that PFC stats are available for all
+// priorities in fb303 for ports with PFC enabled, but not for port
+// with PFC disabled. We can choose to not export PFC stats for all the
+// priorities to ODS, but making it available in fb303 is helpful for
+// debugging.
+static std::vector<PfcPriority> allPfcPriorities(
+    std::optional<cfg::PortPfc> pfc) {
+  std::vector<PfcPriority> priorities;
+  if (pfc.has_value() && (*pfc->rx() || *pfc->tx())) {
     for (int i = 0; i <= cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX();
          i++) {
-      priorities.push_back(PfcPriority(i));
+      priorities.emplace_back(i);
     }
   }
   return priorities;
@@ -112,6 +126,17 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
         counterIds.emplace_back(SAI_PORT_STAT_IF_IN_LINK_DOWN_CELL_DROP);
       }
 #endif
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::FABRIC_LINK_MONITORING)) {
+        counterIds.insert(
+            counterIds.end(),
+            SaiPortTraits::fabricControlRxPacketStats().begin(),
+            SaiPortTraits::fabricControlRxPacketStats().end());
+        counterIds.insert(
+            counterIds.end(),
+            SaiPortTraits::fabricControlTxPacketStats().begin(),
+            SaiPortTraits::fabricControlTxPacketStats().end());
+      }
       return counterIds;
     }
     if (getPortType(port) == cfg::PortType::RECYCLE_PORT) {
@@ -261,7 +286,14 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
     portStats_.emplace(
         swPort->getID(),
         std::make_unique<HwPortFb303Stats>(
-            swPort->getName(), queueId2Name, allPfcPriorities()));
+            swPort->getName(),
+            queueId2Name,
+            allPfcPriorities(swPort->getPfc()),
+            swPort->getPfc(),
+            platform_->getAsic()->isSupported(
+                HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS),
+            platform_->getAsic()->isSupported(
+                HwAsic::Feature::SAI_PORT_PG_DROP_STATUS)));
   }
 
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
@@ -270,6 +302,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
       swPort->getIngressMirror(), swPort->getEgressMirror(), samplingMirror};
   handle->mirrorInfo = mirrorInfo;
   handles_.emplace(swPort->getID(), std::move(handle));
+  processPortBufferPoolConfigs(swPort);
   setQosPolicy(swPort->getID(), swPort->getQosPolicy());
 
   addSamplePacket(swPort);
@@ -359,12 +392,14 @@ void SaiPortManager::changePortImpl(
       updatePrbsStatsEntryRate(newPort);
     }
   }
+  processPortBufferPoolConfigs(newPort);
 
   changeMirror(oldPort, newPort);
   changeSamplePacket(oldPort, newPort);
   changePfc(oldPort, newPort);
   changeRxLaneSquelch(oldPort, newPort);
   changeTxEnable(oldPort, newPort);
+  changeResetQueueCreditBalance(oldPort, newPort);
   changePfcBuffers(oldPort, newPort);
 
   if (newPort->isEnabled()) {
@@ -374,7 +409,14 @@ void SaiPortManager::changePortImpl(
       portStats_.emplace(
           newPort->getID(),
           std::make_unique<HwPortFb303Stats>(
-              newPort->getName(), queueId2Name, newPort->getPfcPriorities()));
+              newPort->getName(),
+              queueId2Name,
+              allPfcPriorities(newPort->getPfc()),
+              newPort->getPfc(),
+              platform_->getAsic()->isSupported(
+                  HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS),
+              platform_->getAsic()->isSupported(
+                  HwAsic::Feature::SAI_PORT_PG_DROP_STATUS)));
     } else if (oldPort->getName() != newPort->getName()) {
       // Port was already enabled, but Port name changed - update stats
       portStats_.find(newPort->getID())
@@ -382,7 +424,8 @@ void SaiPortManager::changePortImpl(
     }
     if (oldPort->getPfc() != newPort->getPfc()) {
       portStats_.find(newPort->getID())
-          ->second->pfcPriorityChanged(newPort->getPfcPriorities());
+          ->second->pfcConfigChanged(
+              allPfcPriorities(newPort->getPfc()), newPort->getPfc());
     }
   } else if (oldPort->isEnabled()) {
     // Port transitioned from enabled to disabled, remove stats
@@ -472,6 +515,16 @@ void SaiPortManager::attributesFromSaiStore(
       port->attributes(),
       attributes,
       SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{});
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::QosDot1pToTcMap{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::QosTcAndColorToDot1pMap{});
+#endif
   getAndSetAttribute(
       port->attributes(), attributes, SaiPortTraits::Attributes::TamObject{});
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
@@ -536,8 +589,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-  auto loopbackMode =
-      utility::getSaiPortLoopbackMode(swPort->getLoopbackMode());
+  std::optional<int> loopbackMode;
+  if (swPort->getPortType() != cfg::PortType::HYPER_PORT_MEMBER) {
+    // hyper port member loopback mode should be determined by hyper port
+    loopbackMode = utility::getSaiPortLoopbackMode(swPort->getLoopbackMode());
+  }
 #else
   auto internalLoopbackMode =
       utility::getSaiPortInternalLoopbackMode(swPort->getLoopbackMode());
@@ -600,11 +656,30 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   if (platform_->getAsic()->isSupported(HwAsic::Feature::MACSEC) &&
       portProfileConfig.interPacketGapBits().has_value()) {
     interFrameGap = *portProfileConfig.interPacketGapBits();
+    XLOG(DBG2) << "Setting interFrameGap from platformMapping for port "
+               << swPort->getID()
+               << " to value: " << *portProfileConfig.interPacketGapBits();
+  }
+  // If interpacket gaps bits are set in switch state, overwrite interFrameGap
+  // value
+  if (swPort->getInterPacketGapBits().has_value()) {
+    interFrameGap = *swPort->getInterPacketGapBits();
+    XLOG(DBG2) << "Setting interFrameGap from switchState for port "
+               << swPort->getID()
+               << " to value: " << *swPort->getInterPacketGapBits();
   }
 #endif
+  std::optional<bool> amIdles{};
+  // If amIdles is set in switch state, use that value
+  if (swPort->getAmIdles().has_value()) {
+    amIdles = *swPort->getAmIdles();
+    XLOG(DBG2) << "Setting amIdles from switchState for port "
+               << swPort->getID() << " to value: " << *swPort->getAmIdles();
+  }
   std::optional<SaiPortTraits::Attributes::LinkTrainingEnable>
       linkTrainingEnable;
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::LINK_TRAINING)) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::LINK_TRAINING) &&
+      (swPort->getPortType() != cfg::PortType::HYPER_PORT)) {
     linkTrainingEnable = false;
   }
 
@@ -620,10 +695,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   uint16_t vlanId = swPort->getIngressVlan();
   auto systemPortId = getSystemPortId(platform_, swPort->getID());
 
-  // Skip setting MTU for fabric ports if not supported
   std::optional<SaiPortTraits::Attributes::Mtu> mtu{};
-  if (swPort->getPortType() != cfg::PortType::FABRIC_PORT ||
-      platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORT_MTU)) {
+  if (platform_->getAsic()->portMtuSupported(swPort->getPortType())) {
     mtu = swPort->getMaxFrameSize();
   }
   std::optional<SaiPortTraits::Attributes::PrbsPolynomial> prbsPolynomial =
@@ -711,6 +784,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
 #endif
 
+  std::optional<SaiPortTraits::Attributes::StaticModuleId> staticModuleId{};
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  staticModuleId = swPort->getPortSwitchId();
+#endif
+
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -786,6 +864,16 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         false,
 #endif
         fecErrorDetectEnable,
+        std::nullopt, // AmIdles
+        std::nullopt, // FabricSystemPort
+        staticModuleId,
+        std::nullopt, // IsHyperPortMember
+        std::nullopt, // HyperPortMemberList
+        std::nullopt, // PfcMonitorDirection
+        std::nullopt, // QosDot1pToTcMap
+        std::nullopt, // QosTcAndColorToDot1pMap
+        std::nullopt, // QosIngressBufferProfileList
+        std::nullopt, // QosEgressBufferProfileList
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -872,6 +960,16 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       false,
 #endif
       fecErrorDetectEnable,
+      amIdles, // AmIdles
+      std::nullopt, // FabricSystemPort
+      staticModuleId,
+      std::nullopt, // IsHyperPortMember
+      std::nullopt, // HyperPortMemberList
+      std::nullopt, // PfcMonitorDirection
+      std::nullopt, // QosDot1pToTcMap
+      std::nullopt, // QosTcAndColorToDot1pMap
+      std::nullopt, // QosIngressBufferProfileList
+      std::nullopt, // QosEgressBufferProfileList
   };
 }
 
@@ -883,7 +981,8 @@ void SaiPortManager::programSerdes(
       !platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING) ||
       swPort->getPortType() == cfg::PortType::RECYCLE_PORT ||
-      swPort->getPortType() == cfg::PortType::EVENTOR_PORT) {
+      swPort->getPortType() == cfg::PortType::EVENTOR_PORT ||
+      swPort->getPortType() == cfg::PortType::HYPER_PORT) {
     return;
   }
 
@@ -991,11 +1090,16 @@ void SaiPortManager::programSerdes(
     createSerdesWithZeroPreemphasis(portHandle, swPort->getPinConfigs());
   }
   if (platform_->getAsic()->getAsicType() ==
-      cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK5 ||
+      platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
+    // TODO(daiweix): enable SAI_PORT_SERDES_FIELDS_RESET feature for TH4, TH5
+    // and TH6, so as to set sixtap attributes all at once. Also need to verify
+    // no tests broken because of it.
     auto platformPort = platform_->getPort(swPort->getID());
     if (platformPort->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
       XLOG(DBG2)
-          << "Tomahawk5 management port only support 3 tap serdes setting";
+          << "Tomahawk5-6 management port only support 3 tap serdes setting";
       std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirPre2>>(
           serdesAttributes) = std::nullopt;
       std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirPre3>>(

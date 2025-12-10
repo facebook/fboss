@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h" // @manual=//fboss/qsfp_service/platforms/wedge:wedge-platform-default
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h" // @manual=//fboss/qsfp_service/platforms/wedge:wedge-platform-default
 #include "fboss/util/qsfp/QsfpUtilContainer.h"
@@ -62,8 +63,60 @@ void listCommands() {
       std::ostream_iterator<FlagCommand>(std::cerr, "\n"));
 }
 
+int32_t getTransceiverIdForPort(
+    std::string& portNameStr,
+    std::map<std::string, std::vector<int32_t>>& portNameToTransceiverIds) {
+  if (portNameToTransceiverIds.find(portNameStr) ==
+      portNameToTransceiverIds.end()) {
+    throw FbossError(
+        "Couldn't find a transceiverID for portName:", portNameStr);
+  }
+  return portNameToTransceiverIds.at(portNameStr)[0];
+}
+
+std::set<std::string> getPortNames(
+    int32_t tcvrId,
+    std::map<int32_t, std::set<std::string>>& tcvrIdToPortNames) {
+  if (tcvrIdToPortNames.find(tcvrId) == tcvrIdToPortNames.end()) {
+    throw FbossError("Couldn't find a portName for transceiverID:", tcvrId);
+  }
+  return tcvrIdToPortNames.at(tcvrId);
+}
+
+std::map<std::string, std::vector<int32_t>> getPortNameToTransceiverIds(
+    WedgeManager* wedgeManager,
+    folly::EventBase& evb) {
+  std::map<std::string, std::vector<int32_t>> result;
+  if (FLAGS_direct_i2c) {
+    for (auto& portMap : wedgeManager->getPortNameToModuleMap()) {
+      result[portMap.first].push_back(portMap.second);
+    }
+  } else {
+    for (auto& portMap : getPortTransceiverIDs(evb)) {
+      result[portMap.first] = portMap.second;
+    }
+  }
+  return result;
+}
+
+std::map<int32_t, std::set<std::string>> getTransceiverIdToPortNames(
+    std::map<std::string, std::vector<int32_t>> portNameToTransceiverIds) {
+  std::map<int32_t, std::set<std::string>> result;
+  for (auto& portNameToTransceiverId : portNameToTransceiverIds) {
+    for (auto& tcvrId : portNameToTransceiverId.second) {
+      result[tcvrId].insert(portNameToTransceiverId.first);
+    }
+  }
+  return result;
+}
+
+int getNumQsfpModules(
+    std::map<int32_t, std::set<std::string>> tcvrIdsToPortNames) {
+  return tcvrIdsToPortNames.size();
+}
+
 int main(int argc, char* argv[]) {
-  folly::init(&argc, &argv, true);
+  const folly::Init init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
   folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
@@ -95,7 +148,7 @@ int main(int argc, char* argv[]) {
   std::vector<unsigned int> ports;
   std::vector<std::string> portNames;
   bool good = true;
-  std::unique_ptr<WedgeManager> wedgeManager = createWedgeManager();
+  auto [wedgeManager, _] = createQsfpManagers();
   if (argc == 1) {
     folly::gen::range(1, wedgeManager->getNumQsfpModules() + 1) |
         folly::gen::appendTo(ports);
@@ -108,17 +161,18 @@ int main(int argc, char* argv[]) {
           portNum = 1 + folly::to<unsigned int>(argv[n] + 2);
         } else if (isalpha(portStr[0])) {
           portNum = wedgeManager->getPortNameToModuleMap().at(portStr) + 1;
-          portNames.push_back(portStr);
+          portNames.emplace_back(portStr);
         } else {
           portNum = folly::to<unsigned int>(argv[n]);
-          auto portName =
+          auto portNameList =
               wedgeManager->getPortNames(TransceiverID(portNum - 1));
-          if (portName.empty()) {
+          if (portNameList.empty()) {
             throw FbossError(
                 "Couldn't find a portName for transceiverID (1-indexed):",
                 portNum);
           }
-          portNames.insert(portNames.end(), portName.begin(), portName.end());
+          portNames.insert(
+              portNames.end(), portNameList.begin(), portNameList.end());
         }
         ports.push_back(portNum);
       } catch (const std::exception& ex) {

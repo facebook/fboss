@@ -175,6 +175,16 @@ class PortManagerTest : public ManagerTestBase {
         std::nullopt, // CondEntropyRehashSeed
         std::nullopt, // ShelEnable
         std::nullopt, // FecErrorDetectEnable
+        std::nullopt, // AmIdles
+        std::nullopt, // FabricSystemPort
+        std::nullopt, // StaticModuleId
+        std::nullopt, // IsHyperPortMember
+        std::nullopt, // HyperPortMemberList
+        std::nullopt, // PfcMonitorDirection
+        std::nullopt, // QosDot1pToTcMap
+        std::nullopt, // QosTcAndColorToDot1pMap
+        std::nullopt, // QosIngressBufferProfileList
+        std::nullopt, // QosEgressBufferProfileList
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }
@@ -354,12 +364,14 @@ void checkCounterExport(
        HwPortFb303Stats("dummy").kPortMonotonicCounterStatKeys()) {
     switch (expectExport) {
       case ExpectExport::EXPORT:
-        EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
-            HwPortFb303Stats::statName(statKey, portName)));
+        EXPECT_TRUE(
+            facebook::fbData->getStatMap()->contains(
+                HwPortFb303Stats::statName(statKey, portName)));
         break;
       case ExpectExport::NO_EXPORT:
-        EXPECT_FALSE(facebook::fbData->getStatMap()->contains(
-            HwPortFb303Stats::statName(statKey, portName)));
+        EXPECT_FALSE(
+            facebook::fbData->getStatMap()->contains(
+                HwPortFb303Stats::statName(statKey, portName)));
         break;
     }
   }
@@ -370,8 +382,9 @@ TEST_F(PortManagerTest, changePortNameAndCheckCounters) {
   saiManagerTable->portManager().addPort(swPort);
   for (auto statKey :
        HwPortFb303Stats("dummy").kPortMonotonicCounterStatKeys()) {
-    EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
-        HwPortFb303Stats::statName(statKey, swPort->getName())));
+    EXPECT_TRUE(
+        facebook::fbData->getStatMap()->contains(
+            HwPortFb303Stats::statName(statKey, swPort->getName())));
   }
   auto newPort = swPort->clone();
   newPort->setName("eth1/1/1");
@@ -487,6 +500,46 @@ TEST_F(PortManagerTest, swPortFromAttributes) {
       portMgr.swPortFromAttributes(attrs, PortSaiId(1), cfg::SwitchType::NPU);
   EXPECT_EQ(attrs, portMgr.attributesFromSwPort(newPort));
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+/**
+ * @brief Test that InterFrameGap attribute is set when interpacket gap bits are
+ * configured
+ */
+TEST_F(PortManagerTest, attributesFromSwPortWithInterPacketGap) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  auto& portMgr = saiManagerTable->portManager();
+
+  // Test with interpacket gap bits set in switch state
+  const uint8_t testInterPacketGapBits = 12;
+  swPort->setInterPacketGapBits(testInterPacketGapBits);
+
+  auto attrs = portMgr.attributesFromSwPort(swPort);
+
+  // Verify that InterFrameGap attribute is set correctly
+  auto interFrameGapAttr =
+      std::get<std::optional<SaiPortTraits::Attributes::InterFrameGap>>(attrs);
+  EXPECT_TRUE(interFrameGapAttr.has_value());
+  EXPECT_EQ(interFrameGapAttr.value().value(), testInterPacketGapBits);
+}
+
+/**
+ * @brief Test that InterFrameGap attribute remains unset when no interpacket
+ * gap bits are configured
+ */
+TEST_F(PortManagerTest, attributesFromSwPortWithoutInterPacketGap) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  auto& portMgr = saiManagerTable->portManager();
+
+  // Test without interpacket gap bits set (should be nullopt)
+  auto attrs = portMgr.attributesFromSwPort(swPort);
+
+  // Verify that InterFrameGap attribute is not set when no interpacket gap bits
+  auto interFrameGapAttr =
+      std::get<std::optional<SaiPortTraits::Attributes::InterFrameGap>>(attrs);
+  EXPECT_FALSE(interFrameGapAttr.has_value());
+}
+#endif
 
 TEST_F(PortManagerTest, togglePtpTcEnable) {
   std::shared_ptr<Port> swPort = makePort(p0);

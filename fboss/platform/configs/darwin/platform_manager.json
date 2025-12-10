@@ -1,5 +1,5 @@
 {
-  "platformName": "darwin",
+  "platformName": "DARWIN",
   "rootPmUnitName": "SMB",
   "rootSlotType": "SMB_SLOT",
   "slotTypeConfigs": {
@@ -220,8 +220,6 @@
             }
           ],
           "spiMasterConfigs": [],
-          "ledCtrlConfigs": [],
-          "xcvrCtrlConfigs": [],
           "infoRomConfigs": [
             {
               "pmUnitScopedName": "ROOK_CPU_CPLD_INFO_ROM",
@@ -281,33 +279,21 @@
               ]
             }
           ],
-          "ledCtrlConfigs": [
+          "sysLedCtrlConfigs": [
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SYSTEM_STATUS_LED",
-                "deviceName": "sys_led",
-                "csrOffset": "0x6050"
-              },
-              "portNumber": -1,
-              "ledId": 1
+              "pmUnitScopedName": "SYSTEM_STATUS_LED",
+              "deviceName": "sys_led",
+              "csrOffset": "0x6050"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "FAN_STATUS_LED",
-                "deviceName": "fan_led",
-                "csrOffset": "0x6060"
-              },
-              "portNumber": -1,
-              "ledId": 1
+              "pmUnitScopedName": "FAN_STATUS_LED",
+              "deviceName": "fan_led",
+              "csrOffset": "0x6060"
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "PSU_STATUS_LED",
-                "deviceName": "psu_led",
-                "csrOffset": "0x6070"
-              },
-              "portNumber": -1,
-              "ledId": 1
+              "pmUnitScopedName": "PSU_STATUS_LED",
+              "deviceName": "psu_led",
+              "csrOffset": "0x6070"
             }
           ],
           "infoRomConfigs": [
@@ -467,6 +453,7 @@
     "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
     "/run/devmap/flashes/SCD_SPI_MASTER_DEVICE1": "/[SCD_SPI_MASTER_DEVICE1]",
     "/run/devmap/eeproms/RACKMON_EEPROM": "/RACKMON_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/PEM_EEPROM": "/PEM_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/FS_FAN_SLG4F4527": "/RACKMON_SLOT@0/[FS_FAN_SLG4F4527]",
     "/run/devmap/gpiochips/RACKMON_PLS": "/RACKMON_SLOT@0/[RACKMON_PLS]",
     "/run/devmap/eeproms/FANSPINNER_EEPROM": "/RACKMON_SLOT@0/[FANSPINNER_EEPROM]",

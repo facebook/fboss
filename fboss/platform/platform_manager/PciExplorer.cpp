@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <stdexcept>
 
+#include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
@@ -20,12 +21,43 @@ using namespace facebook::fboss::platform::platform_manager;
 namespace {
 const re2::RE2 kSpiBusRe{"spi\\d+"};
 const re2::RE2 kSpiDevIdRe{"spi(?P<BusNum>\\d+).(?P<ChipSelect>\\d+)"};
-constexpr auto kPciWaitSecs = std::chrono::seconds(5);
+constexpr auto kPciWaitSecs =
+    std::chrono::seconds(10); // T235561085 - Change back to 5 when root cause
+                              // of iob creation delay is fixed
+constexpr auto kPciDeviceCreationTimeoutThreshold = std::chrono::seconds(1);
+const std::string kPciDeviceCreationTimeoutCounter =
+    "pci_explorer.pci_device_creation_timeout";
+
+// Wrapper function that tracks device readiness timing and increments fb303
+// counter when device creation takes longer than the threshold
+bool checkDeviceReadinessWithTimeout(
+    const std::string& pciSubDeviceName,
+    std::function<bool()>&& isDeviceReadyFunc,
+    const std::string& onWaitMsg,
+    std::chrono::seconds maxWaitSecs) {
+  auto start = std::chrono::steady_clock::now();
+
+  bool result = Utils().checkDeviceReadiness(
+      std::move(isDeviceReadyFunc), onWaitMsg, maxWaitSecs);
+
+  auto elapsed = std::chrono::steady_clock::now() - start;
+  if (elapsed > kPciDeviceCreationTimeoutThreshold) {
+    XLOG(WARNING) << fmt::format(
+        "Device {} creation took {}s, which exceeds threshold of {}s. Incrementing timeout counter.",
+        pciSubDeviceName,
+        std::chrono::duration_cast<std::chrono::seconds>(elapsed).count(),
+        kPciDeviceCreationTimeoutThreshold.count());
+    facebook::fb303::fbData->incrementCounter(
+        kPciDeviceCreationTimeoutCounter, 1);
+  }
+
+  return result;
+}
 
 fbiob_aux_data getAuxData(
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
-  struct fbiob_aux_data auxData {};
+  struct fbiob_aux_data auxData{};
   strcpy(auxData.id.name, fpgaIpBlockConfig.deviceName()->c_str());
   auxData.id.id = instanceId;
   if (!fpgaIpBlockConfig.csrOffset()->empty()) {
@@ -94,14 +126,15 @@ void PciDevice::checkSysfsReadiness() {
     }
   }
   if (sysfsPath_.empty()) {
-    throw std::runtime_error(fmt::format(
-        "No sysfs path found for {} with vendorId: {}, deviceId: {}, "
-        "subSystemVendorId: {}, subSystemDeviceId: {}",
-        name_,
-        vendorId_,
-        deviceId_,
-        subSystemVendorId_,
-        subSystemDeviceId_));
+    throw std::runtime_error(
+        fmt::format(
+            "No sysfs path found for {} with vendorId: {}, deviceId: {}, "
+            "subSystemVendorId: {}, subSystemDeviceId: {}",
+            name_,
+            vendorId_,
+            deviceId_,
+            subSystemVendorId_,
+            subSystemDeviceId_));
   }
 }
 
@@ -123,11 +156,12 @@ void PciDevice::bindDriver(const std::string& desiredDriver) {
 
   fs::path desiredDriverPath = fs::path("/sys/bus/pci/drivers") / desiredDriver;
   if (!fs::exists(desiredDriverPath)) {
-    throw std::runtime_error(fmt::format(
-        "Failed to bind driver {} to device {}: {} does not exist",
-        desiredDriver,
-        name_,
-        desiredDriverPath.string()));
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to bind driver {} to device {}: {} does not exist",
+            desiredDriver,
+            name_,
+            desiredDriverPath.string()));
   }
 
   // Add PCI device ID to the driver's "new_id" file. Check below doc for
@@ -155,7 +189,8 @@ void PciDevice::checkCharDevReadiness() {
       std::string(subSystemVendorId_, 2, 4),
       std::string(subSystemDeviceId_, 2, 4));
 
-  if (!Utils().checkDeviceReadiness(
+  if (!checkDeviceReadinessWithTimeout(
+          name_,
           [&charDevPath_ = charDevPath_]() -> bool {
             return fs::exists(charDevPath_);
           },
@@ -165,13 +200,14 @@ void PciDevice::checkCharDevReadiness() {
               name_,
               kPciWaitSecs.count()),
           kPciWaitSecs)) {
-    throw std::runtime_error(fmt::format(
-        "No character device found at {} for {}. This could either mean the "
-        "FPGA does not show up as PCI device (see lspci output), or the kmods "
-        "are not setting up the character device for the PCI device at {}.",
-        charDevPath_,
-        name_,
-        charDevPath_));
+    throw std::runtime_error(
+        fmt::format(
+            "No character device found at {} for {}. This could either mean the "
+            "FPGA does not show up as PCI device (see lspci output), or the kmods "
+            "are not setting up the character device for the PCI device at {}.",
+            charDevPath_,
+            name_,
+            charDevPath_));
   }
   XLOG(INFO) << fmt::format(
       "Found character device {} for {}", charDevPath_, name_);
@@ -287,6 +323,15 @@ std::string PciExplorer::createFanPwmCtrl(
       pciDevice, *fanPwmCtrlConfig.fpgaIpBlockConfig(), instanceId);
 }
 
+std::string PciExplorer::createMdioBus(
+    const PciDevice& pciDevice,
+    const FpgaIpBlockConfig& mdioBusConfig,
+    uint32_t instanceId) {
+  auto auxData = getAuxData(mdioBusConfig, instanceId);
+  create(pciDevice, mdioBusConfig, auxData);
+  return getMdioBusCharDevPath(pciDevice, mdioBusConfig, instanceId);
+}
+
 void PciExplorer::createFpgaIpBlock(
     const PciDevice& pciDevice,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
@@ -355,7 +400,8 @@ void PciExplorer::create(
             folly::errnoStr(savedErrno)),
         *fpgaIpBlockConfig.pmUnitScopedName());
   }
-  if (!Utils().checkDeviceReadiness(
+  if (!checkDeviceReadinessWithTimeout(
+          *fpgaIpBlockConfig.pmUnitScopedName(),
           [&]() -> bool {
             return isPciSubDeviceReady(
                 pciDevice, fpgaIpBlockConfig, auxData.id.id);
@@ -430,8 +476,9 @@ std::vector<uint16_t> PciExplorer::getI2cAdapterBusNums(
                 "{} does not exist or not a symlink.", channelFile.string()),
             *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
       }
-      busNumbers.push_back(I2cExplorer().extractBusNumFromPath(
-          fs::read_symlink(channelFile).filename()));
+      busNumbers.push_back(
+          I2cExplorer().extractBusNumFromPath(
+              fs::read_symlink(channelFile).filename()));
     }
     return busNumbers;
   } else {
@@ -683,6 +730,44 @@ std::string PciExplorer::getXcvrCtrlSysfsPath(
   throw PciSubDeviceRuntimeError(
       fmt::format(
           "Couldn't find XcvrCtrl {} under {}",
+          *fpgaIpBlockConfig.deviceName(),
+          pciDevice.sysfsPath()),
+      *fpgaIpBlockConfig.pmUnitScopedName());
+}
+
+std::string PciExplorer::getMdioBusSysfsPath(
+    const PciDevice& pciDevice,
+    const FpgaIpBlockConfig& fpgaIpBlockConfig,
+    uint32_t instanceId) {
+  const auto mdioBusSysfsPath = "/sys/class/mdio_bus";
+  std::string expectedEnding = fmt::format("mdio_controller.{}", instanceId);
+  for (const auto& dirEntry : fs::directory_iterator(mdioBusSysfsPath)) {
+    if (dirEntry.path().string().ends_with(expectedEnding)) {
+      return dirEntry.path().string();
+    }
+  }
+  throw PciSubDeviceRuntimeError(
+      fmt::format(
+          "Couldn't find MdioBusSysfsPath {} under {}",
+          *fpgaIpBlockConfig.deviceName(),
+          mdioBusSysfsPath),
+      *fpgaIpBlockConfig.pmUnitScopedName());
+}
+
+std::string PciExplorer::getMdioBusCharDevPath(
+    const PciDevice& pciDevice,
+    const FpgaIpBlockConfig& fpgaIpBlockConfig,
+    uint32_t instanceId) {
+  std::string expectedEnding =
+      fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
+  for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
+    if (dirEntry.path().string().ends_with(expectedEnding)) {
+      return Utils().resolveMdioBusCharDevPath(instanceId);
+    }
+  }
+  throw PciSubDeviceRuntimeError(
+      fmt::format(
+          "Couldn't find MdioBusCharDevPath {} under {}",
           *fpgaIpBlockConfig.deviceName(),
           pciDevice.sysfsPath()),
       *fpgaIpBlockConfig.pmUnitScopedName());

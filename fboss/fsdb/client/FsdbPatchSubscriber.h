@@ -19,6 +19,10 @@ class FsdbPatchSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
   ~FsdbPatchSubscriberImpl() override {
     BaseT::cancel();
   }
+  FsdbPatchSubscriberImpl(const FsdbPatchSubscriberImpl&) = delete;
+  FsdbPatchSubscriberImpl& operator=(const FsdbPatchSubscriberImpl&) = delete;
+  FsdbPatchSubscriberImpl(FsdbPatchSubscriberImpl&&) = delete;
+  FsdbPatchSubscriberImpl& operator=(FsdbPatchSubscriberImpl&&) = delete;
 
  private:
 #if FOLLY_HAS_COROUTINES

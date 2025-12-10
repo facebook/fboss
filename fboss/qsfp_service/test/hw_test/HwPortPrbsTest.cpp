@@ -72,20 +72,24 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
     std::vector<qsfp_production_features::QsfpProductionFeature> featureVector =
         HwExternalPhyPortTest::getProductionFeatures();
     if (Side == phy::Side::SYSTEM && Modulation == phy::IpModulation::NRZ) {
-      featureVector.push_back(qsfp_production_features::QsfpProductionFeature::
-                                  XPHY_SYSTEM_NRZ_PROFILE);
+      featureVector.push_back(
+          qsfp_production_features::QsfpProductionFeature::
+              XPHY_SYSTEM_NRZ_PROFILE);
     } else if (
         Side == phy::Side::SYSTEM && Modulation == phy::IpModulation::PAM4) {
-      featureVector.push_back(qsfp_production_features::QsfpProductionFeature::
-                                  XPHY_SYSTEM_PAM4_PROFILE);
+      featureVector.push_back(
+          qsfp_production_features::QsfpProductionFeature::
+              XPHY_SYSTEM_PAM4_PROFILE);
     } else if (
         Side == phy::Side::LINE && Modulation == phy::IpModulation::NRZ) {
-      featureVector.push_back(qsfp_production_features::QsfpProductionFeature::
-                                  XPHY_LINE_NRZ_PROFILE);
+      featureVector.push_back(
+          qsfp_production_features::QsfpProductionFeature::
+              XPHY_LINE_NRZ_PROFILE);
     } else if (
         Side == phy::Side::LINE && Modulation == phy::IpModulation::PAM4) {
-      featureVector.push_back(qsfp_production_features::QsfpProductionFeature::
-                                  XPHY_LINE_PAM4_PROFILE);
+      featureVector.push_back(
+          qsfp_production_features::QsfpProductionFeature::
+              XPHY_LINE_PAM4_PROFILE);
     } else {
       CHECK(false) << "Side and Modulation not specified correctly ("
                    << apache::thrift::util::enumNameSafe(Side) << ","
@@ -101,6 +105,8 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
     const auto& availableXphyPorts = findAvailableXphyPorts();
 
     auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+    auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
+    auto phyManager = getHwQsfpEnsemble()->getPhyManager();
     auto platformType = wedgeManager->getPlatformType();
     auto ipModToPolynominalListIt = kSupportedPolynominal.find(platformType);
     if (ipModToPolynominalListIt == kSupportedPolynominal.end()) {
@@ -137,7 +143,7 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
           ")");
     }
 
-    auto setup = [wedgeManager, enable, &portToProfileAndPoly]() {
+    auto setup = [qsfpServiceHandler, enable, &portToProfileAndPoly]() {
       for (const auto& [port, profileAndPoly] : portToProfileAndPoly) {
         XLOG(INFO) << "About to set port:" << port << ", profile:"
                    << apache::thrift::util::enumNameSafe(profileAndPoly.first)
@@ -148,25 +154,28 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
         phy::PortPrbsState prbs;
         prbs.enabled() = enable;
         prbs.polynominal() = profileAndPoly.second;
-        wedgeManager->programXphyPortPrbs(port, Side, prbs);
+        qsfpServiceHandler->programXphyPortPrbs(port, Side, prbs);
       }
     };
 
-    auto verify = [wedgeManager, enable, &portToProfileAndPoly]() {
-      auto* phyManager = wedgeManager->getPhyManager();
+    auto verify = [qsfpServiceHandler,
+                   phyManager,
+                   enable,
+                   &portToProfileAndPoly]() {
       phy::PortComponent component =
           (Side == phy::Side::SYSTEM ? phy::PortComponent::GB_SYSTEM
                                      : phy::PortComponent::GB_LINE);
       // Verify all programmed xphy prbs matching with the desired values
       for (const auto& [port, profileAndPoly] : portToProfileAndPoly) {
-        const auto& hwPrbs = wedgeManager->getXphyPortPrbs(port, Side);
+        const auto& hwPrbs = qsfpServiceHandler->getXphyPortPrbs(port, Side);
         EXPECT_EQ(*hwPrbs.enabled(), enable)
             << "Port:" << port << " has undesired prbs enable state";
         EXPECT_EQ(*hwPrbs.polynominal(), profileAndPoly.second)
             << "Port:" << port << " has undesired prbs polynominal";
 
         // Verify prbs stats collection is enabled or not
-        const auto& prbsStats = wedgeManager->getPortPrbsStats(port, component);
+        phy::PrbsStats prbsStats;
+        qsfpServiceHandler->getPortPrbsStats(prbsStats, port, component);
         EXPECT_EQ(*prbsStats.portId(), static_cast<int32_t>(port));
         EXPECT_EQ(*prbsStats.component(), component);
         const auto& laneStats = *prbsStats.laneStats();

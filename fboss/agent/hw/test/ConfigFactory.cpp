@@ -48,9 +48,11 @@ void setPortToDefaultProfileIDMap(
     for (const auto& portMap : std::as_const(*ports)) {
       for (const auto& port : std::as_const(*portMap.second)) {
         auto profileID = port.second->getProfileID();
+        cfg::PortType portType = port.second->getPortType();
         // In case the profileID learnt from HW is using default, then use speed
         // to get the real profileID
-        if (profileID == cfg::PortProfileID::PROFILE_DEFAULT) {
+        if (profileID == cfg::PortProfileID::PROFILE_DEFAULT &&
+            portType != cfg::PortType::HYPER_PORT) {
           profileID = platformMapping->getProfileIDBySpeed(
               port.second->getID(), port.second->getSpeed());
         }
@@ -378,7 +380,7 @@ std::vector<PortDescriptor> getUplinksForEcmp(
                      .first;
   std::vector<PortDescriptor> ecmpPorts;
   for (auto it = uplinks.begin(); it != uplinks.end(); it++) {
-    ecmpPorts.push_back(PortDescriptor(*it));
+    ecmpPorts.emplace_back(*it);
   }
   return ecmpPorts;
 }

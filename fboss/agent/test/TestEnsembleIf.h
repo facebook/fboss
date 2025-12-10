@@ -27,11 +27,18 @@ class TestEnsembleIf : public HwSwitchCallback {
       const std::set<cfg::PortType>& portTypes) const {
     return masterLogicalPortIdsImpl(portTypes, {});
   }
+  std::vector<PortID> masterLogicalPortIds(
+      const std::set<SwitchID>& switchIds) const {
+    return masterLogicalPortIdsImpl({}, switchIds);
+  }
   std::vector<PortID> masterLogicalInterfacePortIds() const {
     return masterLogicalPortIds({cfg::PortType::INTERFACE_PORT});
   }
   std::vector<PortID> masterLogicalFabricPortIds() const {
     return masterLogicalPortIds({cfg::PortType::FABRIC_PORT});
+  }
+  std::vector<PortID> masterLogicalHyperPortIds() const {
+    return masterLogicalPortIds({cfg::PortType::HYPER_PORT});
   }
 
   std::vector<PortID> masterLogicalPortIds(
@@ -47,6 +54,10 @@ class TestEnsembleIf : public HwSwitchCallback {
       const std::set<SwitchID>& switchIds) const {
     return masterLogicalPortIds({cfg::PortType::FABRIC_PORT}, switchIds);
   }
+  std::vector<PortID> masterLogicalHyperPortIds(
+      const std::set<SwitchID>& switchIds) const {
+    return masterLogicalPortIds({cfg::PortType::HYPER_PORT}, switchIds);
+  }
   std::vector<PortID> masterLogicalPortIds(
       const std::set<cfg::PortType>& portTypes,
       SwitchID switchId) const {
@@ -57,6 +68,10 @@ class TestEnsembleIf : public HwSwitchCallback {
   }
   std::vector<PortID> masterLogicalFabricPortIds(SwitchID switchId) const {
     return masterLogicalPortIds({cfg::PortType::FABRIC_PORT}, {switchId});
+  }
+  std::vector<PortID> masterLogicalHyperPortIds(
+      const SwitchID& switchId) const {
+    return masterLogicalPortIds({cfg::PortType::HYPER_PORT}, {switchId});
   }
 
   size_t getMinPktsForLineRate(const PortID& port) {

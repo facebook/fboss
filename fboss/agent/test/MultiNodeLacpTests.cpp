@@ -210,7 +210,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
     for (auto route : *config.staticRoutesWithNhops()) {
       if (*route.prefix() == prefix.str()) {
         for (auto nexthop : *route.nexthops()) {
-          nexthops.push_back(folly::IPAddress(nexthop));
+          nexthops.emplace_back(nexthop);
         }
         break;
       }
@@ -237,9 +237,9 @@ class MultiNodeLacpTest : public MultiNodeTest {
       if (AggregatePortID(*aggPort.key()) != aggPortID) {
         continue;
       }
-      for (auto memberPort : *aggPort.memberPorts()) {
+      for (auto member : *aggPort.memberPorts()) {
         for (auto vlanPort : *config.vlanPorts()) {
-          if (*vlanPort.logicalPort() == *memberPort.memberPortID()) {
+          if (*vlanPort.logicalPort() == *member.memberPortID()) {
             return VlanID(*vlanPort.vlanID());
           }
         }

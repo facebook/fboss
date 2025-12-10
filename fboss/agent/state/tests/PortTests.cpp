@@ -366,8 +366,8 @@ TEST(Port, pauseConfig) {
   state->getPorts()->getNodeIf(PortID(1))->resetPortQueues(queues);
 
   auto verifyPause = [&state](cfg::PortPause expectPause) {
-    auto port = state->getPorts()->getNodeIf(PortID(1));
-    auto pause = port->getPause();
+    auto currentPort = state->getPorts()->getNodeIf(PortID(1));
+    auto pause = currentPort->getPause();
     EXPECT_EQ(expectPause, pause);
   };
 
@@ -1117,4 +1117,136 @@ TEST(Port, portErrors) {
       }
     }
   }
+}
+
+// Test interPacketGapBits configuration: default value, config changes,
+// getter/setter methods, and serialization/deserialization
+TEST(Port, interPacketGapBitsConfig) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  registerPort(state, PortID(1), "port1", scope());
+
+  auto changeAndVerifyInterPacketGapBits =
+      [](std::unique_ptr<MockPlatform>& platform,
+         std::shared_ptr<SwitchState>& state,
+         std::optional<int32_t> newInterPacketGapBits) {
+        auto oldInterPacketGapBits =
+            state->getPorts()->getNodeIf(PortID(1))->getInterPacketGapBits();
+        cfg::SwitchConfig config;
+        config.ports()->resize(1);
+        preparedMockPortConfig(
+            config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+        if (newInterPacketGapBits.has_value()) {
+          config.ports()[0].interPacketGapBits() =
+              newInterPacketGapBits.value();
+        }
+        auto newState = publishAndApplyConfig(state, &config, platform.get());
+
+        if (oldInterPacketGapBits != newInterPacketGapBits) {
+          EXPECT_NE(nullptr, newState);
+          state = newState;
+          auto portInterPacketGapBits =
+              state->getPorts()->getNodeIf(PortID(1))->getInterPacketGapBits();
+          EXPECT_EQ(portInterPacketGapBits, newInterPacketGapBits);
+        } else {
+          EXPECT_EQ(nullptr, newState);
+        }
+      };
+
+  // Verify the default interPacketGapBits is nullopt
+  EXPECT_EQ(
+      std::nullopt,
+      state->getPorts()->getNodeIf(PortID(1))->getInterPacketGapBits());
+
+  // Test setting various values and verify changes are properly configured
+  changeAndVerifyInterPacketGapBits(platform, state, 96);
+  changeAndVerifyInterPacketGapBits(platform, state, 64);
+  changeAndVerifyInterPacketGapBits(platform, state, 128);
+  changeAndVerifyInterPacketGapBits(platform, state, std::nullopt);
+
+  // Test direct getter/setter methods
+  auto port = state->getPorts()->getNodeIf(PortID(1));
+  auto newPort = port->clone();
+
+  // Test setting a value
+  newPort->setInterPacketGapBits(96);
+  EXPECT_TRUE(newPort->getInterPacketGapBits().has_value());
+  EXPECT_EQ(newPort->getInterPacketGapBits().value(), 96);
+
+  // Test setting nullopt
+  newPort->setInterPacketGapBits(std::nullopt);
+  EXPECT_FALSE(newPort->getInterPacketGapBits().has_value());
+
+  // Test serialization/deserialization
+  newPort->setInterPacketGapBits(64);
+  auto serializedPort = std::make_shared<Port>(newPort->toThrift());
+  EXPECT_TRUE(serializedPort->getInterPacketGapBits().has_value());
+  EXPECT_EQ(serializedPort->getInterPacketGapBits().value(), 64);
+}
+
+// Test amIdles configuration: default value, config changes,
+// getter/setter methods, and serialization/deserialization
+TEST(Port, amIdlesConfig) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  registerPort(state, PortID(1), "port1", scope());
+
+  auto changeAndVerifyAmIdles = [](std::unique_ptr<MockPlatform>& platform,
+                                   std::shared_ptr<SwitchState>& state,
+                                   std::optional<bool> newAmIdles) {
+    auto oldAmIdles = state->getPorts()->getNodeIf(PortID(1))->getAmIdles();
+    cfg::SwitchConfig config;
+    config.ports()->resize(1);
+    preparedMockPortConfig(
+        config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+    if (newAmIdles.has_value()) {
+      config.ports()[0].amIdles() = newAmIdles.value();
+    }
+    auto newState = publishAndApplyConfig(state, &config, platform.get());
+
+    if (oldAmIdles != newAmIdles) {
+      EXPECT_NE(nullptr, newState);
+      state = newState;
+      auto portAmIdles = state->getPorts()->getNodeIf(PortID(1))->getAmIdles();
+      EXPECT_EQ(portAmIdles, newAmIdles);
+    } else {
+      EXPECT_EQ(nullptr, newState);
+    }
+  };
+
+  // Verify the default amIdles is nullopt
+  EXPECT_EQ(
+      std::nullopt, state->getPorts()->getNodeIf(PortID(1))->getAmIdles());
+
+  // Test setting various values and verify changes are properly configured
+  changeAndVerifyAmIdles(platform, state, false); // nullopt → false
+  changeAndVerifyAmIdles(platform, state, true); // false → true
+  changeAndVerifyAmIdles(platform, state, false); // true → false
+  changeAndVerifyAmIdles(platform, state, std::nullopt); // false → nullopt
+  changeAndVerifyAmIdles(platform, state, true); // nullopt → true
+  changeAndVerifyAmIdles(platform, state, std::nullopt); // true → nullopt
+
+  // Test direct getter/setter methods
+  auto port = state->getPorts()->getNodeIf(PortID(1));
+  auto newPort = port->clone();
+
+  // Test setting true
+  newPort->setAmIdles(true);
+  EXPECT_TRUE(newPort->getAmIdles().has_value());
+  EXPECT_EQ(newPort->getAmIdles().value(), true);
+
+  // Test setting false
+  newPort->setAmIdles(false);
+  EXPECT_TRUE(newPort->getAmIdles().has_value());
+  EXPECT_EQ(newPort->getAmIdles().value(), false);
+
+  // Test setting nullopt
+  newPort->setAmIdles(std::nullopt);
+  EXPECT_FALSE(newPort->getAmIdles().has_value());
+
+  // Test serialization/deserialization
+  newPort->setAmIdles(true);
+  auto serializedPort = std::make_shared<Port>(newPort->toThrift());
+  EXPECT_TRUE(serializedPort->getAmIdles().has_value());
+  EXPECT_EQ(serializedPort->getAmIdles().value(), true);
 }

@@ -5,6 +5,7 @@
 #include <folly/executors/FunctionScheduler.h>
 #include <folly/logging/Init.h>
 
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/qsfp_service/QsfpServiceSignalHandler.h"
@@ -50,19 +51,20 @@ int main(int argc, char** argv) {
 
   qsfpServiceInit(&argc, &argv);
 
-  auto transceiverManager = createWedgeManager();
-  StatsPublisher publisher(transceiverManager.get());
+  auto [tcvrManager, portManager] = createQsfpManagers();
+  StatsPublisher publisher(tcvrManager.get());
 
-  auto [server, handler] = setupThriftServer(std::move(transceiverManager));
+  auto [server, handler] =
+      setupThriftServer(std::move(tcvrManager), std::move(portManager));
 
   auto scheduler = std::make_unique<folly::FunctionScheduler>();
   // init after handler has been initted - this ensures everything is setup
   // before we try to retrieve stats for it
   publisher.init();
   scheduler->addFunction(
-      [&publisher, server = server]() {
+      [&publisher, thriftServer = server]() {
         publisher.publishStats(
-            server->getEventBaseManager()->getEventBase(),
+            thriftServer->getEventBaseManager()->getEventBase(),
             FLAGS_stats_publish_interval);
       },
       std::chrono::seconds(FLAGS_stats_publish_interval),
@@ -71,9 +73,7 @@ int main(int argc, char** argv) {
   // Change the previous refreshTransceivers() to refreshStateMachines(), the
   // later one will call refreshTransceivers() and update state machines as well
   scheduler->addFunction(
-      [mgr = handler->getTransceiverManager()]() {
-        mgr->refreshStateMachines();
-      },
+      [&handler]() { handler->refreshStateMachines(); },
       std::chrono::seconds(FLAGS_loop_interval),
       "refreshStateMachines");
 
@@ -89,8 +89,8 @@ int main(int argc, char** argv) {
   // Note: This doesn't block, this merely starts it's own thread
   scheduler->start();
 
-  // Add signal handler to handle exit signals so that we can have gracefully
-  // shutdown
+  // Add signal handler to handle exit signals so that we can have
+  // gracefully shutdown
   QsfpServiceSignalHandler signalHandler(
       server->getEventBaseManager()->getEventBase(),
       scheduler.get(),

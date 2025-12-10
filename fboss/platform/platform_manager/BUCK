@@ -30,6 +30,16 @@ thrift_library(
 )
 
 thrift_library(
+    name = "platform_manager_validators",
+    languages = [
+        "cpp2",
+    ],
+    thrift_srcs = {
+        "platform_manager_validators.thrift": [],
+    },
+)
+
+thrift_library(
     name = "platform_manager_service",
     languages = [
         "cpp2",
@@ -42,6 +52,7 @@ thrift_library(
         ":platform_manager_snapshot",
         "//fboss/platform/weutil/if:eeprom_contents",
         "//thrift/annotation:cpp",
+        "//thrift/annotation:hack",
         "//thrift/annotation:thrift",
     ],
 )
@@ -53,12 +64,13 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/range-v3:range-v3",
+        "fbsource//third-party/re2:re2",
         ":i2c_misc",
         ":platform_manager_config-cpp2-types",
+        ":platform_manager_validators-cpp2-types",
+        ":utils",
         "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-        "re2",
+        "//thrift/lib/cpp2/op:get",
     ],
 )
 
@@ -69,6 +81,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
         ":i2c_misc",
         ":platform_manager_config-cpp2-types",
         ":utils",
@@ -78,9 +91,6 @@ cpp_library(
         "//folly:string",
         "//folly/logging:logging",
     ],
-    exported_external_deps = [
-        "re2",
-    ],
 )
 
 cpp_library(
@@ -89,17 +99,16 @@ cpp_library(
         "PciExplorer.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         ":fbiob_ioctl_h",
         ":i2c_explorer",
         ":platform_manager_config-cpp2-types",
         ":utils",
+        "//fb303:service_data",
         "//fboss/platform/helpers:platform_fs_utils",
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-        "re2",
     ],
 )
 
@@ -132,6 +141,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/range-v3:range-v3",
+        "fbsource//third-party/re2:re2",
         ":platform_manager_config-cpp2-types",
         "//fb303:service_data",
         "//fboss/platform/helpers:platform_fs_utils",
@@ -140,9 +150,6 @@ cpp_library(
         "//folly:string",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
-    ],
-    exported_external_deps = [
-        "re2",
     ],
 )
 
@@ -153,6 +160,7 @@ cpp_library(
         "PlatformExplorer.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         ":data_store",
         ":device_path_resolver",
         ":i2c_explorer",
@@ -160,6 +168,7 @@ cpp_library(
         ":platform_manager_config-cpp2-types",
         ":platform_manager_service-cpp2-types",
         ":presence_checker",
+        ":scuba_logger",
         ":utils",
         "//fb303:service_data",
         "//fboss/platform/helpers:platform_fs_utils",
@@ -169,8 +178,18 @@ cpp_library(
         "//folly:file_util",
         "//folly/logging:logging",
     ],
-    exported_external_deps = [
-        "re2",
+)
+
+cpp_library(
+    name = "scuba_logger",
+    srcs = [
+        "ScubaLogger.cpp",
+    ],
+    exported_deps = [
+        "//common/network:util",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//scribe/client:scribe_client_no_sr",
     ],
 )
 
@@ -180,11 +199,13 @@ cpp_library(
         "Utils.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/exprtk:exprtk",
+        "fbsource//third-party/re2:re2",
+        ":platform_manager_config-cpp2-types",
         "//fboss/lib:gpiod_line",
         "//folly/logging:logging",
     ],
     exported_external_deps = [
-        "re2",
         ("libgpiod", None, "gpiod"),
     ],
 )
@@ -211,9 +232,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
-    ],
-    exported_external_deps = [
-        "re2",
+        "fbsource//third-party/re2:re2",
     ],
 )
 
@@ -249,6 +268,7 @@ cpp_binary(
         ":config_utils",
         ":pkg_manager",
         ":platform_manager_handler",
+        ":scuba_logger",
         "//fb303:logging",
         "//fb303:service_data",
         "//fboss/platform/helpers:init",

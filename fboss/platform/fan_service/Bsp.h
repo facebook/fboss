@@ -36,7 +36,8 @@ class Bsp {
   void kickWatchdog();
   void closeWatchdog();
   virtual bool setFanPwmSysfs(const std::string& path, int pwm);
-  virtual bool setFanLedSysfs(const std::string& path, int pwm);
+  virtual bool turnOnLedSysfs(const std::string& path);
+  virtual std::optional<int> getLedMaxBrightness(const std::string& path) const;
   virtual uint64_t getCurrentTime() const;
   virtual bool checkIfInitialSensorDataRead() const;
   bool getEmergencyState() const;

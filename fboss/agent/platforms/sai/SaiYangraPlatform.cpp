@@ -63,7 +63,11 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   std::unordered_map<std::string, std::string> kv_map;
   kv_map.insert(std::make_pair("SAI_KEY_PORT_AUTONEG_DEFAULT_OFF", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_NOT_DROP_SMAC_DMAC_EQUAL", "1"));
+#if !defined(CHENAB_SAI_SDK_VERSION_2505_34_0_1)
   kv_map.insert(std::make_pair("SAI_KEY_RECLAIM_BUFFER_ENABLED", "0"));
+#else
+  kv_map.insert(std::make_pair("SAI_KEY_RECLAIM_PG0_BUFFER_DISABLED", "1"));
+#endif
   kv_map.insert(std::make_pair("SAI_KEY_TRAP_PACKETS_USING_CALLBACK", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_ROUTE_METADATA_FIELD_SIZE", "5"));
   kv_map.insert(
@@ -73,14 +77,21 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   kv_map.insert(std::make_pair("SAI_INTERNAL_LOOPBACK_TOGGLE_ENABLED", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_ENABLE_HEALTH_DATA_TYPE_SER", "1"));
   utilCreateDir(getDirectoryUtil()->getCrashInfoDir());
-  kv_map.insert(std::make_pair(
-      "SAI_DUMP_STORE_PATH", getDirectoryUtil()->getCrashInfoDir()));
+  kv_map.insert(
+      std::make_pair(
+          "SAI_DUMP_STORE_PATH", getDirectoryUtil()->getCrashInfoDir()));
   kv_map.insert(std::make_pair("SAI_DUMP_STORE_AMOUNT", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_HOSTIF_V2_ENABLED", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_PRBS_ADMIN_TOGGLE_ENABLED", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_ROUTE_METADATA_BIT_START", "0"));
+  kv_map.insert(std::make_pair("SAI_KEY_PRBS_OVER_ISSU_ENABLED", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_AR_ECMP_RANDOM_SPRAY_ENABLED", "1"));
   kv_map.insert(
       std::make_pair("SAI_KEY_ROUTE_METADATA_BIT_END", "4")); // 5 bit metadata
+  // by default only non-discarded packet is counted in
+  // SAI_PORT_STAT_IF_IN_UCAST_PKTS, set SAI_PORT_STAT_IF_IN_UCAST_PKTS to count
+  // all received packet, including discarded packets
+  kv_map.insert(std::make_pair("SAI_AGGREGATE_UCAST_DROPS", "1"));
   return kv_map;
 }
 

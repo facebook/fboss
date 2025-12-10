@@ -50,6 +50,14 @@ SaiTamEventTraits::Attributes::AttributePacketDropTypeMmu::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributePacketDropTypeIngress::operator()() {
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+  return SAI_TAM_EVENT_ATTR_PACKET_DROP_TYPE_INGRESS;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiTamEventTraits::Attributes::AttributeAgingGroup::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_TAM_EVENT_ATTR_AGING_GROUP;

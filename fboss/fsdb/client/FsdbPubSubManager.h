@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #pragma once
+
 #include <folly/Synchronized.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <gtest/gtest_prod.h>
@@ -15,6 +16,8 @@
 #include <mutex>
 #include <string>
 #include <vector>
+
+DECLARE_int32(fsdbPathPublishQueueSize);
 
 namespace facebook::fboss::fsdb {
 class FsdbDeltaPublisher;
@@ -42,7 +45,8 @@ class FsdbPubSubManager {
   void createStatePathPublisher(
       const Path& publishPath,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
-      int32_t fsdbPort = FLAGS_fsdbPort);
+      int32_t fsdbPort = FLAGS_fsdbPort,
+      size_t queueSize = FLAGS_fsdbPathPublishQueueSize);
   void createStatePatchPublisher(
       const Path& publishPath,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
@@ -54,7 +58,8 @@ class FsdbPubSubManager {
   void createStatPathPublisher(
       const Path& publishPath,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
-      int32_t fsdbPort = FLAGS_fsdbPort);
+      int32_t fsdbPort = FLAGS_fsdbPort,
+      size_t queueSize = FLAGS_fsdbPathPublishQueueSize);
   void createStatPatchPublisher(
       const Path& publishPath,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
@@ -270,7 +275,8 @@ class FsdbPubSubManager {
       const std::vector<std::string>& publishPath,
       bool publishStats,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
-      int32_t fsdbPort) const;
+      int32_t fsdbPort,
+      std::optional<size_t> publishQueueSize = std::nullopt) const;
   void stopPublisher(
       const std::lock_guard<std::mutex>& /*lk*/,
       std::unique_ptr<FsdbStreamClient> publisher);

@@ -38,5 +38,6 @@ template class FsdbSubscriber<OperSubDeltaUnit, std::vector<ExtendedOperPath>>;
 template class FsdbSubscriber<
     SubscriberChunk,
     std::map<SubscriptionKey, RawOperPath>>;
+template class FsdbSubscriber<SubscriberChunk, std::map<int, ExtendedOperPath>>;
 
 } // namespace facebook::fboss::fsdb

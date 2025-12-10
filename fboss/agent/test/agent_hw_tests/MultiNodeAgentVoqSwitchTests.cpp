@@ -42,6 +42,66 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
     return {ProductionFeature::VOQ};
   }
 
+  bool isTestDriver() const {
+    // Each nodes in a DSF Multi Node Test setup runs this binary. However,
+    // only one node (SwitchID 0) is the primary driver of the test. Test
+    // binaries on all the other switches are triggered by test orchestrator
+    // (e.g. Netcastle) with --run-forever option, so those initialize the ASIC
+    // SDK, FBOSS state and wait for the test driver switch to drive the test
+    // logic.
+    auto constexpr kTestDriverSwitchId = 0;
+
+    bool ret = getSw()->getSwitchInfoTable().getSwitchIDs().contains(
+        SwitchID(kTestDriverSwitchId));
+
+    XLOG(DBG2) << "DSF Multi Node Test Driver node: SwitchID "
+               << kTestDriverSwitchId << " is "
+               << (ret ? " part of " : " not part of") << " local switchIDs : "
+               << folly::join(
+                      ",", getSw()->getSwitchInfoTable().getSwitchIDs());
+    return ret;
+  }
+
+  std::unique_ptr<MultiNodeUtil> createMultiNodeUtil() {
+    auto multiNodeUtil = std::make_unique<MultiNodeUtil>(
+        getSw(), getProgrammedState()->getDsfNodes());
+
+    return multiNodeUtil;
+  }
+
+  void verifyDsfClusterHelper(
+      const std::unique_ptr<MultiNodeUtil>& multiNodeUtil) const {
+    WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricConnectivity());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricReachability());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyPorts());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifySystemPorts());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyRifs());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyStaticNdpEntries());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyDsfSessions());
+    });
+  }
+
+  void verifySetupRunTestVerifyAgain(
+      const std::function<bool(const MultiNodeUtil*)>& verifyFn) {
+    if (!isTestDriver()) {
+      return;
+    }
+
+    auto multiNodeUtil = createMultiNodeUtil();
+    verifyDsfClusterHelper(multiNodeUtil);
+    if (testing::Test::HasNonfatalFailure()) {
+      // Some EXPECT_* asserts in verifyDsfClusterHelper() failed.
+      FAIL()
+          << "Sanity checks in DSF cluster verification failed, can't proceed with test";
+    }
+
+    EXPECT_TRUE(verifyFn(multiNodeUtil.get()));
+
+    // Verify that the cluster is still healthy after link down/up
+    verifyDsfClusterHelper(multiNodeUtil);
+  }
+
  private:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
@@ -62,38 +122,165 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyDsfCluster) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    // Each nodes in a DSF Multi Node Test setup runs this binary. However,
-    // only one node (SwitchID 0) is the primary driver of the test. Test
-    // binaries on all the other switches are triggered by test orchestrator
-    // (e.g. Netcastle) with --run-forever option, so those initialize the ASIC
-    // SDK, FBOSS state and wait for the test driver switch to drive the test
-    // logic.
-    auto constexpr kTestDriverSwitchId = 0;
-    if (getSw()->getSwitchInfoTable().getSwitchIDs().contains(
-            SwitchID(kTestDriverSwitchId))) {
-      XLOG(DBG2) << "DSF Multi Node Test Driver node: SwitchID "
-                 << kTestDriverSwitchId << " is part of local switchIDs: "
-                 << folly::join(
-                        ",", getSw()->getSwitchInfoTable().getSwitchIDs());
-    } else {
-      XLOG(DBG2) << "DSF Multi Node Test Remote node: SwitchID "
-                 << kTestDriverSwitchId << " is not part of local switchIDs: "
-                 << folly::join(
-                        ",", getSw()->getSwitchInfoTable().getSwitchIDs());
+    if (!isTestDriver()) {
       return;
     }
+    auto multiNodeUtil = createMultiNodeUtil();
+    verifyDsfClusterHelper(multiNodeUtil);
+  };
 
-    auto multiNodeUtil =
-        std::make_unique<MultiNodeUtil>(getProgrammedState()->getDsfNodes());
+  verifyAcrossWarmBoots(setup, verify);
+}
 
-    WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
-      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricConnectivity());
-      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricReachability());
-      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyPorts());
-      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifySystemPorts());
-      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyRifs());
-      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyStaticNdpEntries());
-      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyDsfSessions());
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulFabricLinkDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulFabricLinkDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulDeviceDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulDeviceDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulDeviceDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyUngracefulDeviceDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulRestartTimeoutRecovery) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulRestartTimeoutRecovery();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulQsfpDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulQsfpDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulQsfpDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyUngracefulQsfpDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulFsdbDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulFsdbDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulFsdbDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyUngracefulFsdbDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyNeighborAddRemove) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyNeighborAddRemove();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyTrafficSpray) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyTrafficSpray();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyNoTrafficDropOnProcessRestarts) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyNoTrafficDropOnProcessRestarts();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyNoTrafficDropOnDrainUndrain) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyNoTrafficDropOnDrainUndrain();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifySelfHealingECMPLag) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifySelfHealingECMPLag();
     });
   };
 

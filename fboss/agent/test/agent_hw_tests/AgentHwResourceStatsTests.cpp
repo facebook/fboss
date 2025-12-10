@@ -99,8 +99,18 @@ TEST_F(AgentHwResourceStatsTest, l3Stats) {
 
     auto wrapper = getSw()->getRouteUpdater();
 
+    // On some ASCIs (G200) adding just one route may not decrease the available
+    // free entries. Because of the way LPMs are implemented.
+    // So, instead of just one IPv6 prefix, add 10 prefixes to trigger
+    // the stats update.
+    std::vector<RoutePrefixV6> v6Prefixes;
+    std::generate_n(std::back_inserter(v6Prefixes), 10, [i = 0]() mutable {
+      return RoutePrefixV6{
+          folly::IPAddressV6(folly::to<std::string>(2401, ":", i, "::", i++)),
+          64};
+    });
     ecmp4.programRoutes(&wrapper, kEcmpWidth, {this->kPrefix4()});
-    ecmp6.programRoutes(&wrapper, kEcmpWidth, {this->kPrefix6()});
+    ecmp6.programRoutes(&wrapper, kEcmpWidth, v6Prefixes);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto newState = ecmp4.resolveNextHops(in, kEcmpWidth);
       return newState;
@@ -142,7 +152,7 @@ TEST_F(AgentHwResourceStatsTest, l3Stats) {
 
     // Unresolve so we can rerun verify for many (warmboot) iterations
     ecmp4.unprogramRoutes(&wrapper, {this->kPrefix4()});
-    ecmp6.unprogramRoutes(&wrapper, {this->kPrefix6()});
+    ecmp6.unprogramRoutes(&wrapper, v6Prefixes);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto newState = ecmp4.unresolveNextHops(in, kEcmpWidth);
       return newState;

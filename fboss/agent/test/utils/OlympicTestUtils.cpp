@@ -447,20 +447,29 @@ const std::map<int, std::vector<uint8_t>> kOlympicQueueToDscp() {
   return queueToDscp;
 }
 
-const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp() {
-  const std::map<int, std::vector<uint8_t>> queueToDscp = {
+const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp(
+    bool newDscpSchema) {
+  std::map<int, std::vector<uint8_t>> queueToDscp = {
       {getOlympicV2QueueId(OlympicV2QueueType::NCNF),
        {50, 51, 52, 53, 54, 55, 56, 57, 58, 59}},
       {getOlympicV2QueueId(OlympicV2QueueType::BRONZE),
        {10, 11, 16, 17, 19, 20, 21, 22, 23, 25, 60, 61, 62, 63}},
       {getOlympicV2QueueId(OlympicV2QueueType::SILVER),
-       {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  12, 13,
-        14, 15, 40, 41, 42, 43, 44, 45, 46, 47, 49}},
+       {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  12,
+        13, 14, 15, 40, 41, 42, 43, 44, 45, 47, 49}},
       {getOlympicV2QueueId(OlympicV2QueueType::GOLD),
        {18, 24, 31, 33, 34, 36, 37, 38, 39}},
       {getOlympicV2QueueId(OlympicV2QueueType::ICP),
        {26, 27, 28, 29, 30, 32, 35}},
       {getOlympicV2QueueId(OlympicV2QueueType::NC), {48}}};
+
+  if (newDscpSchema) {
+    queueToDscp[getOlympicV2QueueId(OlympicV2QueueType::GOLD)].push_back(
+        kDscpToRemap);
+  } else {
+    queueToDscp[getOlympicV2QueueId(OlympicV2QueueType::SILVER)].push_back(
+        kDscpToRemap);
+  }
   return queueToDscp;
 }
 
@@ -640,10 +649,55 @@ void addOlympicQosMaps(
   addQosMapsHelper(cfg, kOlympicQueueToDscp(), "olympic", asics);
 }
 
+void addOlympicQosMapsForDot1p(
+    cfg::SwitchConfig& cfg,
+    const std::map<int, std::vector<uint8_t>>& queueToPcpMap,
+    const std::vector<const HwAsic*>& asics) {
+  auto hwAsic = checkSameAndGetAsic(asics);
+  cfg::QosMap qosMap;
+  qosMap.pcpMaps() = std::vector<cfg::PcpQosMap>();
+  qosMap.pcpMaps()->resize(queueToPcpMap.size());
+  ssize_t qosMapIdx = 0;
+  for (const auto& q2pcps : queueToPcpMap) {
+    auto [q, pcps] = q2pcps;
+    *(*qosMap.pcpMaps())[qosMapIdx].internalTrafficClass() = q;
+    for (auto pcp : pcps) {
+      (*qosMap.pcpMaps())[qosMapIdx].fromPcpToTrafficClass()->push_back(pcp);
+    }
+    (*qosMap.pcpMaps())[qosMapIdx].fromTrafficClassToPcp() = pcps[0];
+    ++qosMapIdx;
+  }
+  for (const auto& q2pcps : queueToPcpMap) {
+    auto [q, pcps] = q2pcps;
+    qosMap.trafficClassToQueueId()->emplace(
+        q, getTrafficClassToEgressQueueId(hwAsic, q));
+  }
+  cfg.qosPolicies()->resize(1);
+  *cfg.qosPolicies()[0].name() = "olympic";
+  cfg.qosPolicies()[0].qosMap() = qosMap;
+
+  cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
+  dataPlaneTrafficPolicy.defaultQosPolicy() = "olympic";
+  cfg.dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
+  cfg::CPUTrafficPolicyConfig cpuConfig;
+  if (cfg.cpuTrafficPolicy()) {
+    cpuConfig = *cfg.cpuTrafficPolicy();
+  }
+  cfg::TrafficPolicyConfig cpuTrafficPolicy;
+  if (cpuConfig.trafficPolicy()) {
+    cpuTrafficPolicy = *cpuConfig.trafficPolicy();
+  }
+  cpuTrafficPolicy.defaultQosPolicy() = "olympic";
+  cpuConfig.trafficPolicy() = cpuTrafficPolicy;
+  cfg.cpuTrafficPolicy() = cpuConfig;
+}
+
 void addOlympicV2QosMaps(
     cfg::SwitchConfig& cfg,
-    const std::vector<const HwAsic*>& asics) {
-  addQosMapsHelper(cfg, kOlympicV2QueueToDscp(), "olympic_v2", asics);
+    const std::vector<const HwAsic*>& asics,
+    bool newDscpSchema) {
+  addQosMapsHelper(
+      cfg, kOlympicV2QueueToDscp(newDscpSchema), "olympic_v2", asics);
 }
 
 void add2QueueQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {

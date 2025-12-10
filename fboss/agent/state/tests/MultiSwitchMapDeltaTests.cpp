@@ -87,8 +87,9 @@ TEST_F(MultiSwitchMapDeltaTest, AddMirror) {
 
   auto mirrors0 = state_->getMirrors();
   auto mirrors1 = state1->getMirrors();
-  processDelta(MultiSwitchMapDelta<MultiSwitchMirrorMap>(
-      mirrors0.get(), mirrors1.get()));
+  processDelta(
+      MultiSwitchMapDelta<MultiSwitchMirrorMap>(
+          mirrors0.get(), mirrors1.get()));
   EXPECT_EQ(added.size(), 9);
   EXPECT_EQ(removed.size(), 0);
   EXPECT_EQ(changed.size(), 0);
@@ -113,8 +114,9 @@ TEST_F(MultiSwitchMapDeltaTest, ChangeMirror) {
   auto mirrors0 = state1->getMirrors();
   auto mirrors1 = state2->getMirrors();
   state2->publish();
-  processDelta(MultiSwitchMapDelta<MultiSwitchMirrorMap>(
-      mirrors0.get(), mirrors1.get()));
+  processDelta(
+      MultiSwitchMapDelta<MultiSwitchMirrorMap>(
+          mirrors0.get(), mirrors1.get()));
   EXPECT_EQ(added.size(), 0);
   EXPECT_EQ(removed.size(), 0);
   EXPECT_EQ(changed.size(), 2);
@@ -135,8 +137,9 @@ TEST_F(MultiSwitchMapDeltaTest, RemoveMirror) {
   state2->publish();
 
   auto mirrors1 = state2->getMirrors();
-  processDelta(MultiSwitchMapDelta<MultiSwitchMirrorMap>(
-      mirrors0.get(), mirrors1.get()));
+  processDelta(
+      MultiSwitchMapDelta<MultiSwitchMirrorMap>(
+          mirrors0.get(), mirrors1.get()));
 
   EXPECT_EQ(added.size(), 0);
   EXPECT_EQ(removed.size(), 2);
@@ -148,8 +151,9 @@ TEST_F(MultiSwitchMapDeltaTest, NoChange) {
   auto state2 = state1->clone();
   auto mirrors0 = state1->getMirrors();
   auto mirrors1 = state2->getMirrors();
-  processDelta(MultiSwitchMapDelta<MultiSwitchMirrorMap>(
-      mirrors0.get(), mirrors1.get()));
+  processDelta(
+      MultiSwitchMapDelta<MultiSwitchMirrorMap>(
+          mirrors0.get(), mirrors1.get()));
 
   EXPECT_EQ(added.size(), 0);
   EXPECT_EQ(removed.size(), 0);

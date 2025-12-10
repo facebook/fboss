@@ -1,0 +1,283 @@
+{
+  "testSdkVersion": "brcm-sai/12.2.0.0_odp",
+  "runMode": "full-run",
+  "buildMode": "opt-asan",
+  "testRunnerMode": "meta-internal",
+  "testOutDirPath": "~/mylogs/sdkcastle_logs",
+  "testSpecs": {
+    "hwTests": [
+      {
+        "testName": "jericho3HwTests",
+        "commonTestSpec": {
+          "testTeam": "sai_test",
+          "asicTestOptions": {
+            "jericho3": {
+              "asicTestName": "j3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "jericho3"
+              },
+              "numJobs": 2
+            }
+          }
+        }
+      },
+      {
+        "testName": "ramon3HwTests",
+        "commonTestSpec": {
+          "testTeam": "sai_test",
+          "asicTestOptions": {
+            "ramon3": {
+              "asicTestName": "r3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "ramon3"
+              },
+              "numJobs": 1,
+              "regex": "HwParityErrorTest"
+            }
+          }
+        }
+      }
+    ],
+    "agentTests": [
+      {
+        "testName": "jericho3AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "jericho3": {
+              "asicTestName": "j3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "jericho3"
+              },
+              "numJobs": 4
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "jericho3AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "jericho3": {
+              "asicTestName": "j3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "jericho3"
+              },
+              "numJobs": 4
+            }
+          }
+        },
+        "npuMode": "multi_switch"
+      },
+      {
+        "testName": "jericho3AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "jericho3": {
+              "asicTestName": "j3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "jericho3"
+              },
+              "numJobs": 4
+            }
+          }
+        },
+        "npuMode": "mono",
+        "multiStage": "fap"
+      },
+      {
+        "testName": "ramon3AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "ramon3": {
+              "asicTestName": "r3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "ramon3"
+              },
+              "numJobs": 4
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "ramon3AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "ramon3": {
+              "asicTestName": "r3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "ramon3"
+              },
+              "numJobs": 4
+            }
+          }
+        },
+        "npuMode": "multi_switch"
+      },
+      {
+        "testName": "ramon3AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "ramon3": {
+              "asicTestName": "r3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "ramon3"
+              },
+              "numJobs": 4
+            }
+          }
+        },
+        "npuMode": "mono",
+        "multiStage": "fe2"
+      },
+      {
+        "testName": "ramon3AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "ramon3": {
+              "asicTestName": "r3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "ramon3"
+              },
+              "numJobs": 4
+            }
+          }
+        },
+        "npuMode": "mono",
+        "multiStage": "fe13"
+      }
+    ],
+    "agentScaleTests": [
+      {
+        "testName": "jericho3AgentScaleTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_scale_test",
+          "asicTestOptions": {
+            "jericho3": {
+              "asicTestName": "j3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "jericho3"
+              },
+              "numJobs": 2
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "jericho3AgentScaleTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_scale_test",
+          "asicTestOptions": {
+            "jericho3": {
+              "asicTestName": "j3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "jericho3"
+              },
+              "numJobs": 2
+            }
+          }
+        },
+        "npuMode": "mono",
+        "multiStage": "fap"
+      }
+    ],
+    "benchmarkTests": [
+      {
+        "testName": "jericho3BenchmarkTests",
+        "commonTestSpec": {
+          "testTeam": "sai_bench",
+          "asicTestOptions": {
+            "jericho3": {
+              "asicTestName": "j3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "jericho3"
+              },
+              "numJobs": 1,
+              "regex": "RxSlowPathBenchmark|runTxSlowPathBenchmark|HwStatsCollection|HwVoqStatsCollection|HwVoqScaleRouteAddBenchmark|HwVoqScaleRouteDelBenchmark|HwVoqRemoteNeighborAdd|HwVoqRemoteNeighborDel|HwVoqRemoteSysPortAndIntfAdd|HwVoqRemoteSysPortAndIntfDel|HwVoqSysPortProgramming|HwInitAndExitVoqBenchmark|HwVoqScale2kWideEcmpRouteAddBenchmark|HwVoqScale2kWideEcmpRouteDelBenchmark|HwVoqScale2kWideEcmpCompressionRouteAddBenchmark|HwVoqScale2kWideEcmpCompressionRouteDelBenchmark|HwVoqScale2kWideEcmpCompressionReconstructState"
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "ramon3BenchmarkTests",
+        "commonTestSpec": {
+          "testTeam": "sai_bench",
+          "asicTestOptions": {
+            "ramon3": {
+              "asicTestName": "r3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "ramon3"
+              },
+              "numJobs": 1,
+              "regex": "HwStatsCollection|HwInitAndExitFabricBenchmark"
+            }
+          }
+        },
+        "npuMode": "multi_switch"
+      }
+    ],
+    "nWarmbootTests": [
+      {
+        "testName": "jericho3nWarmbootTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "jericho3": {
+              "asicTestName": "j3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "jericho3"
+              },
+              "numJobs": 1,
+              "regex": "AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestionShort"
+            }
+          }
+        },
+        "npuMode": "mono",
+        "numIterations": "128"
+      },
+      {
+        "testName": "ramon3nWarmbootTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "ramon3": {
+              "asicTestName": "r3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "ramon3"
+              },
+              "numJobs": 1,
+              "regex": "AgentFabricSwitchTest.init"
+            }
+          }
+        },
+        "npuMode": "mono",
+        "numIterations": "128"
+      }
+    ]
+  }
+}

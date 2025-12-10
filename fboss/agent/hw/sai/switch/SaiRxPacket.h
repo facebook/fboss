@@ -24,7 +24,7 @@ class SaiRxPacket : public RxPacket {
       PortID portID,
       std::optional<VlanID> vlanID,
       cfg::PacketRxReason rxReason,
-      uint8_t queueId);
+      std::optional<uint8_t> queueId);
 
   SaiRxPacket(
       size_t buffer_size,
@@ -32,7 +32,7 @@ class SaiRxPacket : public RxPacket {
       AggregatePortID aggregatePortID,
       std::optional<VlanID> vlanID,
       cfg::PacketRxReason rxReason,
-      uint8_t queueId);
+      std::optional<uint8_t> queueId);
   /*
    * Set the port on which this packet was received.
    */

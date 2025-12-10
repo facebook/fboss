@@ -17,6 +17,7 @@ typedef string fbstring
 struct ClientInformation {
   1: optional fbstring username;
   2: optional fbstring hostname;
+  3: optional fbstring reason;
 }
 
 // The field names are kept consistent with configerator/source/neteng/bgp_policy/thrift/nsf_policy.thrift
@@ -81,6 +82,14 @@ enum ForwardingClass {
   CLASS_5 = 5,
   CLASS_6 = 6,
   CLASS_7 = 7,
+}
+
+/*
+ * Packet type being transmitted, primarily used for fabric ports
+ */
+enum TxPacketType {
+  DEFAULT = 0,
+  FABRIC_LINK_MONITORING = 1,
 }
 
 typedef map<byte, ForwardingClass> DscpToForwardingClassMap

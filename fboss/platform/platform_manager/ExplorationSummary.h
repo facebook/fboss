@@ -26,6 +26,7 @@ enum class ExplorationErrorType {
   PCI_SUB_DEVICE_CREATE_XCVR_CTRL,
   PCI_SUB_DEVICE_CREATE_INFO_ROM,
   PCI_SUB_DEVICE_CREATE_MISC_CTRL,
+  PCI_SUB_DEVICE_CREATE_MDIO_BUS,
   IDPROM_READ,
   SLOT_PM_UNIT_ABSENCE,
   SLOT_PRESENCE_CHECK,
@@ -73,6 +74,8 @@ constexpr const char* toExplorationErrorTypeStr(
       return "pci_sub_device_create_info_rom";
     case ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MISC_CTRL:
       return "pci_sub_device_create_misc_ctrl";
+    case ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MDIO_BUS:
+      return "pci_sub_device_create_mdio_bus";
     case ExplorationErrorType::IDPROM_READ:
       return "idprom_read";
     case ExplorationErrorType::SLOT_PM_UNIT_ABSENCE:
@@ -112,18 +115,18 @@ class ExplorationSummary {
   // 2. Publish relevant data to ODS.
   // Return final exploration status.
   ExplorationStatus summarize();
-  virtual bool isDeviceExpectedToFail(const std::string& devicePath);
-  std::unordered_map<std::string, std::vector<ExplorationError>>
-  getFailedDevices();
+  virtual bool isSlotExpectedToBeEmpty(const std::string& devicePath);
+  std::map<std::string, std::vector<ExplorationError>> getFailedDevices();
 
  private:
   const PlatformConfig& platformConfig_;
   const DataStore& dataStore_;
   uint nExpectedErrs_{0}, nErrs_{0};
-  std::unordered_map<std::string, std::vector<ExplorationError>>
-      devicePathToErrors_{}, devicePathToExpectedErrors_{};
+  std::map<std::string, std::vector<ExplorationError>> devicePathToErrors_{},
+      devicePathToExpectedErrors_{};
 
   void print(ExplorationStatus finalStatus);
   void publishCounters(ExplorationStatus finalStatus);
+  void publishToScuba(ExplorationStatus finalStatus);
 };
 } // namespace facebook::fboss::platform::platform_manager

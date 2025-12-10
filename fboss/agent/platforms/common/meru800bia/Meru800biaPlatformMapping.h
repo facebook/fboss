@@ -19,6 +19,10 @@ class Meru800biaPlatformMapping : public PlatformMapping {
   Meru800biaPlatformMapping();
   explicit Meru800biaPlatformMapping(const std::string& platformMappingStr);
   explicit Meru800biaPlatformMapping(HwAsic::InterfaceNodeRole intfRole);
+  // For CPU system port number as key, get the core for CPU port and
+  // the port ID within the core.
+  virtual std::map<uint32_t, std::pair<uint32_t, uint32_t>>
+  getCpuPortsCoreAndPortIdx() const override;
 
  private:
   // Forbidden copy constructor and assignment operator

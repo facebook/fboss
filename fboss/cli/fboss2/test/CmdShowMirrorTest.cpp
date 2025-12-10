@@ -144,7 +144,7 @@ TEST_F(CmdShowMirrorTestFixture, queryClientWithoutTunnel) {
 
   auto cmd = CmdShowMirror();
   auto model = cmd.queryClient(localhost(), queriedMirrors);
-  EXPECT_THRIFT_EQ(model, expectedWithoutTunnelModel);
+  EXPECT_THRIFT_EQ(expectedWithoutTunnelModel, model);
 }
 
 TEST_F(CmdShowMirrorTestFixture, printOutputWithoutTunnel) {
@@ -171,7 +171,7 @@ TEST_F(CmdShowMirrorTestFixture, queryClientWithTunnel) {
 
   auto cmd = CmdShowMirror();
   auto model = cmd.queryClient(localhost(), queriedMirrors);
-  EXPECT_THRIFT_EQ(model, expectedWithTunnelModel);
+  EXPECT_THRIFT_EQ(expectedWithTunnelModel, model);
 }
 
 TEST_F(CmdShowMirrorTestFixture, printOutputWithTunnel) {

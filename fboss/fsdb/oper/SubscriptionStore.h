@@ -15,6 +15,9 @@ struct SubscriberStats {
   uint32_t numSubscriptions{0};
   uint32_t numExtendedSubscriptions{0};
   uint32_t subscriptionServeQueueWatermark{0};
+  uint32_t subscriptionChunksCoalesced{0};
+  uint64_t enqueuedDataSize{0};
+  uint64_t servedDataSize{0};
   uint32_t numSlowSubscriptionDisconnects{0};
 };
 

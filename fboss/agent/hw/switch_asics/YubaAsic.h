@@ -151,6 +151,10 @@ class YubaAsic : public TajoAsic {
     return 512;
   }
 
+  std::optional<uint32_t> getMaxUnifiedNeighborTableSize() const override {
+    return 512;
+  }
+
   cfg::Range64 getReservedEncapIndexRange() const override;
 
   std::vector<prbs::PrbsPolynomial> getSupportedPrbsPolynomials()

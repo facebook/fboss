@@ -12,8 +12,8 @@ class WeutilImpl : public WeutilInterface {
  public:
   explicit WeutilImpl(const std::string& eepromPath, const uint16_t offset);
   std::vector<std::pair<std::string, std::string>> getContents() override;
+  folly::dynamic getInfoJson() override;
   void printInfo() override;
-  void printInfoJson() override;
 
  private:
   const std::string eepromPath_;

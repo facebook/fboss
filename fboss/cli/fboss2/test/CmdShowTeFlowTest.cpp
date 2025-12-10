@@ -161,7 +161,7 @@ TEST_F(CmdShowTeFlowTestFixture, queryClient) {
   CmdShowTeFlowTraits::ObjectArgType queriedEntries;
   auto model = cmd.queryClient(localhost(), queriedEntries);
 
-  EXPECT_THRIFT_EQ(model, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
 TEST_F(CmdShowTeFlowTestFixture, printOutput) {

@@ -61,42 +61,10 @@ class AgentNetworkAILossyQueueTests : public AgentQosTestBase {
     FLAGS_egress_buffer_pool_size = kBufferPoolSize;
   }
 
-  // Disable built-in SDK buffer reservations, we'll program them ourselves.
   void applyPlatformConfigOverrides(
       const cfg::SwitchConfig& sw,
       cfg::PlatformConfig& config) const override {
-    if (checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_CHENAB) {
-      return;
-    }
-    utility::modifyPlatformConfig(
-        config,
-        [](std::string& yamlCfg) {
-          std::string toReplace("LOSSY");
-          std::size_t pos = yamlCfg.find(toReplace);
-          if (pos != std::string::npos) {
-            yamlCfg.replace(
-                pos,
-                toReplace.length(),
-                "LOSSY_AND_LOSSLESS\n      SKIP_BUFFER_RESERVATION: 1");
-          }
-          // Workaround for CS00012416368 -- qgroup min is supposed to be
-          // disabled by SAI once queue min is programmed, but that's not the
-          // case right now.
-          yamlCfg += fmt::format(
-              R"(
----
-device:
-  0:
-    TM_PORT_UC_Q_TO_SERVICE_POOL:
-      ?
-        PORT_ID: [[1,351]]
-        TM_UC_Q_ID: [0]
-      :
-        USE_QGROUP_MIN: 0
-...
-)");
-        },
-        [](std::map<std::string, std::string>&) {});
+    utility::applyBackendAsicConfig(sw, config);
   }
 
   cfg::SwitchConfig initialConfig(
@@ -234,7 +202,7 @@ TEST_F(AgentNetworkAILossyQueueTests, VerifyEgressQueueDrop) {
     folly::IPAddressV6 kSrcIp("2402::1");
     const auto dstMac = utility::getMacForFirstInterfaceWithPorts(
         ensemble->getProgrammedState());
-    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
+    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64HBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         ensemble->getSw(),
         getVlanIDForTx(),

@@ -95,6 +95,7 @@ class HwAsic;
 class HwSwitchFb303Stats;
 
 constexpr auto kRecyclePortIdOffset = 1;
+constexpr auto kOperDeltaHwSwitchMatcherPathIndex = 1;
 
 template <typename T>
 inline T readBuffer(const uint8_t* buffer, uint32_t pos, size_t buffSize) {
@@ -264,9 +265,17 @@ SystemPortID getSystemPortID(
     const std::shared_ptr<SwitchState>& state,
     SwitchID switchId);
 
+SystemPortID getFabricLinkMonitoringSystemPortID(
+    const PortID& portId,
+    const std::shared_ptr<SwitchSettings>& switchSettings);
+
 SystemPortID getInbandSystemPortID(
     const std::shared_ptr<SwitchState>& state,
     SwitchID switchId);
+
+PortID getPortIdFromFabricLinkMonSystemPortID(
+    const SystemPortID& systemPortId,
+    const int32_t fabricLinkMonitoringSystemPortOffset);
 
 SystemPortID getInbandSystemPortID(
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
@@ -285,6 +294,10 @@ cfg::Range64 getCoveringSysPortRange(
 
 std::vector<PortID> getPortsForInterface(
     InterfaceID intf,
+    const std::shared_ptr<SwitchState>& state);
+
+InterfaceID getInterfaceIDForPort(
+    PortID port,
     const std::shared_ptr<SwitchState>& state);
 
 /*
@@ -402,7 +415,10 @@ class OperDeltaFilter {
   explicit OperDeltaFilter(SwitchID switchId);
   std::optional<fsdb::OperDelta> filterWithSwitchStateRootPath(
       const fsdb::OperDelta& delta) const {
-    return filter(delta, 1);
+    // Index 0 is the root of the Agent State Delta, where index 1 is the
+    // HwMatcher string. Therefore, filter on the matcher string to only send
+    // deltas related to the specific switchID down to hardware.
+    return filter(delta, kOperDeltaHwSwitchMatcherPathIndex);
   }
 
   std::optional<fsdb::OperDelta> filter(const fsdb::OperDelta& delta, int index)
@@ -464,6 +480,9 @@ CpuCosQueueId hwQueueIdToCpuCosQueueId(
     const HwAsic* asic,
     HwSwitchFb303Stats* hwswitchStats);
 int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes);
+
+std::set<PortID> getL2ConnectedL1FabricPorts(
+    const std::shared_ptr<SwitchState>& state);
 
 const std::vector<cfg::AclLookupClass>& getToCpuClassIds();
 

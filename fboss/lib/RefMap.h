@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <unordered_map>
@@ -47,7 +48,10 @@ class RefMap {
   using MapType = M<K, std::weak_ptr<V>>;
   using KeyType = K;
   using ValueType = std::weak_ptr<V>;
-  RefMap() {}
+  using DeleteCleanupFunction = std::function<void(const K&, const V&)>;
+  explicit RefMap(
+      const DeleteCleanupFunction& delCleanup = [](const K&, const V&) {})
+      : delCleanup_(delCleanup) {}
   RefMap(const RefMap& other) = delete;
   RefMap& operator=(const RefMap& other) = delete;
 
@@ -136,7 +140,8 @@ class RefMap {
  private:
   template <typename... Args>
   std::shared_ptr<V> makeShared(const K& k, Args&&... args) {
-    auto del = [&m = map_, k](V* v) {
+    auto del = [&m = map_, k, &cleanupFun = delCleanup_](V* v) {
+      cleanupFun(k, *v);
       m.erase(k);
       std::default_delete<V>()(v);
     };
@@ -159,6 +164,7 @@ class RefMap {
   }
 
   MapType map_;
+  DeleteCleanupFunction delCleanup_;
 };
 
 template <typename K, typename V>

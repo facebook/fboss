@@ -1,7 +1,8 @@
-load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
-load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
-load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_platform")
 
@@ -44,69 +45,106 @@ thrift_library(
     ],
 )
 
-python_binary(
-    name = "bsp_tests",
-    srcs = glob([
-        "configs/*.json",
-        "tests/*.py",
-    ]) + ["test_runner.py"],
-    main_function = ".test_runner.main",
-    deps = [
-        "fbsource//third-party/pypi/pysensors:pysensors",
-        "fbsource//third-party/pypi/pytest:pytest",
-        ":bsp_test_config",
-        ":bsp_test_utils",
-        ":config",
-    ],
-)
-
-python_library(
-    name = "bsp_test_config",
+cpp_library(
+    name = "utils",
     srcs = [
-        "cdev_types.py",
-        "config.py",
+        "utils/CdevUtils.cpp",
+        "utils/GpioUtils.cpp",
+        "utils/HwmonUtils.cpp",
+        "utils/I2CUtils.cpp",
+        "utils/KmodUtils.cpp",
+        "utils/WatchdogUtils.cpp",
     ],
-    deps = [
-        "fbsource//third-party/pypi/dataclasses-json:dataclasses-json",
-        "//fboss/platform/platform_manager:platform_manager_config-python-types",
-        "//thrift/lib/py3:types",
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/re2:re2",
+        "//fboss/platform/bsp_tests:bsp_tests_runtime_config-cpp2-types",
+        "//fboss/platform/bsp_tests:fbiob_device_config-cpp2-types",
+        "//fboss/platform/helpers:platform_utils",
+        "//fboss/platform/platform_manager:fbiob_ioctl_h",
+        "//fboss/platform/platform_manager:i2c_explorer",
+        "//fboss/platform/platform_manager:i2c_misc",
+        "//fboss/platform/platform_manager:pkg_manager",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//folly:file_util",
+        "//folly:format",
+        "//folly/logging:logging",
     ],
 )
 
-python_library(
-    name = "bsp_test_utils",
-    srcs = glob(["utils/*.py"]),
+cpp_binary(
+    name = "bsp_tests",
+    srcs = [
+        "BspTest.cpp",
+        "BspTestRunner.cpp",
+        "CdevTests.cpp",
+        "GpioTests.cpp",
+        "HwmonTests.cpp",
+        "I2CTests.cpp",
+        "KmodTests.cpp",
+        "LedTests.cpp",
+        "WatchdogTests.cpp",
+        "XcvrTests.cpp",
+    ],
     deps = [
-        "fbsource//third-party/pypi/ioctl-opt:ioctl-opt",
-        ":bsp_test_config",
-        "//fboss/platform/platform_manager:platform_manager_config-python-types",
-        "//thrift/lib/py3:types",
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/re2:re2",
+        ":bsp_test_environment",
+        ":bsp_tests_config-cpp2-types",
+        ":utils",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:platform_name_lib",
+        "//fboss/platform/platform_manager:fbiob_ioctl_h",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//folly:format",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "gflags",
     ],
 )
 
-python_library(
-    name = "config",
-    srcs = ["config.py"],
-    labels = ["autodeps2_generated"],
-    resources = {
-        "//fboss/platform:configs": "fboss_config_files",
+cpp_unittest(
+    name = "runtime_config_builder_test",
+    srcs = [
+        "RuntimeConfigBuilderTest.cpp",
+    ],
+    deps = [
+        ":bsp_test_environment",
+        "//fboss/platform/config_lib:config_lib",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
+    name = "bsp_test_environment",
+    srcs = [
+        "BspTestEnvironment.cpp",
+        "RuntimeConfigBuilder.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":bsp_tests_config-cpp2-types",
+        ":bsp_tests_runtime_config-cpp2-types",
+        ":fbiob_device_config-cpp2-types",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/platform_manager:pkg_manager",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//fboss/platform/platform_manager:utils",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+fbpkg.builder(
+    name = "fboss_bsp_tests",
+    path_actions = {
+        "bsp_tests": ":bsp_tests",
     },
-    deps = [
-        "fbsource//third-party/pypi/dataclasses-json:dataclasses-json",
-        ":bsp_test_config",
-        "//fboss/platform/platform_manager:platform_manager_config-python-types",
-        "//thrift/lib/py3:types",
-    ],
-)
-
-python_unittest(
-    name = "config_test",
-    srcs = ["config_test.py"],
-    labels = ["autodeps2_generated"],
-    deps = [
-        ":bsp_test_config",
-        ":config",
-        "//fboss/platform/platform_manager:platform_manager_config-python-types",
-        "//thrift/lib/py3:types",
-    ],
+    split_debuginfo = True,
 )

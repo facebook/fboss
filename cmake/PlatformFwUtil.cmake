@@ -22,6 +22,7 @@ add_library(fw_util_libs
   fboss/platform/fw_util/FwUtilFlashrom.cpp
   fboss/platform/fw_util/fw_util_helpers.cpp
   fboss/platform/fw_util/FwUtilVersionHandler.cpp
+  fboss/platform/fw_util/ConfigValidator.cpp
 )
 
 target_link_libraries(fw_util_libs

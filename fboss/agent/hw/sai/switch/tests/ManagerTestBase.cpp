@@ -44,9 +44,10 @@ facebook::fboss::cfg::AgentConfig getDummyConfig() {
   facebook::fboss::cfg::AgentConfig config;
 
   config.platform()->platformSettings() = {};
-  config.platform()->platformSettings()->insert(std::make_pair(
-      facebook::fboss::cfg::PlatformAttributes::CONNECTION_HANDLE,
-      "test connection handle"));
+  config.platform()->platformSettings()->insert(
+      std::make_pair(
+          facebook::fboss::cfg::PlatformAttributes::CONNECTION_HANDLE,
+          "test connection handle"));
   facebook::fboss::cfg::SwitchInfo info{};
   info.switchType() = facebook::fboss::cfg::SwitchType::NPU;
   info.asicType() = facebook::fboss::cfg::AsicType::ASIC_TYPE_MOCK;
@@ -191,11 +192,12 @@ void ManagerTestBase::setupSaiPlatform() {
             portDesc,
             InterfaceID(testInterface.id));
         auto macTable = vlan->getMacTable();
-        macTable->addEntry(std::make_shared<MacEntry>(
-            remoteHost.mac,
-            portDesc,
-            std::optional<cfg::AclLookupClass>(std::nullopt),
-            MacEntryType::STATIC_ENTRY));
+        macTable->addEntry(
+            std::make_shared<MacEntry>(
+                remoteHost.mac,
+                portDesc,
+                std::optional<cfg::AclLookupClass>(std::nullopt),
+                MacEntryType::STATIC_ENTRY));
       }
     }
   }
@@ -251,7 +253,8 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
       swPort->setProfileId(cfg::PortProfileID::PROFILE_DEFAULT);
       break;
     case cfg::PortSpeed::GIGE:
-      throw FbossError("profile gig ethernet is not available");
+    case cfg::PortSpeed::THREEPOINTTWOT:
+      throw FbossError("profile gig and 3.2T ethernet is not available");
       break;
     case cfg::PortSpeed::XG:
       swPort->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL);
@@ -351,8 +354,8 @@ std::shared_ptr<AggregatePort> ManagerTestBase::makeAggregatePort(
 
   for (const auto& remoteHost : testInterface.remoteHosts) {
     PortID portId(remoteHost.port.id);
-    subports.push_back(AggregatePort::Subport(
-        portId, 0, cfg::LacpPortRate::SLOW, cfg::LacpPortActivity::PASSIVE, 0));
+    subports.emplace_back(
+        portId, 0, cfg::LacpPortRate::SLOW, cfg::LacpPortActivity::PASSIVE, 0);
   }
   std::string name = folly::sformat("lag{}", testInterface.id);
 
@@ -578,7 +581,7 @@ std::vector<QueueSaiId> ManagerTestBase::getPortQueueSaiIds(
       portHandle->port->adapterKey(), queueListAttribute);
   std::vector<QueueSaiId> queueSaiIds;
   for (auto queueSaiId : queueSaiIdList) {
-    queueSaiIds.push_back(QueueSaiId(queueSaiId));
+    queueSaiIds.emplace_back(queueSaiId);
   }
   return queueSaiIds;
 }

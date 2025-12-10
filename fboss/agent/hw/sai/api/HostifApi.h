@@ -148,15 +148,24 @@ struct SaiTxPacketTraits {
         EnumType,
         SAI_HOSTIF_PACKET_ATTR_EGRESS_QUEUE_INDEX,
         sai_uint8_t>;
+    struct AttributePacketType {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PacketType = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributePacketType,
+        SaiIntDefault<sai_int32_t>>;
   };
   using TxAttributes = std::tuple<
       Attributes::TxType,
       std::optional<Attributes::EgressPortOrLag>,
-      std::optional<Attributes::EgressQueueIndex>>;
+      std::optional<Attributes::EgressQueueIndex>,
+      std::optional<Attributes::PacketType>>;
 };
 SAI_ATTRIBUTE_NAME(TxPacket, TxType)
 SAI_ATTRIBUTE_NAME(TxPacket, EgressPortOrLag)
 SAI_ATTRIBUTE_NAME(TxPacket, EgressQueueIndex)
+SAI_ATTRIBUTE_NAME(TxPacket, PacketType)
 
 struct SaiRxPacketTraits {
   struct Attributes {

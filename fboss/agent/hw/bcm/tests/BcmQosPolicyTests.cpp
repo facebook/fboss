@@ -132,13 +132,13 @@ class BcmQosPolicyTest : public BcmTest {
 };
 
 TEST_F(BcmQosPolicyTest, QosPolicyCreate) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     addDscpQosPolicy(&newCfg, "qp1", {{7, {46}}});
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     checkSwHwQosMapsMatch(getHwSwitch(), getProgrammedState());
   };
 
@@ -146,14 +146,14 @@ TEST_F(BcmQosPolicyTest, QosPolicyCreate) {
 }
 
 TEST_F(BcmQosPolicyTest, QosPolicyCreateMultiple) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     addDscpQosPolicy(&newCfg, "qp1", {{7, {46}}});
     addDscpQosPolicy(&newCfg, "qp2", {{7, {45, 46}}, {2, {31}}, {3, {7}}});
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     checkSwHwQosMapsMatch(getHwSwitch(), getProgrammedState());
   };
 
@@ -161,7 +161,7 @@ TEST_F(BcmQosPolicyTest, QosPolicyCreateMultiple) {
 }
 
 TEST_F(BcmQosPolicyTest, QosPolicyDelete) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     addDscpQosPolicy(&newCfg, "qp1", {{7, {45, 46}}});
     addDscpQosPolicy(&newCfg, "qp2", {{7, {46}}, {2, {31}}, {3, {7}}});
@@ -170,7 +170,7 @@ TEST_F(BcmQosPolicyTest, QosPolicyDelete) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     checkSwHwQosMapsMatch(getHwSwitch(), getProgrammedState());
   };
 
@@ -178,7 +178,7 @@ TEST_F(BcmQosPolicyTest, QosPolicyDelete) {
 }
 
 TEST_F(BcmQosPolicyTest, QosPolicyModify) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     addDscpQosPolicy(&newCfg, "qp1", {{7, {46}}});
     addDscpQosPolicy(&newCfg, "qp2", {{7, {46}}, {2, {31}}, {3, {7}}});
@@ -190,7 +190,7 @@ TEST_F(BcmQosPolicyTest, QosPolicyModify) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     checkSwHwQosMapsMatch(getHwSwitch(), getProgrammedState());
   };
 
@@ -226,14 +226,14 @@ TEST_F(BcmQosPolicyTest, QosPolicyInvalidDscp) {
 }
 
 TEST_F(BcmQosPolicyTest, QosPolicyDefault) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     addDscpQosPolicy(&newCfg, "qp1", {{7, {45, 46}}});
     setDefaultQosPolicy(&newCfg, "qp1");
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     checkSwHwQosMapsMatch(getHwSwitch(), getProgrammedState());
     for (auto index : {0, 1}) {
       checkPortQosMap(getHwSwitch(), masterLogicalPortIds()[index], "qp1");
@@ -244,7 +244,7 @@ TEST_F(BcmQosPolicyTest, QosPolicyDefault) {
 }
 
 TEST_F(BcmQosPolicyTest, QosPolicyRemoveDefault) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     addDscpQosPolicy(&newCfg, "qp1", {{7, {45, 46}}});
     setDefaultQosPolicy(&newCfg, "qp1");
@@ -254,7 +254,7 @@ TEST_F(BcmQosPolicyTest, QosPolicyRemoveDefault) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     checkSwHwQosMapsMatch(getHwSwitch(), getProgrammedState());
     for (auto index : {0, 1}) {
       checkPortNoQosMap(getHwSwitch(), masterLogicalPortIds()[index]);
@@ -264,7 +264,7 @@ TEST_F(BcmQosPolicyTest, QosPolicyRemoveDefault) {
 }
 
 TEST_F(BcmQosPolicyTest, QosPolicyOverrideDefault) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     addDscpQosPolicy(&newCfg, "qp1", {{7, {46}}});
     addDscpQosPolicy(&newCfg, "qp2", {{3, {45}}});
@@ -273,7 +273,7 @@ TEST_F(BcmQosPolicyTest, QosPolicyOverrideDefault) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     checkSwHwQosMapsMatch(getHwSwitch(), getProgrammedState());
     checkPortQosMap(getHwSwitch(), masterLogicalPortIds()[0], "qp2");
     checkPortQosMap(getHwSwitch(), masterLogicalPortIds()[1], "qp1");
@@ -283,14 +283,14 @@ TEST_F(BcmQosPolicyTest, QosPolicyOverrideDefault) {
 }
 
 TEST_F(BcmQosPolicyTest, QosPolicyCPU) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     addDscpQosPolicy(&newCfg, "qp1", {{7, {46}}});
     setCPUQosPolicy(&newCfg, "qp1");
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     checkSwHwQosMapsMatch(getHwSwitch(), getProgrammedState());
     checkGportQosMap(getHwSwitch(), 0, "qp1");
   };
@@ -299,7 +299,7 @@ TEST_F(BcmQosPolicyTest, QosPolicyCPU) {
 }
 
 TEST_F(BcmQosPolicyTest, QosPolicyCPURemove) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     addDscpQosPolicy(&newCfg, "qp1", {{7, {46}}});
     setCPUQosPolicy(&newCfg, "qp1");
@@ -308,7 +308,7 @@ TEST_F(BcmQosPolicyTest, QosPolicyCPURemove) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     checkSwHwQosMapsMatch(getHwSwitch(), getProgrammedState());
     checkGportNoQosMap(getHwSwitch(), 0);
   };
@@ -389,7 +389,7 @@ TEST_F(BcmQosPolicyTest, QosPolicySdkAssertions) {
 }
 
 TEST_F(BcmQosPolicyTest, QosPolicyConfigMigrate) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = initialConfig();
     config.qosPolicies()->resize(1);
     *config.qosPolicies()[0].name() = "qp";
@@ -407,14 +407,14 @@ TEST_F(BcmQosPolicyTest, QosPolicyConfigMigrate) {
     applyNewConfig(config);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     checkSwHwQosMapsMatch(getHwSwitch(), getProgrammedState());
     for (auto index : {0, 1}) {
       checkPortQosMap(getHwSwitch(), masterLogicalPortIds()[index], "qp");
     }
   };
 
-  auto setupPostWb = [=]() {
+  auto setupPostWb = [=, this]() {
     auto config = initialConfig();
     cfg::QosMap qosMap;
     qosMap.dscpMaps()->resize(8);

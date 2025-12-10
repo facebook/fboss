@@ -799,10 +799,7 @@ TEST_F(RouteTest, InterfaceRoutes) {
   this->sw_->applyConfig("New config", config);
   auto stateV2 = this->sw_->getState();
   EXPECT_NE(stateV1, stateV2);
-  // With standalone rib config application will cause us to first
-  // blow away all the interface and static routes and then add them
-  // back based on new config. So generation will set back to 0
-  auto expectedGen = 0;
+  auto expectedGen = 1;
   // verify the ipv4 route
   {
     auto rt = this->findRoute4(stateV2, rid, "1.1.1.0/24");
@@ -1528,10 +1525,10 @@ TEST_F(RouteTest, StaticIp2MplsRoutes) {
   EXPECT_EQ(RouteForwardAction::NEXTHOPS, v4Fwd.getAction());
   EXPECT_EQ(1, v4Fwd.getNextHopSet().size());
   for (auto& nexthop : v4Fwd.getNextHopSet()) {
-    auto action = nexthop.labelForwardingAction();
-    EXPECT_TRUE(action.has_value());
-    EXPECT_EQ(action->type(), MplsActionCode::PUSH);
-    EXPECT_EQ(action->pushStack(), MplsLabelStack({101, 102}));
+    auto labelAction = nexthop.labelForwardingAction();
+    EXPECT_TRUE(labelAction.has_value());
+    EXPECT_EQ(labelAction->type(), MplsActionCode::PUSH);
+    EXPECT_EQ(labelAction->pushStack(), MplsLabelStack({101, 102}));
   }
 
   // v6 route
@@ -1546,10 +1543,10 @@ TEST_F(RouteTest, StaticIp2MplsRoutes) {
   EXPECT_EQ(1, v6Fwd.getNextHopSet().size());
 
   for (auto& nexthop : v6Fwd.getNextHopSet()) {
-    auto action = nexthop.labelForwardingAction();
-    EXPECT_TRUE(action.has_value());
-    EXPECT_EQ(action->type(), MplsActionCode::PUSH);
-    EXPECT_EQ(action->pushStack(), MplsLabelStack({101, 102}));
+    auto labelAction = nexthop.labelForwardingAction();
+    EXPECT_TRUE(labelAction.has_value());
+    EXPECT_EQ(labelAction->type(), MplsActionCode::PUSH);
+    EXPECT_EQ(labelAction->pushStack(), MplsLabelStack({101, 102}));
   }
 }
 
@@ -1624,7 +1621,7 @@ TEST_F(RouteTest, withLabelForwardingAction) {
   RouteNextHopSet nexthops;
 
   for (auto i = 0; i < 4; i++) {
-    labeledNextHops.emplace(std::make_pair(nextHopAddrs[i], nextHopStacks[i]));
+    labeledNextHops.emplace(nextHopAddrs[i], nextHopStacks[i]);
     nexthops.emplace(UnresolvedNextHop(
         nextHopAddrs[i],
         1,
@@ -1729,14 +1726,14 @@ TEST_F(RouteTest, withTunnelAndRouteLabels) {
 
   std::vector<ResolvedNextHop> igpNextHops;
   for (auto i = 0; i < 4; i++) {
-    igpNextHops.push_back(ResolvedNextHop(
+    igpNextHops.emplace_back(
         kIgpAddrs[i],
         kInterfaces[i],
         ECMP_WEIGHT,
         LabelForwardingAction(
             LabelForwardingAction::LabelForwardingType::PUSH,
             LabelForwardingAction::LabelStack{
-                kLabelStacks[i].begin() + 2, kLabelStacks[i].begin() + 3})));
+                kLabelStacks[i].begin() + 2, kLabelStacks[i].begin() + 3}));
   }
 
   // igp routes to bgp nexthops,
@@ -1812,14 +1809,14 @@ TEST_F(RouteTest, withOnlyTunnelLabels) {
 
   std::vector<ResolvedNextHop> igpNextHops;
   for (auto i = 0; i < 4; i++) {
-    igpNextHops.push_back(ResolvedNextHop(
+    igpNextHops.emplace_back(
         kIgpAddrs[i],
         kInterfaces[i],
         ECMP_WEIGHT,
         LabelForwardingAction(
             LabelForwardingAction::LabelForwardingType::PUSH,
             LabelForwardingAction::LabelStack{
-                kLabelStacks[i].begin(), kLabelStacks[i].end()})));
+                kLabelStacks[i].begin(), kLabelStacks[i].end()}));
   }
 
   // igp routes to bgp nexthops,
@@ -2216,8 +2213,9 @@ TEST_F(StaticRoutesTest, staticRoutesGetApplied) {
  */
 class UcmpTest : public RouteTest {
  public:
-  void resolveRoutes(std::vector<std::pair<folly::IPAddress, RouteNextHopSet>>
-                         networkAndNextHops) {
+  void resolveRoutes(
+      std::vector<std::pair<folly::IPAddress, RouteNextHopSet>>
+          networkAndNextHops) {
     auto ru = this->sw_->getRouteUpdater();
     for (const auto& nnhs : networkAndNextHops) {
       folly::IPAddress net = nnhs.first;
@@ -2244,7 +2242,7 @@ class UcmpTest : public RouteTest {
         networkAndNextHops;
     auto netsIter = nets.begin();
     for (const auto& nhs : routeUnresolvedNextHops) {
-      networkAndNextHops.push_back({*netsIter, nhs});
+      networkAndNextHops.emplace_back(*netsIter, nhs);
       netsIter++;
     }
     resolveRoutes(networkAndNextHops);

@@ -96,7 +96,9 @@ RouteNextHopEntry::RouteNextHopEntry(
     std::optional<RouteCounterID> counterID,
     std::optional<AclLookupClass> classID,
     std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
-    std::optional<NextHopSet> overrideNextHops) {
+    std::optional<NextHopSet> overrideNextHops,
+    std::optional<NextHopSetID> normalizedResolvedNextHopSetID,
+    std::optional<NextHopSetID> resolvedNextHopSetID) {
   auto data = getRouteNextHopEntryThrift(
       action,
       distance,
@@ -104,7 +106,9 @@ RouteNextHopEntry::RouteNextHopEntry(
       counterID,
       classID,
       overrideEcmpSwitchingMode,
-      overrideNextHops);
+      overrideNextHops,
+      normalizedResolvedNextHopSetID,
+      resolvedNextHopSetID);
   this->fromThrift(std::move(data));
 }
 
@@ -114,7 +118,9 @@ RouteNextHopEntry::RouteNextHopEntry(
     std::optional<RouteCounterID> counterID,
     std::optional<AclLookupClass> classID,
     std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
-    std::optional<NextHopSet> overrideNextHops) {
+    std::optional<NextHopSet> overrideNextHops,
+    std::optional<NextHopSetID> normalizedResolvedNextHopSetID,
+    std::optional<NextHopSetID> resolvedNextHopSetID) {
   auto data = getRouteNextHopEntryThrift(
       Action::NEXTHOPS,
       distance,
@@ -122,7 +128,9 @@ RouteNextHopEntry::RouteNextHopEntry(
       counterID,
       classID,
       overrideEcmpSwitchingMode,
-      overrideNextHops);
+      overrideNextHops,
+      normalizedResolvedNextHopSetID,
+      resolvedNextHopSetID);
   this->fromThrift(std::move(data));
 }
 
@@ -132,7 +140,9 @@ RouteNextHopEntry::RouteNextHopEntry(
     std::optional<RouteCounterID> counterID,
     std::optional<AclLookupClass> classID,
     std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
-    std::optional<NextHopSet> overrideNextHops) {
+    std::optional<NextHopSet> overrideNextHops,
+    std::optional<NextHopSetID> normalizedResolvedNextHopSetID,
+    std::optional<NextHopSetID> resolvedNextHopSetID) {
   if (nhopSet.empty()) {
     throw FbossError("Empty nexthop set is passed to the RouteNextHopEntry");
   }
@@ -143,7 +153,9 @@ RouteNextHopEntry::RouteNextHopEntry(
       counterID,
       classID,
       overrideEcmpSwitchingMode,
-      overrideNextHops);
+      overrideNextHops,
+      normalizedResolvedNextHopSetID,
+      resolvedNextHopSetID);
   this->fromThrift(std::move(data));
 }
 
@@ -172,6 +184,8 @@ std::string RouteNextHopEntry::str_DEPRACATED() const {
   auto counterID = getCounterID();
   auto classID = getClassID();
   auto overrideEcmpMode = getOverrideEcmpSwitchingMode();
+  auto normalizedResolvedNhSetID = getNormalizedResolvedNextHopSetID();
+  auto resolvedNhSetID = getResolvedNextHopSetID();
   result += folly::to<std::string>(
       ";counterID=", counterID.has_value() ? *counterID : "none");
   result += folly::to<std::string>(
@@ -184,7 +198,24 @@ std::string RouteNextHopEntry::str_DEPRACATED() const {
       overrideEcmpMode.has_value() ? apache::thrift::util::enumNameSafe(
                                          cfg::SwitchingMode(*overrideEcmpMode))
                                    : "none");
+  result += ";overrideNextHops=";
+  if (auto overrideNextHops = getOverrideNextHops()) {
+    toAppend(*overrideNextHops, &result);
+  } else {
+    result += "none";
+  }
 
+  result += folly::to<std::string>(
+      ";normalizedResolvedNextHopSetID=",
+      normalizedResolvedNhSetID.has_value()
+          ? std::to_string(static_cast<uint64_t>(*normalizedResolvedNhSetID))
+          : "none");
+
+  result += folly::to<std::string>(
+      ";resolvedNextHopSetID=",
+      resolvedNhSetID.has_value()
+          ? std::to_string(static_cast<uint64_t>(*resolvedNhSetID))
+          : "none");
   return result;
 }
 
@@ -195,14 +226,17 @@ std::string RouteNextHopEntry::str() const {
 }
 
 bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
-  return (
-      a.getAction() == b.getAction() &&
-      a.getNextHopSet() == b.getNextHopSet() &&
-      a.getAdminDistance() == b.getAdminDistance() &&
-      a.getCounterID() == b.getCounterID() &&
-      a.getClassID() == b.getClassID() &&
-      a.getOverrideEcmpSwitchingMode() == b.getOverrideEcmpSwitchingMode() &&
-      a.getOverrideNextHops() == b.getOverrideNextHops());
+  return (a.getAction() == b.getAction() &&
+          a.getNextHopSet() == b.getNextHopSet() &&
+          a.getAdminDistance() == b.getAdminDistance() &&
+          a.getCounterID() == b.getCounterID() &&
+          a.getClassID() == b.getClassID() &&
+          a.getOverrideEcmpSwitchingMode() ==
+              b.getOverrideEcmpSwitchingMode() &&
+          a.getOverrideNextHops() == b.getOverrideNextHops()) &&
+      a.getNormalizedResolvedNextHopSetID() ==
+      b.getNormalizedResolvedNextHopSetID() &&
+      a.getResolvedNextHopSetID() == b.getResolvedNextHopSetID();
 }
 
 bool operator<(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
@@ -755,7 +789,9 @@ state::RouteNextHopEntry RouteNextHopEntry::getRouteNextHopEntryThrift(
     std::optional<RouteCounterID> counterID,
     std::optional<AclLookupClass> classID,
     std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
-    const std::optional<RouteNextHopSet>& overrideNextHops) {
+    const std::optional<RouteNextHopSet>& overrideNextHops,
+    const std::optional<NextHopSetID>& normalizedResolvedNextHopSetID,
+    const std::optional<NextHopSetID>& resolvedNextHopSetID) {
   state::RouteNextHopEntry entry{};
   entry.adminDistance() = distance;
   entry.action() = action;
@@ -774,6 +810,13 @@ state::RouteNextHopEntry RouteNextHopEntry::getRouteNextHopEntryThrift(
   if (overrideNextHops) {
     entry.overrideNextHops() = util::fromRouteNextHopSet(*overrideNextHops);
   }
+  if (normalizedResolvedNextHopSetID) {
+    entry.normalizedResolvedNextHopSetID() =
+        static_cast<int64_t>(*normalizedResolvedNextHopSetID);
+  }
+  if (resolvedNextHopSetID) {
+    entry.resolvedNextHopSetID() = static_cast<int64_t>(*resolvedNextHopSetID);
+  }
   return entry;
 }
 
@@ -784,8 +827,21 @@ RouteNextHopSet RouteNextHopEntry::getNextHopSet() const {
 }
 
 bool RouteNextHopEntry::hasOverrideSwitchingModeOrNhops() const {
-  return safe_cref<switch_state_tags::overrideEcmpSwitchingMode>() ||
-      safe_cref<switch_state_tags::overrideNextHops>();
+  return hasOverrideSwitchingMode() || hasOverrideNextHops();
+}
+
+bool RouteNextHopEntry::hasOverrideSwitchingMode() const {
+  if (safe_cref<switch_state_tags::overrideEcmpSwitchingMode>()) {
+    return true;
+  }
+  return false;
+}
+
+bool RouteNextHopEntry::hasOverrideNextHops() const {
+  if (safe_cref<switch_state_tags::overrideNextHops>()) {
+    return true;
+  }
+  return false;
 }
 
 const std::optional<RouteNextHopSet> RouteNextHopEntry::getOverrideNextHops()

@@ -9,7 +9,7 @@
 
 namespace {
 
-std::shared_ptr<facebook::fboss::SwitchState> updateFibForRemoteConnectedRoutes(
+facebook::fboss::StateDelta updateFibForRemoteConnectedRoutes(
     const facebook::fboss::SwitchIdScopeResolver* resolver,
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -23,7 +23,9 @@ std::shared_ptr<facebook::fboss::SwitchState> updateFibForRemoteConnectedRoutes(
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
 
   fibUpdater(*nextStatePtr);
-  return *nextStatePtr;
+  auto lastDelta = fibUpdater.getLastDelta();
+  CHECK(lastDelta.has_value());
+  return facebook::fboss::StateDelta(lastDelta->oldState(), *nextStatePtr);
 }
 } // namespace
 

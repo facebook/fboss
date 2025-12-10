@@ -53,6 +53,12 @@ class BspPimContainer : public MultiPimPlatformPimContainer {
     }
     return tcvrToIOEvb_.at(tcvrID);
   }
+  folly::EventBase* FOLLY_NULLABLE getPhyIOEventBase(unsigned int phyID) const {
+    if (phyToIOEvb_.find(phyID) == phyToIOEvb_.end()) {
+      return nullptr;
+    }
+    return phyToIOEvb_.at(phyID);
+  }
   virtual ~BspPimContainer() override;
 
  private:
@@ -70,6 +76,15 @@ class BspPimContainer : public MultiPimPlatformPimContainer {
           pair<std::unique_ptr<folly::EventBase>, std::unique_ptr<std::thread>>>
       ioToEvbThread_;
   std::unordered_map<unsigned int, folly::EventBase*> tcvrToIOEvb_;
+
+  // Map of PHY I/O controller ID to EventBase and thread for PHY operations
+  std::unordered_map<
+      int /* phyIOControllerId*/,
+      std::
+          pair<std::unique_ptr<folly::EventBase>, std::unique_ptr<std::thread>>>
+      phyIOToEvbThread_;
+  // Map of PHY ID to EventBase for quick lookup
+  std::unordered_map<unsigned int, folly::EventBase*> phyToIOEvb_;
 };
 
 } // namespace fboss

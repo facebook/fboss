@@ -20,6 +20,16 @@ add_fbthrift_cpp_library(
 )
 
 add_library(
+  thrift_cow_visitors_common
+  fboss/thrift_cow/visitors/Common.cpp
+  fboss/thrift_cow/visitors/Common.h
+)
+
+target_link_libraries(thrift_cow_visitors_common
+  Folly::folly
+)
+
+add_library(
   thrift_cow_visitors
   fboss/thrift_cow/visitors/DeltaVisitor.h
   fboss/thrift_cow/visitors/ExtendedPathVisitor.h
@@ -39,6 +49,7 @@ add_library(
 set_target_properties(thrift_cow_visitors PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries(thrift_cow_visitors
+  thrift_cow_visitors_common
   cow_visitor_results_cpp2
   fsdb_oper_cpp2
   patch_cpp2

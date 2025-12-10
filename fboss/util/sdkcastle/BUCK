@@ -1,0 +1,84 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+
+oncall("fboss_agent_push")
+
+python_binary(
+    name = "sdkcastle",
+    srcs = ["main.py"],
+    main_function = "fboss.util.sdkcastle.main.main",
+    par_style = "xar",
+    strip_libpar = True,
+    deps = [
+        ":config_parser",
+        ":test_executor",
+    ],
+)
+
+python_library(
+    name = "config",
+    srcs = [
+        "config.py",
+    ],
+    deps = [
+        ":enums",
+    ],
+)
+
+python_library(
+    name = "config_parser",
+    srcs = [
+        "config_parser.py",
+    ],
+    deps = [
+        ":config",
+        ":enums",
+    ],
+)
+
+python_library(
+    name = "constants",
+    srcs = [
+        "constants.py",
+    ],
+)
+
+python_library(
+    name = "enums",
+    srcs = [
+        "enums.py",
+    ],
+)
+
+python_library(
+    name = "test_executor",
+    srcs = [
+        "test_executor.py",
+    ],
+    deps = [
+        ":config",
+        ":enums",
+        ":test_runner",
+        ":test_runner_report_generator",
+    ],
+)
+
+python_library(
+    name = "test_runner",
+    srcs = [
+        "test_runner.py",
+    ],
+    deps = [
+        "fbsource//third-party/pypi/pyre-extensions:pyre-extensions",
+        ":config",
+        ":constants",
+        ":enums",
+    ],
+)
+
+python_library(
+    name = "test_runner_report_generator",
+    srcs = [
+        "test_runner_report_generator.py",
+    ],
+)

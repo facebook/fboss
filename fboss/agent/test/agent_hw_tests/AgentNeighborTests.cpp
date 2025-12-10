@@ -243,7 +243,6 @@ class AgentNeighborTest : public AgentHwTest {
     auto intf = outState->getInterfaces()->getNode(kIntfID());
     if (getSw()->needL2EntryForNeighbor() &&
         intf->getType() == cfg::InterfaceType::VLAN) {
-      CHECK(intf->getVlanIDIf().has_value());
       outState = utility::NeighborTestUtils::pruneMacEntryForDelNbrEntry(
           outState, intf->getVlanID(), neighborTable->getEntryIf(ip));
     }
@@ -280,7 +279,6 @@ class AgentNeighborTest : public AgentHwTest {
     auto intf = outState->getInterfaces()->getNode(kIntfID());
     if (getSw()->needL2EntryForNeighbor() &&
         intf->getType() == cfg::InterfaceType::VLAN) {
-      CHECK(intf->getVlanIDIf().has_value());
       outState = utility::NeighborTestUtils::addMacEntryForNewNbrEntry(
           outState, intf->getVlanID(), neighborTable->getEntryIf(ip));
     }
@@ -689,12 +687,13 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
                               ->getInterfaceIDs()
                               .begin());
     } else if (switchType == cfg::SwitchType::NPU) {
-      return InterfaceID(static_cast<int>((*getProgrammedState()
-                                                ->getPorts()
-                                                ->getNodeIf(portId)
-                                                ->getVlans()
-                                                .begin())
-                                              .first));
+      return InterfaceID(
+          static_cast<int>((*getProgrammedState()
+                                 ->getPorts()
+                                 ->getNodeIf(portId)
+                                 ->getVlans()
+                                 .begin())
+                               .first));
     }
 
     XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);

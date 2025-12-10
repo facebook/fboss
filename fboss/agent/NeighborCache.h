@@ -114,6 +114,10 @@ class NeighborCache {
     impl_->updateEntryClassID(ip, classID);
   }
 
+  uint32_t getMaxNeighborProbes() const {
+    return maxNeighborProbes_;
+  }
+
  protected:
   // protected constructor since this is only meant to be inherited from
   NeighborCache(
@@ -128,12 +132,13 @@ class NeighborCache {
         timeout_(timeout),
         maxNeighborProbes_(maxNeighborProbes),
         staleEntryInterval_(staleEntryInterval),
-        impl_(std::make_unique<NeighborCacheImpl<NTable>>(
-            this,
-            sw,
-            vlanID,
-            vlanName,
-            intfID)) {}
+        impl_(
+            std::make_unique<NeighborCacheImpl<NTable>>(
+                this,
+                sw,
+                vlanID,
+                vlanName,
+                intfID)) {}
 
   // Methods useful for subclasses
   void setPendingEntry(AddressType ip, PortDescriptor port) {
@@ -196,10 +201,6 @@ class NeighborCache {
     return staleEntryInterval_;
   }
 
-  uint32_t getMaxNeighborProbes() const {
-    return maxNeighborProbes_;
-  }
-
  private:
   // This should only be called by a NeighborCacheEntry
   virtual void checkReachability(
@@ -229,6 +230,8 @@ class NeighborCache {
   // Forbidden copy constructor and assignment operator
   NeighborCache(NeighborCache const&) = delete;
   NeighborCache& operator=(NeighborCache const&) = delete;
+  NeighborCache(NeighborCache&&) = delete;
+  NeighborCache& operator=(NeighborCache&&) = delete;
 
   SwSwitch* sw_;
   std::chrono::seconds timeout_;

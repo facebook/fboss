@@ -6,7 +6,6 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
 
@@ -43,6 +42,14 @@ bool MonolithicHwSwitchHandler::sendPacketSwitchedSync(
 bool MonolithicHwSwitchHandler::sendPacketSwitchedAsync(
     std::unique_ptr<TxPacket> pkt) noexcept {
   return hw_->sendPacketSwitchedAsync(std::move(pkt));
+}
+
+bool MonolithicHwSwitchHandler::sendPacketOutOfPortSyncForPktType(
+    std::unique_ptr<TxPacket> pkt,
+    const PortID& portID,
+    TxPacketType packetType) noexcept {
+  return hw_->sendPacketOutOfPortSyncForPktType(
+      std::move(pkt), portID, packetType);
 }
 
 bool MonolithicHwSwitchHandler::isValidStateUpdate(
@@ -103,6 +110,11 @@ HwSwitchPipelineStats MonolithicHwSwitchHandler::getSwitchPipelineStats()
 HwSwitchTemperatureStats MonolithicHwSwitchHandler::getSwitchTemperatureStats()
     const {
   return hw_->getSwitchTemperatureStats();
+}
+
+HwSwitchHardResetStats MonolithicHwSwitchHandler::getHwSwitchHardResetStats()
+    const {
+  return hw_->getHwSwitchHardResetStats();
 }
 
 void MonolithicHwSwitchHandler::updateAllPhyInfo() {
@@ -182,8 +194,9 @@ std::string MonolithicHwSwitchHandler::getDebugDump() const {
 }
 
 void MonolithicHwSwitchHandler::fetchL2Table(
-    std::vector<L2EntryThrift>* l2Table) const {
-  hw_->fetchL2Table(l2Table);
+    std::vector<L2EntryThrift>* l2Table,
+    bool sdk) const {
+  hw_->fetchL2Table(l2Table, sdk);
 }
 
 std::string MonolithicHwSwitchHandler::listObjects(
@@ -272,6 +285,7 @@ void MonolithicHwSwitchHandler::getHwStats(
   hwStats.arsExhausted() = hw_->getArsExhaustionStatus();
   hwStats.sysPortShelState() = hw_->getSysPortShelState();
   hwStats.hwRouterInterfaceStats() = hw_->getRouterInterfaceStats();
+  hwStats.hardResetStats() = hw_->getHwSwitchHardResetStats();
 }
 
 } // namespace facebook::fboss

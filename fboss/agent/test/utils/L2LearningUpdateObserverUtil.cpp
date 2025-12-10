@@ -32,7 +32,7 @@ void L2LearningUpdateObserverUtil::l2LearningUpdateReceived(
     const L2Entry& l2Entry,
     const L2EntryUpdateType& l2EntryUpdateType) noexcept {
   std::lock_guard<std::mutex> lock(mtx_);
-  data_.push_back(std::make_pair(l2Entry, l2EntryUpdateType));
+  data_.emplace_back(l2Entry, l2EntryUpdateType);
   cv_.notify_all();
 }
 

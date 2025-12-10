@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/VoqConstants.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
@@ -27,8 +28,6 @@ using IntfRouteTable =
 using RouterIDToPrefixes = boost::container::
     flat_map<facebook::fboss::RouterID, std::vector<folly::CIDRNetwork>>;
 
-constexpr auto k2StageEdgePodClusterId = 200;
-
 int getLocalPortNumVoqs(cfg::PortType portType, cfg::Scope portScope);
 
 int getRemotePortNumVoqs(
@@ -42,4 +41,7 @@ void processRemoteInterfaceRoutes(
     IntfRouteTable& remoteIntfRoutesToAdd,
     RouterIDToPrefixes& remoteIntfRoutesToDel);
 
+bool isConnectedToVoqSwitch(
+    const cfg::SwitchConfig* config,
+    const SwitchID& remoteSwitchId);
 } // namespace facebook::fboss

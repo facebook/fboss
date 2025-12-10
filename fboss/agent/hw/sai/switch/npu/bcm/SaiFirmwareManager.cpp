@@ -97,8 +97,9 @@ SaiFirmwareManager::SaiFirmwareManager(
     firmwareHandle->firmware = store.loadObjectOwnedByAdapter(
         SaiFirmwareTraits::AdapterKey{firmwareSaiId});
 
-    handles_.emplace(std::make_pair(
-        SaiFirmwareManager::kFirmwareName, std::move(firmwareHandle)));
+    handles_.emplace(
+        std::make_pair(
+            SaiFirmwareManager::kFirmwareName, std::move(firmwareHandle)));
 
     auto firmwareVersion = getFirmwareVersion();
     CHECK(firmwareVersion.has_value());

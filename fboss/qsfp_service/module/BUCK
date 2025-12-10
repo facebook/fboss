@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("fboss_optics_phy")
 
@@ -10,7 +11,7 @@ cpp_library(
         "QsfpUtil.cpp",
         "cmis/CmisFieldInfo.cpp",
         "cmis/CmisModule.cpp",
-        "facebook/CmisModule.cpp",
+        "cmis/facebook/CmisModule.cpp",
         "facebook/QsfpModule.cpp",
         "facebook/SffModule.cpp",
         "sff/Sff8472FieldInfo.cpp",
@@ -30,11 +31,12 @@ cpp_library(
         "sff/SffFieldInfo.h",
         "sff/SffModule.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         ":firmware_upgrader",
         "//common/strings/icu:icu_string",
         "//common/time:time",
-        "//configerator/distribution/api:api",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
@@ -63,7 +65,7 @@ cpp_library(
         "//thrift/lib/cpp/util:enum_utils",
     ],
     exported_external_deps = [
-        "re2",
+        ("boost", None, "boost_algorithm"),
         ("boost", None, "boost_assign"),
         ("boost", None, "boost_bimap"),
     ],
@@ -81,6 +83,7 @@ cpp_library(
         "Transceiver.h",
         "TransceiverImpl.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
@@ -118,6 +121,7 @@ cpp_library(
     headers = [
         "I2cLogBuffer.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//fboss/lib/usb:transceiver_access_parameter",
         "//fboss/qsfp_service/if:config-cpp2-types",

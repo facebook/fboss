@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 
+#include "fboss/agent/hw/sai/api/SaiObjectApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
@@ -194,10 +195,11 @@ void ManagedFdbEntry::update(const std::shared_ptr<MacEntry>& updated) {
   CHECK_EQ(getMac(), updated->getMac());
   auto fdbEntry = getSaiObject();
   CHECK(fdbEntry != nullptr) << "updating non-programmed fdb entry";
-  fdbEntry->setAttribute(SaiFdbTraits::Attributes::Type(
-      updated->getType() == MacEntryType::STATIC_ENTRY
-          ? SAI_FDB_ENTRY_TYPE_STATIC
-          : SAI_FDB_ENTRY_TYPE_DYNAMIC));
+  fdbEntry->setAttribute(
+      SaiFdbTraits::Attributes::Type(
+          updated->getType() == MacEntryType::STATIC_ENTRY
+              ? SAI_FDB_ENTRY_TYPE_STATIC
+              : SAI_FDB_ENTRY_TYPE_DYNAMIC));
   // When dynamic entry is updated to static entry, need to remove the entry
   // when neighbor is removed.
   if (!supportsPending_ && updated->getType() == MacEntryType::STATIC_ENTRY) {
@@ -391,19 +393,30 @@ L2EntryThrift SaiFdbManager::fdbToL2Entry(
   return entry;
 }
 
-std::vector<L2EntryThrift> SaiFdbManager::getL2Entries() const {
+std::vector<L2EntryThrift> SaiFdbManager::getL2Entries(bool sdk) const {
   std::vector<L2EntryThrift> entries;
-  for (const auto& publisherAndFdbEntry : managedFdbEntries_) {
-    /*
-     * Try to read the fdb entry from the store. If a mac entry
-     * has aged out and state delta for mac entry is not yet
-     * processed, the sdk will return item not found error.
-     */
-    try {
-      entries.emplace_back(fdbToL2Entry(
-          publisherAndFdbEntry.second->makeFdbEntry(managerTable_)));
-    } catch (const std::exception& ex) {
-      XLOG(ERR) << "Failed to get l2 entry: " << ex.what();
+
+  if (sdk) {
+    auto switchId = managerTable_->switchManager().getSwitchSaiId();
+    std::vector<SaiFdbTraits::FdbEntry> fdbEntriesFromSdk;
+    fdbEntriesFromSdk = getObjectKeys<SaiFdbTraits>(switchId);
+
+    for (const auto& fdbEntry : fdbEntriesFromSdk) {
+      try {
+        entries.emplace_back(fdbToL2Entry(fdbEntry));
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "Failed to get l2 entry from SDK: " << ex.what();
+      }
+    }
+  } else {
+    // Include entries managed by FBOSS state.
+    for (const auto& publisherAndFdbEntry : managedFdbEntries_) {
+      try {
+        entries.emplace_back(fdbToL2Entry(
+            publisherAndFdbEntry.second->makeFdbEntry(managerTable_)));
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "Failed to get l2 entry: " << ex.what();
+      }
     }
   }
   return entries;

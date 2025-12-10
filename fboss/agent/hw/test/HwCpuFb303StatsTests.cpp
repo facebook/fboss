@@ -87,6 +87,13 @@ HwPortStats getInitedStats() {
       30, // pfcDeadlockDetection_
       30, // pfcDeadlockRecovery_
       {{1, false}}, // pgInCongestionDiscardsSeen_
+      0, // macTransmitQueueMinWatermarkCells_
+      0, // macTransmitQueueMaxWatermarkCells_
+      false, // macTransmitQueueStuck_
+      0, // fabricControlRxPackets_
+      0, // fabricControlTxPackets_
+      {{1, 0}}, // txPfcDurationUsec_
+      {{1, 0}}, // rxPfcDurationUsec_
   };
 }
 
@@ -108,12 +115,14 @@ void verifyUpdatedStats(const HwCpuFb303Stats& cpuStats) {
   for (auto counterName : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
       EXPECT_EQ(
-          cpuStats.getCounterLastIncrement(HwCpuFb303Stats::statName(
-              counterName, queueIdAndName.first, queueIdAndName.second)),
+          cpuStats.getCounterLastIncrement(
+              HwCpuFb303Stats::statName(
+                  counterName, queueIdAndName.first, queueIdAndName.second)),
           curValue);
       EXPECT_EQ(
-          cpuStats.getCumulativeValueIf(HwCpuFb303Stats::statName(
-              counterName, queueIdAndName.first, queueIdAndName.second)),
+          cpuStats.getCumulativeValueIf(
+              HwCpuFb303Stats::statName(
+                  counterName, queueIdAndName.first, queueIdAndName.second)),
           curValue);
     }
     ++curValue;
@@ -132,18 +141,22 @@ TEST(HwCpuFb303StatsTest, StatsInit) {
   HwCpuFb303Stats stats(kQueue2Name);
   for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
-      EXPECT_TRUE(fbData->getStatMap()->contains(HwCpuFb303Stats::statName(
-          statKey, queueIdAndName.first, queueIdAndName.second)));
+      EXPECT_TRUE(fbData->getStatMap()->contains(
+          HwCpuFb303Stats::statName(
+              statKey, queueIdAndName.first, queueIdAndName.second)));
     }
   }
 }
 
 TEST(HwCpuFb303StatsTest, StatsDeInit) {
-  { HwCpuFb303Stats stats(kQueue2Name); }
+  {
+    HwCpuFb303Stats stats(kQueue2Name);
+  }
   for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
-      EXPECT_FALSE(fbData->getStatMap()->contains(HwCpuFb303Stats::statName(
-          statKey, queueIdAndName.first, queueIdAndName.second)));
+      EXPECT_FALSE(fbData->getStatMap()->contains(
+          HwCpuFb303Stats::statName(
+              statKey, queueIdAndName.first, queueIdAndName.second)));
     }
   }
 }
@@ -229,18 +242,21 @@ TEST(HwCpuFb303Stats, queueNameChangeResetsValue) {
   HwCpuFb303Stats::QueueId2Name newQueues = {{1, "very_high"}, {2, "very_low"}};
   for (auto counterName : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : newQueues) {
-      EXPECT_TRUE(fbData->getStatMap()->contains(HwCpuFb303Stats::statName(
-          counterName, queueIdAndName.first, queueIdAndName.second)));
+      EXPECT_TRUE(fbData->getStatMap()->contains(
+          HwCpuFb303Stats::statName(
+              counterName, queueIdAndName.first, queueIdAndName.second)));
       EXPECT_EQ(
-          cpuStats.getCounterLastIncrement(HwCpuFb303Stats::statName(
-              counterName, queueIdAndName.first, queueIdAndName.second)),
+          cpuStats.getCounterLastIncrement(
+              HwCpuFb303Stats::statName(
+                  counterName, queueIdAndName.first, queueIdAndName.second)),
           0);
     }
   }
   for (auto counterName : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
-      EXPECT_FALSE(fbData->getStatMap()->contains(HwCpuFb303Stats::statName(
-          counterName, queueIdAndName.first, queueIdAndName.second)));
+      EXPECT_FALSE(fbData->getStatMap()->contains(
+          HwCpuFb303Stats::statName(
+              counterName, queueIdAndName.first, queueIdAndName.second)));
     }
   }
 }

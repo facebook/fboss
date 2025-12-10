@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("fboss_optics_phy")
 
@@ -9,11 +10,13 @@ cpp_binary(
     srcs = [
         "QsfpServiceTest.cpp",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
         "fbsource//third-party/googletest:gtest",
         "//common/init:init",
         "//fboss/qsfp_service:handler",
-        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
+        "//fboss/qsfp_service:port-manager",
+        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",  # @manual
         "//folly:singleton",
         "//folly/executors:function_scheduler",
         "//thrift/lib/cpp2:server",
@@ -25,6 +28,7 @@ cpp_library(
     headers = [
         "FakeConfigsHelper.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//fboss/agent:load_agent_config",
         "//fboss/qsfp_service:qsfp-config",
@@ -39,6 +43,7 @@ cpp_library(
     headers = [
         "TransceiverManagerTestHelper.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":fake-configs-helper",
@@ -53,9 +58,11 @@ cpp_unittest(
     srcs = [
         "TransceiverManagerTest.cpp",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
         ":transceiver_manager_test_helper",
         "//fboss/lib:common_file_utils",
+        "//fboss/qsfp_service/module/tests:mock-headers",
     ],
 )
 
@@ -64,13 +71,18 @@ cpp_unittest(
     srcs = [
         "BspPlatformMapTest.cpp",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
         "//fboss/lib/bsp/icecube800bc:icecube800bc_bsp",
+        "//fboss/lib/bsp/icetea800bc:icetea800bc_bsp",
         "//fboss/lib/bsp/meru400bfu:meru400bfu_bsp",
         "//fboss/lib/bsp/meru400bia:meru400bia_bsp",
         "//fboss/lib/bsp/meru400biu:meru400biu_bsp",
         "//fboss/lib/bsp/minipack3n:minipack3n_bsp",
         "//fboss/lib/bsp/montblanc:montblanc_bsp",
+        "//fboss/lib/bsp/tahansb800bc:tahansb800bc_bsp",
+        "//fboss/lib/bsp/wedge800bact:wedge800bact_bsp",
+        "//fboss/lib/bsp/wedge800cact:wedge800cact_bsp",
         "//folly/testing:test_util",
     ],
 )
@@ -80,6 +92,10 @@ cpp_unittest(
     srcs = [
         "TransceiverStateMachineTest.cpp",
     ],
+    headers = [
+        "MockTransceivers.h",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
         ":transceiver_manager_test_helper",
         "//fboss/qsfp_service:transceiver-manager",
@@ -87,6 +103,7 @@ cpp_unittest(
         "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
         "//fboss/qsfp_service/module/tests:mock-headers",
         "//fboss/qsfp_service/test/hw_test:hw_transceiver_utils",
+        "//folly/testing:test_util",
     ],
 )
 
@@ -94,9 +111,10 @@ cpp_library(
     name = "mock-state-machine",
     srcs = ["MockStateMachine.cpp"],
     headers = ["MockStateMachine.h"],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//fboss/agent:fboss-error",
-        "//fboss/qsfp_service:state-machine-controller",
+        "//fboss/qsfp_service:port-manager",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
     ],
@@ -110,6 +128,7 @@ cpp_unittest(
     srcs = [
         "TypedStateMachineUpdateTest.cpp",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
         "//fboss/qsfp_service:typed-state-machine-update",
     ],
@@ -118,15 +137,105 @@ cpp_unittest(
 cpp_unittest(
     name = "state_machine_controller_test",
     srcs = ["StateMachineControllerTest.cpp"],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":mock-state-machine",
-        "//fboss/qsfp_service:state-machine-controller",
+        "//fboss/qsfp_service:port-manager",
         "//fboss/qsfp_service:typed-state-machine-update",
         "//folly:synchronized",
         "//folly/logging:logging",
     ],
     external_deps = [
         "boost",
+    ],
+)
+
+cpp_library(
+    name = "mock_manager_constructor_args",
+    headers = ["MockManagerConstructorArgs.h"],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    exported_deps = [
+        "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",
+        "//fboss/lib/config:fboss_config_utils",
+        "//fboss/qsfp_service:slot-thread-helper",
+    ],
+)
+
+cpp_library(
+    name = "mock_transceivers",
+    headers = ["MockTransceivers.h"],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
+        "//fboss/qsfp_service/module/tests:mock-headers",
+        "//fboss/qsfp_service/test/hw_test:hw_transceiver_utils",
+        "//folly/testing:test_util",
+    ],
+)
+
+cpp_library(
+    name = "mock_port_manager",
+    headers = ["MockPortManager.h"],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    exported_deps = [
+        "fbsource//third-party/googletest:gmock",
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/qsfp_service:port-manager",
+    ],
+)
+
+cpp_library(
+    name = "mock_phy_manager",
+    headers = ["MockPhyManager.h"],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    exported_deps = [
+        "fbsource//third-party/googletest:gmock",
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/lib/phy:phy_management_base",
+    ],
+)
+
+cpp_unittest(
+    name = "port_manager_test",
+    srcs = ["PortManagerTest.cpp"],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":fake-configs-helper",
+        ":mock_manager_constructor_args",
+        ":mock_phy_manager",
+        ":mock_port_manager",
+        "//fboss/qsfp_service:port-manager",
+        "//fboss/qsfp_service/platforms/wedge/tests:mock-wedge-manager",
+        "//folly/testing:test_util",
+    ],
+)
+
+cpp_unittest(
+    name = "port_state_machine_test",
+    srcs = [
+        "PortStateMachineTest.cpp",
+    ],
+    headers = [
+        "MockManagerConstructorArgs.h",
+        "MockTransceivers.h",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    deps = [
+        ":mock_phy_manager",
+        ":mock_port_manager",
+        ":transceiver_manager_test_helper",
+        "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",
+        "//fboss/lib/config:fboss_config_utils",
+        "//fboss/qsfp_service:slot-thread-helper",
+        "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
+        "//fboss/qsfp_service/module/tests:mock-headers",
+        "//fboss/qsfp_service/test/hw_test:hw_transceiver_utils",
+        "//folly/logging:logging",
+        "//folly/testing:test_util",
     ],
 )

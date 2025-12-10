@@ -11,6 +11,7 @@ add_library(subscription_manager
   fboss/fsdb/oper/CowPublishAndAddTraverseHelper.cpp
   fboss/fsdb/oper/CowSubscriptionManager.h
   fboss/fsdb/oper/CowSubscriptionTraverseHelper.h
+  fboss/fsdb/oper/DeltaValue.cpp
   fboss/fsdb/oper/Subscription.cpp
   fboss/fsdb/oper/Subscription.h
   fboss/fsdb/oper/SubscriptionManager.h
@@ -34,6 +35,17 @@ target_link_libraries(subscription_manager
   fsdb_oper_metadata_tracker
   patch_cpp2
   thrift_cow_visitors
+)
+
+add_library(extended_path_builder
+  fboss/fsdb/oper/ExtendedPathBuilder.cpp
+  fboss/fsdb/oper/ExtendedPathBuilder.h
+)
+
+target_link_libraries(extended_path_builder
+  fsdb_oper_cpp2
+  FBThrift::thriftcpp2
+  Folly::folly
 )
 
 add_library(oper_path_helpers

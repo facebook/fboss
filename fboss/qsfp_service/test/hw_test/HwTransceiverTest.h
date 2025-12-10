@@ -25,9 +25,11 @@ class HwTransceiverTest : public HwTest {
 
   std::unique_ptr<std::vector<int32_t>> getExpectedLegacyTransceiverIds() const;
 
+ protected:
+  bool isPortUp_{false};
+
  private:
   std::vector<TransceiverID> expectedTcvrs_;
   // Whether needs to bring up the port on the agent side.
-  bool isPortUp_{false};
 };
 } // namespace facebook::fboss

@@ -38,7 +38,11 @@ cpp_library(
         "CowStorageMgr.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":cow_storage",
+        "//fb303:export_type",
+        "//fb303:thread_cached_service_data",
+        "//fb303/detail:quantile_stat_wrappers",
         "//folly:fbstring",
         "//folly:intrusive_list",
         "//folly:synchronized",

@@ -6,7 +6,6 @@
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
 #include <folly/Conv.h>
-#include <folly/Format.h>
 #include <folly/json/json.h>
 #include <folly/logging/xlog.h>
 #include <iostream>
@@ -48,20 +47,16 @@ void WeutilImpl::printInfo() {
   }
 }
 
-void WeutilImpl::printInfoJson() {
-  folly::dynamic eepromObject = folly::dynamic::object;
+folly::dynamic WeutilImpl::getInfoJson() {
+  folly::dynamic eepromJsonObject = folly::dynamic::object;
   for (const auto& [key, value] : getContents()) {
     if (key == "CRC16") {
       continue;
     }
-    eepromObject[key] = value;
+    eepromJsonObject[key] = value;
   }
 
-  folly::dynamic json = folly::dynamic::object;
-  json["Information"] = eepromObject;
-  json["Actions"] = folly::dynamic::array();
-  json["Resources"] = folly::dynamic::array();
-  std::cout << folly::toPrettyJson(json) << std::endl;
+  return eepromJsonObject;
 }
 
 } // namespace facebook::fboss::platform

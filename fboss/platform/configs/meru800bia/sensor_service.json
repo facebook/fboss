@@ -256,14 +256,13 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_VRM1_VOUT_J3_0V85_CORE",
+          "name": "SMB_VRM1_VOUT_J3_0V85_CORE_MILLIVOLT",
           "sysfsPath": "/run/devmap/sensors/SMB_RAA228926_J3/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 0.93,
-            "lowerCriticalVal": 0.62
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 930.0,
+            "lowerCriticalVal": 620.0
+          }
         },
         {
           "name": "SMB_VRM1_TEMP",
@@ -276,6 +275,33 @@
           "compute": "@/1000.0"
         },
         {
+          "name": "SMB_VRM1_IIN",
+          "sysfsPath": "/run/devmap/sensors/SMB_RAA228926_J3/curr1_input",
+          "type": 2,
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_VRM1_IOUT_J3_0V85_CORE",
+          "sysfsPath": "/run/devmap/sensors/SMB_RAA228926_J3/curr3_input",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 950.0
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_VRM1_POUT",
+          "sysfsPath": "/run/devmap/sensors/SMB_RAA228926_J3/power1_input",
+          "type": 0,
+          "compute": "@/1000000.0"
+        },
+        {
+          "name": "SMB_VRM1_POUT_J3_0V85_CORE",
+          "sysfsPath": "/run/devmap/sensors/SMB_RAA228926_J3/power3_input",
+          "type": 0,
+          "compute": "@/1000000.0"
+        },
+        {
           "name": "SMB_VRM2_VIN",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/in1_input",
           "type": 1,
@@ -286,34 +312,31 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_VRM2_VOUT_J3_0V9",
+          "name": "SMB_VRM2_VOUT_J3_0V9_MILLIVOLT",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.08,
-            "lowerCriticalVal": 0.72
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 1080.0,
+            "lowerCriticalVal": 720.0
+          }
         },
         {
-          "name": "SMB_VRM2_VOUT_J3_0V75",
+          "name": "SMB_VRM2_VOUT_J3_0V75_MILLIVOLT",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/in4_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 0.9,
-            "lowerCriticalVal": 0.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 900.0,
+            "lowerCriticalVal": 600.0
+          }
         },
         {
-          "name": "SMB_VRM2_VOUT_J3_1V2",
+          "name": "SMB_VRM2_VOUT_J3_1V2_MILLIVOLT",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/in5_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.44,
-            "lowerCriticalVal": 0.96
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 1440.0,
+            "lowerCriticalVal": 960.0
+          }
         },
         {
           "name": "SMB_VRM2_TEMP1",
@@ -346,6 +369,87 @@
           "compute": "@/1000.0"
         },
         {
+          "name": "SMB_VRM2_IIN_1",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/curr1_input",
+          "type": 2,
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_VRM2_IIN_2",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/curr2_input",
+          "type": 2,
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_VRM2_IIN_3",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/curr3_input",
+          "type": 2,
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_VRM2_IOUT_J3_0V9",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/curr4_input",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 150.0
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_VRM2_IOUT_J3_0V75",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/curr5_input",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 70.0
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_VRM2_IOUT_J3_1V2",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/curr6_input",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 65.0
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_VRM2_POUT_1",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/power1_input",
+          "type": 0,
+          "compute": "@/1000000.0"
+        },
+        {
+          "name": "SMB_VRM2_POUT_2",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/power2_input",
+          "type": 0,
+          "compute": "@/1000000.0"
+        },
+        {
+          "name": "SMB_VRM2_POUT_3",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/power3_input",
+          "type": 0,
+          "compute": "@/1000000.0"
+        },
+        {
+          "name": "SMB_VRM2_POUT_J3_0V9",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/power4_input",
+          "type": 0,
+          "compute": "@/1000000.0"
+        },
+        {
+          "name": "SMB_VRM2_POUT_J3_0V75",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/power5_input",
+          "type": 0,
+          "compute": "@/1000000.0"
+        },
+        {
+          "name": "SMB_VRM2_POUT_J3_1V2",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_J3/power6_input",
+          "type": 0,
+          "compute": "@/1000000.0"
+        },
+        {
           "name": "SMB_VRM3_VIN",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_OPTICS/in1_input",
           "type": 1,
@@ -374,6 +478,33 @@
             "maxAlarmVal": 115.0
           },
           "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_VRM3_IIN",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_OPTICS/curr1_input",
+          "type": 2,
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_VRM3_IOUT_OPTICS_3V3",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_OPTICS/curr4_input",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 350.0
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_VRM3_POUT",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_OPTICS/power1_input",
+          "type": 0,
+          "compute": "@/1000000.0"
+        },
+        {
+          "name": "SMB_VRM3_POUT_OPTICS_3V3",
+          "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_OPTICS/power4_input",
+          "type": 0,
+          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_MGMT_INLET_TEMP",
@@ -609,6 +740,36 @@
           "type": 0,
           "compute": "@/1000000.0"
         }
+      ]
+    }
+  ],
+  "powerConfig": {
+    "perSlotPowerConfigs": [
+      {
+        "name": "PSU1",
+        "powerSensorName": "PSU1_PIN"
+      },
+      {
+        "name": "PSU2",
+        "powerSensorName": "PSU2_PIN"
+      }
+    ],
+    "inputVoltageSensors": [
+      "PSU1_VIN",
+      "PSU2_VIN"
+    ]
+  },
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "SMB_J3_DIODE_CORE_TEMP",
+        "SMB_J3_DIODE_FAB0_TEMP",
+        "SMB_J3_DIODE_FAB1_TEMP",
+        "SMB_J3_DIODE_HBM0_TEMP",
+        "SMB_J3_DIODE_HBM1_TEMP",
+        "SMB_J3_DIODE_NIF0_TEMP",
+        "SMB_J3_DIODE_NIF1_TEMP"
       ]
     }
   ]

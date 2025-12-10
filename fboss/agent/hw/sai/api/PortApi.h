@@ -75,7 +75,21 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_QOS_QUEUE_LIST,
         std::vector<sai_object_id_t>,
         SaiObjectIdListDefault>;
-    using FecMode = SaiAttribute<EnumType, SAI_PORT_ATTR_FEC_MODE, sai_int32_t>;
+    using QosEgressBufferProfileList = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_EGRESS_BUFFER_PROFILE_LIST,
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
+    using QosIngressBufferProfileList = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_INGRESS_BUFFER_PROFILE_LIST,
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
+    using FecMode = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_FEC_MODE,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
     using OperStatus =
         SaiAttribute<EnumType, SAI_PORT_ATTR_OPER_STATUS, sai_int32_t>;
     using InternalLoopbackMode = SaiAttribute<
@@ -130,6 +144,16 @@ struct SaiPortTraits {
     using QosDscpToTcMap = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using QosDot1pToTcMap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_DOT1P_TO_TC_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using QosTcAndColorToDot1pMap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_TC_AND_COLOR_TO_DOT1P_MAP,
         SaiObjectIdT,
         SaiObjectIdDefault>;
     using QosTcToQueueMap = SaiAttribute<
@@ -348,8 +372,10 @@ struct SaiPortTraits {
     struct AttributeRxLaneSquelchEnable {
       std::optional<sai_attr_id_t> operator()();
     };
-    using RxLaneSquelchEnable =
-        SaiExtensionAttribute<bool, AttributeRxLaneSquelchEnable>;
+    using RxLaneSquelchEnable = SaiExtensionAttribute<
+        bool,
+        AttributeRxLaneSquelchEnable,
+        SaiBoolDefaultFalse>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
     using PfcTcDldInterval = SaiAttribute<
         EnumType,
@@ -471,6 +497,32 @@ struct SaiPortTraits {
         bool,
         AttributeFecErrorDetectEnable,
         SaiBoolDefaultFalse>;
+    struct AttributeAmIdles {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using AmIdles =
+        SaiExtensionAttribute<bool, AttributeAmIdles, SaiBoolDefaultFalse>;
+    struct AttributeResetQueueCreditBalance {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ResetQueueCreditBalance = SaiExtensionAttribute<
+        bool,
+        AttributeResetQueueCreditBalance,
+        SaiBoolDefaultFalse>;
+    struct AttributeFabricSystemPort {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using FabricSystemPort = SaiExtensionAttribute<
+        sai_object_id_t,
+        AttributeFabricSystemPort,
+        SaiObjectIdDefault>;
+    struct AttributeStaticModuleId {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using StaticModuleId = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeStaticModuleId,
+        SaiIntDefault<sai_uint32_t>>;
     struct AttributePgDropStatus {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -478,6 +530,27 @@ struct SaiPortTraits {
         std::vector<sai_map_t>,
         AttributePgDropStatus,
         SaiListDefault<sai_map_list_t>>;
+    struct AttributeIsHyperPortMember {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using IsHyperPortMember = SaiExtensionAttribute<
+        bool,
+        AttributeIsHyperPortMember,
+        SaiBoolDefaultFalse>;
+    struct AttributeHyperPortMemberList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using HyperPortMemberList = SaiExtensionAttribute<
+        std::vector<sai_object_id_t>,
+        AttributeHyperPortMemberList,
+        SaiObjectIdListDefault>;
+    struct AttributePfcMonitorDirection {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PfcMonitorDirection = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributePfcMonitorDirection,
+        SaiIntDefault<sai_int32_t>>;
   };
   using AdapterKey = PortSaiId;
 
@@ -594,7 +667,17 @@ struct SaiPortTraits {
 #if defined(CHENAB_SAI_SDK)
       std::optional<Attributes::AutoNegotiationMode>,
 #endif
-      std::optional<Attributes::FecErrorDetectEnable>>;
+      std::optional<Attributes::FecErrorDetectEnable>,
+      std::optional<Attributes::AmIdles>,
+      std::optional<Attributes::FabricSystemPort>,
+      std::optional<Attributes::StaticModuleId>,
+      std::optional<Attributes::IsHyperPortMember>,
+      std::optional<Attributes::HyperPortMemberList>,
+      std::optional<Attributes::PfcMonitorDirection>,
+      std::optional<Attributes::QosDot1pToTcMap>,
+      std::optional<Attributes::QosTcAndColorToDot1pMap>,
+      std::optional<Attributes::QosIngressBufferProfileList>,
+      std::optional<Attributes::QosEgressBufferProfileList>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -642,6 +725,11 @@ struct SaiPortTraits {
       SAI_PORT_STAT_PFC_7_ON2OFF_RX_PKTS,
   };
   static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
+  static const std::vector<sai_stat_id_t>& macTxDataQueueMinWatermarkStats();
+  static const std::vector<sai_stat_id_t>& macTxDataQueueMaxWatermarkStats();
+  static const std::vector<sai_stat_id_t>& fabricControlRxPacketStats();
+  static const std::vector<sai_stat_id_t>& fabricControlTxPacketStats();
+  static const std::vector<sai_stat_id_t>& pfcXoffTotalDurationStats();
 };
 
 SAI_ATTRIBUTE_NAME(Port, HwLaneList)
@@ -663,11 +751,15 @@ SAI_ATTRIBUTE_NAME(Port, GlobalFlowControlMode)
 SAI_ATTRIBUTE_NAME(Port, PortVlanId)
 SAI_ATTRIBUTE_NAME(Port, Mtu)
 SAI_ATTRIBUTE_NAME(Port, QosDscpToTcMap)
+SAI_ATTRIBUTE_NAME(Port, QosDot1pToTcMap)
+SAI_ATTRIBUTE_NAME(Port, QosTcAndColorToDot1pMap)
 SAI_ATTRIBUTE_NAME(Port, QosTcToQueueMap)
 SAI_ATTRIBUTE_NAME(Port, DisableTtlDecrement)
 
 SAI_ATTRIBUTE_NAME(Port, QosNumberOfQueues)
 SAI_ATTRIBUTE_NAME(Port, QosQueueList)
+SAI_ATTRIBUTE_NAME(Port, QosEgressBufferProfileList)
+SAI_ATTRIBUTE_NAME(Port, QosIngressBufferProfileList)
 SAI_ATTRIBUTE_NAME(Port, Type)
 SAI_ATTRIBUTE_NAME(Port, InterfaceType)
 SAI_ATTRIBUTE_NAME(Port, PktTxEnable)
@@ -754,7 +846,14 @@ SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashPeriodUS)
 SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashSeed)
 SAI_ATTRIBUTE_NAME(Port, ShelEnable)
 SAI_ATTRIBUTE_NAME(Port, FecErrorDetectEnable)
+SAI_ATTRIBUTE_NAME(Port, AmIdles)
+SAI_ATTRIBUTE_NAME(Port, ResetQueueCreditBalance)
+SAI_ATTRIBUTE_NAME(Port, FabricSystemPort)
+SAI_ATTRIBUTE_NAME(Port, StaticModuleId)
 SAI_ATTRIBUTE_NAME(Port, PgDropStatus)
+SAI_ATTRIBUTE_NAME(Port, IsHyperPortMember)
+SAI_ATTRIBUTE_NAME(Port, HyperPortMemberList)
+SAI_ATTRIBUTE_NAME(Port, PfcMonitorDirection)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)

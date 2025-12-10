@@ -65,12 +65,13 @@ cfg::SwitchConfig createSwitchConfig(
     seconds raInterval,
     seconds ndpTimeout,
     bool createAggPort = false,
-    std::optional<std::string> routerAddress = std::nullopt) {
+    std::optional<std::string> routerAddress = std::nullopt,
+    int numIntfs = 2) {
   // Create a thrift config to use
   cfg::SwitchConfig config;
   config.switchSettings()->switchIdToSwitchInfo() = {
       std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
-  config.vlans()->resize(2);
+  config.vlans()->resize(numIntfs);
   *config.vlans()[0].name() = "PrimaryVlan";
   *config.vlans()[0].id() = 5;
   *config.vlans()[0].routable() = true;
@@ -96,7 +97,7 @@ cfg::SwitchConfig createSwitchConfig(
     *config.vlanPorts()[n].emitTags() = 0;
   }
 
-  config.interfaces()->resize(2);
+  config.interfaces()->resize(numIntfs);
   *config.interfaces()[0].intfID() = 5;
   *config.interfaces()[0].vlanID() = 5;
   config.interfaces()[0].name() = "PrimaryInterface";
@@ -123,6 +124,20 @@ cfg::SwitchConfig createSwitchConfig(
   config.interfaces()[1].ipAddresses()[1] = "3401:db00:2110:3004::a/64";
   config.interfaces()[1].ipAddresses()[2] = "fe80::face:b00c/64";
 
+  for (int i = 2; i < numIntfs; i++) {
+    int idx = i;
+    int intfId = 100 + i;
+    *config.interfaces()[idx].intfID() = intfId;
+    *config.interfaces()[idx].vlanID() = intfId;
+    config.interfaces()[idx].name() = "DefaultHWInterface";
+    config.interfaces()[idx].mtu() = 9000;
+    config.interfaces()[idx].ipAddresses()->resize(1);
+    config.interfaces()[idx].ipAddresses()[0] = "fe80::face:b00c/64";
+    *config.vlans()[idx].name() = "DefaultHWVlanTest";
+    *config.vlans()[idx].id() = intfId;
+    *config.vlans()[idx].routable() = true;
+    config.vlans()[idx].intfID() = intfId;
+  }
   if (ndpTimeout.count() > 0) {
     *config.arpTimeoutSeconds() = ndpTimeout.count();
   }
@@ -448,9 +463,10 @@ class NdpTest : public ::testing::Test {
   unique_ptr<HwTestHandle> setupTestHandle(
       seconds raInterval = seconds(0),
       seconds ndpInterval = seconds(0),
-      std::optional<std::string> routerAddress = std::nullopt) {
-    auto config =
-        createSwitchConfig(raInterval, ndpInterval, false, routerAddress);
+      std::optional<std::string> routerAddress = std::nullopt,
+      int numIntfs = 2) {
+    auto config = createSwitchConfig(
+        raInterval, ndpInterval, false, routerAddress, numIntfs);
 
     *config.maxNeighborProbes() = 1;
     *config.staleEntryInterval() = 1;
@@ -459,8 +475,10 @@ class NdpTest : public ::testing::Test {
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
     return handle;
   }
-  unique_ptr<HwTestHandle> setupTestHandleWithNdpTimeout(seconds ndpTimeout) {
-    return setupTestHandle(seconds(0), ndpTimeout);
+  unique_ptr<HwTestHandle> setupTestHandleWithNdpTimeout(
+      seconds ndpTimeout,
+      int numIntfs = 2) {
+    return setupTestHandle(seconds(0), ndpTimeout, std::nullopt, numIntfs);
   }
   void addRoutes() {
     RouteNextHopSet nexthops;
@@ -764,7 +782,7 @@ void NdpTest<EnableIntfNbrTableT>::validateRouterAdv(
       : MockPlatform::getMockLinkLocalIp6();
   // Add an interface with a /128 mask, to make sure it isn't included
   // in the generated RA packets.
-  config.interfaces()[0].ipAddresses()->push_back(
+  config.interfaces()[0].ipAddresses()->emplace_back(
       "2401:db00:2000:1234:1::/128");
   auto handle = createTestHandle(&config);
   auto sw = handle->getSw();
@@ -1159,8 +1177,8 @@ TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
 
     WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
       // Old entry should be flushed
-      auto entry = getNDPTableEntry(neighborAddr, intfID);
-      EXPECT_EVENTUALLY_EQ(entry, nullptr);
+      auto flushedEntry = getNDPTableEntry(neighborAddr, intfID);
+      EXPECT_EVENTUALLY_EQ(flushedEntry, nullptr);
     });
 
     // Send neighbor advertisement on Aggregate
@@ -1226,8 +1244,8 @@ TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
 
     WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
       // Old entry should be flushed
-      auto entry = getNDPTableEntry(neighborAddr, VlanID(5));
-      EXPECT_EVENTUALLY_EQ(entry, nullptr);
+      auto flushedEntry = getNDPTableEntry(neighborAddr, VlanID(5));
+      EXPECT_EVENTUALLY_EQ(flushedEntry, nullptr);
     });
 
     // Send neighbor advertisement on Aggregate
@@ -1823,8 +1841,7 @@ TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
   VlanID vlanID(5);
   std::vector<IPAddressV6> targetIPs;
   for (uint32_t i = 1; i <= 255; i++) {
-    targetIPs.push_back(
-        IPAddressV6("2401:db00:2110:3004::" + std::to_string(i)));
+    targetIPs.emplace_back("2401:db00:2110:3004::" + std::to_string(i));
   }
   if (this->isIntfNbrTable()) {
     // populate ndp entries first before flush
@@ -2163,4 +2180,57 @@ TYPED_TEST(NdpTest, PortFlapRecover) {
   EXPECT_EQ(entry2->isPending(), false);
   EXPECT_NE(entry3, nullptr);
   EXPECT_EQ(entry3->isPending(), false);
+}
+
+TYPED_TEST(NdpTest, stressSendMulticastNeighborSoclicitsDuringStateUpdate) {
+  // create 100 L3 interfaces
+  auto handle = this->setupTestHandleWithNdpTimeout(seconds(0), 100);
+  auto sw = handle->getSw();
+
+  this->addRoutes();
+
+  // Step 1: resolve one non-linklocal IP
+  sw->linkStateChanged(PortID(1), true, cfg::PortType::INTERFACE_PORT);
+  auto vlanID = VlanID(5);
+  auto intfID =
+      sw->getState()->getInterfaceIDForPort(PortDescriptor(PortID(1)));
+  auto targetIP = IPAddressV6("2401:db00:2110:3004::1:0");
+
+  std::optional<WaitForNdpEntryReachable> neighborReachable;
+  if (this->isIntfNbrTable()) {
+    neighborReachable.emplace(sw, targetIP, intfID);
+  } else {
+    neighborReachable.emplace(sw, targetIP, vlanID);
+  }
+  sendNeighborAdvertisement(
+      handle.get(),
+      targetIP.str(),
+      "02:10:20:30:40:22",
+      PortDescriptor(PortID(1)),
+      vlanID);
+  EXPECT_TRUE(neighborReachable.value().wait());
+
+  // Step 2: send multicast neighbor solicit packets from all 100 interfaces in
+  // another thread
+  auto* evb = sw->getBackgroundEvb();
+  evb->runInFbossEventBaseThread([&]() {
+    sw->getIPv6Handler()->sendMulticastNeighborSolicitation(
+        sw, IPAddressV6("fe80::face:b000"));
+  });
+
+  // Step 3: trigger switch state update by flushing NDP entries
+  ThriftHandler thriftHandler(sw);
+  auto binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::1:0"));
+  thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 5);
+  waitForStateUpdates(sw);
+
+  // Step 4: verified no crash and non-linklocal IP can still be resolved
+  sendNeighborAdvertisement(
+      handle.get(),
+      targetIP.str(),
+      "02:10:20:30:40:22",
+      PortDescriptor(PortID(1)),
+      vlanID);
+
+  EXPECT_TRUE(neighborReachable.value().wait());
 }

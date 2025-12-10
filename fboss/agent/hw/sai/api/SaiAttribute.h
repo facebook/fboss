@@ -164,6 +164,9 @@ DEFINE_extract(std::vector<sai_int16_t>, s16list);
 DEFINE_extract(std::vector<sai_int32_t>, s32list);
 DEFINE_extract(std::vector<sai_qos_map_t>, qosmap);
 DEFINE_extract(std::vector<sai_map_t>, maplist);
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
+DEFINE_extract(std::vector<sai_u16_range_t>, u16rangelist);
+#endif
 DEFINE_extract(std::vector<sai_port_lane_eye_values_t>, porteyevalues);
 DEFINE_extract(std::vector<sai_port_err_status_t>, porterror);
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
@@ -353,9 +356,10 @@ inline void _fill(
 inline void _fill(
     const sai_acl_field_data_t& src,
     facebook::fboss::AclEntryFieldIpV6& dst) {
-  dst.setDataAndMask(std::make_pair(
-      facebook::fboss::fromSaiIpAddress(src.data.ip6),
-      facebook::fboss::fromSaiIpAddress(src.mask.ip6)));
+  dst.setDataAndMask(
+      std::make_pair(
+          facebook::fboss::fromSaiIpAddress(src.data.ip6),
+          facebook::fboss::fromSaiIpAddress(src.mask.ip6)));
 }
 
 inline void _fill(
@@ -369,9 +373,10 @@ inline void _fill(
 inline void _fill(
     const sai_acl_field_data_t& src,
     facebook::fboss::AclEntryFieldIpV4& dst) {
-  dst.setDataAndMask(std::make_pair(
-      facebook::fboss::fromSaiIpAddress(src.data.ip4),
-      facebook::fboss::fromSaiIpAddress(src.mask.ip4)));
+  dst.setDataAndMask(
+      std::make_pair(
+          facebook::fboss::fromSaiIpAddress(src.data.ip4),
+          facebook::fboss::fromSaiIpAddress(src.mask.ip4)));
 }
 
 inline void _fill(
@@ -387,9 +392,10 @@ inline void _fill(
 inline void _fill(
     const sai_acl_field_data_t& src,
     facebook::fboss::AclEntryFieldMac& dst) {
-  dst.setDataAndMask(std::make_pair(
-      facebook::fboss::fromSaiMacAddress(src.data.mac),
-      facebook::fboss::fromSaiMacAddress(src.mask.mac)));
+  dst.setDataAndMask(
+      std::make_pair(
+          facebook::fboss::fromSaiMacAddress(src.data.mac),
+          facebook::fboss::fromSaiMacAddress(src.mask.mac)));
 }
 
 inline void _fill(
@@ -710,12 +716,13 @@ class SaiAttribute<
    * }
    * a2.value() // uh-oh
    */
-  SaiAttribute(const SaiAttribute& other) {
-    // NOTE: use copy assignment to implement copy ctor
-    *this = other;
+  SaiAttribute(const SaiAttribute& other) : SaiAttribute() {
+    saiAttr_.id = other.saiAttr_.id;
+    setValue(other.value());
   }
-  SaiAttribute(SaiAttribute&& other) {
-    *this = std::move(other);
+  SaiAttribute(SaiAttribute&& other) : SaiAttribute() {
+    saiAttr_.id = other.saiAttr_.id;
+    setValue(std::move(other).value());
   }
   SaiAttribute& operator=(const SaiAttribute& other) {
     saiAttr_.id = other.saiAttr_.id;

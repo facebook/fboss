@@ -157,6 +157,9 @@ target_link_libraries(utils
   meru800bfa_platform_mapping
   janga800bic_platform_mapping
   icecube800bc_platform_mapping
+  icetea800bc_platform_mapping
+  tahansb800bc_platform_mapping
+  ladakh800bcls_platform_mapping
 )
 
 add_library(stats
@@ -210,6 +213,7 @@ target_link_libraries(fib_helpers
 
 add_library(ecmp_resource_manager
   fboss/agent/EcmpResourceManager.cpp
+  fboss/agent/EcmpResourceManagerConfig.cpp
 )
 
 target_link_libraries(ecmp_resource_manager
@@ -240,6 +244,18 @@ target_link_libraries(fsdb_adapted_sub_manager
   cow_storage
 )
 
+add_library(hw_switch_thrift_client_table
+  fboss/agent/HwSwitchThriftClientTable.cpp
+)
+
+target_link_libraries(hw_switch_thrift_client_table
+  error
+  fboss_types
+  hw_ctrl_cpp2
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
 add_library(core
   fboss/agent/AclNexthopHandler.cpp
   fboss/agent/ApplyThriftConfig.cpp
@@ -254,11 +270,12 @@ add_library(core
   fboss/agent/DsfSubscription.cpp
   fboss/agent/DsfUpdateValidator.cpp
   fboss/agent/FabricConnectivityManager.cpp
+  fboss/agent/FabricLinkMonitoring.cpp
+  fboss/agent/FabricLinkMonitoringManager.cpp
   fboss/agent/EncapIndexAllocator.cpp
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
   fboss/agent/HwSwitchConnectionStatusTable.cpp
-  fboss/agent/HwSwitchThriftClientTable.cpp
   fboss/agent/IPHeaderV4.cpp
   fboss/agent/IPv4Handler.cpp
   fboss/agent/IPv6Handler.cpp
@@ -395,6 +412,9 @@ set(core_libs
   ecmp_resource_manager
   thrift_method_rate_limit
   shel_manager
+  state_delta_logger
+  dsfnode_utils
+  hw_switch_thrift_client_table
 )
 
 target_link_libraries(core ${core_libs})
@@ -429,6 +449,17 @@ target_link_libraries(handler
   log_thrift_call
   Folly::folly
   thrifthandler_utils
+  hw_switch_thrift_client_table
+)
+
+add_library(setup_thrift_prod
+  fboss/agent/SetupThriftProd.cpp
+)
+
+target_link_libraries(setup_thrift_prod
+   handler
+   setup_thrift
+   thrift_method_rate_limit
 )
 
 target_link_libraries(fboss_types
@@ -497,13 +528,33 @@ target_link_libraries(hw_switch
   multiswitch_ctrl_cpp2
 )
 
+add_library(async_logger_base
+  fboss/agent/AsyncLoggerBase.cpp
+)
+
+target_link_libraries(async_logger_base
+  fboss_error
+  fb303::fb303
+  Folly::folly
+)
+
 add_library(async_logger
   fboss/agent/AsyncLogger.cpp
 )
 
 target_link_libraries(async_logger
-  fboss_error
-  fb303::fb303
+  async_logger_base
+)
+
+add_library(state_delta_logger
+  fboss/agent/StateDeltaLogger.cpp
+)
+
+target_link_libraries(state_delta_logger
+  agent_features
+  async_logger_base
+  state
+  fsdb_oper_cpp2
   Folly::folly
 )
 
@@ -615,6 +666,7 @@ add_library(split_agent_thrift_syncer
   fboss/agent/mnpu/SplitAgentThriftSyncer.cpp
   fboss/agent/mnpu/SplitAgentThriftSyncerClient.cpp
   fboss/agent/mnpu/TxPktEventSyncer.cpp
+  fboss/agent/mnpu/IpcHealthMonitor.cpp
 )
 
 target_link_libraries(split_agent_thrift_syncer
@@ -706,6 +758,10 @@ add_executable(fboss_sw_agent
 target_link_libraries(fboss_sw_agent
   main
   split_agent_initializer
+  handler
+  -Wl,--whole-archive
+  setup_thrift_prod
+  -Wl,--no-whole-archive
 )
 
 add_library(sw_switch_warmboot_helper

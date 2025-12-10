@@ -107,6 +107,7 @@ class PeriodicTransmissionMachine : private folly::AsyncTimeout {
 
   void portUp();
   void portDown();
+  std::chrono::seconds getCurrentTransmissionPeriod() const;
 
   // thread-safe
   void start();
@@ -144,6 +145,7 @@ class TransmitMachine : private folly::AsyncTimeout {
 
   void start();
   void stop();
+  bool getLacpLastTransmissionResult() const;
 
  private:
   enum class PeriodicState { NONE, SLOW, FAST, TX };
@@ -155,6 +157,8 @@ class TransmitMachine : private folly::AsyncTimeout {
   static const std::chrono::seconds TX_REPLENISH_RATE;
 
   int transmissionsLeft_{MAX_TRANSMISSIONS_IN_SHORT_PERIOD};
+  bool isLastTransmissionSuccessful_{false};
+
   LacpController& controller_;
   LacpServicerIf* servicer_{nullptr};
 };
@@ -226,7 +230,10 @@ class Selector {
   };
   using PortIDToSelection = boost::container::flat_map<PortID, Selection>;
 
-  Selector(LacpController& controller, uint8_t minLinkCount = 1);
+  explicit Selector(
+      LacpController& controller,
+      uint8_t minLinkCount = 1,
+      std::optional<uint8_t> minLinkCountToUp = std::nullopt);
 
   void start();
   void stop();
@@ -251,6 +258,7 @@ class Selector {
 
   LacpController& controller_;
   uint8_t minLinkCount_{0};
+  std::optional<uint8_t> minLinkCountToUp_;
 };
 
 } // namespace facebook::fboss

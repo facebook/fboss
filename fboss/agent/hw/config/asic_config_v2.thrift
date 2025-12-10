@@ -44,6 +44,7 @@ enum MultistageRole {
   FAP = 1, // for Jericho3
   FE13 = 2, // for 1st stage Ramon3
   FE2 = 3, // for 2nd stage Ramon3
+  FE13_BEEP = 4, // for beep layer 1st stage Ramon3
 }
 
 struct AsicConfigParameters {
@@ -53,6 +54,7 @@ struct AsicConfigParameters {
   4: optional AsicConfigGenType configGenType;
   5: optional string portConfig;
   6: optional MultistageRole multistageRole;
+  7: optional bool hyperPort;
 }
 
 struct AsicVendorConfigParams {

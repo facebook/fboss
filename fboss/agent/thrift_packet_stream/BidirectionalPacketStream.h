@@ -16,6 +16,12 @@ class BidirectionalPacketAcceptor {
  public:
   BidirectionalPacketAcceptor() = default;
   virtual ~BidirectionalPacketAcceptor() = default;
+  BidirectionalPacketAcceptor(const BidirectionalPacketAcceptor&) = delete;
+  BidirectionalPacketAcceptor& operator=(const BidirectionalPacketAcceptor&) =
+      delete;
+  BidirectionalPacketAcceptor(BidirectionalPacketAcceptor&&) = delete;
+  BidirectionalPacketAcceptor& operator=(BidirectionalPacketAcceptor&&) =
+      delete;
   virtual void recvPacket(TPacket&& packet) = 0;
 };
 
@@ -33,6 +39,11 @@ class BidirectionalPacketStream
       BidirectionalPacketAcceptor* acceptor = nullptr);
 
   virtual ~BidirectionalPacketStream() override;
+  BidirectionalPacketStream(const BidirectionalPacketStream&) = delete;
+  BidirectionalPacketStream& operator=(const BidirectionalPacketStream&) =
+      delete;
+  BidirectionalPacketStream(BidirectionalPacketStream&&) = delete;
+  BidirectionalPacketStream& operator=(BidirectionalPacketStream&&) = delete;
 
   void connectClient(uint16_t peerServerPort);
   // Should be called only when destruction. After stop client is called

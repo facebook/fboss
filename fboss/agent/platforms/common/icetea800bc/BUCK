@@ -1,0 +1,16 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "icetea800bc_platform_mapping",
+    srcs = [
+        "Icetea800bcPlatformMapping.cpp",
+    ],
+    headers = [
+        "Icetea800bcPlatformMapping.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+)

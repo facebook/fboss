@@ -12,6 +12,7 @@
 #include <tuple>
 
 #include "DsfNodeMap.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
@@ -42,12 +43,6 @@
 using std::make_shared;
 using std::shared_ptr;
 using std::chrono::seconds;
-
-// TODO: it might be worth splitting up limits for ecmp/ucmp
-DEFINE_uint32(
-    ecmp_width,
-    64,
-    "Max ecmp width. Also implies ucmp normalization factor");
 
 DEFINE_bool(
     enable_acl_table_group,
@@ -199,6 +194,11 @@ SwitchState::getRemoteSystemPorts() const {
   return safe_cref<switch_state_tags::remoteSystemPortMaps>();
 }
 
+const std::shared_ptr<MultiSwitchSystemPortMap>&
+SwitchState::getFabricLinkMonitoringSystemPorts() const {
+  return safe_cref<switch_state_tags::fabricLinkMonitoringSystemPortMaps>();
+}
+
 std::shared_ptr<AclEntry> SwitchState::getAcl(const std::string& name) const {
   if (FLAGS_enable_acl_table_group) {
     getAclTableGroups()
@@ -316,6 +316,11 @@ const std::shared_ptr<MultiSwitchQosPolicyMap>& SwitchState::getQosPolicies()
   return safe_cref<switch_state_tags::qosPolicyMaps>();
 }
 
+const std::shared_ptr<MultiSwitchFibInfoMap>& SwitchState::getFibsInfoMap()
+    const {
+  return safe_cref<switch_state_tags::fibsInfoMap>();
+}
+
 const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>&
 SwitchState::getFibs() const {
   return safe_cref<switch_state_tags::fibsMap>();
@@ -340,6 +345,11 @@ void SwitchState::resetForwardingInformationBases(
   ref<switch_state_tags::fibsMap>() = fibs;
 }
 
+void SwitchState::resetFibsInfoMap(
+    std::shared_ptr<MultiSwitchFibInfoMap> fibsInfoMap) {
+  ref<switch_state_tags::fibsInfoMap>() = fibsInfoMap;
+}
+
 void SwitchState::resetTransceivers(
     std::shared_ptr<MultiSwitchTransceiverMap> transceivers) {
   ref<switch_state_tags::transceiverMaps>() = transceivers;
@@ -358,6 +368,11 @@ void SwitchState::resetSystemPorts(
 void SwitchState::resetRemoteSystemPorts(
     const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts) {
   ref<switch_state_tags::remoteSystemPortMaps>() = systemPorts;
+}
+
+void SwitchState::resetFabricLinkMonitoringSystemPorts(
+    const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts) {
+  ref<switch_state_tags::fabricLinkMonitoringSystemPortMaps>() = systemPorts;
 }
 
 const std::shared_ptr<MultiSwitchSystemPortMap>& SwitchState::getSystemPorts()
@@ -566,6 +581,28 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
         state->getVlans().get() /* to */);
   }
 
+  /*
+   * FIB Migration: Four-stage transition from fibsMap to fibsInfoMap
+   *
+   * Stage 1 (Current): Rollback safety - Clear fibsInfoMap when deserializing
+   * to handle rollback from Stage 2 where both FIBs are
+   * populated during warm boot exit.
+   *
+   * Stage 2: Migrate clients to new FIB while populating
+   * both structures during warm boot exit. Forward migration (Stage
+   * 2→3) clears fibsMap on init; rollback (Stage 2→1) clears fibsInfoMap during
+   * init of stage 1.
+   *
+   * Stage 3: New FIB primary - All clients use fibsInfoMap, but both FIBs still
+   * populated during warm boot exit to support direct Stage 1→3
+   * transitions.
+   *
+   * Stage 4: Complete migration - Remove fibsMap entirely from codebase.
+   */
+  if (state->getFibsInfoMap() && !state->getFibsInfoMap()->empty()) {
+    state->resetFibsInfoMap(std::make_shared<MultiSwitchFibInfoMap>());
+  }
+
   return state;
 }
 
@@ -712,6 +749,10 @@ InterfaceID SwitchState::getInterfaceIDForPort(
   switch (port.type()) {
     case PortDescriptor::PortType::PHYSICAL: {
       auto physicalPort = getPorts()->getNode(port.phyPortID());
+      if (physicalPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) {
+        // no L3 interface configured on hyper port members
+        return InterfaceID(0);
+      }
       // On VOQ/Fabric switches, port and interface have 1:1 relation.
       // For non VOQ/Fabric switches, in practice, a port is always part of a
       // single VLAN (and thus single interface).
@@ -834,6 +875,9 @@ template MultiSwitchSystemPortMap* SwitchState::modify<
     switch_state_tags::systemPortMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchSystemPortMap* SwitchState::modify<
     switch_state_tags::remoteSystemPortMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchSystemPortMap*
+SwitchState::modify<switch_state_tags::fabricLinkMonitoringSystemPortMaps>(
+    std::shared_ptr<SwitchState>*);
 template MultiSwitchPortMap* SwitchState::modify<switch_state_tags::portMaps>(
     std::shared_ptr<SwitchState>*);
 template MultiLabelForwardingInformationBase* SwitchState::modify<

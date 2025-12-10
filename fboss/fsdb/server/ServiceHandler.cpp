@@ -39,6 +39,16 @@ DEFINE_int32(
     10000,
     "Interval at which stats subscriptions are served");
 
+// queue size for serving stats subscriptions is chosen
+// to accommodate pending updates generated over 1 min interval
+// (6 updates + 2 heartbeats).
+// This limits memory usage on server due to subscription serve
+// queue while not disconnecting subscriber aggressively.
+DEFINE_int32(
+    statsSubscriptionServeQueueSize,
+    8,
+    "Max stats subscription updates to hold in server queue");
+
 DEFINE_int32(
     statsSubscriptionHeartbeat_s,
     30,
@@ -53,6 +63,16 @@ DEFINE_int32(
     stateSubscriptionHeartbeat_s,
     5,
     "Interval at which heartbeats are sent for state subscribers");
+
+DEFINE_int32(
+    deltaSubscriptionQueueFullMinSize,
+    5,
+    "minimum number of pending updates to trigger memory-based subscription queue full detection");
+
+DEFINE_int32(
+    deltaSubscriptionQueueMemoryLimit_mb,
+    0,
+    "total memory size of queued updates for delta subscription at which memory-based subscription queue full detection is triggered (0 to disable)");
 
 DEFINE_bool(
     checkSubscriberConfig,
@@ -123,8 +143,9 @@ std::string getRequestDetails(const OperRequest& request) {
     std::vector<std::string> pathStrings;
     pathStrings.reserve(request.paths()->size());
     for (const auto& path : *request.paths()) {
-      pathStrings.push_back(fmt::format(
-          "{}:{}", path.first, folly::join("/", *path.second.path())));
+      pathStrings.push_back(
+          fmt::format(
+              "{}:{}", path.first, folly::join("/", *path.second.path())));
     }
     pathStr = folly::join(", ", std::move(pathStrings));
   } else if constexpr (std::is_same_v<OperRequest, OperSubRequestExtended>) {
@@ -261,7 +282,11 @@ ServiceHandler::ServiceHandler(
               "fsdb",
               options_.serveIdPathSubs,
               true,
-              true)),
+              true)
+              .setDeltaSubscriptionQueueFullMinSize(
+                  FLAGS_deltaSubscriptionQueueFullMinSize)
+              .setDeltaSubscriptionQueueMemoryLimit(
+                  FLAGS_deltaSubscriptionQueueMemoryLimit_mb * 1024 * 1024)),
       operStatsStorage_(
           {},
           NaivePeriodicSubscribableStorageBase::StorageParams(
@@ -271,7 +296,14 @@ ServiceHandler::ServiceHandler(
               "stats",
               options_.serveIdPathSubs,
               true,
-              true)) {
+              true,
+              true /* serveGetRequestsWithLastPublishedState */,
+              FLAGS_statsSubscriptionServeQueueSize,
+              FLAGS_statsSubscriptionServeQueueSize)
+              .setDeltaSubscriptionQueueFullMinSize(
+                  FLAGS_deltaSubscriptionQueueFullMinSize)
+              .setDeltaSubscriptionQueueMemoryLimit(
+                  FLAGS_deltaSubscriptionQueueMemoryLimit_mb * 1024 * 1024)) {
   num_instances_.incrementValue(1);
 
   initPerStreamCounters();
@@ -360,9 +392,9 @@ void ServiceHandler::registerPublisher(const OperPublisherInfo& info) {
   }
   num_publishers_.incrementValue(1);
   try {
-    auto config =
+    auto pathConfig =
         fsdbConfig_->getPathConfig(*info.publisherId(), *info.path()->raw());
-    if (*config.get().isExpected()) {
+    if (*pathConfig.get().isExpected()) {
       num_disconnected_publishers_.incrementValue(-1);
       auto counter = disconnectedPublishers_.find(
           PublisherKey(*info.publisherId(), *info.isStats()));
@@ -685,6 +717,13 @@ OperSubscriberInfo makeSubscriberInfo(
   info.subscriberId() = *req.clientId()->instanceId();
   info.type() = type;
   info.paths() = *req.paths();
+  if (!req.extPaths()->empty()) {
+    std::vector<ExtendedOperPath> extPaths;
+    for (const auto& kv : *req.extPaths()) {
+      extPaths.push_back(kv.second);
+    }
+    info.extendedPaths() = extPaths;
+  }
   info.isStats() = isStats;
   info.subscriptionUid() = uid;
   return info;
@@ -895,7 +934,7 @@ ServiceHandler::makeExtendedStateStreamGenerator(
                        subscriptionParams);
 }
 
-folly::coro::AsyncGenerator<SubscriberMessage&&>
+SubscriptionStreamReader<SubscriptionServeQueueElement<SubscriberMessage>>
 ServiceHandler::makePatchStreamGenerator(
     std::unique_ptr<SubRequest> request,
     bool isStats,
@@ -906,10 +945,22 @@ ServiceHandler::makePatchStreamGenerator(
         std::chrono::seconds(request->heartbeatInterval().value());
   }
 
-  return isStats ? operStatsStorage_.subscribe_patch(
-                       std::move(subId), *request->paths(), subscriptionParams)
-                 : operStorage_.subscribe_patch(
-                       std::move(subId), *request->paths(), subscriptionParams);
+  if (!request->paths()->empty()) {
+    auto streamReader = isStats
+        ? operStatsStorage_.subscribe_patch(
+              std::move(subId), *request->paths(), subscriptionParams)
+        : operStorage_.subscribe_patch(
+              std::move(subId), *request->paths(), subscriptionParams);
+    return streamReader;
+  } else {
+    CHECK_GT(request->extPaths()->size(), 0);
+    auto streamReader = isStats
+        ? operStatsStorage_.subscribe_patch_extended(
+              std::move(subId), *request->extPaths(), subscriptionParams)
+        : operStorage_.subscribe_patch_extended(
+              std::move(subId), *request->extPaths(), subscriptionParams);
+    return streamReader;
+  }
 }
 
 folly::coro::Task<
@@ -935,7 +986,7 @@ ServiceHandler::co_subscribeOperStatePath(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperState&&> {
+              -> folly::coro::AsyncGenerator<OperState&&> {
             auto generator = makeStateStreamGenerator(
                 std::move(request), false, std::move(subId));
             while (auto item = co_await generator.next()) {
@@ -976,7 +1027,7 @@ ServiceHandler::co_subscribeOperStatsPath(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperState&&> {
+              -> folly::coro::AsyncGenerator<OperState&&> {
             auto generator = makeStateStreamGenerator(
                 std::move(request), true, std::move(subId));
             while (auto item = co_await generator.next()) {
@@ -994,7 +1045,7 @@ ServiceHandler::co_subscribeOperStatsPath(
           })};
 }
 
-folly::coro::AsyncGenerator<OperDelta&&>
+SubscriptionStreamReader<SubscriptionServeQueueElement<OperDelta>>
 ServiceHandler::makeDeltaStreamGenerator(
     std::unique_ptr<OperSubRequest> request,
     bool isStats,
@@ -1005,21 +1056,23 @@ ServiceHandler::makeDeltaStreamGenerator(
         std::chrono::seconds(request->heartbeatInterval().value());
   }
 
-  return isStats ? operStatsStorage_.subscribe_delta(
-                       std::move(subId),
-                       request->path()->raw()->begin(),
-                       request->path()->raw()->end(),
-                       *request->protocol(),
-                       subscriptionParams)
-                 : operStorage_.subscribe_delta(
-                       std::move(subId),
-                       request->path()->raw()->begin(),
-                       request->path()->raw()->end(),
-                       *request->protocol(),
-                       subscriptionParams);
+  auto streamReader = isStats ? operStatsStorage_.subscribe_delta(
+                                    std::move(subId),
+                                    request->path()->raw()->begin(),
+                                    request->path()->raw()->end(),
+                                    *request->protocol(),
+                                    subscriptionParams)
+                              : operStorage_.subscribe_delta(
+                                    std::move(subId),
+                                    request->path()->raw()->begin(),
+                                    request->path()->raw()->end(),
+                                    *request->protocol(),
+                                    subscriptionParams);
+  return streamReader;
 }
 
-folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
+SubscriptionStreamReader<
+    SubscriptionServeQueueElement<std::vector<TaggedOperDelta>>>
 ServiceHandler::makeExtendedDeltaStreamGenerator(
     std::unique_ptr<OperSubRequestExtended> request,
     bool isStats,
@@ -1030,16 +1083,17 @@ ServiceHandler::makeExtendedDeltaStreamGenerator(
         std::chrono::seconds(request->heartbeatInterval().value());
   }
 
-  return isStats ? operStatsStorage_.subscribe_delta_extended(
-                       std::move(subId),
-                       *request->paths(),
-                       *request->protocol(),
-                       subscriptionParams)
-                 : operStorage_.subscribe_delta_extended(
-                       std::move(subId),
-                       *request->paths(),
-                       *request->protocol(),
-                       subscriptionParams);
+  auto streamReader = isStats ? operStatsStorage_.subscribe_delta_extended(
+                                    std::move(subId),
+                                    *request->paths(),
+                                    *request->protocol(),
+                                    subscriptionParams)
+                              : operStorage_.subscribe_delta_extended(
+                                    std::move(subId),
+                                    *request->paths(),
+                                    *request->protocol(),
+                                    subscriptionParams);
+  return streamReader;
 }
 
 folly::coro::Task<
@@ -1065,12 +1119,14 @@ ServiceHandler::co_subscribeOperStateDelta(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperDelta&&> {
-            auto generator = makeDeltaStreamGenerator(
+              -> folly::coro::AsyncGenerator<OperDelta&&> {
+            auto streamReader = makeDeltaStreamGenerator(
                 std::move(request), false, std::move(subId));
-            while (auto item = co_await generator.next()) {
-              // got value
-              co_yield std::move(*item);
+            while (auto item = co_await streamReader.generator_.next()) {
+              // Update served data size and then yield
+              streamReader.streamInfo_->servedDataSize.fetch_add(
+                  (*item).allocatedBytes, std::memory_order_relaxed);
+              co_yield std::move((*item).val);
             }
           })};
 }
@@ -1100,7 +1156,7 @@ ServiceHandler::co_subscribeOperStatePathExtended(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperSubPathUnit&&> {
+              -> folly::coro::AsyncGenerator<OperSubPathUnit&&> {
             auto generator = makeExtendedStateStreamGenerator(
                 std::move(request), false, std::move(subId));
             while (auto item = co_await generator.next()) {
@@ -1149,12 +1205,15 @@ ServiceHandler::co_subscribeOperStateDeltaExtended(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperSubDeltaUnit&&> {
-            auto generator = makeExtendedDeltaStreamGenerator(
+              -> folly::coro::AsyncGenerator<OperSubDeltaUnit&&> {
+            auto streamReader = makeExtendedDeltaStreamGenerator(
                 std::move(request), false, std::move(subId));
-            while (auto item = co_await generator.next()) {
-              // got item
-              auto&& delta = *item;
+            while (auto item = co_await streamReader.generator_.next()) {
+              // Update served data size and then yield
+              streamReader.streamInfo_->servedDataSize.fetch_add(
+                  item->allocatedBytes, std::memory_order_relaxed);
+
+              auto&& delta = std::move(item->val);
 
               OperSubDeltaUnit unit;
 
@@ -1188,12 +1247,14 @@ ServiceHandler::co_subscribeOperStatsDelta(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperDelta&&> {
-            auto generator = makeDeltaStreamGenerator(
+              -> folly::coro::AsyncGenerator<OperDelta&&> {
+            auto streamReader = makeDeltaStreamGenerator(
                 std::move(request), true, std::move(subId));
-            while (auto item = co_await generator.next()) {
-              // got value
-              co_yield std::move(*item);
+            while (auto item = co_await streamReader.generator_.next()) {
+              // Update served data size and then yield
+              streamReader.streamInfo_->servedDataSize.fetch_add(
+                  (*item).allocatedBytes, std::memory_order_relaxed);
+              co_yield std::move((*item).val);
             }
           })};
 }
@@ -1223,7 +1284,7 @@ ServiceHandler::co_subscribeOperStatsPathExtended(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperSubPathUnit&&> {
+              -> folly::coro::AsyncGenerator<OperSubPathUnit&&> {
             auto generator = makeExtendedStateStreamGenerator(
                 std::move(request), true, std::move(subId));
             while (auto item = co_await generator.next()) {
@@ -1272,12 +1333,14 @@ ServiceHandler::co_subscribeOperStatsDeltaExtended(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperSubDeltaUnit&&> {
-            auto generator = makeExtendedDeltaStreamGenerator(
+              -> folly::coro::AsyncGenerator<OperSubDeltaUnit&&> {
+            auto streamReader = makeExtendedDeltaStreamGenerator(
                 std::move(request), true, std::move(subId));
-            while (auto item = co_await generator.next()) {
-              // got item
-              auto&& delta = *item;
+            while (auto item = co_await streamReader.generator_.next()) {
+              // Update served data size and then yield
+              streamReader.streamInfo_->servedDataSize.fetch_add(
+                  item->allocatedBytes, std::memory_order_relaxed);
+              auto&& delta = std::move(item->val);
 
               OperSubDeltaUnit unit;
 
@@ -1293,7 +1356,21 @@ folly::coro::Task<apache::thrift::ResponseAndServerStream<
     SubscriberMessage>>
 ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
-  validatePaths(*request->paths(), false);
+
+  if (!request->extPaths()->empty()) {
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "Invalid Subscription request with ExtendedPaths from: ",
+        clientIdToString(*request->clientId()));
+  } else if (request->paths()->empty()) {
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "Request without Paths from: ",
+        clientIdToString(*request->clientId()));
+  } else {
+    validatePaths(*request->paths(), false);
+  }
+
   auto subscriberInfo = makeSubscriberInfo(
       *request, PubSubType::PATCH, false, lastSubscriptionUid_.fetch_add(1));
   auto subId = makeSubscriptionIdentifier(subscriberInfo);
@@ -1307,9 +1384,15 @@ ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
        request = std::move(request),
        subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-      -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        return makePatchStreamGenerator(
+          -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
+        auto streamReader = makePatchStreamGenerator(
             std::move(request), false, std::move(subId));
+        while (auto item = co_await streamReader.generator_.next()) {
+          // Update served data size and then yield
+          streamReader.streamInfo_->servedDataSize.fetch_add(
+              (*item).allocatedBytes, std::memory_order_relaxed);
+          co_yield std::move((*item).val);
+        }
       });
   co_return {{}, std::move(stream)};
 }
@@ -1319,7 +1402,21 @@ folly::coro::Task<apache::thrift::ResponseAndServerStream<
     SubscriberMessage>>
 ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
-  validatePaths(*request->paths(), true);
+
+  if (!request->extPaths()->empty()) {
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "Invalid Subscription request with ExtendedPaths from: ",
+        clientIdToString(*request->clientId()));
+  } else if (request->paths()->empty()) {
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "Request without Paths from: ",
+        clientIdToString(*request->clientId()));
+  } else {
+    validatePaths(*request->paths(), true);
+  }
+
   auto subscriberInfo = makeSubscriberInfo(
       *request, PubSubType::PATCH, true, lastSubscriptionUid_.fetch_add(1));
   auto subId = makeSubscriptionIdentifier(subscriberInfo);
@@ -1328,14 +1425,119 @@ ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
         unregisterSubscription(subscriberInfo);
       });
+
   auto stream = folly::coro::co_invoke(
       [this,
        request = std::move(request),
        subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-      -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        return makePatchStreamGenerator(
+          -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
+        auto streamReader = makePatchStreamGenerator(
             std::move(request), true, std::move(subId));
+        while (auto item = co_await streamReader.generator_.next()) {
+          // Update served data size and then yield
+          streamReader.streamInfo_->servedDataSize.fetch_add(
+              (*item).allocatedBytes, std::memory_order_relaxed);
+          co_yield std::move((*item).val);
+        }
+      });
+  co_return {{}, std::move(stream)};
+}
+
+folly::coro::Task<apache::thrift::ResponseAndServerStream<
+    OperSubInitResponse,
+    SubscriberMessage>>
+ServiceHandler::co_subscribeStateExtended(std::unique_ptr<SubRequest> request) {
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
+
+  if (request->extPaths()->empty()) {
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "subscribeStateExtended request without ExtendedPaths from: ",
+        clientIdToString(*request->clientId()));
+  } else if (!request->paths()->empty()) {
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "subscribeStateExtended request with Paths from: ",
+        clientIdToString(*request->clientId()));
+  }
+
+  for (const auto& kv : *request->extPaths()) {
+    PathValidator::validateExtendedStatePath(kv.second);
+  }
+
+  auto subscriberInfo = makeSubscriberInfo(
+      *request, PubSubType::PATCH, true, lastSubscriptionUid_.fetch_add(1));
+  auto subId = makeSubscriptionIdentifier(subscriberInfo);
+  registerSubscription(subscriberInfo, *request->forceSubscribe());
+  auto cleanupSubscriber =
+      folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
+        unregisterSubscription(subscriberInfo);
+      });
+
+  auto stream = folly::coro::co_invoke(
+      [this,
+       request = std::move(request),
+       subId = std::move(subId),
+       cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
+          -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
+        auto streamReader = makePatchStreamGenerator(
+            std::move(request), false, std::move(subId));
+        while (auto item = co_await streamReader.generator_.next()) {
+          // Update served data size and then yield
+          streamReader.streamInfo_->servedDataSize.fetch_add(
+              (*item).allocatedBytes, std::memory_order_relaxed);
+          co_yield std::move((*item).val);
+        }
+      });
+  co_return {{}, std::move(stream)};
+}
+
+folly::coro::Task<apache::thrift::ResponseAndServerStream<
+    OperSubInitResponse,
+    SubscriberMessage>>
+ServiceHandler::co_subscribeStatsExtended(std::unique_ptr<SubRequest> request) {
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
+
+  if (request->extPaths()->empty()) {
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "subscribeStatsExtended request without ExtendedPaths from: ",
+        clientIdToString(*request->clientId()));
+  } else if (!request->paths()->empty()) {
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "subscribeStatsExtended request with Paths from: ",
+        clientIdToString(*request->clientId()));
+  }
+
+  for (const auto& kv : *request->extPaths()) {
+    PathValidator::validateExtendedStatsPath(kv.second);
+  }
+
+  auto subscriberInfo = makeSubscriberInfo(
+      *request, PubSubType::PATCH, true, lastSubscriptionUid_.fetch_add(1));
+  auto subId = makeSubscriptionIdentifier(subscriberInfo);
+  registerSubscription(subscriberInfo, *request->forceSubscribe());
+  auto cleanupSubscriber =
+      folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
+        unregisterSubscription(subscriberInfo);
+      });
+
+  auto stream = folly::coro::co_invoke(
+      [this,
+       request = std::move(request),
+       subId = std::move(subId),
+       cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
+          -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
+        auto streamReader = makePatchStreamGenerator(
+            std::move(request), true, std::move(subId));
+        while (auto item = co_await streamReader.generator_.next()) {
+          // Update served data size and then yield
+          streamReader.streamInfo_->servedDataSize.fetch_add(
+              (*item).allocatedBytes, std::memory_order_relaxed);
+          co_yield std::move((*item).val);
+        }
       });
   co_return {{}, std::move(stream)};
 }
@@ -1458,6 +1660,16 @@ void mergeOperSubscriberInfo(
           if (subInfo.subscriptionQueueWatermark().has_value()) {
             sub.subscriptionQueueWatermark() =
                 *subInfo.subscriptionQueueWatermark();
+          }
+          if (subInfo.subscriptionChunksCoalesced().has_value()) {
+            sub.subscriptionChunksCoalesced() =
+                *subInfo.subscriptionChunksCoalesced();
+          }
+          if (subInfo.enqueuedDataSize().has_value()) {
+            sub.enqueuedDataSize() = *subInfo.enqueuedDataSize();
+          }
+          if (subInfo.servedDataSize().has_value()) {
+            sub.servedDataSize() = *subInfo.servedDataSize();
           }
         }
       }

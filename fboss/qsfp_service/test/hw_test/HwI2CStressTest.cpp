@@ -226,7 +226,7 @@ TEST_F(HwTest, cmisPageChange) {
       folly::gen::filter([&transceiversInfo](int32_t tcvrId) {
         const auto& tcvrInfo = transceiversInfo[tcvrId];
         const auto& tcvrState = *tcvrInfo.tcvrState();
-        return utility::HwTransceiverUtils::opticalOrActiveCmisCable(tcvrState);
+        return TransceiverManager::opticalOrActiveCmisCable(tcvrState);
       }) |
       folly::gen::as<std::vector>();
 

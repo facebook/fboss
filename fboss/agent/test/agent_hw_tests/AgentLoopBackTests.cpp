@@ -34,11 +34,18 @@ class AgentLoopBackTest : public AgentHwTest {
   }
 
  private:
+  PortID portIdToTest() {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds()[0];
+    }
+    return masterLogicalInterfacePortIds()[0];
+  }
+
   void sendPkt(bool frontPanel, uint8_t ttl, bool srcEqualDstMac) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
         vlanId,
@@ -53,7 +60,7 @@ class AgentLoopBackTest : public AgentHwTest {
 
     if (frontPanel) {
       getSw()->sendPacketOutOfPortAsync(
-          std::move(txPacket), masterLogicalInterfacePortIds()[0]);
+          std::move(txPacket), this->portIdToTest());
     } else {
       getSw()->sendPacketSwitchedAsync(std::move(txPacket));
     }
@@ -76,12 +83,10 @@ class AgentLoopBackTest : public AgentHwTest {
           checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
               ->getSwitchType();
       for (auto frontPanel : {true, false}) {
-        auto beforePortStats =
-            getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+        auto beforePortStats = getLatestPortStats(this->portIdToTest());
         sendPkt(frontPanel, pktTtl, srcEqualDstMac);
         WITH_RETRIES({
-          auto afterPortStats =
-              getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+          auto afterPortStats = getLatestPortStats(this->portIdToTest());
           // For packets going out to front panel, they would not go through the
           // routing logic the very first time (but directly looped back).
           // Therefore, the counter would plus one compared to the cpu port.

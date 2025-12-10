@@ -176,7 +176,7 @@ inline void NdpCache::checkReachability(
       targetMac,
       srcIP,
       srcMac,
-      srcIntf->getVlanIDIf(),
+      srcIntf->getVlanIDIf_DEPRECATED(),
       port);
 }
 

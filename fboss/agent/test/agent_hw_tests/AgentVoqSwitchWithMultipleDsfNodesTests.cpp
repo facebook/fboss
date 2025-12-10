@@ -91,7 +91,8 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
     config.switchSettings()->selfHealingEcmpLagConfig() = shelConfig;
     // Enable selfHealingEcmpLag on Interface Ports
     for (auto& port : *config.ports()) {
-      if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+      if (port.portType() == cfg::PortType::INTERFACE_PORT ||
+          port.portType() == cfg::PortType::HYPER_PORT) {
         port.selfHealingECMPLagEnable() = true;
       }
     }
@@ -806,7 +807,8 @@ class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
     auto state = getProgrammedState();
     for (const auto& portMap : std::as_const(*state->getPorts())) {
       for (const auto& port : std::as_const(*portMap.second)) {
-        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
+            port.second->getPortType() == cfg::PortType::HYPER_PORT) {
           if (desiredShelEnable) {
             EXPECT_TRUE(
                 port.second->getDesiredSelfHealingECMPLagEnable().has_value());
@@ -835,7 +837,8 @@ class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
       auto state = getProgrammedState();
       for (const auto& portMap : std::as_const(*state->getPorts())) {
         for (const auto& port : std::as_const(*portMap.second)) {
-          if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+          if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
+              port.second->getPortType() == cfg::PortType::HYPER_PORT) {
             auto switchId = scopeResolver().scope(port.second).switchId();
             EXPECT_EVENTUALLY_TRUE(stats.contains(switchId));
             auto globalSystemPortOffset = *getSw()
@@ -881,7 +884,8 @@ TEST_F(AgentVoqShelSwitchTest, init) {
     auto state = getProgrammedState();
     for (const auto& portMap : std::as_const(*state->getPorts())) {
       for (const auto& port : std::as_const(*portMap.second)) {
-        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT &&
+        if ((port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
+             port.second->getPortType() == cfg::PortType::HYPER_PORT) &&
             port.second->getSelfHealingECMPLagEnable()) {
           bringDownPort(port.second->getID());
           bringUpPort(port.second->getID());
@@ -907,7 +911,8 @@ TEST_F(AgentVoqShelSwitchTest, init) {
     config.switchSettings()->selfHealingEcmpLagConfig().reset();
 
     for (auto& port : *config.ports()) {
-      if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+      if (port.portType() == cfg::PortType::INTERFACE_PORT ||
+          port.portType() == cfg::PortType::HYPER_PORT) {
         port.selfHealingECMPLagEnable() = false;
       }
     }
@@ -945,7 +950,8 @@ TEST_F(AgentVoqShelSwitchTest, routeChurn) {
     auto state = getProgrammedState();
     for (const auto& portMap : std::as_const(*state->getPorts())) {
       for (const auto& port : std::as_const(*portMap.second)) {
-        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT &&
+        if ((port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
+             port.second->getPortType() == cfg::PortType::HYPER_PORT) &&
             port.second->getSelfHealingECMPLagEnable()) {
           bringDownPort(port.second->getID());
           bringUpPort(port.second->getID());
@@ -993,7 +999,8 @@ TEST_F(AgentVoqShelWBEnableTest, wbEnable) {
     auto state = getProgrammedState();
     for (const auto& portMap : std::as_const(*state->getPorts())) {
       for (const auto& port : std::as_const(*portMap.second)) {
-        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT &&
+        if ((port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
+             port.second->getPortType() == cfg::PortType::HYPER_PORT) &&
             port.second->getSelfHealingECMPLagEnable()) {
           bringDownPort(port.second->getID());
           bringUpPort(port.second->getID());

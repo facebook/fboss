@@ -229,6 +229,9 @@ enum MediaInterfaceCode {
   DR1_200G = 24,
   FR4_LPO_2x400G = 25,
   ZR_800G = 26,
+  DR2_400G = 27,
+  DR1_100G = 28,
+  CR1_100G = 29,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -287,13 +290,16 @@ enum SMFMediaInterfaceCode {
   FR4_400G = 0x1D,
   LR4_10_400G = 0x1E,
   DR1_200G = 0x73,
+  DR2_400G = 0x75,
   DR4_800G = 0x77,
+  DR1_100G = 0x14,
   FR8_800G = 0xC1,
   ZR_OIF_ZRA_800G = 0x6C,
   ZR_OROADM_FLEXO_8E_DPO_800G = 0x68,
   ZR_OROADM_FLEXO_6E_DPO_600G = 0x6A,
   ZR_OROADM_FLEXO_4E_DO_400G = 0x64,
   ZR_OPENZRP_OFEC_400G = 0x36,
+  ZR_VENDOR_CUSTOM = 0xF7,
 }
 
 enum Ethernet10GComplianceCode {
@@ -363,6 +369,33 @@ enum CmisLaneState {
   TX_ON = 0x5,
   TX_OFF = 0x6,
   DATAPATH_INITIALIZED = 0x7,
+}
+
+// Supported frequency grids for tunable optics as per the CMIS spec
+enum FrequencyGrid {
+  LASER_3P125GHZ = 0x0,
+  LASER_6P25GHZ = 0x1,
+  LASER_12P5GHZ = 0x2,
+  LASER_25GHZ = 0x3,
+  LASER_50GHZ = 0x4,
+  LASER_100GHZ = 0x5,
+  LASER_33GHZ = 0x6,
+  LASER_75GHZ = 0x7,
+  LASER_150GHZ = 0x8,
+}
+
+enum LaserStatusBitMask {
+  WAVELENGTH_LOCKED = 0x0,
+  WAVELENGTH_UNLOCKED = 0x1,
+  LASER_TUNE_IN_PROGRESS = 0x2,
+  LASER_TUNE_NOT_IN_PROGRESS = 0x3,
+}
+
+struct TunableLaserStatus {
+  1: LaserStatusBitMask tuningStatus;
+  2: LaserStatusBitMask wavelengthLockingStatus;
+  3: i32 laserStatusFlagsByte;
+  4: i64 laserFrequencyMhz;
 }
 
 struct FirmwareStatus {
@@ -568,6 +601,10 @@ struct TcvrState {
   26: set<string> interfaces;
   27: string tcvrName;
   28: bool lpoModule;
+  29: optional TunableLaserStatus tunableLaserStatus;
+  // Will be set to true if the last attempt to read data from this transceiver
+  // was unsuccessful
+  30: bool communicationError;
 }
 
 struct TcvrStats {
@@ -757,6 +794,8 @@ struct CmisData {
   14: optional IOBuf page25;
   15: optional IOBuf page22;
   16: optional IOBuf page26;
+  17: optional IOBuf page04;
+  18: optional IOBuf page12;
 }
 
 struct TransceiverIOParameters {
@@ -800,6 +839,7 @@ struct DiagsCapability {
   11: bool rxOutputControl = false;
   12: bool snrLine = false;
   13: bool snrSystem = false;
+  // Below capabilities 14-20 are not updated or used anywhere in the code
   14: bool cdbFirmwareUpgrade = false;
   15: bool cdbFirmwareReadback = false;
   16: bool cdbEplMemorySupported = false;
@@ -844,6 +884,27 @@ enum TransceiverStateMachineEvent {
   TCVR_EV_REMEDIATE_TRANSCEIVER = 16,
   TCVR_EV_PREPARE_TRANSCEIVER = 17,
   TCVR_EV_UPGRADE_FIRMWARE = 18,
+}
+
+enum PortStateMachineState {
+  UNINITIALIZED = 0,
+  INITIALIZED = 1,
+  IPHY_PORTS_PROGRAMMED = 2,
+  XPHY_PORTS_PROGRAMMED = 3,
+  TRANSCEIVERS_PROGRAMMED = 4,
+  PORT_UP = 5,
+  PORT_DOWN = 6,
+}
+
+enum PortStateMachineEvent {
+  PORT_EV_INITIALIZE_PORT = 0,
+  PORT_EV_PROGRAM_IPHY = 1,
+  PORT_EV_PROGRAM_XPHY = 2,
+  PORT_EV_CHECK_TCVRS_PROGRAMMED = 3,
+  PORT_EV_SET_PORT_UP = 4,
+  PORT_EV_SET_PORT_DOWN = 5,
+  PORT_EV_RESET_TO_UNINITIALIZED = 6,
+  PORT_EV_RESET_TO_INITIALIZED = 7,
 }
 
 struct SwitchDeploymentInfo {

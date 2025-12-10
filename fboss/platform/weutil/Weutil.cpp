@@ -1,62 +1,15 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 #include "fboss/platform/weutil/Weutil.h"
 
-#include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
-#include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/helpers/PlatformNameLib.h"
+#include "fboss/platform/weutil/ConfigUtils.h"
 #include "fboss/platform/weutil/WeutilDarwin.h"
 #include "fboss/platform/weutil/WeutilImpl.h"
 
 namespace facebook::fboss::platform {
-
-namespace {
-
-std::vector<std::string> getEepromNames(
-    const weutil_config::WeutilConfig& thriftConfig) {
-  std::vector<std::string> eepromNames;
-  for (const auto& [eepromName, eepromConfig] : *thriftConfig.fruEepromList()) {
-    std::string fruName = eepromName;
-    std::transform(fruName.begin(), fruName.end(), fruName.begin(), ::tolower);
-    eepromNames.push_back(fruName);
-  }
-  return eepromNames;
-}
-
-// Gets the FruEepromConfig based on the eeprom name specified.
-weutil_config::FruEepromConfig getFruEepromConfig(
-    const std::string& eepromName,
-    const weutil_config::WeutilConfig& thriftConfig) {
-  std::string fruName = eepromName;
-  std::transform(fruName.begin(), fruName.end(), fruName.begin(), ::toupper);
-  auto itr = thriftConfig.fruEepromList()->find(fruName);
-  if (itr == thriftConfig.fruEepromList()->end()) {
-    throw std::runtime_error(fmt::format(
-        "Invalid EEPROM name {}. Valid EEPROM names are: {}",
-        eepromName,
-        folly::join(", ", getEepromNames(thriftConfig))));
-  }
-  return itr->second;
-}
-
-} // namespace
-
-weutil_config::WeutilConfig getWeUtilConfig() {
-  weutil_config::WeutilConfig thriftConfig;
-  std::string weutilConfigJson = ConfigLib().getWeutilConfig();
-  try {
-    apache::thrift::SimpleJSONSerializer::deserialize<
-        weutil_config::WeutilConfig>(weutilConfigJson, thriftConfig);
-  } catch (const std::exception& e) {
-    throw std::runtime_error(fmt::format(
-        "Failed to deserialize WeutilConfig: {}. Error: {}",
-        weutilConfigJson,
-        e.what()));
-  }
-  return thriftConfig;
-}
 
 std::unique_ptr<WeutilInterface> createWeUtilIntf(
     const std::string& eepromName,
@@ -77,19 +30,23 @@ std::unique_ptr<WeutilInterface> createWeUtilIntf(
     throw std::runtime_error(
         "Unable to determine platform type. Use the --path option");
   }
-  auto thriftConfig = getWeUtilConfig();
-  weutil_config::FruEepromConfig fruEepromConfig;
-  if (eepromName == "chassis" || eepromName.empty()) {
-    fruEepromConfig =
-        getFruEepromConfig(*thriftConfig.chassisEepromName(), thriftConfig);
+  weutil::ConfigUtils configUtils(platformName);
+  weutil::FruEeprom fruEeprom;
+  std::string upperEepromName = eepromName;
+  std::transform(
+      upperEepromName.begin(),
+      upperEepromName.end(),
+      upperEepromName.begin(),
+      ::toupper);
+  if (upperEepromName == "CHASSIS" || upperEepromName.empty()) {
+    fruEeprom = configUtils.getFruEeprom(configUtils.getChassisEepromName());
   } else {
-    fruEepromConfig = getFruEepromConfig(eepromName, thriftConfig);
+    fruEeprom = configUtils.getFruEeprom(upperEepromName);
   }
   if (isDarwin) {
-    return std::make_unique<WeutilDarwin>(*fruEepromConfig.path());
+    return std::make_unique<WeutilDarwin>(fruEeprom.path);
   } else {
-    return std::make_unique<WeutilImpl>(
-        *fruEepromConfig.path(), *fruEepromConfig.offset());
+    return std::make_unique<WeutilImpl>(fruEeprom.path, fruEeprom.offset);
   }
 }
 

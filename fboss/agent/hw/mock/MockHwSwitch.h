@@ -69,6 +69,14 @@ class MockHwSwitch : public HwSwitch {
       facebook::fboss::PortID portID,
       std::optional<uint8_t> queue = std::nullopt) noexcept override;
 
+  MOCK_METHOD3(
+      sendPacketOutOfPortSyncForPktType_,
+      bool(TxPacket*, facebook::fboss::PortID, facebook::fboss::TxPacketType));
+  bool sendPacketOutOfPortSyncForPktType(
+      std::unique_ptr<TxPacket> pkt,
+      const facebook::fboss::PortID& portID,
+      facebook::fboss::TxPacketType packetType) noexcept override;
+
   MOCK_CONST_METHOD0(transactionsSupported, bool());
   MOCK_METHOD0(updateStatsImpl, void());
   MOCK_CONST_METHOD0(
@@ -82,7 +90,9 @@ class MockHwSwitch : public HwSwitch {
   MOCK_CONST_METHOD0(getSysPortStats, std::map<std::string, HwSysPortStats>());
   MOCK_CONST_METHOD0(getFabricReachabilityStats, FabricReachabilityStats());
   MOCK_CONST_METHOD0(getSwitchDropStats, HwSwitchDropStats());
-  MOCK_CONST_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));
+  MOCK_CONST_METHOD2(
+      fetchL2Table,
+      void(std::vector<L2EntryThrift>* l2Table, bool sdk));
   MOCK_METHOD0(gracefulExitImpl, void());
   MOCK_CONST_METHOD0(toFollyDynamic, folly::dynamic());
   MOCK_CONST_METHOD0(exitFatal, void());
@@ -103,6 +113,7 @@ class MockHwSwitch : public HwSwitch {
   MOCK_CONST_METHOD0(getSwitchWatermarkStats, HwSwitchWatermarkStats());
   MOCK_CONST_METHOD0(getSwitchPipelineStats, HwSwitchPipelineStats());
   MOCK_CONST_METHOD0(getSwitchTemperatureStats, HwSwitchTemperatureStats());
+  MOCK_CONST_METHOD0(getHwSwitchHardResetStats, HwSwitchHardResetStats());
   MOCK_CONST_METHOD0(getSysPortShelState, std::map<int, cfg::PortState>());
 
   MockPlatform* getPlatform() const override {

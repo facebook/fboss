@@ -11,7 +11,7 @@
 
 namespace facebook::fboss {
 
-std::shared_ptr<SwitchState> hwSwitchFibUpdate(
+StateDelta hwSwitchFibUpdate(
     const SwitchIdScopeResolver* resolver,
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -20,7 +20,10 @@ std::shared_ptr<SwitchState> hwSwitchFibUpdate(
     const std::shared_ptr<SwitchState> oldState) {
   facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
       resolver, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
-  return fibUpdater(oldState);
+  fibUpdater(oldState);
+  auto lastDelta = fibUpdater.getLastDelta();
+  CHECK(lastDelta.has_value());
+  return StateDelta(lastDelta->oldState(), lastDelta->newState());
 }
 
 HwSwitchRouteUpdateWrapper::HwSwitchRouteUpdateWrapper(
@@ -40,16 +43,17 @@ HwSwitchRouteUpdateWrapper::HwSwitchRouteUpdateWrapper(
             auto hwSwitch = static_cast<HwSwitch*>(cookie);
             auto oldState = hwSwitch->getProgrammedState();
             auto newState = hwSwitchFibUpdate(
-                resolver,
-                vrf,
-                v4NetworkToRoute,
-                v6NetworkToRoute,
-                labelToRoute,
-                oldState);
+                                resolver,
+                                vrf,
+                                v4NetworkToRoute,
+                                v6NetworkToRoute,
+                                labelToRoute,
+                                oldState)
+                                .newState();
             if (apply) {
               apply(StateDelta(oldState, newState));
             }
-            return newState;
+            return StateDelta(oldState, newState);
           },
           hw),
       hw_(hw) {}

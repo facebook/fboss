@@ -3,6 +3,7 @@
 #include <folly/Benchmark.h>
 
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
@@ -22,10 +23,11 @@ std::vector<TransceiverID> getMatchingTcvrIds(
   CHECK(qsfpTestConfig.has_value());
 
   for (const auto& portPairs : *qsfpTestConfig->cabledPortPairs()) {
-    for (auto portName : {portPairs.aPortName(), portPairs.zPortName()}) {
-      auto portID = wedgeMgr->getPortIDByPortName(*portName);
-      CHECK(portID.has_value());
-      auto tcvrID = wedgeMgr->getTransceiverID(PortID(*portID));
+    for (auto currentPortName :
+         {portPairs.aPortName(), portPairs.zPortName()}) {
+      auto currentPortID = wedgeMgr->getPortIDByPortName(*currentPortName);
+      CHECK(currentPortID.has_value());
+      auto tcvrID = wedgeMgr->getTransceiverID(PortID(*currentPortID));
       if (!tcvrID) {
         continue;
       }
@@ -49,8 +51,13 @@ std::size_t refreshTcvrs(MediaInterfaceCode mediaType) {
       "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
   folly::BenchmarkSuspender suspender;
   // Making shared ptr so that we can use common helper function.
-  std::shared_ptr<WedgeManager> wedgeMgr = setupForColdboot();
+  std::shared_ptr<WedgeManager> wedgeMgr;
+  std::unique_ptr<PortManager> portMgr;
+  std::tie(wedgeMgr, portMgr) = setupForColdboot();
   wedgeMgr->init();
+  if (FLAGS_port_manager_mode) {
+    portMgr->init();
+  }
 
   // Refresh Transceivers
   auto tcvrIds = getMatchingTcvrIds(wedgeMgr, mediaType);
@@ -66,8 +73,13 @@ std::size_t refreshTcvrs(MediaInterfaceCode mediaType) {
 std::size_t readOneByte(MediaInterfaceCode mediaType) {
   folly::BenchmarkSuspender suspender;
   // Making shared ptr so that we can use common helper function.
-  std::shared_ptr<WedgeManager> wedgeMgr = setupForColdboot();
+  std::shared_ptr<WedgeManager> wedgeMgr;
+  std::unique_ptr<PortManager> portMgr;
+  std::tie(wedgeMgr, portMgr) = setupForColdboot();
   wedgeMgr->init();
+  if (FLAGS_port_manager_mode) {
+    portMgr->init();
+  }
 
   // Read Transceivers
   auto tcvrIds = getMatchingTcvrIds(wedgeMgr, mediaType);
@@ -89,7 +101,8 @@ std::size_t readOneByte(MediaInterfaceCode mediaType) {
   return tcvrIds.size();
 }
 
-std::unique_ptr<WedgeManager> setupForColdboot() {
+std::pair<std::unique_ptr<WedgeManager>, std::unique_ptr<PortManager>>
+setupForColdboot() {
   // First use QsfpConfig to init default command line arguments
   initFlagDefaultsFromQsfpConfig();
   // Once we setup for cold boot, WedgeManager will always reload xphy firmware
@@ -101,19 +114,28 @@ std::unique_ptr<WedgeManager> setupForColdboot() {
   gflags::SetCommandLineOptionWithMode(
       "force_reload_gearbox_fw", "1", gflags::SET_FLAGS_DEFAULT);
 
-  return createWedgeManager();
+  return createQsfpManagers();
 }
 
-std::unique_ptr<WedgeManager> setupForWarmboot() {
+std::pair<std::unique_ptr<WedgeManager>, std::unique_ptr<PortManager>>
+setupForWarmboot() {
   // First use QsfpConfig to init default command line arguments
   initFlagDefaultsFromQsfpConfig();
   // Use cold boot to force download xphy
-  auto wedgeMgr = setupForColdboot();
-  wedgeMgr->initExternalPhyMap();
+  auto [wedgeMgr, portMgr] = setupForColdboot();
+  if (!FLAGS_port_manager_mode) {
+    wedgeMgr->initExternalPhyMap();
+  } else {
+    portMgr->initExternalPhyMap();
+  }
+
   // Use gracefulExit so the next initExternalPhyMap() will be using warm boot
+  if (FLAGS_port_manager_mode) {
+    portMgr->gracefulExit();
+  }
   wedgeMgr->gracefulExit();
 
-  return createWedgeManager();
+  return createQsfpManagers();
 }
 
 } // namespace facebook::fboss

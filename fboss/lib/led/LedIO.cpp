@@ -40,10 +40,11 @@ void LedIO::initMaxBrightness(
     fs >> maxBrightness;
     fs.close();
   } else {
-    throw LedIOError(fmt::format(
-        "initMaxBrightness() failed to open {} for ID {:d} (0 base)",
-        maxBrightnessPath,
-        id_));
+    throw LedIOError(
+        fmt::format(
+            "initMaxBrightness() failed to open {} for ID {:d} (0 base)",
+            maxBrightnessPath,
+            id_));
   }
   auto value = folly::to<int>(maxBrightness);
   CHECK((value >= kMinBrightness) && (value <= kMaxBrightness)) << fmt::format(
@@ -126,67 +127,72 @@ void LedIO::setLed(const std::string& ledBasePath, const std::string& ledOp) {
     fs << ledOp;
     fs.close();
   } else {
-    throw LedIOError(fmt::format(
-        "setLed() failed to open {} for ID {:d} (0 base)", ledPath, id_));
+    throw LedIOError(
+        fmt::format(
+            "setLed() failed to open {} for ID {:d} (0 base)", ledPath, id_));
   }
 }
 
 void LedIO::setBlink(const std::string& ledBasePath, led::Blink blink) {
-  // Set blink rate
+  // Enable writes to delay_on and delay_off by enabling the timer trigger if
+  // required
   {
-    std::string ledPathOn = ledBasePath + kLedDelayOnPath;
-    std::string ledPathOff = ledBasePath + kLedDelayOffPath;
-    std::fstream fsOn, fsOff;
-    fsOn.open(ledPathOn, std::fstream::out);
-    fsOff.open(ledPathOff, std::fstream::out);
+    std::string ledTriggerPath = ledBasePath + kLedTriggerPath;
+    std::fstream fsTrigger;
+    fsTrigger.open(ledTriggerPath, std::fstream::out);
 
-    if (fsOn.is_open() && fsOff.is_open()) {
-      switch (blink) {
-        case led::Blink::OFF:
-        case led::Blink::UNKNOWN:
-          fsOn << kLedBlinkOff;
-          fsOff << kLedBlinkOff;
-          break;
-        case led::Blink::SLOW:
-          fsOn << kLedBlinkSlow;
-          fsOff << kLedBlinkSlow;
-          break;
-        case led::Blink::FAST:
-          fsOn << kLedBlinkFast;
-          fsOff << kLedBlinkFast;
-          break;
-      }
-      fsOn.close();
-      fsOff.close();
-    } else {
-      // Not throwing an exception here until all existing BSPs support blinking
+    if (!fsTrigger.is_open()) {
+      // Not throwing an exception here until all existing BSPs support
+      // blinking
       XLOG(ERR) << fmt::format(
-          "setBlink() failed to open {} or {} for ID {:d} (0 base)",
-          ledPathOn,
-          ledPathOff,
+          "setBlink() failed to open {} for ID {:d} (0 base)",
+          ledTriggerPath,
           id_);
       return;
     }
-  }
-  // Set trigger
-  {
-    std::string ledPath = ledBasePath + kLedTriggerPath;
-    std::fstream fs;
-    fs.open(ledPath, std::fstream::out);
 
-    if (fs.is_open()) {
-      if (blink == led::Blink::SLOW || blink == led::Blink::FAST) {
-        fs << kLedTimerTrigger;
-      } else {
-        fs << "";
-      }
-      fs.close();
-    } else {
-      // Not throwing an exception here until all existing BSPs support blinking
-      XLOG(ERR) << fmt::format(
-          "setBlink() failed to open {} for ID {:d} (0 base)", ledPath, id_);
-      return;
-    }
+    // This enables us to write to delay_on and delay_off later
+    fsTrigger << kLedTimerTrigger;
+  }
+
+  std::string delayOn, delayOff;
+  // Compute delay_on and delay_off
+  switch (blink) {
+    case led::Blink::OFF:
+    case led::Blink::UNKNOWN:
+      delayOn = kLedBlinkOff;
+      delayOff = kLedBlinkOff;
+      break;
+    case led::Blink::SLOW:
+      delayOn = kLedBlinkSlow;
+      delayOff = kLedBlinkSlow;
+      break;
+    case led::Blink::FAST:
+      delayOn = kLedBlinkFast;
+      delayOff = kLedBlinkFast;
+      break;
+  }
+
+  // Write to delay_on and delay_off
+  std::fstream fsOn, fsOff;
+  std::string ledPathOn = ledBasePath + kLedDelayOnPath;
+  std::string ledPathOff = ledBasePath + kLedDelayOffPath;
+  fsOn.open(ledPathOn, std::fstream::out);
+  fsOff.open(ledPathOff, std::fstream::out);
+  if (fsOn.is_open() && fsOff.is_open()) {
+    fsOn << delayOn;
+    fsOff << delayOff;
+    fsOn.close();
+    fsOff.close();
+  } else {
+    // Not throwing an exception here until all existing BSPs support
+    // blinking
+    XLOG(ERR) << fmt::format(
+        "setBlink() failed to open {} or {} for ID {:d} (0 base)",
+        ledPathOn,
+        ledPathOff,
+        id_);
+    return;
   }
 }
 

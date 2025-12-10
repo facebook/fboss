@@ -1,6 +1,6 @@
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 
-oncall("fboss_provisioning")
+oncall("fboss_agent")
 
 python_library(
     name = "fboss_cli_lib",

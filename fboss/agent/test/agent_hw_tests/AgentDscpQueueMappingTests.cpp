@@ -35,11 +35,11 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
     resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
   }
 
-  void sendPacket(bool frontPanel, uint8_t ttl = 64) {
+  void sendPacket(bool frontPanel, int16_t dscp, uint8_t ttl = 64) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
         vlanId,
@@ -49,7 +49,7 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
         kDstIP(),
         8000, // l4 src port
         8001, // l4 dst port
-        kDscp() << 2, // Trailing 2 bits are for ECN
+        dscp << 2, // Trailing 2 bits are for ECN
         ttl);
 
     // port is in LB mode, so it will egress and immediately loop back.
@@ -99,6 +99,13 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
     return 2;
   }
 
+  PortID portIdToTest() {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds()[0];
+    }
+    return masterLogicalInterfacePortIds()[0];
+  }
+
   static inline constexpr auto kEcmpWidth = 1;
   const VlanID kVlanID{utility::kBaseVlanId};
   const InterfaceID kIntfID{utility::kBaseVlanId};
@@ -114,7 +121,7 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
         true /*interfaceHasSubnet*/);
     // QosMap
     auto l3Asics = ensemble.getL3Asics();
-    utility::addOlympicQosMaps(cfg, l3Asics);
+    utility::addOlympicV2QosMaps(cfg, l3Asics);
     auto kAclName = "acl1";
     auto asic = checkSameAndGetAsic(l3Asics);
     utility::addDscpAclToCfg(asic, &cfg, kAclName, kDscp());
@@ -125,44 +132,91 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     return cfg;
   }
 
-  void verifyDscpQueueMappingHelper() {
+  void dscpMappingSetupHelper(bool newDscpSchema) {
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    auto l3Asics = getAgentEnsemble()->getL3Asics();
+    /* update Dscp 46 to gold queue*/
+    utility::addOlympicV2QosMaps(newCfg, l3Asics, newDscpSchema);
+    applyNewConfig(newCfg);
+  }
+
+  void dscpMappingVerifyHelper(int kQueueId, int16_t kDscp) {
+    for (bool frontPanel : {false, true}) {
+      auto beforeQueueOutPkts =
+          folly::copy(getLatestPortStats(this->portIdToTest())
+                          .queueOutPackets_()
+                          .value())
+              .at(kQueueId);
+
+      sendPacket(frontPanel, kDscp);
+
+      WITH_RETRIES({
+        auto afterQueueOutPkts = getLatestPortStats(this->portIdToTest())
+                                     .get_queueOutPackets_()
+                                     .at(kQueueId);
+
+        XLOG(DBG2) << "verify send packets "
+                   << (frontPanel ? "out of port" : "switched")
+                   << " beforeQueueOutPkts = " << beforeQueueOutPkts
+                   << " afterQueueOutPkti = " << afterQueueOutPkts;
+
+        /*
+         * Packet from CPU / looped back from front panel port (with
+         * pipeline bypass), hits ACL and increments counter (queue2Count
+         * = 1). On some platforms, looped back packets for unknown MACs
+         * are flooded and counted on queue *before* the split horizon
+         * check. This packet will match the DSCP based ACL and thus
+         * increment the queue2Count = 2.
+         */
+        EXPECT_EVENTUALLY_GE(afterQueueOutPkts - beforeQueueOutPkts, 1);
+      });
+    }
+  }
+
+  void verifyDscpQueueMappingHelper(
+      int kQueueId,
+      int16_t kDscp,
+      bool dscpTcChangePostWarmboot,
+      int kQueueIdPostWarmboot) {
     auto setup = [this]() { setupHelper(); };
 
-    auto verify = [this]() {
-      for (bool frontPanel : {false, true}) {
-        auto beforeQueueOutPkts =
-            folly::copy(getLatestPortStats(masterLogicalInterfacePortIds()[0])
-                            .queueOutPackets_()
-                            .value())
-                .at(kQueueId());
-
-        sendPacket(frontPanel);
-
-        WITH_RETRIES({
-          auto afterQueueOutPkts =
-              getLatestPortStats(masterLogicalInterfacePortIds()[0])
-                  .get_queueOutPackets_()
-                  .at(kQueueId());
-
-          XLOG(DBG2) << "verify send packets "
-                     << (frontPanel ? "out of port" : "switched")
-                     << " beforeQueueOutPkts = " << beforeQueueOutPkts
-                     << " afterQueueOutPkti = " << afterQueueOutPkts;
-
-          /*
-           * Packet from CPU / looped back from front panel port (with
-           * pipeline bypass), hits ACL and increments counter (queue2Count
-           * = 1). On some platforms, looped back packets for unknown MACs
-           * are flooded and counted on queue *before* the split horizon
-           * check. This packet will match the DSCP based ACL and thus
-           * increment the queue2Count = 2.
-           */
-          EXPECT_EVENTUALLY_GE(afterQueueOutPkts - beforeQueueOutPkts, 1);
-        });
-      }
+    auto verify = [this, kQueueId, kDscp]() {
+      dscpMappingVerifyHelper(kQueueId, kDscp);
     };
 
-    verifyAcrossWarmBoots(setup, verify);
+    if (dscpTcChangePostWarmboot) {
+      auto setupPostWarmboot = [this]() {
+        dscpMappingSetupHelper(true /*newDscpSchema*/);
+      };
+      auto verifyPostWarmboot = [this, kQueueIdPostWarmboot, kDscp]() {
+        dscpMappingVerifyHelper(kQueueIdPostWarmboot, kDscp);
+      };
+      verifyAcrossWarmBoots(
+          setup, verify, setupPostWarmboot, verifyPostWarmboot);
+    } else {
+      verifyAcrossWarmBoots(setup, verify);
+    }
+  }
+
+  void verifyDscpQueueMappingCanaryOff(
+      int kQueueId,
+      int16_t kDscp,
+      int kQueueIdPostWarmboot) {
+    auto setup = [this]() {
+      dscpMappingSetupHelper(true /*newDscpSchema*/);
+      setupHelper();
+    };
+
+    auto verify = [this, kQueueId, kDscp]() {
+      dscpMappingVerifyHelper(kQueueId, kDscp);
+    };
+    auto setupPostWarmboot = [this]() {
+      dscpMappingSetupHelper(false /*newDscpSchema*/);
+    };
+    auto verifyPostWarmboot = [this, kQueueIdPostWarmboot, kDscp]() {
+      dscpMappingVerifyHelper(kQueueIdPostWarmboot, kDscp);
+    };
+    verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
   }
 };
 
@@ -201,7 +255,7 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched");
         auto beforeQueueOutPkts =
-            folly::copy(getLatestPortStats(masterLogicalInterfacePortIds()[0])
+            folly::copy(getLatestPortStats(this->portIdToTest())
                             .queueOutPackets_()
                             .value())
                 .at(kQueueId());
@@ -211,13 +265,12 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
         XLOG(DBG2) << "beforeQueueOutPkts = " << beforeQueueOutPkts
                    << " beforeAclInOutPkts = " << beforeAclInOutPkts;
 
-        sendPacket(frontPanel, 255 /* ttl, > 127 to match ACL */);
+        sendPacket(frontPanel, kDscp(), 255 /* ttl, > 127 to match ACL */);
 
         WITH_RETRIES({
-          auto afterQueueOutPkts =
-              getLatestPortStats(masterLogicalInterfacePortIds()[0])
-                  .get_queueOutPackets_()
-                  .at(kQueueId());
+          auto afterQueueOutPkts = getLatestPortStats(this->portIdToTest())
+                                       .get_queueOutPackets_()
+                                       .at(kQueueId());
           auto afterAclInOutPkts =
               utility::getAclInOutPackets(getSw(), kCounterName());
 
@@ -272,12 +325,12 @@ class AgentAclConflictAndDscpQueueMappingTest
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched");
         auto beforeQueueOutPktsAcl =
-            folly::copy(getLatestPortStats(masterLogicalInterfacePortIds()[0])
+            folly::copy(getLatestPortStats(this->portIdToTest())
                             .queueOutPackets_()
                             .value())
                 .at(kQueueIdAcl());
         auto beforeQueueOutPktsQosMap =
-            folly::copy(getLatestPortStats(masterLogicalInterfacePortIds()[0])
+            folly::copy(getLatestPortStats(this->portIdToTest())
                             .queueOutPackets_()
                             .value())
                 .at(kQueueIdQosMap());
@@ -288,15 +341,14 @@ class AgentAclConflictAndDscpQueueMappingTest
                    << " beforeQueueOutPktsQosMap = " << beforeQueueOutPktsQosMap
                    << " beforeAclInOutPkts = " << beforeAclInOutPkts;
 
-        sendPacket(frontPanel);
+        sendPacket(frontPanel, kDscp());
 
         WITH_RETRIES({
-          auto afterQueueOutPktsAcl =
-              getLatestPortStats(masterLogicalInterfacePortIds()[0])
-                  .get_queueOutPackets_()
-                  .at(kQueueIdAcl());
+          auto afterQueueOutPktsAcl = getLatestPortStats(this->portIdToTest())
+                                          .get_queueOutPackets_()
+                                          .at(kQueueIdAcl());
           auto afterQueueOutPktsQosMap =
-              getLatestPortStats(masterLogicalInterfacePortIds()[0])
+              getLatestPortStats(this->portIdToTest())
                   .get_queueOutPackets_()
                   .at(kQueueIdQosMap());
 
@@ -337,7 +389,38 @@ class AgentAclConflictAndDscpQueueMappingTest
 // Verify that traffic arriving on front panel/cpu port egresses via queue
 // based on DSCP
 TEST_F(AgentDscpQueueMappingTest, VerifyDscpQueueMapping) {
-  verifyDscpQueueMappingHelper();
+  verifyDscpQueueMappingHelper(
+      kQueueId(),
+      kDscp(),
+      false /* dscpTcChangePostWarmboot */,
+      kQueueId() /* kQueueIdPostWarmboot */);
+}
+
+TEST_F(AgentDscpQueueMappingTest, VerifyDscpQueueMappingChangePostWarmboot) {
+  /*
+   * Test to verify that changing DSCP TC mapping over warmboot works as
+   * intended. Prewarmboot, dscp 46 is mapped to silver traffic. So set dscptc
+   * map accordingly and send packet and ensure that its received in queue 2
+   * (corresponding to silver). post warmboot, set the dscp mapping to gold and
+   * ensure that the packet is received in gold queue (queue 3)
+   */
+  verifyDscpQueueMappingHelper(
+      utility::kOlympicAllSPSilverQueueId,
+      utility::kDscpToRemap,
+      true /* dscpTcChangePostWarmboot */,
+      utility::kOlympicAllSPGoldQueueId);
+}
+
+TEST_F(AgentDscpQueueMappingTest, VerifyDscpQueueMappingCanaryOff) {
+  /*
+   * Same as VerifyDscpQueueMappingChangePostWarmboot but this tests the
+   * canary off scenario where dscp 46 is GOLD prewarmboot and changes to
+   * SILVER post warmboot (to test rollback)
+   */
+  verifyDscpQueueMappingCanaryOff(
+      utility::kOlympicAllSPGoldQueueId,
+      utility::kDscpToRemap,
+      utility::kOlympicAllSPSilverQueueId);
 }
 
 // Verify that traffic arriving on front panel/cpu port with non-conflicting

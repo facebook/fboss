@@ -48,6 +48,10 @@ DEFINE_int32(
     60,
     "max time after firmware upgrade sequence when the the tcvr is expected to be ready for link up");
 DEFINE_bool(remediation_enabled, true, "Flag to disable/enable remediation.");
+DEFINE_int32(
+    refresh_all_pages_cycles,
+    100,
+    "Number of cycles to kick off a full refresh of all pages");
 
 using folly::IOBuf;
 using std::lock_guard;
@@ -55,9 +59,6 @@ using std::memcpy;
 using std::mutex;
 
 static constexpr int kAllowedFwUpgradeAttempts = 3;
-
-// Refresh all transceiver pages every 100 refresh cycles.
-static constexpr int kRefreshAllPagesCycles = 100;
 
 namespace facebook {
 namespace fboss {
@@ -152,8 +153,8 @@ bool QsfpModule::upgradeFirmware(
     try {
       return upgradeFwFn();
     } catch (const std::exception& ex) {
-      QSFP_LOG(DBG2, this) << "Error calling upgradeFirmwareLocked(): "
-                           << ex.what();
+      QSFP_LOG(ERR, this) << "Error calling upgradeFirmwareLocked(): "
+                          << ex.what();
     }
     return false;
   }
@@ -164,7 +165,7 @@ bool QsfpModule::upgradeFirmware(
         try {
           fwUpgradeStatus = upgradeFwFn();
         } catch (const std::exception& ex) {
-          QSFP_LOG(DBG2, this)
+          QSFP_LOG(ERR, this)
               << "Error calling upgradeFirmwareLocked(): " << ex.what();
         }
       })
@@ -346,7 +347,11 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::BASE_T_10G:
     case MediaInterfaceCode::CR_10G:
     case MediaInterfaceCode::DR1_200G:
+    case MediaInterfaceCode::DR1_100G:
+    case MediaInterfaceCode::CR1_100G:
       return 1;
+    case MediaInterfaceCode::DR2_400G:
+      return 2;
     case MediaInterfaceCode::CWDM4_100G:
     case MediaInterfaceCode::CR4_100G:
     case MediaInterfaceCode::FR1_100G:
@@ -384,8 +389,12 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::BASE_T_10G:
     case MediaInterfaceCode::CR_10G:
     case MediaInterfaceCode::DR1_200G:
+    case MediaInterfaceCode::DR1_100G:
     case MediaInterfaceCode::ZR_800G:
+    case MediaInterfaceCode::CR1_100G:
       return 1;
+    case MediaInterfaceCode::DR2_400G:
+      return 2;
     case MediaInterfaceCode::CWDM4_100G:
     case MediaInterfaceCode::CR4_100G:
     case MediaInterfaceCode::FR4_200G:
@@ -497,6 +506,13 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     updateCmisStateChanged(currentStatus, moduleStatus);
     tcvrState.status() = currentStatus;
     cacheStatusFlags(currentStatus);
+
+    // Tunable optics parameter
+    auto tunableLaserstatus = getTunableLaserStatus();
+    if (tunableLaserstatus) {
+      QSFP_LOG(INFO, this) << "Tunable laser status is not null";
+      tcvrState.tunableLaserStatus() = tunableLaserstatus.value();
+    }
 
     // If the StatsPublisher thread has triggered the VDM data capture then
     // latch, read data (page 24 and 25), release latch
@@ -843,7 +859,7 @@ prbs::InterfacePrbsState QsfpModule::getPortPrbsState(
 void QsfpModule::periodicUpdateQsfpData() {
   bool updatedAllPages = false;
   refreshCycleCount_++;
-  if (refreshCycleCount_ >= kRefreshAllPagesCycles) {
+  if (refreshCycleCount_ >= FLAGS_refresh_all_pages_cycles) {
     updatedAllPages = true;
     // reset cycle count
     refreshCycleCount_ = 0;
@@ -857,23 +873,27 @@ void QsfpModule::refresh() {
   refreshLocked();
 }
 
-folly::Future<folly::Unit> QsfpModule::futureRefresh() {
+// call refresh() on the module and return whether or not it was successful
+folly::Future<bool> QsfpModule::futureRefresh() {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   if (!i2cEvb) {
     try {
       refresh();
+      return folly::makeFuture(true);
     } catch (const std::exception& ex) {
       QSFP_LOG(DBG2, this) << "Error calling refresh(): " << ex.what();
+      return folly::makeFuture(false);
     }
-    return folly::makeFuture();
   }
 
   return via(i2cEvb).thenValue([&](auto&&) mutable {
     try {
       this->refresh();
+      return true;
     } catch (const std::exception& ex) {
       QSFP_LOG(DBG2, this) << "Error calling refresh(): " << ex.what();
+      return false;
     }
   });
 }
@@ -1410,11 +1430,11 @@ void QsfpModule::programTransceiver(
       // Rx equalizer setting based on QSFP config
       for (auto portIt : programTcvrState.ports) {
         customizeTransceiverLocked(portIt.second);
+        // updateQsfpData so that we can make sure the new application code in
+        // cache or the new host settings ges updated before calling
+        // configureModule() or programming other datapaths
+        updateQsfpData(true);
       }
-      // updateQsfpData so that we can make sure the new application code in
-      // cache or the new host settings ges updated before calling
-      // configureModule()
-      updateQsfpData(true);
       // Current configureModule() actually assumes the locked is obtained.
       // See CmisModule::configureModule(). Need to clean it up in the future.
       for (auto portIt : programTcvrState.ports) {

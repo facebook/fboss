@@ -1,7 +1,7 @@
 # pyre-strict
 from typing import List, Optional
 
-import neteng.fboss.asic_config_v2.thrift_types as asic_config_thrift
+import neteng.fboss.asic_config_v2.ttypes as asic_config_thrift
 
 import yaml
 from fboss.lib.asic_config_v2.bcmxgs import (

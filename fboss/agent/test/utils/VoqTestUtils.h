@@ -68,6 +68,9 @@ QueueConfig getDefaultVoqConfig(cfg::PortType portType);
 
 std::optional<uint64_t> getDummyEncapIndex(TestEnsembleIf* ensemble);
 
+boost::container::flat_set<PortDescriptor> getRemoteSysPorts(
+    TestEnsembleIf* ensemble);
+
 boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
     TestEnsembleIf* ensemble,
     utility::EcmpSetupTargetedPorts6& ecmpHelper);
@@ -80,7 +83,8 @@ void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<SystemPortMap>>& switchId2SystemPorts,
     std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Rifs,
     const cfg::SwitchConfig& config,
-    bool useEncapIndex);
+    bool useEncapIndex,
+    bool addNeighborToIntf = true);
 
 void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex);
 

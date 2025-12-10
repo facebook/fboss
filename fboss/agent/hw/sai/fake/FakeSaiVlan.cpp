@@ -121,6 +121,9 @@ sai_status_t create_vlan_member_fn(
       fs->vlanManager.createMember(vlanId.value(), vlanId.value());
   auto& vlanMember = fs->vlanManager.getMember(*vlan_member_id);
 
+  // Set default tagging mode to UNTAGGED per SAI spec
+  vlanMember.vlanTaggingMode = SAI_VLAN_TAGGING_MODE_UNTAGGED;
+
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_VLAN_MEMBER_ATTR_VLAN_ID:
@@ -128,6 +131,9 @@ sai_status_t create_vlan_member_fn(
         break;
       case SAI_VLAN_MEMBER_ATTR_BRIDGE_PORT_ID:
         vlanMember.bridgePortId = attr_list[i].value.oid;
+        break;
+      case SAI_VLAN_MEMBER_ATTR_VLAN_TAGGING_MODE:
+        vlanMember.vlanTaggingMode = attr_list[i].value.s32;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
@@ -155,6 +161,13 @@ sai_status_t get_vlan_member_attribute_fn(
         break;
       case SAI_VLAN_MEMBER_ATTR_BRIDGE_PORT_ID:
         attr[i].value.oid = vlanMember.bridgePortId;
+        break;
+      case SAI_VLAN_MEMBER_ATTR_VLAN_TAGGING_MODE:
+        if (vlanMember.vlanTaggingMode.has_value()) {
+          attr[i].value.s32 = vlanMember.vlanTaggingMode.value();
+        } else {
+          return SAI_STATUS_INVALID_PARAMETER;
+        }
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;

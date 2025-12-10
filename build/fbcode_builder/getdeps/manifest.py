@@ -98,6 +98,8 @@ SCHEMA = {
         "fields": {
             "run_tests": OPTIONAL,
             "required_locales": OPTIONAL,
+            "rust_version": OPTIONAL,
+            "build_type": OPTIONAL,
         },
     },
     "crate.pathmap": {"optional_section": True},
@@ -122,6 +124,7 @@ SCHEMA = {
     # fb-only
     "sandcastle": {"optional_section": True, "fields": {"run_tests": OPTIONAL}},
     "setup-py.test": {"optional_section": True, "fields": {"python_script": REQUIRED}},
+    "setup-py.env": {"optional_section": True},
 }
 
 # These sections are allowed to vary for different platforms

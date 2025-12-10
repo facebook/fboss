@@ -918,8 +918,20 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
     return;
   }
 
-  sendMulticastNeighborSolicitation(
-      sw, targetIP, intf->getMac(), intf->getVlanIDIf());
+  auto interfaceMap = sw->getState()->getInterfaces();
+  for (const auto& [_, intfMap] : std::as_const(*interfaceMap)) {
+    for (const auto& intfIter : std::as_const(*intfMap)) {
+      const auto& interface = intfIter.second;
+      if (interface->getRouterID() == RouterID(0) &&
+          interface->canReachAddress(targetIP)) {
+        sendMulticastNeighborSolicitation(
+            sw,
+            targetIP,
+            interface->getMac(),
+            interface->getVlanIDIf_DEPRECATED());
+      }
+    }
+  }
 }
 
 void IPv6Handler::resolveDestAndHandlePacket(
@@ -980,7 +992,7 @@ void IPv6Handler::resolveDestAndHandlePacket(
         if (nullptr == entry) {
           // No entry in NDP table, create a neighbor solicitation packet
           sendMulticastNeighborSolicitation(
-              sw_, target, intf->getMac(), intf->getVlanIDIf());
+              sw_, target, intf->getMac(), intf->getVlanIDIf_DEPRECATED());
           // Notify the updater that we sent a solicitation out
           sw_->sentNeighborSolicitation(intf, target);
         } else {
@@ -1067,8 +1079,8 @@ void IPv6Handler::floodNeighborAdvertisements() {
         continue;
       }
 
-      for (auto iter : std::as_const(*intf->getAddresses())) {
-        auto addrEntry = folly::IPAddress(iter.first);
+      for (auto addrIter : std::as_const(*intf->getAddresses())) {
+        auto addrEntry = folly::IPAddress(addrIter.first);
         if (!addrEntry.isV6()) {
           continue;
         }
@@ -1088,7 +1100,7 @@ void IPv6Handler::floodNeighborAdvertisements() {
         }
 
         sendNeighborAdvertisement(
-            intf->getVlanIDIf(),
+            intf->getVlanIDIf_DEPRECATED(),
             intf->getMac(),
             addrEntry.asV6(),
             MacAddress::BROADCAST,

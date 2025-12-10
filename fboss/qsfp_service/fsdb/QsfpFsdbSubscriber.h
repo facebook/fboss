@@ -5,6 +5,7 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/client/instantiations/FsdbCowStateSubManager.h"
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 
 DECLARE_bool(enable_fsdb_patch_subscriber);
@@ -20,7 +21,9 @@ class QsfpFsdbSubscriber {
  public:
   QsfpFsdbSubscriber();
 
-  void subscribeToSwitchStatePortMap(TransceiverManager* tcvrManager);
+  void subscribeToSwitchStatePortMap(
+      TransceiverManager* tcvrManager,
+      PortManager* portManager);
 
   void stop();
 

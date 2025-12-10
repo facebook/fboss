@@ -25,10 +25,11 @@ IoctlSmbusEepromReader::EepromReadMetadata::EepromReadMetadata(
       length(length) {
   inputFile = open(inputFilename.c_str(), O_RDONLY);
   if (inputFile < 0) {
-    throw std::runtime_error(fmt::format(
-        "Failed to open the i2c bus: {}, error: {}",
-        inputFilename,
-        folly::errnoStr(errno)));
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to open the i2c bus: {}, error: {}",
+            inputFilename,
+            folly::errnoStr(errno)));
   }
 
   if (!std::filesystem::exists(outputDir)) {
@@ -133,8 +134,9 @@ uint8_t IoctlSmbusEepromReader::i2cSmbusReadByte(EepromReadMetadata& md) {
   assert(md.inputFile >= 0);
   if (i2cSmbusAccess(md.inputFile, I2C_SMBUS_READ, 0, I2C_SMBUS_BYTE, data) <
       0) {
-    throw std::runtime_error(fmt::format(
-        "{}: ioctl error {}\n", __FUNCTION__, folly::errnoStr(errno)));
+    throw std::runtime_error(
+        fmt::format(
+            "{}: ioctl error {}\n", __FUNCTION__, folly::errnoStr(errno)));
   }
   return data.byte;
 }
