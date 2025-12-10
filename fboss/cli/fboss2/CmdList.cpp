@@ -20,15 +20,6 @@
 #include "fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
-#include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
-#include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
-#include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
-#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
-#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h"
-#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h"
-#include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
-#include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
-#include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
 #include "fboss/cli/fboss2/commands/help/CmdHelp.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
@@ -532,67 +523,6 @@ const CommandTree& kCommandTree() {
          "Show Product Detail Information",
          commandHandler<CmdShowProductDetails>,
          argTypeHandler<CmdShowProductDetailsTraits>}}},
-
-      {"config",
-       "applied-info",
-       "Show config applied information",
-       commandHandler<CmdConfigAppliedInfo>,
-       argTypeHandler<CmdConfigAppliedInfoTraits>},
-      {"config",
-       "history",
-       "Show history of committed config revisions",
-       commandHandler<CmdConfigHistory>,
-       argTypeHandler<CmdConfigHistoryTraits>},
-
-      {
-          "config",
-          "interface",
-          "Configure interface settings",
-          commandHandler<CmdConfigInterface>,
-          argTypeHandler<CmdConfigInterfaceTraits>,
-          {{
-               "description",
-               "Set interface description",
-               commandHandler<CmdConfigInterfaceDescription>,
-               argTypeHandler<CmdConfigInterfaceDescriptionTraits>,
-           },
-           {
-               "mtu",
-               "Set interface MTU",
-               commandHandler<CmdConfigInterfaceMtu>,
-               argTypeHandler<CmdConfigInterfaceMtuTraits>,
-           }},
-      },
-
-      {
-          "config",
-          "session",
-          "Manage config session",
-          {{
-               "commit",
-               "Commit the current config session",
-               commandHandler<CmdConfigSessionCommit>,
-               argTypeHandler<CmdConfigSessionCommitTraits>,
-           },
-           {
-               "diff",
-               "Show diff between configs (session vs live, session vs revision, or revision vs revision)",
-               commandHandler<CmdConfigSessionDiff>,
-               argTypeHandler<CmdConfigSessionDiffTraits>,
-           }},
-      },
-
-      {"config",
-       "reload",
-       "Reload agent configuration",
-       commandHandler<CmdConfigReload>,
-       argTypeHandler<CmdConfigReloadTraits>},
-
-      {"config",
-       "rollback",
-       "Rollback to a previous config revision",
-       commandHandler<CmdConfigRollback>,
-       argTypeHandler<CmdConfigRollbackTraits>},
   };
   sort(root.begin(), root.end());
   return root;
