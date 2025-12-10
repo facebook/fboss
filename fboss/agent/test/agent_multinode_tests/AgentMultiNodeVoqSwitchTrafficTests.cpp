@@ -403,6 +403,21 @@ bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
       XLOG(DBG2) << "Unexpected reassembly errors";
       return false;
     }
+    // SHEL state for the admim re-enabled port should be sync'ed to every RDSW
+    // including the RDSW whose port was re-enabled.
+    if (!utility::checkForEachExcluding(
+            topologyInfo->getRdsws(),
+            {}, // exclude none
+            [firstRemoteSystemPortID](const std::string& switchName) {
+              return utility::verifyRemoteSystemPortShelState(
+                  switchName, firstRemoteSystemPortID, cfg::PortState::ENABLED);
+            })) {
+      XLOG(DBG2) << "SHEL port state mismatch for rdsw: " << remoteRdsw
+                 << " remotePort: " << firstRemotePortID
+                 << " remoteSystemPort: " << firstRemoteSystemPortID
+                 << " Port state should be ENABLED on every RDSW";
+      return false;
+    }
   }
 
   return true;
