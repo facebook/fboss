@@ -33,8 +33,12 @@ constexpr uint64_t POST_I2C_WRITE_NO_DELAY_US = 0;
  */
 class TransceiverImpl {
  public:
-  TransceiverImpl() {}
-  virtual ~TransceiverImpl() {}
+  TransceiverImpl() = default;
+  virtual ~TransceiverImpl() = default;
+  TransceiverImpl(const TransceiverImpl&) = delete;
+  TransceiverImpl& operator=(const TransceiverImpl&) = delete;
+  TransceiverImpl(TransceiverImpl&&) = delete;
+  TransceiverImpl& operator=(TransceiverImpl&&) = delete;
 
   /*
    * Get the raw data from the Transceiver via I2C
@@ -109,10 +113,6 @@ class TransceiverImpl {
   virtual void updateTransceiverState(TransceiverStateMachineEvent /*event*/) {}
 
  private:
-  // Forbidden copy contructor and assignment operator
-  TransceiverImpl(TransceiverImpl const&) = delete;
-  TransceiverImpl& operator=(TransceiverImpl const&) = delete;
-
   enum : unsigned int { kMaxChannels = 4 };
 };
 
