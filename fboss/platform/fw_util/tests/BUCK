@@ -53,3 +53,14 @@ cpp_unittest(
         "//fboss/platform/fw_util:core",
     ],
 )
+
+cpp_unittest(
+    name = "fw_util_upgrade_test",
+    srcs = [
+        "FwUtilUpgradeTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
