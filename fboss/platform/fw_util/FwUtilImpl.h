@@ -64,6 +64,8 @@ class FwUtilImpl {
   FRIEND_TEST(FwUtilPreUpgradeTest, DoPreUpgradeOperationInvalidConfigs);
   FRIEND_TEST(FwUtilPostUpgradeTest, DoPostUpgradeOperationWithValidArgs);
   FRIEND_TEST(FwUtilPostUpgradeTest, DoPostUpgradeOperationInvalidConfigs);
+  FRIEND_TEST(FwUtilReadTest, PerformReadFlashromWithArgs);
+  FRIEND_TEST(FwUtilReadTest, PerformReadUnsupportedCommandType);
 
   void doPreUpgrade(const std::string&);
 
