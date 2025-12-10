@@ -265,6 +265,7 @@ size_t AgentMultiNodeVoqSwitchTrafficTest::pumpRoCETraffic(
 bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
     const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
   XLOG(DBG2) << "Verifying SHEL(Self Healing ECMP LAG) and Conditional Entropy";
+  constexpr auto kNumPktsToSend = 1000000;
 
   const auto& myHostname = topologyInfo->getMyHostname();
   auto getLocalActivePort = [myHostname] {
@@ -289,15 +290,26 @@ bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
     return std::make_pair(firstRemotePort, secondRemotePort);
   };
 
+  auto getRemotePortIDs = [](const std::string& remoteRdsw,
+                             const std::vector<utility::Neighbor>& neighbors) {
+    auto portIdToPortInfo = utility::getPortIdToPortInfo(remoteRdsw);
+    CHECK(neighbors.size() == 2);
+    CHECK(portIdToPortInfo.find(neighbors[0].portID) != portIdToPortInfo.end());
+    CHECK(portIdToPortInfo.find(neighbors[1].portID) != portIdToPortInfo.end());
+
+    return std::make_pair(neighbors[0].portID, neighbors[1].portID);
+  };
+
   auto localActivePort = getLocalActivePort();
   const auto& [remoteRdsw, neighbors] =
       configureRouteToRemoteRdswWithTwoNhops(topologyInfo);
   const auto& [firstRemotePort, secondRemotePort] =
       getRemotePorts(remoteRdsw, neighbors);
+  const auto& [firstRemotePortID, secondRemotePortID] =
+      getRemotePortIDs(remoteRdsw, neighbors);
 
   // Conditional Entropy is enabled, so traffic should egress on both ports.
   {
-    constexpr auto kNumPktsToSend = 1000000;
     XLOG(DBG2) << "Verify Traffic on both remote ports, no drops";
     auto firstPortOutBytes =
         utility::getPortOutBytes(remoteRdsw, firstRemotePort);
@@ -319,6 +331,23 @@ bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
     }
     if (!utility::verifyNoReassemblyErrorsForAllSwitches(topologyInfo)) {
       XLOG(DBG2) << "Unexpected reassembly errors";
+      return false;
+    }
+  }
+
+  // Admin disable one remote port, so traffic should egress on another port.
+  // Verify no reassembly drops.
+  {
+    XLOG(DBG2)
+        << "Disable one remote port, verify Traffic on one remote port, no drops";
+    utility::adminDisablePort(remoteRdsw, firstRemotePortID);
+    auto secondPortOutBytes =
+        utility::getPortOutBytes(remoteRdsw, secondRemotePort);
+    auto sentBytes = pumpRoCETraffic(localActivePort, kNumPktsToSend);
+    // All traffic should egress through the up port
+    if (!utility::verifyPortOutBytesIncrementByMinValue(
+            remoteRdsw, {{secondRemotePort, secondPortOutBytes}}, sentBytes)) {
+      XLOG(DBG2) << "Port out bytes increment verification failed";
       return false;
     }
   }
