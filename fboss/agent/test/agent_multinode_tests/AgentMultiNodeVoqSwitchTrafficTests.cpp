@@ -379,6 +379,10 @@ bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
       XLOG(DBG2) << "Port out bytes increment verification failed";
       return false;
     }
+    if (!utility::verifyNoReassemblyErrorsForAllSwitches(topologyInfo)) {
+      XLOG(DBG2) << "Unexpected reassembly errors";
+      return false;
+    }
   }
 
   return true;
