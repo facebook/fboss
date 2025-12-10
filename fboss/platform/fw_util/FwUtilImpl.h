@@ -62,6 +62,8 @@ class FwUtilImpl {
   FRIEND_TEST(FwUtilPreUpgradeTest, DoPreUpgradeOperationEmptyCommandType);
   FRIEND_TEST(FwUtilPreUpgradeTest, DoPreUpgradeOperationJtagWithArgs);
   FRIEND_TEST(FwUtilPreUpgradeTest, DoPreUpgradeOperationInvalidConfigs);
+  FRIEND_TEST(FwUtilPostUpgradeTest, DoPostUpgradeOperationWithValidArgs);
+  FRIEND_TEST(FwUtilPostUpgradeTest, DoPostUpgradeOperationInvalidConfigs);
 
   void doPreUpgrade(const std::string&);
 
