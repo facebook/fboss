@@ -33,7 +33,7 @@ class AgentMultiNodeVoqSwitchTrafficTest
   configureRouteToRemoteRdswWithTwoNhops(
       const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const;
 
-  void pumpRoCETraffic(const PortID& localPort) const;
+  void pumpRoCETraffic(const PortID& localPort, int64_t numPktsToSend) const;
 
  protected:
   bool setupTrafficLoop(

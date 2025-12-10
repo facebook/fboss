@@ -233,7 +233,8 @@ AgentMultiNodeVoqSwitchTrafficTest::configureRouteToRemoteRdswWithTwoNhops(
 }
 
 void AgentMultiNodeVoqSwitchTrafficTest::pumpRoCETraffic(
-    const PortID& localPort) const {
+    const PortID& localPort,
+    int64_t numPktsToSend) const {
   auto static kSrcIP = folly::IPAddressV6("2001:0db8:85a0::");
   auto [prefix, _] = kGetRoutePrefixAndPrefixLength();
 
@@ -250,7 +251,7 @@ void AgentMultiNodeVoqSwitchTrafficTest::pumpRoCETraffic(
       utility::kUdfL4DstPort,
       255, // hopLimit
       folly::MacAddress("00:02:00:00:01:01"), // srcMac
-      1000000, /* packetCount */
+      numPktsToSend,
       utility::kUdfRoceOpcodeAck,
       kReservedBytesWithRehashEnabled, /* reserved */
       std::nullopt, /* nextHdr */
@@ -276,7 +277,7 @@ bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
   const auto& [remoteRdsw, neighbors] =
       configureRouteToRemoteRdswWithTwoNhops(topologyInfo);
 
-  pumpRoCETraffic(localActivePort);
+  pumpRoCETraffic(localActivePort, 1000000 /* numPktsToSend */);
 
   return true;
 }
