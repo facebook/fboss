@@ -3177,11 +3177,11 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
         const auto& chanConfig = portState.opticalChannelConfig;
         if (!chanConfig.has_value() ||
             !is_non_optional_field_set_manually_or_by_serializer(
-                chanConfig.value().appSelCode_ref())) {
+                chanConfig.value().appSelCode())) {
           throw FbossError(
               "Tunable optics requires optical channel config with appSelCode for speed configuration");
         }
-        auto newAppSelCode = *chanConfig.value().appSelCode_ref();
+        auto newAppSelCode = *chanConfig.value().appSelCode();
         setApplicationCodeLocked(
             speed, startHostLane, numHostLanes, newAppSelCode);
       } else {
@@ -3281,7 +3281,7 @@ void CmisModule::programTunableModule(
    * TODO: tx-power range based sanity check 04h:198-201
    */
   if (!apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
-          opticalChannelConfig.txPower0P01Dbm_ref())) {
+          opticalChannelConfig.txPower0P01Dbm())) {
     throw FbossError("Tx-power not specified on the qsfp_service_config");
   }
   int16_t txPower = *opticalChannelConfig.txPower0P01Dbm();
