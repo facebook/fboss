@@ -449,22 +449,13 @@
               ]
             }
           ],
-          "xcvrCtrlConfigs": [
+          "xcvrCtrlBlockConfigs": [
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "IOB_XCVR_CTRL_PORT_1",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1030"
-              },
-              "portNumber": 1
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "IOB_XCVR_CTRL_PORT_2",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1034"
-              },
-              "portNumber": 2
+              "pmUnitScopedNamePrefix": "IOB",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x1030 + ({portNum} - {startPort})*0x4",
+              "numPorts": 2,
+              "startPort": 1
             }
           ],
           "infoRomConfigs": [
