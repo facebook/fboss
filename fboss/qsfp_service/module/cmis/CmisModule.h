@@ -10,6 +10,7 @@
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
+#include <chrono>
 #include <optional>
 
 namespace facebook {
@@ -201,6 +202,46 @@ class CmisModule : public QsfpModule {
 
   // Some of the pages are static and they need not be read every refresh cycle
   bool staticPagesCached_{false};
+
+  /*
+   * Structure to hold datapath init/deinit state per port using timers
+   * progStartTimer: Time point when datapath programming started.
+   * progDoneTimer: Time point when datapath programming finished.
+   * elapsedTime: Elapsed time for datapath programming (in milliseconds).
+   */
+  struct PortTimer {
+    std::chrono::steady_clock::time_point progStartTimer;
+    std::chrono::steady_clock::time_point progDoneTimer;
+    std::chrono::milliseconds elapsedTime{0};
+  };
+
+  /*
+   * Structure to track datapath initialization and de-initialization state
+   * per port.
+   *
+   * deInitTimers: Timers tracking datapath de-initialization
+   *               (start, done, and elapsed time)
+   * initTimers: Timers tracking datapath initialization
+   *             (start, done, and elapsed time)
+   * dpDeinitFailureCounter: Counter tracking the number of times spec violation
+   *                         for dp-deinit duration module advertisement.
+   * dpInitFailureCounter: Counter tracking the number of times spec violation
+   *                       for dp-init duration module advertisement.
+   */
+  struct DatapathState {
+    PortTimer deInitTimers;
+    PortTimer initTimers;
+    bool dpDeinitDone{false};
+    bool dpInitDone{false};
+    uint64_t dpDeinitFailureCounter{0};
+    uint64_t dpInitFailureCounter{0};
+  };
+
+  /*
+   * Map to track datapath init/deinit state per port ID
+   * Key: Port ID (string), Value: DatapathState structure
+   */
+  std::map<std::string, DatapathState> portDatapathStates_;
 
   /*
    * This function returns a pointer to the value in the static cached
