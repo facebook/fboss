@@ -1,13 +1,16 @@
-diff --git a/Makefile.in b/Makefile.in
-index b77a41c..cbe71fe 100644
---- a/Makefile.in
-+++ b/Makefile.in
-@@ -389,7 +389,7 @@ MULTIOSDIR = `$(CC) $(CFLAGS) -print-multi-os-directory`
+--- Makefile.in.orig	2025-11-25 22:37:17.431599581 +0000
++++ Makefile.in	2025-11-25 22:37:22.499643028 +0000
+@@ -385,11 +385,11 @@
+ # multilib-specific flags, it's overridden by FLAGS_TO_PASS from the
+ # default multilib, so we have to take CFLAGS into account as well,
+ # since it will be passed the multilib flags.
+-MULTIOSDIR = `$(CC) $(CFLAGS) -print-multi-os-directory`
++MULTIOSDIR = `$(CC) $(CFLAGS) -print-multi-os-directory 2>/dev/null || echo .`
  install_to_libdir: all
-        if test -n "${target_header_dir}"; then \
-                ${mkinstalldirs} $(DESTDIR)$(libdir)/$(MULTIOSDIR); \
--               $(INSTALL_DATA) $(TARGETLIB) $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB)n; \
-+               $(INSTALL_DATA) pic/$(TARGETLIB) $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB)n; \
-                ( cd $(DESTDIR)$(libdir)/$(MULTIOSDIR) ; chmod 644 $(TARGETLIB)n ;$(RANLIB) $(TARGETLIB)n ); \
-                mv -f $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB)n $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB); \
-                case "${target_header_dir}" in \
+ 	if test -n "${target_header_dir}"; then \
+ 		${mkinstalldirs} $(DESTDIR)$(libdir)/$(MULTIOSDIR); \
+-		$(INSTALL_DATA) $(TARGETLIB) $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB)n; \
++		if test -f pic/$(TARGETLIB); then $(INSTALL_DATA) pic/$(TARGETLIB) $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB)n; else $(INSTALL_DATA) $(TARGETLIB) $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB)n; fi; \
+ 		( cd $(DESTDIR)$(libdir)/$(MULTIOSDIR) ; chmod 644 $(TARGETLIB)n ;$(RANLIB) $(TARGETLIB)n ); \
+ 		mv -f $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB)n $(DESTDIR)$(libdir)/$(MULTIOSDIR)/$(TARGETLIB); \
+ 		case "${target_header_dir}" in \
