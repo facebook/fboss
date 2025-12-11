@@ -27,7 +27,8 @@ SaiRxPacket::SaiRxPacket(
     PortID portId,
     std::optional<VlanID> vlanId,
     cfg::PacketRxReason rxReason,
-    std::optional<uint8_t> queueId) {
+    std::optional<uint8_t> queueId,
+    std::optional<PacketType> packetType) {
   buf_ = folly::IOBuf::takeOwnership(
       const_cast<void*>(buffer), buffer_size, freeRxPacket, nullptr);
   len_ = buffer_size;
@@ -35,6 +36,7 @@ SaiRxPacket::SaiRxPacket(
   srcVlan_ = vlanId;
   rxReason_ = rxReason;
   cosQueue_ = queueId;
+  packetType_ = packetType;
 }
 
 SaiRxPacket::SaiRxPacket(
@@ -43,7 +45,8 @@ SaiRxPacket::SaiRxPacket(
     AggregatePortID aggregatePortID,
     std::optional<VlanID> vlanId,
     cfg::PacketRxReason rxReason,
-    std::optional<uint8_t> queueId) {
+    std::optional<uint8_t> queueId,
+    std::optional<PacketType> packetType) {
   buf_ = folly::IOBuf::takeOwnership(
       const_cast<void*>(buffer), buffer_size, freeRxPacket, nullptr);
   len_ = buffer_size;
@@ -52,6 +55,7 @@ SaiRxPacket::SaiRxPacket(
   isFromAggregatePort_ = true;
   rxReason_ = rxReason;
   cosQueue_ = queueId;
+  packetType_ = packetType;
 }
 
 std::string SaiRxPacket::describeDetails() const {

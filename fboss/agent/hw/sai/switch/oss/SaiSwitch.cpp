@@ -27,6 +27,11 @@ void SaiSwitch::hardResetSwitchEventNotificationCallback(
 
 void SaiSwitch::initTechSupport() {}
 
+PacketType getReceivedPacketType(int32_t packetType) {
+  throw FbossError(
+      "Received packet type conversion is unsupported : ", packetType);
+}
+
 bool SaiSwitch::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> /*pkt*/,
     const PortID& /*portID*/,

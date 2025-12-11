@@ -619,7 +619,8 @@ class SaiSwitch : public HwSwitch {
       PortSaiId inPort,
       bool allowMissingSrcPort,
       cfg::PacketRxReason rxReason,
-      std::optional<uint8_t> queueId);
+      std::optional<uint8_t> queueId,
+      std::optional<PacketType> packetType);
 
   void packetRxCallbackLag(
       sai_size_t buffer_size,
@@ -628,7 +629,8 @@ class SaiSwitch : public HwSwitch {
       PortSaiId inPort,
       bool allowMissingSrcPort,
       cfg::PacketRxReason rxReason,
-      std::optional<uint8_t> queueId);
+      std::optional<uint8_t> queueId,
+      std::optional<PacketType> packetType);
 
   std::shared_ptr<SwitchState> getColdBootSwitchState();
 
@@ -754,5 +756,8 @@ class SaiSwitch : public HwSwitch {
   std::optional<uint32_t> asicRevision_;
   std::atomic<int16_t> hardResetNotificationReceived_{0};
 };
+
+// Get the PacketType enum corresponding to SAI packet type
+PacketType getReceivedPacketType(int32_t packetType);
 
 } // namespace facebook::fboss

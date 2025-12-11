@@ -3524,6 +3524,11 @@ void SaiSwitch::packetRxCallback(
   std::optional<LagSaiId> lagSaiIdOpt;
   std::optional<HostifTrapSaiId> hostifTrapSaiIdOpt;
   std::optional<uint8_t> hostifQueueIdOpt;
+  std::optional<int32_t> packetTypeOpt;
+
+  std::optional<sai_attr_id_t> packetTypeAttrId =
+      SaiRxPacketTraits::Attributes::AttributePacketType()();
+
   for (uint32_t index = 0; index < attr_count; index++) {
     switch (attr_list[index].id) {
       case SAI_HOSTIF_PACKET_ATTR_INGRESS_PORT:
@@ -3539,8 +3544,13 @@ void SaiSwitch::packetRxCallback(
         hostifQueueIdOpt = attr_list[index].value.u8;
         break;
       default:
-        XLOG_EVERY_MS(DBG3, 5000)
-            << "invalid attribute received: " << attr_list[index].id;
+        if (packetTypeAttrId.has_value() &&
+            attr_list[index].id == packetTypeAttrId.value()) {
+          packetTypeOpt = attr_list[index].value.s32;
+        } else {
+          XLOG_EVERY_MS(DBG3, 5000)
+              << "invalid attribute received: " << attr_list[index].id;
+        }
     }
   }
 
@@ -3596,6 +3606,12 @@ void SaiSwitch::packetRxCallback(
     queueId = hostifQueueIdOpt.has_value() ? hostifQueueIdOpt.value() : 0;
   }
 
+  // Convert SAI packet RX type to PacketType enum
+  std::optional<PacketType> packetType;
+  if (packetTypeOpt.has_value()) {
+    packetType = getReceivedPacketType(packetTypeOpt.value());
+  }
+
   if (!lagSaiIdOpt) {
     packetRxCallbackPort(
         buffer_size,
@@ -3603,7 +3619,8 @@ void SaiSwitch::packetRxCallback(
         portSaiId,
         allowMissingSrcPort,
         packetRxReason,
-        queueId);
+        queueId,
+        packetType);
   } else {
     packetRxCallbackLag(
         buffer_size,
@@ -3612,7 +3629,8 @@ void SaiSwitch::packetRxCallback(
         portSaiId,
         allowMissingSrcPort,
         packetRxReason,
-        queueId);
+        queueId,
+        packetType);
   }
 }
 
@@ -3622,7 +3640,8 @@ void SaiSwitch::packetRxCallbackPort(
     PortSaiId portSaiId,
     bool allowMissingSrcPort,
     cfg::PacketRxReason rxReason,
-    std::optional<uint8_t> queueId) {
+    std::optional<uint8_t> queueId,
+    std::optional<PacketType> packetType) {
   PortID swPortId(0);
   std::optional<VlanID> swVlanId = processVlanUntaggedPackets()
       ? std::nullopt
@@ -3639,7 +3658,8 @@ void SaiSwitch::packetRxCallbackPort(
       PortID(0),
       swVlanId,
       rxReason,
-      queueId);
+      queueId,
+      packetType);
   const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(portSaiId);
   /*
    * When a packet is received with source port as cpu port, do the following:
@@ -3730,12 +3750,13 @@ void SaiSwitch::packetRxCallbackLag(
     PortSaiId portSaiId,
     bool allowMissingSrcPort,
     cfg::PacketRxReason rxReason,
-    std::optional<uint8_t> queueId) {
+    std::optional<uint8_t> queueId,
+    std::optional<PacketType> packetType) {
   AggregatePortID swAggPortId(0);
   PortID swPortId(0);
   VlanID swVlanId(0);
   auto rxPacket = std::make_unique<SaiRxPacket>(
-      buffer_size, buffer, PortID(0), swVlanId, rxReason, queueId);
+      buffer_size, buffer, PortID(0), swVlanId, rxReason, queueId, packetType);
 
   const auto aggPortItr = concurrentIndices_->aggregatePortIds.find(lagSaiId);
 

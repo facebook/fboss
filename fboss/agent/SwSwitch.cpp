@@ -2210,12 +2210,14 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   if (getFabricLinkMonitoringManager()) {
     // This flow will be hit only for a subset of VoQ and Fabric switches
     // where fabric link monitoring manager is running.
+    // TODO(nivinl): Broadcom implemented the new attribute to specify
+    // packet type as requested in CS00012430577, however, its not working
+    // for Fabric devices, hence staying with port check for now. Will
+    // migrate to checking the packetType as below soon:
+    // pkt->packetType().value() == PacketType::FABRIC_LINK_MONITORING
     auto* port =
         getState()->getPorts()->getNodeIf(PortID(pkt->getSrcPort())).get();
     if (port && (port->getPortType() == cfg::PortType::FABRIC_PORT)) {
-      // TODO(nivinl): Once Broadcom implements the new attribute to specify
-      // packet type as requested in CS00012430577, the check for port type
-      // can be avoided.
       Cursor c(pkt->buf());
       getFabricLinkMonitoringManager()->handlePacket(std::move(pkt), c);
       return;

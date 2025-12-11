@@ -76,6 +76,10 @@ class RxPacket : public Packet {
     return cosQueue_;
   }
 
+  std::optional<PacketType> packetType() const {
+    return packetType_;
+  }
+
   /*
    * Struct to hold reason information
    */
@@ -98,6 +102,7 @@ class RxPacket : public Packet {
   std::optional<VlanID> srcVlan_{};
   uint32_t len_{0};
   std::optional<uint8_t> cosQueue_;
+  std::optional<PacketType> packetType_;
 };
 
 } // namespace facebook::fboss
