@@ -652,7 +652,7 @@ class SwSwitch : public HwSwitchCallback {
   bool sendPacketOutOfPortSyncForPktType(
       std::unique_ptr<TxPacket> pkt,
       const PortID& portID,
-      TxPacketType packetType) noexcept;
+      PacketType packetType) noexcept;
 
   /*
    * Send a packet to HwSwitch using thrift stream
@@ -662,7 +662,7 @@ class SwSwitch : public HwSwitchCallback {
       SwitchID switchId,
       std::optional<PortID> portID,
       std::optional<uint8_t> queue = std::nullopt,
-      std::optional<TxPacketType> packetType = std::nullopt) noexcept;
+      std::optional<PacketType> packetType = std::nullopt) noexcept;
   /*
    * Send a packet, using switching logic to send it out the correct port(s)
    * for the specified VLAN and destination MAC.

@@ -247,7 +247,7 @@ class HwSwitch {
   virtual bool sendPacketOutOfPortSyncForPktType(
       std::unique_ptr<TxPacket> pkt,
       const PortID& portID,
-      TxPacketType packetType);
+      PacketType packetType);
 
   /*
    * Allows hardware-specific code to record switch statistics.

@@ -76,7 +76,7 @@ class MultiHwSwitchHandler {
   bool sendPacketOutOfPortSyncForPktType(
       std::unique_ptr<TxPacket> pkt,
       const PortID& portID,
-      TxPacketType packetType) noexcept;
+      PacketType packetType) noexcept;
 
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept;
 

@@ -85,9 +85,9 @@ enum ForwardingClass {
 }
 
 /*
- * Packet type being transmitted, primarily used for fabric ports
+ * Packet type for transmit and receive, primarily used for fabric ports
  */
-enum TxPacketType {
+enum PacketType {
   DEFAULT = 0,
   FABRIC_LINK_MONITORING = 1,
 }

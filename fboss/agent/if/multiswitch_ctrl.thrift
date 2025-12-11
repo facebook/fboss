@@ -68,7 +68,7 @@ struct TxPacket {
   2: optional i32 port;
   3: optional i32 queue;
   4: i32 length;
-  5: common.TxPacketType packetType;
+  5: common.PacketType packetType;
 }
 
 struct RxPacket {

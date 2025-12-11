@@ -342,7 +342,7 @@ void FabricLinkMonitoringManager::packetSendAndOutstandingHandling(
             << portId;
       } else {
         sw_->sendPacketOutOfPortSyncForPktType(
-            std::move(pkt), portId, TxPacketType::FABRIC_LINK_MONITORING);
+            std::move(pkt), portId, PacketType::FABRIC_LINK_MONITORING);
         // Track pending sequence numbers
         pendingSeqNums.push_back(sequenceNumber);
         // Increment outstanding packet count.

@@ -43,7 +43,7 @@ bool MultiSwitchHwSwitchHandler::sendPacketSwitchedAsync(
 bool MultiSwitchHwSwitchHandler::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> pkt,
     const PortID& portID,
-    TxPacketType packetType) noexcept {
+    PacketType packetType) noexcept {
   return sendPacketOutViaThriftStream(
       std::move(pkt), portID, std::nullopt /*queue*/, packetType);
 }
@@ -98,7 +98,7 @@ bool MultiSwitchHwSwitchHandler::sendPacketOutViaThriftStream(
     std::unique_ptr<TxPacket> pkt,
     std::optional<PortID> portID,
     std::optional<uint8_t> queue,
-    std::optional<TxPacketType> packetType) {
+    std::optional<PacketType> packetType) {
   SwitchID switchId;
   // Find the actual switch ID that owns the port
   if (portID.has_value()) {

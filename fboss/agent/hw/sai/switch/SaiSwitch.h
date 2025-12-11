@@ -119,7 +119,7 @@ class SaiSwitch : public HwSwitch {
   bool sendPacketOutOfPortSyncForPktType(
       std::unique_ptr<TxPacket> pkt,
       const PortID& portID,
-      TxPacketType packetType) override;
+      PacketType packetType) override;
 
   bool sendPacketOutOfPortSyncCommon(
       std::unique_ptr<TxPacket> pkt,

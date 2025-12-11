@@ -3244,7 +3244,7 @@ bool SwSwitch::sendPacketOutOfPortAsync(
 bool SwSwitch::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> pkt,
     const PortID& portId,
-    TxPacketType packetType) noexcept {
+    PacketType packetType) noexcept {
   auto state = getState();
   if (!state->getPorts()->getNodeIf(portId)) {
     XLOG(ERR)
@@ -3272,7 +3272,7 @@ bool SwSwitch::sendPacketOutViaThriftStream(
     SwitchID switchId,
     std::optional<PortID> portID,
     std::optional<uint8_t> queue,
-    std::optional<TxPacketType> packetType) noexcept {
+    std::optional<PacketType> packetType) noexcept {
   multiswitch::TxPacket txPacket;
   if (portID) {
     txPacket.port() = portID.value();

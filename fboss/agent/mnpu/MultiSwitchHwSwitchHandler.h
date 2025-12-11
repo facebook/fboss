@@ -32,7 +32,7 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
   bool sendPacketOutOfPortSyncForPktType(
       std::unique_ptr<TxPacket> pkt,
       const PortID& portID,
-      TxPacketType packetType) noexcept override;
+      PacketType packetType) noexcept override;
 
   bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const override;
@@ -64,7 +64,7 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
       std::unique_ptr<TxPacket> pkt,
       std::optional<PortID> portID = std::nullopt,
       std::optional<uint8_t> queue = std::nullopt,
-      std::optional<TxPacketType> packetType = std::nullopt);
+      std::optional<PacketType> packetType = std::nullopt);
 
   SwitchRunState getHwSwitchRunState() override;
 
