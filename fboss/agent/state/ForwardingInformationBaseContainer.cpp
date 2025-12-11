@@ -8,7 +8,7 @@
  *
  */
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
-#include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
@@ -41,15 +41,15 @@ ForwardingInformationBaseContainer* ForwardingInformationBaseContainer::modify(
     return this;
   }
 
-  auto fibMap = (*state)->getFibs()->modify(state);
-  auto [node, scope] = fibMap->getNodeAndScope(getID());
-  DCHECK_EQ(node.get(), this);
   auto newFibContainer = clone();
-
   auto* rtn = newFibContainer.get();
-  fibMap->updateForwardingInformationBaseContainer(
-      std::move(newFibContainer), scope);
 
+  auto fibInfoMap = (*state)->getFibsInfoMap();
+  auto fibInfo = fibInfoMap->findFibInfoForContainer(this);
+
+  CHECK(fibInfo) << "FibContainer not found in any FibInfo";
+
+  fibInfo->updateFibContainer(newFibContainer, state);
   return rtn;
 }
 

@@ -89,6 +89,21 @@ class MultiSwitchFibInfoMap
   // MultiSwitchForwardingInformationBaseMap::getAllNodes() behavior
   std::shared_ptr<ForwardingInformationBaseMap> getAllFibNodes() const;
 
+  // Find which FibInfo contains a specific FibContainer
+  // Returns the FibInfo that contains the container, or nullptr if not found
+  std::shared_ptr<FibInfo> findFibInfoForContainer(
+      const ForwardingInformationBaseContainer* container) const {
+    for (const auto& [_, fibInfo] : std::as_const(*this)) {
+      auto fibsMap = fibInfo->getfibsMap();
+      auto foundContainer = fibsMap->getNodeIf(container->getID());
+
+      if (foundContainer && foundContainer.get() == container) {
+        return fibInfo;
+      }
+    }
+    return nullptr;
+  }
+
   // Get total route count across all FibInfo objects (v4, v6)
   std::pair<uint64_t, uint64_t> getRouteCount() const;
 

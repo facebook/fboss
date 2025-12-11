@@ -50,8 +50,14 @@ std::pair<uint64_t, uint64_t> getRouteCount(
 
 template <typename Func>
 void forAllRoutes(const std::shared_ptr<SwitchState>& state, Func func) {
-  for (const auto& [_, fibs] : std::as_const(*state->getFibs())) {
-    for (const auto& iter : std::as_const(*fibs)) {
+  for (const auto& [_, fibInfo] : std::as_const(*state->getFibsInfoMap())) {
+    auto fibsMap = fibInfo->getfibsMap();
+    if (!fibsMap) {
+      continue;
+    }
+
+    // Iterate through all FIB containers
+    for (const auto& iter : std::as_const(*fibsMap)) {
       const auto& fibContainer = iter.second;
       auto rid = fibContainer->getID();
       for (const auto& route : std::as_const(*(fibContainer->getFibV6()))) {
