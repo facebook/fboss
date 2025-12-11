@@ -13,8 +13,6 @@
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG3; default:async=true");
 
-DECLARE_int64(bm_max_iters);
-
 inline bool listBenchmarks(int* argc, char** argv) {
   for (int i = 0; i < *argc; i++) {
     if (strcmp(argv[i], "--bm_list") == 0) {
