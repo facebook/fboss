@@ -2553,12 +2553,13 @@ void CmisModule::setMaxFecSamplingLocked() {
  *
  * Helper function to program a given AppSel code to the module. This contains
  * the common logic for resetting datapath, programming the AppSel code,
- * waiting for the module to process, and verifying the configuration.
+ * waiting for the module to process, and verifying the configurations.
  *
  * If appSelectFunc is provided, it will be used. Otherwise, the default
  * setApplicationSelectCode will be used.
  */
 void CmisModule::programApplicationSelectCode(
+    const std::string& portName,
     uint8_t appSelCode,
     uint8_t moduleMediaInterfaceCode,
     uint8_t startHostLane,
@@ -2581,7 +2582,7 @@ void CmisModule::programApplicationSelectCode(
         hostLaneMask);
   }
 
-  resetDataPathWithFunc(appSelectFunc, hostLaneMask);
+  resetDataPathWithFunc(portName, appSelectFunc, hostLaneMask);
 
   datapathResetPendingMask_ &= ~hostLaneMask;
 
@@ -2666,6 +2667,7 @@ uint8_t CmisModule::getCurrentAppSelCode(uint8_t startHostLane) {
  */
 std::optional<CmisModule::ApplicationAdvertisingField>
 CmisModule::getAppSelCodeForSpeed(
+    const std::string& portName,
     cfg::PortSpeed speed,
     uint8_t startHostLane,
     uint8_t numHostLanesForPort) {
@@ -2751,7 +2753,7 @@ CmisModule::getAppSelCodeForSpeed(
       // returning
       uint8_t hostLaneMask = laneMask(startHostLane, numHostLanes);
       if (datapathResetPendingMask_ & hostLaneMask) {
-        resetDataPathWithFunc(std::nullopt, hostLaneMask);
+        resetDataPathWithFunc(portName, std::nullopt, hostLaneMask);
         datapathResetPendingMask_ &= ~hostLaneMask;
         QSFP_LOG(INFO, this) << folly::sformat(
             "Reset datapath for lane mask {:#x} before returning",
@@ -2783,6 +2785,7 @@ CmisModule::getAppSelCodeForSpeed(
  * other lanes of the module also.
  */
 void CmisModule::setApplicationCodeLocked(
+    const std::string& portName,
     cfg::PortSpeed speed,
     uint8_t startHostLane,
     uint8_t numHostLanesForPort,
@@ -2819,6 +2822,7 @@ void CmisModule::setApplicationCodeLocked(
         getInterfaceCodeForAppSel(newAppSelCode, kMediaInterfaceCodeOffset);
 
     programApplicationSelectCode(
+        portName,
         newAppSelCode,
         moduleMediaInterfaceCode,
         startHostLane,
@@ -2827,8 +2831,8 @@ void CmisModule::setApplicationCodeLocked(
   }
 
   // For non-tunable optics, discover the AppSel code based on capabilities
-  auto capability =
-      getAppSelCodeForSpeed(speed, startHostLane, numHostLanesForPort);
+  auto capability = getAppSelCodeForSpeed(
+      portName, speed, startHostLane, numHostLanesForPort);
 
   // If nullopt, means current config already matches, nothing to do
   if (!capability) {
@@ -2860,6 +2864,7 @@ void CmisModule::setApplicationCodeLocked(
 
   // Use programApplicationSelectCode for both cases
   programApplicationSelectCode(
+      portName,
       appSelCode,
       moduleMediaInterfaceCode,
       startHostLane,
@@ -3010,7 +3015,7 @@ void CmisModule::remediateFlakyTransceiver(
           QSFP_LOG(INFO, this)
               << "Doing datapath reinit for " << port << " with lane mask "
               << static_cast<int>(portLaneMask);
-          resetDataPathWithFunc(std::nullopt, portLaneMask);
+          resetDataPathWithFunc(port, std::nullopt, portLaneMask);
         } else {
           QSFP_LOG(ERR, this) << "Host lanes empty for " << port
                               << ". Skipping individual datapath remediation.";
@@ -3183,10 +3188,10 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
         }
         auto newAppSelCode = *chanConfig.value().appSelCode();
         setApplicationCodeLocked(
-            speed, startHostLane, numHostLanes, newAppSelCode);
+            portName, speed, startHostLane, numHostLanes, newAppSelCode);
       } else {
         setApplicationCodeLocked(
-            speed, startHostLane, numHostLanes, kInvalidApplication);
+            portName, speed, startHostLane, numHostLanes, kInvalidApplication);
       }
     }
 
@@ -4452,11 +4457,12 @@ bool CmisModule::isDatapathUpdated(
   return true;
 }
 
-void CmisModule::resetDataPath() {
-  resetDataPathWithFunc();
+void CmisModule::resetDataPath(const std::string& portName) {
+  resetDataPathWithFunc(portName);
 }
 
 void CmisModule::resetDataPathWithFunc(
+    const std::string& portName,
     std::optional<std::function<void()>> afterDataPathDeinitFunc,
     uint8_t hostLaneMask) {
   if (flatMem_) {

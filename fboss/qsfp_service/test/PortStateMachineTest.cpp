@@ -625,7 +625,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     }
 
     // Normal transceiver programming shouldn't trigger resetDataPath()
-    EXPECT_CALL(*mockXcvr, resetDataPath()).Times(0).InSequence(s);
+    EXPECT_CALL(*mockXcvr, resetDataPath(testing::_)).Times(0).InSequence(s);
 
     EXPECT_CALL(*mockXcvr, updateQsfpData(false))
         .Times(callTimes)

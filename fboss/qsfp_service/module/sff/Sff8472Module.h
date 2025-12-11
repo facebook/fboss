@@ -128,7 +128,7 @@ class Sff8472Module : public QsfpModule {
     return true;
   }
 
-  void resetDataPath() override {
+  void resetDataPath(const std::string& /* portName */) override {
     // no-op
   }
 

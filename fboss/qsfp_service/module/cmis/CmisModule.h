@@ -262,6 +262,7 @@ class CmisModule : public QsfpModule {
    * if newAppSelCode is provided, use that directly instead of deriving
    */
   void setApplicationCodeLocked(
+      const std::string& portName,
       cfg::PortSpeed speed,
       uint8_t startHostLane,
       uint8_t numHostLanesForPort,
@@ -275,6 +276,7 @@ class CmisModule : public QsfpModule {
    * config already matches.
    */
   std::optional<ApplicationAdvertisingField> getAppSelCodeForSpeed(
+      const std::string& portName,
       cfg::PortSpeed speed,
       uint8_t startHostLane,
       uint8_t numHostLanesForPort);
@@ -288,6 +290,7 @@ class CmisModule : public QsfpModule {
    * Otherwise, the default setApplicationSelectCode will be used.
    */
   void programApplicationSelectCode(
+      const std::string& portName,
       uint8_t appSelCode,
       uint8_t moduleMediaInterfaceCode,
       uint8_t startHostLane,
@@ -520,7 +523,7 @@ class CmisModule : public QsfpModule {
 
   bool supportRemediate() override;
 
-  void resetDataPath() override;
+  void resetDataPath(const std::string& portName) override;
 
   /*
    * returns whether optics frequency is tunable or not
@@ -664,6 +667,7 @@ class CmisModule : public QsfpModule {
       const std::vector<CmisLaneState>& states);
 
   void resetDataPathWithFunc(
+      const std::string& portName,
       std::optional<std::function<void()>> afterDataPathDeinitFunc =
           std::nullopt,
       uint8_t hostLaneMask = 0xFF);

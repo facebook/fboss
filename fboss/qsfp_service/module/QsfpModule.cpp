@@ -1459,7 +1459,7 @@ void QsfpModule::programTransceiver(
       }
 
       if (needResetDataPath) {
-        resetDataPath();
+        resetDataPath(getNameString());
       }
 
       // Since we're touching the transceiver, we need to update the cached
