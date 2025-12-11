@@ -134,6 +134,7 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/fsdb/common:flags",
+        "//fboss/lib:alert_logger",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:thread_heartbeat",
         "//fboss/lib/config:fboss_config_utils",
