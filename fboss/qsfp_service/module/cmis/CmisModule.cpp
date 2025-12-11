@@ -3467,6 +3467,8 @@ bool CmisModule::ensureTransceiverReadyLocked() {
         newModuleControl);
 
     writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
+    // Enforces next refresh is a full refresh.
+    dirty_ = true;
     return false;
   } else {
     // Maintaining the optics to low power mode until AppSel programming
