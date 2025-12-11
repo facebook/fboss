@@ -697,7 +697,28 @@ class CmisModule : public QsfpModule {
    */
   MediaInterfaceCode getModuleMediaInterface() const override;
 
+  uint64_t getExpectedDatapathDelayUsec(bool /*init*/);
   uint64_t maxRetriesWith500msDelay(bool /*init*/);
+
+  /*
+   * Program the datapath for the specified port. When isInit is true, releases
+   * lanes from DEACTIVATED state to ACTIVATED state. When isInit is false, sets
+   * lanes to DEACTIVATED state. This function:
+   * - Writes to DATA_PATH_DEINIT register (set bits for deinit, clear for init)
+   * - Polls the datapath state machine until lanes reach target state
+   * - Tracks timing and failure counters
+   * - Returns true if operation succeeds, false on timeout or failure
+   *
+   * @param portName The name of the port being programmed
+   * @param hostLaneMask Bitmask of host lanes to program
+   * @param isInit If true, initialize (activate); if false, deinitialize
+   * (deactivate)
+   * @return true if datapath operation completed successfully, false otherwise
+   */
+  bool dataPathProgram(
+      const std::string& portName,
+      uint8_t hostLaneMask,
+      bool isInit);
 
   /*
    * Check if the datapath for the specified lanes has been updated to one of

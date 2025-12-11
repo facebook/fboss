@@ -4399,7 +4399,7 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
   return prbsStats;
 }
 
-uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
+uint64_t CmisModule::getExpectedDatapathDelayUsec(bool init) {
   if (isAecModule()) {
     // Read the datapath init/deinit max time from module.
     uint8_t specVal;
@@ -4421,8 +4421,7 @@ uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
           init ? "init" : "deinit",
           maxTime);
       if (kUsecDatapathStateUpdateTimeMaxFboss > maxTime) {
-        // success.
-        return maxTime / kUsecDatapathStatePollTime;
+        return maxTime;
       } else {
         QSFP_LOG(ERR, this) << fmt::format(
             "Datapath max {:s} time from spec {:d} uSec is greater than max allowed time {:d} uSec",
@@ -4439,7 +4438,11 @@ uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
   }
   QSFP_LOG(INFO, this) << fmt::format(
       "Default max Init/DeInit time {:d} uSec", kUsecDatapathStateUpdateTime);
-  return kUsecDatapathStateUpdateTime / kUsecDatapathStatePollTime;
+  return kUsecDatapathStateUpdateTime;
+}
+
+uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
+  return getExpectedDatapathDelayUsec(init) / kUsecDatapathStatePollTime;
 }
 
 bool CmisModule::isDatapathUpdated(
@@ -4459,6 +4462,115 @@ bool CmisModule::isDatapathUpdated(
 
 void CmisModule::resetDataPath(const std::string& portName) {
   resetDataPathWithFunc(portName);
+}
+
+bool CmisModule::dataPathProgram(
+    const std::string& portName,
+    uint8_t hostLaneMask,
+    bool isInit) {
+  if (flatMem_) {
+    return true;
+  }
+
+  auto& dpState = portDatapathStates_[portName];
+  auto& timers = isInit ? dpState.initTimers : dpState.deInitTimers;
+  auto& dpDone = isInit ? dpState.dpInitDone : dpState.dpDeinitDone;
+  auto& dpFailureCounter =
+      isInit ? dpState.dpInitFailureCounter : dpState.dpDeinitFailureCounter;
+
+  // For deinit, check if already done
+  if (!isInit && dpState.dpDeinitDone) {
+    QSFP_LOG(INFO, this) << "Port " << portName
+                         << " data path deinit already done";
+    return true;
+  }
+
+  const std::string opName = isInit ? "init" : "deinit";
+  const std::string activationName = isInit ? "ACTIVATION" : "DEACTIVATION";
+
+  // If programming start timer is not set, set it and trigger the operation
+  if (timers.progStartTimer.time_since_epoch().count() == 0) {
+    timers.progStartTimer = std::chrono::steady_clock::now();
+
+    // Read current register value
+    uint8_t dataPathDeInitReg;
+    readCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInitReg);
+
+    // For init: clear bits (release lanes from deactivation)
+    // For deinit: set bits (deactivate lanes)
+    uint8_t dataPathDeInit = isInit ? (dataPathDeInitReg & ~hostLaneMask)
+                                    : (dataPathDeInitReg | hostLaneMask);
+    writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
+
+    QSFP_LOG(INFO, this) << fmt::format(
+        "Port {} starting datapath {}", portName, opName);
+  }
+
+  // Get expected delay from module spec
+  auto expectedDelayUsec = getExpectedDatapathDelayUsec(isInit);
+
+  // Target states for init/deinit
+  std::vector<CmisLaneState> targetStates = isInit
+      ? std::vector<
+            CmisLaneState>{CmisLaneState::ACTIVATED, CmisLaneState::DATAPATH_INITIALIZED}
+      : std::vector<CmisLaneState>{CmisLaneState::DEACTIVATED};
+
+  // Wait for operation to complete, retry every 500ms, up to 20 loops
+  const auto kMaxRetries = maxRetriesWith500msDelay(isInit);
+  int retryCount = 0;
+  while (!isDatapathUpdated(hostLaneMask, targetStates) &&
+         retryCount < kMaxRetries) {
+    /* sleep override */
+    usleep(kUsecDatapathStatePollTime);
+    retryCount++;
+  }
+
+  if (isDatapathUpdated(hostLaneMask, targetStates)) {
+    // Mark operation as done
+    timers.progDoneTimer = std::chrono::steady_clock::now();
+    dpDone = true;
+
+    // Calculate and store elapsed time
+    timers.elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+        timers.progDoneTimer - timers.progStartTimer);
+
+    QSFP_LOG(INFO, this) << fmt::format(
+        "Port {} DP_{} completed in {} ms, dp_{}_failure_counter {}",
+        portName,
+        activationName,
+        timers.elapsedTime.count(),
+        opName,
+        dpFailureCounter);
+    timers.progStartTimer = std::chrono::steady_clock::time_point();
+    return true;
+  }
+
+  // If operation exceeded expected time, log error
+  auto currentTime = std::chrono::steady_clock::now();
+  auto elapsedUsec = std::chrono::duration_cast<std::chrono::microseconds>(
+                         currentTime - timers.progStartTimer)
+                         .count();
+
+  if (elapsedUsec > expectedDelayUsec) {
+    QSFP_LOG(ERR, this) << fmt::format(
+        "Port {} datapath {} exceeded expected time ({} us > {} us), "
+        "dp_{}_failure_counter {}",
+        portName,
+        isInit ? "activation" : "deactivation",
+        elapsedUsec,
+        expectedDelayUsec,
+        opName,
+        dpFailureCounter);
+    // Reset timer and increment failure counter
+    dpFailureCounter++;
+  }
+
+  if (!dpDone) {
+    QSFP_LOG(INFO, this) << fmt::format(
+        "Port {} DP_{} not compeleted", portName, activationName);
+  }
+
+  return false;
 }
 
 void CmisModule::resetDataPathWithFunc(
