@@ -69,11 +69,10 @@ auto NeighborUpdaterImpl::createCachesForIntf(
   // These fields will be removed as we migrate to intfCaches_
   VlanID vlanID{0};
   std::string vlanName = "--";
-  if (intf->getVlanIDIf_DEPRECATED()) {
-    auto vlan =
-        state->getVlans()->getNodeIf(intf->getVlanIDIf_DEPRECATED().value());
+  if (intf->getType() == cfg::InterfaceType::VLAN) {
+    auto vlan = state->getVlans()->getNodeIf(intf->getVlanID());
     CHECK(vlan);
-    vlanID = intf->getVlanIDIf_DEPRECATED().value();
+    vlanID = intf->getVlanID();
     vlanName = vlan->getName();
   }
 
