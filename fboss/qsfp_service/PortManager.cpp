@@ -208,10 +208,6 @@ void PortManager::syncPorts(
   }
 }
 
-bool PortManager::initExternalPhyMap(bool forceWarmboot) {
-  return true;
-}
-
 void PortManager::programXphyPort(
     PortID portId,
     cfg::PortProfileID portProfileId) {
@@ -2063,6 +2059,11 @@ void PortManager::publishPortStatToFsdb(
   if (FLAGS_publish_stats_to_fsdb) {
     fsdbSyncManager_->updatePortStat(std::move(portNameStr), std::move(stat));
   }
+}
+
+void PortManager::initExternalPhyMap(bool forceWarmboot) {
+  transceiverManager_->initExternalPhyMap(phyManager_.get(), forceWarmboot);
+  restoreWarmBootPhyState();
 }
 
 } // namespace facebook::fboss

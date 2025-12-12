@@ -363,10 +363,7 @@ class PortManager {
       std::map<int32_t, PortStateMachineState>& states,
       std::unique_ptr<std::vector<int32_t>> ids);
 
-  /*
-   * function to initialize all the Phy in the system
-   */
-  bool initExternalPhyMap(bool forceWarmboot = false);
+  virtual void initExternalPhyMap(bool forceWarmboot = false);
 
  protected:
   void publishLinkSnapshots(PortID portId);
