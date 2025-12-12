@@ -112,9 +112,10 @@ class FsdbSubManager : public FsdbSubManagerBase {
       std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb =
           std::nullopt,
       std::optional<FsdbStreamHeartbeatCb> heartbeatCb = std::nullopt) {
+    dataCb_ = std::move(cb);
     subscribeImpl(
-        [this, cb = std::move(cb)](SubscriberChunk chunk) {
-          parseChunkAndInvokeCallback(std::move(chunk), std::move(cb));
+        [this](SubscriberChunk chunk) {
+          parseChunkAndInvokeCallback(std::move(chunk));
         },
         std::move(subscriptionStateChangeCb),
         std::move(heartbeatCb));
@@ -132,8 +133,13 @@ class FsdbSubManager : public FsdbSubManagerBase {
     return boundData;
   }
 
+  void stop() override {
+    FsdbSubManagerBase::stop();
+    dataCb_.reset();
+  }
+
  private:
-  void parseChunkAndInvokeCallback(SubscriberChunk chunk, DataCallback cb) {
+  void parseChunkAndInvokeCallback(SubscriberChunk chunk) {
     std::vector<SubscriptionKey> changedKeys;
     changedKeys.reserve(chunk.patchGroups()->size());
     std::vector<std::vector<std::string>> changedPaths;
@@ -179,10 +185,11 @@ class FsdbSubManager : public FsdbSubManagerBase {
         std::move(changedPaths),
         lastServedAt,
         lastPublishedAt};
-    cb(std::move(update));
+    dataCb_.value()(std::move(update));
   }
 
   Storage root_{Root()};
+  std::optional<DataCallback> dataCb_{std::nullopt};
 };
 
 } // namespace facebook::fboss::fsdb

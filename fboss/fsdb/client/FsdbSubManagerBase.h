@@ -23,7 +23,7 @@ class FsdbSubManagerBase {
  public:
   virtual ~FsdbSubManagerBase();
 
-  void stop();
+  virtual void stop();
 
   const std::string& clientId() const;
 
