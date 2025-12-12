@@ -111,13 +111,22 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
         static_cast<uint32_t>(swInterface->getMtu()));
   }
 
+  // Enable MPLS admin state if supported
+  std::optional<SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState>
+      adminMplsStateAttribute = std::nullopt;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::MPLS)) {
+    adminMplsStateAttribute =
+        SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState(true);
+  }
+
   // create the router interface
   SaiVlanRouterInterfaceTraits::CreateAttributes attributes{
       virtualRouterIdAttribute,
       typeAttribute,
       vlanIdAttribute,
       srcMacAttribute,
-      mtuAttribute};
+      mtuAttribute,
+      adminMplsStateAttribute};
   SaiVlanRouterInterfaceTraits::AdapterHostKey k{
       virtualRouterIdAttribute,
       vlanIdAttribute,
@@ -178,13 +187,23 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
       swInterface->getType() == cfg::InterfaceType::SYSTEM_PORT
       ? getSystemPortId(swInterface)
       : getPortId(swInterface);
+
+  // Enable MPLS admin state if supported
+  std::optional<SaiPortRouterInterfaceTraits::Attributes::AdminMplsState>
+      adminMplsStateAttribute = std::nullopt;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::MPLS)) {
+    adminMplsStateAttribute =
+        SaiPortRouterInterfaceTraits::Attributes::AdminMplsState(true);
+  }
+
   // create the router interface
   SaiPortRouterInterfaceTraits::CreateAttributes attributes{
       virtualRouterIdAttribute,
       typeAttribute,
       portIdAttribute,
       srcMacAttribute,
-      mtuAttribute};
+      mtuAttribute,
+      adminMplsStateAttribute};
   SaiPortRouterInterfaceTraits::AdapterHostKey k{
       virtualRouterIdAttribute,
       portIdAttribute,

@@ -67,7 +67,8 @@ struct RouterInterfaceTraitsAttributes<
       typename Attributes::Type,
       typename Attributes::VlanId,
       std::optional<typename Attributes::SrcMac>,
-      std::optional<typename Attributes::Mtu>>;
+      std::optional<typename Attributes::Mtu>,
+      std::optional<typename Attributes::AdminMplsState>>;
   using AdapterHostKey = std::
       tuple<typename Attributes::VirtualRouterId, typename Attributes::VlanId>;
 };
@@ -81,7 +82,8 @@ struct RouterInterfaceTraitsAttributes<
       typename Attributes::Type,
       typename Attributes::PortId,
       std::optional<typename Attributes::SrcMac>,
-      std::optional<typename Attributes::Mtu>>;
+      std::optional<typename Attributes::Mtu>,
+      std::optional<typename Attributes::AdminMplsState>>;
   using AdapterHostKey = std::
       tuple<typename Attributes::VirtualRouterId, typename Attributes::PortId>;
 };
@@ -122,6 +124,11 @@ struct SaiRouterInterfaceTraitsT {
         SAI_ROUTER_INTERFACE_ATTR_MTU,
         sai_uint32_t,
         SaiIntDefault<sai_int32_t>>;
+    using AdminMplsState = SaiAttribute<
+        EnumType,
+        SAI_ROUTER_INTERFACE_ATTR_ADMIN_MPLS_STATE,
+        bool,
+        SaiBoolDefaultFalse>;
   };
   using AdapterKey = RouterInterfaceSaiId;
   using AdapterHostKey = typename detail::
@@ -186,6 +193,7 @@ SAI_ATTRIBUTE_NAME(VlanRouterInterface, VirtualRouterId)
 SAI_ATTRIBUTE_NAME(VlanRouterInterface, VlanId)
 SAI_ATTRIBUTE_NAME(PortRouterInterface, PortId)
 SAI_ATTRIBUTE_NAME(VlanRouterInterface, Mtu)
+SAI_ATTRIBUTE_NAME(VlanRouterInterface, AdminMplsState)
 
 class RouterInterfaceApi : public SaiApi<RouterInterfaceApi> {
  public:
