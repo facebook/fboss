@@ -218,6 +218,8 @@ class PortManager {
       TransceiverID tcvrId,
       bool xPhyNeedResetDataPath);
 
+  virtual std::map<uint32_t, phy::PhyIDInfo> getAllPortPhyInfo();
+
   phy::PhyInfo getPhyInfo(const std::string& portName);
 
   // TEST ONLY

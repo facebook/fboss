@@ -41,6 +41,7 @@ std::pair<std::unique_ptr<WedgeManager>, std::unique_ptr<PortManager>>
 createQsfpManagers();
 
 std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
+    PortManager* portMgr,
     WedgeManager* wedgeMgr);
 
 /**
@@ -70,6 +71,14 @@ std::string getDeviceHostnameScheme();
 
 template <typename BspPlatformMapping, PlatformType platformType>
 std::unique_ptr<WedgeManager> createBspWedgeManager(
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads);
+
+std::unique_ptr<PortManager> createPortManager(
+    PlatformType platformType,
+    WedgeManager* wedgeManager,
+    std::unique_ptr<PhyManager> phyManager,
     const std::shared_ptr<const PlatformMapping> platformMapping,
     const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
         threads);

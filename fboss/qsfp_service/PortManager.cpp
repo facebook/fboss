@@ -2056,4 +2056,29 @@ void PortManager::initExternalPhyMap(bool forceWarmboot) {
   restoreWarmBootPhyState();
 }
 
+/*
+ * getAllPortPhyInfo
+ *
+ * Get the map of software port id to PortPhyInfo in the system. This function
+ * mainly for debugging
+ */
+std::map<uint32_t, phy::PhyIDInfo> PortManager::getAllPortPhyInfo() {
+  std::map<uint32_t, phy::PhyIDInfo> resultMap;
+
+  auto allPlatformPortsIt = platformMapping_->getPlatformPorts();
+  for (const auto& platformPortIt : allPlatformPortsIt) {
+    auto portId = platformPortIt.first;
+    GlobalXphyID xphyId;
+    try {
+      xphyId = phyManager_->getGlobalXphyIDbyPortID(PortID(portId));
+    } catch (FbossError&) {
+      continue;
+    }
+    phy::PhyIDInfo phyIdInfo = phyManager_->getPhyIDInfo(xphyId);
+    resultMap[portId] = phyIdInfo;
+  }
+
+  return resultMap;
+}
+
 } // namespace facebook::fboss
