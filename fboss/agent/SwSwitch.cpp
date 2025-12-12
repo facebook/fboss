@@ -3361,12 +3361,13 @@ void SwSwitch::sendL3Packet(
   // Buffer should not be shared.
   folly::IOBuf* buf = pkt->buf();
   CHECK(!buf->isShared());
+  // Extract primary Vlan associated with this interface, if any
+  auto vlanID = getVlanIDForTx(intf);
 
   // Add L2 header to L3 packet. Information doesn't need to be complete
   // make sure the packet has enough headroom for L2 header and large enough
   // for the minimum size packet.
-  const uint32_t l2Len =
-      getEthernetHeaderSize(intf->getType() == cfg::InterfaceType::VLAN);
+  const uint32_t l2Len = getEthernetHeaderSize(vlanID.has_value());
   const uint32_t l3Len = buf->length();
   const uint32_t minLen = 68;
   uint32_t tailRoom = (l2Len + l3Len >= minLen) ? 0 : minLen - l2Len - l3Len;
@@ -3377,9 +3378,6 @@ void SwSwitch::sendL3Packet(
     stats()->pktError();
     return;
   }
-
-  // Extract primary Vlan associated with this interface, if any
-  auto vlanID = intf->getVlanIDIf_DEPRECATED();
 
   try {
     uint16_t protocol{0};
