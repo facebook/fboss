@@ -156,6 +156,63 @@ cfg::SwitchConfig createSwitchConfig(
   return config;
 }
 
+cfg::SwitchConfig createSwitchConfigPortRif(
+    seconds raInterval,
+    seconds ndpTimeout,
+    bool createAggPort = false,
+    std::optional<std::string> routerAddress = std::nullopt,
+    int numIntfs = 2) {
+  // Create a thrift config to use
+  cfg::SwitchConfig config = testConfigAWithPortInterfaces();
+
+  config.interfaces()->resize(numIntfs);
+  *config.interfaces()[0].intfID() = 5;
+  *config.interfaces()[0].vlanID() = 0;
+  config.interfaces()[0].name() = "PrimaryInterface";
+  config.interfaces()[0].mtu() = 9000;
+  config.interfaces()[0].ipAddresses()->resize(6);
+  config.interfaces()[0].ipAddresses()[0] = "10.164.4.10/24";
+  config.interfaces()[0].ipAddresses()[1] = "10.164.4.1/24";
+  config.interfaces()[0].ipAddresses()[2] = "10.164.4.2/24";
+  config.interfaces()[0].ipAddresses()[3] = "2401:db00:2110:3004::/64";
+  config.interfaces()[0].ipAddresses()[4] = "2401:db00:2110:3004::000a/64";
+  config.interfaces()[0].ipAddresses()[5] = "fe80::face:b00c/64";
+  config.interfaces()[0].ndp() = cfg::NdpConfig();
+  *config.interfaces()[0].ndp()->routerAdvertisementSeconds() =
+      raInterval.count();
+  if (routerAddress) {
+    config.interfaces()[0].ndp()->routerAddress() = *routerAddress;
+  }
+  *config.interfaces()[1].intfID() = 1;
+  *config.interfaces()[1].vlanID() = 0;
+  config.interfaces()[1].name() = "DefaultHWInterface";
+  config.interfaces()[1].mtu() = 9000;
+  config.interfaces()[1].ipAddresses()->resize(3);
+  config.interfaces()[1].ipAddresses()[0] = "20.164.4.10/24";
+  config.interfaces()[1].ipAddresses()[1] = "3401:db00:2110:3004::a/64";
+  config.interfaces()[1].ipAddresses()[2] = "fe80::face:b00c/64";
+
+  for (int i = 2; i < numIntfs; i++) {
+    int idx = i;
+    int intfId = 100 + i;
+    *config.interfaces()[idx].intfID() = intfId;
+    *config.interfaces()[idx].vlanID() = 0;
+    config.interfaces()[idx].name() = "DefaultHWInterface";
+    config.interfaces()[idx].mtu() = 9000;
+    config.interfaces()[idx].ipAddresses()->resize(1);
+    config.interfaces()[idx].ipAddresses()[0] = "fe80::face:b00c/64";
+    *config.vlans()[idx].name() = "DefaultHWVlanTest";
+    *config.vlans()[idx].id() = intfId;
+    *config.vlans()[idx].routable() = true;
+    config.vlans()[idx].intfID() = intfId;
+  }
+  if (ndpTimeout.count() > 0) {
+    *config.arpTimeoutSeconds() = ndpTimeout.count();
+  }
+
+  return config;
+}
+
 typedef std::function<void(Cursor* cursor, uint32_t length)> PayloadCheckFn;
 
 TxMatchFn checkICMPv6Pkt(
@@ -475,6 +532,22 @@ class NdpTest : public ::testing::Test {
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
     return handle;
   }
+
+  unique_ptr<HwTestHandle> setupTestHandleWithPortRif(
+      seconds raInterval = seconds(0),
+      seconds ndpInterval = seconds(0),
+      std::optional<std::string> routerAddress = std::nullopt,
+      int numIntfs = 2) {
+    auto config = createSwitchConfigPortRif(
+        raInterval, ndpInterval, false, routerAddress, numIntfs);
+
+    *config.maxNeighborProbes() = 1;
+    *config.staleEntryInterval() = 1;
+    auto handle = createTestHandle(&config);
+    sw_ = handle->getSw();
+    sw_->initialConfigApplied(std::chrono::steady_clock::now());
+    return handle;
+  }
   unique_ptr<HwTestHandle> setupTestHandleWithNdpTimeout(
       seconds ndpTimeout,
       int numIntfs = 2) {
@@ -572,6 +645,67 @@ TYPED_TEST(NdpTest, UnsolicitedRequest) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 1);
 }
 
+TYPED_TEST(NdpTest, UnsolicitedRequestPortRif) {
+  if (!this->isIntfNbrTable()) {
+    GTEST_SKIP();
+  }
+  auto handle = this->setupTestHandleWithPortRif();
+  auto sw = handle->getSw();
+
+  // Create an neighbor solicitation request
+  auto pkt = PktUtil::parseHexData(
+      // dst mac, src mac
+      "33 33 ff 00 00 0a  02 05 73 f9 46 fc"
+      // IPv6
+      "86 dd"
+      // Version 6, traffic class, flow label
+      "6e 00 00 00"
+      // Payload length: 24
+      "00 18"
+      // Next Header: 58 (ICMPv6), Hop Limit (255)
+      "3a ff"
+      // src addr (::0)
+      "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+      // dst addr (2401:db00:2110:3004::a)
+      "24 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a"
+      // type: neighbor solicitation
+      "87"
+      // code
+      "00"
+      // checksum
+      "d8 6c"
+      // reserved
+      "00 00 00 00"
+      // target address (2401:db00:2110:3004::a)
+      "24 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a");
+
+  // Cache the current stats
+  CounterCache counters(sw);
+
+  // We should get a neighbor advertisement back
+  EXPECT_OUT_OF_PORT_PKT(
+      sw,
+      "neighbor advertisement",
+      checkNeighborAdvert(
+          MacAddress("00:02:00:00:00:55"),
+          IPAddressV6("2401:db00:2110:3004::a"),
+          MacAddress("02:05:73:f9:46:fc"),
+          IPAddressV6("ff01::1"),
+          VlanID(1),
+          0xa0),
+      PortID(1),
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
+
+  // Send the packet to the SwSwitch
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), std::nullopt);
+
+  // Check the new stats
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 1);
+}
+
 TYPED_TEST(NdpTest, NeighborSoliciationNotMine) {
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
@@ -617,6 +751,62 @@ TYPED_TEST(NdpTest, NeighborSoliciationNotMine) {
   // Send the packet to the SwSwitch
   handle->rxPacket(
       make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
+
+  // Check the new stats
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv6.ndp.not_mine.sum", 1);
+}
+
+TYPED_TEST(NdpTest, NeighborSoliciationNotMinePortRif) {
+  if (!this->isIntfNbrTable()) {
+    GTEST_SKIP();
+  }
+
+  auto handle = this->setupTestHandleWithPortRif();
+  auto sw = handle->getSw();
+
+  // Create an neighbor solicitation request
+  auto pkt = PktUtil::parseHexData(
+      // dst mac, src mac
+      "33 33 ff 00 00 0a  02 05 73 f9 46 fc"
+      // IPv6
+      "86 dd"
+      // Version 6, traffic class, flow label
+      "6e 00 00 00"
+      // Payload length: 32
+      "00 20"
+      // Next Header: 58 (ICMPv6), Hop Limit (255)
+      "3a ff"
+      // src addr (::0)
+      "34 01 00 00 00 00 00 00 00 00 00 00 00 00 00 0b"
+      // dst addr (3401:db00:2110:3004::a)
+      "34 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a"
+      // type: neighbor solicitation
+      "87"
+      // code
+      "00"
+      // checksum
+      "C6 5C"
+      // reserved
+      "00 00 00 00"
+      // target address (3401:db00:2110:3004::a)
+      "34 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a"
+      // Src link layer (mac) option
+      "01"
+      // Option len
+      "01"
+      // Src link layer address (mac)
+      "02 05 73 f9 46 fc");
+
+  // Cache the current stats
+  CounterCache counters(sw);
+
+  // Send the packet to the SwSwitch
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), std::nullopt);
 
   // Check the new stats
   counters.update();

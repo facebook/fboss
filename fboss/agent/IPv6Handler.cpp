@@ -926,10 +926,7 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
       if (interface->getRouterID() == RouterID(0) &&
           interface->canReachAddress(targetIP)) {
         sendMulticastNeighborSolicitation(
-            sw,
-            targetIP,
-            interface->getMac(),
-            interface->getVlanIDIf_DEPRECATED());
+            sw, targetIP, interface->getMac(), sw->getVlanIDForTx(interface));
       }
     }
   }
@@ -993,7 +990,7 @@ void IPv6Handler::resolveDestAndHandlePacket(
         if (nullptr == entry) {
           // No entry in NDP table, create a neighbor solicitation packet
           sendMulticastNeighborSolicitation(
-              sw_, target, intf->getMac(), intf->getVlanIDIf_DEPRECATED());
+              sw_, target, intf->getMac(), sw_->getVlanIDForTx(intf));
           // Notify the updater that we sent a solicitation out
           sw_->sentNeighborSolicitation(intf, target);
         } else {
@@ -1101,7 +1098,7 @@ void IPv6Handler::floodNeighborAdvertisements() {
         }
 
         sendNeighborAdvertisement(
-            intf->getVlanIDIf_DEPRECATED(),
+            sw_->getVlanIDForTx(intf),
             intf->getMac(),
             addrEntry.asV6(),
             MacAddress::BROADCAST,

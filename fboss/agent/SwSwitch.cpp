@@ -3784,7 +3784,7 @@ bool SwSwitch::sendArpRequestHelper(
   if (entry == nullptr) {
     // No entry in ARP table, send ARP request
     ArpHandler::sendArpRequest(
-        this, intf->getVlanIDIf_DEPRECATED(), intf->getMac(), source, target);
+        this, getVlanIDForTx(intf), intf->getMac(), source, target);
 
     // Notify the updater that we sent an arp request
     sentArpRequest(intf, target);
@@ -3808,7 +3808,7 @@ bool SwSwitch::sendNdpSolicitationHelper(
   if (entry == nullptr) {
     // No entry in NDP table, create a neighbor solicitation packet
     IPv6Handler::sendMulticastNeighborSolicitation(
-        this, target, intf->getMac(), intf->getVlanIDIf_DEPRECATED());
+        this, target, intf->getMac(), getVlanIDForTx(intf));
 
     // Notify the updater that we sent a solicitation out
     sentNeighborSolicitation(intf, target);
