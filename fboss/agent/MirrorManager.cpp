@@ -75,18 +75,7 @@ bool MirrorManager::hasMirrorChanges(const StateDelta& delta) {
   if (!sw_->getState()->getMirrors()->numNodes()) {
     return false;
   }
-  // Check for FIB map changes within FibsInfo delta
-  // This is to keep the same behavior as before, where we only check for
-  // FibsMap delta. In the future, FibsInfo will have more fields which we
-  // should exclude from this check, hence we only check for FibsMap delta.
-  bool fibsMapChanged = false;
-  for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
-    if (!isEmpty(fibInfoDelta.getFibsMapDelta())) {
-      fibsMapChanged = true;
-      break;
-    }
-  }
-  if (!isEmpty(delta.getMirrorsDelta()) || fibsMapChanged) {
+  if (!isEmpty(delta.getMirrorsDelta()) || !isEmpty(delta.getFibsDelta())) {
     return true;
   }
 

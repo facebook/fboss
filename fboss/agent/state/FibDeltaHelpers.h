@@ -49,19 +49,17 @@ void forEachChangedRoute(
       }
     }
   };
-  for (const auto& fibInfoDelta : stateDelta.getFibsInfoDelta()) {
-    for (const auto& fibContainerDelta : fibInfoDelta.getFibsMapDelta()) {
-      auto const& newFibContainer = fibContainerDelta.getNew();
-      if (!newFibContainer) {
-        auto const& oldFibContainer = fibContainerDelta.getOld();
-        removeAll(
-            oldFibContainer->getID(),
-            std::as_const(*oldFibContainer->template getFib<AddrT>()));
-        continue;
-      }
-      processRoutesDelta(
-          newFibContainer->getID(), fibContainerDelta.getFibDelta<AddrT>());
+  for (const auto& fibContainerDelta : stateDelta.getFibsDelta()) {
+    auto const& newFibContainer = fibContainerDelta.getNew();
+    if (!newFibContainer) {
+      auto const& oldFibContainer = fibContainerDelta.getOld();
+      removeAll(
+          oldFibContainer->getID(),
+          std::as_const(*oldFibContainer->template getFib<AddrT>()));
+      continue;
     }
+    processRoutesDelta(
+        newFibContainer->getID(), fibContainerDelta.getFibDelta<AddrT>());
   }
 }
 

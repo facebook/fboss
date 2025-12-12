@@ -161,10 +161,7 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
    * GE since some tests add v4 routes
    */
   EXPECT_GE(
-      state_->getFibsInfoMap()
-          ->getFibContainerIf(RouterID(0))
-          ->getFibV4()
-          ->size(),
+      state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(),
       kNumIntfs + 1);
   /*
    * Assert that EcmpResourceMgr leaves the ports state untouched
@@ -405,8 +402,7 @@ void BaseEcmpResourceManagerTest::updateRoutes(
 std::unique_ptr<std::vector<UnicastRoute>>
 BaseEcmpResourceManagerTest::getClientRoutes(ClientID client) const {
   auto fibContainer =
-      sw_->getState()->getFibsInfoMap()->getAllFibNodes()->getFibContainerIf(
-          RouterID(0));
+      sw_->getState()->getFibs()->getAllNodes()->getFibContainerIf(RouterID(0));
   auto unicastRoutes = std::make_unique<std::vector<UnicastRoute>>();
   auto fillInRoutes = [&unicastRoutes](const auto& fibIn) {
     for (const auto& [_, route] : std::as_const(*fibIn)) {
@@ -477,10 +473,7 @@ void BaseEcmpResourceManagerTest::assertTargetState(
    * GE since some tests add v4 routes
    */
   EXPECT_GE(
-      state_->getFibsInfoMap()
-          ->getFibContainerIf(RouterID(0))
-          ->getFibV4()
-          ->size(),
+      state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(),
       kNumIntfs + 1);
   std::set<RouteNextHopSet> primaryEcmpGroups, backupEcmpGroups,
       mergedEcmpGroups;

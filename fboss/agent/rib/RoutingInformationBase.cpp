@@ -19,8 +19,6 @@
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/FibDeltaHelpers.h"
-#include "fboss/agent/state/FibInfo.h"
-#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
@@ -372,8 +370,7 @@ void RibRouteTables::updateFib(
       SCOPE_FAIL {
         XLOG(FATAL) << " RIB Rollback failed, aborting program";
       };
-      auto fib =
-          hwUpdateError.appliedState->getFibsInfoMap()->getFibContainerIf(vrf);
+      auto fib = hwUpdateError.appliedState->getFibs()->getNode(vrf);
       auto lockedRouteTables = synchronizedRouteTables_.wlock();
       auto& routeTable = lockedRouteTables->find(vrf)->second;
       reconstructRibFromFib<
@@ -823,7 +820,7 @@ void RoutingInformationBase::updateEcmpOverrides(const StateDelta& delta) {
 
 RibRouteTables RibRouteTables::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
-    const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
+    const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
     const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib) {
   RibRouteTables rib;
   auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
@@ -834,19 +831,18 @@ RibRouteTables RibRouteTables::fromThrift(
     lockedRouteTables->emplace(vrf, std::move(rtable));
   }
 
-  if (fibsInfoMap) {
-    rib.importFibs(lockedRouteTables, fibsInfoMap, labelFib);
+  if (fibs) {
+    rib.importFibs(lockedRouteTables, fibs, labelFib);
   }
   return rib;
 }
 
 std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
-    const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
+    const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
     const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib) {
   auto rib = std::make_unique<RoutingInformationBase>();
-  rib->ribTables_ =
-      RibRouteTables::fromThrift(ribThrift, fibsInfoMap, labelFib);
+  rib->ribTables_ = RibRouteTables::fromThrift(ribThrift, fibs, labelFib);
   return rib;
 }
 
@@ -1020,7 +1016,8 @@ std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
 
 void RibRouteTables::importFibs(
     const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
-    const std::shared_ptr<MultiSwitchFibInfoMap>& multiSwitchfibsInfoMap,
+    const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>&
+        multiSwitchfibs,
     const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFibs) {
   auto importRoutes = [](const auto& fib, auto* addrToRoute) {
     for (const auto& iter : std::as_const(*fib)) {
@@ -1040,21 +1037,12 @@ void RibRouteTables::importFibs(
           route);
     }
   };
-
-  // Iterate through all FibInfo objects in the map
-  for (const auto& [_, fibInfo] : std::as_const(*multiSwitchfibsInfoMap)) {
-    // Get the ForwardingInformationBaseMap for this switch
-    auto fibsMap = fibInfo->getfibsMap();
-    if (!fibsMap) {
-      continue;
-    }
-
-    // Import routes from each FIB container
-    for (const auto& iter : std::as_const(*fibsMap)) {
-      const auto& fibContainer = iter.second;
-      auto& routeTables = (*lockedRouteTables)[fibContainer->getID()];
-      importRoutes(fibContainer->getFibV6(), &routeTables.v6NetworkToRoute);
-      importRoutes(fibContainer->getFibV4(), &routeTables.v4NetworkToRoute);
+  for (const auto& [_, fibs] : std::as_const(*multiSwitchfibs)) {
+    for (const auto& iter : std::as_const(*fibs)) {
+      const auto& fib = iter.second;
+      auto& routeTables = (*lockedRouteTables)[fib->getID()];
+      importRoutes(fib->getFibV6(), &routeTables.v6NetworkToRoute);
+      importRoutes(fib->getFibV4(), &routeTables.v4NetworkToRoute);
       auto mplsTable = &routeTables.labelToRoute;
       if (FLAGS_mpls_rib && labelFibs) {
         for (const auto& [_, labelFib] : std::as_const(*labelFibs)) {

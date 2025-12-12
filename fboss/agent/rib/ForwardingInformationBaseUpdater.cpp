@@ -12,11 +12,10 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
-#include "fboss/agent/state/FibInfo.h"
-#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -51,24 +50,13 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
     std::optional<StateDelta> next(StateDelta(state, nextState));
     lastDelta_.swap(next);
   };
-
-  auto previousFibContainer =
-      nextState->getFibsInfoMap()->getFibContainerIf(vrf_);
+  auto previousFibContainer = nextState->getFibs()->getNodeIf(vrf_);
   if (!previousFibContainer) {
-    auto fibInfoMap = nextState->getFibsInfoMap()->modify(&nextState);
-
+    auto fibMap = nextState->getFibs()->modify(&nextState);
     previousFibContainer =
         std::make_shared<ForwardingInformationBaseContainer>(vrf_);
-
-    auto scope = resolver_->scope(previousFibContainer);
-    auto fibInfo = fibInfoMap->getFibInfo(scope);
-    if (!fibInfo) {
-      fibInfo = std::make_shared<FibInfo>();
-      fibInfoMap->addNode(scope.matcherString(), fibInfo);
-    }
-
-    // Update the container through FibInfo
-    fibInfo->updateFibContainer(previousFibContainer, &nextState);
+    fibMap->updateForwardingInformationBaseContainer(
+        previousFibContainer, resolver_->scope(previousFibContainer));
   }
   CHECK(previousFibContainer);
   auto newFibV4 =

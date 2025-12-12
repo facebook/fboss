@@ -127,7 +127,7 @@ SwSwitchWarmBootHelper::reconstructStateAndRib(
     state = SwitchState::fromThrift(*(warmBootState->swSwitchState()));
     rib = RoutingInformationBase::fromThrift(
         *(warmBootState->routeTables()),
-        state->getFibsInfoMap(),
+        state->getFibs(),
         state->getLabelForwardingInformationBase());
   } else {
     state = SwitchState::fromThrift(state::SwitchState{});

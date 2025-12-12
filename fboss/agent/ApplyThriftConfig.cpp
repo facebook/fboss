@@ -588,7 +588,8 @@ class ThriftConfigApplier {
   std::shared_ptr<Mirror> updateMirror(
       const std::shared_ptr<Mirror>& orig,
       const cfg::Mirror* config);
-  std::shared_ptr<FibInfo> updateForwardingInformationBaseInfo();
+  std::shared_ptr<ForwardingInformationBaseMap>
+  updateForwardingInformationBaseContainers();
 
   std::shared_ptr<MirrorOnDropReportMap> updateMirrorOnDropReports();
   std::shared_ptr<MirrorOnDropReport> createMirrorOnDropReport(
@@ -855,13 +856,11 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         *cfg_->staticMplsRoutesToNull(),
         *cfg_->staticMplsRoutesToCPU());
   } else if (rib_) {
-    auto newFibInfo = updateForwardingInformationBaseInfo();
-    if (newFibInfo) {
-      auto newFibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
-      // Get the scope for the FibInfo using the new scope resolver
-      newFibInfoMap->updateFibInfo(
-          newFibInfo, scopeResolver_.scope(newFibInfo));
-      new_->resetFibsInfoMap(newFibInfoMap);
+    auto newFibs = updateForwardingInformationBaseContainers();
+    if (newFibs) {
+      new_->resetForwardingInformationBases(
+          toMultiSwitchMap<MultiSwitchForwardingInformationBaseMap>(
+              newFibs, scopeResolver_));
       changed = true;
     }
 
@@ -6119,19 +6118,13 @@ ThriftConfigApplier::updateMirrorOnDropReport(
   return newReport;
 }
 
-std::shared_ptr<FibInfo>
-ThriftConfigApplier::updateForwardingInformationBaseInfo() {
+std::shared_ptr<ForwardingInformationBaseMap>
+ThriftConfigApplier::updateForwardingInformationBaseContainers() {
+  auto origForwardingInformationBaseMap = orig_->getFibs();
   ForwardingInformationBaseMap::NodeContainer newFibContainers;
   bool changed = false;
 
   std::size_t numExistingProcessed = 0;
-
-  auto origFibInfoMap = orig_->getFibsInfoMap();
-  std::shared_ptr<ForwardingInformationBaseMap> origFibsMap;
-
-  if (origFibInfoMap && !origFibInfoMap->empty()) {
-    origFibsMap = origFibInfoMap->getAllFibNodes();
-  }
 
   for (const auto& interfaceCfg : *cfg_->interfaces()) {
     RouterID vrf(*interfaceCfg.routerID());
@@ -6139,7 +6132,7 @@ ThriftConfigApplier::updateForwardingInformationBaseInfo() {
       continue;
     }
 
-    auto origFibContainer = origFibsMap ? origFibsMap->getNodeIf(vrf) : nullptr;
+    auto origFibContainer = orig_->getFibs()->getNodeIf(vrf);
 
     std::shared_ptr<ForwardingInformationBaseContainer> newFibContainer{
         nullptr};
@@ -6154,8 +6147,8 @@ ThriftConfigApplier::updateForwardingInformationBaseInfo() {
     changed |= updateMap(&newFibContainers, origFibContainer, newFibContainer);
   }
 
-  if (origFibsMap && numExistingProcessed != origFibsMap->size()) {
-    CHECK_LE(numExistingProcessed, origFibsMap->size());
+  if (numExistingProcessed != orig_->getFibs()->numNodes()) {
+    CHECK_LE(numExistingProcessed, orig_->getFibs()->numNodes());
     changed = true;
   }
 
@@ -6163,15 +6156,7 @@ ThriftConfigApplier::updateForwardingInformationBaseInfo() {
     return nullptr;
   }
 
-  // Create a new FibInfo with the FibContainers
-  auto newFibInfo = std::make_shared<FibInfo>();
-  auto newFibsMap =
-      std::make_shared<ForwardingInformationBaseMap>(newFibContainers);
-
-  // Set the FibsMapV2 in FibInfo
-  newFibInfo->resetFibsMap(newFibsMap);
-
-  return newFibInfo;
+  return std::make_shared<ForwardingInformationBaseMap>(newFibContainers);
 }
 
 LabelNextHopEntry ThriftConfigApplier::getStaticLabelNextHopEntry(

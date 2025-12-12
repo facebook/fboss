@@ -76,14 +76,12 @@ void updateRouteOverrides(
   const auto& [rid, pfx] = ridAndPfx;
   if (pfx.first.isV6()) {
     auto fib6 =
-        newState->getFibsInfoMap()->getFibContainerIf(rid)->getFibV6()->modify(
-            rid, &newState);
+        newState->getFibs()->getNode(rid)->getFibV6()->modify(rid, &newState);
     RoutePrefixV6 routePfx(pfx.first.asV6(), pfx.second);
     updateFib(routePfx, fib6);
   } else {
     auto fib4 =
-        newState->getFibsInfoMap()->getFibContainerIf(rid)->getFibV4()->modify(
-            rid, &newState);
+        newState->getFibs()->getNode(rid)->getFibV4()->modify(rid, &newState);
     RoutePrefixV4 routePfx(pfx.first.asV4(), pfx.second);
     updateFib(routePfx, fib4);
   }
@@ -301,7 +299,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   if (delta.getFlowletSwitchingConfigDelta().getOld() ==
           delta.getFlowletSwitchingConfigDelta().getNew() &&
       DeltaFunctions::isEmpty(delta.getSwitchSettingsDelta()) &&
-      DeltaFunctions::isEmpty(delta.getFibsInfoDelta())) {
+      DeltaFunctions::isEmpty(delta.getFibsDelta())) {
     return makeRet(delta);
   }
 
@@ -312,7 +310,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
     switchingModeChangeResult->publishLastDelta();
   }
   inOutState = std::move(switchingModeChangeResult);
-  if (DeltaFunctions::isEmpty(delta.getFibsInfoDelta())) {
+  if (DeltaFunctions::isEmpty(delta.getFibsDelta())) {
     if (inOutState.has_value()) {
       return inOutState->moveDeltas();
     }
@@ -924,31 +922,26 @@ EcmpResourceManager::InputOutputState::InputOutputState(
    * extra empty delta in the vector of deltas.
    */
   auto newStateWithOldFibs = _in.newState()->clone();
-  if (_in.oldState()->getFibsInfoMap() &&
-      !_in.oldState()->getFibsInfoMap()->empty()) {
-    newStateWithOldFibs->resetFibsInfoMap(_in.oldState()->getFibsInfoMap());
+  if (_in.oldState()->getFibs() && !_in.oldState()->getFibs()->empty()) {
+    newStateWithOldFibs->resetForwardingInformationBases(
+        _in.oldState()->getFibs());
     DCHECK(
-        DeltaFunctions::isEmpty(StateDelta(_in.oldState(), newStateWithOldFibs)
-                                    .getFibsInfoDelta()));
+        DeltaFunctions::isEmpty(
+            StateDelta(_in.oldState(), newStateWithOldFibs).getFibsDelta()));
   } else {
     // Cater for when old state is empty - e.g. warmboot,
     // rollback
-    auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
-    for (const auto& [matcherStr, curFibInfo] :
-         std::as_const(*_in.newState()->getFibsInfoMap())) {
-      auto fibInfo = std::make_shared<FibInfo>();
-      auto curFibsMap = curFibInfo->getfibsMap();
-      if (curFibsMap) {
-        for (const auto& [rid, _] : std::as_const(*curFibsMap)) {
-          fibInfo->updateFibContainer(
-              std::make_shared<ForwardingInformationBaseContainer>(
-                  RouterID(rid)),
-              &newStateWithOldFibs);
-        }
+    auto mfib = std::make_shared<MultiSwitchForwardingInformationBaseMap>();
+    for (const auto& [matcherStr, curMfib] :
+         std::as_const(*_in.newState()->getFibs())) {
+      HwSwitchMatcher matcher(matcherStr);
+      for (const auto& [rid, _] : std::as_const(*curMfib)) {
+        mfib->updateForwardingInformationBaseContainer(
+            std::make_shared<ForwardingInformationBaseContainer>(RouterID(rid)),
+            matcher);
       }
-      fibInfoMap->addNode(matcherStr, fibInfo);
     }
-    newStateWithOldFibs->resetFibsInfoMap(std::move(fibInfoMap));
+    newStateWithOldFibs->resetForwardingInformationBases(std::move(mfib));
   }
   newStateWithOldFibs->publish();
   appendDelta(StateDelta(_in.oldState(), newStateWithOldFibs));
@@ -995,10 +988,8 @@ void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
   }
   auto oldState = curStateDelta.newState();
   auto newState = oldState->clone();
-  auto fib = newState->getFibsInfoMap()
-                 ->getFibContainerIf(rid)
-                 ->getFib<AddrT>()
-                 ->modify(rid, &newState);
+  auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>()->modify(
+      rid, &newState);
   auto existingRoute = fib->getRouteIf(newRoute->prefix());
   if (existingRoute) {
     XLOG(DBG4) << " Updated existing route: " << newRoute->str()
@@ -1037,10 +1028,8 @@ void EcmpResourceManager::InputOutputState::deleteRoute(
   DCHECK(curStateDelta.oldState()->isPublished());
   auto oldState = curStateDelta.newState();
   auto newState = oldState->clone();
-  auto fib = newState->getFibsInfoMap()
-                 ->getFibContainerIf(rid)
-                 ->getFib<AddrT>()
-                 ->modify(rid, &newState);
+  auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>()->modify(
+      rid, &newState);
   fib->removeNode(delRoute);
   oldState = getCurrentStateDelta().oldState();
   // Still working on the current, replace the current delta.
@@ -1265,8 +1254,7 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
     InputOutputState* inOutState,
     bool addNewDelta) {
   auto newState = inOutState->getCurrentStateDelta().newState();
-  auto fib =
-      newState->getFibsInfoMap()->getFibContainerIf(rid)->getFib<AddrT>();
+  auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>();
   std::shared_ptr<Route<AddrT>> existingRoute;
   if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
     CHECK(pfx.first.isV6());
@@ -2159,14 +2147,14 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(
       updateRouteOverridEcmpMode(
           rid,
           routePfx,
-          newState->getFibsInfoMap()->getFibContainerIf(rid)->getFibV6(),
+          newState->getFibs()->getNode(rid)->getFibV6(),
           grpInfo);
     } else {
       RoutePrefixV4 routePfx(pfx.first.asV4(), pfx.second);
       updateRouteOverridEcmpMode(
           rid,
           routePfx,
-          newState->getFibsInfoMap()->getFibContainerIf(rid)->getFibV4(),
+          newState->getFibs()->getNode(rid)->getFibV4(),
           grpInfo);
     }
   }
