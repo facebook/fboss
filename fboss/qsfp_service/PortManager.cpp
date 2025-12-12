@@ -681,18 +681,8 @@ void PortManager::programExternalPhyPorts(
     }
 
     const auto initializedPorts = *tcvrToInitializedPorts_It->second->rlock();
-    const auto& portToPortInfoIt =
-        transceiverManager_->getSynchronizedProgrammedIphyPortToPortInfo(
-            tcvrId);
-    if (!portToPortInfoIt) {
-      // This is due to the iphy ports are disabled. So no need to program
-      // xphy
-      XLOG(DBG2) << "Skip programming xphy ports for Transceiver=" << tcvrId
-                 << ". Can't find programmed iphy port and port info";
-      return;
-    }
-
-    const auto& programmedPortToPortInfo = portToPortInfoIt->rlock();
+    const auto& programmedPortToPortInfo =
+        transceiverManager_->getProgrammedIphyPortToPortInfo(tcvrId);
     const auto& transceiverInfo =
         transceiverManager_->getTransceiverInfo(tcvrId);
 
@@ -702,8 +692,8 @@ void PortManager::programExternalPhyPorts(
         continue;
       }
 
-      auto portToPortInfoItr = programmedPortToPortInfo->find(portId);
-      if (portToPortInfoItr == programmedPortToPortInfo->end()) {
+      auto portToPortInfoItr = programmedPortToPortInfo.find(portId);
+      if (portToPortInfoItr == programmedPortToPortInfo.end()) {
         continue;
       }
 
