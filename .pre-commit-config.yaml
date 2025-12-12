@@ -31,3 +31,9 @@ repos:
       - id: check-yaml
       - id: check-json
       - id: check-merge-conflict
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.0
+    hooks:
+      - id: ruff-check
+        files: ^fboss-image/distro_cli/
+        args: [--config=fboss-image/distro_cli/ruff.toml]
