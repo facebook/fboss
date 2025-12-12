@@ -203,6 +203,10 @@ class HwStateMachineTest : public HwTest {
       return true;
     } else if (curState == portExpectedStates.front()) {
       portExpectedStates.pop();
+      std::vector<PortID> xphyPorts;
+      if (auto phyManager = getHwQsfpEnsemble()->getPhyManager()) {
+        xphyPorts = phyManager->getXphyPorts();
+      }
 
       if (curState == PortStateMachineState::IPHY_PORTS_PROGRAMMED) {
         // Check port is up
@@ -217,6 +221,11 @@ class HwStateMachineTest : public HwTest {
           if (currPortId != portId) {
             continue;
           }
+          if (std::find(xphyPorts.begin(), xphyPorts.end(), portId) ==
+              xphyPorts.end()) {
+            continue;
+          }
+
           utility::verifyXphyPort(
               portId, portInfo.profile, transceiver, getHwQsfpEnsemble());
         }
