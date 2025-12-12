@@ -752,7 +752,13 @@ std::optional<VlanID> getVlanIDFromVlanOrIntf(
     if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
       vlanID = vlanOrIntf->getID();
     } else {
-      vlanID = vlanOrIntf->getVlanIDIf_DEPRECATED();
+      switch (vlanOrIntf->getType()) {
+        case cfg::InterfaceType::VLAN:
+          return vlanOrIntf->getVlanID();
+        case cfg::InterfaceType::PORT:
+        case cfg::InterfaceType::SYSTEM_PORT:
+          return std::nullopt;
+      }
     }
   }
 
