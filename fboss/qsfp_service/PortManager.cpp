@@ -2065,7 +2065,7 @@ void PortManager::initExternalPhyMap(bool forceWarmboot) {
 std::map<uint32_t, phy::PhyIDInfo> PortManager::getAllPortPhyInfo() {
   std::map<uint32_t, phy::PhyIDInfo> resultMap;
 
-  auto allPlatformPortsIt = platformMapping_->getPlatformPorts();
+  const auto& allPlatformPortsIt = platformMapping_->getPlatformPorts();
   for (const auto& platformPortIt : allPlatformPortsIt) {
     auto portId = platformPortIt.first;
     GlobalXphyID xphyId;

@@ -3578,8 +3578,8 @@ void TransceiverManager::getSymbolErrorHistogram(
 std::map<uint32_t, phy::PhyIDInfo> TransceiverManager::getAllPortPhyInfo() {
   std::map<uint32_t, phy::PhyIDInfo> resultMap;
 
-  auto allPlatformPortsIt = platformMapping_->getPlatformPorts();
-  for (auto platformPortIt : allPlatformPortsIt) {
+  const auto& allPlatformPortsIt = platformMapping_->getPlatformPorts();
+  for (const auto& platformPortIt : allPlatformPortsIt) {
     auto portId = platformPortIt.first;
     GlobalXphyID xphyId;
     try {
