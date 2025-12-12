@@ -505,6 +505,8 @@ class NdpTest : public ::testing::Test {
 
  protected:
   void validateRouterAdv(std::optional<std::string> configuredRouterIp);
+  void validateRouterAdvForPortRif(
+      std::optional<std::string> configuredRouterIp);
   SwSwitch* sw_;
 };
 
@@ -921,8 +923,177 @@ void NdpTest<EnableIntfNbrTableT>::validateRouterAdv(
   EXPECT_GT(counters.value("PrimaryInterface.router_advertisements.sum"), 0);
 }
 
+template <typename EnableIntfNbrTableT>
+void NdpTest<EnableIntfNbrTableT>::validateRouterAdvForPortRif(
+    std::optional<std::string> configuredRouterIp) {
+  seconds raInterval(1);
+  auto config = testConfigAWithPortInterfaces();
+  config.interfaces()[0].ndp() = cfg::NdpConfig();
+  *config.interfaces()[0].ndp()->routerAdvertisementSeconds() =
+      raInterval.count();
+  if (configuredRouterIp) {
+    config.interfaces()[0].ipAddresses()->emplace_back(*configuredRouterIp);
+    config.interfaces()[0].ndp()->routerAddress() = *configuredRouterIp;
+  }
+  seconds ndpTimeout(1);
+  if (ndpTimeout.count() > 0) {
+    *config.arpTimeoutSeconds() = ndpTimeout.count();
+  }
+  // createSwitchConfig(raInterval, seconds(0), false, configuredRouterIp);
+  auto routerAdvSrcIp = configuredRouterIp
+      ? folly::IPAddressV6(*configuredRouterIp)
+      : MockPlatform::getLinkLocalIp6(folly::MacAddress("00:02:00:00:00:55"));
+  // Add an interface with a /128 mask, to make sure it isn't included
+  // in the generated RA packets.
+  config.interfaces()[0].ipAddresses()->emplace_back(
+      "2401:db00:2000:1234:1::/128");
+  auto handle = createTestHandle(&config);
+  auto sw = handle->getSw();
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
+
+  auto state = sw->getState();
+  auto intfConfig = state->getInterfaces()->getNode(
+      InterfaceID(config.interfaces()[0].intfID().value()));
+  PrefixVector expectedPrefixes{
+      {IPAddressV6("2601:db00:2110:3001::"), 64},
+      {IPAddressV6("fe80::"), 64},
+  };
+  CounterCache counters(sw);
+
+  // Send the router solicitation packet
+  EXPECT_OUT_OF_PORT_PKT(
+      sw,
+      "router advertisement",
+      checkRouterAdvert(
+          folly::MacAddress("00:02:00:00:00:55"),
+          routerAdvSrcIp,
+          MacAddress("02:05:73:f9:46:fc"),
+          IPAddressV6("2401:db00:2110:1234::1:0"),
+          VlanID(1),
+          intfConfig->getNdpConfig()->toThrift(),
+          9000,
+          expectedPrefixes),
+      PortID(1),
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
+
+  auto pkt = PktUtil::parseHexData(
+      // dst mac, src mac
+      "33 33 00 00 00 02  02 05 73 f9 46 fc"
+      // IPv6
+      "86 dd"
+      // Version 6, traffic class, flow label
+      "6e 00 00 00"
+      // Payload length: 8
+      "00 08"
+      // Next Header: 58 (ICMPv6), Hop Limit (255)
+      "3a ff"
+      // src addr (2401:db00:2110:1234::1:0)
+      "24 01 db 00 21 10 12 34 00 00 00 00 00 01 00 00"
+      // dst addr (ff02::2)
+      "ff 02 00 00 00 00 00 00 00 00 00 00 00 00 00 02"
+      // type: router solicitation
+      "85"
+      // code
+      "00"
+      // checksum
+      "49 71"
+      // reserved
+      "00 00 00 00");
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), std::nullopt);
+
+  // Now send the packet with specified source MAC address as ICMPv6 option
+  // which differs from MAC address in ethernet header. The switch should use
+  // the MAC address in options field.
+
+  EXPECT_OUT_OF_PORT_PKT(
+      sw,
+      "router advertisement",
+      checkRouterAdvert(
+          folly::MacAddress("00:02:00:00:00:55"),
+          routerAdvSrcIp,
+          MacAddress("02:ab:73:f9:46:fc"),
+          IPAddressV6("2401:db00:2110:1234::1:0"),
+          VlanID(1),
+          intfConfig->getNdpConfig()->toThrift(),
+          9000,
+          expectedPrefixes),
+      PortID(1),
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
+
+  auto pkt2 = PktUtil::parseHexData(
+      // dst mac, src mac
+      "33 33 00 00 00 02  02 05 73 f9 46 fc"
+      // IPv6
+      "86 dd"
+      // Version 6, traffic class, flow label
+      "6e 00 00 00"
+      // Payload length: 16
+      "00 10"
+      // Next Header: 58 (ICMPv6), Hop Limit (255)
+      "3a ff"
+      // src addr (2401:db00:2110:1234::1:0)
+      "24 01 db 00 21 10 12 34 00 00 00 00 00 01 00 00"
+      // dst addr (ff02::2)
+      "ff 02 00 00 00 00 00 00 00 00 00 00 00 00 00 02"
+      // type: router solicitation
+      "85"
+      // code
+      "00"
+      // checksum
+      "8a c7"
+      // reserved
+      "00 00 00 00"
+      // option type: Source Link-Layer Address, length
+      "01 01"
+      // source mac
+      "02 ab 73 f9 46 fc");
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt2), PortDescriptor(PortID(1)), std::nullopt);
+
+  // The RA packet will be sent in the background even thread after the RA
+  // interval.  Schedule a timeout to wake us up after the interval has
+  // expired.  Using the background EventBase to run the timeout ensures that
+  // it will always run after the RA timeout has fired.
+  // We also send RA packets just before switch controller shutdown,
+  // so expect RA packet.
+
+  // Multicast router advertisement use switched api
+  EXPECT_OUT_OF_PORT_PKT(
+      sw,
+      "router advertisement",
+      checkRouterAdvert(
+          folly::MacAddress("00:02:00:00:00:55"),
+          routerAdvSrcIp,
+          MacAddress("33:33:00:00:00:01"),
+          IPAddressV6("ff02::1"),
+          VlanID(1),
+          intfConfig->getNdpConfig()->toThrift(),
+          9000,
+          expectedPrefixes),
+      PortID(1),
+      std::optional<uint8_t>(kNCStrictPriorityQueue))
+      .Times(::testing::AtLeast(1));
+
+  std::promise<bool> done;
+  auto* evb = sw->getBackgroundEvb();
+  evb->runInFbossEventBaseThread([&]() {
+    evb->tryRunAfterDelay([&]() { done.set_value(true); }, 1010 /*ms*/);
+  });
+  done.get_future().wait();
+  counters.update();
+  EXPECT_GT(counters.value("fboss6001.router_advertisements.sum"), 0);
+}
+
 TYPED_TEST(NdpTest, RouterAdvertisement) {
   this->validateRouterAdv(std::nullopt);
+}
+
+TYPED_TEST(NdpTest, RouterAdvertisementPortRif) {
+  if (!this->isIntfNbrTable()) {
+    GTEST_SKIP() << "Test only valid for intf nbr table";
+  }
+  this->validateRouterAdvForPortRif(std::nullopt);
 }
 
 TYPED_TEST(NdpTest, BrokenRouterAdvConfig) {
@@ -933,6 +1104,13 @@ TYPED_TEST(NdpTest, BrokenRouterAdvConfig) {
 
 TYPED_TEST(NdpTest, RouterAdvConfigWithRouterAddress) {
   this->validateRouterAdv("fe80::face:b00c");
+}
+
+TYPED_TEST(NdpTest, RouterAdvConfigWithRouterAddressPortRif) {
+  if (!this->isIntfNbrTable()) {
+    GTEST_SKIP() << "Test only valid for intf nbr table";
+  }
+  this->validateRouterAdvForPortRif("fe80::face:b00c");
 }
 
 TYPED_TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {

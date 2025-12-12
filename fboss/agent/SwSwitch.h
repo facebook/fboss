@@ -1020,6 +1020,8 @@ class SwSwitch : public HwSwitchCallback {
   }
   void rxPacketReceived(std::unique_ptr<SwRxPacket> pkt);
 
+  std::optional<VlanID> getVlanIDForTx(const InterfaceID& ifID) const;
+
   template <typename VlanOrIntfT>
   std::optional<VlanID> getVlanIDForTx(
       const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;

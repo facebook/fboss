@@ -413,7 +413,8 @@ void IPv6Handler::handleRouterSolicitation(
   auto resp = sw_->allocatePacket(pktLen);
   RWPrivateCursor respCursor(resp->buf());
   IPv6RouteAdvertiser::createAdvertisementPacket(
-      intf.get(), &respCursor, dstMac, dstIP);
+      sw_, intf.get(), &respCursor, dstMac, dstIP);
+  XLOG(DBG4) << PktUtil::hexDump(resp->buf());
   // Based on the router solicidtation and advertisement mechanism, the
   // advertisement should send back to who request such solicidation. Besides,
   // right now, only servers send RSW router solicidation. It's kinda safe to

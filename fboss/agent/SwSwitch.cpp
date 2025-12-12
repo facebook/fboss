@@ -4264,6 +4264,11 @@ template std::optional<VlanID> SwSwitch::getVlanIDForTx(
 template std::optional<VlanID> SwSwitch::getVlanIDForTx(
     const std::shared_ptr<Interface>& vlanOrIntf) const;
 
+std::optional<VlanID> SwSwitch::getVlanIDForTx(const InterfaceID& ifID) const {
+  auto intf = getState()->getInterfaces()->getNodeIf(ifID);
+  return getVlanIDForTx(intf);
+}
+
 void SwSwitch::sendNeighborSolicitationForConfiguredInterfaces(
     const std::string& reason,
     const std::optional<folly::IPAddressV6>& targetIP) {
