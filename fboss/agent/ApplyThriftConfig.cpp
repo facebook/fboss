@@ -4501,8 +4501,7 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
              orig->getDesiredPeerAddressIPv6().value()));
 
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
-      (!orig->getVlanIDIf_DEPRECATED().has_value() ||
-       orig->getVlanIDIf_DEPRECATED().value() == VlanID(*config->vlanID())) &&
+      (orig->getVlanIDHelper() == VlanID(*config->vlanID())) &&
       (orig->getPortIDf() == cfgPort) && orig->getName() == name &&
       orig->getMac() == mac && orig->getAddressesCopy() == addrs &&
       orig->getNdpConfig()->toThrift() == ndp && orig->getMtu() == mtu &&
