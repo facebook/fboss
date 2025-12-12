@@ -3857,9 +3857,7 @@ void SwSwitch::sentArpRequest(
   if (FLAGS_intf_nbr_tables) {
     getNeighborUpdater()->sentArpRequestForIntf(intf->getID(), target);
   } else {
-    getNeighborUpdater()->sentArpRequest(
-        getVlanIDHelper(intf->getVlanIDIf_DEPRECATED(), intf->getType()),
-        target);
+    getNeighborUpdater()->sentArpRequest(intf->getVlanIDHelper(), target);
   }
 }
 
@@ -3871,8 +3869,7 @@ void SwSwitch::sentNeighborSolicitation(
         intf->getID(), target);
   } else {
     getNeighborUpdater()->sentNeighborSolicitation(
-        getVlanIDHelper(intf->getVlanIDIf_DEPRECATED(), intf->getType()),
-        target);
+        intf->getVlanIDHelper(), target);
   }
 }
 

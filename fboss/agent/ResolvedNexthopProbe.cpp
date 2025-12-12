@@ -49,8 +49,7 @@ void ResolvedNextHopProbe::timeoutExpired() noexcept {
   }
 
   if (!FLAGS_intf_nbr_tables) {
-    auto vlanId =
-        sw_->getVlanIDHelper(intf->getVlanIDIf_DEPRECATED(), intf->getType());
+    auto vlanId = intf->getVlanIDHelper();
     auto vlan = state->getVlans()->getNodeIf(vlanId);
     if (!vlan) {
       XLOG(ERR) << "a spurios probe to " << nexthop_.addr() << " on vlan "
