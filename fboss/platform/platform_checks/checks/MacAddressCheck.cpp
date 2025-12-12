@@ -25,9 +25,9 @@ namespace facebook::fboss::platform::platform_checks {
 
 CheckResult MacAddressCheck::run() {
   try {
-    auto eth0Mac = getMacAddress("eth0");
-    if (eth0Mac == folly::MacAddress::ZERO) {
-      return makeError("eth0 interface has zero MAC address");
+    auto ifaceMac = getMacAddress(interfaceName_);
+    if (ifaceMac == folly::MacAddress::ZERO) {
+      return makeError(interfaceName_ + " interface has zero MAC address");
     }
 
     auto eepromMac = getEepromMacAddress();
@@ -35,10 +35,9 @@ CheckResult MacAddressCheck::run() {
       return makeError("EEPROM contains zero MAC address");
     }
 
-    if (eth0Mac != eepromMac) {
-      std::string errorMsg =
-          "MAC address mismatch: eth0=" + eth0Mac.toString() +
-          " EEPROM=" + eepromMac.toString();
+    if (ifaceMac != eepromMac) {
+      std::string errorMsg = "MAC address mismatch: " + interfaceName_ + "=" +
+          ifaceMac.toString() + " EEPROM=" + eepromMac.toString();
       std::string remediationMsg = "RMA device to correct MAC address";
       return makeProblem(
           errorMsg, RemediationType::RMA_REQUIRED, remediationMsg);
