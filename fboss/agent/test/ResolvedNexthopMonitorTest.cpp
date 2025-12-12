@@ -34,9 +34,10 @@ const std::array<IPAddressV6, 2> kNexthopsV6{
 
 namespace facebook::fboss {
 
-template <bool enableIntfNbrTable>
+template <bool enableIntfNbrTable, bool enablePortRif = false>
 struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
+  static constexpr auto portRif = enablePortRif;
 };
 
 using NbrTableTypes =
@@ -48,15 +49,20 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
   using StateUpdateFn = SwSwitch::StateUpdateFn;
   using Func = folly::Function<void()>;
   static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
+  static auto constexpr portRif = EnableIntfNbrTableT::portRif;
   void SetUp() override {
     FLAGS_intf_nbr_tables = isIntfNbrTable();
-    auto cfg = testConfigA();
+    auto cfg = usePortRif() ? testConfigAWithPortInterfaces() : testConfigA();
     handle_ = createTestHandle(&cfg);
     sw_ = handle_->getSw();
   }
 
   bool isIntfNbrTable() const {
     return intfNbrTable == true;
+  }
+
+  bool usePortRif() const {
+    return portRif == true;
   }
 
   void TearDown() override {
