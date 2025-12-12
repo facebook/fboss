@@ -230,7 +230,7 @@ TEST_F(PlatformManagerHwTest, XcvrLedFiles) {
   explorationOk();
 
   bool isDarwin = platformConfig_.platformName().value() == "DARWIN" ||
-      platformConfig_.platformName().value() == "DARWIN48v";
+      platformConfig_.platformName().value() == "DARWIN48V";
 
   std::string firstColorName = isDarwin ? "green" : "blue";
   std::string secondColorName = "amber";
