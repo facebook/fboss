@@ -17,7 +17,9 @@ namespace facebook::fboss {
 class MockPhyManager : public PhyManager {
  public:
   explicit MockPhyManager(const PlatformMapping* platformMapping)
-      : PhyManager(platformMapping) {}
+      : PhyManager(platformMapping) {
+    numOfSlot_ = 0;
+  }
 
   // Mock the programOnePort method that was requested
   MOCK_METHOD4(
