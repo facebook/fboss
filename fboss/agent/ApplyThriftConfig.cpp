@@ -1703,10 +1703,35 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
               SwitchID(switchId));
           port2InterfaceId_[portID].push_back(interfaceID);
         } break;
+        case cfg::PortType::HYPER_PORT_MEMBER: {
+          const std::vector<PortID>& hyperPortIDs =
+              platformMapping_->getPlatformPorts(cfg::PortType::HYPER_PORT);
+          for (const PortID& hyperPortID : hyperPortIDs) {
+            const auto& hyperPortPlatformPortEntry =
+                platformMapping_->getPlatformPort(hyperPortID);
+            const auto& hyperPortPlatformCfg =
+                hyperPortPlatformPortEntry.supportedProfiles()
+                    ->find(cfg::PortProfileID::PROFILE_DEFAULT)
+                    ->second;
+            CHECK(hyperPortPlatformCfg.subsumedPorts().has_value());
+            for (const auto& subsumedPortId :
+                 *hyperPortPlatformCfg.subsumedPorts()) {
+              if (PortID(subsumedPortId) == portID) {
+                // use interface ID of the hyper port
+                auto interfaceID = getSystemPortID(
+                    hyperPortID,
+                    hyperPortPlatformPortEntry.mapping()->scope().value(),
+                    *cfg_->switchSettings()->switchIdToSwitchInfo(),
+                    SwitchID(switchId));
+                port2InterfaceId_[portID].push_back(interfaceID);
+                break;
+              }
+            }
+          }
+        } break;
         case cfg::PortType::FABRIC_PORT:
         case cfg::PortType::CPU_PORT:
-        case cfg::PortType::HYPER_PORT_MEMBER:
-          // no interface for fabric/cpu/hyper member port
+          // no interface for fabric/cpu port
           break;
       }
     }

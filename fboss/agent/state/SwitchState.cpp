@@ -749,10 +749,6 @@ InterfaceID SwitchState::getInterfaceIDForPort(
   switch (port.type()) {
     case PortDescriptor::PortType::PHYSICAL: {
       auto physicalPort = getPorts()->getNode(port.phyPortID());
-      if (physicalPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) {
-        // no L3 interface configured on hyper port members
-        return InterfaceID(0);
-      }
       // On VOQ/Fabric switches, port and interface have 1:1 relation.
       // For non VOQ/Fabric switches, in practice, a port is always part of a
       // single VLAN (and thus single interface).
