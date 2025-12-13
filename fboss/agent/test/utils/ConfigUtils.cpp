@@ -860,6 +860,10 @@ cfg::SwitchConfig genPortVlanCfg(
       switchInfo.inbandPortId() = *asic->getInbandPortId();
     }
     defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
+    if (platformType.has_value() &&
+        platformType.value() == PlatformType::PLATFORM_LADAKH800BCLS) {
+      populateSwitchInfoForLadakh(defaultSwitchIdToSwitchInfo);
+    }
     populateSwitchInfo(
         config, defaultSwitchIdToSwitchInfo, defaultHwAsicTable, platformType);
   }
@@ -1035,6 +1039,33 @@ void populateSwitchInfo(
   config.dsfNodes() = newDsfNodes;
 }
 
+void populateSwitchInfoForLadakh(
+    std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo) {
+  // Switch 0 configuration
+  cfg::SwitchInfo switchInfo0;
+  switchInfo0.switchType() = cfg::SwitchType::NPU;
+  switchInfo0.asicType() = cfg::AsicType::ASIC_TYPE_TOMAHAWK6;
+  switchInfo0.switchIndex() = 0;
+  cfg::Range64 portIdRange0;
+  portIdRange0.minimum() = 1;
+  portIdRange0.maximum() = 512;
+  switchInfo0.portIdRange() = portIdRange0;
+  switchInfo0.connectionHandle() = "0000:15:00=0";
+  switchIdToSwitchInfo.insert({SwitchID(0), switchInfo0});
+
+  // Switch 1 configuration
+  cfg::SwitchInfo switchInfo1;
+  switchInfo1.switchType() = cfg::SwitchType::NPU;
+  switchInfo1.asicType() = cfg::AsicType::ASIC_TYPE_TOMAHAWK6;
+  switchInfo1.switchIndex() = 1;
+  cfg::Range64 portIdRange1;
+  portIdRange1.minimum() = 2049;
+  portIdRange1.maximum() = 2560;
+  switchInfo1.portIdRange() = portIdRange1;
+  switchInfo1.connectionHandle() = "0000:18:00=0";
+  switchIdToSwitchInfo.insert({SwitchID(1), switchInfo1});
+}
+
 cfg::SwitchConfig
 oneL3IntfTwoPortConfig(const SwSwitch* sw, PortID port1, PortID port2) {
   std::vector<PortID> ports{port1, port2};
@@ -1054,10 +1085,20 @@ cfg::SwitchConfig oneL3IntfTwoPortConfig(
     PortID port1,
     PortID port2,
     bool supportsAddRemovePort,
-    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    const std::optional<PlatformType> platformType) {
   std::vector<PortID> ports{port1, port2};
   return oneL3IntfNPortConfig(
-      platformMapping, asic, ports, supportsAddRemovePort, lbModeMap);
+      platformMapping,
+      asic,
+      ports,
+      supportsAddRemovePort,
+      lbModeMap,
+      true /*interfaceHasSubnet*/,
+      kBaseVlanId,
+      true /*optimizePortProfile*/,
+      true /*setInterfaceMac*/,
+      platformType);
 }
 
 cfg::SwitchConfig oneL3IntfNPortConfig(
@@ -1069,7 +1110,8 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
     bool interfaceHasSubnet,
     int baseVlanId,
     bool optimizePortProfile,
-    bool setInterfaceMac) {
+    bool setInterfaceMac,
+    const std::optional<PlatformType> platformType) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<VlanID> vlans{VlanID(baseVlanId)};
   std::vector<PortID> vlanPorts;
@@ -1086,7 +1128,11 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
       vlans,
       lbModeMap,
       supportsAddRemovePort,
-      optimizePortProfile);
+      optimizePortProfile,
+      false /*enableFabricPorts*/,
+      std::nullopt /*switchIdToSwitchInfo*/,
+      std::nullopt /*hwAsicTable*/,
+      platformType);
 
   config.interfaces()->resize(1);
   config.interfaces()[0].intfID() = baseVlanId;
@@ -1635,6 +1681,30 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       setInterfaceMac,
       baseIntfId,
       enableFabricPorts,
+      intfTypeVal);
+}
+
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    const std::vector<PortID>& ports,
+    bool supportsAddRemovePort,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    PlatformType platformType) {
+  cfg::InterfaceType intfTypeVal = getInterfaceType(*asic);
+  return onePortPerInterfaceConfigImpl(
+      platformMapping,
+      asic,
+      ports,
+      supportsAddRemovePort,
+      lbModeMap,
+      true /*interfaceHasSubnet*/,
+      true /*setInterfaceMac*/,
+      kBaseVlanId,
+      false /*enableFabricPorts*/,
+      std::nullopt /*switchIdToSwitchInfo*/,
+      std::nullopt /*hwAsicTable*/,
+      platformType,
       intfTypeVal);
 }
 

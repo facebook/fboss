@@ -155,6 +155,15 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     const std::optional<PlatformType> platformType = std::nullopt,
     const std::optional<cfg::InterfaceType>& intfType = std::nullopt);
 
+// Simplified overload with platformType in a convenient position
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    const std::vector<PortID>& ports,
+    bool supportsAddRemovePort,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    PlatformType platformType);
+
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const TestEnsembleIf* ensemble,
     const std::vector<PortID>& ports,
@@ -174,7 +183,8 @@ cfg::SwitchConfig oneL3IntfTwoPortConfig(
     PortID port2,
     bool supportsAddRemovePort,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
-        kDefaultLoopbackMap());
+        kDefaultLoopbackMap(),
+    const std::optional<PlatformType> platformType = std::nullopt);
 
 cfg::SwitchConfig oneL3IntfNPortConfig(
     const PlatformMapping* platformMapping,
@@ -186,7 +196,8 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
     bool interfaceHasSubnet = true,
     int baseVlanId = kBaseVlanId,
     bool optimizePortProfile = true,
-    bool setInterfaceMac = true);
+    bool setInterfaceMac = true,
+    const std::optional<PlatformType> platformType = std::nullopt);
 
 cfg::SwitchConfig multiplePortsPerIntfConfig(
     const PlatformMapping* platformMapping,
@@ -228,6 +239,9 @@ void populateSwitchInfo(
     const std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo,
     const std::map<SwitchID, const HwAsic*>& hwAsicTable,
     const std::optional<PlatformType> platformType = std::nullopt);
+
+void populateSwitchInfoForLadakh(
+    std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo);
 
 cfg::SwitchConfig twoL3IntfConfig(
     SwSwitch* swSwitch,
