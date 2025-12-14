@@ -14,6 +14,46 @@ ArrayT customizeModuleIdentifier(ArrayT base, uint8_t newIdentifier) {
   base[0] = newIdentifier;
   return base;
 }
+
+// Simulate datapath state transitions for CMIS modules:
+// When DATA_PATH_DEINIT (Page 10h, offset 0) is written, update
+// DATA_PATH_STATE (Page 11h, offset 0-3) to simulate hardware behavior.
+// This is needed for tests that use polling-based datapath programming.
+void simulateDataPathStateTransition(
+    int page,
+    int offset,
+    int len,
+    const uint8_t* fieldValue,
+    uint8_t dataAddress,
+    std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>>& upperPages) {
+  constexpr int kPage10h = 0x10;
+  constexpr int kPage11h = 0x11;
+  constexpr int kDataPathDeinitOffset = 0; // Offset 128 - 128 = 0
+  constexpr uint8_t kDeactivatedState = 0x1;
+  constexpr uint8_t kActivatedState = 0x4;
+
+  if (page == kPage10h && offset == kDataPathDeinitOffset && len >= 1) {
+    uint8_t dataPathDeinit = *fieldValue;
+
+    // Check if Page 11h exists in the upper pages
+    if (upperPages[dataAddress].find(kPage11h) !=
+        upperPages[dataAddress].end()) {
+      // Update DATA_PATH_STATE for each lane (8 lanes, 4 bits per lane)
+      // Lane states are packed: 2 lanes per byte, low nibble = even lane
+      for (int lane = 0; lane < 8; ++lane) {
+        bool isLaneDeinit = (dataPathDeinit >> lane) & 0x1;
+        uint8_t newState = isLaneDeinit ? kDeactivatedState : kActivatedState;
+        int byteIdx = lane / 2;
+        int laneBitOffset = (lane % 2) * 4;
+
+        auto& stateByte = upperPages[dataAddress][kPage11h][byteIdx];
+        // Clear the nibble and set the new state
+        stateByte =
+            (stateByte & ~(0xF << laneBitOffset)) | (newState << laneBitOffset);
+      }
+    }
+  }
+}
 } // namespace
 
 namespace facebook {
@@ -85,6 +125,9 @@ int FakeTransceiverImpl::writeTransceiver(
         fieldValue,
         fieldValue + len,
         upperPages_[dataAddress][page_].begin() + offset);
+
+    simulateDataPathStateTransition(
+        page_, offset, len, fieldValue, dataAddress, upperPages_);
   }
 
   return len;
