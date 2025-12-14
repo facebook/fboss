@@ -986,28 +986,6 @@
           "compute": "@/1000"
         },
         {
-          "name": "COME_PU4_XDPE15284_PVCCIN_VOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in2_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 2.2,
-            "maxAlarmVal": 2,
-            "lowerCriticalVal": 1.4
-          },
-          "compute": "@/1000"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_P1V8_VOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in3_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 2.2,
-            "maxAlarmVal": 2,
-            "lowerCriticalVal": 1.4
-          },
-          "compute": "@/1000"
-        },
-        {
           "name": "COME_PU4_XDPE15284_PVCCIN_TEMP",
           "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/temp1_input",
           "type": 3,
@@ -1037,24 +1015,6 @@
           "compute": "@/1000000"
         },
         {
-          "name": "COME_PU4_XDPE15284_PVCCIN_POUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/power2_input",
-          "type": 0,
-          "thresholds": {
-            "maxAlarmVal": 1024
-          },
-          "compute": "@/1000000"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_P1V8_POUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/power3_input",
-          "type": 0,
-          "thresholds": {
-            "maxAlarmVal": 125
-          },
-          "compute": "@/1000000"
-        },
-        {
           "name": "COME_PU4_XDPE15284_PVCCIN_IIN",
           "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/curr1_input",
           "type": 2,
@@ -1063,26 +1023,209 @@
             "maxAlarmVal": 12
           },
           "compute": "@/1000"
+        }
+      ],
+      "versionedSensors": [
+        {
+          "sensors": [
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in3_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 2.2,
+                "maxAlarmVal": 2,
+                "lowerCriticalVal": 1.4
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in4_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 2.2,
+                "maxAlarmVal": 2,
+                "lowerCriticalVal": 1.4
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/power3_input",
+              "type": 0,
+              "thresholds": {
+                "maxAlarmVal": 1024
+              },
+              "compute": "@/1000000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/power4_input",
+              "type": 0,
+              "thresholds": {
+                "maxAlarmVal": 125
+              },
+              "compute": "@/1000000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/curr3_input",
+              "type": 2,
+              "thresholds": {
+                "upperCriticalVal": 130,
+                "maxAlarmVal": 94
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/curr4_input",
+              "type": 2,
+              "thresholds": {
+                "upperCriticalVal": 6,
+                "maxAlarmVal": 3
+              },
+              "compute": "@/1000"
+            }
+          ],
+          "productProductionState": 4,
+          "productVersion": 2,
+          "productSubVersion": 1
         },
         {
-          "name": "COME_PU4_XDPE15284_PVCCIN_IOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/curr2_input",
-          "type": 2,
-          "thresholds": {
-            "upperCriticalVal": 130,
-            "maxAlarmVal": 94
-          },
-          "compute": "@/1000"
+          "sensors": [
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 2.2,
+                "maxAlarmVal": 2,
+                "lowerCriticalVal": 1.4
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in3_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 2.2,
+                "maxAlarmVal": 2,
+                "lowerCriticalVal": 1.4
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/power2_input",
+              "type": 0,
+              "thresholds": {
+                "maxAlarmVal": 1024
+              },
+              "compute": "@/1000000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/power3_input",
+              "type": 0,
+              "thresholds": {
+                "maxAlarmVal": 125
+              },
+              "compute": "@/1000000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/curr2_input",
+              "type": 2,
+              "thresholds": {
+                "upperCriticalVal": 130,
+                "maxAlarmVal": 94
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/curr3_input",
+              "type": 2,
+              "thresholds": {
+                "upperCriticalVal": 6,
+                "maxAlarmVal": 3
+              },
+              "compute": "@/1000"
+            }
+          ],
+          "productProductionState": 4,
+          "productVersion": 1,
+          "productSubVersion": 2
         },
         {
-          "name": "COME_PU4_XDPE15284_P1V8_IOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/curr3_input",
-          "type": 2,
-          "thresholds": {
-            "upperCriticalVal": 6,
-            "maxAlarmVal": 3
-          },
-          "compute": "@/1000"
+          "sensors": [
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 2.2,
+                "maxAlarmVal": 2,
+                "lowerCriticalVal": 1.4
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in3_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 2.2,
+                "maxAlarmVal": 2,
+                "lowerCriticalVal": 1.4
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/power2_input",
+              "type": 0,
+              "thresholds": {
+                "maxAlarmVal": 1024
+              },
+              "compute": "@/1000000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/power3_input",
+              "type": 0,
+              "thresholds": {
+                "maxAlarmVal": 125
+              },
+              "compute": "@/1000000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/curr2_input",
+              "type": 2,
+              "thresholds": {
+                "upperCriticalVal": 130,
+                "maxAlarmVal": 94
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/curr3_input",
+              "type": 2,
+              "thresholds": {
+                "upperCriticalVal": 6,
+                "maxAlarmVal": 3
+              },
+              "compute": "@/1000"
+            }
+          ],
+          "productProductionState": 4,
+          "productVersion": 2,
+          "productSubVersion": 2
         }
       ]
     },
