@@ -300,6 +300,12 @@ std::string SaiPlatform::getHwAsicConfig(
 }
 
 void SaiPlatform::initSaiProfileValues() {
+  auto platformMode = getType();
+  // LADAKH800BCLS need SAI_CUSTOM_KERNEL_BDE_NAME to support mnpu
+  if (platformMode == PlatformType::PLATFORM_LADAKH800BCLS) {
+    kSaiProfileValues.insert(
+        std::make_pair("SAI_CUSTOM_KERNEL_BDE_NAME", "linux_ngbde"));
+  }
   kSaiProfileValues.insert(
       std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
   kSaiProfileValues.insert(
