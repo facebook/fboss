@@ -6,6 +6,10 @@ namespace py3 neteng.fboss.platform.sensor_config
 namespace py.asyncio neteng.fboss.platform.asyncio.sensor_config
 
 include "thrift/annotation/hack.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 // `SensorType` :  SensorType represents the type of sensor being measured.
 //  For Power, should be Watt (W)

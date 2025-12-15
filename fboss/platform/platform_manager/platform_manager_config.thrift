@@ -5,6 +5,10 @@ namespace hack NetengFbossPlatformManager
 namespace py3 fboss.platform.platform_manager
 
 include "fboss/platform/platform_manager/platform_manager_presence.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 //            +-+-+-+ +-+-+-+ +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+
 //            |I|2|C| |B|u|s| |N|a|m|i|n|g| |C|o|n|v|e|n|t|i|o|n|
