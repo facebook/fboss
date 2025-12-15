@@ -6,6 +6,9 @@ namespace hack Rackmonsvc
 include "fboss/agent/if/fboss.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 /*
  * Please refer to below document for the Modbus protocal and terms:
  * https://modbus.org/docs/Modbus_Application_Protocol_V1_1b.pdf
