@@ -473,9 +473,17 @@ class PlatformMappingV2:
                         for (
                             other_port_config
                         ) in other_port_entry.supportedProfiles.values():
+                            other_port_pin_ids = [
+                                pin_config.id
+                                for pin_config in other_port_config.pins.iphy
+                            ]
+                            needed_pin_ids = [
+                                pin_config.id for pin_config in all_iphy_pins_needed
+                            ]
+
                             if all(
-                                needed_iphy_pin in other_port_config.pins.iphy
-                                for needed_iphy_pin in all_iphy_pins_needed
+                                needed_iphy_pin_id in other_port_pin_ids
+                                for needed_iphy_pin_id in needed_pin_ids
                             ):
                                 if not other_port_config.subsumedPorts:
                                     other_port_config.subsumedPorts = []

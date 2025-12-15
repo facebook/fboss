@@ -74,6 +74,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                2,
+                3,
+                4
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -130,6 +135,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                2,
+                3,
+                4
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -571,6 +581,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                6,
+                7,
+                8
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -627,6 +642,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                6,
+                7,
+                8
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -1068,6 +1088,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                10,
+                11,
+                12
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -1124,6 +1149,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                10,
+                11,
+                12
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -1565,6 +1595,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                14,
+                15,
+                16
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -1621,6 +1656,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                14,
+                15,
+                16
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -2062,6 +2102,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                18,
+                19,
+                20
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -2118,6 +2163,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                18,
+                19,
+                20
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -2559,6 +2609,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                22,
+                23,
+                24
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -2615,6 +2670,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                22,
+                23,
+                24
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -3056,6 +3116,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                26,
+                27,
+                28
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -3112,6 +3177,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                26,
+                27,
+                28
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -3553,6 +3623,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                30,
+                31,
+                32
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -3609,6 +3684,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                30,
+                31,
+                32
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -4050,6 +4130,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                34,
+                35,
+                36
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -4106,6 +4191,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                34,
+                35,
+                36
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -4547,6 +4637,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                38,
+                39,
+                40
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -4603,6 +4698,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                38,
+                39,
+                40
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -5044,6 +5144,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                42,
+                43,
+                44
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -5100,6 +5205,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                42,
+                43,
+                44
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -5541,6 +5651,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                46,
+                47,
+                48
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -5597,6 +5712,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                46,
+                47,
+                48
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -6038,6 +6158,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                50,
+                51,
+                52
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -6094,6 +6219,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                50,
+                51,
+                52
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -6535,6 +6665,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                54,
+                55,
+                56
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -6591,6 +6726,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                54,
+                55,
+                56
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -7032,6 +7172,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                58,
+                59,
+                60
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -7088,6 +7233,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                58,
+                59,
+                60
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -7529,6 +7679,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                62,
+                63,
+                64
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -7585,6 +7740,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                62,
+                63,
+                64
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -8026,6 +8186,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                66,
+                67,
+                68
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -8082,6 +8247,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                66,
+                67,
+                68
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -8523,6 +8693,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                70,
+                71,
+                72
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -8579,6 +8754,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                70,
+                71,
+                72
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -9020,6 +9200,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                74,
+                75,
+                76
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -9076,6 +9261,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                74,
+                75,
+                76
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -9517,6 +9707,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                78,
+                79,
+                80
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -9573,6 +9768,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                78,
+                79,
+                80
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -10014,6 +10214,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                82,
+                83,
+                84
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -10070,6 +10275,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                82,
+                83,
+                84
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -10511,6 +10721,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                86,
+                87,
+                88
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -10567,6 +10782,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                86,
+                87,
+                88
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -11008,6 +11228,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                90,
+                91,
+                92
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -11064,6 +11289,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                90,
+                91,
+                92
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -11505,6 +11735,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                94,
+                95,
+                96
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -11561,6 +11796,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                94,
+                95,
+                96
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -12002,6 +12242,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                98,
+                99,
+                100
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -12058,6 +12303,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                98,
+                99,
+                100
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -12499,6 +12749,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                102,
+                103,
+                104
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -12555,6 +12810,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                102,
+                103,
+                104
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -12996,6 +13256,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                106,
+                107,
+                108
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -13052,6 +13317,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                106,
+                107,
+                108
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -13493,6 +13763,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                110,
+                111,
+                112
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -13549,6 +13824,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                110,
+                111,
+                112
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -13990,6 +14270,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                114,
+                115,
+                116
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -14046,6 +14331,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                114,
+                115,
+                116
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -14487,6 +14777,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                118,
+                119,
+                120
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -14543,6 +14838,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                118,
+                119,
+                120
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -14984,6 +15284,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                122,
+                123,
+                124
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -15040,6 +15345,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                122,
+                123,
+                124
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -15481,6 +15791,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                126,
+                127,
+                128
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -15537,6 +15852,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                126,
+                127,
+                128
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -15978,6 +16298,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                130,
+                131,
+                132
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -16034,6 +16359,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                130,
+                131,
+                132
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -16475,6 +16805,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                134,
+                135,
+                136
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -16531,6 +16866,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                134,
+                135,
+                136
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -16972,6 +17312,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                138,
+                139,
+                140
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -17028,6 +17373,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                138,
+                139,
+                140
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -17469,6 +17819,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                142,
+                143,
+                144
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -17525,6 +17880,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                142,
+                143,
+                144
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -17966,6 +18326,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                146,
+                147,
+                148
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -18022,6 +18387,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                146,
+                147,
+                148
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -18463,6 +18833,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                150,
+                151,
+                152
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -18519,6 +18894,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                150,
+                151,
+                152
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -18960,6 +19340,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                154,
+                155,
+                156
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -19016,6 +19401,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                154,
+                155,
+                156
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -19457,6 +19847,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                158,
+                159,
+                160
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -19513,6 +19908,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                158,
+                159,
+                160
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -19954,6 +20354,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                162,
+                163,
+                164
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -20010,6 +20415,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                162,
+                163,
+                164
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -20451,6 +20861,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                166,
+                167,
+                168
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -20507,6 +20922,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                166,
+                167,
+                168
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -20948,6 +21368,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                170,
+                171,
+                172
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -21004,6 +21429,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                170,
+                171,
+                172
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -21445,6 +21875,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                174,
+                175,
+                176
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -21501,6 +21936,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                174,
+                175,
+                176
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -21942,6 +22382,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                178,
+                179,
+                180
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -21998,6 +22443,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                178,
+                179,
+                180
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -22439,6 +22889,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                182,
+                183,
+                184
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -22495,6 +22950,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                182,
+                183,
+                184
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -22936,6 +23396,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                186,
+                187,
+                188
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -22992,6 +23457,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                186,
+                187,
+                188
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -23433,6 +23903,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                190,
+                191,
+                192
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -23489,6 +23964,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                190,
+                191,
+                192
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -23930,6 +24410,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                194,
+                195,
+                196
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -23986,6 +24471,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                194,
+                195,
+                196
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -24427,6 +24917,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                198,
+                199,
+                200
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -24483,6 +24978,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                198,
+                199,
+                200
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -24924,6 +25424,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                202,
+                203,
+                204
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -24980,6 +25485,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                202,
+                203,
+                204
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -25421,6 +25931,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                206,
+                207,
+                208
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -25477,6 +25992,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                206,
+                207,
+                208
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -25918,6 +26438,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                210,
+                211,
+                212
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -25974,6 +26499,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                210,
+                211,
+                212
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -26415,6 +26945,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                214,
+                215,
+                216
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -26471,6 +27006,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                214,
+                215,
+                216
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -26912,6 +27452,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                218,
+                219,
+                220
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -26968,6 +27513,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                218,
+                219,
+                220
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -27409,6 +27959,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                222,
+                223,
+                224
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -27465,6 +28020,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                222,
+                223,
+                224
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -27906,6 +28466,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                226,
+                227,
+                228
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -27962,6 +28527,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                226,
+                227,
+                228
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -28403,6 +28973,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                230,
+                231,
+                232
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -28459,6 +29034,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                230,
+                231,
+                232
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -28900,6 +29480,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                234,
+                235,
+                236
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -28956,6 +29541,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                234,
+                235,
+                236
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -29397,6 +29987,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                238,
+                239,
+                240
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -29453,6 +30048,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                238,
+                239,
+                240
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -29894,6 +30494,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                242,
+                243,
+                244
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -29950,6 +30555,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                242,
+                243,
+                244
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -30391,6 +31001,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                246,
+                247,
+                248
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -30447,6 +31062,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                246,
+                247,
+                248
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -30888,6 +31508,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                250,
+                251,
+                252
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -30944,6 +31569,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                250,
+                251,
+                252
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -31385,6 +32015,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                254,
+                255,
+                256
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -31441,6 +32076,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                254,
+                255,
+                256
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -31882,6 +32522,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                258,
+                259,
+                260
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -31938,6 +32583,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                258,
+                259,
+                260
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -32379,6 +33029,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                262,
+                263,
+                264
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -32435,6 +33090,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                262,
+                263,
+                264
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -32876,6 +33536,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                266,
+                267,
+                268
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -32932,6 +33597,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                266,
+                267,
+                268
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -33373,6 +34043,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                270,
+                271,
+                272
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -33429,6 +34104,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                270,
+                271,
+                272
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -33870,6 +34550,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                274,
+                275,
+                276
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -33926,6 +34611,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                274,
+                275,
+                276
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -34367,6 +35057,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                278,
+                279,
+                280
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -34423,6 +35118,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                278,
+                279,
+                280
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -34864,6 +35564,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                282,
+                283,
+                284
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -34920,6 +35625,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                282,
+                283,
+                284
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -35361,6 +36071,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                286,
+                287,
+                288
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -35417,6 +36132,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                286,
+                287,
+                288
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -35858,6 +36578,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                290,
+                291,
+                292
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -35914,6 +36639,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                290,
+                291,
+                292
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -36355,6 +37085,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                294,
+                295,
+                296
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -36411,6 +37146,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                294,
+                295,
+                296
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -36852,6 +37592,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                298,
+                299,
+                300
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -36908,6 +37653,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                298,
+                299,
+                300
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -37349,6 +38099,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                302,
+                303,
+                304
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -37405,6 +38160,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                302,
+                303,
+                304
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -37846,6 +38606,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                306,
+                307,
+                308
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -37902,6 +38667,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                306,
+                307,
+                308
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -38343,6 +39113,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                310,
+                311,
+                312
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -38399,6 +39174,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                310,
+                311,
+                312
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -38840,6 +39620,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                314,
+                315,
+                316
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -38896,6 +39681,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                314,
+                315,
+                316
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -39337,6 +40127,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                318,
+                319,
+                320
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -39393,6 +40188,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                318,
+                319,
+                320
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -39834,6 +40634,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                322,
+                323,
+                324
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -39890,6 +40695,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                322,
+                323,
+                324
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -40331,6 +41141,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                326,
+                327,
+                328
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -40387,6 +41202,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                326,
+                327,
+                328
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -40828,6 +41648,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                330,
+                331,
+                332
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -40884,6 +41709,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                330,
+                331,
+                332
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -41325,6 +42155,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                334,
+                335,
+                336
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -41381,6 +42216,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                334,
+                335,
+                336
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -41822,6 +42662,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                338,
+                339,
+                340
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -41878,6 +42723,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                338,
+                339,
+                340
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -42319,6 +43169,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                342,
+                343,
+                344
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -42375,6 +43230,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                342,
+                343,
+                344
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -42816,6 +43676,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                346,
+                347,
+                348
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -42872,6 +43737,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                346,
+                347,
+                348
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -43313,6 +44183,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                350,
+                351,
+                352
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -43369,6 +44244,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                350,
+                351,
+                352
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -43810,6 +44690,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                354,
+                355,
+                356
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -43866,6 +44751,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                354,
+                355,
+                356
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -44307,6 +45197,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                358,
+                359,
+                360
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -44363,6 +45258,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                358,
+                359,
+                360
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -44804,6 +45704,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                362,
+                363,
+                364
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -44860,6 +45765,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                362,
+                363,
+                364
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -45301,6 +46211,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                366,
+                367,
+                368
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -45357,6 +46272,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                366,
+                367,
+                368
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -45798,6 +46718,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                370,
+                371,
+                372
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -45854,6 +46779,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                370,
+                371,
+                372
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -46295,6 +47225,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                374,
+                375,
+                376
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -46351,6 +47286,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                374,
+                375,
+                376
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -46792,6 +47732,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                378,
+                379,
+                380
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -46848,6 +47793,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                378,
+                379,
+                380
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -47289,6 +48239,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                382,
+                383,
+                384
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -47345,6 +48300,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                382,
+                383,
+                384
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -47786,6 +48746,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                386,
+                387,
+                388
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -47842,6 +48807,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                386,
+                387,
+                388
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -48283,6 +49253,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                390,
+                391,
+                392
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -48339,6 +49314,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                390,
+                391,
+                392
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -48780,6 +49760,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                394,
+                395,
+                396
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -48836,6 +49821,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                394,
+                395,
+                396
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -49277,6 +50267,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                398,
+                399,
+                400
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -49333,6 +50328,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                398,
+                399,
+                400
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -49774,6 +50774,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                402,
+                403,
+                404
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -49830,6 +50835,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                402,
+                403,
+                404
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -50271,6 +51281,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                406,
+                407,
+                408
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -50327,6 +51342,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                406,
+                407,
+                408
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -50768,6 +51788,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                410,
+                411,
+                412
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -50824,6 +51849,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                410,
+                411,
+                412
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -51265,6 +52295,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                414,
+                415,
+                416
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -51321,6 +52356,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                414,
+                415,
+                416
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -51762,6 +52802,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                418,
+                419,
+                420
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -51818,6 +52863,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                418,
+                419,
+                420
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -52259,6 +53309,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                422,
+                423,
+                424
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -52315,6 +53370,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                422,
+                423,
+                424
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -52756,6 +53816,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                426,
+                427,
+                428
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -52812,6 +53877,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                426,
+                427,
+                428
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -53253,6 +54323,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                430,
+                431,
+                432
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -53309,6 +54384,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                430,
+                431,
+                432
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -53750,6 +54830,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                434,
+                435,
+                436
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -53806,6 +54891,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                434,
+                435,
+                436
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -54247,6 +55337,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                438,
+                439,
+                440
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -54303,6 +55398,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                438,
+                439,
+                440
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -54744,6 +55844,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                442,
+                443,
+                444
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -54800,6 +55905,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                442,
+                443,
+                444
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -55241,6 +56351,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                446,
+                447,
+                448
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -55297,6 +56412,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                446,
+                447,
+                448
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -55738,6 +56858,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                450,
+                451,
+                452
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -55794,6 +56919,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                450,
+                451,
+                452
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -56235,6 +57365,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                454,
+                455,
+                456
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -56291,6 +57426,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                454,
+                455,
+                456
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -56732,6 +57872,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                458,
+                459,
+                460
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -56788,6 +57933,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                458,
+                459,
+                460
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -57229,6 +58379,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                462,
+                463,
+                464
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -57285,6 +58440,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                462,
+                463,
+                464
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -57726,6 +58886,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                466,
+                467,
+                468
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -57782,6 +58947,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                466,
+                467,
+                468
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -58223,6 +59393,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                470,
+                471,
+                472
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -58279,6 +59454,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                470,
+                471,
+                472
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -58720,6 +59900,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                474,
+                475,
+                476
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -58776,6 +59961,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                474,
+                475,
+                476
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -59217,6 +60407,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                478,
+                479,
+                480
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -59273,6 +60468,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                478,
+                479,
+                480
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -59714,6 +60914,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                482,
+                483,
+                484
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -59770,6 +60975,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                482,
+                483,
+                484
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -60211,6 +61421,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                486,
+                487,
+                488
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -60267,6 +61482,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                486,
+                487,
+                488
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -60708,6 +61928,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                490,
+                491,
+                492
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -60764,6 +61989,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                490,
+                491,
+                492
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -61205,6 +62435,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                494,
+                495,
+                496
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -61261,6 +62496,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                494,
+                495,
+                496
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -61702,6 +62942,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                498,
+                499,
+                500
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -61758,6 +63003,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                498,
+                499,
+                500
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -62199,6 +63449,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                502,
+                503,
+                504
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -62255,6 +63510,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                502,
+                503,
+                504
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -62696,6 +63956,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                506,
+                507,
+                508
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -62752,6 +64017,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                506,
+                507,
+                508
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -63193,6 +64463,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "25": {
+              "subsumedPorts": [
+                510,
+                511,
+                512
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -63249,6 +64524,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "38": {
+              "subsumedPorts": [
+                510,
+                511,
+                512
+              ],
               "pins": {
                 "iphy": [
                   {
