@@ -300,6 +300,13 @@ std::string SaiPlatform::getHwAsicConfig(
 }
 
 void SaiPlatform::initSaiProfileValues() {
+  auto platformMode = getType();
+  if (platformMode == PlatformType::PLATFORM_LADAKH800BCLS) {
+    /* set BDE to NGBDE on multi switch platform */
+    kSaiProfileValues.insert(
+        std::make_pair("SAI_CUSTOM_KERNEL_BDE_NAME", "linux_ngbde"));
+  }
+
   kSaiProfileValues.insert(
       std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
   kSaiProfileValues.insert(
