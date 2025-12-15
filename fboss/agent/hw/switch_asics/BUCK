@@ -10,6 +10,7 @@ cpp_library(
         "ChenabAsic.cpp",
         "CredoPhyAsic.cpp",
         "EbroAsic.cpp",
+        "G202xAsic.cpp",
         "HwAsic.cpp",
         "Jericho2Asic.cpp",
         "Jericho3Asic.cpp",

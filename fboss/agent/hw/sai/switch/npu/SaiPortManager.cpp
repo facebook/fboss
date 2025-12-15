@@ -1239,7 +1239,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
       if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_YUBA) {
+              cfg::AsicType::ASIC_TYPE_YUBA ||
+          platform_->getAsic()->getAsicType() ==
+              cfg::AsicType::ASIC_TYPE_G202X) {
         if (auto firPre1 = tx->firPre1()) {
           txPre1.push_back(zeroPreemphasis ? 0 : *firPre1);
         }

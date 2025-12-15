@@ -15,7 +15,7 @@ class AgentPrbsTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentHwTest::initialConfig(ensemble);
-    if (isYubaAsic(ensemble)) {
+    if (isYubaAsic(ensemble) || isG202xAsic(ensemble)) {
       for (auto& port : *cfg.ports()) {
         port.loopbackMode() = cfg::PortLoopbackMode::PHY;
       }
@@ -28,6 +28,17 @@ class AgentPrbsTest : public AgentHwTest {
       auto l3Asics = ensemble.getL3Asics();
       auto asic = checkSameAndGetAsic(l3Asics);
       if (cfg::AsicType::ASIC_TYPE_YUBA == asic->getAsicType()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool isG202xAsic(const AgentEnsemble& ensemble) const {
+    if (ensemble.getNumL3Asics() >= 1) {
+      auto l3Asics = ensemble.getL3Asics();
+      auto asic = checkSameAndGetAsic(l3Asics);
+      if (cfg::AsicType::ASIC_TYPE_G202X == asic->getAsicType()) {
         return true;
       }
     }

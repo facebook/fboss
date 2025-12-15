@@ -54,6 +54,7 @@ size_t ResourceAccountant::computeWeightedEcmpMemberCount(
       // For TH5, UCMP members take 4x of ECMP members in the same table.
       return 4 * fwd.normalizedNextHops().size();
     case cfg::AsicType::ASIC_TYPE_YUBA:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       // Yuba asic natively supports UCMP members with no extra cost.
       return fwd.normalizedNextHops().size();
     default:
