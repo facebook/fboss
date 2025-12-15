@@ -257,19 +257,6 @@ cpp_library(
 )
 
 cpp_library(
-    name = "agent_multi_node_src",
-    srcs = [
-        "MultiNodeAgentVoqSwitchTests.cpp",
-    ],
-    link_whole = True,
-    exported_deps = [
-        "//fboss/agent:asic_utils",
-        "//fboss/agent/test:agent_hw_test",
-        "//fboss/lib/multinode:multi_node_util",
-    ],
-)
-
-cpp_library(
     name = "agent_hw_provision_test_src",
     srcs = [
         "AgentHwPtpTcProvisionTests.cpp",
