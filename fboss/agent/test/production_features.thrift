@@ -2,6 +2,11 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
 
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace py neteng.fboss.test.production_features
 namespace py3 neteng.fboss.test
 namespace py.asyncio neteng.fboss.test.asyncio.production_features

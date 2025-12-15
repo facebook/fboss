@@ -16,6 +16,9 @@ include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/python.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 @cpp.Type{name = "uint64_t"}
 typedef i64 u64
 
