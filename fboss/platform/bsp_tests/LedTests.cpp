@@ -15,10 +15,11 @@ re2::RE2 kPortLedName("port(\\d+)_led(\\d*)");
 re2::RE2 kFanLedName("fan(\\d*)_led");
 
 const std::vector<std::string> expectedColors = {"blue", "amber"};
-const std::vector<std::string> validLedNames = {
+const std::vector<std::string> validSysLedNames = {
     "psu_led",
     "sys_led",
-    "smb_led"};
+    "smb_led",
+    "fan_led"};
 
 // Helper function to validate LED names with a specific pattern
 void validateLedName(
@@ -39,8 +40,8 @@ void validateLedName(
           fmt::format("LED name `{}` does not match expected format", ledName));
     }
   } else {
-    if (std::find(validLedNames.begin(), validLedNames.end(), ledName) ==
-        validLedNames.end()) {
+    if (std::find(validSysLedNames.begin(), validSysLedNames.end(), ledName) ==
+        validSysLedNames.end()) {
       errorMessages.emplace_back(fmt::format("Invalid LED name {}", ledName));
     }
     return;
@@ -288,6 +289,89 @@ TEST_F(LedTest, ValidateFanLedName) {
 
   // This is just for verification, no assertion needed
   EXPECT_TRUE(true);
+}
+
+// Test for SYSLED devices
+TEST_F(LedTest, SysLedDevicesCreated) {
+  std::vector<std::string> errorMessages;
+
+  int id = 0;
+  bool foundSysLedDevice = false;
+
+  for (const auto& device : *GetRuntimeConfig().devices()) {
+    for (const auto& auxDevice : *device.auxDevices()) {
+      if (*auxDevice.type() != fbiob::AuxDeviceType::SYSLED) {
+        continue;
+      }
+
+      foundSysLedDevice = true;
+
+      try {
+        id++;
+        CdevUtils::createNewDevice(*device.pciInfo(), auxDevice, id);
+        registerDeviceForCleanup(*device.pciInfo(), auxDevice, id);
+
+        // Get the device name to determine the expected LED prefix
+        // Can be psu_led, fan_led, smb_led, or sys_led
+        std::string deviceName = *auxDevice.id()->deviceName();
+
+        // Check if device name is in the list of expected SYSLED device names
+        if (std::find(
+                validSysLedNames.begin(), validSysLedNames.end(), deviceName) ==
+            validSysLedNames.end()) {
+          errorMessages.emplace_back(
+              fmt::format(
+                  "Unknown SYSLED device name: {}, expected one of [{}]",
+                  deviceName,
+                  folly::join(", ", validSysLedNames)));
+          continue;
+        }
+
+        std::string expectedSysLedPrefix = deviceName;
+
+        std::vector<std::string> ledFiles;
+        for (const auto& entry :
+             std::filesystem::directory_iterator("/sys/class/leds")) {
+          ledFiles.emplace_back(entry.path().filename().string());
+        }
+
+        // Check for each expected color
+        for (const auto& color : expectedColors) {
+          std::string expectedLedName =
+              fmt::format("{}:{}:status", expectedSysLedPrefix, color);
+          bool found = false;
+          for (const auto& file : ledFiles) {
+            if (file == expectedLedName) {
+              found = true;
+              // Check correctness of the LED
+              std::string ledPath = "/sys/class/leds/" + file;
+              checkLedCorrectness(ledPath, errorMessages);
+              break;
+            }
+          }
+          if (!found) {
+            errorMessages.emplace_back(
+                fmt::format("Expected SYSLED {} not found", expectedLedName));
+          }
+        }
+      } catch (const std::exception& e) {
+        errorMessages.emplace_back(
+            fmt::format(
+                "Exception during SYSLED creation for {}: {}",
+                *auxDevice.name(),
+                e.what()));
+      }
+    }
+  }
+
+  if (!foundSysLedDevice) {
+    XLOG(INFO) << "No SYSLED devices found in configuration, test skipped";
+  }
+
+  if (!errorMessages.empty()) {
+    FAIL() << "Found " << errorMessages.size() << " errors:\n"
+           << folly::join("\n", errorMessages);
+  }
 }
 
 } // namespace facebook::fboss::platform::bsp_tests
