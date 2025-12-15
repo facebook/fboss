@@ -11,6 +11,10 @@ include "fboss/agent/switch_config.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/mpls.thrift"
 include "common/network/if/Address.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 struct NeighborInfo {
   1: bool exists;

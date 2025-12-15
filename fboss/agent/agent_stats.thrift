@@ -12,6 +12,10 @@ include "fboss/agent/switch_config.thrift"
 include "thrift/annotation/cpp.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/if/asic_temp.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 struct HwAgentEventSyncStatus {
   1: i32 statsEventSyncActive;
