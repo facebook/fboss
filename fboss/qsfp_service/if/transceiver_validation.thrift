@@ -9,6 +9,10 @@ include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/lib/if/fboss_common.thrift"
 include "fboss/agent/switch_config.thrift"
 include "thrift/annotation/cpp.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 struct FirmwarePair {
   1: string applicationFirmwareVersion;
