@@ -31,6 +31,7 @@ enum AuxDeviceType {
   LED = 3,
   XCVR = 4,
   GPIO = 5,
+  SYSLED = 6,
 }
 
 struct I2cData {
