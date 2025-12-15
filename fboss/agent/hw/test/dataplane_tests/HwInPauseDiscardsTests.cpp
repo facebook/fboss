@@ -96,6 +96,8 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
                getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
                    cfg::AsicType::ASIC_TYPE_YUBA ||
                getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
+                   cfg::AsicType::ASIC_TYPE_G202X ||
+               getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
                    cfg::AsicType::ASIC_TYPE_CHENAB)
           ? 0
           : 1;

@@ -124,6 +124,7 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       triggerCiscoParityError(ensemble);
       break;
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:

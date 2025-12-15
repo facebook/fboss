@@ -1186,6 +1186,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
           case cfg::AsicType::ASIC_TYPE_YUBA:
+          case cfg::AsicType::ASIC_TYPE_G202X:
           case cfg::AsicType::ASIC_TYPE_RAMON3:
             throw FbossError(
                 "Recycle ports are not applicable for AsicType: ",

@@ -846,7 +846,8 @@ cfg::SwitchConfig genPortVlanCfg(
       switchInfo.connectionHandle() = "15:00";
     } else if (
         asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
-        asicType == cfg::AsicType::ASIC_TYPE_YUBA) {
+        asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
+        asicType == cfg::AsicType::ASIC_TYPE_G202X) {
       switchInfo.connectionHandle() = "/dev/uio0";
     }
     switchInfo.systemPortRanges() = asic->getSystemPortRanges();

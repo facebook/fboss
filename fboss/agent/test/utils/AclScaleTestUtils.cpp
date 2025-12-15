@@ -38,7 +38,8 @@ uint32_t getMaxAclEntries(const std::vector<const HwAsic*>& asics) {
     return maxAclEntries.value();
   }
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
-      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
     // Todo: check with Vendor to get the correct value
     return 64;
   }
