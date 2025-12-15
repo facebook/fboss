@@ -1,3 +1,8 @@
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace cpp2 facebook.fboss.led
 namespace py neteng.fboss.led.led_structs
 namespace py3 neteng.fboss.led
