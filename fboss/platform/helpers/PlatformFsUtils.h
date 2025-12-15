@@ -33,7 +33,7 @@ class PlatformFsUtils {
   // Returns true if created or already exist, otherwise false.
   virtual bool createDirectories(const std::filesystem::path& path) const;
 
-  bool exists(const std::filesystem::path& path) const;
+  virtual bool exists(const std::filesystem::path& path) const;
 
   std::filesystem::directory_iterator ls(
       const std::filesystem::path& path) const;
