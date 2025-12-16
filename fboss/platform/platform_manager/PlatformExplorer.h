@@ -85,6 +85,9 @@ class PlatformExplorer {
       const std::string& slotPath,
       const std::string& pm);
 
+  // update datastore with firmware versions
+  void updateFirmwareVersions();
+
   // Publish firmware versions read from /run/devmap files to ODS.
   void publishFirmwareVersions();
 
