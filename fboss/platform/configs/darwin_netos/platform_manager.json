@@ -220,7 +220,6 @@
             }
           ],
           "spiMasterConfigs": [],
-          "xcvrCtrlConfigs": [],
           "infoRomConfigs": [
             {
               "pmUnitScopedName": "ROOK_CPU_CPLD_INFO_ROM",
