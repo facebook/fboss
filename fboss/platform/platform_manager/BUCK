@@ -15,6 +15,9 @@ thrift_library(
         "platform_manager_config.thrift": [],
         "platform_manager_presence.thrift": [],
     },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -27,6 +30,9 @@ thrift_library(
     thrift_srcs = {
         "platform_manager_snapshot.thrift": [],
     },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -186,6 +192,8 @@ cpp_library(
         "ScubaLogger.cpp",
     ],
     exported_deps = [
+        ":data_store",
+        ":platform_manager_config-cpp2-types",
         "//common/network:util",
         "//folly/json:dynamic",
         "//folly/logging:logging",

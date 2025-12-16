@@ -13,15 +13,19 @@ class MockExplorationSummaryTest : public ExplorationSummary {
  public:
   MockExplorationSummaryTest(
       const PlatformConfig& config,
-      const DataStore& store)
-      : ExplorationSummary(config, store) {}
+      ScubaLogger& scubaLogger)
+      : ExplorationSummary(config, scubaLogger) {}
 };
 
 class ExplorationSummaryTest : public testing::Test {
  public:
   PlatformConfig platformConfig_;
   DataStore dataStore_{platformConfig_};
-  MockExplorationSummaryTest summary_{platformConfig_, dataStore_};
+  ScubaLogger scubaLogger_{*platformConfig_.platformName(), dataStore_};
+  MockExplorationSummaryTest summary_{
+      platformConfig_,
+      scubaLogger_,
+  };
 };
 
 TEST_F(ExplorationSummaryTest, GoodExploration) {
@@ -134,7 +138,7 @@ TEST_F(ExplorationSummaryTest, ExplorationWithMixedErrors) {
 }
 
 TEST_F(ExplorationSummaryTest, IsSlotExpectedToBeEmpty) {
-  ExplorationSummary realSummary{platformConfig_, dataStore_};
+  ExplorationSummary realSummary{platformConfig_, scubaLogger_};
 
   // Test PSU slot paths - should return true
   EXPECT_TRUE(realSummary.isSlotExpectedToBeEmpty(

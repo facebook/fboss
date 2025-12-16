@@ -11,6 +11,7 @@
 #include "fboss/platform/platform_manager/ConfigUtils.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
+#include "fboss/platform/platform_manager/ScubaLogger.h"
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
@@ -62,8 +63,11 @@ namespace fs = std::filesystem;
 
 class PlatformExplorerWrapper : public PlatformExplorer {
  public:
-  explicit PlatformExplorerWrapper(const PlatformConfig& config)
-      : PlatformExplorer(config) {
+  explicit PlatformExplorerWrapper(
+      const PlatformConfig& config,
+      DataStore& dataStore,
+      ScubaLogger& scubaLogger)
+      : PlatformExplorer(config, dataStore, scubaLogger) {
     // Store the initial PlatformManagerStatus defined in PlatformExplorer.
     updatedPmStatuses_.push_back(getPMStatus());
   }
@@ -104,7 +108,12 @@ class PlatformManagerHwTest : public ::testing::Test {
   }
 
   PlatformConfig platformConfig_{ConfigUtils().getConfig()};
-  PlatformExplorerWrapper platformExplorer_{platformConfig_};
+  DataStore dataStore_{platformConfig_};
+  ScubaLogger scubaLogger_{*platformConfig_.platformName(), dataStore_};
+  PlatformExplorerWrapper platformExplorer_{
+      platformConfig_,
+      dataStore_,
+      scubaLogger_};
   PkgManager pkgManager_{platformConfig_};
   std::optional<DataStore> ds =
       platformExplorer_.getDataStore().value_or(DataStore(platformConfig_));
