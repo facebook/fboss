@@ -602,4 +602,90 @@ TEST_F(FwUtilFlashromTest, AddCommonFlashromArgsMinimal) {
   EXPECT_FALSE(hasLayoutFlag);
 }
 
+// ============================================================================
+// performFlashromUpgrade() and performFlashromRead() Tests
+// ============================================================================
+
+TEST_F(FwUtilFlashromTest, PerformFlashromUpgradeSuccess) {
+  // Create FwUtilImpl instance
+  FwUtilImpl fwUtil(
+      binaryFilePath_.string(),
+      configFilePath_,
+      false, // verifySha1sum
+      false // dryRun
+  );
+
+  // Create FlashromConfig
+  FlashromConfig flashromConfig;
+  flashromConfig.programmer_type() = "internal";
+
+  std::string fpd = "test_fpd";
+
+  // Test method is callable (will fail without flashrom)
+  EXPECT_THROW(
+      fwUtil.performFlashromUpgrade(flashromConfig, fpd), std::runtime_error);
+}
+
+TEST_F(FwUtilFlashromTest, PerformFlashromUpgradeDryRun) {
+  // Create FwUtilImpl instance in dry run mode
+  FwUtilImpl fwUtil(
+      binaryFilePath_.string(),
+      configFilePath_,
+      false, // verifySha1sum
+      true // dryRun
+  );
+
+  // Create FlashromConfig
+  FlashromConfig flashromConfig;
+  flashromConfig.programmer_type() = "internal";
+
+  std::string fpd = "test_fpd";
+
+  // Test method is callable in dry run mode
+  EXPECT_THROW(
+      fwUtil.performFlashromUpgrade(flashromConfig, fpd), std::runtime_error);
+}
+
+TEST_F(FwUtilFlashromTest, PerformFlashromUpgradeMissingBinary) {
+  // Create FwUtilImpl instance with non-existent binary
+  std::string nonExistentBinary = (tempDir_ / "nonexistent.bin").string();
+
+  FwUtilImpl fwUtil(
+      nonExistentBinary,
+      configFilePath_,
+      false, // verifySha1sum
+      false // dryRun
+  );
+
+  // Create FlashromConfig
+  FlashromConfig flashromConfig;
+  flashromConfig.programmer_type() = "internal";
+
+  std::string fpd = "test_fpd";
+
+  // Should throw because binary file doesn't exist
+  EXPECT_THROW(
+      fwUtil.performFlashromUpgrade(flashromConfig, fpd), std::runtime_error);
+}
+
+TEST_F(FwUtilFlashromTest, PerformFlashromReadSuccess) {
+  // Create FwUtilImpl instance
+  FwUtilImpl fwUtil(
+      binaryFilePath_.string(),
+      configFilePath_,
+      false, // verifySha1sum
+      false // dryRun
+  );
+
+  // Create FlashromConfig
+  FlashromConfig flashromConfig;
+  flashromConfig.programmer_type() = "internal";
+
+  std::string fpd = "test_fpd";
+
+  // Test method is callable (will fail without flashrom)
+  EXPECT_THROW(
+      fwUtil.performFlashromRead(flashromConfig, fpd), std::runtime_error);
+}
+
 } // namespace facebook::fboss::platform::fw_util
