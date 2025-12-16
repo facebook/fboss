@@ -9,7 +9,7 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5 # v5.0.0(latest)
+      - uses: actions/checkout@v6 # v5.0.0(latest)
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v6 # v6.0.0(latest)

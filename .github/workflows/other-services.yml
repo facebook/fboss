@@ -11,7 +11,7 @@ jobs:
       - name: Clean workspace
         run: sudo rm -rf ${{ github.workspace }}/*
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Run Docker-based build for FBOSS
         run: >
           sudo
@@ -32,7 +32,7 @@ jobs:
           ${{ github.workspace }}/build-output
           --compress
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: fboss
           path: ${{ github.workspace }}/build-output/fboss_bins.tar.zst
