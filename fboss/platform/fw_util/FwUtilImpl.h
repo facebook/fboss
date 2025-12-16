@@ -71,6 +71,11 @@ class FwUtilImpl {
   FRIEND_TEST(FwUtilFlashromTest, DetectFlashromChipMultiple);
   FRIEND_TEST(FwUtilFlashromTest, CreateCustomContentFileSuccess);
   FRIEND_TEST(FwUtilFlashromTest, CreateCustomContentFileFailure);
+  FRIEND_TEST(FwUtilFlashromTest, SetProgrammerAndChipBoth);
+  FRIEND_TEST(FwUtilFlashromTest, SetProgrammerAndChipTypeOnly);
+  FRIEND_TEST(FwUtilFlashromTest, SetProgrammerAndChipDetected);
+  FRIEND_TEST(FwUtilFlashromTest, SetProgrammerAndChipNoProgrammerType);
+  FRIEND_TEST(FwUtilFlashromTest, AddLayoutFileValid);
 
   void doPreUpgrade(const std::string&);
 
