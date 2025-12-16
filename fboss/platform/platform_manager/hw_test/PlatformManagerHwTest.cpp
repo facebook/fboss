@@ -108,8 +108,8 @@ class PlatformManagerHwTest : public ::testing::Test {
   }
 
   PlatformConfig platformConfig_{ConfigUtils().getConfig()};
-  ScubaLogger scubaLogger_{*platformConfig_.platformName()};
   DataStore dataStore_{platformConfig_};
+  ScubaLogger scubaLogger_{*platformConfig_.platformName(), dataStore_};
   PlatformExplorerWrapper platformExplorer_{
       platformConfig_,
       dataStore_,

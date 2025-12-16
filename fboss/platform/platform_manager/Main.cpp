@@ -51,15 +51,17 @@ int main(int argc, char** argv) {
   helpers::init(&argc, &argv);
 
   std::optional<ScubaLogger> scubaLogger;
+  std::optional<DataStore> dataStore;
   try {
     PlatformConfig config = ConfigUtils().getConfig();
 
-    DataStore dataStore(config);
-    scubaLogger.emplace(*config.platformName());
+    dataStore.emplace(config);
+    scubaLogger.emplace(*config.platformName(), dataStore.value());
 
     PkgManager pkgManager(config);
     pkgManager.processAll();
-    PlatformExplorer platformExplorer(config, dataStore, scubaLogger.value());
+    PlatformExplorer platformExplorer(
+        config, dataStore.value(), scubaLogger.value());
     platformExplorer.explore();
 
     if (FLAGS_run_once) {

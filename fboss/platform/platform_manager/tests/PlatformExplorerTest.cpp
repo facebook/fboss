@@ -78,7 +78,7 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
 
   DataStore dataStore(platformConfig);
   facebook::fboss::platform::platform_manager::ScubaLogger scubaLogger(
-      *platformConfig.platformName());
+      *platformConfig.platformName(), dataStore);
   PlatformExplorer explorer(
       platformConfig, dataStore, scubaLogger, platformFsUtils);
   explorer.updateFirmwareVersions();
@@ -130,7 +130,7 @@ TEST(PlatformExplorerTest, SymlinkExceptionHandling) {
   // Create the explorer
   DataStore dataStore(platformConfig);
   facebook::fboss::platform::platform_manager::ScubaLogger scubaLogger(
-      *platformConfig.platformName());
+      *platformConfig.platformName(), dataStore);
   PlatformExplorer explorer(
       platformConfig, dataStore, scubaLogger, platformFsUtils);
 

@@ -21,7 +21,7 @@ class ExplorationSummaryTest : public testing::Test {
  public:
   PlatformConfig platformConfig_;
   DataStore dataStore_{platformConfig_};
-  ScubaLogger scubaLogger_{*platformConfig_.platformName()};
+  ScubaLogger scubaLogger_{*platformConfig_.platformName(), dataStore_};
   MockExplorationSummaryTest summary_{
       platformConfig_,
       scubaLogger_,
