@@ -182,7 +182,7 @@ else
   if [ "${BUILD_FBOSS_IMAGES}" = "yes" ]; then
     dprint "Starting image build, launching in docker: /${IMAGE_BUILDER_DIR}/bin/build_image_in_container.sh ${CHILD_SCRIPT_ARGS[*]}"
     #shellcheck disable=SC2086
-    docker run --rm -it ${DOCKER_ARGS} "${DOCKER_IMAGE_NAME}" /"${IMAGE_BUILDER_DIR}"/bin/build_image_in_container.sh "${CHILD_SCRIPT_ARGS[@]}" >>"${LOG_FILE}" 2>&1
+    docker run --rm ${DOCKER_ARGS} "${DOCKER_IMAGE_NAME}" /"${IMAGE_BUILDER_DIR}"/bin/build_image_in_container.sh "${CHILD_SCRIPT_ARGS[@]}" >>"${LOG_FILE}" 2>&1
     RC=$?
     handle_error "${RC}" "docker run /${IMAGE_BUILDER_DIR}/bin/build_image.sh ${CHILD_SCRIPT_ARGS[*]}"
   fi
