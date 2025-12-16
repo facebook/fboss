@@ -19,6 +19,7 @@ cpp_unittest(
     ],
     deps = [
         "//fboss/platform/fw_util:core",
+        "//fboss/platform/helpers:platform_utils",
     ],
 )
 
