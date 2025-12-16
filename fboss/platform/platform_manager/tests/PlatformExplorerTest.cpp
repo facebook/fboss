@@ -77,6 +77,7 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   platformConfig.symbolicLinkToDevicePath()[fpgaNonePath] = "";
 
   PlatformExplorer explorer(platformConfig, platformFsUtils);
+  explorer.updateFirmwareVersions();
   explorer.publishFirmwareVersions();
 
   expectVersions("TEST_FPGA_FWVER", "1.2");

@@ -201,4 +201,17 @@ bool DataStore::hasEepromContents(const std::string& devicePath) const {
 std::map<std::string, PmUnitInfo> DataStore::getSlotPathToPmUnitInfo() const {
   return slotPathToPmUnitInfo;
 }
+
+void DataStore::updateFirmwareVersion(
+    const std::string& deviceName,
+    const std::string& firmwareVersion) {
+  XLOG(INFO) << fmt::format(
+      "Updating firmware version for {} to {}", deviceName, firmwareVersion);
+  firmwareVersions_[deviceName] = firmwareVersion;
+}
+
+std::unordered_map<std::string, std::string> DataStore::getFirmwareVersions()
+    const {
+  return firmwareVersions_;
+}
 } // namespace facebook::fboss::platform::platform_manager

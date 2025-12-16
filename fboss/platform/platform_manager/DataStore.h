@@ -94,6 +94,14 @@ class DataStore {
 
   std::map<std::string, PmUnitInfo> getSlotPathToPmUnitInfo() const;
 
+  // Store firmware version for the given device name.
+  void updateFirmwareVersion(
+      const std::string& deviceName,
+      const std::string& firmwareVersion);
+
+  // Get all firmware versions as a map of device name to firmware version.
+  std::unordered_map<std::string, std::string> getFirmwareVersions() const;
+
  private:
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will
@@ -116,6 +124,9 @@ class DataStore {
 
   // Map from DevicePath to its EEPROM (IDPROM) contents.
   std::unordered_map<std::string, FbossEepromInterface> eepromContents_{};
+
+  // Map from device name to its firmware version.
+  std::unordered_map<std::string, std::string> firmwareVersions_{};
 
   const PlatformConfig& platformConfig_;
 };

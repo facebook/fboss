@@ -161,6 +161,7 @@ void PlatformExplorer::explore() {
        *platformConfig_.symbolicLinkToDevicePath()) {
     createDeviceSymLink(linkPath, devicePath);
   }
+  updateFirmwareVersions();
   XLOG(INFO) << "Publishing firmware versions ...";
   publishFirmwareVersions();
   XLOG(INFO) << "Generating human readable EEPROM contents ...";
@@ -791,7 +792,7 @@ void PlatformExplorer::createDeviceSymLink(
   }
 }
 
-void PlatformExplorer::publishFirmwareVersions() {
+void PlatformExplorer::updateFirmwareVersions() {
   for (const auto& [linkPath, _] :
        *platformConfig_.symbolicLinkToDevicePath()) {
     if (!linkPath.starts_with("/run/devmap/cplds") &&
@@ -828,6 +829,14 @@ void PlatformExplorer::publishFirmwareVersions() {
       versionString = PlatformExplorer::kFwVerErrorFileNotFound;
     }
 
+    dataStore_.updateFirmwareVersion(
+        std::string(deviceName.data(), deviceName.size()), versionString);
+  }
+}
+
+void PlatformExplorer::publishFirmwareVersions() {
+  auto firmwareVersions = dataStore_.getFirmwareVersions();
+  for (const auto& [deviceName, versionString] : firmwareVersions) {
     XLOGF(
         INFO,
         "Reporting firmware version for {} - version string:{}",
