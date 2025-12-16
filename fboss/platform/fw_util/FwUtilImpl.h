@@ -76,6 +76,11 @@ class FwUtilImpl {
   FRIEND_TEST(FwUtilFlashromTest, SetProgrammerAndChipDetected);
   FRIEND_TEST(FwUtilFlashromTest, SetProgrammerAndChipNoProgrammerType);
   FRIEND_TEST(FwUtilFlashromTest, AddLayoutFileValid);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsWithLayout);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsWithCustomContent);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsWithFileOption);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsWithImageOption);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsMinimal);
 
   void doPreUpgrade(const std::string&);
 

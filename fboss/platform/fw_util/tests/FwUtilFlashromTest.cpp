@@ -363,4 +363,243 @@ TEST_F(FwUtilFlashromTest, AddLayoutFileValid) {
   std::filesystem::remove(flashromCmd[1]);
 }
 
+// ============================================================================
+// addCommonFlashromArgs() Tests
+// ============================================================================
+
+TEST_F(FwUtilFlashromTest, AddCommonFlashromArgsWithLayout) {
+  // Create FwUtilImpl instance
+  FwUtilImpl fwUtil(
+      binaryFilePath_.string(),
+      configFilePath_,
+      false, // verifySha1sum
+      false // dryRun
+  );
+
+  // Create FlashromConfig with spi_layout
+  FlashromConfig flashromConfig;
+  flashromConfig.spi_layout() = "0x00000000:0x000fffff bios";
+
+  std::string fpd = "test_fpd";
+  std::vector<std::string> flashromCmd;
+
+  // Call addCommonFlashromArgs with "write" operation
+  fwUtil.addCommonFlashromArgs(flashromConfig, fpd, "write", flashromCmd);
+
+  // Verify layout file was added (-l flag)
+  bool hasLayoutFlag = false;
+  std::string layoutFilePath;
+  for (size_t i = 0; i < flashromCmd.size(); ++i) {
+    if (flashromCmd[i] == "-l" && i + 1 < flashromCmd.size()) {
+      hasLayoutFlag = true;
+      layoutFilePath = flashromCmd[i + 1];
+      break;
+    }
+  }
+  EXPECT_TRUE(hasLayoutFlag);
+
+  // Verify write operation flag was added
+  bool hasWriteFlag = false;
+  for (const auto& arg : flashromCmd) {
+    if (arg == "-w") {
+      hasWriteFlag = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(hasWriteFlag);
+
+  // Verify binary file was added
+  bool hasBinaryFile = false;
+  for (const auto& arg : flashromCmd) {
+    if (arg == binaryFilePath_.string()) {
+      hasBinaryFile = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(hasBinaryFile);
+
+  // Clean up temporary layout file
+  if (!layoutFilePath.empty() && std::filesystem::exists(layoutFilePath)) {
+    std::filesystem::remove(layoutFilePath);
+  }
+}
+
+TEST_F(FwUtilFlashromTest, AddCommonFlashromArgsWithCustomContent) {
+  // Create FwUtilImpl instance
+  FwUtilImpl fwUtil(
+      binaryFilePath_.string(),
+      configFilePath_,
+      false, // verifySha1sum
+      false // dryRun
+  );
+
+  // Create FlashromConfig with custom_content
+  FlashromConfig flashromConfig;
+  flashromConfig.custom_content() = "CUSTOM_DATA";
+  flashromConfig.custom_content_offset() = 100;
+
+  std::string fpd = "test_fpd";
+  std::vector<std::string> flashromCmd;
+
+  // Call addCommonFlashromArgs with "write" operation
+  fwUtil.addCommonFlashromArgs(flashromConfig, fpd, "write", flashromCmd);
+
+  // Verify write operation flag was added
+  bool hasWriteFlag = false;
+  for (const auto& arg : flashromCmd) {
+    if (arg == "-w") {
+      hasWriteFlag = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(hasWriteFlag);
+
+  // Verify custom content file was added (not the original binary)
+  bool hasCustomContentFile = false;
+  for (const auto& arg : flashromCmd) {
+    if (arg.find("_custom_content.bin") != std::string::npos) {
+      hasCustomContentFile = true;
+      // Verify the custom content file was created
+      EXPECT_TRUE(std::filesystem::exists(arg));
+      // Clean up
+      std::filesystem::remove(arg);
+      break;
+    }
+  }
+  EXPECT_TRUE(hasCustomContentFile);
+}
+
+TEST_F(FwUtilFlashromTest, AddCommonFlashromArgsWithFileOption) {
+  // Create FwUtilImpl instance
+  FwUtilImpl fwUtil(
+      binaryFilePath_.string(),
+      configFilePath_,
+      false, // verifySha1sum
+      false // dryRun
+  );
+
+  // Create FlashromConfig without custom content
+  FlashromConfig flashromConfig;
+
+  std::string fpd = "test_fpd";
+  std::vector<std::string> flashromCmd;
+
+  // Call addCommonFlashromArgs with "write" operation
+  fwUtil.addCommonFlashromArgs(flashromConfig, fpd, "write", flashromCmd);
+
+  // Verify write flag was added
+  bool hasWriteFlag = false;
+  for (const auto& arg : flashromCmd) {
+    if (arg == "-w") {
+      hasWriteFlag = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(hasWriteFlag);
+
+  // Verify binary file was added
+  bool hasBinaryFile = false;
+  for (const auto& arg : flashromCmd) {
+    if (arg == binaryFilePath_.string()) {
+      hasBinaryFile = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(hasBinaryFile);
+}
+
+TEST_F(FwUtilFlashromTest, AddCommonFlashromArgsWithImageOption) {
+  // Create FwUtilImpl instance
+  FwUtilImpl fwUtil(
+      binaryFilePath_.string(),
+      configFilePath_,
+      false, // verifySha1sum
+      false // dryRun
+  );
+
+  // Create FlashromConfig with flashromExtraArgs
+  FlashromConfig flashromConfig;
+  std::vector<std::string> extraArgs = {"--image", "bios"};
+  flashromConfig.flashromExtraArgs() = extraArgs;
+
+  std::string fpd = "test_fpd";
+  std::vector<std::string> flashromCmd;
+
+  // Call addCommonFlashromArgs with "verify" operation
+  fwUtil.addCommonFlashromArgs(flashromConfig, fpd, "verify", flashromCmd);
+
+  // Verify extra args were added
+  bool hasImageFlag = false;
+  bool hasBiosArg = false;
+  for (size_t i = 0; i < flashromCmd.size(); ++i) {
+    if (flashromCmd[i] == "--image") {
+      hasImageFlag = true;
+      if (i + 1 < flashromCmd.size() && flashromCmd[i + 1] == "bios") {
+        hasBiosArg = true;
+      }
+    }
+  }
+  EXPECT_TRUE(hasImageFlag);
+  EXPECT_TRUE(hasBiosArg);
+
+  // Verify verify flag was added
+  bool hasVerifyFlag = false;
+  for (const auto& arg : flashromCmd) {
+    if (arg == "-v") {
+      hasVerifyFlag = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(hasVerifyFlag);
+}
+
+TEST_F(FwUtilFlashromTest, AddCommonFlashromArgsMinimal) {
+  // Create FwUtilImpl instance
+  FwUtilImpl fwUtil(
+      binaryFilePath_.string(),
+      configFilePath_,
+      false, // verifySha1sum
+      false // dryRun
+  );
+
+  // Create minimal FlashromConfig (no optional fields)
+  FlashromConfig flashromConfig;
+
+  std::string fpd = "test_fpd";
+  std::vector<std::string> flashromCmd;
+
+  // Call addCommonFlashromArgs with "read" operation
+  fwUtil.addCommonFlashromArgs(flashromConfig, fpd, "read", flashromCmd);
+
+  // Verify read flag was added
+  bool hasReadFlag = false;
+  for (const auto& arg : flashromCmd) {
+    if (arg == "-r") {
+      hasReadFlag = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(hasReadFlag);
+
+  // Verify binary file was added
+  bool hasBinaryFile = false;
+  for (const auto& arg : flashromCmd) {
+    if (arg == binaryFilePath_.string()) {
+      hasBinaryFile = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(hasBinaryFile);
+
+  // Verify no layout file was added (no -l flag)
+  bool hasLayoutFlag = false;
+  for (const auto& arg : flashromCmd) {
+    if (arg == "-l") {
+      hasLayoutFlag = true;
+      break;
+    }
+  }
+  EXPECT_FALSE(hasLayoutFlag);
+}
+
 } // namespace facebook::fboss::platform::fw_util
