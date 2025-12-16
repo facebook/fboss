@@ -1,0 +1,29 @@
+# Ruff configuration for fboss-image distro_cli
+line-length = 120
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "I",   # import sorting
+    "N",   # naming conventions
+    "UP",  # modern Python idioms
+    "B",   # likely bugs
+    "A",   # shadowing built-ins
+    "C4",  # comprehensions
+    "T10", # no debugger statements
+    "T20", # no print in production
+    "RET", # return statement issues
+    "SIM", # simplify
+    "ARG", # unused arguments
+    "PTH", # prefer pathlib
+    "PL",  # pylint
+    "RUF", # ruff-specific
+]
+
+[lint.per-file-ignores]
+# Tests need to modify sys.path before importing local modules
+# Tests may have unused mock arguments (ARG002)
+"tests/*.py" = ["E402", "ARG002"]
+"*/tests/*.py" = ["E402", "ARG002"]
