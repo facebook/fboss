@@ -16,6 +16,9 @@ include "fboss/agent/if/ctrl.thrift"
 include "fboss/mka_service/if/mka_structs.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 struct VlanInfo {
   1: bool tagged;
 }

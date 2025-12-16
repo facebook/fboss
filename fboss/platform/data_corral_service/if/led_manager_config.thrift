@@ -1,3 +1,8 @@
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace cpp2 facebook.fboss.platform.data_corral_service
 
 // LedConfig holds a mechanism to program LED in the case of presence and absence.

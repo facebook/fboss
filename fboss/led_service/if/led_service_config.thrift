@@ -1,6 +1,11 @@
 #
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace cpp2 facebook.fboss.cfg
 namespace go neteng.fboss.led_service_config
 namespace py neteng.fboss.led_service_config
