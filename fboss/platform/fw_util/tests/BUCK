@@ -97,3 +97,13 @@ cpp_unittest(
         "//fboss/platform/fw_util:core",
     ],
 )
+
+cpp_unittest(
+    name = "fw_util_flashrom_test",
+    srcs = [
+        "FwUtilFlashromTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/fw_util:core",
+    ],
+)
