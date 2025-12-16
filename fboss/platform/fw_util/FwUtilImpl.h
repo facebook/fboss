@@ -87,6 +87,10 @@ class FwUtilImpl {
   FRIEND_TEST(FwUtilFlashromTest, PerformFlashromReadSuccess);
   FRIEND_TEST(FwUtilOperationsTest, PerformJamUpgradeMissingBinary);
   FRIEND_TEST(FwUtilOperationsTest, PerformXappUpgradeMissingBinary);
+  FRIEND_TEST(FwUtilOperationsTest, DoGpiosetOperationSuccess);
+  FRIEND_TEST(FwUtilOperationsTest, DoGpiosetOperationInvalidChip);
+  FRIEND_TEST(FwUtilOperationsTest, DoGpiogetOperationSuccess);
+  FRIEND_TEST(FwUtilOperationsTest, DoWriteToPortOperationSuccess);
 
   void doPreUpgrade(const std::string&);
 
