@@ -185,4 +185,28 @@ TEST(DataStoreTest, FirmwareVersion) {
   EXPECT_EQ(newVersions["TEST_CPLD"], "2.0.0");
 }
 
+TEST(DataStoreTest, HardwareVersion) {
+  PlatformConfig config;
+  DataStore dataStore(config);
+
+  // Test updating and retrieving hardware versions
+  dataStore.updateHardwareVersion("chassis_eeprom_version", "5");
+  dataStore.updateHardwareVersion("production_state", "GA");
+  dataStore.updateHardwareVersion("production_sub_state", "V2");
+  dataStore.updateHardwareVersion("variant_version", "A1");
+
+  // Test getHardwareVersions returns all hardware versions
+  auto allVersions = dataStore.getHardwareVersions();
+  EXPECT_EQ(allVersions.size(), 4);
+  EXPECT_EQ(allVersions["chassis_eeprom_version"], "5");
+  EXPECT_EQ(allVersions["production_state"], "GA");
+  EXPECT_EQ(allVersions["production_sub_state"], "V2");
+  EXPECT_EQ(allVersions["variant_version"], "A1");
+
+  // Test updating existing hardware version
+  dataStore.updateHardwareVersion("chassis_eeprom_version", "6");
+  allVersions = dataStore.getHardwareVersions();
+  EXPECT_EQ(allVersions["chassis_eeprom_version"], "6");
+}
+
 } // namespace facebook::fboss::platform::platform_manager

@@ -29,13 +29,17 @@ class PlatformExplorer {
 
   auto static constexpr kGroupedFirmwareVersion = "{}.firmware_version.{}";
 
-  auto static constexpr kChassisEepromVersion =
+  auto static constexpr kChassisEepromVersion = "chassis_eeprom_version";
+  auto static constexpr kChassisEepromVersionODS =
       "platform_explorer.chassis_eeprom_version.{}";
-  auto static constexpr kProductionState =
+  auto static constexpr kProductionState = "production_state";
+  auto static constexpr kProductionStateODS =
       "platform_explorer.production_state.{}";
-  auto static constexpr kProductionSubState =
+  auto static constexpr kProductionSubState = "production_sub_state";
+  auto static constexpr kProductionSubStateODS =
       "platform_explorer.production_sub_state.{}";
-  auto static constexpr kVariantVersion =
+  auto static constexpr kVariantVersion = "variant_version";
+  auto static constexpr kVariantVersionODS =
       "platform_explorer.variant_version.{}";
 
   auto static constexpr kFwVerErrorFileNotFound = "ERROR_FILE_NOT_FOUND";
@@ -91,6 +95,9 @@ class PlatformExplorer {
 
   // update datastore with firmware versions
   void updateFirmwareVersions();
+
+  // Update datastore with hardware versions
+  void updateHardwareVersions(const FbossEepromInterface& chassisEepromContent);
 
   // Publish firmware versions read from /run/devmap files to ODS.
   void publishFirmwareVersions();

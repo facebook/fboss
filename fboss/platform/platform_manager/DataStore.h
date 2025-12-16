@@ -102,6 +102,14 @@ class DataStore {
   // Get all firmware versions as a map of device name to firmware version.
   std::unordered_map<std::string, std::string> getFirmwareVersions() const;
 
+  // Store hardware version field.
+  void updateHardwareVersion(
+      const std::string& fieldName,
+      const std::string& hardwareVersion);
+
+  // Get all hardware versions as a map of field name to hardware version.
+  std::unordered_map<std::string, std::string> getHardwareVersions() const;
+
  private:
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will
@@ -127,6 +135,9 @@ class DataStore {
 
   // Map from device name to its firmware version.
   std::unordered_map<std::string, std::string> firmwareVersions_{};
+
+  // Map from field name to its hardware version.
+  std::unordered_map<std::string, std::string> hardwareVersions_{};
 
   const PlatformConfig& platformConfig_;
 };
