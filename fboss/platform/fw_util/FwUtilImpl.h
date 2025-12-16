@@ -91,6 +91,10 @@ class FwUtilImpl {
   FRIEND_TEST(FwUtilOperationsTest, DoGpiosetOperationInvalidChip);
   FRIEND_TEST(FwUtilOperationsTest, DoGpiogetOperationSuccess);
   FRIEND_TEST(FwUtilOperationsTest, DoWriteToPortOperationSuccess);
+  FRIEND_TEST(FwUtilImplTest, GetFpdNameListReturnsAll);
+  FRIEND_TEST(FwUtilImplTest, GetFpdCaseInsensitive);
+  FRIEND_TEST(FwUtilImplTest, GetFpdReturnsAll);
+  FRIEND_TEST(FwUtilImplTest, GetFpdInvalidThrows);
 
   void doPreUpgrade(const std::string&);
 
