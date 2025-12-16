@@ -14,6 +14,7 @@ cpp_binary(
         "//fboss/platform/platform_manager:config_utils",
         "//fboss/platform/platform_manager:pkg_manager",
         "//fboss/platform/platform_manager:platform_manager_handler",
+        "//fboss/platform/platform_manager:scuba_logger",
         "//thrift/lib/cpp2/util:util",
     ],
 )

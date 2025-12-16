@@ -134,11 +134,13 @@ PlatformManagerStatus createPmStatus(
 
 PlatformExplorer::PlatformExplorer(
     const PlatformConfig& config,
+    DataStore& dataStore,
+    ScubaLogger& scubaLogger,
     std::shared_ptr<PlatformFsUtils> platformFsUtils)
-    : explorationSummary_(platformConfig_, dataStore_),
-      platformConfig_(config),
+    : platformConfig_(config),
+      dataStore_(dataStore),
+      explorationSummary_(platformConfig_, scubaLogger),
       pciExplorer_(platformFsUtils),
-      dataStore_(platformConfig_),
       devicePathResolver_(dataStore_),
       presenceChecker_(devicePathResolver_),
       platformFsUtils_(std::move(platformFsUtils)) {
