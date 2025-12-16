@@ -1647,4 +1647,84 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+class AgentMirrorOnDropXgsTest : public AgentMirrorOnDropTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::MIRROR_ON_DROP,
+        ProductionFeature::MIRROR_ON_DROP_XGS};
+  }
+};
+
+// Basic verification test for Tomahawk5 (XGS platform) used in NSF clusters.
+TEST_F(AgentMirrorOnDropXgsTest, XgsMod) {
+  PortID injectionPortId = masterLogicalInterfacePortIds()[0];
+  PortID mirrorPortId = masterLogicalInterfacePortIds()[1];
+  PortID collectorPortId = masterLogicalInterfacePortIds()[2];
+  XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
+  XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
+  XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
+
+  auto setup = [&]() {
+    cfg::SwitchConfig config = getAgentEnsemble()->getCurrentConfig();
+
+    cfg::MirrorOnDropReport report;
+    report.name() = "xgs-mod-test";
+    report.mirrorPortId() = mirrorPortId;
+    report.localSrcPort() = kMirrorSrcPort;
+    report.collectorIp() = kCollectorIp_.str();
+    report.collectorPort() = kMirrorDstPort;
+    report.mtu() = 1500;
+    report.dscp() = 0;
+    cfg::MirrorEgressPort egressPort;
+    egressPort.logicalID() = mirrorPortId;
+    cfg::MirrorTunnel tunnel;
+    tunnel.srcIp() = kSwitchIp_.str();
+    cfg::MirrorDestination mirrorDest;
+    mirrorDest.egressPort() = egressPort;
+    mirrorDest.tunnel() = tunnel;
+    report.mirrorPort() = mirrorDest;
+    // Skip aging group interval configuration
+    config.mirrorOnDropReports()->push_back(report);
+
+    utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
+    applyNewConfig(config);
+
+    // Setup route to collector IP
+    setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+  };
+
+  auto verify = [&]() {
+    // Setup packet snooper to capture MoD packets
+    utility::SwSwitchPacketSnooper snooper(getSw(), "xgs-mod-snooper");
+    snooper.ignoreUnclaimedRxPkts();
+
+    // Send packet to trigger drop (no route for this destination)
+    std::unique_ptr<TxPacket> pkt =
+        sendPackets(1, injectionPortId, kDropDestIp);
+
+    XLOG(INFO) << "Sent packet to trigger drop, waiting for MoD packet...";
+    XLOG(INFO) << "Original packet:\n" << PktUtil::hexDump(pkt->buf());
+
+    // Wait for and capture the MoD packet - just dump it, no verification
+    WITH_RETRIES_N(5, {
+      XLOG(DBG3) << "Waiting for mirror packet...";
+      std::optional<std::unique_ptr<folly::IOBuf>> frameRx =
+          snooper.waitForPacket(1);
+      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+
+      if (frameRx.has_value()) {
+        // Simply dump the captured packet without verification
+        XLOG(INFO) << "Captured MoD packet:";
+        // TODO(T248453397) - Payload validation
+        XLOG(INFO) << PktUtil::hexDump(frameRx->get());
+        XLOG(INFO) << "XGS MoD test completed - packet captured and dumped";
+      }
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
