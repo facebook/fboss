@@ -11,15 +11,28 @@
 #include "scribe/client/ScribeClient.h"
 
 namespace facebook::fboss::platform::platform_manager {
-namespace ScubaLogger {
 
-void log(
+ScubaLogger::ScubaLogger(const std::string& platformName)
+    : platformName_(platformName) {}
+
+void ScubaLogger::log(
+    const std::string& event,
     const std::unordered_map<std::string, std::string>& normals,
     const std::unordered_map<std::string, int64_t>& ints,
     const std::string& category) {
   folly::dynamic normalsObj = folly::dynamic::object;
+
+  // Add platform name
+  normalsObj["platform"] = platformName_;
+
+  // Add standard fields
   normalsObj["hostname"] = network::NetworkUtil::getLocalHost(true);
-  for (const auto& [key, value] : normals) {
+  normalsObj["event"] = event;
+
+  std::unordered_map<std::string, std::string> enrichedNormals = normals;
+
+  // Add all normal fields
+  for (const auto& [key, value] : enrichedNormals) {
     normalsObj[key] = value;
   }
 
@@ -46,5 +59,12 @@ void log(
   }
 }
 
-} // namespace ScubaLogger
+void ScubaLogger::logCrash(
+    const std::exception& ex,
+    const std::unordered_map<std::string, std::string>& additionalFields) {
+  std::unordered_map<std::string, std::string> normals = additionalFields;
+  normals["error_message"] = ex.what();
+  log("unexpected_crash", normals);
+}
+
 } // namespace facebook::fboss::platform::platform_manager

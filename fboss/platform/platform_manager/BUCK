@@ -192,6 +192,8 @@ cpp_library(
         "ScubaLogger.cpp",
     ],
     exported_deps = [
+        ":data_store",
+        ":platform_manager_config-cpp2-types",
         "//common/network:util",
         "//folly/json:dynamic",
         "//folly/logging:logging",

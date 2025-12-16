@@ -76,7 +76,11 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   platformConfig.symbolicLinkToDevicePath()[cpldHwmonTrapPath] = "";
   platformConfig.symbolicLinkToDevicePath()[fpgaNonePath] = "";
 
-  PlatformExplorer explorer(platformConfig, platformFsUtils);
+  DataStore dataStore(platformConfig);
+  facebook::fboss::platform::platform_manager::ScubaLogger scubaLogger(
+      *platformConfig.platformName());
+  PlatformExplorer explorer(
+      platformConfig, dataStore, scubaLogger, platformFsUtils);
   explorer.updateFirmwareVersions();
   explorer.publishFirmwareVersions();
 
@@ -124,7 +128,11 @@ TEST(PlatformExplorerTest, SymlinkExceptionHandling) {
   platformConfig.symbolicLinkToDevicePath()[unsupportedLinkPath] = devicePath;
 
   // Create the explorer
-  PlatformExplorer explorer(platformConfig, platformFsUtils);
+  DataStore dataStore(platformConfig);
+  facebook::fboss::platform::platform_manager::ScubaLogger scubaLogger(
+      *platformConfig.platformName());
+  PlatformExplorer explorer(
+      platformConfig, dataStore, scubaLogger, platformFsUtils);
 
   // Make sure the directory exists so we can check it later
   std::string unsupportedDir = "/run/devmap/unsupported";

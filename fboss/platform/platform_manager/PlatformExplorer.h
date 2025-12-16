@@ -13,10 +13,12 @@
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/PresenceChecker.h"
+#include "fboss/platform/platform_manager/ScubaLogger.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_service_types.h"
 
 namespace facebook::fboss::platform::platform_manager {
+
 class PlatformExplorer {
  public:
   // Regex patterns for matching fw_ver format.
@@ -42,6 +44,8 @@ class PlatformExplorer {
 
   explicit PlatformExplorer(
       const PlatformConfig& config,
+      DataStore& dataStore,
+      ScubaLogger& scubaLogger,
       std::shared_ptr<PlatformFsUtils> platformFsUtils =
           std::make_shared<PlatformFsUtils>());
 
@@ -109,6 +113,10 @@ class PlatformExplorer {
   // This member is thread safe since callers could be on different threads
   // E.g thrift API call on `getLastPmStatus`.
   folly::Synchronized<PlatformManagerStatus> platformManagerStatus_;
+
+  PlatformConfig platformConfig_{};
+  DataStore& dataStore_;
+
   ExplorationSummary explorationSummary_;
 
  private:
@@ -133,10 +141,8 @@ class PlatformExplorer {
       auto&& deviceCreationLambda);
   void genHumanReadableEeproms();
 
-  PlatformConfig platformConfig_{};
   I2cExplorer i2cExplorer_{};
   PciExplorer pciExplorer_;
-  DataStore dataStore_;
   DevicePathResolver devicePathResolver_;
   PresenceChecker presenceChecker_;
   std::shared_ptr<PlatformFsUtils> platformFsUtils_;
