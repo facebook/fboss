@@ -110,6 +110,8 @@ enum ProductionFeature {
   PFC_RX_DURATION = 92,
   PFC_TX_DURATION = 93,
   L2_QOS = 94,
+  MIRROR_ON_DROP_DNX = 95,
+  MIRROR_ON_DROP_XGS = 96,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
