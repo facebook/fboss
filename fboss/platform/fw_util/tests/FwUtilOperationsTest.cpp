@@ -246,4 +246,38 @@ TEST_F(FwUtilOperationsTest, DoJtagOperationFileOverwrite) {
   EXPECT_EQ(fileContent2, "200");
 }
 
+TEST_F(FwUtilOperationsTest, PerformJamUpgradeMissingBinary) {
+  if (!createdPlatformFile_) {
+    GTEST_SKIP() << "Skipping test: unable to create platform name file";
+  }
+
+  // Create FwUtilImpl with non-existent binary file
+  std::string missingBinary = tempDir_.string() + "/missing.bin";
+  FwUtilImpl fwUtil(missingBinary, configFilePath_, false, false);
+
+  JamConfig jamConfig;
+  std::vector<std::string> extraArgs = {"-a", "-v"};
+  jamConfig.jamExtraArgs() = extraArgs;
+
+  // Should throw because binary file doesn't exist
+  EXPECT_THROW(fwUtil.performJamUpgrade(jamConfig), std::runtime_error);
+}
+
+TEST_F(FwUtilOperationsTest, PerformXappUpgradeMissingBinary) {
+  if (!createdPlatformFile_) {
+    GTEST_SKIP() << "Skipping test: unable to create platform name file";
+  }
+
+  // Create FwUtilImpl with non-existent binary file
+  std::string missingBinary = tempDir_.string() + "/missing.bin";
+  FwUtilImpl fwUtil(missingBinary, configFilePath_, false, false);
+
+  XappConfig xappConfig;
+  std::vector<std::string> extraArgs = {"-d", "0"};
+  xappConfig.xappExtraArgs() = extraArgs;
+
+  // Should throw because binary file doesn't exist
+  EXPECT_THROW(fwUtil.performXappUpgrade(xappConfig), std::runtime_error);
+}
+
 } // namespace facebook::fboss::platform::fw_util
