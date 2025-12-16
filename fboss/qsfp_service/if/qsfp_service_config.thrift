@@ -10,6 +10,10 @@ namespace py.asyncio neteng.fboss.asyncio.qsfp_service_config
 include "fboss/qsfp_service/if/transceiver_validation.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/agent/switch_config.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 struct QsfpSdkVersion {
   // The version associated with the desired Sdk

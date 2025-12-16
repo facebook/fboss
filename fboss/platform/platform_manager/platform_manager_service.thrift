@@ -12,6 +12,9 @@ include "fboss/platform/platform_manager/platform_manager_snapshot.thrift"
 include "fboss/platform/platform_manager/platform_manager_config.thrift"
 include "fboss/platform/weutil/if/eeprom_contents.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 @hack.Attributes{
   attributes = [
     "\Oncalls('net_ui')",

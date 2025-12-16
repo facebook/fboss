@@ -4,6 +4,7 @@
 
 #include "fboss/fsdb/common/Utils.h"
 #include "fboss/fsdb/if/FsdbModel.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/fsdb/oper/DeltaValue.h"
@@ -13,6 +14,7 @@
 #include "fboss/thrift_cow/gen-cpp2/patch_types.h"
 
 #include <boost/core/noncopyable.hpp>
+#include <fb303/ThreadCachedServiceData.h>
 #include <folly/coro/AsyncPipe.h>
 #include <folly/coro/AsyncScope.h>
 #include <folly/io/async/EventBase.h>
@@ -21,6 +23,10 @@
 DECLARE_bool(forceCloseSlowSubscriber);
 
 namespace facebook::fboss::fsdb {
+
+// Counter name for tracking subscription serve coalescing events
+inline constexpr auto kNumSubscriptionServesCoalesced =
+    "num_subscription_serves_coalesced";
 
 class BaseSubscription {
  public:
@@ -192,7 +198,17 @@ class BaseSubscription {
       std::optional<V>& val,
       const std::string& /* dbgStr */) {
     auto queuedChunks = pipe.getOccupiedSpace();
-    if (queuedChunks > 1) {
+    bool isCoalescing = queuedChunks > 1;
+
+    // Increment counter when we transition from not coalescing to coalescing
+    if (isCoalescing && !isCurrentlyCoalescing_) {
+      isCurrentlyCoalescing_ = true;
+      numSubscriptionServesCoalescedCounter_.addValue(1);
+    } else if (!isCoalescing && isCurrentlyCoalescing_) {
+      isCurrentlyCoalescing_ = false;
+    }
+
+    if (isCoalescing) {
       XLOG(DBG2) << "Subscription " << subscriberId()
                  << " pending chunks, coalesce update";
       chunksCoalesced_.withWLock(
@@ -226,6 +242,9 @@ class BaseSubscription {
   std::optional<FsdbErrorCode> pruneReason_{std::nullopt};
   std::optional<OperMetadata> lastServedMetadata_;
   std::shared_ptr<SubscriptionStreamInfo> streamInfo_;
+  bool isCurrentlyCoalescing_{false};
+  fb303::ThreadCachedServiceData::TLTimeseries
+      numSubscriptionServesCoalescedCounter_;
 };
 
 class Subscription : public BaseSubscription {

@@ -13,6 +13,10 @@ include "fboss/agent/if/highfreq.thrift"
 include "fboss/agent/switch_state.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/lib/phy/prbs.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 const i32 DEFAULT_HW_CTRL_BASE_PORT = 5931;
 
