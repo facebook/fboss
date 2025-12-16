@@ -31,6 +31,12 @@ void ScubaLogger::addPlatformFields(
   for (const auto& [deviceName, firmwareVersion] : fwVersions) {
     normals[fmt::format("firmware_version_{}", deviceName)] = firmwareVersion;
   }
+
+  // Add hardware versions from DataStore if available
+  auto hwVersions = dataStore_.getHardwareVersions();
+  for (const auto& [fieldName, hardwareVersion] : hwVersions) {
+    normals[fieldName] = hardwareVersion;
+  }
 }
 
 void ScubaLogger::log(
