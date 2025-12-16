@@ -22,6 +22,13 @@ void expectVersions(const char* deviceName, const char* versionString) {
               versionString)),
       1);
 }
+
+void expectHardwareVersion(const char* odsKey, const char* value) {
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          fmt::vformat(odsKey, fmt::make_format_args(value))),
+      1);
+}
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
@@ -97,6 +104,36 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   expectVersions("FAN0_CPLD_FWVER", "1.2.3");
   expectVersions("TAHAN_SMB_CPLD_TRAP", "7.8.9");
   expectVersions("NONE", PlatformExplorer::kFwVerErrorFileNotFound);
+}
+
+TEST(PlatformExplorerTest, PublishHardwareVersions) {
+  auto tmpDir = folly::test::TemporaryDirectory();
+  auto platformFsUtils =
+      std::make_shared<PlatformFsUtils>(tmpDir.path().string());
+
+  PlatformConfig platformConfig;
+  DataStore dataStore(platformConfig);
+
+  // Directly populate the hardware versions in the dataStore
+  // This simulates what updateHardwareVersions() does when reading from EEPROM
+  dataStore.updateHardwareVersion(PlatformExplorer::kChassisEepromVersion, "5");
+  dataStore.updateHardwareVersion(PlatformExplorer::kProductionState, "GA");
+  dataStore.updateHardwareVersion(PlatformExplorer::kProductionSubState, "V3");
+  dataStore.updateHardwareVersion(PlatformExplorer::kVariantVersion, "A2");
+
+  facebook::fboss::platform::platform_manager::ScubaLogger scubaLogger(
+      *platformConfig.platformName(), dataStore);
+  PlatformExplorer explorer(
+      platformConfig, dataStore, scubaLogger, platformFsUtils);
+
+  // Test that publishHardwareVersions correctly publishes to ODS
+  explorer.publishHardwareVersions();
+
+  // Verify the hardware versions were published to ODS counters
+  expectHardwareVersion(PlatformExplorer::kChassisEepromVersionODS, "5");
+  expectHardwareVersion(PlatformExplorer::kProductionStateODS, "GA");
+  expectHardwareVersion(PlatformExplorer::kProductionSubStateODS, "V3");
+  expectHardwareVersion(PlatformExplorer::kVariantVersionODS, "A2");
 }
 
 // Test that exceptions in createDeviceSymLink are properly handled

@@ -214,4 +214,18 @@ std::unordered_map<std::string, std::string> DataStore::getFirmwareVersions()
     const {
   return firmwareVersions_;
 }
+
+void DataStore::updateHardwareVersion(
+    const std::string& fieldName,
+    const std::string& hardwareVersion) {
+  XLOG(INFO) << fmt::format(
+      "Updating hardware version for {} to {}", fieldName, hardwareVersion);
+  hardwareVersions_[fieldName] = hardwareVersion;
+}
+
+std::unordered_map<std::string, std::string> DataStore::getHardwareVersions()
+    const {
+  return hardwareVersions_;
+}
+
 } // namespace facebook::fboss::platform::platform_manager
