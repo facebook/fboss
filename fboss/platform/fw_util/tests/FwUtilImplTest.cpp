@@ -22,13 +22,15 @@ std::string createTestConfigFile(const std::string& tempDir) {
       "version": {
         "versionType": "Not Applicable"
       },
-      "priority": 1
+      "priority": 1,
+      "desiredVersion": "1.0.0"
     },
     "BMC": {
       "version": {
         "versionType": "Not Applicable"
       },
-      "priority": 2
+      "priority": 2,
+      "desiredVersion": "2.0.0"
     },
     "FPGA": {
       "version": {
@@ -172,6 +174,47 @@ TEST_F(FwUtilImplTest, GetFpdInvalidThrows) {
   // Test invalid FPD name throws exception
   EXPECT_THROW(fwUtil.getFpd("INVALID_FPD"), std::runtime_error);
   EXPECT_THROW(fwUtil.getFpd("nonexistent"), std::runtime_error);
+}
+
+// ============================================================================
+// doVersionAudit() Tests
+// ============================================================================
+
+TEST_F(FwUtilImplTest, DoVersionAuditVersionMismatch) {
+  if (!createdPlatformFile_) {
+    GTEST_SKIP() << "Skipping test: unable to create platform name file";
+  }
+
+  // doVersionAudit calls exit(1) when version mismatch is found
+  // BIOS and BMC have desiredVersion that won't match actual version
+  // FPGA has no desiredVersion and will be skipped
+  EXPECT_EXIT(
+      {
+        FwUtilImpl fwUtil(
+            binaryFilePath_.string(), configFilePath_, false, false);
+        fwUtil.doVersionAudit();
+      },
+      ::testing::ExitedWithCode(1),
+      "Firmware version mismatch found");
+}
+
+// ============================================================================
+// doFirmwareAction() Tests
+// ============================================================================
+
+TEST_F(FwUtilImplTest, DoFirmwareActionInvalidAction) {
+  if (!createdPlatformFile_) {
+    GTEST_SKIP() << "Skipping test: unable to create platform name file";
+  }
+
+  FwUtilImpl fwUtil(binaryFilePath_.string(), configFilePath_, false, false);
+
+  // Invalid action should log error and exit(1)
+  // Using EXPECT_EXIT to verify the exit behavior
+  EXPECT_EXIT(
+      fwUtil.doFirmwareAction("BIOS", "invalid_action"),
+      ::testing::ExitedWithCode(1),
+      "Invalid action");
 }
 
 } // namespace facebook::fboss::platform::fw_util
