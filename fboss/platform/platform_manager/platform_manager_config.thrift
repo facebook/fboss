@@ -559,7 +559,7 @@ struct PciDeviceConfig {
   15: optional string desiredDriver;
   16: list<LedCtrlBlockConfig> ledCtrlBlockConfigs;
   17: list<XcvrCtrlBlockConfig> xcvrCtrlBlockConfigs;
-  18: list<FpgaIpBlockConfig> mdioBusConfigs;
+  18: list<FpgaIpBlockConfig> mdioBusConfigs; // Deprecated: do not use
   19: list<FpgaIpBlockConfig> sysLedCtrlConfigs;
   20: list<MdioBusBlockConfig> mdioBusBlockConfigs;
 }
