@@ -3147,15 +3147,12 @@ bool SwSwitch::sendPacketAsync(
       case PortDescriptor::PortType::PHYSICAL:
         return sendPacketOutOfPortAsync(
             std::move(pkt), portDescriptor.value().phyPortID(), queueId);
-        break;
       case PortDescriptor::PortType::AGGREGATE:
         return sendPacketOutOfPortAsync(
             std::move(pkt), portDescriptor.value().aggPortID(), queueId);
-        break;
       case PortDescriptor::PortType::SYSTEM_PORT:
         XLOG(FATAL) << " Packet send over system ports not handled yet";
         return false;
-        break;
     };
   } else {
     CHECK(!queueId.has_value());
