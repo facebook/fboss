@@ -1,8 +1,5 @@
-load("@fbcode//antlir/antlir2/bzl/feature:defs.bzl", "feature")
-load("@fbcode//metalos/bzl/data_package:data_package.bzl", "data_package")
 load("@fbcode_macros//build_defs:native_rules.bzl", "buck_filegroup")
 load("//fbpkg:fbpkg.bzl", "fbpkg")
-load("//metalos/bzl/data_package:data_package.shape.bzl", "bind_mount_t", "data_package_t")
 
 oncall("fboss_platform")
 
@@ -32,43 +29,4 @@ fbpkg.builder(
 buck_filegroup(
     name = "configs",
     srcs = glob(["**/*.json"]),
-)
-
-data_package(
-    build_fbpkg = True,
-    data_package = data_package_t(
-        name = "netos.datapackage.platform.cli",
-        arch = None,  # None == all arches
-        bind_mounts = [
-            bind_mount_t(
-                source = "/usr/local/bin/netos.datapackage.platform.cli",
-            ),
-        ],
-    ),
-    default_os = "centos9",
-    features = [
-        feature.ensure_dirs_exist(
-            dirs = "/usr/local/bin/netos.datapackage.platform.cli",
-        ),
-        feature.install(
-            src = "//fboss/platform/fw_util:fw_util",
-            dst = "/usr/local/bin/netos.datapackage.platform.cli/fw_util",
-            mode = "a+rx",
-        ),
-        feature.install(
-            src = "//fboss/platform/sensor_service:sensor_service_client",
-            dst = "/usr/local/bin/netos.datapackage.platform.cli/sensor_service_client",
-            mode = "a+rx",
-        ),
-        feature.install(
-            src = "//fboss/platform/showtech:showtech",
-            dst = "/usr/local/bin/netos.datapackage.platform.cli/showtech",
-            mode = "a+rx",
-        ),
-        feature.install(
-            src = "//fboss/platform/weutil:weutil",
-            dst = "/usr/local/bin/netos.datapackage.platform.cli/weutil",
-            mode = "a+rx",
-        ),
-    ],
 )
