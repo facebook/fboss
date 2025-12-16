@@ -33,6 +33,18 @@ std::string createMinimalConfigFile(const std::string& tempDir) {
   return configPath;
 }
 
+// Helper function to read file contents
+std::string readFileContents(const std::string& filePath) {
+  std::ifstream file(filePath);
+  if (!file.is_open()) {
+    return "";
+  }
+  std::string content(
+      (std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+  file.close();
+  return content;
+}
+
 } // namespace
 
 class FwUtilFlashromTest : public ::testing::Test {
@@ -206,6 +218,149 @@ TEST_F(FwUtilFlashromTest, CreateCustomContentFileFailure) {
 
   // Should return false when source binary doesn't exist
   EXPECT_FALSE(result);
+}
+
+// ============================================================================
+// setProgrammerAndChip() Tests
+// ============================================================================
+
+TEST_F(FwUtilFlashromTest, SetProgrammerAndChipBoth) {
+  // Create FwUtilImpl instance
+  FwUtilImpl fwUtil(
+      binaryFilePath_.string(),
+      configFilePath_,
+      false, // verifySha1sum
+      false // dryRun
+  );
+
+  // Create FlashromConfig with both programmer and programmer_type
+  FlashromConfig flashromConfig;
+  flashromConfig.programmer() = ":dev=/dev/spidev0.0";
+  flashromConfig.programmer_type() = "linux_spi";
+
+  std::string fpd = "test_fpd";
+  std::vector<std::string> flashromCmd;
+
+  // Call setProgrammerAndChip
+  fwUtil.setProgrammerAndChip(flashromConfig, fpd, flashromCmd);
+
+  // Verify programmer arguments were added
+  ASSERT_GE(flashromCmd.size(), 2);
+  EXPECT_EQ(flashromCmd[0], "-p");
+  EXPECT_EQ(flashromCmd[1], "linux_spi:dev=/dev/spidev0.0");
+}
+
+TEST_F(FwUtilFlashromTest, SetProgrammerAndChipTypeOnly) {
+  // Create FwUtilImpl instance
+  FwUtilImpl fwUtil(
+      binaryFilePath_.string(),
+      configFilePath_,
+      false, // verifySha1sum
+      false // dryRun
+  );
+
+  // Create FlashromConfig with programmer_type only
+  FlashromConfig flashromConfig;
+  flashromConfig.programmer_type() = "internal";
+
+  std::string fpd = "test_fpd";
+  std::vector<std::string> flashromCmd;
+
+  // Call setProgrammerAndChip
+  fwUtil.setProgrammerAndChip(flashromConfig, fpd, flashromCmd);
+
+  // Verify programmer arguments were added
+  ASSERT_GE(flashromCmd.size(), 2);
+  EXPECT_EQ(flashromCmd[0], "-p");
+  EXPECT_EQ(flashromCmd[1], "internal");
+}
+
+TEST_F(FwUtilFlashromTest, SetProgrammerAndChipDetected) {
+  // Create FwUtilImpl instance
+  FwUtilImpl fwUtil(
+      binaryFilePath_.string(),
+      configFilePath_,
+      false, // verifySha1sum
+      false // dryRun
+  );
+
+  // Create FlashromConfig with chip list
+  FlashromConfig flashromConfig;
+  flashromConfig.programmer_type() = "internal";
+  std::vector<std::string> chips = {"MX25L12835F", "W25Q128.V"};
+  flashromConfig.chip() = chips;
+
+  std::string fpd = "test_fpd";
+  std::vector<std::string> flashromCmd;
+
+  // Test method handles chip detection (will fail in test environment)
+  fwUtil.setProgrammerAndChip(flashromConfig, fpd, flashromCmd);
+
+  // Verify programmer arguments were added
+  ASSERT_GE(flashromCmd.size(), 2);
+  EXPECT_EQ(flashromCmd[0], "-p");
+  EXPECT_EQ(flashromCmd[1], "internal");
+}
+
+TEST_F(FwUtilFlashromTest, SetProgrammerAndChipNoProgrammerType) {
+  // Create FwUtilImpl instance
+  FwUtilImpl fwUtil(
+      binaryFilePath_.string(),
+      configFilePath_,
+      false, // verifySha1sum
+      false // dryRun
+  );
+
+  // Create FlashromConfig without programmer_type
+  FlashromConfig flashromConfig;
+  // No programmer_type set
+
+  std::string fpd = "test_fpd";
+  std::vector<std::string> flashromCmd;
+
+  // Call setProgrammerAndChip - should default to "internal"
+  fwUtil.setProgrammerAndChip(flashromConfig, fpd, flashromCmd);
+
+  // Verify programmer arguments were added with default "internal"
+  ASSERT_GE(flashromCmd.size(), 2);
+  EXPECT_EQ(flashromCmd[0], "-p");
+  EXPECT_EQ(flashromCmd[1], "internal");
+}
+
+// ============================================================================
+// addLayoutFile() Tests
+// ============================================================================
+
+TEST_F(FwUtilFlashromTest, AddLayoutFileValid) {
+  // Create FwUtilImpl instance
+  FwUtilImpl fwUtil(
+      binaryFilePath_.string(),
+      configFilePath_,
+      false, // verifySha1sum
+      false // dryRun
+  );
+
+  // Create FlashromConfig with spi_layout
+  FlashromConfig flashromConfig;
+  flashromConfig.spi_layout() =
+      "0x00000000:0x000fffff bios\n0x00100000:0x001fffff data";
+
+  std::string fpd = "test_fpd";
+  std::vector<std::string> flashromCmd;
+
+  fwUtil.addLayoutFile(flashromConfig, flashromCmd, fpd);
+
+  // Verify layout file arguments and temp file with correct contents
+  ASSERT_GE(flashromCmd.size(), 2);
+  EXPECT_EQ(flashromCmd[0], "-l");
+  EXPECT_TRUE(
+      flashromCmd[1].find("/tmp/" + fpd + "_spi_layout") != std::string::npos);
+  EXPECT_TRUE(std::filesystem::exists(flashromCmd[1]));
+  std::string fileContents = readFileContents(flashromCmd[1]);
+  EXPECT_EQ(fileContents, *flashromConfig.spi_layout());
+
+  // Cleanup
+  std::filesystem::remove(flashromCmd[1]);
 }
 
 } // namespace facebook::fboss::platform::fw_util
