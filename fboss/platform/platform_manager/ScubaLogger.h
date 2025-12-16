@@ -19,7 +19,9 @@ class ScubaLogger {
   static constexpr const char* kDefaultCategory =
       "perfpipe_fboss_platform_manager";
 
-  explicit ScubaLogger(const std::string& platformName);
+  explicit ScubaLogger(
+      const std::string& platformName,
+      const DataStore& dataStore_);
 
   // Log an event to Scuba with string and int fields.
   // Automatically adds: platform, hostname, time, and persistent fields.
@@ -36,7 +38,10 @@ class ScubaLogger {
           {});
 
  private:
+  void addPlatformFields(std::unordered_map<std::string, std::string>& normals);
+
   std::string platformName_;
+  const DataStore& dataStore_;
   std::unordered_map<std::string, std::string> persistentFields_;
 };
 

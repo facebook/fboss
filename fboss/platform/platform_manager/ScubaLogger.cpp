@@ -12,8 +12,26 @@
 
 namespace facebook::fboss::platform::platform_manager {
 
-ScubaLogger::ScubaLogger(const std::string& platformName)
-    : platformName_(platformName) {}
+ScubaLogger::ScubaLogger(
+    const std::string& platformName,
+    const DataStore& dataStore_)
+    : platformName_(platformName), dataStore_(dataStore_) {}
+
+void ScubaLogger::addPlatformFields(
+    std::unordered_map<std::string, std::string>& normals) {
+  normals["platform"] = platformName_;
+
+  // Add all persistent fields
+  for (const auto& [key, value] : persistentFields_) {
+    normals[key] = value;
+  }
+
+  // Add firmware versions from DataStore if available
+  auto fwVersions = dataStore_.getFirmwareVersions();
+  for (const auto& [deviceName, firmwareVersion] : fwVersions) {
+    normals[fmt::format("firmware_version_{}", deviceName)] = firmwareVersion;
+  }
+}
 
 void ScubaLogger::log(
     const std::string& event,
@@ -22,14 +40,12 @@ void ScubaLogger::log(
     const std::string& category) {
   folly::dynamic normalsObj = folly::dynamic::object;
 
-  // Add platform name
-  normalsObj["platform"] = platformName_;
-
   // Add standard fields
   normalsObj["hostname"] = network::NetworkUtil::getLocalHost(true);
   normalsObj["event"] = event;
 
   std::unordered_map<std::string, std::string> enrichedNormals = normals;
+  addPlatformFields(enrichedNormals);
 
   // Add all normal fields
   for (const auto& [key, value] : enrichedNormals) {
