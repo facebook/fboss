@@ -108,3 +108,13 @@ cpp_unittest(
         "//fboss/platform/fw_util:core",
     ],
 )
+
+cpp_unittest(
+    name = "fw_util_impl_test",
+    srcs = [
+        "FwUtilImplTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/fw_util:core",
+    ],
+)
