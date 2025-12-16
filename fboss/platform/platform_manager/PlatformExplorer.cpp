@@ -675,7 +675,7 @@ void PlatformExplorer::explorePciDevices(
         });
     createPciSubDevices(
         slotPath,
-        Utils().createMdioBusConfigs(pciDeviceConfig),
+        Utils::createMdioBusConfigs(pciDeviceConfig),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MDIO_BUS,
         [&](const auto& mdioBusConfig) {
           auto instanceId = instId;

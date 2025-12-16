@@ -209,7 +209,16 @@ std::string CmdShowLldp::extractExpectedPort(
   if (RE2::FullMatch(portDescription, resw_regex)) {
     return results[0] + "." + results[1];
   }
-
+  const RE2 xsw_regex(".*xsw.*");
+  if (RE2::FullMatch(portDescription, xsw_regex)) {
+    return results[2] + "." + results[3];
+  }
+  const RE2 bag_regex(".*\\.bag([^:]+)");
+  if (RE2::PartialMatch(portDescription, bag_regex)) {
+    std::string match;
+    RE2::PartialMatch(portDescription, bag_regex, &match);
+    return "bag" + match;
+  }
   const RE2 bc_regex(".*\\.bc([^:]+)");
   if (RE2::PartialMatch(portDescription, bc_regex)) {
     std::string match;

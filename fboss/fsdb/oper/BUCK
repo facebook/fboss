@@ -55,6 +55,7 @@ cpp_library(
         "fbsource//third-party/re2:re2",
         ":delta_value",
         ":subscription_common",
+        "//fb303:thread_cached_service_data",
         "//fboss/fsdb/common:utils",
         "//fboss/fsdb/if:fsdb-cpp2-types",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",

@@ -2,6 +2,10 @@ namespace cpp2 facebook.fboss
 namespace py3 neteng.fboss
 
 include "common/fb303/if/fb303.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 struct TPacket {
   1: i64 timestamp;

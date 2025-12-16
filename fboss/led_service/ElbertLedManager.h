@@ -24,11 +24,13 @@ namespace facebook::fboss {
 class ElbertLedManager : public LedManager {
  public:
   ElbertLedManager();
-  virtual ~ElbertLedManager() override {}
+  virtual ~ElbertLedManager() override = default;
 
   // Forbidden copy constructor and assignment operator
   ElbertLedManager(ElbertLedManager const&) = delete;
   ElbertLedManager& operator=(ElbertLedManager const&) = delete;
+  ElbertLedManager(ElbertLedManager&&) = delete;
+  ElbertLedManager& operator=(ElbertLedManager&&) = delete;
 
  protected:
   virtual led::LedState calculateLedState(

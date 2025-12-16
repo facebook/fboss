@@ -2,6 +2,10 @@ namespace cpp2 facebook.fboss.platform.data_corral_service
 namespace py3 neteng.fboss.platform.data_corral_service
 
 include "fboss/agent/if/fboss.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 // All timestamps are Epoch time in second
 struct FruIdData {

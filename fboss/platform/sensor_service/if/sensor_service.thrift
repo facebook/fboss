@@ -8,6 +8,10 @@ namespace py.asyncio neteng.fboss.platform.asyncio.sensor_service
 include "fboss/agent/if/fboss.thrift"
 include "fboss/platform/sensor_service/if/sensor_config.thrift"
 include "thrift/annotation/hack.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 // SensorData contains the observed data of a sensor device's output.
 //
