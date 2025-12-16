@@ -81,6 +81,10 @@ class FwUtilImpl {
   FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsWithFileOption);
   FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsWithImageOption);
   FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsMinimal);
+  FRIEND_TEST(FwUtilFlashromTest, PerformFlashromUpgradeSuccess);
+  FRIEND_TEST(FwUtilFlashromTest, PerformFlashromUpgradeDryRun);
+  FRIEND_TEST(FwUtilFlashromTest, PerformFlashromUpgradeMissingBinary);
+  FRIEND_TEST(FwUtilFlashromTest, PerformFlashromReadSuccess);
 
   void doPreUpgrade(const std::string&);
 
