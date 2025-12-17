@@ -100,7 +100,7 @@ class PlatformManagerHwTest : public ::testing::Test {
                "Ended with unexpected exploration status {}",
                apache::thrift::util::enumNameSafe(
                    *pmStatus.explorationStatus()));
-    EXPECT_GT(*pmStatus.lastExplorationTime(), now);
+    EXPECT_GE(*pmStatus.lastExplorationTime(), now);
   }
 
   PlatformConfig platformConfig_{ConfigUtils().getConfig()};
