@@ -302,6 +302,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
       swPort->getIngressMirror(), swPort->getEgressMirror(), samplingMirror};
   handle->mirrorInfo = mirrorInfo;
   handles_.emplace(swPort->getID(), std::move(handle));
+  processPortBufferPoolConfigs(swPort);
   setQosPolicy(swPort->getID(), swPort->getQosPolicy());
 
   addSamplePacket(swPort);
@@ -391,6 +392,7 @@ void SaiPortManager::changePortImpl(
       updatePrbsStatsEntryRate(newPort);
     }
   }
+  processPortBufferPoolConfigs(newPort);
 
   changeMirror(oldPort, newPort);
   changeSamplePacket(oldPort, newPort);
@@ -870,6 +872,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // PfcMonitorDirection
         std::nullopt, // QosDot1pToTcMap
         std::nullopt, // QosTcAndColorToDot1pMap
+        std::nullopt, // QosIngressBufferProfileList
+        std::nullopt, // QosEgressBufferProfileList
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -964,6 +968,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // PfcMonitorDirection
       std::nullopt, // QosDot1pToTcMap
       std::nullopt, // QosTcAndColorToDot1pMap
+      std::nullopt, // QosIngressBufferProfileList
+      std::nullopt, // QosEgressBufferProfileList
   };
 }
 
@@ -976,7 +982,11 @@ void SaiPortManager::programSerdes(
           HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING) ||
       swPort->getPortType() == cfg::PortType::RECYCLE_PORT ||
       swPort->getPortType() == cfg::PortType::EVENTOR_PORT ||
-      swPort->getPortType() == cfg::PortType::HYPER_PORT) {
+      swPort->getPortType() == cfg::PortType::HYPER_PORT
+#if defined(CHENAB_SAI_SDK)
+      || swPort->getPortType() == cfg::PortType::MANAGEMENT_PORT
+#endif
+  ) {
     return;
   }
 
@@ -1229,7 +1239,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
       if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_YUBA) {
+              cfg::AsicType::ASIC_TYPE_YUBA ||
+          platform_->getAsic()->getAsicType() ==
+              cfg::AsicType::ASIC_TYPE_G202X) {
         if (auto firPre1 = tx->firPre1()) {
           txPre1.push_back(zeroPreemphasis ? 0 : *firPre1);
         }
@@ -1403,16 +1415,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre2{}, txPre2);
-    if (platform_->getAsic()->getAsicType() !=
-        cfg::AsicType::ASIC_TYPE_CHENAB) {
-      // post2 and post3 are unsupported by chenab but fboss thrift model
-      // (phy.thrift) has them non-optional instead of passing them as zero,
-      // ignore them.
-      setTxRxAttr(
-          attrs, SaiPortSerdesTraits::Attributes::TxFirPost2{}, txPost2);
-      setTxRxAttr(
-          attrs, SaiPortSerdesTraits::Attributes::TxFirPost3{}, txPost3);
-    }
+    setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost2{}, txPost2);
+    setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost3{}, txPost3);
+
     if (platform_->getAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
       setTxRxAttr(

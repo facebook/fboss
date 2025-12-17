@@ -18,11 +18,11 @@ from .config import (
     BassetQuery,
     BenchmarkTestsSpec,
     CommonTestSpec,
+    ConfigTestsSpec,
     HwTestsSpec,
     LinkTestsSpec,
     NWarmbootTestsSpec,
     SdkcastleSpec,
-    SpecTestsSpec,
     TestSpec,
 )
 from .enums import (
@@ -101,7 +101,7 @@ class ConfigParser:
                 data.get("linkTests", []), self._parse_link_tests_spec
             ),
             config_tests=self._parse_test_list(
-                data.get("configTests", []), self._parse_spec_tests_spec
+                data.get("configTests", []), self._parse_config_tests_spec
             ),
             benchmark_tests=self._parse_test_list(
                 data.get("benchmarkTests", []), self._parse_benchmark_tests_spec
@@ -157,9 +157,9 @@ class ConfigParser:
             common_test_spec=self._parse_common_test_spec(data["commonTestSpec"]),
         )
 
-    def _parse_spec_tests_spec(self, data: Dict[str, Any]) -> SpecTestsSpec:
-        """Parse SpecTestsSpec from dictionary"""
-        return SpecTestsSpec(
+    def _parse_config_tests_spec(self, data: Dict[str, Any]) -> ConfigTestsSpec:
+        """Parse ConfigTestsSpec from dictionary"""
+        return ConfigTestsSpec(
             test_name=data["testName"],
             common_test_spec=self._parse_common_test_spec(data["commonTestSpec"]),
         )

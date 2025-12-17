@@ -481,6 +481,9 @@ CpuCosQueueId hwQueueIdToCpuCosQueueId(
     HwSwitchFb303Stats* hwswitchStats);
 int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes);
 
+std::set<PortID> getL2ConnectedL1FabricPorts(
+    const std::shared_ptr<SwitchState>& state);
+
 const std::vector<cfg::AclLookupClass>& getToCpuClassIds();
 
 bool isStringInFile(

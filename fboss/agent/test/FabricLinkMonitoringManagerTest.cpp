@@ -15,17 +15,14 @@
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
-#include "gmock/gmock.h"
 
 using ::testing::_;
 using ::testing::AtLeast;
@@ -42,11 +39,100 @@ namespace {
 
 constexpr size_t kFabricLinkMonitoringPacketSize = 480;
 
+// Helper function to add a DSF node to config
+void addDsfNode(
+    cfg::SwitchConfig& config,
+    int64_t switchId,
+    const std::string& name,
+    cfg::DsfNodeType nodeType,
+    std::optional<int> fabricLevel = std::nullopt,
+    std::optional<PlatformType> platformType = std::nullopt) {
+  cfg::DsfNode node;
+  node.switchId() = switchId;
+  node.name() = name;
+  node.type() = nodeType;
+  if (fabricLevel.has_value()) {
+    node.fabricLevel() = *fabricLevel;
+  }
+  if (platformType.has_value()) {
+    node.platformType() = *platformType;
+  } else {
+    node.platformType() = PlatformType::PLATFORM_MERU400BIU;
+  }
+  (*config.dsfNodes())[switchId] = node;
+}
+
+// Helper function to add a fabric port with expected neighbor
+void addFabricPort(
+    cfg::SwitchConfig& config,
+    int portId,
+    const std::string& portName,
+    const std::string& neighborSwitch,
+    const std::string& neighborPort) {
+  cfg::Port port;
+  port.logicalID() = portId;
+  port.name() = portName;
+  port.portType() = cfg::PortType::FABRIC_PORT;
+  port.expectedNeighborReachability() = std::vector<cfg::PortNeighbor>();
+
+  cfg::PortNeighbor neighbor;
+  neighbor.remoteSystem() = neighborSwitch;
+  neighbor.remotePort() = neighborPort;
+  port.expectedNeighborReachability()->push_back(neighbor);
+
+  config.ports()->push_back(port);
+}
+
+// Helper to create a realistic VoQ config with 160 fabric ports
+cfg::SwitchConfig createVoqConfig() {
+  cfg::SwitchConfig config;
+  int64_t switchId{0};
+  config.switchSettings() = cfg::SwitchSettings();
+  config.switchSettings()->switchId() = switchId;
+  config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
+  config.dsfNodes() = std::map<int64_t, cfg::DsfNode>();
+  config.ports() = std::vector<cfg::Port>();
+
+  // Add VoQ switch as interface node
+  addDsfNode(config, switchId, "voq0", cfg::DsfNodeType::INTERFACE_NODE);
+
+  // Add 40 fabric switches (switchIds: 4, 8, 12, ..., 160)
+  for (int i = 1; i <= 40; i++) {
+    int64_t fabricSwitchId = i * 4;
+    addDsfNode(
+        config,
+        fabricSwitchId,
+        "fabric" + std::to_string(fabricSwitchId),
+        cfg::DsfNodeType::FABRIC_NODE,
+        1);
+  }
+
+  // Add 160 ports: 4 ports per fabric switch
+  int portId = 1;
+  for (int i = 1; i <= 40; i++) {
+    int64_t fabricSwitchId = i * 4;
+    std::string fabricSwitchName = "fabric" + std::to_string(fabricSwitchId);
+
+    for (int portOffset = 0; portOffset < 4; portOffset++) {
+      addFabricPort(
+          config,
+          portId,
+          "fab1/" + std::to_string(i) + "/" + std::to_string(portOffset + 1),
+          fabricSwitchName,
+          "fab1/1/" + std::to_string(portOffset + 1));
+      portId++;
+    }
+  }
+
+  return config;
+}
+
+// Setup for VOQ switch with fabric ports
 unique_ptr<HwTestHandle> setupTestHandle() {
   auto state = testStateAWithPortsUp();
   addSwitchInfo(
       state,
-      cfg::SwitchType::FABRIC,
+      cfg::SwitchType::VOQ,
       0,
       cfg::AsicType::ASIC_TYPE_MOCK,
       cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
@@ -62,6 +148,92 @@ unique_ptr<HwTestHandle> setupTestHandle() {
       newPort->setPortType(cfg::PortType::FABRIC_PORT);
     }
   }
+
+  return createTestHandle(state);
+}
+
+void setupL1FabricSwitch(
+    std::shared_ptr<SwitchState>& state,
+    int64_t l1SwitchId) {
+  addSwitchInfo(
+      state,
+      cfg::SwitchType::FABRIC,
+      l1SwitchId,
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      1, // fabricLevel = 1 for L1 fabric node
+      std::nullopt,
+      std::nullopt,
+      MockPlatform::getMockLocalMac().toString());
+}
+
+void setupDsfNodesForDualStage(
+    std::shared_ptr<SwitchState>& state,
+    int64_t l1SwitchId) {
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
+
+  // Add L1 fabric switch as a DSF node
+  auto l1Node = std::make_shared<DsfNode>(SwitchID(l1SwitchId));
+  auto l1NodeCfg = makeDsfNodeCfg(
+      l1SwitchId,
+      cfg::DsfNodeType::FABRIC_NODE,
+      std::nullopt /* clusterId */,
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      1 /* fabricLevel */);
+  l1NodeCfg.name() = "fabric_l1_0";
+  l1NodeCfg.platformType() = PlatformType::PLATFORM_MERU400BIU;
+  l1Node->fromThrift(l1NodeCfg);
+  dsfNodeMap->addNode(l1Node, HwSwitchMatcher());
+
+  // Add L2 fabric switches as DSF nodes
+  for (int i = 0; i < 5; i++) {
+    int64_t l2SwitchId = 200 + i;
+    auto l2Node = std::make_shared<DsfNode>(SwitchID(l2SwitchId));
+    auto l2NodeCfg = makeDsfNodeCfg(
+        l2SwitchId,
+        cfg::DsfNodeType::FABRIC_NODE,
+        std::nullopt /* clusterId */,
+        cfg::AsicType::ASIC_TYPE_MOCK,
+        2 /* fabricLevel */);
+    l2NodeCfg.name() = "fabric_l2_" + std::to_string(l2SwitchId);
+    l2NodeCfg.platformType() = PlatformType::PLATFORM_MERU400BIU;
+    l2Node->fromThrift(l2NodeCfg);
+    dsfNodeMap->addNode(l2Node, HwSwitchMatcher());
+  }
+
+  state->resetDsfNodes(dsfNodeMap);
+}
+
+void setupFabricPortsWithL2Neighbors(std::shared_ptr<SwitchState>& state) {
+  int portIndex = 0;
+  for (auto& portMap : std::as_const(*state->getPorts())) {
+    for (auto& port : std::as_const(*portMap.second)) {
+      auto newPort = port.second->modify(&state);
+      newPort->setPortType(cfg::PortType::FABRIC_PORT);
+
+      // Set expected neighbor to one of the L2 switches
+      int l2Index = portIndex % 5;
+      std::string expectedNeighbor =
+          "fabric_l2_" + std::to_string(200 + l2Index);
+      cfg::PortNeighbor neighbor;
+      neighbor.remoteSystem() = expectedNeighbor;
+      neighbor.remotePort() = "port" + std::to_string(portIndex);
+      newPort->setExpectedNeighborReachability({neighbor});
+
+      portIndex++;
+    }
+  }
+}
+
+// Setup for dual-stage FABRIC switch (L1 fabric node with L2 connections)
+unique_ptr<HwTestHandle> setupDualStageFabricTestHandle() {
+  auto state = testStateAWithPortsUp();
+  int64_t l1SwitchId = 0;
+
+  setupL1FabricSwitch(state, l1SwitchId);
+  setupDsfNodesForDualStage(state, l1SwitchId);
+  setupFabricPortsWithL2Neighbors(state);
 
   return createTestHandle(state);
 }
@@ -121,6 +293,92 @@ std::unique_ptr<RxPacket> createFabricMonitoringRxPacket(
   return rxPkt;
 }
 
+// Helper function to setup VOQ switch state with fabric ports
+std::shared_ptr<SwitchState> setupVoqSwitchState(
+    const cfg::SwitchConfig& config) {
+  auto state = std::make_shared<SwitchState>();
+  addSwitchInfo(
+      state,
+      cfg::SwitchType::VOQ,
+      0,
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      0,
+      std::nullopt,
+      std::nullopt,
+      MockPlatform::getMockLocalMac().toString());
+
+  auto portMap = std::make_shared<MultiSwitchPortMap>();
+  for (const auto& cfgPort : *config.ports()) {
+    auto portId = PortID(*cfgPort.logicalID());
+    auto port = std::make_shared<Port>(portId, *cfgPort.name());
+    port->setPortType(*cfgPort.portType());
+    port->setOperState(true);
+    port->setAdminState(cfg::PortState::ENABLED);
+    portMap->addNode(port, HwSwitchMatcher());
+  }
+
+  state->resetPorts(portMap);
+  return state;
+}
+
+// Helper function to count fabric ports in state
+int countFabricPorts(SwSwitch* sw) {
+  int numFabricPorts = 0;
+  for (const auto& portMap : std::as_const(*sw->getState()->getPorts())) {
+    for (const auto& [portId, port] : std::as_const(*portMap.second)) {
+      (void)portId;
+      if (port->getPortType() == cfg::PortType::FABRIC_PORT &&
+          port->isPortUp()) {
+        numFabricPorts++;
+      }
+    }
+  }
+  return numFabricPorts;
+}
+
+// Helper function to setup packet tracking expectations
+void setupPacketTrackingExpectations(
+    SwSwitch* sw,
+    std::atomic<int>& totalPacketsSent,
+    int expectedFabricPorts) {
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortSyncForPktType_(
+          TxPacketMatcher::createMatcher(
+              "Fabric Monitoring Packet",
+              [&totalPacketsSent](const TxPacket* /*pkt*/) {
+                totalPacketsSent++;
+              }),
+          _,
+          _))
+      .Times(AtLeast(expectedFabricPorts));
+}
+
+// Helper function to verify transmission invariants
+void verifyTransmissionInvariants(
+    FabricLinkMonitoringManager* manager,
+    int expectedFabricPorts) {
+  WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+    int portsWithTx = 0;
+    int portsWithPending = 0;
+    auto allStats = manager->getAllFabricLinkMonPortStats();
+    for (const auto& [portId, stats] : allStats) {
+      if (*stats.txCount() > 2) {
+        portsWithTx++;
+      }
+      if (manager->getPendingSequenceNumbers(portId).size() >= 1) {
+        portsWithPending++;
+      }
+      EXPECT_EQ(*stats.rxCount(), 0);
+    }
+
+    EXPECT_EVENTUALLY_EQ(portsWithTx, expectedFabricPorts);
+    EXPECT_EVENTUALLY_EQ(portsWithPending, expectedFabricPorts);
+  });
+}
+
 } // namespace
 
 TEST(FabricLinkMonitoringManagerTest, CreateManager) {
@@ -168,7 +426,7 @@ TEST(FabricLinkMonitoringManagerTest, PacketPayloadValidation) {
   // Get initial stats
   auto statsBefore = manager->getFabricLinkMonPortStats(testPort);
 
-  auto rxPkt = createFabricMonitoringRxPacket(sw, testPort, 0);
+  auto rxPkt = createFabricMonitoringRxPacket(sw, testPort, 1);
   Cursor cursor(rxPkt->buf());
 
   EXPECT_NO_THROW(manager->handlePacket(std::move(rxPkt), std::move(cursor)));
@@ -601,4 +859,152 @@ TEST(FabricLinkMonitoringManagerTest, HandlePacketWithNoPendingSequence) {
   EXPECT_GT(*statsAfter.noPendingSeqNumCount(), 0);
 
   manager->stop();
+}
+
+TEST(
+    FabricLinkMonitoringManagerTest,
+    DualStageFabricSwitchSendsPacketsToL2Ports) {
+  auto handle = setupDualStageFabricTestHandle();
+  auto sw = handle->getSw();
+
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortSyncForPktType_(
+          TxPacketMatcher::createMatcher(
+              "Fabric Monitoring Packet", checkFabricMonitoringPacket()),
+          _,
+          _))
+      .Times(AtLeast(1));
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  waitForStateUpdates(sw);
+  waitForBackgroundThread(sw);
+
+  manager->stop();
+
+  // Verify that packets were sent on the L2-connected fabric ports
+  auto allStats = manager->getAllFabricLinkMonPortStats();
+  EXPECT_GT(allStats.size(), 0);
+  for (const auto& [portId, stats] : allStats) {
+    EXPECT_GT(*stats.txCount(), 0);
+  }
+}
+
+TEST(
+    FabricLinkMonitoringManagerTest,
+    VoqSwitchWith160FabricPortsContinuesSendingWithoutResponses) {
+  FabricLinkMonitoringManager::setTestMode(true);
+
+  auto config = createVoqConfig();
+  EXPECT_EQ(config.ports()->size(), 160);
+
+  auto state = setupVoqSwitchState(config);
+  auto handle = createTestHandle(state);
+  auto sw = handle->getSw();
+
+  constexpr int kExpectedFabricPorts = 160;
+  int numFabricPorts = countFabricPorts(sw);
+  XLOG(INFO) << "Testing with " << numFabricPorts << " fabric ports";
+  EXPECT_EQ(numFabricPorts, kExpectedFabricPorts);
+
+  std::atomic<int> totalPacketsSent{0};
+  setupPacketTrackingExpectations(sw, totalPacketsSent, kExpectedFabricPorts);
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  verifyTransmissionInvariants(manager.get(), kExpectedFabricPorts);
+
+  manager->stop();
+  FabricLinkMonitoringManager::setTestMode(false);
+}
+
+TEST(
+    FabricLinkMonitoringManagerTest,
+    LastPortIndexHandlingWithOutstandingLimitReached) {
+  // Enable test mode to avoid dependency on platform mapping
+  FabricLinkMonitoringManager::setTestMode(true);
+
+  // Create a simple config with 8 fabric ports
+  auto config = createVoqConfig();
+  config.ports()->resize(8); // Keep only first 8 ports
+
+  auto state = std::make_shared<SwitchState>();
+  addSwitchInfo(
+      state,
+      cfg::SwitchType::VOQ,
+      0,
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      0,
+      std::nullopt,
+      std::nullopt,
+      MockPlatform::getMockLocalMac().toString());
+
+  // Add the 8 fabric ports from config to the state
+  auto portMap = std::make_shared<MultiSwitchPortMap>();
+  for (const auto& cfgPort : *config.ports()) {
+    auto portId = PortID(*cfgPort.logicalID());
+    auto port = std::make_shared<Port>(portId, *cfgPort.name());
+    port->setPortType(*cfgPort.portType());
+    port->setOperState(true); // Port is UP
+    port->setAdminState(cfg::PortState::ENABLED);
+    portMap->addNode(port, HwSwitchMatcher());
+  }
+  state->resetPorts(portMap);
+
+  auto handle = createTestHandle(state);
+  auto sw = handle->getSw();
+
+  // Set a very low outstanding packet limit to force the limit to be reached
+  FLAGS_fabric_link_monitoring_max_outstanding_packets = 2;
+
+  std::atomic<int> totalPacketsSent{0};
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortSyncForPktType_(
+          TxPacketMatcher::createMatcher(
+              "Fabric Monitoring Packet",
+              [&totalPacketsSent](const TxPacket* /*pkt*/) {
+                totalPacketsSent++;
+              }),
+          _,
+          _))
+      .Times(AtLeast(8)); // Expect at least one packet per port
+
+  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  manager->start();
+
+  // Wait for multiple rounds of packet transmission
+  // The test verifies that even when outstanding limit is reached,
+  // the lastPortIndex correctly resumes from where it left off
+  WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(1500), {
+    auto allStats = manager->getAllFabricLinkMonPortStats();
+
+    // Verify all ports have been sent packets
+    int portsWithTx = 0;
+    for (const auto& [portId, stats] : allStats) {
+      if (*stats.txCount() > 0) {
+        portsWithTx++;
+      }
+    }
+
+    // All 8 ports should have sent at least one packet
+    EXPECT_EVENTUALLY_EQ(portsWithTx, 8);
+
+    int portsWithMultipleTx = 0;
+    for (const auto& [portId, stats] : allStats) {
+      if (*stats.txCount() >= 2) {
+        portsWithMultipleTx++;
+      }
+    }
+    // Most ports should have sent multiple packets, proving round-robin works
+    EXPECT_EVENTUALLY_GE(portsWithMultipleTx, 6);
+  });
+
+  manager->stop();
+  FabricLinkMonitoringManager::setTestMode(false);
 }

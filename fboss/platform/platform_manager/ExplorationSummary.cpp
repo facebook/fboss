@@ -16,8 +16,8 @@ const re2::RE2 kPsuSlotPath{R"(/PSU_SLOT@\d+$)"};
 
 ExplorationSummary::ExplorationSummary(
     const PlatformConfig& config,
-    const DataStore& dataStore)
-    : platformConfig_(config), dataStore_(dataStore) {}
+    ScubaLogger& scubaLogger)
+    : platformConfig_(config), scubaLogger_(scubaLogger) {}
 
 void ExplorationSummary::addError(
     ExplorationErrorType errorType,
@@ -97,16 +97,14 @@ void ExplorationSummary::publishToScuba(ExplorationStatus finalStatus) {
   // Log individual errors
   for (const auto& [devicePath, explorationErrors] : devicePathToErrors_) {
     for (const auto& error : explorationErrors) {
-      std::unordered_map<std::string, std::string> normals;
-
-      normals["platform"] = *platformConfig_.platformName();
-      normals["device_path"] = devicePath;
-      normals["event"] = *error.errorType();
-      normals["error_message"] = *error.message();
-      normals["exploration_status"] =
-          apache::thrift::util::enumNameSafe(finalStatus);
-
-      ScubaLogger::log(normals);
+      scubaLogger_.log(
+          *error.errorType(),
+          {
+              {"device_path", devicePath},
+              {"error_message", *error.message()},
+              {"exploration_status",
+               apache::thrift::util::enumNameSafe(finalStatus)},
+          });
       XLOG(INFO) << "Logged Platform Manager error to Scuba: " << devicePath;
     }
   }

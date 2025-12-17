@@ -507,7 +507,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     }
 
     // Normal transceiver programming shouldn't trigger resetDataPath()
-    EXPECT_CALL(*mockXcvr, resetDataPath()).Times(0).InSequence(s);
+    EXPECT_CALL(*mockXcvr, resetDataPath(testing::_)).Times(0).InSequence(s);
 
     EXPECT_CALL(*mockXcvr, updateQsfpData(false))
         .Times(callTimes)
@@ -995,7 +995,7 @@ TEST_F(TransceiverStateMachineTest, programTransceiverFailed) {
             .Times(1);
         EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(1);
         // Normal transceiver programming shouldn't trigger resetDataPath()
-        EXPECT_CALL(*mockXcvr, resetDataPath()).Times(0);
+        EXPECT_CALL(*mockXcvr, resetDataPath(testing::_)).Times(0);
       },
       [this]() {
         const auto& stateMachine =
@@ -1748,7 +1748,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBoot) {
       allStates,
       [this]() {
         MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
-        EXPECT_CALL(*mockXcvr, resetDataPath()).Times(1);
+        EXPECT_CALL(*mockXcvr, resetDataPath(testing::_)).Times(1);
       } /* preUpdate */,
       [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
       [this]() {
@@ -1848,7 +1848,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
         // Even though agent cold boot, because transceiver is absent,
         // resetDataPath() won't be called
         MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
-        EXPECT_CALL(*mockXcvr, resetDataPath()).Times(0);
+        EXPECT_CALL(*mockXcvr, resetDataPath(testing::_)).Times(0);
       } /* preUpdate */,
       [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
       [this]() {

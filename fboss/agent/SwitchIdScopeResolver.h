@@ -37,6 +37,7 @@ class Port;
 class PortDescriptor;
 class AclTableGroup;
 class ForwardingInformationBaseContainer;
+class FibInfo;
 class BufferPoolCfg;
 class PortFlowletCfg;
 class QosPolicy;
@@ -115,6 +116,7 @@ class SwitchIdScopeResolver {
       const std::shared_ptr<AclTableGroup>& aclTableGroup) const;
   HwSwitchMatcher scope(
       const std::shared_ptr<ForwardingInformationBaseContainer>& fibs) const;
+  HwSwitchMatcher scope(const std::shared_ptr<FibInfo>& fibInfo) const;
   HwSwitchMatcher scope(const std::shared_ptr<Route<LabelID>>& entry) const;
   const HwSwitchMatcher& scope(const cfg::BufferPoolConfig& /*b*/) const {
     return l3SwitchMatcher();
@@ -130,9 +132,7 @@ class SwitchIdScopeResolver {
     return l3SwitchMatcher();
   }
   const HwSwitchMatcher& scope(
-      const std::shared_ptr<ControlPlane>& /*c*/) const {
-    return l3SwitchMatcher();
-  }
+      const std::shared_ptr<ControlPlane>& /*c*/) const;
   const HwSwitchMatcher& scope(
       const std::shared_ptr<SflowCollector>& collector) const;
   const HwSwitchMatcher& scope(const cfg::SflowCollector& collector) const;

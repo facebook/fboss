@@ -36,6 +36,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gtest_headers",
         "fbsource//third-party/re2:re2",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/fw_util/if:fw_util_config-cpp2-types",

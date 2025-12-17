@@ -75,6 +75,11 @@ class Utils {
   // residing at the given PciDevice. Throw std::runtime_error on failure.
   static std::vector<LedCtrlConfig> createLedCtrlConfigs(
       const PciDeviceConfig& pciDeviceConfig);
+
+  // Create the MDIO BUS Controller Config block residing at the given
+  // PciDevice. Throw std::runtime_error on failure.
+  static std::vector<FpgaIpBlockConfig> createMdioBusConfigs(
+      const PciDeviceConfig& pciDeviceConfig);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

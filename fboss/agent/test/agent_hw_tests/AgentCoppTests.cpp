@@ -131,9 +131,20 @@ class AgentCoppTest : public AgentHwTest {
   }
 
   folly::IPAddress getInSubnetNonSwitchIP() const {
-    auto configIntf = initialConfig(*getAgentEnsemble()).interfaces()[0];
-    auto ipAddress = configIntf.ipAddresses()[0];
-    return folly::IPAddress::createNetwork(ipAddress, -1, true).first;
+    const auto& configIntfs =
+        initialConfig(*getAgentEnsemble()).interfaces().as_const();
+    if (!(this->isSupportedOnAllAsics(HwAsic::Feature::VOQ))) {
+      auto configIntf = initialConfig(*getAgentEnsemble()).interfaces()[0];
+      auto ipAddress = configIntf.ipAddresses()[0];
+      return folly::IPAddress::createNetwork(ipAddress, -1, true).first;
+    }
+    for (const auto& configIntf : *configIntfs) {
+      if (configIntf.scope() == cfg::Scope::GLOBAL) {
+        auto ipAddress = configIntf.ipAddresses()[0];
+        return folly::IPAddress::createNetwork(ipAddress, -1, true).first;
+      }
+    }
+    throw FbossError("No global scope interfaces configured on VOQ switches");
   }
 
   void sendTcpPkts(
@@ -1189,7 +1200,7 @@ TYPED_TEST(AgentCoppTest, UnresolvedRoutesToLowPriQueue) {
     auto wrapper = this->getSw()->getRouteUpdater();
     ecmp6.programRoutes(&wrapper, 1);
   };
-  auto randomIP = folly::IPAddressV6("2::2");
+  auto randomIP = this->getInSubnetNonSwitchIP();
   auto verify = [=, this]() {
     this->sendTcpPktAndVerifyCpuQueue(
         utility::kCoppLowPriQueueId,

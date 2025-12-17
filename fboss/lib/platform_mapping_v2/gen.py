@@ -92,6 +92,11 @@ def generate_platform_mappings(
         TSimpleJSONProtocol.TSimpleJSONProtocolFactory(), platform_mapping
     )
 
+    # Ensure that files end in a newline (we have pre-commit hooks in OSS that
+    # will fail if this isn't done.)
+    if platform_mapping_serialized[-1] != b"\n":
+        platform_mapping_serialized += b"\n"
+
     print(f"Writing to file {output_file}...", file=sys.stderr)
     with open(os.path.expanduser(output_file), "wb") as f:
         f.write(platform_mapping_serialized)

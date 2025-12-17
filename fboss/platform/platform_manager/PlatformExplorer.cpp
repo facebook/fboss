@@ -134,11 +134,13 @@ PlatformManagerStatus createPmStatus(
 
 PlatformExplorer::PlatformExplorer(
     const PlatformConfig& config,
+    DataStore& dataStore,
+    ScubaLogger& scubaLogger,
     std::shared_ptr<PlatformFsUtils> platformFsUtils)
-    : explorationSummary_(platformConfig_, dataStore_),
-      platformConfig_(config),
+    : platformConfig_(config),
+      dataStore_(dataStore),
+      explorationSummary_(platformConfig_, scubaLogger),
       pciExplorer_(platformFsUtils),
-      dataStore_(platformConfig_),
       devicePathResolver_(dataStore_),
       presenceChecker_(devicePathResolver_),
       platformFsUtils_(std::move(platformFsUtils)) {
@@ -161,6 +163,7 @@ void PlatformExplorer::explore() {
        *platformConfig_.symbolicLinkToDevicePath()) {
     createDeviceSymLink(linkPath, devicePath);
   }
+  updateFirmwareVersions();
   XLOG(INFO) << "Publishing firmware versions ...";
   publishFirmwareVersions();
   XLOG(INFO) << "Generating human readable EEPROM contents ...";
@@ -345,11 +348,15 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
       eepromPath = eepromPath + "/eeprom";
     }
     try {
+      auto idpromDevicePath = Utils().createDevicePath(slotPath, "IDPROM");
       dataStore_.updateEepromContents(
-          Utils().createDevicePath(slotPath, "IDPROM"),
+          idpromDevicePath,
           FbossEepromInterface(eepromPath, *idpromConfig.offset()));
-      const auto& eepromContents = dataStore_.getEepromContents(
-          Utils().createDevicePath(slotPath, "IDPROM"));
+      const auto& eepromContents =
+          dataStore_.getEepromContents(idpromDevicePath);
+      if (idpromDevicePath == platformConfig_.chassisEepromDevicePath()) {
+        updateHardwareVersions(eepromContents);
+      }
       pmUnitNameInEeprom = eepromContents.getProductName();
       productionStateInEeprom = std::stoi(eepromContents.getProductionState());
       productVersionInEeprom =
@@ -625,6 +632,13 @@ void PlatformExplorer::explorePciDevices(
         });
     createPciSubDevices(
         slotPath,
+        *pciDeviceConfig.sysLedCtrlConfigs(),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_LED_CTRL,
+        [&](const auto& sysLedCtrlConfig) {
+          pciExplorer_.createFpgaIpBlock(pciDevice, sysLedCtrlConfig, instId++);
+        });
+    createPciSubDevices(
+        slotPath,
         Utils::createXcvrCtrlConfigs(pciDeviceConfig),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_XCVR_CTRL,
         [&](const auto& xcvrCtrlConfig) {
@@ -668,12 +682,20 @@ void PlatformExplorer::explorePciDevices(
         });
     createPciSubDevices(
         slotPath,
-        *pciDeviceConfig.mdioBusConfigs(),
+        Utils::createMdioBusConfigs(pciDeviceConfig),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MDIO_BUS,
         [&](const auto& mdioBusConfig) {
-          auto mdioBusSysfsPath =
+          auto instanceId = instId;
+          auto mdioBusCharDevPath =
               pciExplorer_.createMdioBus(pciDevice, mdioBusConfig, instId++);
           dataStore_.updateCharDevPath(
+              Utils().createDevicePath(
+                  slotPath, *mdioBusConfig.pmUnitScopedName()),
+              mdioBusCharDevPath);
+
+          auto mdioBusSysfsPath = pciExplorer_.getMdioBusSysfsPath(
+              pciDevice, mdioBusConfig, instanceId);
+          dataStore_.updateSysfsPath(
               Utils().createDevicePath(
                   slotPath, *mdioBusConfig.pmUnitScopedName()),
               mdioBusSysfsPath);
@@ -724,8 +746,7 @@ void PlatformExplorer::createDeviceSymLink(
     } else if (
         linkParentPath.string() == "/run/devmap/gpiochips" ||
         linkParentPath.string() == "/run/devmap/flashes" ||
-        linkParentPath.string() == "/run/devmap/watchdogs" ||
-        linkParentPath.string() == "/run/devmap/mdio-busses") {
+        linkParentPath.string() == "/run/devmap/watchdogs") {
       targetPath = devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
     } else if (linkParentPath.string() == "/run/devmap/xcvrs") {
       auto xcvrName = linkPath.substr(linkParentPath.string().length() + 1);
@@ -738,6 +759,15 @@ void PlatformExplorer::createDeviceSymLink(
       }
       // Legacy XCVR path
       if (re2::RE2::FullMatch(xcvrName, kLegacyXcvrName)) {
+        targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
+      }
+    } else if (linkParentPath.string() == "/run/devmap/mdio-busses") {
+      auto mdioBusName = linkPath.substr(linkParentPath.string().length() + 1);
+      if (mdioBusName.starts_with("mdio_bus_io")) {
+        targetPath =
+            devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
+      }
+      if (mdioBusName.starts_with("mdio_bus_ctrl")) {
         targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
       }
     } else {
@@ -768,7 +798,7 @@ void PlatformExplorer::createDeviceSymLink(
   }
 }
 
-void PlatformExplorer::publishFirmwareVersions() {
+void PlatformExplorer::updateFirmwareVersions() {
   for (const auto& [linkPath, _] :
        *platformConfig_.symbolicLinkToDevicePath()) {
     if (!linkPath.starts_with("/run/devmap/cplds") &&
@@ -805,6 +835,14 @@ void PlatformExplorer::publishFirmwareVersions() {
       versionString = PlatformExplorer::kFwVerErrorFileNotFound;
     }
 
+    dataStore_.updateFirmwareVersion(
+        std::string(deviceName.data(), deviceName.size()), versionString);
+  }
+}
+
+void PlatformExplorer::publishFirmwareVersions() {
+  auto firmwareVersions = dataStore_.getFirmwareVersions();
+  for (const auto& [deviceName, versionString] : firmwareVersions) {
     XLOGF(
         INFO,
         "Reporting firmware version for {} - version string:{}",
@@ -815,48 +853,65 @@ void PlatformExplorer::publishFirmwareVersions() {
   }
 }
 
-void PlatformExplorer::publishHardwareVersions() {
-  auto chassisDevicePath = *platformConfig_.chassisEepromDevicePath();
-  if (!dataStore_.hasEepromContents(chassisDevicePath)) {
-    XLOGF(
-        ERR,
-        "Failed to report hardware version. EEPROM contents not found for {}",
-        chassisDevicePath);
-    return;
-  }
-
-  auto chassisEepromContent = dataStore_.getEepromContents(chassisDevicePath);
-  auto version = chassisEepromContent.getVersion();
+void PlatformExplorer::updateHardwareVersions(
+    const FbossEepromInterface& chassisEepromContent) {
   auto prodState = chassisEepromContent.getProductionState();
   auto prodSubState = chassisEepromContent.getProductionSubState();
   auto variantVersion = chassisEepromContent.getVariantVersion();
 
-  // Report version
-  fb303::fbData->setCounter(fmt::format(kChassisEepromVersion, version), 1);
-
-  // Report production state
+  dataStore_.updateHardwareVersion(
+      kChassisEepromVersion, std::to_string(chassisEepromContent.getVersion()));
   if (!prodState.empty()) {
-    XLOG(INFO) << fmt::format("Reporting Production State: {}", prodState);
-    fb303::fbData->setCounter(fmt::format(kProductionState, prodState), 1);
+    dataStore_.updateHardwareVersion(kProductionState, prodState);
+  }
+  if (!prodSubState.empty()) {
+    dataStore_.updateHardwareVersion(kProductionSubState, prodSubState);
+  }
+  if (!variantVersion.empty()) {
+    dataStore_.updateHardwareVersion(kVariantVersion, variantVersion);
+  }
+}
+
+void PlatformExplorer::publishHardwareVersions() {
+  auto hardwareVersions = dataStore_.getHardwareVersions();
+
+  if (hardwareVersions.empty()) {
+    XLOG(ERR) << "Failed to report hardware versions. No versions available.";
+    return;
+  }
+  // Report chassis EEPROM version
+  auto versionIt = hardwareVersions.find(kChassisEepromVersion);
+  if (versionIt != hardwareVersions.end()) {
+    fb303::fbData->setCounter(
+        fmt::format(kChassisEepromVersionODS, versionIt->second), 1);
+  }
+  // Report production state
+  auto prodStateIt = hardwareVersions.find(kProductionState);
+  if (prodStateIt != hardwareVersions.end()) {
+    XLOG(INFO) << fmt::format(
+        "Reporting Production State: {}", prodStateIt->second);
+    fb303::fbData->setCounter(
+        fmt::format(kProductionStateODS, prodStateIt->second), 1);
   } else {
     XLOG(ERR) << "Production State not set";
   }
-
   // Report production sub-state
-  if (!prodSubState.empty()) {
+  auto prodSubStateIt = hardwareVersions.find(kProductionSubState);
+  if (prodSubStateIt != hardwareVersions.end()) {
     XLOG(INFO) << fmt::format(
-        "Reporting Production Sub-State: {}", prodSubState);
+        "Reporting Production Sub-State: {}", prodSubStateIt->second);
     fb303::fbData->setCounter(
-        fmt::format(kProductionSubState, prodSubState), 1);
+        fmt::format(kProductionSubStateODS, prodSubStateIt->second), 1);
   } else {
     XLOG(ERR) << "Production Sub-State not set";
   }
-
   // Report variant version
-  if (!variantVersion.empty()) {
+  auto variantIt = hardwareVersions.find(kVariantVersion);
+  if (variantIt != hardwareVersions.end()) {
     XLOG(INFO) << fmt::format(
-        "Reporting Variant Indicator: {}", variantVersion);
-    fb303::fbData->setCounter(fmt::format(kVariantVersion, variantVersion), 1);
+        "Reporting Variant Indicator: {}", variantIt->second);
+    fb303::fbData->setCounter(
+        fmt::format(kVariantVersionODS, variantIt->second), 1);
   } else {
     XLOG(ERR) << "Variant Indicator not set";
   }

@@ -19,5 +19,102 @@ cpp_unittest(
     ],
     deps = [
         "//fboss/platform/fw_util:core",
+        "//fboss/platform/helpers:platform_utils",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_operations_test",
+    srcs = [
+        "FwUtilOperationsTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_version_handler_test",
+    srcs = [
+        "FwUtilVersionHandlerTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_verify_test",
+    srcs = [
+        "FwUtilVerifyTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_upgrade_test",
+    srcs = [
+        "FwUtilUpgradeTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_preupgrade_test",
+    srcs = [
+        "FwUtilPreUpgradeTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_postupgrade_test",
+    srcs = [
+        "FwUtilPostUpgradeTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_read_test",
+    srcs = [
+        "FwUtilReadTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_flashrom_test",
+    srcs = [
+        "FwUtilFlashromTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_impl_test",
+    srcs = [
+        "FwUtilImplTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/fw_util:core",
     ],
 )

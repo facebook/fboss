@@ -300,6 +300,12 @@ std::string SaiPlatform::getHwAsicConfig(
 }
 
 void SaiPlatform::initSaiProfileValues() {
+  auto platformMode = getType();
+  // LADAKH800BCLS need SAI_CUSTOM_KERNEL_BDE_NAME to support mnpu
+  if (platformMode == PlatformType::PLATFORM_LADAKH800BCLS) {
+    kSaiProfileValues.insert(
+        std::make_pair("SAI_CUSTOM_KERNEL_BDE_NAME", "linux_ngbde"));
+  }
   kSaiProfileValues.insert(
       std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
   kSaiProfileValues.insert(
@@ -564,6 +570,15 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       sflowNofSamples = *agentCfg->thrift.sw()
                              ->switchSettings()
                              ->numberOfSflowSamplesPerPacket();
+    }
+  }
+  std::optional<SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement>
+      measureCableLengths{std::nullopt};
+  if (getAsic()->isSupported(HwAsic::Feature::CABLE_PROPOGATION_DELAY)) {
+    auto agentCfg = config();
+    if (agentCfg->thrift.sw()->switchSettings()->measureCableLengths()) {
+      measureCableLengths =
+          *agentCfg->thrift.sw()->switchSettings()->measureCableLengths();
     }
   }
   std::optional<SaiSwitchTraits::Attributes::DllPath> dllPath;
@@ -986,7 +1001,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       localSystemPortIdRangeList, // range list of local scope system port ids
 #endif
       std::nullopt, // enable PFC monitoring for the switch
-      std::nullopt, // enable cable propagation delay measurement
+      measureCableLengths, // enable cable propagation delay measurement
   };
 }
 

@@ -21,6 +21,9 @@ include "thrift/annotation/python.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 typedef common.fbbinary fbbinary
 typedef common.fbstring fbstring
 typedef common.ClientInformation ClientInformation
@@ -283,6 +286,7 @@ struct FabricLinkMonPortStats {
   3: i64 droppedCount;
   4: i64 invalidPayloadCount;
   5: i64 noPendingSeqNumCount;
+  6: i64 sequenceNumber;
 }
 
 /*

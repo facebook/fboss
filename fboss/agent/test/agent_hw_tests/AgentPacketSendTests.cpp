@@ -118,7 +118,8 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
           scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
       auto asicType = getAsic(portSwitchId).getAsicType();
       if (asicType != cfg::AsicType::ASIC_TYPE_EBRO &&
-          asicType != cfg::AsicType::ASIC_TYPE_YUBA) {
+          asicType != cfg::AsicType::ASIC_TYPE_YUBA &&
+          asicType != cfg::AsicType::ASIC_TYPE_G202X) {
         EXPECT_EVENTUALLY_EQ(
             1,
             *portStatsAfter.outMulticastPkts_() -
@@ -180,7 +181,8 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPortWithBufClone) {
           scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
       auto asicType = getAsic(portSwitchId).getAsicType();
       if (asicType != cfg::AsicType::ASIC_TYPE_EBRO &&
-          asicType != cfg::AsicType::ASIC_TYPE_YUBA) {
+          asicType != cfg::AsicType::ASIC_TYPE_YUBA &&
+          asicType != cfg::AsicType::ASIC_TYPE_G202X) {
         EXPECT_EVENTUALLY_EQ(
             numPkts,
             *portStatsAfter.outMulticastPkts_() -
@@ -199,8 +201,15 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
     utility::setupEcmpDataplaneLoopOnAllPorts(getAgentEnsemble());
   };
   auto verify = [this]() {
-    std::vector<PortID> portsUnderTest{
-        masterLogicalInterfacePortIds()[0], masterLogicalInterfacePortIds()[1]};
+    std::vector<PortID> portsUnderTest;
+    if (FLAGS_hyper_port) {
+      portsUnderTest = {
+          masterLogicalHyperPortIds()[0], masterLogicalHyperPortIds()[1]};
+    } else {
+      portsUnderTest = {
+          masterLogicalInterfacePortIds()[0],
+          masterLogicalInterfacePortIds()[1]};
+    }
     auto createHighRateTraffic = [=, this]() {
       auto sendPacket = [=, this](
                             AgentEnsemble* ensemble,
@@ -483,7 +492,8 @@ class AgentPacketFloodTest : public AgentHwTest {
         return false;
       }
       if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
-          asic->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA) {
+          asic->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA &&
+          asic->getAsicType() != cfg::AsicType::ASIC_TYPE_G202X) {
         if (packetsAfter <= packetsBefore) {
           return false;
         }
@@ -582,7 +592,8 @@ TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
           scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
       auto asicType = getAsic(portSwitchId).getAsicType();
       if (asicType != cfg::AsicType::ASIC_TYPE_EBRO &&
-          asicType != cfg::AsicType::ASIC_TYPE_YUBA) {
+          asicType != cfg::AsicType::ASIC_TYPE_YUBA &&
+          asicType != cfg::AsicType::ASIC_TYPE_G202X) {
         EXPECT_EVENTUALLY_EQ(
             1,
             *portStatsAfter.outBroadcastPkts_() -

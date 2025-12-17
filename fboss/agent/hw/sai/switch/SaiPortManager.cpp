@@ -522,7 +522,9 @@ TransmitterTechnology fromSaiMediaType(sai_port_media_type_t saiMediaType) {
  * we will report shorter cable lens. But short of getting
  * real-time optics delay, this is the best agent can do.
  */
-int getWorstCaseAssumedOpticsDelayNS(const HwAsic& asic) {
+int getWorstCaseAssumedOpticsDelayNS(
+    const HwAsic& asic,
+    const cfg::PortType& portType) {
   switch (asic.getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
     case cfg::AsicType::ASIC_TYPE_MOCK:
@@ -541,8 +543,16 @@ int getWorstCaseAssumedOpticsDelayNS(const HwAsic& asic) {
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       break;
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      if (portType == cfg::PortType::FABRIC_PORT) {
+        return 110;
+      } else {
+        // TODO(daiweix): get tuned values for hyper port member
+        // and interface port CS00012425717
+        return 0;
+      }
     case cfg::AsicType::ASIC_TYPE_RAMON3:
       // For J3-R3, we measured max optics delay to
       // be 110ns.
@@ -597,6 +607,11 @@ SaiPortManager::SaiPortManager(
 }
 
 SaiPortHandle::~SaiPortHandle() {
+#if CHENAB_SAI_SDK
+  // disable PRBS before deleting port or port serdes
+  port->setOptionalAttribute(
+      SaiPortTraits::Attributes::PrbsConfig(SAI_PORT_PRBS_CONFIG_DISABLE));
+#endif
   if (ingressSamplePacket) {
     port->setOptionalAttribute(
         SaiPortTraits::Attributes::IngressSamplePacketEnable{
@@ -606,6 +621,19 @@ SaiPortHandle::~SaiPortHandle() {
     port->setOptionalAttribute(
         SaiPortTraits::Attributes::EgressSamplePacketEnable{
             SAI_NULL_OBJECT_ID});
+  }
+  // Clear buffer profiles before port destruction
+  if (!ingressPortBufferProfiles.empty()) {
+    port->setOptionalAttribute(
+        SaiPortTraits::Attributes::QosIngressBufferProfileList{
+            std::vector<sai_object_id_t>{}});
+    ingressPortBufferProfiles.clear();
+  }
+  if (!egressPortBufferProfiles.empty()) {
+    port->setOptionalAttribute(
+        SaiPortTraits::Attributes::QosEgressBufferProfileList{
+            std::vector<sai_object_id_t>{}});
+    egressPortBufferProfiles.clear();
   }
 }
 
@@ -1124,6 +1152,70 @@ void SaiPortManager::changePfcBuffers(
       }
     }
   }
+}
+
+void SaiPortManager::processPortBufferPoolConfigs(
+    const std::shared_ptr<Port>& swPort) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL) ||
+      !platform_->getAsic()->isSupported(
+          HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT)) {
+    return;
+  }
+
+  // Process port PG configs for ingress buffer pools
+  const auto& portPgCfgs = swPort->getPortPgConfigs();
+  if (portPgCfgs) {
+    for (const auto& portPgCfg : *portPgCfgs) {
+      // THRIFT_COPY
+      auto portPgCfgThrift = portPgCfg->toThrift();
+      // Handle ingress or ingress-egress buffer pool creation
+      managerTable_->bufferManager().setupBufferPool(portPgCfgThrift);
+    }
+  }
+
+  // Process port queue configs for egress buffer pools
+  const auto& portQueues = swPort->getPortQueues();
+  if (portQueues) {
+    for (const auto& portQueue : *portQueues) {
+      // Handle egress buffer pool creation
+      managerTable_->bufferManager().setupBufferPool(*portQueue);
+    }
+  }
+
+  // Currently only supported in Chenab. The various scaling factors
+  // and min guarantees configured per profile is capture in the google
+  // sheet https://fburl.com/gsheet/jahz9e6m
+  const cfg::MMUScalingFactor kIngressPortPoolScalingFactor{
+      cfg::MMUScalingFactor::EIGHT};
+  const cfg::MMUScalingFactor kEgressPortLossyPoolScalingFactor{
+      cfg::MMUScalingFactor::EIGHT};
+  const cfg::MMUScalingFactor kEgressPortLosslessPoolScalingFactor{
+      cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT};
+  const int kPoolPortReservedBytes{0};
+  auto portHandle = getPortHandle(swPort->getID());
+  if (!portHandle) {
+    XLOG(ERR) << "Port handle not found for port " << swPort->getID()
+              << ", skipping buffer profile configuration";
+    return;
+  }
+
+  // Get ingress port buffer profiles and set it per port
+  const auto ingressPortBufferProfiles =
+      managerTable_->bufferManager().getIngressPortBufferProfiles(
+          kIngressPortPoolScalingFactor, kPoolPortReservedBytes);
+  setPortQosIngressBufferProfiles(swPort->getID(), ingressPortBufferProfiles);
+  // Store the buffer profiles in the port handle
+  portHandle->ingressPortBufferProfiles = ingressPortBufferProfiles;
+
+  // Get egress port buffer profiles and set it per port
+  const auto egressPortBufferProfiles =
+      managerTable_->bufferManager().getEgressPortBufferProfiles(
+          kEgressPortLosslessPoolScalingFactor,
+          kEgressPortLossyPoolScalingFactor,
+          kPoolPortReservedBytes);
+  setPortQosEgressBufferProfiles(swPort->getID(), egressPortBufferProfiles);
+  // Store the buffer profiles in the port handle
+  portHandle->egressPortBufferProfiles = egressPortBufferProfiles;
 }
 
 prbs::InterfacePrbsState SaiPortManager::getPortPrbsState(PortID portId) {
@@ -2266,7 +2358,11 @@ void SaiPortManager::updateStats(
   const auto& asic = platform_->getAsic();
   if (updateCableLengths && isPortUp(portId) &&
       (portType == cfg::PortType::FABRIC_PORT ||
-       portType == cfg::PortType::HYPER_PORT_MEMBER) &&
+       portType == cfg::PortType::HYPER_PORT_MEMBER
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+       || portType == cfg::PortType::INTERFACE_PORT
+#endif
+       ) &&
       asic->isSupported(HwAsic::Feature::CABLE_PROPOGATION_DELAY)) {
     bool cableLenAvailableOnPort = true;
     if (asic->getSwitchType() == cfg::SwitchType::FABRIC &&
@@ -2301,7 +2397,8 @@ void SaiPortManager::updateStats(
                 SaiPortTraits::Attributes::CablePropogationDelayNS{});
         cablePropogationDelayNS = std::max(
             cablePropogationDelayNS -
-                getWorstCaseAssumedOpticsDelayNS(*platform_->getAsic()),
+                getWorstCaseAssumedOpticsDelayNS(
+                    *platform_->getAsic(), portType),
             0);
         // In fiber it takes about 5ns for light to travel 1 meter
         curPortStats.cableLengthMeters() =
@@ -2426,6 +2523,56 @@ std::shared_ptr<MultiSwitchPortMap> SaiPortManager::reconstructPortsFromStore(
     portMap->addNode(port, scopeResolver->scope(port));
   }
   return portMap;
+}
+
+template <typename SaiPortAttribute>
+void SaiPortManager::setPortQosBufferProfiles(
+    const PortID& portID,
+    const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+        bufferProfileHandles,
+    const char* direction) {
+  auto portHandle = getPortHandle(portID);
+  if (!portHandle) {
+    XLOG(ERR) << "Port handle not found for port " << portID << ", skipping "
+              << direction << " buffer profile configuration";
+    return;
+  }
+  if (!portHandle->port) {
+    XLOG(ERR) << "Port object is null for port " << portID << ", skipping "
+              << direction << " buffer profile configuration";
+    return;
+  }
+  std::vector<sai_object_id_t> bufferProfileIds;
+  bufferProfileIds.reserve(bufferProfileHandles.size());
+  for (const auto& handle : bufferProfileHandles) {
+    if (!handle) {
+      XLOG(ERR) << "Null buffer profile handle found for port " << portID
+                << ", skipping";
+      continue;
+    }
+    bufferProfileIds.push_back(handle->adapterKey());
+  }
+  if (!bufferProfileIds.empty()) {
+    portHandle->port->setOptionalAttribute(SaiPortAttribute{bufferProfileIds});
+  }
+}
+
+void SaiPortManager::setPortQosEgressBufferProfiles(
+    const PortID& portID,
+    const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+        bufferProfileHandles) {
+  setPortQosBufferProfiles<
+      SaiPortTraits::Attributes::QosEgressBufferProfileList>(
+      portID, bufferProfileHandles, "egress");
+}
+
+void SaiPortManager::setPortQosIngressBufferProfiles(
+    const PortID& portID,
+    const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+        bufferProfileHandles) {
+  setPortQosBufferProfiles<
+      SaiPortTraits::Attributes::QosIngressBufferProfileList>(
+      portID, bufferProfileHandles, "ingress");
 }
 
 void SaiPortManager::setQosMapsOnPort(

@@ -15,6 +15,8 @@
 #include <shared_mutex>
 
 DECLARE_int32(fsdb_publisher_heartbeat_interval_secs);
+DECLARE_int32(publish_queue_memory_limit_mb);
+DECLARE_int32(publish_queue_full_min_updates);
 
 namespace facebook::fboss::fsdb {
 template <typename PubUnit>
@@ -122,10 +124,19 @@ class FsdbPublisher : public FsdbStreamClient {
     return true;
   }
 
+  virtual size_t getPubUnitSize(const PubUnit& /* pubUnit */) {
+    // default: no accounting
+    return 0;
+  }
+
   const std::vector<std::string> publishPath_;
   std::atomic<bool> initialSyncComplete_{false};
   std::atomic<uint64_t> lastConfirmedAt_{0};
   fb303::ThreadCachedServiceData::TLTimeseries chunksWritten_;
+  std::atomic<uint64_t> enqueuedDataSize_{0};
+  std::atomic<uint64_t> servedDataSize_{0};
+  const int64_t publishQueueMemoryLimit_{
+      FLAGS_publish_queue_memory_limit_mb * 1024 * 1024};
 
  private:
   void scheduleHeartbeatLoop();

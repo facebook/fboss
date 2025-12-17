@@ -152,7 +152,7 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::serveStream(
       case SubscriberMessage::Type::heartbeat:
         if (message->get_heartbeat().metadata().has_value()) {
           this->onChunkReceived(
-              false, message->get_heartbeat().metadata().value());
+              true, message->get_heartbeat().metadata().value());
         } else {
           this->onChunkReceived(true, std::nullopt);
         }

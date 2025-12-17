@@ -56,7 +56,8 @@ void SaiPortManager::changePortByRecreate(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
   // If YUBA, disable port before recreating
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
     SaiPortTraits::Attributes::AdminState adminDisable{false};
     SaiPortHandle* portHandle = getPortHandle(oldPort->getID());
     SaiApiTable::getInstance()->portApi().setAttribute(
@@ -65,7 +66,8 @@ void SaiPortManager::changePortByRecreate(
 
   // If YUBA and new or old port has 100G, we will delete/remove both/all ports
   // in the group and add/create back both/all ports in the group.
-  if ((platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) &&
+  if ((platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) &&
       (newPort->getProfileID() ==
            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL ||
        oldPort->getProfileID() ==

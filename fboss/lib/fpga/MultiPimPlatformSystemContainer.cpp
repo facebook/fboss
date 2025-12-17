@@ -39,7 +39,17 @@ void MultiPimPlatformSystemContainer::setPimContainer(
 std::map<int, PimState> MultiPimPlatformSystemContainer::getPimStates() const {
   std::map<int, PimState> pimStates;
   for (auto& [pimId, pimContainer] : pims_) {
-    pimStates.emplace(pimId, pimContainer->getPimState());
+    // Collecting errors from PimContainer-level functions.
+    auto pimState = pimContainer->getPimState();
+
+    // Collecting errors from SystemContainer-level functions.
+    try {
+      getPimType(pimId);
+    } catch (const FbossError& /* e */) {
+      pimState.errors()->push_back(PimError::PIM_GET_TYPE_FAILED);
+    }
+
+    pimStates.emplace(pimId, std::move(pimState));
   }
   return pimStates;
 }

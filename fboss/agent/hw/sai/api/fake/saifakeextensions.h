@@ -121,10 +121,21 @@ typedef enum _sai_tam_event_extensions_attr_t {
   SAI_TAM_EVENT_ATTR_FAKE_SWITCH_EVENT_ID,
   SAI_TAM_EVENT_ATTR_FAKE_EXTENSIONS_COLLECTOR_LIST,
   SAI_TAM_EVENT_ATTR_FAKE_PACKET_DROP_TYPE_MMU,
+  SAI_TAM_EVENT_ATTR_FAKE_PACKET_DROP_TYPE_INGRESS,
   SAI_TAM_EVENT_ATTR_FAKE_AGING_GROUP,
   SAI_TAM_TRANSPORT_ATTR_FAKE_SRC_MAC_ADDRESS = SAI_TAM_TRANSPORT_ATTR_END,
   SAI_TAM_TRANSPORT_ATTR_FAKE_DST_MAC_ADDRESS,
 } sai_tam_event_extensions_attr_t;
+
+typedef enum _sai_hostif_packet_extensions_attr_t {
+  SAI_HOSTIF_PACKET_ATTR_PACKET_TYPE =
+      SAI_HOSTIF_PACKET_ATTR_CUSTOM_RANGE_START,
+} sai_hostif_packet_extensions_attr_t;
+
+typedef enum _sai_hostif_packet_type_t {
+  SAI_HOSTIF_PACKET_TYPE_DEFAULT = 0,
+  SAI_HOSTIF_PACKET_TYPE_LINK_MONITORING = 1,
+} sai_hostif_packet_type_t;
 
 typedef enum _sai_port_extensions_attr_t {
   SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID = SAI_PORT_ATTR_CUSTOM_RANGE_START,

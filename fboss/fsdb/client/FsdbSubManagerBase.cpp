@@ -80,7 +80,8 @@ SubscriptionKey FsdbSubManagerBase::addExtendedPathImpl(
 
 void FsdbSubManagerBase::subscribeImpl(
     std::function<void(SubscriberChunk&&)> chunkHandler,
-    std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb) {
+    std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb,
+    std::optional<FsdbStreamHeartbeatCb> heartbeatCb) {
   CHECK(!subscriber_) << "Cannot subscribe twice";
   CHECK(!extSubscriber_) << "Cannot subscribe twice";
   if (!subscribePaths_.empty()) {
@@ -90,7 +91,9 @@ void FsdbSubManagerBase::subscribeImpl(
         subscriberEvb_,
         reconnectEvb_,
         std::move(chunkHandler),
-        std::move(subscriptionStateChangeCb));
+        std::move(subscriptionStateChangeCb),
+        std::nullopt,
+        std::move(heartbeatCb));
     subscriber_->setConnectionOptions(connectionOptions_);
   } else {
     CHECK(!extSubscribePaths_.empty()) << "No paths to subscribe to";
@@ -100,7 +103,9 @@ void FsdbSubManagerBase::subscribeImpl(
         subscriberEvb_,
         reconnectEvb_,
         std::move(chunkHandler),
-        std::move(subscriptionStateChangeCb));
+        std::move(subscriptionStateChangeCb),
+        std::nullopt,
+        std::move(heartbeatCb));
     extSubscriber_->setConnectionOptions(connectionOptions_);
   }
 }

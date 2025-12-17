@@ -20,11 +20,11 @@ cpp_binary(
         "broadcom-plp-millenio": "5.5",
     },
     deps = [
-        ":core-credo-0.7.2",
+        ":core-credo-0.7.2",  # @manual
         ":handler",
         ":port-manager",
         ":stats",
-        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
+        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",  # @manual
         "//folly/executors:function_scheduler",
         "//folly/logging:init",
         "//thrift/lib/cpp2:server",
@@ -60,7 +60,7 @@ cpp_library(
 cpp_library(
     name = "core-default",
     exported_deps = [
-        ":core-credo-0.7.2",
+        ":core-credo-0.7.2",  # @manual
     ],
 )
 
@@ -134,6 +134,7 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/fsdb/common:flags",
+        "//fboss/lib:alert_logger",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:thread_heartbeat",
         "//fboss/lib/config:fboss_config_utils",

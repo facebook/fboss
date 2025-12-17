@@ -709,7 +709,6 @@
               ]
             }
           ],
-          "ledCtrlConfigs": [],
           "ledCtrlBlockConfigs": [
             {
               "pmUnitScopedNamePrefix": "SMB_LED",
@@ -728,7 +727,6 @@
               "startPort": 33
             }
           ],
-          "xcvrCtrlConfigs": [],
           "xcvrCtrlBlockConfigs": [
             {
               "pmUnitScopedNamePrefix": "SMB_DOM",

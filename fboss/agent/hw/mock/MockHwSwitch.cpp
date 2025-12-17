@@ -58,7 +58,7 @@ MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
       .WillByDefault(
           [=](TxPacket* pkt,
               const PortID& /*port*/,
-              TxPacketType /*packetType*/) -> bool {
+              PacketType /*packetType*/) -> bool {
             delete pkt;
             return true;
           });
@@ -121,7 +121,7 @@ bool MockHwSwitch::sendPacketOutOfPortSync(
 bool MockHwSwitch::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> pkt,
     const facebook::fboss::PortID& portID,
-    facebook::fboss::TxPacketType packetType) noexcept {
+    facebook::fboss::PacketType packetType) noexcept {
   TxPacket* raw(pkt.release());
   sendPacketOutOfPortSyncForPktType_(raw, portID, packetType);
   return true;

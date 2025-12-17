@@ -40,7 +40,7 @@ MinipackSystemContainer::MinipackSystemContainer(
 }
 
 MultiPimPlatformPimContainer::PimType MinipackSystemContainer::getPimType(
-    int pim) {
+    int pim) const {
   static constexpr auto kMinipack16QPimVal = 0xA3000000;
   static constexpr auto kMinipack16OPimVal = 0xA5000000;
 

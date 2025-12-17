@@ -221,10 +221,16 @@ void SaiSwitch::checkAndSetSdkDowngradeVersion() const {
 
 void SaiSwitch::initTechSupport() {}
 
+PacketType getReceivedPacketType(int32_t packetType) {
+  throw FbossError(
+      "Received packet type conversion is unsupported for Tajo platform: ",
+      packetType);
+}
+
 bool SaiSwitch::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> /*pkt*/,
     const PortID& /*portID*/,
-    TxPacketType /*packetType*/) {
+    PacketType /*packetType*/) {
   throw FbossError("Sending packet over fabric is unsupported for platform!");
 }
 } // namespace facebook::fboss

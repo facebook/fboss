@@ -301,8 +301,8 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
     qsfpServiceHandler->refreshStateMachines();
     auto portsForFwUpgrade = wedgeMgr->getPortsRequiringOpticsFwUpgrade();
     std::vector<std::string> fwUpgradePorts;
-    for (auto& [portName, _] : portsForFwUpgrade) {
-      fwUpgradePorts.push_back(portName);
+    for (auto& [port, _] : portsForFwUpgrade) {
+      fwUpgradePorts.push_back(port);
     }
     EXPECT_TRUE(portsForFwUpgrade.empty())
         << "Some modules still require firmware upgrade: " +

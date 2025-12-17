@@ -102,6 +102,9 @@ struct fbiob_aux_data getFbiobAuxData(const AuxData& auxDevice, int32_t id) {
     case AuxDeviceType::GPIO:
       // Do nothing
       break;
+    case AuxDeviceType::SYSLED:
+      // Do nothing
+      break;
   }
 
   return auxData;

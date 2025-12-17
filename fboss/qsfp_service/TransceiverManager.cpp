@@ -11,6 +11,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/fsdb/common/Flags.h"
+#include "fboss/lib/AlertLogger.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -290,7 +291,7 @@ void TransceiverManager::init() {
   startThreads();
 
   // Initialize the PhyManager all ExternalPhy for the system
-  initExternalPhyMap();
+  initExternalPhyMap(phyManager_.get());
   // Initialize the I2c bus
   initTransceiverMap();
 
@@ -565,7 +566,10 @@ TransceiverManager::triggerAllOpticsFwUpgrade() {
   for (const auto& [portName, _] : portsForFwUpgrade) {
     if (portNameToModule_.find(portName) != portNameToModule_.end()) {
       auto tcvrID = TransceiverID(portNameToModule_[portName]);
-      FW_LOG(INFO, tcvrID) << "Selected for FW upgrade";
+      XLOG(INFO)
+          << FirmwareUpgradeAlert()
+          << "Selected for firmware upgrade through triggerAllOpticsFwUpgrade cli"
+          << TransceiverParam(tcvrID) << PortParam(portName);
       tcvrsToUpgradeWLock->insert(TransceiverID(portNameToModule_[portName]));
     }
   }
@@ -817,9 +821,11 @@ void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
     return;
   }
   auto& tcvr = *tcvrIt->second;
-  FW_LOG(INFO, tcvrID)
-      << "Triggering Transceiver Firmware Upgrade for Part Number="
-      << tcvr.getPartNumber();
+  auto portName = getPortName(tcvrID);
+  XLOG(INFO) << FirmwareUpgradeAlert()
+             << "Starting firmware upgrade attempt for"
+             << TransceiverParam(tcvrID) << PortParam(portName)
+             << " Part Number=" << tcvr.getPartNumber();
 
   auto updateStateInFsdb = [&](bool status) {
     if (FLAGS_publish_stats_to_fsdb) {
@@ -831,8 +837,12 @@ void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
   updateStateInFsdb(true);
   if (upgradeFirmware(*tcvrIt->second)) {
     bumpSuccessfulFwUpgrade();
+    XLOG(INFO) << FirmwareUpgradeAlert() << "Firmware upgrade SUCCESSFUL for"
+               << TransceiverParam(tcvrID) << PortParam(portName);
   } else {
     bumpFailedFwUpgrade();
+    XLOG(ERR) << FirmwareUpgradeAlert() << "Firmware upgrade FAILED for"
+              << TransceiverParam(tcvrID) << PortParam(portName);
   }
   // We will leave the fwUpgradeStatus as true for now because we still have a
   // lot to do after upgrading the firmware. The optic goes through reset, the
@@ -1397,30 +1407,39 @@ std::optional<TransceiverInfo> TransceiverManager::getTransceiverInfoOptional(
 }
 
 TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) const {
-  const auto& tcvrInfo = getTransceiverInfoOptional(id);
-  if (tcvrInfo) {
-    return *tcvrInfo;
+  TransceiverInfo tcvrInfo;
+  const auto& cachedTcvrInfo = getTransceiverInfoOptional(id);
+  if (cachedTcvrInfo) {
+    tcvrInfo = *cachedTcvrInfo;
   } else {
-    TransceiverInfo absentTcvr;
-    absentTcvr.tcvrState()->present() = false;
-    absentTcvr.tcvrState()->port() = id;
+    tcvrInfo.tcvrState()->present() = false;
+    tcvrInfo.tcvrState()->port() = id;
 
-    auto interfaces = getPortNames(id);
-    absentTcvr.tcvrState()->interfaces() = interfaces;
-    absentTcvr.tcvrStats()->interfaces() = interfaces;
+    const auto& interfaces = getPortNames(id);
+    tcvrInfo.tcvrState()->interfaces() = interfaces;
+    tcvrInfo.tcvrStats()->interfaces() = interfaces;
 
-    std::string tcvrName = getTransceiverName(id);
-    absentTcvr.tcvrState()->tcvrName() = tcvrName;
-    absentTcvr.tcvrStats()->tcvrName() = tcvrName;
+    const std::string& tcvrName = getTransceiverName(id);
+    tcvrInfo.tcvrState()->tcvrName() = tcvrName;
+    tcvrInfo.tcvrStats()->tcvrName() = tcvrName;
 
-    absentTcvr.tcvrState()->timeCollected() = std::time(nullptr);
-    absentTcvr.tcvrStats()->timeCollected() = std::time(nullptr);
+    tcvrInfo.tcvrState()->timeCollected() = std::time(nullptr);
+    tcvrInfo.tcvrStats()->timeCollected() = std::time(nullptr);
 
     // To avoid reporting false checksum-invalid on absent transceivers,
     // we set the checksum to a valid.
-    absentTcvr.tcvrState()->eepromCsumValid() = true;
-    return absentTcvr;
+    tcvrInfo.tcvrState()->eepromCsumValid() = true;
   }
+
+  // set the communicationError flag if i2c errors made us fail to collect data
+  // during the previous polling cycle
+  // TODO(T243916924): This is very hacky, in the future we should probably
+  // refactor how we handle !present tcvrs/tcvrs with i2c errors
+  auto erroredTransceivers = erroredTransceivers_.rlock();
+  tcvrInfo.tcvrState()->communicationError() =
+      erroredTransceivers->find(id) != erroredTransceivers->end();
+
+  return tcvrInfo;
 }
 
 /*
@@ -1690,6 +1709,15 @@ void TransceiverManager::resetPortState(const TransceiverID& id) {
   }
 }
 
+void TransceiverManager::getPortTransceiverIDs(
+    std::map<std::string, std::vector<int32_t>>& portTransceiverIds) const {
+  for (const auto& [portName, tcvrId] : portNameToModule_) {
+    // TODO: Handle multi-transceiver ports. portNameToModule_ only includes one
+    // transceiver per port
+    portTransceiverIds[portName].push_back(tcvrId);
+  }
+}
+
 void TransceiverManager::publishPortStatesToFsdb(
     const TransceiverID& id,
     const portstate::PortState& state) {
@@ -1862,6 +1890,11 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
                     cachedPortInfoIt->second.status->operState &&
                     !portStatusIt->second.operState) {
                   tcvrsForFwUpgrade.insert(tcvrID);
+                  auto portName = getPortName(tcvrID);
+                  XLOG(INFO)
+                      << FirmwareUpgradeAlert()
+                      << "Selected for potential firmware upgrade due to link down event"
+                      << TransceiverParam(tcvrID) << PortParam(portName);
                 }
               }
               cachedPortInfoIt->second.status.emplace(portStatusIt->second);
@@ -2246,9 +2279,10 @@ TransceiverManager::findPotentialTcvrsForFirmwareUpgrade(
       if (FLAGS_firmware_upgrade_on_coldboot && firstRefreshAfterColdboot) {
         // First refresh after cold boot and module is still in
         // discovered state
-        XLOG(INFO)
-            << "Transceiver " << static_cast<int>(tcvrId)
-            << " just did a cold boot and is still in discovered state, adding it to list of potentialTcvrsForFwUpgrade";
+        auto portName = getPortName(tcvrId);
+        XLOG(INFO) << FirmwareUpgradeAlert()
+                   << "Selected for potential FW upgrade due to coldboot"
+                   << TransceiverParam(tcvrId) << PortParam(portName);
         potentialTcvrsForFwUpgrade.insert(tcvrId);
       } else if (FLAGS_firmware_upgrade_on_tcvr_insert) {
         if (FLAGS_port_manager_mode) {
@@ -2268,9 +2302,11 @@ TransceiverManager::findPotentialTcvrsForFirmwareUpgrade(
                 newTransceiverInsertedAfterInit)) {
           // Not the first refresh but the module is in discovered state and
           // was just inserted
+          auto portName = getPortName(tcvrId);
           XLOG(INFO)
-              << "Transceiver " << static_cast<int>(tcvrId)
-              << " is in DISCOVERED state and was recently inserted, adding it to list of potentialTcvrsForFwUpgrade";
+              << FirmwareUpgradeAlert()
+              << "Selected for potential firmware upgrade due to optics insertion"
+              << TransceiverParam(tcvrId) << PortParam(portName);
           potentialTcvrsForFwUpgrade.insert(tcvrId);
         }
       }
@@ -2849,6 +2885,11 @@ void TransceiverManager::setCanWarmBoot() {
 }
 
 void TransceiverManager::restoreWarmBootPhyState() {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("restoreWarmbootPhyState");
+    return;
+  }
+
   // Only need to restore warm boot state if this is a warm boot
   if (!canWarmBoot_) {
     XLOG(INFO) << "[Cold Boot] No need to restore warm boot state";
@@ -3209,7 +3250,7 @@ Transceiver* FOLLY_NULLABLE TransceiverManager::overrideTransceiverForTesting(
 std::vector<TransceiverID> TransceiverManager::refreshTransceivers(
     const std::unordered_set<TransceiverID>& transceivers) {
   std::vector<TransceiverID> transceiverIds;
-  std::vector<folly::Future<folly::Unit>> futs;
+  std::vector<folly::Future<bool>> futs;
 
   {
     auto lockedTransceivers = transceivers_.rlock();
@@ -3231,6 +3272,20 @@ std::vector<TransceiverID> TransceiverManager::refreshTransceivers(
     }
 
     folly::collectAll(futs.begin(), futs.end()).wait();
+    // If refresh() was successful, remove the tcvr from erroredTransceivers_
+    // otherwise, add it to erroredTransceivers_
+    CHECK_EQ(transceiverIds.size(), futs.size());
+    auto erroredTransceivers = erroredTransceivers_.wlock();
+    for (auto i = 0; i < transceiverIds.size(); i++) {
+      const auto& id = transceiverIds[i];
+      const auto& fut = futs[i];
+      if (fut.hasValue() && fut.value()) {
+        erroredTransceivers->erase(id);
+      } else {
+        erroredTransceivers->insert(id);
+      }
+    }
+
     XLOG(INFO) << "Finished refreshing " << nTransceivers << " transceivers";
   }
 
@@ -3523,8 +3578,8 @@ void TransceiverManager::getSymbolErrorHistogram(
 std::map<uint32_t, phy::PhyIDInfo> TransceiverManager::getAllPortPhyInfo() {
   std::map<uint32_t, phy::PhyIDInfo> resultMap;
 
-  auto allPlatformPortsIt = platformMapping_->getPlatformPorts();
-  for (auto platformPortIt : allPlatformPortsIt) {
+  const auto& allPlatformPortsIt = platformMapping_->getPlatformPorts();
+  for (const auto& platformPortIt : allPlatformPortsIt) {
     auto portId = platformPortIt.first;
     GlobalXphyID xphyId;
     try {

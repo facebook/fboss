@@ -37,8 +37,11 @@ const std::vector<std::pair<std::string, std::function<void(Utils&)>>>
         {"fan", [](Utils& util) { util.printFanDetails(); }},
         {"fanspinner", [](Utils& util) { util.printFanspinnerDetails(); }},
         {"gpio", [](Utils& util) { util.printGpioDetails(); }},
-        {"i2c", [](Utils& util) { util.printI2cDetails(); }},
-        {"i2cdump", [](Utils& util) { util.printI2cDumpDetails(); }},
+        /* Removing i2cdetect and i2cdumpdevices, as it causes some
+         * devices (SiLab clock chip) in some platforms (KO3) go bad.
+         */
+        // {"i2c", [](Utils& util) { util.printI2cDetails(); }},
+        // {"i2cdump", [](Utils& util) { util.printI2cDumpDetails(); }},
         {"nvme", [](Utils& util) { util.printNvmeDetails(); }},
         {"logs", [](Utils& util) { util.printLogs(); }},
 };

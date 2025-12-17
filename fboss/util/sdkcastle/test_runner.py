@@ -17,13 +17,18 @@ from .config import (
     AgentTestsSpec,
     AsicTestOptions,
     BenchmarkTestsSpec,
+    ConfigTestsSpec,
     HwTestsSpec,
     LinkTestsSpec,
     NWarmbootTestsSpec,
     SdkcastleSpec,
-    SpecTestsSpec,
 )
-from .constants import BRCM_DNX_ASICS, J3AI_REV_NOT_A0, TEST_TYPE_TEAM_MAPPING
+from .constants import (
+    BENCHMARK_ASIC_CONFIG,
+    BRCM_DNX_ASICS,
+    J3AI_REV_NOT_A0,
+    TEST_TYPE_TEAM_MAPPING,
+)
 from .enums import AsicType, TestRunnerMode
 
 
@@ -83,7 +88,7 @@ class BaseTestRunner(ABC):
     @abstractmethod
     def build_config_test_commands(
         self,
-        config_test: SpecTestsSpec,
+        config_test: ConfigTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
     ) -> List[Tuple[List[str], str]]:
@@ -165,12 +170,15 @@ class NetcastleTestRunner(BaseTestRunner):
         if agent_test and hasattr(agent_test, "multi_stage") and agent_test.multi_stage:
             multi_stage = none_throws(agent_test.multi_stage).value
 
-        # Get ASIC string
-        asic_str = asic_type.value
+        # Get ASIC and build ASIC string
+        asic = asic_type.value
+        asic_str = asic
 
         # Build SDK version string for the test config
         if benchmark_test:
             sdk_version_str = sdk_project_version
+            if asic in BENCHMARK_ASIC_CONFIG:
+                asic_str = BENCHMARK_ASIC_CONFIG[asic]
         else:
             sdk_version_str = f"{sdk_project_version}/{sdk_project_version}"
 
@@ -181,6 +189,7 @@ class NetcastleTestRunner(BaseTestRunner):
             test_config = f"{vendor}/{sdk_version_str}/{asic_str}"
 
         # Build ASIC string
+        asic_str = asic
         if asic_str == "jericho3" and (benchmark_test or multi_stage):
             asic_str = f"{asic_str},{J3AI_REV_NOT_A0}"
 
@@ -342,7 +351,7 @@ class NetcastleTestRunner(BaseTestRunner):
 
     def build_config_test_commands(
         self,
-        config_test: SpecTestsSpec,
+        config_test: ConfigTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
     ) -> List[Tuple[List[str], str]]:
@@ -508,7 +517,7 @@ class OSSTestRunner(BaseTestRunner):
 
     def build_config_test_commands(
         self,
-        config_test: SpecTestsSpec,
+        config_test: ConfigTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
     ) -> List[Tuple[List[str], str]]:

@@ -198,6 +198,9 @@ void WedgeManager::createQsfpToBmcSyncInterface() {
   }
 }
 
+// TODO(ccpowers): we should probably modify this function signature to just
+// return the map instead of passing it as an argument. It's easy to forget to
+// clear this between calls in tests
 void WedgeManager::getTransceiversInfo(
     std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::vector<int32_t>> ids) {
@@ -753,6 +756,11 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
           if (!qsfpImpls_[idx]->detectTransceiver()) {
             XLOG(DBG3) << "Transceiver is not present. TransceiverID=" << idx;
             continue;
+          } else {
+            // If we fail to read the management interface, but the module is
+            // detected, mark it as errored
+            auto erroredTransceivers = erroredTransceivers_.wlock();
+            erroredTransceivers->insert(TransceiverID(idx));
           }
         } catch (const std::exception& ex) {
           XLOG(ERR) << "Failed to detect transceiver. TransceiverID=" << idx
@@ -997,13 +1005,10 @@ void WedgeManager::programXphyPort(
       portId, portProfileId, itTcvr, false /* needResetDataPath */);
 }
 
-bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
-  if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("initExternalPhyMap");
-    return true;
-  }
-
-  if (!phyManager_) {
+bool WedgeManager::initExternalPhyMap(
+    PhyManager* phyManager,
+    bool forceWarmboot) {
+  if (!phyManager) {
     // If there's no PhyManager for such platform, skip init xphy map
     return true;
   }
@@ -1013,7 +1018,7 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
   bool warmboot = forceWarmboot || canWarmBoot();
 
   // First call PhyManager::initExternalPhyMap() to create xphy map
-  auto rb = phyManager_->initExternalPhyMap(warmboot);
+  auto rb = phyManager->initExternalPhyMap(warmboot);
   // TODO(ccpowers): We could probably clean this up a bit to separate out the
   // warmboot file logic and the phy init logic, to make it easier to
   // init phys from external CLIs
@@ -1025,12 +1030,12 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
 
   // Check if using XPHY_LEVEL threading model
   bool useXphyLevelThreading =
-      (phyManager_->getXphyThreadingModel() ==
+      (phyManager->getXphyThreadingModel() ==
        PhyManager::XphyThreadingModel::XPHY_LEVEL);
 
-  for (int pimIndex = 0; pimIndex < phyManager_->getNumOfSlot(); ++pimIndex) {
-    auto pimID = PimID(pimIndex + phyManager_->getPimStartNum());
-    if (!phyManager_->shouldInitializePimXphy(pimID)) {
+  for (int pimIndex = 0; pimIndex < phyManager->getNumOfSlot(); ++pimIndex) {
+    auto pimID = PimID(pimIndex + phyManager->getPimStartNum());
+    if (!phyManager->shouldInitializePimXphy(pimID)) {
       XLOG(WARN) << "Skip intializing pim xphy for pim="
                  << static_cast<int>(pimID);
       continue;
@@ -1043,13 +1048,13 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
                  << " with per-xphy threading";
 
       // Get all xphys for this PIM and initialize each on its own thread
-      auto xphyIDs = phyManager_->getXphyIDsForPim(pimID);
+      auto xphyIDs = phyManager->getXphyIDsForPim(pimID);
       for (auto xphyID : xphyIDs) {
-        auto* xphyEventBase = phyManager_->getXphyEventBase(xphyID);
+        auto* xphyEventBase = phyManager->getXphyEventBase(xphyID);
         initPimTasks.push_back(
             folly::via(xphyEventBase)
-                .thenValue([&, xphyID, warmboot](auto&&) {
-                  phyManager_->initializeXphy(xphyID, warmboot);
+                .thenValue([phyManager, xphyID, warmboot](auto&&) {
+                  phyManager->initializeXphy(xphyID, warmboot);
                 })
                 .thenError(
                     folly::tag_t<std::exception>{},
@@ -1063,11 +1068,11 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
       // PIM-level initialization (legacy behavior)
       XLOG(DBG1) << "[" << (warmboot ? "WARM" : "COLD")
                  << " Boot] Initializing PIM " << static_cast<int>(pimID);
-      auto* pimEventBase = phyManager_->getPimEventBase(pimID);
+      auto* pimEventBase = phyManager->getPimEventBase(pimID);
       initPimTasks.push_back(
           folly::via(pimEventBase)
-              .thenValue([&, pimID, warmboot](auto&&) {
-                phyManager_->initializeSlotPhys(pimID, warmboot);
+              .thenValue([phyManager, pimID, warmboot](auto&&) {
+                phyManager->initializeSlotPhys(pimID, warmboot);
               })
               .thenError(
                   folly::tag_t<std::exception>{},

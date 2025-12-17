@@ -176,6 +176,9 @@ class TransceiverManager {
     forceFirmwareUpgradeForTesting_ = enable;
   }
 
+  void getPortTransceiverIDs(
+      std::map<std::string, std::vector<int32_t>>& portTransceiverIds) const;
+
   /*
    * A function take a parameter representing number of seconds,
    * adding it to the time point of now and assign it to
@@ -247,7 +250,9 @@ class TransceiverManager {
    * TransceiverManager family won't call this function directly. Instead they
    * should use init() directly
    */
-  virtual bool initExternalPhyMap(bool forceWarmboot = false) = 0;
+  virtual bool initExternalPhyMap(
+      PhyManager* phyManager,
+      bool forceWarmboot = false) = 0;
 
   PhyManager* getPhyManager() {
     return phyManager_.get();
@@ -900,6 +905,8 @@ class TransceiverManager {
   PortNameIdMap portNameToPortID_;
 
   TcvrIdToTcvrNameMap tcvrIdToTcvrName_;
+
+  folly::Synchronized<std::unordered_set<TransceiverID>> erroredTransceivers_;
 
   struct SwPortInfo {
     std::optional<TransceiverID> tcvrID;

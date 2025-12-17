@@ -80,6 +80,11 @@ SaiTamEventTraits::Attributes::AttributePacketDropTypeMmu::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributePacketDropTypeIngress::operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_PACKET_DROP_TYPE_INGRESS;
+}
+
+std::optional<sai_attr_id_t>
 SaiTamEventTraits::Attributes::AttributeAgingGroup::operator()() {
   return SAI_TAM_EVENT_ATTR_FAKE_AGING_GROUP;
 }
@@ -449,7 +454,12 @@ SaiSwitchTraits::Attributes::AttributeNoAclsForTrapsWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiTxPacketTraits::Attributes::AttributePacketType::operator()() {
-  return std::nullopt;
+  return SAI_HOSTIF_PACKET_ATTR_PACKET_TYPE;
+}
+
+std::optional<sai_attr_id_t>
+SaiRxPacketTraits::Attributes::AttributePacketType::operator()() {
+  return SAI_HOSTIF_PACKET_ATTR_PACKET_TYPE;
 }
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {

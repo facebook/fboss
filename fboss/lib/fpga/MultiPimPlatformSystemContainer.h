@@ -35,7 +35,7 @@ class MultiPimPlatformSystemContainer {
     return fpgaDevice_.get();
   }
 
-  virtual uint32_t getPimOffset(int pim) = 0;
+  virtual uint32_t getPimOffset(int pim) const = 0;
 
   virtual uint8_t getPimStartNum() const = 0;
 
@@ -48,7 +48,7 @@ class MultiPimPlatformSystemContainer {
 
   virtual MultiPimPlatformPimContainer* getPimContainer(int pim) const;
 
-  virtual MultiPimPlatformPimContainer::PimType getPimType(int pim) = 0;
+  virtual MultiPimPlatformPimContainer::PimType getPimType(int pim) const = 0;
 
   size_t getNumPims() const {
     return pims_.size();

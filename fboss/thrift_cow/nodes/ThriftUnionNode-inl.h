@@ -107,7 +107,7 @@ struct MemberReset {
 
 template <typename Name>
 std::string nameString() {
-  return std::string(fatal::z_data<Name>(), fatal::size<Name>::value);
+  return std::string(fatal::z_data<Name>());
 }
 
 } // namespace union_helpers

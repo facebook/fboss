@@ -305,7 +305,7 @@ bool MultiHwSwitchHandler::sendPacketSwitchedAsync(
 bool MultiHwSwitchHandler::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> pkt,
     const PortID& portID,
-    TxPacketType packetType) noexcept {
+    PacketType packetType) noexcept {
   CHECK_GE(hwSwitchSyncers_.size(), 1);
   // use first available connected switch to send pkt
   for (auto& hwSwitchHandler : hwSwitchSyncers_) {

@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
       pmunitName,
       "PmUnit name to compare versioned sensors for (optional, compares all if not specified)");
 
-  auto* configGroup = app.add_option_group(
+  auto configGroup = app.add_option_group(
       "Config Source (one required)",
       "Specify either platform name or config file path");
 

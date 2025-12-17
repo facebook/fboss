@@ -2,6 +2,11 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
 
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace py neteng.fboss.test.production_features
 namespace py3 neteng.fboss.test
 namespace py.asyncio neteng.fboss.test.asyncio.production_features
@@ -105,6 +110,8 @@ enum ProductionFeature {
   PFC_RX_DURATION = 92,
   PFC_TX_DURATION = 93,
   L2_QOS = 94,
+  MIRROR_ON_DROP_DNX = 95,
+  MIRROR_ON_DROP_XGS = 96,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

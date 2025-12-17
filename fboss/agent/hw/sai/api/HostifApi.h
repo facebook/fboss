@@ -182,16 +182,25 @@ struct SaiRxPacketTraits {
         EnumType,
         SAI_HOSTIF_PACKET_ATTR_INGRESS_LAG,
         SaiObjectIdT>;
+    struct AttributePacketType {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PacketType = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributePacketType,
+        SaiIntDefault<sai_int32_t>>;
   };
   using RxAttributes = std::tuple<
       Attributes::TrapId,
       Attributes::IngressPort,
-      Attributes::IngressLag>;
+      Attributes::IngressLag,
+      std::optional<Attributes::PacketType>>;
 };
 
 SAI_ATTRIBUTE_NAME(RxPacket, TrapId)
 SAI_ATTRIBUTE_NAME(RxPacket, IngressPort)
 SAI_ATTRIBUTE_NAME(RxPacket, IngressLag)
+SAI_ATTRIBUTE_NAME(RxPacket, PacketType)
 
 struct SaiHostifApiPacket {
   void* buffer;

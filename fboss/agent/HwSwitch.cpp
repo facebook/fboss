@@ -173,7 +173,7 @@ void HwSwitch::switchRunStateChanged(SwitchRunState newState) {
 bool HwSwitch::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> /*pkt*/,
     const PortID& /*portID*/,
-    TxPacketType /*packetType*/) {
+    PacketType /*packetType*/) {
   throw FbossError("Sending packet over fabric is unsupported for platform!");
 }
 

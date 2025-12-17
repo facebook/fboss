@@ -57,6 +57,12 @@ DEFINE_dynamic_quantile_stat(
     std::array<double, 1>{{1.0}});
 
 namespace {
+#if defined(CHENAB_SAI_SDK)
+// Buffer size (39 KB) to accommodate pipeline latency for lossy PGs
+// from AR / ACLs in Chenab.
+constexpr uint32_t kChenabPgBufferForPipelineLatencyInBytes = 39 * 1024;
+#endif
+
 uint64_t getSwitchEgressPoolAvailableSize(const SaiPlatform* platform) {
   auto saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());
   const auto switchId = saiSwitch->getSaiSwitchId();
@@ -89,6 +95,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       XLOG(FATAL) << " Not supported";
       break;
     case cfg::AsicType::ASIC_TYPE_FAKE:
@@ -142,6 +149,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       /* TODO(pshaikh): Chenab, define pool size */
       return asic->getMMUSizeBytes();
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK: {
@@ -873,10 +881,13 @@ SaiBufferManager::ingressProfileCreateAttrs(
       typename BufferProfileTraits::Attributes::PgPipelineLatencyBytes>
       pgPipelineLatencyBytes;
 #if defined(CHENAB_SAI_SDK)
-  // For lossy PGs, explicitly configure an additional buffering
-  // of 39KB to compensate for the pipeline latency from AR / ACLs.
-  if (*config.headroomLimitBytes() == 0) {
-    pgPipelineLatencyBytes = 39 * 1024;
+  // Additional buffering to compensate for pipeline latency in Chenab
+  // for lossy PGs.
+  if (!config.headroomLimitBytes().has_value() ||
+      *config.headroomLimitBytes() == 0) {
+    pgPipelineLatencyBytes = kChenabPgBufferForPipelineLatencyInBytes;
+  } else {
+    pgPipelineLatencyBytes = 0;
   }
 #endif
   if constexpr (std::is_same_v<
@@ -1034,5 +1045,78 @@ void SaiBufferManager::publishPgWatermarks(
       pgHeadroomBytes, portName, folly::to<std::string>("pg", pg));
   STATS_buffer_watermark_pg_shared.addValue(
       pgSharedBytes, portName, folly::to<std::string>("pg", pg));
+}
+
+std::shared_ptr<SaiBufferProfileHandle>
+SaiBufferManager::getOrCreatePortProfile(
+    SaiDynamicBufferProfileTraits::Attributes::PoolId pool,
+    cfg::MMUScalingFactor scalingFactor,
+    int reservedSizeBytes) {
+  // Create a PortQueue with the params of interest
+  PortQueue portProfileParams;
+  portProfileParams.setReservedBytes(reservedSizeBytes);
+  portProfileParams.setScalingFactor(scalingFactor);
+
+  // The buffer profile to apply on port is a base profile with just
+  // the scaling factor, reserved size and pool ID specified. Using
+  // the existing profile creation flow for egress queues to create
+  // this profile.
+  auto attributes = profileCreateAttrs<SaiDynamicBufferProfileTraits>(
+      pool, portProfileParams, cfg::PortType::INTERFACE_PORT);
+  SaiDynamicBufferProfileTraits::AdapterHostKey k = tupleProjection<
+      SaiDynamicBufferProfileTraits::CreateAttributes,
+      SaiDynamicBufferProfileTraits::AdapterHostKey>(attributes);
+
+  auto& store = saiStore_->get<SaiDynamicBufferProfileTraits>();
+  return std::make_shared<SaiBufferProfileHandle>(
+      store.setObject(k, attributes));
+}
+
+std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+SaiBufferManager::getIngressPortBufferProfiles(
+    cfg::MMUScalingFactor scalingFactor,
+    int reservedSizeBytes) {
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>> profileHandles;
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT)) {
+    auto ingressBufferPoolHandle = getIngressBufferPoolHandle();
+    if (ingressBufferPoolHandle) {
+      SaiDynamicBufferProfileTraits::Attributes::PoolId pool{
+          ingressBufferPoolHandle->bufferPool->adapterKey()};
+      profileHandles.emplace_back(
+          getOrCreatePortProfile(pool, scalingFactor, reservedSizeBytes));
+    }
+  }
+  return profileHandles;
+}
+std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+SaiBufferManager::getEgressPortBufferProfiles(
+    cfg::MMUScalingFactor losslessScalingFactor,
+    cfg::MMUScalingFactor lossyScalingFactor,
+    int reservedSizeBytes) {
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>> profileHandles;
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT)) {
+    for (const auto& egressPoolHdl : egressBufferPoolHandle_) {
+      // TODO(nivinl): Look for a better way to identify lossy and lossless
+      // egress pools
+      cfg::MMUScalingFactor scalingFactor;
+      if (egressPoolHdl.first == "egress_lossless_pool") {
+        scalingFactor = losslessScalingFactor;
+      } else if (
+          egressPoolHdl.first == "egress_lossy_pool" ||
+          egressPoolHdl.first == "default") {
+        scalingFactor = lossyScalingFactor;
+      } else {
+        throw FbossError(
+            "Pool name handling is not in place for ", egressPoolHdl.first);
+      }
+      SaiDynamicBufferProfileTraits::Attributes::PoolId pool{
+          egressPoolHdl.second->bufferPool->adapterKey()};
+      profileHandles.emplace_back(
+          getOrCreatePortProfile(pool, scalingFactor, reservedSizeBytes));
+    }
+  }
+  return profileHandles;
 }
 } // namespace facebook::fboss

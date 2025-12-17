@@ -10,7 +10,6 @@
 
 #include "fboss/agent/hw/sai/switch/SaiArsProfileManager.h"
 
-#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace facebook::fboss {

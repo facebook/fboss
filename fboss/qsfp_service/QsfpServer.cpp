@@ -21,7 +21,8 @@ setupThriftServer(
     std::unique_ptr<WedgeManager> tcvrManager,
     std::unique_ptr<PortManager> portManager) {
   // Create Platform specific FbossMacsecHandler object
-  auto macsecHandler = createFbossMacsecHandler(tcvrManager.get());
+  auto macsecHandler =
+      createFbossMacsecHandler(portManager.get(), tcvrManager.get());
 
   auto handler = std::make_shared<QsfpServiceHandler>(
       std::move(tcvrManager), std::move(portManager), macsecHandler);

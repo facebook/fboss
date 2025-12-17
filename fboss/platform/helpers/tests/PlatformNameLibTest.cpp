@@ -32,13 +32,23 @@ TEST(PlatformNameLibTest, NameFromBios) {
   EXPECT_CALL(*platformUtils, execCommand(PlatformNameLib::dmidecodeCommand))
       .WillOnce(Return(std::pair{0, "MINIPACK3_MCB"}));
   EXPECT_EQ(platformNameLib.getPlatformNameFromBios(), "MONTBLANC");
+  // MERU variants
+  EXPECT_CALL(*platformUtils, execCommand(PlatformNameLib::dmidecodeCommand))
+      .WillOnce(Return(std::pair{0, "MERU800BIAB"}));
+  EXPECT_EQ(platformNameLib.getPlatformNameFromBios(), "MERU800BIA");
+  EXPECT_CALL(*platformUtils, execCommand(PlatformNameLib::dmidecodeCommand))
+      .WillOnce(Return(std::pair{0, "MERU800BIAC"}));
+  EXPECT_EQ(platformNameLib.getPlatformNameFromBios(), "MERU800BIA");
+  EXPECT_CALL(*platformUtils, execCommand(PlatformNameLib::dmidecodeCommand))
+      .WillOnce(Return(std::pair{0, "MERU800BIA"}));
+  EXPECT_EQ(platformNameLib.getPlatformNameFromBios(), "MERU800BIA");
   // Non-mapped
   EXPECT_CALL(*platformUtils, execCommand(PlatformNameLib::dmidecodeCommand))
       .WillOnce(Return(std::pair{0, "MORGAN800CC"}));
   EXPECT_EQ(platformNameLib.getPlatformNameFromBios(), "MORGAN800CC");
   // Error case
   EXPECT_CALL(*platformUtils, execCommand(PlatformNameLib::dmidecodeCommand))
-      .WillOnce(Return(std::pair{1, ""}));
+      .WillOnce(Return(std::pair{1, "induced_error"}));
   EXPECT_THROW(platformNameLib.getPlatformNameFromBios(), std::runtime_error);
 }
 
@@ -63,7 +73,7 @@ TEST(PlatformNameLibTest, GetPlatformNameNoCache) {
       0);
   // Failure
   EXPECT_CALL(*platformUtils, execCommand(PlatformNameLib::dmidecodeCommand))
-      .WillOnce(Return(std::pair{1, ""}));
+      .WillOnce(Return(std::pair{1, "induced_error"}));
   EXPECT_EQ(platformNameLib.getPlatformName(), std::nullopt);
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(
@@ -71,7 +81,7 @@ TEST(PlatformNameLibTest, GetPlatformNameNoCache) {
       1);
 }
 
-TEST(PlatformNameLibTest, GetPlatformNameCache) {
+TEST(PlatformNameLibTest, GetPlatformNameCacheSuccess) {
   fb303::fbData->zeroStats();
   auto tmpDir = folly::test::TemporaryDirectory();
   auto platformUtils = std::make_shared<MockPlatformUtils>();
@@ -95,9 +105,9 @@ TEST(PlatformNameLibTest, GetPlatformNameCache) {
       facebook::fb303::fbData->getCounter(
           PlatformNameLib::kPlatformNameBiosReadFailures),
       0);
-  // Further calls to dmidecode fail
+  // Should be no further calls to BIOS
   EXPECT_CALL(*platformUtils, execCommand(PlatformNameLib::dmidecodeCommand))
-      .WillRepeatedly(Return(std::pair{1, ""}));
+      .Times(0);
   // Cache hit - success with no bios read
   EXPECT_EQ(platformNameLib.getPlatformName(), "JANGA800BIC");
   EXPECT_EQ(
@@ -110,12 +120,29 @@ TEST(PlatformNameLibTest, GetPlatformNameCache) {
       facebook::fb303::fbData->getCounter(
           PlatformNameLib::kPlatformNameBiosReadFailures),
       0);
-  // Cache failure + dmidecode failure
+}
+
+TEST(PlatformNameLibTest, GetPlatformNameCacheFailures) {
+  // Faiure to write cache; success in reading BIOS
+  auto platformUtils = std::make_shared<MockPlatformUtils>();
+  auto platformFsUtilsWriteFail = std::make_shared<MockPlatformFsUtils>();
+  auto platformNameLibWriteFail =
+      PlatformNameLib(platformUtils, platformFsUtilsWriteFail);
+  EXPECT_CALL(*platformUtils, execCommand(PlatformNameLib::dmidecodeCommand))
+      .WillOnce(Return(std::pair{0, "janga"}));
+  EXPECT_CALL(*platformFsUtilsWriteFail, writeStringToFile(_, _, _, _))
+      .WillOnce(Return(false));
+  EXPECT_EQ(
+      platformNameLibWriteFail.getPlatformNameFromBios(true), "JANGA800BIC");
+
+  // Failure to read cache; failure to read BIOS
   auto platformFsUtilsNoRead = std::make_shared<MockPlatformFsUtils>();
   auto platformNameLibNoRead =
       PlatformNameLib(platformUtils, platformFsUtilsNoRead);
   EXPECT_CALL(*platformFsUtilsNoRead, getStringFileContent)
       .WillRepeatedly(Return(std::nullopt));
+  EXPECT_CALL(*platformUtils, execCommand(PlatformNameLib::dmidecodeCommand))
+      .WillOnce(Return(std::pair{1, "induced_error"}));
   EXPECT_EQ(platformNameLibNoRead.getPlatformName(), std::nullopt);
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(
@@ -132,9 +159,9 @@ TEST(PlatformNameLibTest, CounterLogic) {
 
   EXPECT_CALL(*platformUtils, execCommand(PlatformNameLib::dmidecodeCommand))
       .WillOnce(Return(std::pair{0, "janga"}))
-      .WillOnce(Return(std::pair{1, ""}))
+      .WillOnce(Return(std::pair{1, "induced_error"}))
       .WillOnce(Return(std::pair{0, "janga"}))
-      .WillRepeatedly(Return(std::pair{1, ""}));
+      .WillRepeatedly(Return(std::pair{1, "induced_error"}));
 
   auto platformNameLib = PlatformNameLib(platformUtils, platformFsUtils);
   EXPECT_EQ(platformNameLib.getPlatformName(), "JANGA800BIC");

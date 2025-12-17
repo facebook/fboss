@@ -1186,6 +1186,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
           case cfg::AsicType::ASIC_TYPE_YUBA:
+          case cfg::AsicType::ASIC_TYPE_G202X:
           case cfg::AsicType::ASIC_TYPE_RAMON3:
             throw FbossError(
                 "Recycle ports are not applicable for AsicType: ",
@@ -1703,10 +1704,35 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
               SwitchID(switchId));
           port2InterfaceId_[portID].push_back(interfaceID);
         } break;
+        case cfg::PortType::HYPER_PORT_MEMBER: {
+          const std::vector<PortID>& hyperPortIDs =
+              platformMapping_->getPlatformPorts(cfg::PortType::HYPER_PORT);
+          for (const PortID& hyperPortID : hyperPortIDs) {
+            const auto& hyperPortPlatformPortEntry =
+                platformMapping_->getPlatformPort(hyperPortID);
+            const auto& hyperPortPlatformCfg =
+                hyperPortPlatformPortEntry.supportedProfiles()
+                    ->find(cfg::PortProfileID::PROFILE_DEFAULT)
+                    ->second;
+            CHECK(hyperPortPlatformCfg.subsumedPorts().has_value());
+            for (const auto& subsumedPortId :
+                 *hyperPortPlatformCfg.subsumedPorts()) {
+              if (PortID(subsumedPortId) == portID) {
+                // use interface ID of the hyper port
+                auto interfaceID = getSystemPortID(
+                    hyperPortID,
+                    hyperPortPlatformPortEntry.mapping()->scope().value(),
+                    *cfg_->switchSettings()->switchIdToSwitchInfo(),
+                    SwitchID(switchId));
+                port2InterfaceId_[portID].push_back(interfaceID);
+                break;
+              }
+            }
+          }
+        } break;
         case cfg::PortType::FABRIC_PORT:
         case cfg::PortType::CPU_PORT:
-        case cfg::PortType::HYPER_PORT_MEMBER:
-          // no interface for fabric/cpu/hyper member port
+          // no interface for fabric/cpu port
           break;
       }
     }
@@ -4500,8 +4526,7 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
              orig->getDesiredPeerAddressIPv6().value()));
 
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
-      (!orig->getVlanIDIf().has_value() ||
-       orig->getVlanIDIf().value() == VlanID(*config->vlanID())) &&
+      (orig->getVlanIDHelper() == VlanID(*config->vlanID())) &&
       (orig->getPortIDf() == cfgPort) && orig->getName() == name &&
       orig->getMac() == mac && orig->getAddressesCopy() == addrs &&
       orig->getNdpConfig()->toThrift() == ndp && orig->getMtu() == mtu &&
@@ -5481,6 +5506,28 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
     }
     return nullptr;
   }
+
+  if (!hwAsicTable_->isFeatureSupportedOnAnyAsic(HwAsic::Feature::CPU_QUEUES)) {
+    // If a switch supports a CPU port but does not support CPU queues,
+    // then the following configurations should NOT be present:
+    // - cpuTrafficPolicy
+    // - cpuQueues
+    // - cpuVoqs
+    if (cfg_->cpuTrafficPolicy().has_value() ||
+        (apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+             cfg_->cpuQueues()) &&
+         !cfg_->cpuQueues()->empty()) ||
+        (cfg_->cpuVoqs().has_value() && !cfg_->cpuVoqs()->empty())) {
+      throw FbossError(
+          "Without CPU queues, cpuTrafficPolicy, cpuQueues, or cpuVoqs "
+          "configuration cannot be applied");
+    }
+    // For these switches, a minimal ControlPlane without queues or
+    // policies is sufficient. Since there's no config to apply,
+    // return nullptr to indicate no change.
+    return nullptr;
+  }
+
   auto multiSwitchControlPlane = orig_->getControlPlane();
   CHECK_LE(multiSwitchControlPlane->size(), 1);
   auto origCPU = multiSwitchControlPlane->size()
@@ -5991,20 +6038,33 @@ ThriftConfigApplier::updateMirrorOnDropReports() {
 std::shared_ptr<MirrorOnDropReport>
 ThriftConfigApplier::createMirrorOnDropReport(
     const cfg::MirrorOnDropReport* config) {
-  auto asicType =
-      checkSameAndGetAsic(hwAsicTable_->getL3Asics())->getAsicType();
+  const HwAsic* asic = checkSameAndGetAsic(hwAsicTable_->getL3Asics());
+  cfg::AsicType asicType = asic->getAsicType();
 
-  auto switchId = getAnyVoqSwitchId();
-  if (!switchId.has_value()) {
-    throw FbossError("No VOQ switchId found");
-  }
-  auto systemPortId = getInbandSystemPortID(new_, *switchId);
-
-  // Find an IP address of the switch.
+  folly::IPAddress localSrcIp;
   auto collectorIp = folly::IPAddress(*config->collectorIp());
-  auto localSrcIp = collectorIp.isV4()
-      ? folly::IPAddress(getSwitchIntfIP(new_, InterfaceID(systemPortId)))
-      : folly::IPAddress(getSwitchIntfIPv6(new_, InterfaceID(systemPortId)));
+  if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
+    auto switchId = getAnyVoqSwitchId();
+    if (!switchId.has_value()) {
+      throw FbossError("No VOQ switchId found");
+    }
+    auto systemPortId = getInbandSystemPortID(new_, *switchId);
+
+    // Find an IP address of the switch.
+    localSrcIp = collectorIp.isV4()
+        ? folly::IPAddress(getSwitchIntfIP(new_, InterfaceID(systemPortId)))
+        : folly::IPAddress(getSwitchIntfIPv6(new_, InterfaceID(systemPortId)));
+  } else {
+    // Use an optional from the MirrorDestination mirrorPort
+    // -> MirrorTunnel tunnel -> string srcIp
+    if (!config->mirrorPort().has_value() ||
+        !config->mirrorPort()->tunnel().has_value() ||
+        !config->mirrorPort()->tunnel()->srcIp().has_value()) {
+      throw FbossError(
+          "MirrorOnDropReport requires mirrorPort with a tunnel and a srcIp");
+    }
+    localSrcIp = folly::IPAddress(*config->mirrorPort()->tunnel()->srcIp());
+  }
 
   // Determine the mirror recirculation port.
   std::optional<PortID> mirrorPortId;

@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/LldpManager.h"
+#include "fboss/agent/SwAgentInitializer.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
@@ -12,6 +13,10 @@
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+
+DECLARE_int32(update_watermark_stats_interval_s);
+DECLARE_int32(update_cable_length_stats_s);
+DECLARE_bool(disable_icmp_error_response);
 
 using namespace ::testing;
 using namespace facebook::fboss;
@@ -71,6 +76,17 @@ class AgentEnsembleLinkSanityTestDataPlaneFlood : public AgentEnsembleLinkTest {
     setupTtl0ForwardingEnable();
     return AgentEnsembleLinkTest::initialConfig(ensemble);
   }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentEnsembleLinkTest::setCmdLineFlagOverrides();
+    FLAGS_enable_lldp = false;
+    FLAGS_tun_intf = false;
+    FLAGS_update_watermark_stats_interval_s = 0;
+    FLAGS_update_cable_length_stats_s = 0;
+    FLAGS_disable_neighbor_updates = true;
+    FLAGS_disable_icmp_error_response = true;
+  }
+
   std::vector<link_test_production_features::LinkTestProductionFeature>
   getProductionFeatures() const override {
     const std::string testName =

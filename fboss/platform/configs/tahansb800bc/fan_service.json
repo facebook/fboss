@@ -154,7 +154,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm1",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105
@@ -165,7 +165,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm1",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105
@@ -176,7 +176,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm2",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105
@@ -187,7 +187,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm2",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105
@@ -198,7 +198,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm3",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105
@@ -209,7 +209,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm3",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105
@@ -220,7 +220,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm4",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105
@@ -231,7 +231,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm4",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105

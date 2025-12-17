@@ -117,6 +117,7 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       return 7;
     case cfg::AsicType::ASIC_TYPE_CHENAB:
       return 3;
@@ -157,6 +158,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       return cfg::ToCpuAction::COPY;
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
@@ -354,6 +356,11 @@ void setDefaultCpuTrafficPolicyConfig(
     const std::vector<const HwAsic*>& asics,
     bool isSai) {
   auto hwAsic = checkSameAndGetAsic(asics);
+
+  if (!hwAsic->isSupported(HwAsic::Feature::CPU_QUEUES)) {
+    return;
+  }
+
   std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> cpuAcls;
 
   if (!isSai) {
@@ -1625,7 +1632,7 @@ void verifyCoppInvariantHelper(
     throw FbossError(
         "No eligible uplink/downlink interfaces in config to verify COPP invariant");
   }
-  for (auto iter : std::as_const(*intf->getAddresses())) {
+  for (const auto& iter : std::as_const(*intf->getAddresses())) {
     auto destIp = folly::IPAddress(iter.first);
     if (destIp.isLinkLocal()) {
       // three elements in the address vector: ipv4, ipv6 and a link local one

@@ -79,9 +79,20 @@ int main(int argc, char** argv) {
 
   // Schedule the function to periodically collect xphy stats if there's a
   // PhyManager
-  if (auto* mgr = handler->getTransceiverManager(); mgr->getPhyManager()) {
+  bool hasPhyManager = false;
+  if (FLAGS_port_manager_mode) {
+    hasPhyManager =
+        (handler->getPortManager() &&
+         handler->getPortManager()->getPhyManager());
+  } else {
+    hasPhyManager =
+        (handler->getTransceiverManager() &&
+         handler->getTransceiverManager()->getPhyManager());
+  }
+
+  if (hasPhyManager) {
     scheduler->addFunction(
-        [mgr]() { mgr->updateAllXphyPortsStats(); },
+        [&handler]() { handler->updateAllXphyPortsStats(); },
         std::chrono::seconds(FLAGS_xphy_stats_loop_interval),
         "updateAllXphyPortsStats");
   }

@@ -1,3 +1,8 @@
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace py3 neteng.fboss
 namespace cpp2 facebook.fboss
 namespace py neteng.fboss.i2c_controller_stats

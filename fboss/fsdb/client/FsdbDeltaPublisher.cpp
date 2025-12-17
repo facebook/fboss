@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/fsdb/client/FsdbDeltaPublisher.h"
+#include "fboss/fsdb/oper/DeltaValue.h"
 
 #include <folly/logging/xlog.h>
 
@@ -41,7 +42,6 @@ folly::coro::Task<void> FsdbDeltaPublisher::serveStream(StreamT&& stream) {
             XLOG(ERR) << "Detected GR cancellation";
             throw FsdbClientGRDisconnectException(
                 "DeltaPublisher disconnectReason: GR");
-            break;
           }
           if (!pubUnit->metadata().has_value()) {
             pubUnit->metadata() = OperMetadata();
@@ -50,8 +50,14 @@ folly::coro::Task<void> FsdbDeltaPublisher::serveStream(StreamT&& stream) {
             pubUnit->metadata()->lastPublishedAt() =
                 std::chrono::duration_cast<std::chrono::milliseconds>(ts)
                     .count();
-          } else if (!initialSyncComplete_) {
-            initialSyncComplete_ = true;
+          } else {
+            if (!initialSyncComplete_) {
+              initialSyncComplete_ = true;
+            }
+            if (publishQueueMemoryLimit_ > 0) {
+              size_t pubUnitSize = getPubUnitSize(*pubUnit);
+              servedDataSize_.fetch_add(pubUnitSize);
+            }
           }
           co_yield std::move(*pubUnit);
         }
@@ -60,4 +66,9 @@ folly::coro::Task<void> FsdbDeltaPublisher::serveStream(StreamT&& stream) {
   finalResponseReceiver(finalResponse);
   co_return;
 }
+
+size_t FsdbDeltaPublisher::getPubUnitSize(const OperDelta& delta) {
+  return getOperDeltaSize(delta);
+}
+
 } // namespace facebook::fboss::fsdb

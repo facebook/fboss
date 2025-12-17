@@ -72,6 +72,10 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
         "tahan800bc_chassis",
         "tahan800bc_test_fixture",
     ],
+    "montblanc": [
+        "montblanc_odd_ports_8x100G",
+        "montblanc",
+    ],
 }
 
 _PLATFORM_TO_BASE_PLATFORM: Dict[str, str] = {
@@ -469,9 +473,17 @@ class PlatformMappingV2:
                         for (
                             other_port_config
                         ) in other_port_entry.supportedProfiles.values():
-                            if all(
-                                needed_iphy_pin in other_port_config.pins.iphy
-                                for needed_iphy_pin in all_iphy_pins_needed
+                            other_port_pin_ids = [
+                                pin_config.id
+                                for pin_config in other_port_config.pins.iphy
+                            ]
+                            needed_pin_ids = [
+                                pin_config.id for pin_config in all_iphy_pins_needed
+                            ]
+
+                            if needed_pin_ids and all(
+                                needed_iphy_pin_id in other_port_pin_ids
+                                for needed_iphy_pin_id in needed_pin_ids
                             ):
                                 if not other_port_config.subsumedPorts:
                                     other_port_config.subsumedPorts = []

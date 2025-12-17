@@ -190,7 +190,7 @@ void FabricLinkMonitoring::allocateSwitchIdForPorts(
     } else {
       // This is for a port connecting L1 and L2 fabric
       switchIdBase = kFabricLinkMonitoringL1L2BaseSwitchId;
-      maxNumSwitchIds = kDualStageMaxL1L2FabricLinkMonitoringSwitchIds;
+      maxNumSwitchIds = FLAGS_fabric_link_monitoring_max_l1_l2_switch_ids;
       maxParallelLinks = maxParallelL1ToL2Links_;
       switchIdOffset = getSwitchIdOffset(localSwitchId, remoteSwitchId);
       // Just pick the first VDs link count as all VDs should have the same link
@@ -412,14 +412,14 @@ int32_t FabricLinkMonitoring::getVirtualDeviceIdForLink(
     return *port.logicalID() % 4;
   }
 
-  // Find the neighbor DSF node in case of VoQ switch or in case
-  // of L2 switch.
   auto neighborSwitchIter = config->dsfNodes()->find(neighborSwitchId);
   CHECK(neighborSwitchIter != config->dsfNodes()->end())
       << "FabricLinkMon: DSF node missing for switchId: " << neighborSwitchId;
+  // Use the neighbor DSF node VD in case local switch is a VoQ switch or an
+  // L2 switch.
   bool useNeighborSwitchVd = isVoqSwitch_ ||
       (neighborSwitchIter->second.fabricLevel().has_value() &&
-       *neighborSwitchIter->second.fabricLevel() == 2);
+       *neighborSwitchIter->second.fabricLevel() == 1);
   auto dsfNodeIter = useNeighborSwitchVd
       ? neighborSwitchIter
       : config->dsfNodes()->find(*config->switchSettings()->switchId());

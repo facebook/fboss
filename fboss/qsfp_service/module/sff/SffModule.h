@@ -253,7 +253,7 @@ class SffModule : public QsfpModule {
    */
   void updateQsfpData(bool allPages = true) override;
 
-  void resetDataPath() override {
+  void resetDataPath(const std::string& /* portName */) override {
     // no-op
   }
 

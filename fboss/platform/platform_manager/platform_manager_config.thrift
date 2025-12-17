@@ -5,6 +5,10 @@ namespace hack NetengFbossPlatformManager
 namespace py3 fboss.platform.platform_manager
 
 include "fboss/platform/platform_manager/platform_manager_presence.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 //            +-+-+-+ +-+-+-+ +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+
 //            |I|2|C| |B|u|s| |N|a|m|i|n|g| |C|o|n|v|e|n|t|i|o|n|
@@ -331,6 +335,7 @@ struct FanPwmCtrlConfig {
 // `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
 //
 // `portNumber`: Port number which is associated with this config.
+// Deprecated: do not use
 struct XcvrCtrlConfig {
   1: FpgaIpBlockConfig fpgaIpBlockConfig;
   2: i32 portNumber;
@@ -390,6 +395,8 @@ struct XcvrCtrlBlockConfig {
 // for port LEDs
 //
 // `ledId`: Led ID for this config.
+//
+// Deprecated: do not use
 struct LedCtrlConfig {
   1: FpgaIpBlockConfig fpgaIpBlockConfig;
   2: i32 portNumber;
@@ -451,6 +458,51 @@ struct LedCtrlBlockConfig {
   7: string iobufOffsetCalc;
 }
 
+// Defines generic MDIO BUS Controller block in FPGAs.
+//
+// `pmUnitScopedNamePrefix`: The prefix used to refer to this device
+//  Example: pmUnitScopedNamePrefix: RTM_L_MDIO_BUS, the expanded form would be
+//  RTM_L_MDIO_BUS_1, RTM_L_MDIO_BUS_2, etc.
+//
+// `deviceName`: It is the name used in the ioctl system call to create the
+// corresponding device. It should one of the compatible strings specified in
+// the kernel driver.
+//
+// `csrOffsetCalc`: Calculation to get the csr offset for fpga block
+//  This expression includes a base start address, busIndex
+//  Final offset result is in hex format.
+//  Example:
+//  csrOffsetCalc: "0x200 + {busIndex}*0x20"
+//  busIndex=0:
+//    csrOffsetCalc: "0x200 + 0*0x20"
+//    csrOffsetCalc: "0x200"
+//  busIndex=1:
+//    csrOffsetCalc: "0x200 + 1*0x20"
+//    csrOffsetCalc: "0x220"
+//
+//
+// `numBuses`: Number of buses for this block config
+//
+//
+// `iobufOffsetCalc`: Calculation to get the iobuf offset for fpga block
+//  This expression includes a base start address, busIndex
+//  Final offset result is in hex format.
+//  Example:
+//  iobufOffsetCalc: "0x200 + {busIndex}*0x4"
+//  busIndex=0:
+//    iobufOffsetCalc: "0x200 + 0*0x4"
+//    iobufOffsetCalc: "0x200"
+//  busIndex=1:
+//    iobufOffsetCalc: "0x200 + 1*0x4"
+//    iobufOffsetCalc: "0x204"
+struct MdioBusBlockConfig {
+  1: string pmUnitScopedNamePrefix;
+  2: string deviceName;
+  3: string csrOffsetCalc;
+  4: i32 numBuses;
+  5: string iobufOffsetCalc;
+}
+
 // Defines PCI Devices in the PmUnits. A new PciDeviceConfig should be created
 // for each unique combination of <vendorId, deviceId, subSystemVendorId,
 // subSystemDeviceId>.
@@ -500,14 +552,16 @@ struct PciDeviceConfig {
   8: list<FpgaIpBlockConfig> gpioChipConfigs;
   9: list<FpgaIpBlockConfig> watchdogConfigs;
   10: list<FanPwmCtrlConfig> fanTachoPwmConfigs;
-  11: list<LedCtrlConfig> ledCtrlConfigs;
-  12: list<XcvrCtrlConfig> xcvrCtrlConfigs;
+  11: list<LedCtrlConfig> ledCtrlConfigs; // Deprecated: do not use
+  12: list<XcvrCtrlConfig> xcvrCtrlConfigs; // Deprecated: do not use
   13: list<FpgaIpBlockConfig> infoRomConfigs;
   14: list<FpgaIpBlockConfig> miscCtrlConfigs;
   15: optional string desiredDriver;
   16: list<LedCtrlBlockConfig> ledCtrlBlockConfigs;
   17: list<XcvrCtrlBlockConfig> xcvrCtrlBlockConfigs;
-  18: list<FpgaIpBlockConfig> mdioBusConfigs;
+  18: list<FpgaIpBlockConfig> mdioBusConfigs; // Deprecated: do not use
+  19: list<FpgaIpBlockConfig> sysLedCtrlConfigs;
+  20: list<MdioBusBlockConfig> mdioBusBlockConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and

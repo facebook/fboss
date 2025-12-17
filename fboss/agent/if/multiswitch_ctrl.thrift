@@ -14,6 +14,9 @@ include "fboss/agent/hw/hardware_stats.thrift"
 include "thrift/annotation/thrift.thrift"
 include "fboss/agent/switch_config.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 @cpp.Type{name = "std::unique_ptr<folly::IOBuf>"}
 typedef binary fbbinary
 
@@ -68,7 +71,7 @@ struct TxPacket {
   2: optional i32 port;
   3: optional i32 queue;
   4: i32 length;
-  5: common.TxPacketType packetType;
+  5: common.PacketType packetType;
 }
 
 struct RxPacket {

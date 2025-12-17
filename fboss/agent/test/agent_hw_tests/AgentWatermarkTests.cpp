@@ -527,7 +527,9 @@ TEST_F(AgentWatermarkTest, VerifyQueueWatermarkAccuracy) {
             (kNumberOfPacketsToSend - 1);
         // Watermarks read in are accurate, no rounding needed
         roundedWatermarkBytes = expectedWatermarkBytes;
-      } else if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+      } else if (
+          asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+          asic->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
         // For Yuba, watermark counter is accurate to the number of buffers
         expectedWatermarkBytes =
             utility::getEffectiveBytesPerPacket(asic, txPacketLen) *

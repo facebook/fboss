@@ -91,6 +91,7 @@ DECLARE_bool(link_stress_test);
 DECLARE_int32(ecmp_resource_percentage);
 DECLARE_int32(ars_resource_percentage);
 DECLARE_int32(switch_index_for_testing);
+DECLARE_int32(switch_id_for_testing);
 DECLARE_uint32(counter_refresh_interval);
 
 DECLARE_bool(run_forever);
@@ -128,3 +129,8 @@ DECLARE_string(state_delta_log_file);
 DECLARE_string(state_delta_log_protocol);
 DECLARE_int32(state_delta_log_timeout_ms);
 DECLARE_int32(fsdbStatsStreamIntervalSeconds);
+DECLARE_bool(recover_from_hw_switch);
+DECLARE_int32(fabric_link_monitoring_max_l1_l2_switch_ids);
+
+DECLARE_bool(recover_from_hw_switch);
+DECLARE_bool(montblanc_odd_ports_8x100G);

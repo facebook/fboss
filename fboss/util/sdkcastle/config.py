@@ -100,8 +100,8 @@ class LinkTestsSpec:
 
 
 @dataclass
-class SpecTestsSpec:
-    """Spec tests specification"""
+class ConfigTestsSpec:
+    """Config tests specification"""
 
     test_name: str
     common_test_spec: CommonTestSpec
@@ -125,7 +125,7 @@ class TestSpec:
     agent_scale_tests: Optional[List[AgentScaleTestsSpec]] = None
     n_warmboot_tests: Optional[List[NWarmbootTestsSpec]] = None
     link_tests: Optional[List[LinkTestsSpec]] = None
-    config_tests: Optional[List[SpecTestsSpec]] = None
+    config_tests: Optional[List[ConfigTestsSpec]] = None
     benchmark_tests: Optional[List[BenchmarkTestsSpec]] = None
 
 

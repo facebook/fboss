@@ -10,6 +10,9 @@ include "fboss/lib/phy/prbs.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 /*
  * UNINITIALIZED - when transceiverManager has just been created and init() is not yet called
  * INITIALIZED - when transceiverManager->init() is complete i.e. systemContainer, pimContainer, phys are initialized
@@ -839,6 +842,7 @@ struct DiagsCapability {
   11: bool rxOutputControl = false;
   12: bool snrLine = false;
   13: bool snrSystem = false;
+  // Below capabilities 14-20 are not updated or used anywhere in the code
   14: bool cdbFirmwareUpgrade = false;
   15: bool cdbFirmwareReadback = false;
   16: bool cdbEplMemorySupported = false;

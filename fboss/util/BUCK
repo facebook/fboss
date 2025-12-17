@@ -4,7 +4,7 @@ load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
-oncall("dc_push")
+oncall("fboss_agent")
 
 cpp_binary(
     name = "cp2112_util",
@@ -91,6 +91,7 @@ cpp_library(
         "//fboss/lib/bsp/tahan800bc:tahan800bc_bsp",
         "//fboss/lib/bsp/tahansb800bc:tahansb800bc_bsp",
         "//fboss/lib/bsp/wedge800bact:wedge800bact_bsp",
+        "//fboss/lib/bsp/wedge800cact:wedge800cact_bsp",
         "//fboss/lib/firmware_storage:firmware_storage",
         "//fboss/lib/fpga:wedge400_i2c",
         "//fboss/lib/fpga/facebook/darwin:darwin_i2c",

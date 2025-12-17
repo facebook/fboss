@@ -28,6 +28,12 @@ class SaiPlatform;
 class StateUpdate;
 class Port;
 
+// Port ID range constants for Agera3 (Ladakh platform)
+// Ladakh has 2561 ports (port IDs 0-2560), so we need a larger range
+// than the default (0-2047). Using 0-8191 to provide sufficient headroom
+constexpr int64_t kAgera3PortIdRangeMin = 0;
+constexpr int64_t kAgera3PortIdRangeMax = 8191;
+
 class SaiPhyManager : public PhyManager {
  public:
   explicit SaiPhyManager(const PlatformMapping* platformMapping);
@@ -280,6 +286,20 @@ void SaiPhyManager::initializeXphyImpl(
   cfg::SwitchInfo switchInfo;
   switchInfo.switchType() = cfg::SwitchType::PHY;
   switchInfo.asicType() = getPhyAsicType();
+
+  // For Agera3 (Ladakh platform), set larger portIdRange to support 2561 ports
+  // (port IDs up to 2560). Other XPHY platforms (eg: Elbert) will use the
+  // default range (0-2047).
+  if (getPhyAsicType() == cfg::AsicType::ASIC_TYPE_AGERA3) {
+    cfg::Range64 portIdRange;
+    portIdRange.minimum() = kAgera3PortIdRangeMin;
+    portIdRange.maximum() = kAgera3PortIdRangeMax;
+    switchInfo.portIdRange() = portIdRange;
+
+    XLOG(DBG2) << "Setting portIdRange=[" << kAgera3PortIdRangeMin << "-"
+               << kAgera3PortIdRangeMax << "] for ASIC_TYPE_AGERA3";
+  }
+
   config.sw()->switchSettings()->switchIdToSwitchInfo() = {
       std::make_pair(0, switchInfo)};
   saiPlatform->init(

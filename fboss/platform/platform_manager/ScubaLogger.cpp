@@ -11,15 +11,50 @@
 #include "scribe/client/ScribeClient.h"
 
 namespace facebook::fboss::platform::platform_manager {
-namespace ScubaLogger {
 
-void log(
+ScubaLogger::ScubaLogger(
+    const std::string& platformName,
+    const DataStore& dataStore_)
+    : platformName_(platformName), dataStore_(dataStore_) {}
+
+void ScubaLogger::addPlatformFields(
+    std::unordered_map<std::string, std::string>& normals) {
+  normals["platform"] = platformName_;
+
+  // Add all persistent fields
+  for (const auto& [key, value] : persistentFields_) {
+    normals[key] = value;
+  }
+
+  // Add firmware versions from DataStore if available
+  auto fwVersions = dataStore_.getFirmwareVersions();
+  for (const auto& [deviceName, firmwareVersion] : fwVersions) {
+    normals[fmt::format("firmware_version_{}", deviceName)] = firmwareVersion;
+  }
+
+  // Add hardware versions from DataStore if available
+  auto hwVersions = dataStore_.getHardwareVersions();
+  for (const auto& [fieldName, hardwareVersion] : hwVersions) {
+    normals[fieldName] = hardwareVersion;
+  }
+}
+
+void ScubaLogger::log(
+    const std::string& event,
     const std::unordered_map<std::string, std::string>& normals,
     const std::unordered_map<std::string, int64_t>& ints,
     const std::string& category) {
   folly::dynamic normalsObj = folly::dynamic::object;
+
+  // Add standard fields
   normalsObj["hostname"] = network::NetworkUtil::getLocalHost(true);
-  for (const auto& [key, value] : normals) {
+  normalsObj["event"] = event;
+
+  std::unordered_map<std::string, std::string> enrichedNormals = normals;
+  addPlatformFields(enrichedNormals);
+
+  // Add all normal fields
+  for (const auto& [key, value] : enrichedNormals) {
     normalsObj[key] = value;
   }
 
@@ -46,5 +81,12 @@ void log(
   }
 }
 
-} // namespace ScubaLogger
+void ScubaLogger::logCrash(
+    const std::exception& ex,
+    const std::unordered_map<std::string, std::string>& additionalFields) {
+  std::unordered_map<std::string, std::string> normals = additionalFields;
+  normals["error_message"] = ex.what();
+  log("unexpected_crash", normals);
+}
+
 } // namespace facebook::fboss::platform::platform_manager

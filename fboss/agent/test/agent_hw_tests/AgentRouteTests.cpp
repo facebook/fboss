@@ -527,8 +527,8 @@ TYPED_TEST(AgentRouteTest, VerifyRouting) {
         vlanId,
         intfMac,
         intfMac,
-        folly::IPAddressV4("101.0.0.1"),
-        folly::IPAddressV4("201.0.0.1"),
+        folly::IPAddressV4("101.101.0.1"),
+        folly::IPAddressV4("201.101.0.1"),
         1234,
         4321);
 
@@ -537,8 +537,8 @@ TYPED_TEST(AgentRouteTest, VerifyRouting) {
         vlanId,
         intfMac,
         intfMac,
-        folly::IPAddressV6("101::1"),
-        folly::IPAddressV6("201::1"),
+        folly::IPAddressV6("1001::1"),
+        folly::IPAddressV6("2001::1"),
         1234,
         4321);
 

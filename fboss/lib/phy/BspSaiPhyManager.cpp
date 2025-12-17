@@ -50,6 +50,10 @@ phy::PhyIDInfo BspSaiPhyManager::getPhyIDInfo(GlobalXphyID xphyID) const {
       info.pimID = pimID;
       info.controllerID = *phyMapping.phyIOControllerId();
       info.phyAddr = *phyMapping.phyAddr();
+      XLOG(DBG5) << __func__ << " Found xphyID=" << xphyID
+                 << " in pimID=" << info.pimID
+                 << " controllerID=" << info.controllerID
+                 << " phyAddr=" << info.phyAddr;
       return info;
     }
   }
@@ -70,6 +74,7 @@ GlobalXphyID BspSaiPhyManager::getGlobalXphyID(
     if (MdioControllerID(*phyMapping.phyIOControllerId()) ==
             phyIDInfo.controllerID &&
         PhyAddr(*phyMapping.phyAddr()) == phyIDInfo.phyAddr) {
+      XLOG(DBG5) << __func__ << ": Found matching phyID=" << phyID;
       return GlobalXphyID(phyID);
     }
   }
@@ -84,6 +89,7 @@ GlobalXphyID BspSaiPhyManager::getGlobalXphyID(
 }
 
 bool BspSaiPhyManager::initExternalPhyMap(bool warmboot) {
+  XLOG(DBG5) << __func__ << ": Starting with warmboot=" << warmboot;
   std::optional<GlobalXphyID> firstXphy;
 
   // Iterate through all PIMs in the BSP mapping
@@ -103,10 +109,16 @@ bool BspSaiPhyManager::initExternalPhyMap(bool warmboot) {
       phyIDInfo.pimID = pimID;
       phyIDInfo.controllerID = *phyMapping.phyIOControllerId();
       phyIDInfo.phyAddr = *phyMapping.phyAddr();
+      XLOG(DBG5) << __func__ << ": PhyIDInfo created with"
+                 << " pimID=" << phyIDInfo.pimID
+                 << " controllerID=" << phyIDInfo.controllerID
+                 << " phyAddr=" << phyIDInfo.phyAddr;
 
       // Create ExternalPhy (SaiPhyRetimer) object
       createExternalPhy(
           phyIDInfo, const_cast<BspPimContainer*>(bspPimContainer));
+      XLOG(DBG5) << __func__
+                 << ": Completed createExternalPhy for xphyID=" << xphyID;
 
       XLOG(INFO) << "Created SaiPhyRetimer and setup threading for xphy "
                  << xphyID << " in PIM " << pimID;
@@ -114,6 +126,8 @@ bool BspSaiPhyManager::initExternalPhyMap(bool warmboot) {
   }
 
   if (firstXphy) {
+    XLOG(DBG5) << __func__
+               << ": Calling preHwInitialized for firstXphy=" << *firstXphy;
     // Initialize SAI APIs once
     getSaiPlatform(*firstXphy)->preHwInitialized(warmboot);
   }
@@ -125,7 +139,8 @@ void BspSaiPhyManager::initializeXphy(GlobalXphyID xphyID, bool warmboot) {
   auto phyIDInfo = getPhyIDInfo(xphyID);
   auto pimID = phyIDInfo.pimID;
 
-  XLOG(DBG2) << "Initializing xphy " << xphyID << " in PIM " << pimID;
+  XLOG(DBG2) << __func__ << ": Initializing xphy " << xphyID << " in PIM "
+             << pimID << " warmboot=" << warmboot;
 
   initializeXphyImpl<SaiPhyPlatform, phy::SaiPhyRetimer>(
       pimID, xphyID, warmboot);
@@ -145,6 +160,11 @@ void BspSaiPhyManager::initializeSlotPhys(PimID pimID, bool /* warmboot */) {
 void BspSaiPhyManager::createExternalPhy(
     const phy::PhyIDInfo& phyIDInfo,
     MultiPimPlatformPimContainer* pimContainer) {
+  XLOG(DBG5) << __func__ << ": Starting for phyIDInfo"
+             << " pimID=" << phyIDInfo.pimID
+             << " controllerID=" << phyIDInfo.controllerID
+             << " phyAddr=" << phyIDInfo.phyAddr;
+
   auto xphyID = getGlobalXphyID(phyIDInfo);
 
   // Create SaiPhyPlatform for this xphy
@@ -172,6 +192,7 @@ void BspSaiPhyManager::createExternalPhy(
       bspPhyIO,
       getPlatformMapping(),
       saiPlatform);
+  XLOG(DBG5) << __func__ << ": Created SaiPhyRetimer";
 
   XLOG(INFO) << "Created SaiPhyRetimer for xphy " << xphyID << " in PIM "
              << phyIDInfo.pimID;
@@ -189,6 +210,8 @@ int BspSaiPhyManager::getPimStartNum() {
 
 folly::EventBase* BspSaiPhyManager::getXphyEventBase(
     const GlobalXphyID& xphyID) const {
+  XLOG(DBG5) << __func__ << ": Getting event base for xphyID=" << xphyID;
+
   auto phyIDInfo = getPhyIDInfo(xphyID);
 
   auto bspPimContainer =

@@ -20,7 +20,6 @@
 namespace facebook::fboss::phy {
 
 namespace {
-constexpr uint32_t kPmdDeviceAddr = 1;
 /*
  * This is a static function for reading a Phy register. This function will be
  * passed to the SAI layer. The SAI driver will use this function to read a
@@ -32,19 +31,19 @@ constexpr uint32_t kPmdDeviceAddr = 1;
  */
 sai_status_t saiPhyRetimerSwitchRegisterRead(
     uint64_t platform_context,
-    uint32_t device_addr,
+    uint32_t /*device_addr*/,
     uint32_t start_reg_addr,
     uint32_t number_of_registers,
     uint32_t* reg_val) {
-  if (device_addr != kPmdDeviceAddr) {
-    XLOG(ERR)
-        << "saiPhyRetimerSwitchRegisterRead failed, bad device address passed";
-    return SAI_STATUS_INVALID_PARAMETER;
-  }
-
   SaiPhyRetimer* retimerObj =
       reinterpret_cast<SaiPhyRetimer*>(platform_context);
   CHECK(retimerObj);
+
+  XLOG(DBG5) << __func__ << ":"
+             << " phyAddr=" << retimerObj->getPhyAddr()
+             << " deviceAddr=" << SaiPhyRetimer::getDeviceAddress()
+             << " start_reg_addr=" << start_reg_addr
+             << " number_of_registers=" << number_of_registers;
 
   // Finally call that object's XphyIO read register function
   for (uint32_t i = 0; i < number_of_registers; i++) {
@@ -69,21 +68,20 @@ sai_status_t saiPhyRetimerSwitchRegisterRead(
  */
 sai_status_t saiPhyRetimerSwitchRegisterWrite(
     uint64_t platform_context,
-    uint32_t device_addr,
+    uint32_t /*device_addr*/,
     uint32_t start_reg_addr,
     uint32_t number_of_registers,
     const uint32_t* reg_val) {
-  if (device_addr != kPmdDeviceAddr) {
-    XLOG(ERR)
-        << "saiPhyRetimerSwitchRegisterWrite failed, bad device address passed";
-    return SAI_STATUS_INVALID_PARAMETER;
-  }
-
   // Find the SaiPhyRetimer object from platform context passed by SAI
   SaiPhyRetimer* retimerObj =
       reinterpret_cast<SaiPhyRetimer*>(platform_context);
   CHECK(retimerObj);
 
+  XLOG(DBG5) << __func__ << ":"
+             << " phyAddr=" << retimerObj->getPhyAddr()
+             << " deviceAddr=" << SaiPhyRetimer::getDeviceAddress()
+             << " start_reg_addr=" << start_reg_addr
+             << " number_of_registers=" << number_of_registers;
   // Finally call that object's XphyIO write register function
   for (uint32_t i = 0; i < number_of_registers; i++) {
     retimerObj->getXphyIO()->writeRegister(
@@ -143,17 +141,30 @@ PhyFwVersion SaiPhyRetimer::fwVersionImpl() const {
 }
 
 void* SaiPhyRetimer::getRegisterReadFuncPtr() {
+  XLOG(DBG5) << __func__ << ": Returning read function pointer";
   return reinterpret_cast<void*>(saiPhyRetimerSwitchRegisterRead);
 }
 
 void* SaiPhyRetimer::getRegisterWriteFuncPtr() {
+  XLOG(DBG5) << __func__ << ": Returning write function pointer";
   return reinterpret_cast<void*>(saiPhyRetimerSwitchRegisterWrite);
 }
 
 SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
+  XLOG(DBG5) << __func__ << ": Starting for xphyID=" << xphyID_;
+
   SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
 
-  std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo = std::nullopt;
+  // Set HwInfo as XPHY ID
+  // Encoding as 4-byte little-endian integer
+  std::vector<int8_t> hwInfoVec(4);
+  uint32_t phyId = static_cast<uint32_t>(xphyID_);
+  hwInfoVec[0] = phyId & 0xFF;
+  hwInfoVec[1] = (phyId >> 8) & 0xFF;
+  hwInfoVec[2] = (phyId >> 16) & 0xFF;
+  hwInfoVec[3] = (phyId >> 24) & 0xFF;
+  XLOG(DBG2) << __func__ << ": Encoded phyId=" << phyId << " into hwInfoVec";
+  std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo(hwInfoVec);
 
   // Pass the static register read function
   std::optional<SaiSwitchTraits::Attributes::RegisterReadFn> regReadFn(
@@ -186,6 +197,12 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
 
   std::optional<SaiSwitchTraits::Attributes::SwitchType> switchType(
       SAI_SWITCH_TYPE_PHY);
+
+  // Set profile ID to XPHY ID so each retimer gets unique profile id
+  uint32_t profileIdValue = static_cast<uint32_t>(xphyID_);
+  XLOG(DBG5) << __func__ << ": Setting profileId=" << profileIdValue;
+  std::optional<SaiSwitchTraits::Attributes::SwitchProfileId> profileId(
+      profileIdValue);
 
   // Mandatory attributes for Sai
   std::optional<SaiSwitchTraits::Attributes::SwitchId> switchId(0);
@@ -226,7 +243,7 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
       fwLoadType, // Firmware load type
       hwAccessBus, // Hardware access bus
       context, // Platform context
-      std::nullopt, // Switch profile id
+      profileId, // Switch profile id (set to XPHY ID)
       switchId, // Switch id
       maxSysCores, // Max system cores
       sysPortConfigList, // System port config list
@@ -258,7 +275,9 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       std::nullopt, // ArsProfile
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       std::nullopt, // Port PTP mode
+#endif
       std::nullopt, // Reachability Group List
       std::nullopt, // Delay Drop Cong Threshold
       std::nullopt, // Fabric link level control threshold

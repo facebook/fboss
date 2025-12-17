@@ -95,7 +95,7 @@ class Transceiver {
    * Check if the transceiver is present or not and refresh data.
    */
   virtual void refresh() = 0;
-  virtual folly::Future<folly::Unit> futureRefresh() = 0;
+  virtual folly::Future<bool> futureRefresh() = 0;
 
   virtual void removeTransceiver() = 0;
 
@@ -245,7 +245,7 @@ class Transceiver {
     return true;
   }
 
-  virtual void resetDataPath() = 0;
+  virtual void resetDataPath(const std::string& portName) = 0;
 
   virtual std::optional<DiagsCapability> getDiagsCapability() const = 0;
 

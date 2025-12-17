@@ -8,8 +8,6 @@
 
 #include "fboss/fsdb/common/Utils.h"
 
-DECLARE_int64(bm_max_iters);
-
 namespace facebook::fboss::fsdb::test {
 
 BENCHMARK(fsdbClientIdParse) {

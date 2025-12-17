@@ -415,6 +415,9 @@ bool ConfigValidator::isValidPciDeviceConfig(
   for (const auto& config : *pciDeviceConfig.ledCtrlConfigs()) {
     fpgaIpBlockConfigs.push_back(*config.fpgaIpBlockConfig());
   }
+  for (const auto& config : *pciDeviceConfig.sysLedCtrlConfigs()) {
+    fpgaIpBlockConfigs.push_back(config);
+  }
   for (const auto& config : *pciDeviceConfig.xcvrCtrlConfigs()) {
     if (*config.fpgaIpBlockConfig()->deviceName() != kXcvrDeviceName) {
       XLOG(ERR) << fmt::format(
@@ -632,6 +635,8 @@ bool ConfigValidator::isValidDeviceName(
               *pciDeviceConfig.spiMasterConfigs(),
               *pciDeviceConfig.fanTachoPwmConfigs(),
               *pciDeviceConfig.ledCtrlConfigs(),
+              *pciDeviceConfig.sysLedCtrlConfigs(),
+              Utils::createLedCtrlConfigs(pciDeviceConfig),
               Utils::createXcvrCtrlConfigs(pciDeviceConfig),
               *pciDeviceConfig.xcvrCtrlConfigs(),
               *pciDeviceConfig.spiMasterConfigs(),
@@ -639,7 +644,7 @@ bool ConfigValidator::isValidDeviceName(
               *pciDeviceConfig.watchdogConfigs(),
               *pciDeviceConfig.infoRomConfigs(),
               *pciDeviceConfig.miscCtrlConfigs(),
-              *pciDeviceConfig.mdioBusConfigs())) {
+              Utils().createMdioBusConfigs(pciDeviceConfig))) {
         return true;
       }
     }

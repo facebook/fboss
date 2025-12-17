@@ -123,7 +123,8 @@ void setupPfc(
     cfg.cpuTrafficPolicy() = std::move(cpuPolicy);
     std::map<int, std::string> portIdToQosPolicy{};
     for (const auto& portId : ensemble->masterLogicalPortIds(
-             {cfg::PortType::CPU_PORT, cfg::PortType::RECYCLE_PORT})) {
+             std::set<cfg::PortType>{
+                 cfg::PortType::CPU_PORT, cfg::PortType::RECYCLE_PORT})) {
       portIdToQosPolicy[static_cast<int>(portId)] = kCpuQueueingPolicy;
     }
     if (portIdToQosPolicy.size()) {

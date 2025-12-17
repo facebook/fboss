@@ -18,9 +18,9 @@ MirrorTestParams<folly::IPAddressV4> getMirrorTestParams<folly::IPAddressV4>() {
 template <>
 MirrorTestParams<folly::IPAddressV6> getMirrorTestParams<folly::IPAddressV6>() {
   return MirrorTestParams<folly::IPAddressV6>(
-      folly::IPAddressV6("101::10"), // sender
-      folly::IPAddressV6("201::10"), // receiver
-      folly::IPAddressV6("101::11")); // erspan destination
+      folly::IPAddressV6("1001::10"), // sender
+      folly::IPAddressV6("2001::10"), // receiver
+      folly::IPAddressV6("1001::11")); // erspan destination
 }
 
 folly::IPAddress getSflowMirrorDestination(bool isV4) {

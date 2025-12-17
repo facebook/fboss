@@ -1,0 +1,29 @@
+{
+  "distribution_formats": {
+    "onie": "FBOSS-k6.4.3.bin",
+    "usb": "FBOSS-k6.4.3.iso"
+  },
+  "kernel": {
+    "download": "https://artifact.github.com/nexthop-ai/fboss/fboss-oss_kernel_v6.4.3.tar"
+  },
+  "other_dependencies": [
+    {"download": "https://artifact.github.com/nexthop-ai/fsdb/fsdb.rpm"},
+    {"download": "file:vendor_debug_tools/tools.rpm"}
+  ],
+  "fboss-platform-stack": {
+    "execute": ["fboss/fboss/oss/scripts/build.py", "platformstack"]
+  },
+  "bsps": [
+    {"execute": "vendor_bsp/build.make"},
+    {"execute": "fboss/oss/reference_bsp/build.py"}
+  ],
+  "sai": {
+    "execute": "fboss_brcm_sai/build.sh"
+  },
+  "fboss-forwarding-stack": {
+    "execute": ["fboss/fboss/oss/scripts/build.py", "forwardingstack"]
+  },
+  "image_build_hooks": {
+    "after_pkgs": "additional_os_pkgs.xml"
+  }
+}

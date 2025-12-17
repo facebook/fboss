@@ -667,7 +667,15 @@ cfg::SwitchConfig testConfigAWithLookupClasses() {
 cfg::SwitchConfig testConfigAWithPortInterfaces() {
   auto config = testConfigA(cfg::SwitchType::NPU);
 
+  config.defaultVlan() = 1;
+
+  cfg::Vlan vlan;
+  vlan.id() = 1;
+  vlan.name() = "Vlan1";
+
   config.vlans()->clear();
+  config.vlans()->push_back(vlan);
+
   config.interfaces()->clear();
   config.vlanPorts()->clear();
 

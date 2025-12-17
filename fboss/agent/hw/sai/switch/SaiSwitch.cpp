@@ -16,7 +16,6 @@
 #include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
-#include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/HwSysPortFb303Stats.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/AclApi.h"
@@ -26,7 +25,6 @@
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
-#include "fboss/agent/hw/sai/api/SaiObjectApi.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
@@ -75,7 +73,6 @@
 #include "fboss/agent/hw/UnsupportedFeatureManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "folly/MacAddress.h"
-#include "folly/String.h"
 
 #include "fboss/agent/LoadBalancerUtils.h"
 
@@ -296,6 +293,9 @@ void __gSwitchAsicSdkHealthNotificationCallBack(
 #endif
 
 PortSaiId SaiSwitch::getCPUPortSaiId() const {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
+    throw FbossError("CPU port not supported on this platform");
+  }
   return managerTable_->switchManager().getCpuPort();
 }
 
@@ -3524,6 +3524,11 @@ void SaiSwitch::packetRxCallback(
   std::optional<LagSaiId> lagSaiIdOpt;
   std::optional<HostifTrapSaiId> hostifTrapSaiIdOpt;
   std::optional<uint8_t> hostifQueueIdOpt;
+  std::optional<int32_t> packetTypeOpt;
+
+  std::optional<sai_attr_id_t> packetTypeAttrId =
+      SaiRxPacketTraits::Attributes::AttributePacketType()();
+
   for (uint32_t index = 0; index < attr_count; index++) {
     switch (attr_list[index].id) {
       case SAI_HOSTIF_PACKET_ATTR_INGRESS_PORT:
@@ -3539,8 +3544,13 @@ void SaiSwitch::packetRxCallback(
         hostifQueueIdOpt = attr_list[index].value.u8;
         break;
       default:
-        XLOG_EVERY_MS(DBG3, 5000)
-            << "invalid attribute received: " << attr_list[index].id;
+        if (packetTypeAttrId.has_value() &&
+            attr_list[index].id == packetTypeAttrId.value()) {
+          packetTypeOpt = attr_list[index].value.s32;
+        } else {
+          XLOG_EVERY_MS(DBG3, 5000)
+              << "invalid attribute received: " << attr_list[index].id;
+        }
     }
   }
 
@@ -3591,7 +3601,16 @@ void SaiSwitch::packetRxCallback(
     }
   }
 
-  auto queueId = hostifQueueIdOpt.has_value() ? hostifQueueIdOpt.value() : 0;
+  std::optional<uint8_t> queueId;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_QUEUES)) {
+    queueId = hostifQueueIdOpt.has_value() ? hostifQueueIdOpt.value() : 0;
+  }
+
+  // Convert SAI packet RX type to PacketType enum
+  std::optional<PacketType> packetType;
+  if (packetTypeOpt.has_value()) {
+    packetType = getReceivedPacketType(packetTypeOpt.value());
+  }
 
   if (!lagSaiIdOpt) {
     packetRxCallbackPort(
@@ -3600,7 +3619,8 @@ void SaiSwitch::packetRxCallback(
         portSaiId,
         allowMissingSrcPort,
         packetRxReason,
-        queueId);
+        queueId,
+        packetType);
   } else {
     packetRxCallbackLag(
         buffer_size,
@@ -3609,7 +3629,8 @@ void SaiSwitch::packetRxCallback(
         portSaiId,
         allowMissingSrcPort,
         packetRxReason,
-        queueId);
+        queueId,
+        packetType);
   }
 }
 
@@ -3619,7 +3640,8 @@ void SaiSwitch::packetRxCallbackPort(
     PortSaiId portSaiId,
     bool allowMissingSrcPort,
     cfg::PacketRxReason rxReason,
-    uint8_t queueId) {
+    std::optional<uint8_t> queueId,
+    std::optional<PacketType> packetType) {
   PortID swPortId(0);
   std::optional<VlanID> swVlanId = processVlanUntaggedPackets()
       ? std::nullopt
@@ -3636,7 +3658,8 @@ void SaiSwitch::packetRxCallbackPort(
       PortID(0),
       swVlanId,
       rxReason,
-      queueId);
+      queueId,
+      packetType);
   const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(portSaiId);
   /*
    * When a packet is received with source port as cpu port, do the following:
@@ -3655,8 +3678,11 @@ void SaiSwitch::packetRxCallbackPort(
    * We use the cached cpu port id to avoid holding manager table locks in
    * the Rx path.
    */
+  const bool isCpuPort =
+      platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT) &&
+      (portSaiId == getCPUPortSaiId());
   if (!processVlanUntaggedPackets()) {
-    if (portSaiId == getCPUPortSaiId() ||
+    if (isCpuPort ||
         (allowMissingSrcPort &&
          portItr == concurrentIndices_->portSaiId2PortInfo.cend())) {
       folly::io::Cursor cursor(rxPacket->buf());
@@ -3688,7 +3714,7 @@ void SaiSwitch::packetRxCallbackPort(
       swVlanId = vlanItr->second;
     }
   } else { // VOQ / FABRIC
-    if (portSaiId != getCPUPortSaiId()) {
+    if (!isCpuPort) {
       if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
         // TODO: add counter to keep track of spurious rx packet
         XLOG(ERR) << "RX packet had port with unknown sai id: 0x" << std::hex
@@ -3709,8 +3735,8 @@ void SaiSwitch::packetRxCallbackPort(
   rxPacket->setSrcVlan(swVlanId);
 
   XLOG(DBG6) << "Rx packet on port: " << swPortId << " vlan: " << swVlanIdStr()
-             << " trap: " << packetRxReasonToString(rxReason)
-             << " queue: " << (uint16_t)queueId;
+             << " trap: " << packetRxReasonToString(rxReason) << " queue: "
+             << (queueId.has_value() ? static_cast<uint16_t>(*queueId) : 0);
 
   folly::io::Cursor c0(rxPacket->buf());
   XLOG(DBG6) << PktUtil::hexDump(c0);
@@ -3724,12 +3750,13 @@ void SaiSwitch::packetRxCallbackLag(
     PortSaiId portSaiId,
     bool allowMissingSrcPort,
     cfg::PacketRxReason rxReason,
-    uint8_t queueId) {
+    std::optional<uint8_t> queueId,
+    std::optional<PacketType> packetType) {
   AggregatePortID swAggPortId(0);
   PortID swPortId(0);
   VlanID swVlanId(0);
   auto rxPacket = std::make_unique<SaiRxPacket>(
-      buffer_size, buffer, PortID(0), swVlanId, rxReason, queueId);
+      buffer_size, buffer, PortID(0), swVlanId, rxReason, queueId, packetType);
 
   const auto aggPortItr = concurrentIndices_->aggregatePortIds.find(lagSaiId);
 
@@ -3762,8 +3789,8 @@ void SaiSwitch::packetRxCallbackLag(
   rxPacket->setSrcPort(swPortId);
   XLOG(DBG6) << "Rx packet on lag: " << swAggPortId << ", port: " << swPortId
              << " vlan: " << swVlanId
-             << " trap: " << packetRxReasonToString(rxReason)
-             << " queue: " << (uint16_t)queueId;
+             << " trap: " << packetRxReasonToString(rxReason) << " queue: "
+             << (queueId.has_value() ? static_cast<uint16_t>(*queueId) : 0);
   folly::io::Cursor c0(rxPacket->buf());
   XLOG(DBG6) << PktUtil::hexDump(c0);
   callback_->packetReceived(std::move(rxPacket));

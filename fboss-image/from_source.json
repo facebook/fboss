@@ -1,0 +1,19 @@
+{
+  "distribution_formats": {
+    "usb": "fboss-distro-image_usb.iso"
+  },
+  "kernel": {
+  },
+  "other_dependencies": [
+  ],
+  "fboss-platform-stack": {
+  },
+  "bsps": [
+  ],
+  "sai": {
+  },
+  "fboss-forwarding-stack": {
+  },
+  "image_build_hooks": {
+  }
+}

@@ -2210,12 +2210,14 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   if (getFabricLinkMonitoringManager()) {
     // This flow will be hit only for a subset of VoQ and Fabric switches
     // where fabric link monitoring manager is running.
+    // TODO(nivinl): Broadcom implemented the new attribute to specify
+    // packet type as requested in CS00012430577, however, its not working
+    // for Fabric devices, hence staying with port check for now. Will
+    // migrate to checking the packetType as below soon:
+    // pkt->packetType().value() == PacketType::FABRIC_LINK_MONITORING
     auto* port =
         getState()->getPorts()->getNodeIf(PortID(pkt->getSrcPort())).get();
     if (port && (port->getPortType() == cfg::PortType::FABRIC_PORT)) {
-      // TODO(nivinl): Once Broadcom implements the new attribute to specify
-      // packet type as requested in CS00012430577, the check for port type
-      // can be avoided.
       Cursor c(pkt->buf());
       getFabricLinkMonitoringManager()->handlePacket(std::move(pkt), c);
       return;
@@ -3145,15 +3147,12 @@ bool SwSwitch::sendPacketAsync(
       case PortDescriptor::PortType::PHYSICAL:
         return sendPacketOutOfPortAsync(
             std::move(pkt), portDescriptor.value().phyPortID(), queueId);
-        break;
       case PortDescriptor::PortType::AGGREGATE:
         return sendPacketOutOfPortAsync(
             std::move(pkt), portDescriptor.value().aggPortID(), queueId);
-        break;
       case PortDescriptor::PortType::SYSTEM_PORT:
         XLOG(FATAL) << " Packet send over system ports not handled yet";
         return false;
-        break;
     };
   } else {
     CHECK(!queueId.has_value());
@@ -3244,7 +3243,7 @@ bool SwSwitch::sendPacketOutOfPortAsync(
 bool SwSwitch::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> pkt,
     const PortID& portId,
-    TxPacketType packetType) noexcept {
+    PacketType packetType) noexcept {
   auto state = getState();
   if (!state->getPorts()->getNodeIf(portId)) {
     XLOG(ERR)
@@ -3272,7 +3271,7 @@ bool SwSwitch::sendPacketOutViaThriftStream(
     SwitchID switchId,
     std::optional<PortID> portID,
     std::optional<uint8_t> queue,
-    std::optional<TxPacketType> packetType) noexcept {
+    std::optional<PacketType> packetType) noexcept {
   multiswitch::TxPacket txPacket;
   if (portID) {
     txPacket.port() = portID.value();
@@ -3355,12 +3354,13 @@ void SwSwitch::sendL3Packet(
   // Buffer should not be shared.
   folly::IOBuf* buf = pkt->buf();
   CHECK(!buf->isShared());
+  // Extract primary Vlan associated with this interface, if any
+  auto vlanID = getVlanIDForTx(intf);
 
   // Add L2 header to L3 packet. Information doesn't need to be complete
   // make sure the packet has enough headroom for L2 header and large enough
   // for the minimum size packet.
-  const uint32_t l2Len =
-      getEthernetHeaderSize(intf->getType() == cfg::InterfaceType::VLAN);
+  const uint32_t l2Len = getEthernetHeaderSize(vlanID.has_value());
   const uint32_t l3Len = buf->length();
   const uint32_t minLen = 68;
   uint32_t tailRoom = (l2Len + l3Len >= minLen) ? 0 : minLen - l2Len - l3Len;
@@ -3371,9 +3371,6 @@ void SwSwitch::sendL3Packet(
     stats()->pktError();
     return;
   }
-
-  // Extract primary Vlan associated with this interface, if any
-  auto vlanID = intf->getVlanIDIf();
 
   try {
     uint16_t protocol{0};
@@ -3778,7 +3775,7 @@ bool SwSwitch::sendArpRequestHelper(
   if (entry == nullptr) {
     // No entry in ARP table, send ARP request
     ArpHandler::sendArpRequest(
-        this, intf->getVlanIDIf(), intf->getMac(), source, target);
+        this, getVlanIDForTx(intf), intf->getMac(), source, target);
 
     // Notify the updater that we sent an arp request
     sentArpRequest(intf, target);
@@ -3802,7 +3799,7 @@ bool SwSwitch::sendNdpSolicitationHelper(
   if (entry == nullptr) {
     // No entry in NDP table, create a neighbor solicitation packet
     IPv6Handler::sendMulticastNeighborSolicitation(
-        this, target, intf->getMac(), intf->getVlanIDIf());
+        this, target, intf->getMac(), getVlanIDForTx(intf));
 
     // Notify the updater that we sent a solicitation out
     sentNeighborSolicitation(intf, target);
@@ -3851,8 +3848,7 @@ void SwSwitch::sentArpRequest(
   if (FLAGS_intf_nbr_tables) {
     getNeighborUpdater()->sentArpRequestForIntf(intf->getID(), target);
   } else {
-    getNeighborUpdater()->sentArpRequest(
-        getVlanIDHelper(intf->getVlanIDIf(), intf->getType()), target);
+    getNeighborUpdater()->sentArpRequest(intf->getVlanIDHelper(), target);
   }
 }
 
@@ -3864,7 +3860,7 @@ void SwSwitch::sentNeighborSolicitation(
         intf->getID(), target);
   } else {
     getNeighborUpdater()->sentNeighborSolicitation(
-        getVlanIDHelper(intf->getVlanIDIf(), intf->getType()), target);
+        intf->getVlanIDHelper(), target);
   }
 }
 
@@ -4255,6 +4251,11 @@ template std::optional<VlanID> SwSwitch::getVlanIDForTx(
 
 template std::optional<VlanID> SwSwitch::getVlanIDForTx(
     const std::shared_ptr<Interface>& vlanOrIntf) const;
+
+std::optional<VlanID> SwSwitch::getVlanIDForTx(const InterfaceID& ifID) const {
+  auto intf = getState()->getInterfaces()->getNodeIf(ifID);
+  return getVlanIDForTx(intf);
+}
 
 void SwSwitch::sendNeighborSolicitationForConfiguredInterfaces(
     const std::string& reason,
