@@ -1459,6 +1459,8 @@ void QsfpModule::programTransceiver(
       }
 
       if (needResetDataPath) {
+        XLOG(INFO) << fmt::format(
+            "Transceiver {:s}: Resetting data path", getNameString());
         resetDataPath(getNameString());
       }
 
