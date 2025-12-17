@@ -4552,6 +4552,9 @@ bool CmisModule::dataPathProgram(
                          .count();
 
   if (elapsedUsec > expectedDelayUsec) {
+    // Reset timer and increment failure counter
+    timers.progStartTimer = std::chrono::steady_clock::time_point();
+    dpFailureCounter++;
     QSFP_LOG(ERR, this) << fmt::format(
         "Port {} datapath {} exceeded expected time ({} us > {} us), "
         "dp_{}_failure_counter {}",
@@ -4561,8 +4564,7 @@ bool CmisModule::dataPathProgram(
         expectedDelayUsec,
         opName,
         dpFailureCounter);
-    // Reset timer and increment failure counter
-    dpFailureCounter++;
+    return false;
   }
 
   if (!dpDone) {
