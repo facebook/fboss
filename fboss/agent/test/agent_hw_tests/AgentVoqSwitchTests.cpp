@@ -743,7 +743,9 @@ TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
     utility::setCreditWatchdogAndPortTx(
         getAgentEnsemble(), kPortDesc.phyPortID(), false);
     auto sendPkts = [this, kPortDesc, &ecmpHelper]() {
-      for (auto i = 0; i < 1000; ++i) {
+      for (auto i = 0;
+           i < getAgentEnsemble()->getMinPktsForLineRate(kPortDesc.phyPortID());
+           ++i) {
         sendPacket(ecmpHelper.ip(kPortDesc), std::nullopt);
       }
     };
