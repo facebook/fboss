@@ -15,7 +15,7 @@
 using namespace testing;
 using namespace facebook::fboss;
 
-static const std::string g_client = "testClient";
+[[maybe_unused]] static const std::string g_client = "testClient";
 static const std::vector<std::string> g_ports = {"eth0", "eth1", "lo"};
 static const double g_connect_timer = 100;
 static const std::string g_mkaTofboss = "FromMkaToFboss";
