@@ -41,6 +41,8 @@
                 <oem-skip-verify>true</oem-skip-verify>
             </oemconfig>
         </type>
+        <type image="tbz">
+        </type>
     </preferences>
     <users>
         <user name="root" password="$1$wYJUgpM5$YNklayYndL8.nnIpR/Fze0" groups="root" home="/root"/>
@@ -114,6 +116,19 @@
         <package name="vim"/>
         <package name="vi"/>
         <package name="btrfs-progs"/>
+        <package name="re2"/>
+        <package name="libsodium"/>
+        <package name="double-conversion"/>
+        <package name="libdwarf"/>
+        <package name="libunwind"/>
+        <package name="xxhash-libs"/>
+        <package name="libgpiod"/>
+        <package name="glog"/>
+        <package name="python3-pip"/>
+        <package name="lz4"/>
+        <package name="zstd"/>
+        <package name="libusbx"/>
+        <package name="dmidecode"/>
     </packages>
 
     <packages type="bootstrap">
@@ -125,6 +140,7 @@
         <package name="dracut-live"/>
         <package name="dracut-kiwi-live"/>
         <package name="dracut-kiwi-lib"/>
+        <package name="dracut-config-generic"/>
         <package name="dracut-kiwi-oem-dump"/>
     </packages>
 </image>
