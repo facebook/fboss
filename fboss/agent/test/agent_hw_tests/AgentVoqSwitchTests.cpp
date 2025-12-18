@@ -392,7 +392,12 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
         }
       };
       auto getRecyclePortPkts = [this]() {
-        return *getLatestPortStats(PortID(1)).inUnicastPkts_();
+        int recyclePortPkts = 0;
+        for (const auto& portId :
+             masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})) {
+          recyclePortPkts += *getLatestPortStats(portId).inUnicastPkts_();
+        }
+        return recyclePortPkts;
       };
 
       int64_t beforeQueueOutPkts = 0, beforeQueueOutBytes = 0;
