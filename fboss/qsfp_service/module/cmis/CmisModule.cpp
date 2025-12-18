@@ -67,6 +67,8 @@ constexpr uint8_t DP_DINIT_BITSHIFT = 4;
 
 // Tunable module const expr
 constexpr double kMhzToGhzFactor = 0.000001;
+// DeInitAllMask
+constexpr uint8_t kFullDataPathDeInitMask = 0xFF;
 
 // TODO @sanabani: Change To Map
 std::array<std::string, 9> channelConfigErrorMsg = {
@@ -3410,7 +3412,12 @@ bool CmisModule::ensureTransceiverReadyLocked() {
   // return true else return false as the optics state machine might be in
   // transition and need more time to be ready
   if (powerState == PowerControlState::HIGH_POWER_OVERRIDE) {
-    return isModuleInReadyState();
+    if (isTunableOptics()) {
+      return (isModuleInReadyState()) &&
+          (dataPathProgram(getNameString(), kFullDataPathDeInitMask, false));
+    } else {
+      return isModuleInReadyState();
+    }
   }
 
   // If the optics current power configuration is Low Power then set the LP
@@ -3435,32 +3442,10 @@ bool CmisModule::ensureTransceiverReadyLocked() {
     QSFP_LOG(INFO, this) << folly::sformat(
         "Optics is tunable {}", getNameString());
     // Deactivate all the datapath lane before putting into the high power mode
-    uint8_t dataPathDeInitReg;
-    readCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInitReg);
-    QSFP_LOG(INFO, this) << folly::sformat(
-        "deinit value {} {}", dataPathDeInitReg, getNameString());
-    // First deactivate all the lanes
-    uint8_t dataPathDeInit = 0xFF;
-    writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
-    /* TODO: The generic implementation based on the counter
-     * is coming in the diff stack D83613514.
-     * The module takes around 2 to 3 seconds to be in dp-deactivated state.
-     */
-    // Wait for all datapath state machines to get Deactivated
-    const auto maxRetriesDeInit = maxRetriesWith500msDelay(/*init=*/false);
-
-    auto retries = 0;
-    while (retries++ < maxRetriesDeInit) {
-      /* sleep override */
-      usleep(kUsecDatapathStatePollTime);
-      if (isDatapathUpdated(dataPathDeInit, {CmisLaneState::DEACTIVATED})) {
-        break;
-      }
-    }
-    if (retries >= maxRetriesDeInit) {
-      QSFP_LOG(ERR, this) << fmt::format(
-          "Datapath could not deactivate even after waiting {:d} uSec",
-          kUsecDatapathStateUpdateTime);
+    // for shutting down the laser
+    if (!dataPathProgram(
+            getNameString(), kFullDataPathDeInitMask, /*isInit*/ false)) {
+      return false;
     }
   }
 
