@@ -131,14 +131,12 @@ class AgentCoppTest : public AgentHwTest {
   }
 
   folly::IPAddress getInSubnetNonSwitchIP() const {
-    const auto& configIntfs =
-        initialConfig(*getAgentEnsemble()).interfaces().as_const();
+    auto config = initialConfig(*getAgentEnsemble());
     if (!(this->isSupportedOnAllAsics(HwAsic::Feature::VOQ))) {
-      auto configIntf = initialConfig(*getAgentEnsemble()).interfaces()[0];
-      auto ipAddress = configIntf.ipAddresses()[0];
+      auto ipAddress = config.interfaces()[0].ipAddresses()[0];
       return folly::IPAddress::createNetwork(ipAddress, -1, true).first;
     }
-    for (const auto& configIntf : *configIntfs) {
+    for (const auto& configIntf : *config.interfaces()) {
       if (configIntf.scope() == cfg::Scope::GLOBAL) {
         auto ipAddress = configIntf.ipAddresses()[0];
         return folly::IPAddress::createNetwork(ipAddress, -1, true).first;
