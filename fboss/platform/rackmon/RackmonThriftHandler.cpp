@@ -490,4 +490,43 @@ void ThriftHandler::getPowerLossSiren(PowerLossSiren& pls) {
   pls.port3()->powerLost() = plsInfo[2].first;
   pls.port3()->redundancyLost() = plsInfo[2].second;
 }
+
+void ThriftHandler::sendRawCommand(
+    RawCommandResponse& response,
+    std::unique_ptr<RawCommandRequest> request) {
+  try {
+    rackmon::Request req;
+    rackmon::Response resp;
+
+    // Copy raw command bytes from Thrift request to Modbus Request
+    for (auto byte : *request->cmd()) {
+      req << static_cast<uint8_t>(byte);
+    }
+
+    // Set expected response length
+    resp.len = folly::copy(request->responseLength().value());
+
+    // Get timeout (optional, defaults to 0)
+    int32_t* timeout = apache::thrift::get_pointer(request->timeout());
+    rackmon::ModbusTime tmo =
+        timeout ? rackmon::ModbusTime(*timeout) : rackmon::ModbusTime::zero();
+
+    // Execute raw command
+    // Note: uniqueDevAddress is currently ignored in this version of rackmond
+    // The device address is already embedded in the raw command bytes
+    rackmond_.rawCmd(req, resp, tmo);
+
+    // Copy response bytes to Thrift response (excluding CRC which was added
+    // back)
+    response.status() = RackmonStatusCode::SUCCESS;
+    response.data()->clear();
+    // resp.len includes CRC (2 bytes), remove them for clean response
+    for (size_t i = 0; i < resp.len - 2; i++) {
+      response.data()->push_back(static_cast<int8_t>(resp.raw[i]));
+    }
+  } catch (std::exception& ex) {
+    response.status() = exceptionToStatusCode(ex);
+    response.data()->clear();
+  }
+}
 } // namespace rackmonsvc
