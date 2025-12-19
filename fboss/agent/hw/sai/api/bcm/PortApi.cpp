@@ -290,10 +290,8 @@ SaiPortTraits::Attributes::AttributePfcMonitorDirection::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
-#if (                                                                          \
-    defined(SAI_VERSION_11_7_0_0_ODP) || defined(BRCM_SAI_SDK_XGS_GTE_13_0) || \
-    defined(BRCM_SAI_SDK_DNX_GTE_12_0)) &&                                     \
-    !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+#if defined(SAI_VERSION_11_7_0_0_ODP) || defined(BRCM_SAI_SDK_XGS_GTE_13_0) || \
+    defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   return SAI_PORT_ATTR_EXTENSION_AM_IDLES;
 #else
   return std::nullopt;
