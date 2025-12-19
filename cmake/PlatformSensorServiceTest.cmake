@@ -4,6 +4,7 @@
 # cmake/FooBar.cmake
 
 add_executable(sensor_service_sw_test
+  fboss/platform/sensor_service/tests/PmUnitInfoFetcherTest.cpp
   fboss/platform/sensor_service/tests/SensorServiceImplTest.cpp
   fboss/platform/sensor_service/tests/SensorServiceThriftHandlerTest.cpp
   fboss/platform/sensor_service/tests/TestUtils.cpp
