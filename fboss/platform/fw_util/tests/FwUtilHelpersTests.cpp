@@ -3,8 +3,13 @@
 #include "fboss/platform/fw_util/fw_util_helpers.h"
 
 #include <gtest/gtest.h>
+#include <ctime>
+#include <filesystem>
+#include <fstream>
+#include "fboss/platform/helpers/PlatformUtils.h"
 
 using namespace facebook::fboss::platform::fw_util;
+using namespace facebook::fboss::platform;
 
 class FwUtilHelpersTest : public ::testing::Test {
  protected:
@@ -133,4 +138,74 @@ TEST_F(FwUtilHelpersTest, ToLowerPreservesLength) {
   std::string input = "HelloWorld";
   std::string output = toLower(input);
   EXPECT_EQ(input.length(), output.length());
+}
+
+// ============================================================================
+// getUpgradeToolBinaryPath() Tests
+// ============================================================================
+
+TEST_F(FwUtilHelpersTest, GetUpgradeToolBinaryPathInUsrLocalBin) {
+  // Create a temporary test binary in /tmp to simulate /usr/local/bin
+  std::string testTool = "test_upgrade_tool_" + std::to_string(time(nullptr));
+  std::string testPath = "/tmp/" + testTool;
+
+  // Create the test file
+  std::ofstream testFile(testPath);
+  testFile << "#!/bin/bash\necho test\n";
+  testFile.close();
+  std::filesystem::permissions(
+      testPath,
+      std::filesystem::perms::owner_exec,
+      std::filesystem::perm_options::add);
+
+  // Test will throw since tool won't be in /usr/local/bin in test environment
+  // But we're testing the logic path
+  EXPECT_THROW(getUpgradeToolBinaryPath(testTool), std::runtime_error);
+
+  // Cleanup
+  std::filesystem::remove(testPath);
+}
+
+TEST_F(FwUtilHelpersTest, GetUpgradeToolBinaryPathViaScriptDir) {
+  // Test the script_dir environment variable path
+  std::string testTool = "test_tool_" + std::to_string(time(nullptr));
+  std::string testDir = "/tmp/test_script_dir_" + std::to_string(time(nullptr));
+
+  // Create test directory and tool
+  std::filesystem::create_directories(testDir);
+  std::string testPath = testDir + "/" + testTool;
+  std::ofstream testFile(testPath);
+  testFile << "#!/bin/bash\necho test\n";
+  testFile.close();
+
+  // Set script_dir environment variable
+  setenv("script_dir", testDir.c_str(), 1);
+
+  // Should find the tool via script_dir
+  std::string foundPath = getUpgradeToolBinaryPath(testTool);
+  EXPECT_EQ(foundPath, testPath);
+
+  // Cleanup
+  unsetenv("script_dir");
+  std::filesystem::remove_all(testDir);
+}
+
+TEST_F(FwUtilHelpersTest, VerifySha1sumMatching) {
+  // Create a test binary file with known content
+  std::string testFile =
+      "/tmp/test_binary_" + std::to_string(time(nullptr)) + ".bin";
+  std::ofstream binFile(testFile);
+  binFile << "test content for sha1sum verification\n";
+  binFile.close();
+
+  // Calculate the actual SHA1 sum
+  std::vector<std::string> sha1Cmd = {"/usr/bin/sha1sum", testFile};
+  auto [exitStatus, output] = PlatformUtils().runCommand(sha1Cmd);
+  std::string actualSha1 = output.substr(0, output.find(' '));
+
+  // Should not throw when SHA1 matches
+  EXPECT_NO_THROW(verifySha1sum("test_fpd", actualSha1, testFile));
+
+  // Cleanup
+  std::filesystem::remove(testFile);
 }

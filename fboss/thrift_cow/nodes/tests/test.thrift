@@ -4,6 +4,9 @@ include "fboss/agent/switch_config.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 enum TestEnum {
   FIRST = 1,
   SECOND = 2,

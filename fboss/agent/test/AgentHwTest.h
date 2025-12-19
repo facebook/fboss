@@ -108,8 +108,8 @@ class AgentHwTest : public ::testing::Test {
       const std::string& name = "agent-test-transaction") {
     applyNewStateImpl(std::move(fn), name, true);
   }
-
   SwSwitch* getSw() const;
+  SwitchID getCurrentSwitchIdForTesting() const;
   const std::map<SwitchID, const HwAsic*> getAsics() const;
   std::vector<const HwAsic*> getL3Asics() const {
     return getAgentEnsemble()->getL3Asics();

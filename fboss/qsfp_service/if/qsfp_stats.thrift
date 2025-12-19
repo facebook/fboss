@@ -7,6 +7,10 @@ namespace py.asyncio neteng.fboss.asyncio.qsfp_stats
 include "fboss/agent/hw/hardware_stats.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 struct QsfpStats {
   1: map<string, phy.PhyStats> phyStats;

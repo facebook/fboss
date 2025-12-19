@@ -9,7 +9,6 @@
  */
 
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/Ethertype.h"

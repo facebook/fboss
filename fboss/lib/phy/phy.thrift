@@ -16,6 +16,9 @@ include "fboss/lib/phy/prbs.thrift"
 include "fboss/lib/if/io_stats.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 enum IpModulation {
   NRZ = 1,
   PAM4 = 2,

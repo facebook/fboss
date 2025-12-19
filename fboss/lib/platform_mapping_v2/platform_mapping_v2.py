@@ -481,7 +481,7 @@ class PlatformMappingV2:
                                 pin_config.id for pin_config in all_iphy_pins_needed
                             ]
 
-                            if all(
+                            if needed_pin_ids and all(
                                 needed_iphy_pin_id in other_port_pin_ids
                                 for needed_iphy_pin_id in needed_pin_ids
                             ):

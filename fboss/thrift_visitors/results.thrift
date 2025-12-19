@@ -1,3 +1,8 @@
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace py3 neteng.fboss
 namespace py neteng.fboss.results
 namespace py.asyncio neteng.fboss.asyncio.results

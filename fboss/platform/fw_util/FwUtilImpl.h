@@ -66,6 +66,37 @@ class FwUtilImpl {
   FRIEND_TEST(FwUtilPostUpgradeTest, DoPostUpgradeOperationInvalidConfigs);
   FRIEND_TEST(FwUtilReadTest, PerformReadFlashromWithArgs);
   FRIEND_TEST(FwUtilReadTest, PerformReadUnsupportedCommandType);
+  FRIEND_TEST(FwUtilFlashromTest, DetectFlashromChipFound);
+  FRIEND_TEST(FwUtilFlashromTest, DetectFlashromChipNotFound);
+  FRIEND_TEST(FwUtilFlashromTest, DetectFlashromChipMultiple);
+  FRIEND_TEST(FwUtilFlashromTest, CreateCustomContentFileSuccess);
+  FRIEND_TEST(FwUtilFlashromTest, CreateCustomContentFileFailure);
+  FRIEND_TEST(FwUtilFlashromTest, SetProgrammerAndChipBoth);
+  FRIEND_TEST(FwUtilFlashromTest, SetProgrammerAndChipTypeOnly);
+  FRIEND_TEST(FwUtilFlashromTest, SetProgrammerAndChipDetected);
+  FRIEND_TEST(FwUtilFlashromTest, SetProgrammerAndChipNoProgrammerType);
+  FRIEND_TEST(FwUtilFlashromTest, AddLayoutFileValid);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsWithLayout);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsWithCustomContent);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsWithFileOption);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsWithImageOption);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsMinimal);
+  FRIEND_TEST(FwUtilFlashromTest, PerformFlashromUpgradeSuccess);
+  FRIEND_TEST(FwUtilFlashromTest, PerformFlashromUpgradeDryRun);
+  FRIEND_TEST(FwUtilFlashromTest, PerformFlashromUpgradeMissingBinary);
+  FRIEND_TEST(FwUtilFlashromTest, PerformFlashromReadSuccess);
+  FRIEND_TEST(FwUtilOperationsTest, PerformJamUpgradeMissingBinary);
+  FRIEND_TEST(FwUtilOperationsTest, PerformXappUpgradeMissingBinary);
+  FRIEND_TEST(FwUtilOperationsTest, DoGpiosetOperationSuccess);
+  FRIEND_TEST(FwUtilOperationsTest, DoGpiosetOperationInvalidChip);
+  FRIEND_TEST(FwUtilOperationsTest, DoGpiogetOperationSuccess);
+  FRIEND_TEST(FwUtilOperationsTest, DoWriteToPortOperationSuccess);
+  FRIEND_TEST(FwUtilImplTest, GetFpdNameListReturnsAll);
+  FRIEND_TEST(FwUtilImplTest, GetFpdCaseInsensitive);
+  FRIEND_TEST(FwUtilImplTest, GetFpdReturnsAll);
+  FRIEND_TEST(FwUtilImplTest, GetFpdInvalidThrows);
+  FRIEND_TEST(FwUtilImplTest, DoVersionAuditVersionMismatch);
+  FRIEND_TEST(FwUtilImplTest, DoFirmwareActionInvalidAction);
 
   void doPreUpgrade(const std::string&);
 

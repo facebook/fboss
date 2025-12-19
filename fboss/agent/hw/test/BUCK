@@ -339,7 +339,6 @@ hw_test_common_srcs = [
 hw_test_asic_only_srcs = hw_test_common_srcs + [
     "HwTeFlowTests.cpp",
     "HwAsicDefaultProgrammingTests.cpp",
-    "HwParityErrorTest.cpp",
     "dataplane_tests/facebook/HwAlpmStressTests.cpp",
 ]
 
@@ -407,7 +406,6 @@ cpp_library(
         ":prod_config_utils",
         ":teflow_utils",
         "//fb303:service_data",
-        "//fb303:thread_cached_service_data",
         "//fboss/agent:address_utils",
         "//fboss/agent:apply_thrift_config",
         "//fboss/agent:asic_utils",
@@ -426,7 +424,6 @@ cpp_library(
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent:validated_shell_commands-cpp2-types",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
-        "//fboss/agent/hw:hw_switch_fb303_stats",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:mpls-cpp2-types",

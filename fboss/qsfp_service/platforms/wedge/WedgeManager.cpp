@@ -1053,7 +1053,7 @@ bool WedgeManager::initExternalPhyMap(
         auto* xphyEventBase = phyManager->getXphyEventBase(xphyID);
         initPimTasks.push_back(
             folly::via(xphyEventBase)
-                .thenValue([&, xphyID, warmboot](auto&&) {
+                .thenValue([phyManager, xphyID, warmboot](auto&&) {
                   phyManager->initializeXphy(xphyID, warmboot);
                 })
                 .thenError(
@@ -1071,7 +1071,7 @@ bool WedgeManager::initExternalPhyMap(
       auto* pimEventBase = phyManager->getPimEventBase(pimID);
       initPimTasks.push_back(
           folly::via(pimEventBase)
-              .thenValue([&, pimID, warmboot](auto&&) {
+              .thenValue([phyManager, pimID, warmboot](auto&&) {
                 phyManager->initializeSlotPhys(pimID, warmboot);
               })
               .thenError(

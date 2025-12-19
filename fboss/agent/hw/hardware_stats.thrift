@@ -7,6 +7,10 @@ namespace php fboss_hw
 
 include "fboss/mka_service/if/mka_structs.thrift"
 include "thrift/annotation/cpp.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 const i64 STAT_UNINITIALIZED = -1;
 

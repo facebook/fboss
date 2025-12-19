@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
+#include "fboss/fsdb/oper/Subscription.h"
 #include "fboss/fsdb/server/ServiceHandler.h"
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
@@ -890,6 +891,19 @@ TYPED_TEST(FsdbSlowPathSubscriberTest, slowSubscriberCoalescedUpdates) {
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
 
+  // validate fb303 counter is incremented when coalescing starts
+  WITH_RETRIES_N(90, {
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    auto counterName = folly::to<std::string>(
+        "fsdb.handler.",
+        slowSub->clientId(),
+        ".",
+        kNumSubscriptionServesCoalesced,
+        ".sum");
+    auto counterValue = fb303::ServiceData::get()->getCounter(counterName);
+    EXPECT_EVENTUALLY_GE(counterValue, 1);
+  });
+
   // resume subscriber data callback after all updates are published
   resumeDataCb.post();
 
@@ -942,6 +956,21 @@ TYPED_TEST(FsdbSlowPathSubscriberTest, slowSubscriberCoalescedUpdates) {
         ASSERT_EVENTUALLY_GT(*expectedInfo.subscriptionChunksCoalesced(), 0);
       }
     }
+  });
+
+  // validate fb303 counter does not increment for transition from coalescing to
+  // not coalescing
+  WITH_RETRIES_N(90, {
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    auto counterName = folly::to<std::string>(
+        "fsdb.handler.",
+        slowSub->clientId(),
+        ".",
+        kNumSubscriptionServesCoalesced,
+        ".sum.60");
+    auto counterValue = fb303::ServiceData::get()->getCounter(counterName);
+    // Counter should eventually get back to 0
+    EXPECT_EVENTUALLY_EQ(counterValue, 0);
   });
 
   resumeReconnect.post();
