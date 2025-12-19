@@ -23,6 +23,7 @@ cpp_library(
         "//folly:network_address",
         "//folly/io/async:async_socket",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
+        "//thrift/lib/cpp2:server",
         "//thrift/lib/cpp2/util:util",
     ],
 )
@@ -45,7 +46,7 @@ cpp_unittest(
         "//fboss/cli/fboss2:cmd-global-options",
         "//fboss/cli/fboss2:fboss2-lib",
         "//fboss/cli/fboss2:ops-utils",
-        "//nettools/common:TestUtils",
+        "//thrift/lib/cpp2/reflection:testing",
     ],
 )
 
@@ -120,7 +121,7 @@ cpp_unittest(
         "//folly:network_address",
         "//folly/json:dynamic",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
-        "//nettools/common:TestUtils",
+        "//thrift/lib/cpp2/reflection:testing",
     ],
     external_deps = [("boost", None, "boost_algorithm")],
 )
