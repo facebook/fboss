@@ -362,7 +362,7 @@ add_fbthrift_cpp_library(
 
 find_package(CLI11 CONFIG REQUIRED)
 
-add_executable(fboss2
+add_library(fboss2_lib
   fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h
   fboss/cli/fboss2/commands/clear/CmdClearArp.h
   fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h
@@ -471,7 +471,6 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
   fboss/cli/fboss2/CmdSubcommands.cpp
-  fboss/cli/fboss2/Main.cpp
   fboss/cli/fboss2/oss/CmdGlobalOptions.cpp
   fboss/cli/fboss2/oss/CmdList.cpp
   fboss/cli/fboss2/utils/CmdUtils.cpp
@@ -493,7 +492,7 @@ add_executable(fboss2
   fboss/cli/fboss2/options/SSLPolicy.h
 )
 
-target_link_libraries(fboss2
+target_link_libraries(fboss2_lib
   CLI11::CLI11
   tabulate::tabulate
   fb303_cpp2
@@ -556,6 +555,15 @@ target_link_libraries(fboss2
   show_rif
   show_interface_counters_fec_uncorrectable
   ${RE2}
+)
+
+add_executable(fboss2
+  fboss/cli/fboss2/Main.cpp
+)
+
+target_link_libraries(fboss2
+  fboss2_lib
+  Folly::folly
 )
 
 install(TARGETS fboss2)
