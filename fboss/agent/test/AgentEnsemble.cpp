@@ -707,8 +707,8 @@ void AgentEnsemble::createAndDumpOverriddenAgentConfig() {
   std::vector<gflags::CommandLineFlagInfo> flags;
   gflags::GetAllFlags(&flags);
   for (const auto& flag : flags) {
-    // Skip writing flags if 1) default value, and 2) config itself.
-    if (!flag.is_default && flag.name != kConfig) {
+    // Skip writing flags if config is itself.
+    if (flag.name != kConfig) {
       defaultCommandLineArgs.emplace(flag.name, flag.current_value);
     }
   }
