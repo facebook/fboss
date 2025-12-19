@@ -127,7 +127,8 @@ std::vector<FlexPortMode> SaiPhyPlatform::getSupportedFlexPortModes() const {
 std::optional<sai_port_interface_type_t> SaiPhyPlatform::getInterfaceType(
     TransmitterTechnology /* transmitterTech */,
     cfg::PortSpeed /* speed */) const {
-  throw FbossError("SaiPhyPlatform doesn't support getInterfaceType()");
+  // For AGERA3 PHY, always return KR interface type
+  return SAI_PORT_INTERFACE_TYPE_KR;
 }
 bool SaiPhyPlatform::isSerdesApiSupported() const {
   return true;
