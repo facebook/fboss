@@ -1,6 +1,11 @@
 #
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace py neteng.fboss.agent_info
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.agent_info

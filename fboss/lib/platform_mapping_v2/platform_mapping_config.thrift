@@ -8,6 +8,10 @@ namespace php fboss_platform_mapping_config
 include "fboss/agent/switch_config.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 // One of these is what is expected in the A/Z_CHIP_TYPE fields in the CSVs
 enum ChipType {

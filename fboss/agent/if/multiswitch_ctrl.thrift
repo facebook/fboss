@@ -14,6 +14,9 @@ include "fboss/agent/hw/hardware_stats.thrift"
 include "thrift/annotation/thrift.thrift"
 include "fboss/agent/switch_config.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 @cpp.Type{name = "std::unique_ptr<folly::IOBuf>"}
 typedef binary fbbinary
 

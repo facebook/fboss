@@ -21,6 +21,9 @@ include "thrift/annotation/python.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 typedef common.fbbinary fbbinary
 typedef common.fbstring fbstring
 typedef common.ClientInformation ClientInformation

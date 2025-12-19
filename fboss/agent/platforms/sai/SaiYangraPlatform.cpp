@@ -92,6 +92,12 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   // SAI_PORT_STAT_IF_IN_UCAST_PKTS, set SAI_PORT_STAT_IF_IN_UCAST_PKTS to count
   // all received packet, including discarded packets
   kv_map.insert(std::make_pair("SAI_AGGREGATE_UCAST_DROPS", "1"));
+  // PFC-WD perform recovery once recovery time is elapsed even while new PFC
+  // frames are received
+  kv_map.insert(
+      std::make_pair(
+          "SAI_KEY_PFC_WD_FORWARD_ACTION_BEHAVIOR",
+          "PFC_WD_FORWARD_ACTION_IMMEDIATE_RECOVERY"));
   return kv_map;
 }
 

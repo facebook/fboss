@@ -3,6 +3,10 @@ namespace cpp2 facebook.fboss
 namespace py neteng.fboss.bsp_platform_mapping
 
 include 'fboss/lib/led/led_mapping.thrift'
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 struct BspPlatformMappingThrift {
   1: map<i32, BspPimMapping> pimMapping;

@@ -392,7 +392,12 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
         }
       };
       auto getRecyclePortPkts = [this]() {
-        return *getLatestPortStats(PortID(1)).inUnicastPkts_();
+        int recyclePortPkts = 0;
+        for (const auto& portId :
+             masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})) {
+          recyclePortPkts += *getLatestPortStats(portId).inUnicastPkts_();
+        }
+        return recyclePortPkts;
       };
 
       int64_t beforeQueueOutPkts = 0, beforeQueueOutBytes = 0;
@@ -743,7 +748,9 @@ TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
     utility::setCreditWatchdogAndPortTx(
         getAgentEnsemble(), kPortDesc.phyPortID(), false);
     auto sendPkts = [this, kPortDesc, &ecmpHelper]() {
-      for (auto i = 0; i < 1000; ++i) {
+      for (auto i = 0;
+           i < getAgentEnsemble()->getMinPktsForLineRate(kPortDesc.phyPortID());
+           ++i) {
         sendPacket(ecmpHelper.ip(kPortDesc), std::nullopt);
       }
     };

@@ -941,7 +941,6 @@ void addLoadBalancerToConfig(
       break;
     default:
       throw FbossError("invalid hashing option ", hashType);
-      break;
   }
 }
 

@@ -165,6 +165,7 @@ if [ "${BUILD_DOCKER_IMAGE}" = "yes" ]; then
     # Change directory full path to correct levels up from the script location as its expected by Dockerfile
     cd "${WSROOT}/../.." || exit
     # This docker build expects to be run from the workspace root directory
+    #shellcheck disable=SC2086
     docker build -f fboss/oss/docker/Dockerfile ${DOCKER_BUILD_ARGS} -t "${DOCKER_IMAGE_NAME}" . >>"${LOG_FILE}" 2>&1
     handle_error "$?" "docker build"
   fi
@@ -175,10 +176,12 @@ DOCKER_ARGS="--privileged --cap-add SYS_ADMIN -v ${WSROOT}:/${IMAGE_BUILDER_DIR}
 
 if [ "${ENTER_SHELL}" = "yes" ]; then
   dprint "Starting bash in docker container: ${DOCKER_INSTANCE_NAME}"
+  #shellcheck disable=SC2086
   docker run --rm -it ${DOCKER_ARGS} "${DOCKER_IMAGE_NAME}" /bin/bash
 else
   if [ "${BUILD_FBOSS_IMAGES}" = "yes" ]; then
     dprint "Starting image build, launching in docker: /${IMAGE_BUILDER_DIR}/bin/build_image_in_container.sh ${CHILD_SCRIPT_ARGS[*]}"
+    #shellcheck disable=SC2086
     docker run --rm ${DOCKER_ARGS} "${DOCKER_IMAGE_NAME}" /"${IMAGE_BUILDER_DIR}"/bin/build_image_in_container.sh "${CHILD_SCRIPT_ARGS[@]}" >>"${LOG_FILE}" 2>&1
     RC=$?
     handle_error "${RC}" "docker run /${IMAGE_BUILDER_DIR}/bin/build_image.sh ${CHILD_SCRIPT_ARGS[*]}"

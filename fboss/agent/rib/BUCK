@@ -7,6 +7,7 @@ cpp_library(
     name = "rib_header",
     headers = glob(["*.h"]),
     exported_deps = [
+        "fbsource//third-party/googletest:gtest",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fboss_event_base",
         "//fboss/agent:switch_config-cpp2-types",
@@ -141,7 +142,11 @@ cpp_library(
     headers = ["NextHopIDManager.h"],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent/state:state",
+    ],
+    exported_external_deps = [
+        "boost",
     ],
 )

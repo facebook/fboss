@@ -147,6 +147,8 @@ add_library(scuba_logger
 
 target_link_libraries(scuba_logger
   fmt::fmt
+  platform_manager_config_cpp2
+  platform_manager_data_store
 )
 
 add_library(platform_manager_platform_explorer
