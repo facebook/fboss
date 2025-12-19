@@ -317,7 +317,29 @@ def _find_matching_xphy_connection_in_pairs(
     target_core_type: CoreType,
     connection_pairs: List[ConnectionPair],
 ) -> Optional[ConnectionEnd]:
-    """Find XPHY connection in ConnectionPairs matching reference with different core type."""
+    """
+    For XPHY chips, SYSTEM lane = LINE lane + 8
+    - When matching from SYSTEM to LINE: expected_line_lane = system_lane - 8
+    - When matching from LINE to SYSTEM: expected_system_lane = line_lane + 8
+    """
+    reference_core_type_name = CoreType._VALUES_TO_NAMES[
+        reference_connection.chip.core_type
+    ]
+    target_core_type_name = CoreType._VALUES_TO_NAMES[target_core_type]
+
+    reference_lane = reference_connection.lane.logical_id
+    if reference_core_type_name.endswith("_SYSTEM") and target_core_type_name.endswith(
+        "_LINE"
+    ):
+        expected_lane = reference_lane - 8
+    elif reference_core_type_name.endswith("_LINE") and target_core_type_name.endswith(
+        "_SYSTEM"
+    ):
+        expected_lane = reference_lane + 8
+    else:
+        # Same type or unknown, use same lane
+        expected_lane = reference_lane
+
     for connection_pair in connection_pairs:
         for connection_end in [connection_pair.a, connection_pair.z]:
             if (
@@ -329,8 +351,7 @@ def _find_matching_xphy_connection_in_pairs(
                 and connection_end.chip.slot_id == reference_connection.chip.slot_id
                 and connection_end.chip.chip_id == reference_connection.chip.chip_id
                 and connection_end.chip.core_id == reference_connection.chip.core_id
-                and connection_end.lane.logical_id
-                == reference_connection.lane.logical_id
+                and connection_end.lane.logical_id == expected_lane
             ):
                 return connection_end
     return None
