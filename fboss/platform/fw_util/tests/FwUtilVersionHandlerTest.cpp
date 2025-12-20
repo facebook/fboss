@@ -123,4 +123,16 @@ TEST_F(FwUtilVersionHandlerTest, PrintDarwinVersionCommandFailure) {
       handler.printDarwinVersion("failing_device"), std::runtime_error);
 }
 
+// ============================================================================
+// getSingleVersion() Tests
+// ============================================================================
+
+TEST_F(FwUtilVersionHandlerTest, GetSingleVersionDeviceNotFound) {
+  FwUtilVersionHandler handler(devicesByPrio_, config_);
+
+  // Should throw for non-existent device
+  EXPECT_THROW(
+      handler.getSingleVersion("nonexistent_device"), std::runtime_error);
+}
+
 } // namespace facebook::fboss::platform::fw_util
