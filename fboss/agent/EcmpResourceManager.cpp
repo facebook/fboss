@@ -2044,7 +2044,7 @@ EcmpResourceManager::findCachedOrNewIdForNhops(
       }
     };
     fillAllocatedIds(nextHopGroup2Id_);
-    for (auto start = kMinNextHopGroupId;
+    for (uint64_t start = kMinNextHopGroupId;
          start < std::numeric_limits<NextHopGroupId>::max();
          ++start) {
       if (allocatedIds.find(start) == allocatedIds.end()) {

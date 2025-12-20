@@ -407,7 +407,7 @@ class EcmpResourceManager {
       const std::shared_ptr<Route<AddrT>>& removed,
       bool isUpdate,
       InputOutputState* inOutState);
-  static uint32_t constexpr kMinNextHopGroupId = 1;
+  static uint64_t constexpr kMinNextHopGroupId = 1;
   NextHopGroupId findCachedOrNewIdForNhops(
       const RouteNextHopSet& nhops,
       const InputOutputState& inOutState) const;
