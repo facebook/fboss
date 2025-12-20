@@ -61,7 +61,6 @@ class FwUtilImpl {
   FRIEND_TEST(FwUtilUpgradeTest, DoUpgradeNoUpgradeConfig);
   FRIEND_TEST(FwUtilPreUpgradeTest, DoPreUpgradeOperationEmptyCommandType);
   FRIEND_TEST(FwUtilPreUpgradeTest, DoPreUpgradeOperationJtagWithArgs);
-  FRIEND_TEST(FwUtilPreUpgradeTest, DoPreUpgradeOperationInvalidConfigs);
   FRIEND_TEST(FwUtilPostUpgradeTest, DoPostUpgradeOperationWithValidArgs);
   FRIEND_TEST(FwUtilPostUpgradeTest, DoPostUpgradeOperationInvalidConfigs);
   FRIEND_TEST(FwUtilReadTest, PerformReadFlashromWithArgs);
