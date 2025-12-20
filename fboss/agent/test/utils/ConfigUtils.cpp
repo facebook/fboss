@@ -860,11 +860,11 @@ cfg::SwitchConfig genPortVlanCfg(
     if (asic->getInbandPortId().has_value()) {
       switchInfo.inbandPortId() = *asic->getInbandPortId();
     }
-    defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
     if (platformType.has_value() &&
         platformType.value() == PlatformType::PLATFORM_LADAKH800BCLS) {
-      populateSwitchInfoForLadakh(defaultSwitchIdToSwitchInfo);
+      populateSwitchInfoForLadakh(static_cast<SwitchID>(switchId), switchInfo);
     }
+    defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
     populateSwitchInfo(
         config, defaultSwitchIdToSwitchInfo, defaultHwAsicTable, platformType);
   }
@@ -1041,30 +1041,20 @@ void populateSwitchInfo(
 }
 
 void populateSwitchInfoForLadakh(
-    std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo) {
-  // Switch 0 configuration
-  cfg::SwitchInfo switchInfo0;
-  switchInfo0.switchType() = cfg::SwitchType::NPU;
-  switchInfo0.asicType() = cfg::AsicType::ASIC_TYPE_TOMAHAWK6;
-  switchInfo0.switchIndex() = 0;
-  cfg::Range64 portIdRange0;
-  portIdRange0.minimum() = 1;
-  portIdRange0.maximum() = 512;
-  switchInfo0.portIdRange() = portIdRange0;
-  switchInfo0.connectionHandle() = "0000:15:00=0";
-  switchIdToSwitchInfo.insert({SwitchID(0), switchInfo0});
-
-  // Switch 1 configuration
-  cfg::SwitchInfo switchInfo1;
-  switchInfo1.switchType() = cfg::SwitchType::NPU;
-  switchInfo1.asicType() = cfg::AsicType::ASIC_TYPE_TOMAHAWK6;
-  switchInfo1.switchIndex() = 1;
-  cfg::Range64 portIdRange1;
-  portIdRange1.minimum() = 2049;
-  portIdRange1.maximum() = 2560;
-  switchInfo1.portIdRange() = portIdRange1;
-  switchInfo1.connectionHandle() = "0000:18:00=0";
-  switchIdToSwitchInfo.insert({SwitchID(1), switchInfo1});
+    SwitchID switchId,
+    cfg::SwitchInfo& switchInfo) {
+  cfg::Range64 portIdRange;
+  switchInfo.switchIndex() = static_cast<int64_t>(switchId);
+  if (switchId == SwitchID(0)) {
+    portIdRange.minimum() = 1;
+    portIdRange.maximum() = 512;
+    switchInfo.connectionHandle() = "0000:15:00=0";
+  } else {
+    portIdRange.minimum() = 2049;
+    portIdRange.maximum() = 2560;
+    switchInfo.connectionHandle() = "0000:18:00=0";
+  }
+  switchInfo.portIdRange() = portIdRange;
 }
 
 cfg::SwitchConfig

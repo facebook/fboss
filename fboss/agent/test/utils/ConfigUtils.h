@@ -241,7 +241,8 @@ void populateSwitchInfo(
     const std::optional<PlatformType> platformType = std::nullopt);
 
 void populateSwitchInfoForLadakh(
-    std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo);
+    SwitchID switchId,
+    cfg::SwitchInfo& switchInfo);
 
 cfg::SwitchConfig twoL3IntfConfig(
     SwSwitch* swSwitch,
