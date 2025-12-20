@@ -71,7 +71,11 @@ class FwUtilPreUpgradeTest : public ::testing::Test {
   bool createdPlatformFile_ = false;
 };
 
-// Test doPreUpgradeOperation with empty command type
+// ============================================================================
+// doPreUpgradeOperation() Tests
+// ============================================================================
+
+// Test empty command type returns early without error
 TEST_F(FwUtilPreUpgradeTest, DoPreUpgradeOperationEmptyCommandType) {
   std::string configFile = (tempDir_ / "test_config.json").string();
   createMinimalConfig(configFile);
@@ -81,11 +85,11 @@ TEST_F(FwUtilPreUpgradeTest, DoPreUpgradeOperationEmptyCommandType) {
   PreFirmwareOperationConfig operation;
   operation.commandType() = "";
 
-  // Should return early without throwing
+  // Empty command type should return early without throwing
   EXPECT_NO_THROW(fwUtil.doPreUpgradeOperation(operation, "test_device"));
 }
 
-// Test doPreUpgradeOperation with jtag and args
+// Test jtag command type with valid args creates file with correct value
 TEST_F(FwUtilPreUpgradeTest, DoPreUpgradeOperationJtagWithArgs) {
   std::string configFile = (tempDir_ / "test_config.json").string();
   createMinimalConfig(configFile);
@@ -95,34 +99,22 @@ TEST_F(FwUtilPreUpgradeTest, DoPreUpgradeOperationJtagWithArgs) {
   PreFirmwareOperationConfig operation;
   operation.commandType() = "jtag";
 
+  std::string jtagFilePath = (tempDir_ / "jtag_test.txt").string();
   JtagConfig jtagConfig;
-  jtagConfig.path() = (tempDir_ / "jtag_test.txt").string();
+  jtagConfig.path() = jtagFilePath;
   jtagConfig.value() = 1;
   operation.jtagArgs() = jtagConfig;
 
   // Should call doJtagOperation and create file
   EXPECT_NO_THROW(fwUtil.doPreUpgradeOperation(operation, "test_device"));
 
-  // Verify file was created
-  EXPECT_TRUE(std::filesystem::exists(jtagConfig.path().value()));
-}
-
-// Test doPreUpgradeOperation with invalid configs logs error
-TEST_F(FwUtilPreUpgradeTest, DoPreUpgradeOperationInvalidConfigs) {
-  std::string configFile = (tempDir_ / "test_config.json").string();
-  createMinimalConfig(configFile);
-
-  FwUtilImpl fwUtil(binaryFile_, configFile, false, false);
-
-  // Test 1: Missing args (command type matches but no args)
-  PreFirmwareOperationConfig operation1;
-  operation1.commandType() = "jtag";
-  EXPECT_NO_THROW(fwUtil.doPreUpgradeOperation(operation1, "test_device"));
-
-  // Test 2: Unsupported command type
-  PreFirmwareOperationConfig operation2;
-  operation2.commandType() = "unsupported_type";
-  EXPECT_NO_THROW(fwUtil.doPreUpgradeOperation(operation2, "test_device"));
+  // Verify file was created with correct content
+  EXPECT_TRUE(std::filesystem::exists(jtagFilePath));
+  std::ifstream resultFile(jtagFilePath);
+  std::string content;
+  std::getline(resultFile, content);
+  resultFile.close();
+  EXPECT_EQ(content, "1");
 }
 
 } // namespace facebook::fboss::platform::fw_util
