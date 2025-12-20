@@ -97,6 +97,8 @@ class FwUtilImpl {
   FRIEND_TEST(FwUtilImplTest, GetFpdInvalidThrows);
   FRIEND_TEST(FwUtilImplTest, DoVersionAuditVersionMismatch);
   FRIEND_TEST(FwUtilImplTest, DoFirmwareActionInvalidAction);
+  FRIEND_TEST(FwUtilImplTest, PrintVersionInvalidFpd);
+  FRIEND_TEST(FwUtilImplTest, FpdListSortedByPriority);
 
   void doPreUpgrade(const std::string&);
 
