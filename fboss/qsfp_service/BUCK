@@ -97,6 +97,7 @@ cpp_library(
         ":transceiver-manager",
         "//common/time:time",
         "//fb303:thread_cached_service_data",
+        "//fboss/agent:fboss-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
