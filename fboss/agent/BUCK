@@ -102,7 +102,9 @@ thrift_library(
     thrift_cpp2_options = "json,reflection",
     thrift_py_options = "json,sort_keys",
     thrift_srcs = {"agent_info.thrift": []},
-    deps = [],
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -142,6 +144,7 @@ thrift_library(
         "//fboss/agent/hw/sai/config:asic_config",
         "//fboss/lib/phy:phy",
         "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -205,7 +208,9 @@ thrift_library(
     thrift_cpp2_options = "json,reflection",
     thrift_py_options = "json,sort_keys",
     thrift_srcs = {"switch_reachability.thrift": []},
-    deps = [],
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -253,6 +258,7 @@ thrift_library(
         "//fboss/agent/if:asic_temp",
         "//fboss/lib/phy:phy",
         "//thrift/annotation:cpp",
+        "//thrift/annotation:thrift",
     ],
 )
 

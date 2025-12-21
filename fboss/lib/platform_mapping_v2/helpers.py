@@ -1,7 +1,8 @@
 # pyre-strict
 import copy
 import re
-from typing import Any, List, Optional
+from collections import defaultdict
+from typing import Any, Dict, List, Optional
 
 from fboss.lib.platform_mapping_v2.si_settings import SiSettings
 from fboss.lib.platform_mapping_v2.static_mapping import StaticMapping
@@ -541,13 +542,58 @@ def _create_override_from_si_setting(
     return PlatformPortConfigOverride(factor=override_factor, pins=port_pin_config)
 
 
+def _format_custom_collection_json(custom_collection: Dict[str, List[int]]) -> str:
+    return str(
+        {
+            "attributes": [
+                {
+                    key: {
+                        "sai_metadata": {
+                            "sai_attr_value_type": "SAI_ATTR_VALUE_TYPE_INT_32_LIST",
+                            "value": value,
+                        }
+                    }
+                }
+                for key, value in custom_collection.items()
+            ]
+        }
+    )
+
+
+def _aggregate_custom_collection_attributes(
+    custom_tx_collection: List[Dict[str, int]],
+    custom_rx_collection: List[Dict[str, int]],
+) -> Optional[str]:
+    tx_collection = defaultdict(list)
+    for lane_collection in custom_tx_collection:
+        for attribute, value in lane_collection.items():
+            tx_collection[attribute].append(value)
+
+    rx_collection = defaultdict(list)
+    for lane_collection in custom_rx_collection:
+        for attribute, value in lane_collection.items():
+            rx_collection[attribute].append(value)
+
+    custom_collection = tx_collection.copy()
+    custom_collection.update(rx_collection)
+
+    return (
+        _format_custom_collection_json(custom_collection) if custom_collection else None
+    )
+
+
 def _process_connection_with_si_settings(
     connection: ConnectionEnd,
     si_settings: SiSettings,
     profile: PortProfileID,
     lane_speed: PortSpeed,
     port_id: Optional[int] = None,
-) -> tuple[List[PinConfig], List[PlatformPortConfigOverride]]:
+) -> tuple[
+    List[PinConfig],
+    List[PlatformPortConfigOverride],
+    List[Dict[str, int]],
+    List[Dict[str, int]],
+]:
     """Generic connection processing that applies SI settings and handles overrides."""
     pin_config = get_pin_config(connection_end=connection)
     pin_connection = SiSettingPinConnection(
@@ -561,17 +607,24 @@ def _process_connection_with_si_settings(
     )
 
     if len(si_setting_and_factor_list) == 0:
-        return [pin_config], []
+        return [pin_config], [], [], []
 
     configured_pins = []
     overrides = []
+
+    custom_tx_collection_list = []
+    custom_rx_collection_list = []
 
     for si_setting_and_factor in si_setting_and_factor_list:
         pin_conf = copy.deepcopy(pin_config)
         if si_setting_and_factor.tx_setting != TxSettings():
             pin_conf.tx = si_setting_and_factor.tx_setting
+        if si_setting_and_factor.custom_tx_collection:
+            custom_tx_collection_list.append(si_setting_and_factor.custom_tx_collection)
         if si_setting_and_factor.rx_setting != RxSettings():
             pin_conf.rx = si_setting_and_factor.rx_setting
+        if si_setting_and_factor.custom_rx_collection:
+            custom_rx_collection_list.append(si_setting_and_factor.custom_rx_collection)
 
         if si_setting_and_factor.factor is None:
             configured_pins.append(pin_conf)
@@ -586,7 +639,12 @@ def _process_connection_with_si_settings(
                 )
                 overrides.append(override)
 
-    return configured_pins, overrides
+    return (
+        configured_pins,
+        overrides,
+        custom_tx_collection_list,
+        custom_rx_collection_list,
+    )
 
 
 def _process_xphy_connection(
@@ -594,19 +652,26 @@ def _process_xphy_connection(
     si_settings: SiSettings,
     profile: PortProfileID,
     lane_speed: PortSpeed,
-) -> tuple[List[PinConfig], List[PinConfig]]:
+) -> tuple[
+    List[PinConfig],
+    List[PinConfig],
+    List[Dict[str, int]],
+    List[Dict[str, int]],
+]:
     """Process XPHY connection and return (sys_pins, line_pins)."""
-    configured_pins, _ = _process_connection_with_si_settings(
-        connection, si_settings, profile, lane_speed
+    configured_pins, _, custom_tx_collection_list, custom_rx_collection_list = (
+        _process_connection_with_si_settings(
+            connection, si_settings, profile, lane_speed
+        )
     )
 
     core_type_name = CoreType._VALUES_TO_NAMES[connection.chip.core_type]
     if core_type_name.endswith("_SYSTEM"):
-        return configured_pins, []
+        return configured_pins, [], custom_tx_collection_list, custom_rx_collection_list
     elif core_type_name.endswith("_LINE"):
-        return [], configured_pins
+        return [], configured_pins, custom_tx_collection_list, custom_rx_collection_list
     else:
-        return [], []
+        return [], [], [], []
 
 
 def _process_npu_connection(
@@ -615,7 +680,12 @@ def _process_npu_connection(
     profile: PortProfileID,
     lane_speed: PortSpeed,
     port_id: int,
-) -> tuple[List[PinConfig], List[PlatformPortConfigOverride]]:
+) -> tuple[
+    List[PinConfig],
+    List[PlatformPortConfigOverride],
+    List[Dict[str, int]],
+    List[Dict[str, int]],
+]:
     """Process NPU connection and return (iphy_pins, overrides)."""
     return _process_connection_with_si_settings(
         connection, si_settings, profile, lane_speed, port_id
@@ -624,7 +694,7 @@ def _process_npu_connection(
 
 # Helper function that creates a PortPinConfig from the types that store
 # the parsed information from the CSVs
-def get_pins_from_connections(
+def get_pin_data_from_connections(
     connections: List[ConnectionPair],
     si_settings: SiSettings,
     profile: PortProfileID,
@@ -637,6 +707,9 @@ def get_pins_from_connections(
     port_pin_config_xphy_line = []
     port_pin_config_overrides = []
 
+    port_custom_tx_collection_list = []
+    port_custom_rx_collection_list = []
+
     for connection_pair in connections:
         for connection in [connection_pair.a, connection_pair.z]:
             if not connection:
@@ -645,25 +718,41 @@ def get_pins_from_connections(
             if is_terminal_chip(connection.chip.chip_type):
                 port_pin_config_tcvr.append(get_pin_config(connection_end=connection))
             elif is_xphy(connection.chip.chip_type):
-                sys_pins, line_pins = _process_xphy_connection(
+                sys_pins, line_pins, _, _ = _process_xphy_connection(
                     connection, si_settings, profile, lane_speed
                 )
                 port_pin_config_xphy_sys.extend(sys_pins)
                 port_pin_config_xphy_line.extend(line_pins)
             elif is_npu(connection.chip.chip_type):
-                iphy_pins, overrides = _process_npu_connection(
+                (
+                    iphy_pins,
+                    overrides,
+                    custom_tx_collection_list,
+                    custom_rx_collection_list,
+                ) = _process_npu_connection(
                     connection, si_settings, profile, lane_speed, port_id
                 )
                 port_pin_config_iphy.extend(iphy_pins)
                 port_pin_config_overrides.extend(overrides)
+                port_custom_tx_collection_list.extend(custom_tx_collection_list)
+                port_custom_rx_collection_list.extend(custom_rx_collection_list)
+
+    custom_collection_str = _aggregate_custom_collection_attributes(
+        port_custom_tx_collection_list, port_custom_rx_collection_list
+    )
 
     port_pin_config_ret = PortPinConfig(
         iphy=port_pin_config_iphy,
         transceiver=port_pin_config_tcvr or None,
         xphySys=port_pin_config_xphy_sys or None,
         xphyLine=port_pin_config_xphy_line or None,
+        serdesCustomCollection=custom_collection_str or None,
     )
-    return port_pin_config_ret, port_pin_config_overrides
+
+    return (
+        port_pin_config_ret,
+        port_pin_config_overrides,
+    )
 
 
 def _find_corresponding_xphy_line_and_terminal(

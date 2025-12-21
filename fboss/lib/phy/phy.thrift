@@ -324,6 +324,7 @@ struct PortPinConfig {
   2: optional list<PinConfig> transceiver;
   3: optional list<PinConfig> xphySys;
   4: optional list<PinConfig> xphyLine;
+  5: optional string serdesCustomCollection;
 }
 
 struct PortPrbsState {
