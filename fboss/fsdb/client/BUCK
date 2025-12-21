@@ -99,6 +99,7 @@ cpp_library(
     ],
     headers = [
         "FsdbSubManager.h",
+        "FsdbSubManager-inl.h",
         "FsdbSubManagerBase.h",
     ],
     exported_deps = [
@@ -109,6 +110,10 @@ cpp_library(
         "//fboss/fsdb/oper:path_helpers",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly/io/async:scoped_event_base_thread",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "glog",
     ],
 )
 
