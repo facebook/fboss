@@ -2,9 +2,8 @@
 
 #pragma once
 
-#include "fboss/agent/FsdbAdaptedSubManagerTypes.h"
+#include "fboss/agent/FsdbAdaptedCowStorage.h"
 #include "fboss/fsdb/client/FsdbSubManager.h"
-#include "fboss/thrift_cow/storage/CowStorage.h"
 
 namespace facebook::fboss {
 
