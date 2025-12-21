@@ -746,17 +746,22 @@ cpp_library(
     srcs = [
         "FsdbAdaptedCowStorage.cpp",
         "FsdbAdaptedSubManager.cpp",
+        "FsdbAdaptedTemplateInstantiations.cpp",
     ],
     headers = [
         "FsdbAdaptedCowStorage.h",
         "FsdbAdaptedSubManager.h",
         "FsdbAdaptedSubManagerTypes.h",
+        "FsdbAdaptedTemplateInstantiations.h",
     ],
     exported_deps = [
         "//fboss/agent/state:state",
         "//fboss/fsdb/client:fsdb_sub_manager",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
         "//fboss/fsdb/if:fsdb_model",
+        "//fboss/thrift_cow/nodes:serializer",
         "//fboss/thrift_cow/storage:cow_storage",
+        "//folly:fbstring",
     ],
 )
 
