@@ -744,9 +744,11 @@ cpp_library(
 cpp_library(
     name = "fsdb_adapted_sub_manager",
     srcs = [
+        "FsdbAdaptedCowStorage.cpp",
         "FsdbAdaptedSubManager.cpp",
     ],
     headers = [
+        "FsdbAdaptedCowStorage.h",
         "FsdbAdaptedSubManager.h",
         "FsdbAdaptedSubManagerTypes.h",
     ],

@@ -234,6 +234,7 @@ target_link_libraries(shel_manager
 )
 
 add_library(fsdb_adapted_sub_manager
+  fboss/agent/FsdbAdaptedCowStorage.cpp
   fboss/agent/FsdbAdaptedSubManager.cpp
 )
 
