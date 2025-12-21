@@ -256,6 +256,8 @@ def read_si_settings(
 ) -> SiSettings:
     si_suffix = f"_{version}" if version is not None else ""
     SI_SETTINGS_SUFFIX = f"_si_settings{si_suffix}.csv"
+    CUSTOM_TX_PREFIX = "CUSTOM_TX_"
+    CUSTOM_RX_PREFIX = "CUSTOM_RX_"
 
     si_settings = []
     Column = None
@@ -362,6 +364,7 @@ def read_si_settings(
                 tx_setting.post2 = int(row[Column.TX_POST2])
             if "TX_POST3" in column_names and row[Column.TX_POST3]:
                 tx_setting.post3 = int(row[Column.TX_POST3])
+
         if "TX_DIFF_ENCODER_EN" in column_names and row[Column.TX_DIFF_ENCODER_EN]:
             tx_setting.diffEncoderEn = int(row[Column.TX_DIFF_ENCODER_EN])
         if "TX_DIG_GAIN" in column_names and row[Column.TX_DIG_GAIN]:
@@ -508,12 +511,27 @@ def read_si_settings(
                 row[Column.RX_FFE_LMS_DYNAMIC_GATING_EN]
             )
 
+        # Handle custom collection attributes.
+        tx_custom_collection = {}
+        rx_custom_collection = {}
+
+        for idx, column_name in enumerate(column_names.split(" ")):
+            value = row[idx]
+            if not value:
+                continue
+            if column_name.startswith(CUSTOM_TX_PREFIX):
+                tx_custom_collection[column_name] = int(value)
+            elif column_name.startswith(CUSTOM_RX_PREFIX):
+                rx_custom_collection[column_name] = int(value)
+
         si_settings.append(
             SiSettingRow(
                 pin_connection=pin_connection,
                 factor=si_setting_factor,
                 tx_setting=tx_setting,
                 rx_setting=rx_setting,
+                custom_tx_collection=tx_custom_collection or None,
+                custom_rx_collection=rx_custom_collection or None,
             )
         )
 

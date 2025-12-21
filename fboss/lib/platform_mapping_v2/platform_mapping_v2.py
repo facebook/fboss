@@ -8,7 +8,7 @@ from fboss.lib.platform_mapping_v2.helpers import (
     get_connection_pairs_for_profile,
     get_mapping_pins,
     get_npu_chip,
-    get_pins_from_connections,
+    get_pin_data_from_connections,
     get_platform_config_entry,
     get_transceiver_chip,
     get_unique_connection_pairs,
@@ -410,17 +410,19 @@ class PlatformMappingV2:
                 )
                 all_connection_pairs = all_connection_pairs + profile_connections
                 # can get the overrides from here per profile
-                [platform_port_config.pins, platform_port_config_override] = (
-                    get_pins_from_connections(
-                        connections=profile_connections,
-                        si_settings=self.pm_parser.get_si_settings(),
-                        profile=profile,
-                        # pyre-fixme[6]: Expected `PortSpeed` for 4th param, but got `float`.
-                        lane_speed=0
-                        if speed_setting.num_lanes == 0
-                        else speed_setting.speed / speed_setting.num_lanes,
-                        port_id=port_detail.global_port_id,
-                    )
+
+                [
+                    platform_port_config.pins,
+                    platform_port_config_override,
+                ] = get_pin_data_from_connections(
+                    connections=profile_connections,
+                    si_settings=self.pm_parser.get_si_settings(),
+                    profile=profile,
+                    # pyre-fixme[6]: Expected `PortSpeed` for 4th param, but got `float`.
+                    lane_speed=0
+                    if speed_setting.num_lanes == 0
+                    else speed_setting.speed / speed_setting.num_lanes,
+                    port_id=port_detail.global_port_id,
                 )
                 if len(platform_port_config_override) > 0:
                     port_config_overrides.extend(platform_port_config_override)

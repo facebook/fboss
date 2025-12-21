@@ -63,6 +63,7 @@ thrift_library(
         "//fboss/agent:switch_config",
         "//fboss/lib/phy:phy",
         "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:thrift",
     ],
 )
 
