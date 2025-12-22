@@ -61,8 +61,8 @@ void SwitchState::revertNewRouteEntry(
     const std::shared_ptr<Route<AddressT>>& oldRoute,
     std::shared_ptr<SwitchState>* appliedState) {
   auto clonedFib = (*appliedState)
-                       ->getFibs()
-                       ->getNode(id)
+                       ->getFibsInfoMap()
+                       ->getFibContainer(id)
                        ->template getFib<AddressT>()
                        ->modify(id, appliedState);
   if (oldRoute) {

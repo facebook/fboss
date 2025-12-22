@@ -254,28 +254,29 @@ class DsfSubscriptionTest : public ::testing::Test {
     auto routesAdded = 0;
     auto routesDeleted = 0;
 
-    for (const auto& routeDelta : delta.getFibsDelta()) {
-      DeltaFunctions::forEachChanged(
-          routeDelta.getFibDelta<folly::IPAddressV4>(),
-          [&](const auto& /*oldNode*/, const auto& /*newNode*/) {},
-          [&](const auto& added) {
-            EXPECT_TRUE(added->isConnected());
-            EXPECT_EQ(added->getID().rfind(intfV4AddrPrefix, 0), 0);
-            routesAdded++;
-          },
-          [&](const auto& /*removed*/) { routesDeleted++; });
+    for (const auto& fibsInfoDelta : delta.getFibsInfoDelta()) {
+      for (const auto& routeDelta : fibsInfoDelta.getFibsMapDelta()) {
+        DeltaFunctions::forEachChanged(
+            routeDelta.getFibDelta<folly::IPAddressV4>(),
+            [&](const auto& /*oldNode*/, const auto& /*newNode*/) {},
+            [&](const auto& added) {
+              EXPECT_TRUE(added->isConnected());
+              EXPECT_EQ(added->getID().rfind(intfV4AddrPrefix, 0), 0);
+              routesAdded++;
+            },
+            [&](const auto& /*removed*/) { routesDeleted++; });
 
-      DeltaFunctions::forEachChanged(
-          routeDelta.getFibDelta<folly::IPAddressV6>(),
-          [&](const auto& /*oldNode*/, const auto& /*newNode*/) {},
-          [&](const auto& added) {
-            EXPECT_TRUE(added->isConnected());
-            EXPECT_EQ(added->getID().rfind(intfV6AddrPrefix, 0), 0);
-            routesAdded++;
-          },
-          [&](const auto& /*removed*/) { routesDeleted++; });
+        DeltaFunctions::forEachChanged(
+            routeDelta.getFibDelta<folly::IPAddressV6>(),
+            [&](const auto& /*oldNode*/, const auto& /*newNode*/) {},
+            [&](const auto& added) {
+              EXPECT_TRUE(added->isConnected());
+              EXPECT_EQ(added->getID().rfind(intfV6AddrPrefix, 0), 0);
+              routesAdded++;
+            },
+            [&](const auto& /*removed*/) { routesDeleted++; });
+      }
     }
-
     EXPECT_EQ(routesAdded, expectedRouteAdded);
     EXPECT_EQ(routesDeleted, expectedRouteDeleted);
   }

@@ -1949,7 +1949,7 @@ void ThriftHandler::getRouteTableSize(RouteCount& routeCount) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto state = sw_->getState();
-  auto [v4Count, v6Count] = state->getFibs()->getRouteCount();
+  auto [v4Count, v6Count] = state->getFibsInfoMap()->getRouteCount();
   *routeCount.v4Count() = v4Count;
   *routeCount.v6Count() = v6Count;
 }
