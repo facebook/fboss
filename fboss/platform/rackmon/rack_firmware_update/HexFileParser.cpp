@@ -39,12 +39,15 @@ uint32_t makeDword(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4) {
 }
 
 uint8_t hexCharToByte(char c) {
-  if (c >= '0' && c <= '9')
+  if (c >= '0' && c <= '9') {
     return c - '0';
-  if (c >= 'A' && c <= 'F')
+  }
+  if (c >= 'A' && c <= 'F') {
     return c - 'A' + 10;
-  if (c >= 'a' && c <= 'f')
+  }
+  if (c >= 'a' && c <= 'f') {
     return c - 'a' + 10;
+  }
   throw FileException(std::string("Invalid hex character: ") + c);
 }
 
