@@ -801,19 +801,23 @@ state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
   };
   auto& data = *(warmbootState->swSwitchState());
   const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-  auto fibsMap = data.fibsMap();
-  if (fibsMap->find(matcher) != fibsMap->end()) {
-    auto& fibs = fibsMap->find(matcher)->second;
-    for (auto& [_, fib] : fibs) {
-      auto fibV4 = fib.fibV4();
-      for (auto& [name, thriftRoute] : *fibV4) {
-        auto route = RouteFields<folly::IPAddressV4>::fromThrift(thriftRoute);
-        updateThriftRoute(route, fibV4, name);
-      }
-      auto fibV6 = fib.fibV6();
-      for (auto& [name, thriftRoute] : *fibV6) {
-        auto route = RouteFields<folly::IPAddressV6>::fromThrift(thriftRoute);
-        updateThriftRoute(route, fibV6, name);
+  auto fibsInfoMap = data.fibsInfoMap();
+  auto it = fibsInfoMap->find(matcher);
+  if (it != fibsInfoMap->end()) {
+    auto& fibInfoFields = it->second;
+    auto fibs = fibInfoFields.fibsMap();
+    if (fibs.has_value()) {
+      for (auto& [_, fib] : *fibs) {
+        auto fibV4 = fib.fibV4();
+        for (auto& [name, thriftRoute] : *fibV4) {
+          auto route = RouteFields<folly::IPAddressV4>::fromThrift(thriftRoute);
+          updateThriftRoute(route, fibV4, name);
+        }
+        auto fibV6 = fib.fibV6();
+        for (auto& [name, thriftRoute] : *fibV6) {
+          auto route = RouteFields<folly::IPAddressV6>::fromThrift(thriftRoute);
+          updateThriftRoute(route, fibV6, name);
+        }
       }
     }
   }
@@ -1355,7 +1359,7 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
     // rib should also have minimum alpm state
     rib_ = RoutingInformationBase::fromThrift(
         rib_->toThrift(),
-        state->getFibs(),
+        state->getFibsInfoMap(),
         state->getLabelForwardingInformationBase());
   }
 

@@ -43,8 +43,8 @@ std::shared_ptr<RouteV4> makeV4Route(
 template <typename AddrT>
 inline ForwardingInformationBase<AddrT>* fibImpl(
     std::shared_ptr<SwitchState>& newState) {
-  return newState->getFibs()
-      ->getNode(RouterID(0))
+  return newState->getFibsInfoMap()
+      ->getFibContainer(RouterID(0))
       ->getFib<AddrT>()
       ->modify(RouterID(0), &newState);
 }
@@ -61,12 +61,12 @@ inline ForwardingInformationBaseV4* fib4(
 
 inline const std::shared_ptr<ForwardingInformationBaseV6> cfib(
     const std::shared_ptr<SwitchState>& newState) {
-  return newState->getFibs()->getNode(RouterID(0))->getFibV6();
+  return newState->getFibsInfoMap()->getFibContainer(RouterID(0))->getFibV6();
 }
 
 inline const std::shared_ptr<ForwardingInformationBaseV4> cfib4(
     const std::shared_ptr<SwitchState>& newState) {
-  return newState->getFibs()->getNode(RouterID(0))->getFibV4();
+  return newState->getFibsInfoMap()->getFibContainer(RouterID(0))->getFibV4();
 }
 
 inline HwSwitchMatcher hwMatcher() {

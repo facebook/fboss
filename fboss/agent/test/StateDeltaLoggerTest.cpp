@@ -14,6 +14,8 @@
 #include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -77,9 +79,16 @@ class StateDeltaLoggerTest : public ::testing::Test {
     fibV6.addNode(route);
     fibContainer->setFib(fibV6.clone());
 
-    auto fibMap = std::make_shared<MultiSwitchForwardingInformationBaseMap>();
-    fibMap->addNode(fibContainer, HwSwitchMatcher());
-    state->resetForwardingInformationBases(fibMap);
+    // Create ForwardingInformationBaseMap and add the container
+    auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
+    fibsMap->updateForwardingInformationBaseContainer(fibContainer);
+
+    auto fibInfo = std::make_shared<FibInfo>();
+    fibInfo->resetFibsMap(fibsMap);
+
+    auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+    fibInfoMap->updateFibInfo(fibInfo, HwSwitchMatcher());
+    state->resetFibsInfoMap(fibInfoMap);
 
     return state;
   }

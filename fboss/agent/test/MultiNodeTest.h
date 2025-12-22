@@ -58,7 +58,8 @@ class MultiNodeTest : public AgentTest {
 
   template <typename AddrT>
   void disableTTLDecrementsForRoute(RoutePrefix<AddrT> prefix) {
-    auto fibContainer = sw()->getState()->getFibs()->getNode(RouterID(0));
+    auto fibContainer =
+        sw()->getState()->getFibsInfoMap()->getFibContainer(RouterID(0));
     auto fib = fibContainer->template getFib<AddrT>();
     auto defaultRoute = fib->getRouteIf(prefix);
     auto nhSet = defaultRoute->getForwardInfo().getNextHopSet();
