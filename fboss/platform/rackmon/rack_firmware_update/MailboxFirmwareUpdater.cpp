@@ -106,20 +106,27 @@ VendorParams VendorParams::hprPmmAei() {
 }
 
 VendorParams VendorParams::getByName(const std::string& vendor) {
-  if (vendor == "panasonic")
+  if (vendor == "panasonic") {
     return panasonic();
-  if (vendor == "delta")
+  }
+  if (vendor == "delta") {
     return delta();
-  if (vendor == "delta_power_tether")
+  }
+  if (vendor == "delta_power_tether") {
     return deltaPowerTether();
-  if (vendor == "hpr_panasonic")
+  }
+  if (vendor == "hpr_panasonic") {
     return hprPanasonic();
-  if (vendor == "hpr_pmm_panasonic")
+  }
+  if (vendor == "hpr_pmm_panasonic") {
     return hprPmmPanasonic();
-  if (vendor == "hpr_pmm_delta")
+  }
+  if (vendor == "hpr_pmm_delta") {
     return hprPmmDelta();
-  if (vendor == "hpr_pmm_aei")
+  }
+  if (vendor == "hpr_pmm_aei") {
     return hprPmmAei();
+  }
 
   throw UpdaterException("Unknown vendor: " + vendor);
 }
