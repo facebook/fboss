@@ -87,6 +87,14 @@ int main(int argc, char** argv) {
   std::vector<std::string> detailsArg = {};
   std::string configFilePath;
 
+  // As per internal discussion after S598210 mitigation
+  if (geteuid() != 0) {
+    std::cerr
+        << "Please run this utility as root, since some features can be disruptive."
+        << std::endl;
+    return 1;
+  }
+
   app.add_option("--details", detailsArg, folly::stripLeftMargin(R"(
            Comma-separated list of details to print.
            Use specific section details to avoid printing too much data.
