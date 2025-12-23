@@ -14,6 +14,8 @@
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
+#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
+#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
@@ -33,6 +35,20 @@ const CommandTree& kConfigCommandTree() {
        "Show history of committed config revisions",
        commandHandler<CmdConfigHistory>,
        argTypeHandler<CmdConfigHistoryTraits>},
+
+      {
+          "config",
+          "interface",
+          "Configure interface settings",
+          commandHandler<CmdConfigInterface>,
+          argTypeHandler<CmdConfigInterfaceTraits>,
+          {{
+              "description",
+              "Set interface description",
+              commandHandler<CmdConfigInterfaceDescription>,
+              argTypeHandler<CmdConfigInterfaceDescriptionTraits>,
+          }},
+      },
 
       {
           "config",
