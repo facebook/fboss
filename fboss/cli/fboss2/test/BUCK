@@ -55,6 +55,7 @@ cpp_unittest(
     name = "cmd_test",
     srcs = [
         "CmdConfigAppliedInfoTest.cpp",
+        "CmdConfigHistoryTest.cpp",
         "CmdConfigReloadTest.cpp",
         "CmdConfigSessionDiffTest.cpp",
         "CmdConfigSessionTest.cpp",
