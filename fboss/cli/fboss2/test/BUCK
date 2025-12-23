@@ -8,6 +8,7 @@ cpp_library(
     headers = [
         "CmdHandlerTestBase.h",
         "MockClients.h",
+        "TestableConfigSession.h",
     ],
     exported_deps = [
         "fbsource//third-party/googletest:gmock",
@@ -55,6 +56,8 @@ cpp_unittest(
     srcs = [
         "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigReloadTest.cpp",
+        "CmdConfigSessionDiffTest.cpp",
+        "CmdConfigSessionTest.cpp",
         "CmdGetPcapTest.cpp",
         "CmdSetPortStateTest.cpp",
         "CmdShowAclTest.cpp",
