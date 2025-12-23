@@ -153,6 +153,8 @@ class DsfSubscription {
   FRIEND_TEST(DsfSubscriptionTest, GREventSeparatesUpdates);
   template <typename T>
   FRIEND_TEST(DsfSubscriptionTest, MultipleGREventsSeparateUpdates);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued);
 };
 
 } // namespace facebook::fboss

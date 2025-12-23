@@ -1118,4 +1118,92 @@ TYPED_TEST(DsfSubscriptionTest, MultipleGREventsSeparateUpdates) {
   });
 }
 
+TYPED_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued) {
+  // Test that an update is skipped when newer updates exist in the queue
+  // after a GR event. This verifies the optimization in queueDsfUpdate where
+  // needsUpdate = dsfUpdateQueue_.empty() - if the queue is not empty after
+  // dequeueing the current update, the current update is skipped.
+  //
+  // Scenario: Update1 -> GR -> Update2
+  // When Update1's event runs, it dequeues Update1 but sees Update2 still in
+  // the queue, so it skips processing (needsUpdate = false).
+  //
+  // We verify this by checking the SW switch state generation number:
+  // - If Update1 is skipped: 2 state updates (GR + Update2)
+  // - If Update1 is NOT skipped: 3 state updates (Update1 + GR + Update2)
+  this->subscription_ = this->createSubscription();
+
+  // Use Baton to block hwUpdateEvb_ and simulate the race condition
+  folly::Baton<> baton;
+  this->hwUpdatePool_->getEventBase()->runInEventBaseThread(
+      [&]() { baton.wait(); });
+  // Wait for the blocking event to be in progress
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  auto initialQueueSize =
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
+
+  // Record the initial state generation
+  auto initialStateGeneration = this->sw_->getState()->getGeneration();
+
+  auto queueSysPortUpdate = [&](int numSysPorts) {
+    DsfSubscription::DsfUpdate update;
+    for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+      auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, numSysPorts);
+      auto rifs = makeRifs(sysPorts.get());
+      update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+      update.switchId2Intfs[remoteSwitchId] = rifs;
+    }
+    this->subscription_->queueDsfUpdate(std::move(update));
+  };
+
+  // Queue Update1 with 10 sysports per switch
+  queueSysPortUpdate(10);
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 1);
+
+  // Trigger GR event - this sets lastEventGR_ flag
+  this->subscription_->processGRHoldTimerExpired();
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 2);
+
+  // Queue Update2 with 2 sysports per switch - because of GR, this will
+  // be queued as a separate entry. When Update1's event runs, it will see
+  // Update2 in the queue and skip processing Update1.
+  queueSysPortUpdate(2);
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 3);
+
+  // Unblock the event base to process all queued events
+  baton.post();
+
+  // Wait for all events to be processed
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  // Wait for state updates to complete
+  waitForStateUpdates(this->sw_);
+
+  // Verify the state generation only incremented by 2 (GR + Update2).
+  // If Update1 was NOT skipped, the generation would increment by 3.
+  // This proves Update1 was skipped because the queue was not empty after
+  // dequeueing it (Update2 was still in the queue).
+  auto finalStateGeneration = this->sw_->getState()->getGeneration();
+  auto stateUpdates = finalStateGeneration - initialStateGeneration;
+
+  // We expect exactly 2 state updates:
+  // 1. GR event (processGRHoldTimerExpired calls updateDsfState)
+  // 2. Update2 event (queue was empty after dequeue, so needsUpdate = true)
+  // Update1 is skipped because queue was NOT empty after dequeue.
+  EXPECT_EQ(stateUpdates, 2);
+}
+
 } // namespace facebook::fboss
