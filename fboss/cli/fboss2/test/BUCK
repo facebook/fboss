@@ -57,6 +57,7 @@ cpp_unittest(
         "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigHistoryTest.cpp",
         "CmdConfigInterfaceDescriptionTest.cpp",
+        "CmdConfigInterfaceMtuTest.cpp",
         "CmdConfigReloadTest.cpp",
         "CmdConfigSessionDiffTest.cpp",
         "CmdConfigSessionTest.cpp",
