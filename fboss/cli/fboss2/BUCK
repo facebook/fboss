@@ -772,12 +772,14 @@ cpp_library(
         "commands/config/CmdConfigAppliedInfo.cpp",
         "commands/config/CmdConfigReload.cpp",
         "commands/config/session/CmdConfigSessionCommit.cpp",
+        "commands/config/session/CmdConfigSessionDiff.cpp",
         "session/ConfigSession.cpp",
     ],
     headers = [
         "commands/config/CmdConfigAppliedInfo.h",
         "commands/config/CmdConfigReload.h",
         "commands/config/session/CmdConfigSessionCommit.h",
+        "commands/config/session/CmdConfigSessionDiff.h",
         "session/ConfigSession.h",
     ],
     exported_deps = [
