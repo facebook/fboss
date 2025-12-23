@@ -465,7 +465,6 @@ class PlatformMappingV2:
         for port_id, port_entry in ports.items():
             for port_config in port_entry.supportedProfiles.values():
                 if port_entry.mapping.portType != PortType.HYPER_PORT:
-                    num_controlling_port_pin_ids = 0
                     all_iphy_pins_needed = port_config.pins.iphy
                     for other_port_id, other_port_entry in ports.items():
                         if (
@@ -480,7 +479,6 @@ class PlatformMappingV2:
                                 pin_config.id
                                 for pin_config in other_port_config.pins.iphy
                             ]
-                            num_other_port_pin_ids = len(other_port_pin_ids)
                             needed_pin_ids = [
                                 pin_config.id for pin_config in all_iphy_pins_needed
                             ]
@@ -493,16 +491,7 @@ class PlatformMappingV2:
                                     other_port_config.subsumedPorts = []
                                 if port_id not in other_port_config.subsumedPorts:
                                     other_port_config.subsumedPorts.append(port_id)
-
-                                # Update controllingPort to be the largest port (in terms of number of lanes) that contains all of the current port's lanes.
-                                if (
-                                    num_other_port_pin_ids
-                                    > num_controlling_port_pin_ids
-                                ):
-                                    port_entry.mapping.controllingPort = other_port_id
-                                    num_controlling_port_pin_ids = (
-                                        num_other_port_pin_ids
-                                    )
+                                port_entry.mapping.controllingPort = other_port_id
 
                 elif port_entry.mapping.portType == PortType.HYPER_PORT:
                     for other_port_id, other_port_entry in ports.items():
@@ -526,17 +515,6 @@ class PlatformMappingV2:
                             port_entry.supportedProfiles[
                                 PortProfileID.PROFILE_DEFAULT
                             ].subsumedPorts.append(other_port_id)
-
-        # Now validate that controllingPorts don't conflict with each other.
-        # No two controlling ports should have any overlapping pins.
-        pin_set = set()
-        for port_id, port_entry in ports.items():
-            if port_entry.mapping.controllingPort != port_id:
-                continue
-            for pin in port_entry.mapping.pins:
-                if pin in pin_set:
-                    raise Exception("Invalid controllingPort assignment.")
-                pin_set.add(pin)
 
         sorted_ports = dict(sorted(ports.items()))
         if len(merged_port_config_overrides) == 0:

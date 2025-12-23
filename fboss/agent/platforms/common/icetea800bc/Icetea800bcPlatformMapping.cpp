@@ -615,7 +615,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 4,
           "name": "eth1/1/4",
-          "controllingPort": 1,
+          "controllingPort": 3,
           "pins": [
             {
               "a": {
@@ -1295,7 +1295,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 8,
           "name": "eth1/1/8",
-          "controllingPort": 5,
+          "controllingPort": 7,
           "pins": [
             {
               "a": {
@@ -1975,7 +1975,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 12,
           "name": "eth1/2/4",
-          "controllingPort": 9,
+          "controllingPort": 11,
           "pins": [
             {
               "a": {
@@ -2655,7 +2655,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 16,
           "name": "eth1/2/8",
-          "controllingPort": 13,
+          "controllingPort": 15,
           "pins": [
             {
               "a": {
@@ -3335,7 +3335,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 20,
           "name": "eth1/3/4",
-          "controllingPort": 17,
+          "controllingPort": 19,
           "pins": [
             {
               "a": {
@@ -4015,7 +4015,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 24,
           "name": "eth1/3/8",
-          "controllingPort": 21,
+          "controllingPort": 23,
           "pins": [
             {
               "a": {
@@ -4695,7 +4695,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 28,
           "name": "eth1/4/4",
-          "controllingPort": 25,
+          "controllingPort": 27,
           "pins": [
             {
               "a": {
@@ -5375,7 +5375,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 32,
           "name": "eth1/4/8",
-          "controllingPort": 29,
+          "controllingPort": 31,
           "pins": [
             {
               "a": {
@@ -6055,7 +6055,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 36,
           "name": "eth1/5/4",
-          "controllingPort": 33,
+          "controllingPort": 35,
           "pins": [
             {
               "a": {
@@ -6735,7 +6735,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 40,
           "name": "eth1/5/8",
-          "controllingPort": 37,
+          "controllingPort": 39,
           "pins": [
             {
               "a": {
@@ -7415,7 +7415,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 44,
           "name": "eth1/6/4",
-          "controllingPort": 41,
+          "controllingPort": 43,
           "pins": [
             {
               "a": {
@@ -8095,7 +8095,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 48,
           "name": "eth1/6/8",
-          "controllingPort": 45,
+          "controllingPort": 47,
           "pins": [
             {
               "a": {
@@ -8775,7 +8775,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 52,
           "name": "eth1/7/4",
-          "controllingPort": 49,
+          "controllingPort": 51,
           "pins": [
             {
               "a": {
@@ -9455,7 +9455,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 56,
           "name": "eth1/7/8",
-          "controllingPort": 53,
+          "controllingPort": 55,
           "pins": [
             {
               "a": {
@@ -10135,7 +10135,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 60,
           "name": "eth1/8/4",
-          "controllingPort": 57,
+          "controllingPort": 59,
           "pins": [
             {
               "a": {
@@ -10815,7 +10815,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 64,
           "name": "eth1/8/8",
-          "controllingPort": 61,
+          "controllingPort": 63,
           "pins": [
             {
               "a": {
@@ -11495,7 +11495,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 68,
           "name": "eth1/9/4",
-          "controllingPort": 65,
+          "controllingPort": 67,
           "pins": [
             {
               "a": {
@@ -12175,7 +12175,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 72,
           "name": "eth1/9/8",
-          "controllingPort": 69,
+          "controllingPort": 71,
           "pins": [
             {
               "a": {
@@ -12855,7 +12855,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 76,
           "name": "eth1/10/4",
-          "controllingPort": 73,
+          "controllingPort": 75,
           "pins": [
             {
               "a": {
@@ -13535,7 +13535,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 80,
           "name": "eth1/10/8",
-          "controllingPort": 77,
+          "controllingPort": 79,
           "pins": [
             {
               "a": {
@@ -14215,7 +14215,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 84,
           "name": "eth1/11/4",
-          "controllingPort": 81,
+          "controllingPort": 83,
           "pins": [
             {
               "a": {
@@ -14895,7 +14895,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 88,
           "name": "eth1/11/8",
-          "controllingPort": 85,
+          "controllingPort": 87,
           "pins": [
             {
               "a": {
@@ -15575,7 +15575,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 92,
           "name": "eth1/12/4",
-          "controllingPort": 89,
+          "controllingPort": 91,
           "pins": [
             {
               "a": {
@@ -16255,7 +16255,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 96,
           "name": "eth1/12/8",
-          "controllingPort": 93,
+          "controllingPort": 95,
           "pins": [
             {
               "a": {
@@ -16935,7 +16935,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 100,
           "name": "eth1/13/4",
-          "controllingPort": 97,
+          "controllingPort": 99,
           "pins": [
             {
               "a": {
@@ -17615,7 +17615,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 104,
           "name": "eth1/13/8",
-          "controllingPort": 101,
+          "controllingPort": 103,
           "pins": [
             {
               "a": {
@@ -18295,7 +18295,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 108,
           "name": "eth1/14/4",
-          "controllingPort": 105,
+          "controllingPort": 107,
           "pins": [
             {
               "a": {
@@ -18975,7 +18975,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 112,
           "name": "eth1/14/8",
-          "controllingPort": 109,
+          "controllingPort": 111,
           "pins": [
             {
               "a": {
@@ -19655,7 +19655,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 116,
           "name": "eth1/15/4",
-          "controllingPort": 113,
+          "controllingPort": 115,
           "pins": [
             {
               "a": {
@@ -20335,7 +20335,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 120,
           "name": "eth1/15/8",
-          "controllingPort": 117,
+          "controllingPort": 119,
           "pins": [
             {
               "a": {
@@ -21015,7 +21015,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 124,
           "name": "eth1/16/4",
-          "controllingPort": 121,
+          "controllingPort": 123,
           "pins": [
             {
               "a": {
@@ -21695,7 +21695,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 128,
           "name": "eth1/16/8",
-          "controllingPort": 125,
+          "controllingPort": 127,
           "pins": [
             {
               "a": {
@@ -22375,7 +22375,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 132,
           "name": "eth1/17/4",
-          "controllingPort": 129,
+          "controllingPort": 131,
           "pins": [
             {
               "a": {
@@ -23055,7 +23055,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 136,
           "name": "eth1/17/8",
-          "controllingPort": 133,
+          "controllingPort": 135,
           "pins": [
             {
               "a": {
@@ -23735,7 +23735,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 140,
           "name": "eth1/18/4",
-          "controllingPort": 137,
+          "controllingPort": 139,
           "pins": [
             {
               "a": {
@@ -24415,7 +24415,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 144,
           "name": "eth1/18/8",
-          "controllingPort": 141,
+          "controllingPort": 143,
           "pins": [
             {
               "a": {
@@ -25095,7 +25095,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 148,
           "name": "eth1/19/4",
-          "controllingPort": 145,
+          "controllingPort": 147,
           "pins": [
             {
               "a": {
@@ -25775,7 +25775,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 152,
           "name": "eth1/19/8",
-          "controllingPort": 149,
+          "controllingPort": 151,
           "pins": [
             {
               "a": {
@@ -26455,7 +26455,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 156,
           "name": "eth1/20/4",
-          "controllingPort": 153,
+          "controllingPort": 155,
           "pins": [
             {
               "a": {
@@ -27135,7 +27135,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 160,
           "name": "eth1/20/8",
-          "controllingPort": 157,
+          "controllingPort": 159,
           "pins": [
             {
               "a": {
@@ -27815,7 +27815,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 164,
           "name": "eth1/21/4",
-          "controllingPort": 161,
+          "controllingPort": 163,
           "pins": [
             {
               "a": {
@@ -28495,7 +28495,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 168,
           "name": "eth1/21/8",
-          "controllingPort": 165,
+          "controllingPort": 167,
           "pins": [
             {
               "a": {
@@ -29175,7 +29175,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 172,
           "name": "eth1/22/4",
-          "controllingPort": 169,
+          "controllingPort": 171,
           "pins": [
             {
               "a": {
@@ -29855,7 +29855,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 176,
           "name": "eth1/22/8",
-          "controllingPort": 173,
+          "controllingPort": 175,
           "pins": [
             {
               "a": {
@@ -30535,7 +30535,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 180,
           "name": "eth1/23/4",
-          "controllingPort": 177,
+          "controllingPort": 179,
           "pins": [
             {
               "a": {
@@ -31215,7 +31215,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 184,
           "name": "eth1/23/8",
-          "controllingPort": 181,
+          "controllingPort": 183,
           "pins": [
             {
               "a": {
@@ -31895,7 +31895,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 188,
           "name": "eth1/24/4",
-          "controllingPort": 185,
+          "controllingPort": 187,
           "pins": [
             {
               "a": {
@@ -32575,7 +32575,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 192,
           "name": "eth1/24/8",
-          "controllingPort": 189,
+          "controllingPort": 191,
           "pins": [
             {
               "a": {
@@ -33255,7 +33255,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 196,
           "name": "eth1/25/4",
-          "controllingPort": 193,
+          "controllingPort": 195,
           "pins": [
             {
               "a": {
@@ -33935,7 +33935,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 200,
           "name": "eth1/25/8",
-          "controllingPort": 197,
+          "controllingPort": 199,
           "pins": [
             {
               "a": {
@@ -34615,7 +34615,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 204,
           "name": "eth1/26/4",
-          "controllingPort": 201,
+          "controllingPort": 203,
           "pins": [
             {
               "a": {
@@ -35295,7 +35295,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 208,
           "name": "eth1/26/8",
-          "controllingPort": 205,
+          "controllingPort": 207,
           "pins": [
             {
               "a": {
@@ -35975,7 +35975,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 212,
           "name": "eth1/27/4",
-          "controllingPort": 209,
+          "controllingPort": 211,
           "pins": [
             {
               "a": {
@@ -36655,7 +36655,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 216,
           "name": "eth1/27/8",
-          "controllingPort": 213,
+          "controllingPort": 215,
           "pins": [
             {
               "a": {
@@ -37335,7 +37335,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 220,
           "name": "eth1/28/4",
-          "controllingPort": 217,
+          "controllingPort": 219,
           "pins": [
             {
               "a": {
@@ -38015,7 +38015,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 224,
           "name": "eth1/28/8",
-          "controllingPort": 221,
+          "controllingPort": 223,
           "pins": [
             {
               "a": {
@@ -38695,7 +38695,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 228,
           "name": "eth1/29/4",
-          "controllingPort": 225,
+          "controllingPort": 227,
           "pins": [
             {
               "a": {
@@ -39375,7 +39375,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 232,
           "name": "eth1/29/8",
-          "controllingPort": 229,
+          "controllingPort": 231,
           "pins": [
             {
               "a": {
@@ -40055,7 +40055,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 236,
           "name": "eth1/30/4",
-          "controllingPort": 233,
+          "controllingPort": 235,
           "pins": [
             {
               "a": {
@@ -40735,7 +40735,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 240,
           "name": "eth1/30/8",
-          "controllingPort": 237,
+          "controllingPort": 239,
           "pins": [
             {
               "a": {
@@ -41415,7 +41415,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 244,
           "name": "eth1/31/4",
-          "controllingPort": 241,
+          "controllingPort": 243,
           "pins": [
             {
               "a": {
@@ -42095,7 +42095,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 248,
           "name": "eth1/31/8",
-          "controllingPort": 245,
+          "controllingPort": 247,
           "pins": [
             {
               "a": {
@@ -42775,7 +42775,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 252,
           "name": "eth1/32/4",
-          "controllingPort": 249,
+          "controllingPort": 251,
           "pins": [
             {
               "a": {
@@ -43455,7 +43455,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 256,
           "name": "eth1/32/8",
-          "controllingPort": 253,
+          "controllingPort": 255,
           "pins": [
             {
               "a": {
@@ -54239,7 +54239,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
       }
     }
   ]
-})";
+}
+)";
 } // namespace
 
 namespace facebook::fboss {

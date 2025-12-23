@@ -1468,7 +1468,7 @@
         "mapping": {
           "id": 6,
           "name": "eth1/2/6",
-          "controllingPort": 1,
+          "controllingPort": 5,
           "pins": [
             {
               "a": {
@@ -1522,7 +1522,7 @@
         "mapping": {
           "id": 7,
           "name": "eth1/2/7",
-          "controllingPort": 1,
+          "controllingPort": 5,
           "pins": [
             {
               "a": {
@@ -1576,7 +1576,7 @@
         "mapping": {
           "id": 8,
           "name": "eth1/2/8",
-          "controllingPort": 1,
+          "controllingPort": 5,
           "pins": [
             {
               "a": {
@@ -4142,7 +4142,7 @@
         "mapping": {
           "id": 16,
           "name": "eth1/3/6",
-          "controllingPort": 11,
+          "controllingPort": 15,
           "pins": [
             {
               "a": {
@@ -4196,7 +4196,7 @@
         "mapping": {
           "id": 17,
           "name": "eth1/3/7",
-          "controllingPort": 11,
+          "controllingPort": 15,
           "pins": [
             {
               "a": {
@@ -4250,7 +4250,7 @@
         "mapping": {
           "id": 18,
           "name": "eth1/3/8",
-          "controllingPort": 11,
+          "controllingPort": 15,
           "pins": [
             {
               "a": {
@@ -6960,7 +6960,7 @@
         "mapping": {
           "id": 27,
           "name": "eth1/6/6",
-          "controllingPort": 22,
+          "controllingPort": 26,
           "pins": [
             {
               "a": {
@@ -7014,7 +7014,7 @@
         "mapping": {
           "id": 28,
           "name": "eth1/6/7",
-          "controllingPort": 22,
+          "controllingPort": 26,
           "pins": [
             {
               "a": {
@@ -7068,7 +7068,7 @@
         "mapping": {
           "id": 29,
           "name": "eth1/6/8",
-          "controllingPort": 22,
+          "controllingPort": 26,
           "pins": [
             {
               "a": {
@@ -9634,7 +9634,7 @@
         "mapping": {
           "id": 38,
           "name": "eth1/7/6",
-          "controllingPort": 33,
+          "controllingPort": 37,
           "pins": [
             {
               "a": {
@@ -9688,7 +9688,7 @@
         "mapping": {
           "id": 39,
           "name": "eth1/7/7",
-          "controllingPort": 33,
+          "controllingPort": 37,
           "pins": [
             {
               "a": {
@@ -9742,7 +9742,7 @@
         "mapping": {
           "id": 40,
           "name": "eth1/7/8",
-          "controllingPort": 33,
+          "controllingPort": 37,
           "pins": [
             {
               "a": {
@@ -12452,7 +12452,7 @@
         "mapping": {
           "id": 49,
           "name": "eth1/10/6",
-          "controllingPort": 44,
+          "controllingPort": 48,
           "pins": [
             {
               "a": {
@@ -12506,7 +12506,7 @@
         "mapping": {
           "id": 50,
           "name": "eth1/10/7",
-          "controllingPort": 44,
+          "controllingPort": 48,
           "pins": [
             {
               "a": {
@@ -12560,7 +12560,7 @@
         "mapping": {
           "id": 51,
           "name": "eth1/10/8",
-          "controllingPort": 44,
+          "controllingPort": 48,
           "pins": [
             {
               "a": {
@@ -15126,7 +15126,7 @@
         "mapping": {
           "id": 60,
           "name": "eth1/11/6",
-          "controllingPort": 55,
+          "controllingPort": 59,
           "pins": [
             {
               "a": {
@@ -15180,7 +15180,7 @@
         "mapping": {
           "id": 61,
           "name": "eth1/11/7",
-          "controllingPort": 55,
+          "controllingPort": 59,
           "pins": [
             {
               "a": {
@@ -15234,7 +15234,7 @@
         "mapping": {
           "id": 62,
           "name": "eth1/11/8",
-          "controllingPort": 55,
+          "controllingPort": 59,
           "pins": [
             {
               "a": {
@@ -17944,7 +17944,7 @@
         "mapping": {
           "id": 71,
           "name": "eth1/14/6",
-          "controllingPort": 66,
+          "controllingPort": 70,
           "pins": [
             {
               "a": {
@@ -17998,7 +17998,7 @@
         "mapping": {
           "id": 72,
           "name": "eth1/14/7",
-          "controllingPort": 66,
+          "controllingPort": 70,
           "pins": [
             {
               "a": {
@@ -18052,7 +18052,7 @@
         "mapping": {
           "id": 73,
           "name": "eth1/14/8",
-          "controllingPort": 66,
+          "controllingPort": 70,
           "pins": [
             {
               "a": {
@@ -20618,7 +20618,7 @@
         "mapping": {
           "id": 82,
           "name": "eth1/15/6",
-          "controllingPort": 77,
+          "controllingPort": 81,
           "pins": [
             {
               "a": {
@@ -20672,7 +20672,7 @@
         "mapping": {
           "id": 83,
           "name": "eth1/15/7",
-          "controllingPort": 77,
+          "controllingPort": 81,
           "pins": [
             {
               "a": {
@@ -20726,7 +20726,7 @@
         "mapping": {
           "id": 84,
           "name": "eth1/15/8",
-          "controllingPort": 77,
+          "controllingPort": 81,
           "pins": [
             {
               "a": {
@@ -23436,7 +23436,7 @@
         "mapping": {
           "id": 93,
           "name": "eth1/18/6",
-          "controllingPort": 88,
+          "controllingPort": 92,
           "pins": [
             {
               "a": {
@@ -23490,7 +23490,7 @@
         "mapping": {
           "id": 94,
           "name": "eth1/18/7",
-          "controllingPort": 88,
+          "controllingPort": 92,
           "pins": [
             {
               "a": {
@@ -23544,7 +23544,7 @@
         "mapping": {
           "id": 95,
           "name": "eth1/18/8",
-          "controllingPort": 88,
+          "controllingPort": 92,
           "pins": [
             {
               "a": {
@@ -26110,7 +26110,7 @@
         "mapping": {
           "id": 104,
           "name": "eth1/19/6",
-          "controllingPort": 99,
+          "controllingPort": 103,
           "pins": [
             {
               "a": {
@@ -26164,7 +26164,7 @@
         "mapping": {
           "id": 105,
           "name": "eth1/19/7",
-          "controllingPort": 99,
+          "controllingPort": 103,
           "pins": [
             {
               "a": {
@@ -26218,7 +26218,7 @@
         "mapping": {
           "id": 106,
           "name": "eth1/19/8",
-          "controllingPort": 99,
+          "controllingPort": 103,
           "pins": [
             {
               "a": {
@@ -28928,7 +28928,7 @@
         "mapping": {
           "id": 115,
           "name": "eth1/22/6",
-          "controllingPort": 110,
+          "controllingPort": 114,
           "pins": [
             {
               "a": {
@@ -28982,7 +28982,7 @@
         "mapping": {
           "id": 116,
           "name": "eth1/22/7",
-          "controllingPort": 110,
+          "controllingPort": 114,
           "pins": [
             {
               "a": {
@@ -29036,7 +29036,7 @@
         "mapping": {
           "id": 117,
           "name": "eth1/22/8",
-          "controllingPort": 110,
+          "controllingPort": 114,
           "pins": [
             {
               "a": {
@@ -31602,7 +31602,7 @@
         "mapping": {
           "id": 126,
           "name": "eth1/23/6",
-          "controllingPort": 121,
+          "controllingPort": 125,
           "pins": [
             {
               "a": {
@@ -31656,7 +31656,7 @@
         "mapping": {
           "id": 127,
           "name": "eth1/23/7",
-          "controllingPort": 121,
+          "controllingPort": 125,
           "pins": [
             {
               "a": {
@@ -31710,7 +31710,7 @@
         "mapping": {
           "id": 128,
           "name": "eth1/23/8",
-          "controllingPort": 121,
+          "controllingPort": 125,
           "pins": [
             {
               "a": {
@@ -34420,7 +34420,7 @@
         "mapping": {
           "id": 137,
           "name": "eth1/26/6",
-          "controllingPort": 132,
+          "controllingPort": 136,
           "pins": [
             {
               "a": {
@@ -34474,7 +34474,7 @@
         "mapping": {
           "id": 138,
           "name": "eth1/26/7",
-          "controllingPort": 132,
+          "controllingPort": 136,
           "pins": [
             {
               "a": {
@@ -34528,7 +34528,7 @@
         "mapping": {
           "id": 139,
           "name": "eth1/26/8",
-          "controllingPort": 132,
+          "controllingPort": 136,
           "pins": [
             {
               "a": {
@@ -37094,7 +37094,7 @@
         "mapping": {
           "id": 148,
           "name": "eth1/27/6",
-          "controllingPort": 143,
+          "controllingPort": 147,
           "pins": [
             {
               "a": {
@@ -37148,7 +37148,7 @@
         "mapping": {
           "id": 149,
           "name": "eth1/27/7",
-          "controllingPort": 143,
+          "controllingPort": 147,
           "pins": [
             {
               "a": {
@@ -37202,7 +37202,7 @@
         "mapping": {
           "id": 150,
           "name": "eth1/27/8",
-          "controllingPort": 143,
+          "controllingPort": 147,
           "pins": [
             {
               "a": {
@@ -39768,7 +39768,7 @@
         "mapping": {
           "id": 159,
           "name": "eth1/30/6",
-          "controllingPort": 154,
+          "controllingPort": 158,
           "pins": [
             {
               "a": {
@@ -39822,7 +39822,7 @@
         "mapping": {
           "id": 160,
           "name": "eth1/30/7",
-          "controllingPort": 154,
+          "controllingPort": 158,
           "pins": [
             {
               "a": {
@@ -39876,7 +39876,7 @@
         "mapping": {
           "id": 161,
           "name": "eth1/30/8",
-          "controllingPort": 154,
+          "controllingPort": 158,
           "pins": [
             {
               "a": {
@@ -42442,7 +42442,7 @@
         "mapping": {
           "id": 170,
           "name": "eth1/31/6",
-          "controllingPort": 165,
+          "controllingPort": 169,
           "pins": [
             {
               "a": {
@@ -42496,7 +42496,7 @@
         "mapping": {
           "id": 171,
           "name": "eth1/31/7",
-          "controllingPort": 165,
+          "controllingPort": 169,
           "pins": [
             {
               "a": {
@@ -42550,7 +42550,7 @@
         "mapping": {
           "id": 172,
           "name": "eth1/31/8",
-          "controllingPort": 165,
+          "controllingPort": 169,
           "pins": [
             {
               "a": {
@@ -45116,7 +45116,7 @@
         "mapping": {
           "id": 181,
           "name": "eth1/34/6",
-          "controllingPort": 176,
+          "controllingPort": 180,
           "pins": [
             {
               "a": {
@@ -45170,7 +45170,7 @@
         "mapping": {
           "id": 182,
           "name": "eth1/34/7",
-          "controllingPort": 176,
+          "controllingPort": 180,
           "pins": [
             {
               "a": {
@@ -45224,7 +45224,7 @@
         "mapping": {
           "id": 183,
           "name": "eth1/34/8",
-          "controllingPort": 176,
+          "controllingPort": 180,
           "pins": [
             {
               "a": {
@@ -47790,7 +47790,7 @@
         "mapping": {
           "id": 192,
           "name": "eth1/35/6",
-          "controllingPort": 187,
+          "controllingPort": 191,
           "pins": [
             {
               "a": {
@@ -47844,7 +47844,7 @@
         "mapping": {
           "id": 193,
           "name": "eth1/35/7",
-          "controllingPort": 187,
+          "controllingPort": 191,
           "pins": [
             {
               "a": {
@@ -47898,7 +47898,7 @@
         "mapping": {
           "id": 194,
           "name": "eth1/35/8",
-          "controllingPort": 187,
+          "controllingPort": 191,
           "pins": [
             {
               "a": {
@@ -50608,7 +50608,7 @@
         "mapping": {
           "id": 203,
           "name": "eth1/38/6",
-          "controllingPort": 198,
+          "controllingPort": 202,
           "pins": [
             {
               "a": {
@@ -50662,7 +50662,7 @@
         "mapping": {
           "id": 204,
           "name": "eth1/38/7",
-          "controllingPort": 198,
+          "controllingPort": 202,
           "pins": [
             {
               "a": {
@@ -50716,7 +50716,7 @@
         "mapping": {
           "id": 205,
           "name": "eth1/38/8",
-          "controllingPort": 198,
+          "controllingPort": 202,
           "pins": [
             {
               "a": {
@@ -53282,7 +53282,7 @@
         "mapping": {
           "id": 214,
           "name": "eth1/39/6",
-          "controllingPort": 209,
+          "controllingPort": 213,
           "pins": [
             {
               "a": {
@@ -53336,7 +53336,7 @@
         "mapping": {
           "id": 215,
           "name": "eth1/39/7",
-          "controllingPort": 209,
+          "controllingPort": 213,
           "pins": [
             {
               "a": {
@@ -53390,7 +53390,7 @@
         "mapping": {
           "id": 216,
           "name": "eth1/39/8",
-          "controllingPort": 209,
+          "controllingPort": 213,
           "pins": [
             {
               "a": {
@@ -56100,7 +56100,7 @@
         "mapping": {
           "id": 225,
           "name": "eth1/42/6",
-          "controllingPort": 220,
+          "controllingPort": 224,
           "pins": [
             {
               "a": {
@@ -56154,7 +56154,7 @@
         "mapping": {
           "id": 226,
           "name": "eth1/42/7",
-          "controllingPort": 220,
+          "controllingPort": 224,
           "pins": [
             {
               "a": {
@@ -56208,7 +56208,7 @@
         "mapping": {
           "id": 227,
           "name": "eth1/42/8",
-          "controllingPort": 220,
+          "controllingPort": 224,
           "pins": [
             {
               "a": {
@@ -58774,7 +58774,7 @@
         "mapping": {
           "id": 236,
           "name": "eth1/43/6",
-          "controllingPort": 231,
+          "controllingPort": 235,
           "pins": [
             {
               "a": {
@@ -58828,7 +58828,7 @@
         "mapping": {
           "id": 237,
           "name": "eth1/43/7",
-          "controllingPort": 231,
+          "controllingPort": 235,
           "pins": [
             {
               "a": {
@@ -58882,7 +58882,7 @@
         "mapping": {
           "id": 238,
           "name": "eth1/43/8",
-          "controllingPort": 231,
+          "controllingPort": 235,
           "pins": [
             {
               "a": {
@@ -61592,7 +61592,7 @@
         "mapping": {
           "id": 247,
           "name": "eth1/46/6",
-          "controllingPort": 242,
+          "controllingPort": 246,
           "pins": [
             {
               "a": {
@@ -61646,7 +61646,7 @@
         "mapping": {
           "id": 248,
           "name": "eth1/46/7",
-          "controllingPort": 242,
+          "controllingPort": 246,
           "pins": [
             {
               "a": {
@@ -61700,7 +61700,7 @@
         "mapping": {
           "id": 249,
           "name": "eth1/46/8",
-          "controllingPort": 242,
+          "controllingPort": 246,
           "pins": [
             {
               "a": {
@@ -64266,7 +64266,7 @@
         "mapping": {
           "id": 258,
           "name": "eth1/47/6",
-          "controllingPort": 253,
+          "controllingPort": 257,
           "pins": [
             {
               "a": {
@@ -64320,7 +64320,7 @@
         "mapping": {
           "id": 259,
           "name": "eth1/47/7",
-          "controllingPort": 253,
+          "controllingPort": 257,
           "pins": [
             {
               "a": {
@@ -64374,7 +64374,7 @@
         "mapping": {
           "id": 260,
           "name": "eth1/47/8",
-          "controllingPort": 253,
+          "controllingPort": 257,
           "pins": [
             {
               "a": {
@@ -67084,7 +67084,7 @@
         "mapping": {
           "id": 269,
           "name": "eth1/50/6",
-          "controllingPort": 264,
+          "controllingPort": 268,
           "pins": [
             {
               "a": {
@@ -67138,7 +67138,7 @@
         "mapping": {
           "id": 270,
           "name": "eth1/50/7",
-          "controllingPort": 264,
+          "controllingPort": 268,
           "pins": [
             {
               "a": {
@@ -67192,7 +67192,7 @@
         "mapping": {
           "id": 271,
           "name": "eth1/50/8",
-          "controllingPort": 264,
+          "controllingPort": 268,
           "pins": [
             {
               "a": {
@@ -69758,7 +69758,7 @@
         "mapping": {
           "id": 280,
           "name": "eth1/51/6",
-          "controllingPort": 275,
+          "controllingPort": 279,
           "pins": [
             {
               "a": {
@@ -69812,7 +69812,7 @@
         "mapping": {
           "id": 281,
           "name": "eth1/51/7",
-          "controllingPort": 275,
+          "controllingPort": 279,
           "pins": [
             {
               "a": {
@@ -69866,7 +69866,7 @@
         "mapping": {
           "id": 282,
           "name": "eth1/51/8",
-          "controllingPort": 275,
+          "controllingPort": 279,
           "pins": [
             {
               "a": {
@@ -72576,7 +72576,7 @@
         "mapping": {
           "id": 291,
           "name": "eth1/54/6",
-          "controllingPort": 286,
+          "controllingPort": 290,
           "pins": [
             {
               "a": {
@@ -72630,7 +72630,7 @@
         "mapping": {
           "id": 292,
           "name": "eth1/54/7",
-          "controllingPort": 286,
+          "controllingPort": 290,
           "pins": [
             {
               "a": {
@@ -72684,7 +72684,7 @@
         "mapping": {
           "id": 293,
           "name": "eth1/54/8",
-          "controllingPort": 286,
+          "controllingPort": 290,
           "pins": [
             {
               "a": {
@@ -75250,7 +75250,7 @@
         "mapping": {
           "id": 302,
           "name": "eth1/55/6",
-          "controllingPort": 297,
+          "controllingPort": 301,
           "pins": [
             {
               "a": {
@@ -75304,7 +75304,7 @@
         "mapping": {
           "id": 303,
           "name": "eth1/55/7",
-          "controllingPort": 297,
+          "controllingPort": 301,
           "pins": [
             {
               "a": {
@@ -75358,7 +75358,7 @@
         "mapping": {
           "id": 304,
           "name": "eth1/55/8",
-          "controllingPort": 297,
+          "controllingPort": 301,
           "pins": [
             {
               "a": {
@@ -78068,7 +78068,7 @@
         "mapping": {
           "id": 313,
           "name": "eth1/58/6",
-          "controllingPort": 308,
+          "controllingPort": 312,
           "pins": [
             {
               "a": {
@@ -78122,7 +78122,7 @@
         "mapping": {
           "id": 314,
           "name": "eth1/58/7",
-          "controllingPort": 308,
+          "controllingPort": 312,
           "pins": [
             {
               "a": {
@@ -78176,7 +78176,7 @@
         "mapping": {
           "id": 315,
           "name": "eth1/58/8",
-          "controllingPort": 308,
+          "controllingPort": 312,
           "pins": [
             {
               "a": {
@@ -80742,7 +80742,7 @@
         "mapping": {
           "id": 324,
           "name": "eth1/59/6",
-          "controllingPort": 319,
+          "controllingPort": 323,
           "pins": [
             {
               "a": {
@@ -80796,7 +80796,7 @@
         "mapping": {
           "id": 325,
           "name": "eth1/59/7",
-          "controllingPort": 319,
+          "controllingPort": 323,
           "pins": [
             {
               "a": {
@@ -80850,7 +80850,7 @@
         "mapping": {
           "id": 326,
           "name": "eth1/59/8",
-          "controllingPort": 319,
+          "controllingPort": 323,
           "pins": [
             {
               "a": {
@@ -83416,7 +83416,7 @@
         "mapping": {
           "id": 335,
           "name": "eth1/62/6",
-          "controllingPort": 330,
+          "controllingPort": 334,
           "pins": [
             {
               "a": {
@@ -83470,7 +83470,7 @@
         "mapping": {
           "id": 336,
           "name": "eth1/62/7",
-          "controllingPort": 330,
+          "controllingPort": 334,
           "pins": [
             {
               "a": {
@@ -83524,7 +83524,7 @@
         "mapping": {
           "id": 337,
           "name": "eth1/62/8",
-          "controllingPort": 330,
+          "controllingPort": 334,
           "pins": [
             {
               "a": {
@@ -86090,7 +86090,7 @@
         "mapping": {
           "id": 346,
           "name": "eth1/63/6",
-          "controllingPort": 341,
+          "controllingPort": 345,
           "pins": [
             {
               "a": {
@@ -86144,7 +86144,7 @@
         "mapping": {
           "id": 347,
           "name": "eth1/63/7",
-          "controllingPort": 341,
+          "controllingPort": 345,
           "pins": [
             {
               "a": {
@@ -86198,7 +86198,7 @@
         "mapping": {
           "id": 348,
           "name": "eth1/63/8",
-          "controllingPort": 341,
+          "controllingPort": 345,
           "pins": [
             {
               "a": {

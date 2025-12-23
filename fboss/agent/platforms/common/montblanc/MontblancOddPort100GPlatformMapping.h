@@ -1331,7 +1331,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 6,
           "name": "eth1/1/6",
-          "controllingPort": 1,
+          "controllingPort": 5,
           "pins": [
             {
               "a": {
@@ -1385,7 +1385,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 7,
           "name": "eth1/1/7",
-          "controllingPort": 1,
+          "controllingPort": 5,
           "pins": [
             {
               "a": {
@@ -1439,7 +1439,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 8,
           "name": "eth1/1/8",
-          "controllingPort": 1,
+          "controllingPort": 5,
           "pins": [
             {
               "a": {
@@ -4149,7 +4149,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 16,
           "name": "eth1/3/6",
-          "controllingPort": 11,
+          "controllingPort": 15,
           "pins": [
             {
               "a": {
@@ -4203,7 +4203,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 17,
           "name": "eth1/3/7",
-          "controllingPort": 11,
+          "controllingPort": 15,
           "pins": [
             {
               "a": {
@@ -4257,7 +4257,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 18,
           "name": "eth1/3/8",
-          "controllingPort": 11,
+          "controllingPort": 15,
           "pins": [
             {
               "a": {
@@ -6823,7 +6823,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 26,
           "name": "eth1/5/6",
-          "controllingPort": 21,
+          "controllingPort": 25,
           "pins": [
             {
               "a": {
@@ -6877,7 +6877,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 27,
           "name": "eth1/5/7",
-          "controllingPort": 21,
+          "controllingPort": 25,
           "pins": [
             {
               "a": {
@@ -6931,7 +6931,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 28,
           "name": "eth1/5/8",
-          "controllingPort": 21,
+          "controllingPort": 25,
           "pins": [
             {
               "a": {
@@ -9641,7 +9641,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 36,
           "name": "eth1/7/6",
-          "controllingPort": 31,
+          "controllingPort": 35,
           "pins": [
             {
               "a": {
@@ -9695,7 +9695,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 37,
           "name": "eth1/7/7",
-          "controllingPort": 31,
+          "controllingPort": 35,
           "pins": [
             {
               "a": {
@@ -9749,7 +9749,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 38,
           "name": "eth1/7/8",
-          "controllingPort": 31,
+          "controllingPort": 35,
           "pins": [
             {
               "a": {
@@ -12315,7 +12315,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 46,
           "name": "eth1/9/6",
-          "controllingPort": 41,
+          "controllingPort": 45,
           "pins": [
             {
               "a": {
@@ -12369,7 +12369,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 47,
           "name": "eth1/9/7",
-          "controllingPort": 41,
+          "controllingPort": 45,
           "pins": [
             {
               "a": {
@@ -12423,7 +12423,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 48,
           "name": "eth1/9/8",
-          "controllingPort": 41,
+          "controllingPort": 45,
           "pins": [
             {
               "a": {
@@ -15133,7 +15133,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 56,
           "name": "eth1/11/6",
-          "controllingPort": 51,
+          "controllingPort": 55,
           "pins": [
             {
               "a": {
@@ -15187,7 +15187,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 57,
           "name": "eth1/11/7",
-          "controllingPort": 51,
+          "controllingPort": 55,
           "pins": [
             {
               "a": {
@@ -15241,7 +15241,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 58,
           "name": "eth1/11/8",
-          "controllingPort": 51,
+          "controllingPort": 55,
           "pins": [
             {
               "a": {
@@ -17807,7 +17807,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 66,
           "name": "eth1/13/6",
-          "controllingPort": 61,
+          "controllingPort": 65,
           "pins": [
             {
               "a": {
@@ -17861,7 +17861,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 67,
           "name": "eth1/13/7",
-          "controllingPort": 61,
+          "controllingPort": 65,
           "pins": [
             {
               "a": {
@@ -17915,7 +17915,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 68,
           "name": "eth1/13/8",
-          "controllingPort": 61,
+          "controllingPort": 65,
           "pins": [
             {
               "a": {
@@ -20625,7 +20625,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 76,
           "name": "eth1/15/6",
-          "controllingPort": 71,
+          "controllingPort": 75,
           "pins": [
             {
               "a": {
@@ -20679,7 +20679,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 77,
           "name": "eth1/15/7",
-          "controllingPort": 71,
+          "controllingPort": 75,
           "pins": [
             {
               "a": {
@@ -20733,7 +20733,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 78,
           "name": "eth1/15/8",
-          "controllingPort": 71,
+          "controllingPort": 75,
           "pins": [
             {
               "a": {
@@ -23299,7 +23299,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 86,
           "name": "eth1/17/6",
-          "controllingPort": 81,
+          "controllingPort": 85,
           "pins": [
             {
               "a": {
@@ -23353,7 +23353,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 87,
           "name": "eth1/17/7",
-          "controllingPort": 81,
+          "controllingPort": 85,
           "pins": [
             {
               "a": {
@@ -23407,7 +23407,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 88,
           "name": "eth1/17/8",
-          "controllingPort": 81,
+          "controllingPort": 85,
           "pins": [
             {
               "a": {
@@ -26117,7 +26117,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 96,
           "name": "eth1/19/6",
-          "controllingPort": 91,
+          "controllingPort": 95,
           "pins": [
             {
               "a": {
@@ -26171,7 +26171,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 97,
           "name": "eth1/19/7",
-          "controllingPort": 91,
+          "controllingPort": 95,
           "pins": [
             {
               "a": {
@@ -26225,7 +26225,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 98,
           "name": "eth1/19/8",
-          "controllingPort": 91,
+          "controllingPort": 95,
           "pins": [
             {
               "a": {
@@ -28791,7 +28791,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 106,
           "name": "eth1/21/6",
-          "controllingPort": 101,
+          "controllingPort": 105,
           "pins": [
             {
               "a": {
@@ -28845,7 +28845,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 107,
           "name": "eth1/21/7",
-          "controllingPort": 101,
+          "controllingPort": 105,
           "pins": [
             {
               "a": {
@@ -28899,7 +28899,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 108,
           "name": "eth1/21/8",
-          "controllingPort": 101,
+          "controllingPort": 105,
           "pins": [
             {
               "a": {
@@ -31609,7 +31609,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 116,
           "name": "eth1/23/6",
-          "controllingPort": 111,
+          "controllingPort": 115,
           "pins": [
             {
               "a": {
@@ -31663,7 +31663,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 117,
           "name": "eth1/23/7",
-          "controllingPort": 111,
+          "controllingPort": 115,
           "pins": [
             {
               "a": {
@@ -31717,7 +31717,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 118,
           "name": "eth1/23/8",
-          "controllingPort": 111,
+          "controllingPort": 115,
           "pins": [
             {
               "a": {
@@ -34283,7 +34283,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 126,
           "name": "eth1/25/6",
-          "controllingPort": 121,
+          "controllingPort": 125,
           "pins": [
             {
               "a": {
@@ -34337,7 +34337,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 127,
           "name": "eth1/25/7",
-          "controllingPort": 121,
+          "controllingPort": 125,
           "pins": [
             {
               "a": {
@@ -34391,7 +34391,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 128,
           "name": "eth1/25/8",
-          "controllingPort": 121,
+          "controllingPort": 125,
           "pins": [
             {
               "a": {
@@ -37101,7 +37101,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 136,
           "name": "eth1/27/6",
-          "controllingPort": 131,
+          "controllingPort": 135,
           "pins": [
             {
               "a": {
@@ -37155,7 +37155,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 137,
           "name": "eth1/27/7",
-          "controllingPort": 131,
+          "controllingPort": 135,
           "pins": [
             {
               "a": {
@@ -37209,7 +37209,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 138,
           "name": "eth1/27/8",
-          "controllingPort": 131,
+          "controllingPort": 135,
           "pins": [
             {
               "a": {
@@ -39631,7 +39631,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 146,
           "name": "eth1/29/6",
-          "controllingPort": 141,
+          "controllingPort": 145,
           "pins": [
             {
               "a": {
@@ -39685,7 +39685,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 147,
           "name": "eth1/29/7",
-          "controllingPort": 141,
+          "controllingPort": 145,
           "pins": [
             {
               "a": {
@@ -39739,7 +39739,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 148,
           "name": "eth1/29/8",
-          "controllingPort": 141,
+          "controllingPort": 145,
           "pins": [
             {
               "a": {
@@ -42449,7 +42449,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 156,
           "name": "eth1/31/6",
-          "controllingPort": 151,
+          "controllingPort": 155,
           "pins": [
             {
               "a": {
@@ -42503,7 +42503,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 157,
           "name": "eth1/31/7",
-          "controllingPort": 151,
+          "controllingPort": 155,
           "pins": [
             {
               "a": {
@@ -42557,7 +42557,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 158,
           "name": "eth1/31/8",
-          "controllingPort": 151,
+          "controllingPort": 155,
           "pins": [
             {
               "a": {
@@ -44979,7 +44979,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 166,
           "name": "eth1/33/6",
-          "controllingPort": 161,
+          "controllingPort": 165,
           "pins": [
             {
               "a": {
@@ -45033,7 +45033,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 167,
           "name": "eth1/33/7",
-          "controllingPort": 161,
+          "controllingPort": 165,
           "pins": [
             {
               "a": {
@@ -45087,7 +45087,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 168,
           "name": "eth1/33/8",
-          "controllingPort": 161,
+          "controllingPort": 165,
           "pins": [
             {
               "a": {
@@ -47797,7 +47797,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 176,
           "name": "eth1/35/6",
-          "controllingPort": 171,
+          "controllingPort": 175,
           "pins": [
             {
               "a": {
@@ -47851,7 +47851,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 177,
           "name": "eth1/35/7",
-          "controllingPort": 171,
+          "controllingPort": 175,
           "pins": [
             {
               "a": {
@@ -47905,7 +47905,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 178,
           "name": "eth1/35/8",
-          "controllingPort": 171,
+          "controllingPort": 175,
           "pins": [
             {
               "a": {
@@ -50471,7 +50471,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 186,
           "name": "eth1/37/6",
-          "controllingPort": 181,
+          "controllingPort": 185,
           "pins": [
             {
               "a": {
@@ -50525,7 +50525,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 187,
           "name": "eth1/37/7",
-          "controllingPort": 181,
+          "controllingPort": 185,
           "pins": [
             {
               "a": {
@@ -50579,7 +50579,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 188,
           "name": "eth1/37/8",
-          "controllingPort": 181,
+          "controllingPort": 185,
           "pins": [
             {
               "a": {
@@ -53289,7 +53289,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 196,
           "name": "eth1/39/6",
-          "controllingPort": 191,
+          "controllingPort": 195,
           "pins": [
             {
               "a": {
@@ -53343,7 +53343,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 197,
           "name": "eth1/39/7",
-          "controllingPort": 191,
+          "controllingPort": 195,
           "pins": [
             {
               "a": {
@@ -53397,7 +53397,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 198,
           "name": "eth1/39/8",
-          "controllingPort": 191,
+          "controllingPort": 195,
           "pins": [
             {
               "a": {
@@ -55963,7 +55963,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 206,
           "name": "eth1/41/6",
-          "controllingPort": 201,
+          "controllingPort": 205,
           "pins": [
             {
               "a": {
@@ -56017,7 +56017,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 207,
           "name": "eth1/41/7",
-          "controllingPort": 201,
+          "controllingPort": 205,
           "pins": [
             {
               "a": {
@@ -56071,7 +56071,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 208,
           "name": "eth1/41/8",
-          "controllingPort": 201,
+          "controllingPort": 205,
           "pins": [
             {
               "a": {
@@ -58781,7 +58781,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 216,
           "name": "eth1/43/6",
-          "controllingPort": 211,
+          "controllingPort": 215,
           "pins": [
             {
               "a": {
@@ -58835,7 +58835,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 217,
           "name": "eth1/43/7",
-          "controllingPort": 211,
+          "controllingPort": 215,
           "pins": [
             {
               "a": {
@@ -58889,7 +58889,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 218,
           "name": "eth1/43/8",
-          "controllingPort": 211,
+          "controllingPort": 215,
           "pins": [
             {
               "a": {
@@ -61455,7 +61455,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 226,
           "name": "eth1/45/6",
-          "controllingPort": 221,
+          "controllingPort": 225,
           "pins": [
             {
               "a": {
@@ -61509,7 +61509,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 227,
           "name": "eth1/45/7",
-          "controllingPort": 221,
+          "controllingPort": 225,
           "pins": [
             {
               "a": {
@@ -61563,7 +61563,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 228,
           "name": "eth1/45/8",
-          "controllingPort": 221,
+          "controllingPort": 225,
           "pins": [
             {
               "a": {
@@ -64273,7 +64273,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 236,
           "name": "eth1/47/6",
-          "controllingPort": 231,
+          "controllingPort": 235,
           "pins": [
             {
               "a": {
@@ -64327,7 +64327,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 237,
           "name": "eth1/47/7",
-          "controllingPort": 231,
+          "controllingPort": 235,
           "pins": [
             {
               "a": {
@@ -64381,7 +64381,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 238,
           "name": "eth1/47/8",
-          "controllingPort": 231,
+          "controllingPort": 235,
           "pins": [
             {
               "a": {
@@ -66947,7 +66947,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 246,
           "name": "eth1/49/6",
-          "controllingPort": 241,
+          "controllingPort": 245,
           "pins": [
             {
               "a": {
@@ -67001,7 +67001,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 247,
           "name": "eth1/49/7",
-          "controllingPort": 241,
+          "controllingPort": 245,
           "pins": [
             {
               "a": {
@@ -67055,7 +67055,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 248,
           "name": "eth1/49/8",
-          "controllingPort": 241,
+          "controllingPort": 245,
           "pins": [
             {
               "a": {
@@ -69765,7 +69765,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 256,
           "name": "eth1/51/6",
-          "controllingPort": 251,
+          "controllingPort": 255,
           "pins": [
             {
               "a": {
@@ -69819,7 +69819,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 257,
           "name": "eth1/51/7",
-          "controllingPort": 251,
+          "controllingPort": 255,
           "pins": [
             {
               "a": {
@@ -69873,7 +69873,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 258,
           "name": "eth1/51/8",
-          "controllingPort": 251,
+          "controllingPort": 255,
           "pins": [
             {
               "a": {
@@ -72439,7 +72439,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 266,
           "name": "eth1/53/6",
-          "controllingPort": 261,
+          "controllingPort": 265,
           "pins": [
             {
               "a": {
@@ -72493,7 +72493,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 267,
           "name": "eth1/53/7",
-          "controllingPort": 261,
+          "controllingPort": 265,
           "pins": [
             {
               "a": {
@@ -72547,7 +72547,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 268,
           "name": "eth1/53/8",
-          "controllingPort": 261,
+          "controllingPort": 265,
           "pins": [
             {
               "a": {
@@ -75257,7 +75257,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 276,
           "name": "eth1/55/6",
-          "controllingPort": 271,
+          "controllingPort": 275,
           "pins": [
             {
               "a": {
@@ -75311,7 +75311,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 277,
           "name": "eth1/55/7",
-          "controllingPort": 271,
+          "controllingPort": 275,
           "pins": [
             {
               "a": {
@@ -75365,7 +75365,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 278,
           "name": "eth1/55/8",
-          "controllingPort": 271,
+          "controllingPort": 275,
           "pins": [
             {
               "a": {
@@ -77931,7 +77931,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 286,
           "name": "eth1/57/6",
-          "controllingPort": 281,
+          "controllingPort": 285,
           "pins": [
             {
               "a": {
@@ -77985,7 +77985,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 287,
           "name": "eth1/57/7",
-          "controllingPort": 281,
+          "controllingPort": 285,
           "pins": [
             {
               "a": {
@@ -78039,7 +78039,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 288,
           "name": "eth1/57/8",
-          "controllingPort": 281,
+          "controllingPort": 285,
           "pins": [
             {
               "a": {
@@ -80749,7 +80749,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 296,
           "name": "eth1/59/6",
-          "controllingPort": 291,
+          "controllingPort": 295,
           "pins": [
             {
               "a": {
@@ -80803,7 +80803,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 297,
           "name": "eth1/59/7",
-          "controllingPort": 291,
+          "controllingPort": 295,
           "pins": [
             {
               "a": {
@@ -80857,7 +80857,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 298,
           "name": "eth1/59/8",
-          "controllingPort": 291,
+          "controllingPort": 295,
           "pins": [
             {
               "a": {
@@ -83279,7 +83279,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 306,
           "name": "eth1/61/6",
-          "controllingPort": 301,
+          "controllingPort": 305,
           "pins": [
             {
               "a": {
@@ -83333,7 +83333,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 307,
           "name": "eth1/61/7",
-          "controllingPort": 301,
+          "controllingPort": 305,
           "pins": [
             {
               "a": {
@@ -83387,7 +83387,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 308,
           "name": "eth1/61/8",
-          "controllingPort": 301,
+          "controllingPort": 305,
           "pins": [
             {
               "a": {
@@ -86097,7 +86097,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 316,
           "name": "eth1/63/6",
-          "controllingPort": 311,
+          "controllingPort": 315,
           "pins": [
             {
               "a": {
@@ -86151,7 +86151,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 317,
           "name": "eth1/63/7",
-          "controllingPort": 311,
+          "controllingPort": 315,
           "pins": [
             {
               "a": {
@@ -86205,7 +86205,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "mapping": {
           "id": 318,
           "name": "eth1/63/8",
-          "controllingPort": 311,
+          "controllingPort": 315,
           "pins": [
             {
               "a": {
