@@ -93,6 +93,9 @@ class ConfigSession {
   // Get the path to the system config file (/etc/coop/agent.conf)
   std::string getSystemConfigPath() const;
 
+  // Get the path to the CLI config directory (/etc/coop/cli)
+  std::string getCliConfigDir() const;
+
   // Atomically commit the session to /etc/coop/cli/agent-rN.conf,
   // update the symlink /etc/coop/agent.conf to point to it, and reload config.
   // Returns the revision number that was committed if the commit was
@@ -123,6 +126,9 @@ class ConfigSession {
       const std::string& sessionConfigPath,
       const std::string& systemConfigPath,
       const std::string& cliConfigDir);
+
+  // Set the singleton instance (for testing only)
+  static void setInstance(std::unique_ptr<ConfigSession> instance);
 
  private:
   std::string sessionConfigPath_;

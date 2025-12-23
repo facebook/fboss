@@ -59,6 +59,7 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_MIRROR_LIST,
   OBJECT_ARG_TYPE_LINK_DIRECTION,
   OBJECT_ARG_TYPE_FAN_PWM,
+  OBJECT_ARG_TYPE_ID_REVISION_LIST,
 };
 
 template <typename T>

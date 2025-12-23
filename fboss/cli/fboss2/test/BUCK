@@ -56,6 +56,7 @@ cpp_unittest(
     srcs = [
         "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigReloadTest.cpp",
+        "CmdConfigSessionDiffTest.cpp",
         "CmdConfigSessionTest.cpp",
         "CmdGetPcapTest.cpp",
         "CmdSetPortStateTest.cpp",
