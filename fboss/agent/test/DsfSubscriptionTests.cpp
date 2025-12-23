@@ -813,17 +813,19 @@ TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
 
   auto queueSysPortUpdate = [&](int numSysPorts) {
-    auto sysPorts = this->makeSysPorts(numSysPorts);
-    auto rifs = makeRifs(sysPorts.get());
-    std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
-    std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
-    switchId2SystemPorts[SwitchID(kRemoteSwitchIdBegin)] = sysPorts;
-    switchId2Intfs[SwitchID(kRemoteSwitchIdBegin)] = rifs;
     DsfSubscription::DsfUpdate update;
-    update.switchId2SystemPorts = switchId2SystemPorts;
-    update.switchId2Intfs = switchId2Intfs;
+    for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+      auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, numSysPorts);
+      auto rifs = makeRifs(sysPorts.get());
+      update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+      update.switchId2Intfs[remoteSwitchId] = rifs;
+    }
     this->subscription_->queueDsfUpdate(std::move(update));
   };
+
+  auto beforeNumSysPorts = this->getRemoteSystemPorts()->size();
+  auto beforeNumRifs = this->getRemoteInterfaces()->size();
+  auto finalNumSysPorts = 2;
 
   // Step 1: First queueDsfUpdate call - should queue one event
   queueSysPortUpdate(1 /* numSysPorts */);
@@ -841,10 +843,8 @@ TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
   EXPECT_EQ(queueSizeAfterGR, initialQueueSize + 2);
 
-  // Step 3: Second queueDsfUpdate call - should ideally queue a third event,
-  // but due to the race condition, it will only update nextDsfUpdate_ and
-  // NOT queue a third event
-  queueSysPortUpdate(2 /* numSysPorts */);
+  // Step 3: Second queueDsfUpdate call - should queue a third event.
+  queueSysPortUpdate(finalNumSysPorts);
 
   // Verify the fix of race condition: there should be only 3 events in the
   // queue. The GR expiry should not be the last event.
@@ -856,6 +856,20 @@ TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
   WITH_RETRIES({
     ASSERT_EVENTUALLY_EQ(
         this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  WITH_RETRIES({
+    auto remoteRifs = this->getRemoteInterfaces();
+    EXPECT_EVENTUALLY_EQ(
+        remoteRifs->size(),
+        beforeNumRifs + (this->kNumRemoteSwitchAsics * finalNumSysPorts));
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(),
+        beforeNumSysPorts + (this->kNumRemoteSwitchAsics * finalNumSysPorts));
+    for (const auto [_, rif] : std::as_const(*remoteRifs)) {
+      EXPECT_EVENTUALLY_EQ(rif->getNdpTable()->size(), 1);
+      EXPECT_EVENTUALLY_EQ(rif->getArpTable()->size(), 1);
+    }
   });
 }
 
