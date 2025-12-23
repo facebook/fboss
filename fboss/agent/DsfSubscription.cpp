@@ -385,6 +385,7 @@ void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
      */
     hwUpdateEvb_->runInEventBaseThread([this]() {
       DsfUpdate update;
+      bool needsUpdate = false;
       {
         std::lock_guard<std::mutex> lock(dsfUpdateMutex_);
         if (dsfUpdateQueue_.empty()) {
@@ -396,12 +397,15 @@ void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
         }
         update = std::move(dsfUpdateQueue_.front());
         dsfUpdateQueue_.pop_front();
-        // TODO(zecheng): Can be optimized by checking if the queue is empty. If
-        // not, there are newer updates queued after GR and we can skip
-        // processing the update
+        // If dsfUpdate queue is not empty after dequeue, there are newer
+        // updates queued after GR and therefore we can skip processing the
+        // update.
+        needsUpdate = dsfUpdateQueue_.empty();
       }
-      updateWithRollbackProtection(
-          update.switchId2SystemPorts, update.switchId2Intfs);
+      if (needsUpdate) {
+        updateWithRollbackProtection(
+            update.switchId2SystemPorts, update.switchId2Intfs);
+      }
     });
   } else {
     // Overwrite the last update in the queue
