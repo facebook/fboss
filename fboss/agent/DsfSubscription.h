@@ -154,6 +154,10 @@ class DsfSubscription {
   template <typename T>
   FRIEND_TEST(DsfSubscriptionTest, MultipleGREventsSeparateUpdates);
   template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, ConcurrentQueueDsfUpdates);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, ConcurrentQueueDsfUpdateAndGRExpiry);
+  template <typename T>
   FRIEND_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued);
 };
 

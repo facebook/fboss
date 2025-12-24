@@ -247,6 +247,55 @@ class DsfSubscriptionTest : public ::testing::Test {
     return *subscription_->dsfSessionThrift().state();
   }
 
+  // Run multiple threads concurrently with synchronized start
+  void runConcurrentThreads(std::vector<std::function<void()>>& threadFns) {
+    std::atomic<bool> startFlag{false};
+    std::vector<std::thread> threads;
+    threads.reserve(threadFns.size());
+
+    for (auto& fn : threadFns) {
+      threads.emplace_back([&startFlag, fn]() {
+        while (!startFlag.load()) {
+          std::this_thread::yield();
+        }
+        fn();
+      });
+    }
+
+    // Start all threads simultaneously
+    startFlag.store(true);
+
+    // Wait for all threads to complete
+    for (auto& thread : threads) {
+      thread.join();
+    }
+  }
+
+  // Wait for event base queue to drain
+  void waitForQueueDrain() {
+    WITH_RETRIES({
+      ASSERT_EVENTUALLY_EQ(
+          this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+    });
+  }
+
+  // Verify final state after updates
+  void verifySysPortAndRif(
+      size_t beforeNumSysPorts,
+      size_t beforeNumRifs,
+      int expectedSysPortsPerSwitch) {
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          this->getRemoteSystemPorts()->size(),
+          beforeNumSysPorts +
+              (this->kNumRemoteSwitchAsics * expectedSysPortsPerSwitch));
+      EXPECT_EVENTUALLY_EQ(
+          this->getRemoteInterfaces()->size(),
+          beforeNumRifs +
+              (this->kNumRemoteSwitchAsics * expectedSysPortsPerSwitch));
+    });
+  }
+
  protected:
   void verifyRemoteIntfRouteDelta(
       StateDelta delta,
@@ -1204,6 +1253,128 @@ TYPED_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued) {
   // 2. Update2 event (queue was empty after dequeue, so needsUpdate = true)
   // Update1 is skipped because queue was NOT empty after dequeue.
   EXPECT_EQ(stateUpdates, 2);
+}
+
+TYPED_TEST(DsfSubscriptionTest, ConcurrentQueueDsfUpdates) {
+  // Test that multiple threads concurrently calling queueDsfUpdate() works
+  // correctly. All updates should eventually be processed, and both the
+  // dsfUpdateQueue and event base queue should be empty afterwards.
+  this->subscription_ = this->createSubscription();
+
+  auto beforeNumSysPorts = this->getRemoteSystemPorts()->size();
+  auto beforeNumRifs = this->getRemoteInterfaces()->size();
+
+  constexpr int kNumThreads = 10;
+  constexpr int kUpdatesPerThread = 5;
+  constexpr int kFinalNumSysPorts = 3;
+
+  auto queueSysPortUpdate = [&](int numSysPorts) {
+    DsfSubscription::DsfUpdate update;
+    for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+      auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, numSysPorts);
+      auto rifs = makeRifs(sysPorts.get());
+      update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+      update.switchId2Intfs[remoteSwitchId] = rifs;
+    }
+    this->subscription_->queueDsfUpdate(std::move(update));
+  };
+
+  // Create thread functions
+  std::vector<std::function<void()>> threadFns;
+  threadFns.reserve(kNumThreads);
+  for (int t = 0; t < kNumThreads; ++t) {
+    threadFns.emplace_back([&, t]() {
+      for (int i = 0; i < kUpdatesPerThread; ++i) {
+        queueSysPortUpdate(
+            (t * kUpdatesPerThread + i) % kUpdatesPerThread +
+            1 /*numSysPorts*/);
+      }
+    });
+  }
+
+  // Run all threads concurrently
+  this->runConcurrentThreads(threadFns);
+
+  // Wait for all events to be processed
+  this->waitForQueueDrain();
+
+  // Verify dsfUpdateQueue_ is empty by checking we can still queue new updates
+  // and they get processed normally
+  queueSysPortUpdate(kFinalNumSysPorts /*numSysPorts*/);
+
+  this->waitForQueueDrain();
+
+  // Verify final state
+  this->verifySysPortAndRif(
+      beforeNumSysPorts, beforeNumRifs, kFinalNumSysPorts);
+}
+
+TYPED_TEST(DsfSubscriptionTest, ConcurrentQueueDsfUpdateAndGRExpiry) {
+  // Test that multiple threads concurrently calling queueDsfUpdate and
+  // processGRHoldTimerExpired do not cause deadlock. Both dsfUpdateQueue and
+  // event base queue should be processed afterwards, and enqueueing new updates
+  // should lead to normal processing.
+  this->subscription_ = this->createSubscription();
+
+  auto beforeNumSysPorts = this->getRemoteSystemPorts()->size();
+  auto beforeNumRifs = this->getRemoteInterfaces()->size();
+
+  constexpr int kNumUpdateThreads = 5;
+  constexpr int kNumGRThreads = 3;
+  constexpr int kUpdatesPerThread = 10;
+  constexpr int kGRsPerThread = 5;
+  constexpr int kFinalNumSysPorts = 4;
+
+  auto queueSysPortUpdate = [&](int numSysPorts) {
+    DsfSubscription::DsfUpdate update;
+    for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+      auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, numSysPorts);
+      auto rifs = makeRifs(sysPorts.get());
+      update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+      update.switchId2Intfs[remoteSwitchId] = rifs;
+    }
+    this->subscription_->queueDsfUpdate(std::move(update));
+  };
+
+  // Create thread functions for both update and GR threads
+  std::vector<std::function<void()>> threadFns;
+
+  // Threads that call queueDsfUpdate
+  threadFns.reserve(kNumUpdateThreads + kNumGRThreads);
+  for (int t = 0; t < kNumUpdateThreads; ++t) {
+    threadFns.emplace_back([&, t]() {
+      for (int i = 0; i < kUpdatesPerThread; ++i) {
+        queueSysPortUpdate(
+            (t * kUpdatesPerThread + i) % kNumUpdateThreads +
+            1 /*numSysPorts*/);
+      }
+    });
+  }
+
+  // Threads that call processGRHoldTimerExpired
+  for (int t = 0; t < kNumGRThreads; ++t) {
+    threadFns.emplace_back([&]() {
+      for (int i = 0; i < kGRsPerThread; ++i) {
+        this->subscription_->processGRHoldTimerExpired();
+      }
+    });
+  }
+
+  // Run all threads concurrently
+  this->runConcurrentThreads(threadFns);
+
+  // Wait for all events to be processed - should not deadlock
+  this->waitForQueueDrain();
+
+  // Verify the system is in a healthy state by enqueueing a new update
+  // and checking it gets processed normally
+  queueSysPortUpdate(kFinalNumSysPorts /*numSysPorts*/);
+
+  this->waitForQueueDrain();
+
+  // Verify final state
+  this->verifySysPortAndRif(
+      beforeNumSysPorts, beforeNumRifs, kFinalNumSysPorts);
 }
 
 } // namespace facebook::fboss
