@@ -758,6 +758,45 @@ auto_tab_complete(
     src = ":fboss2",
 )
 
+# Config commands are in a separate library/binary for now.
+cpp_library(
+    name = "fboss2-config-lib",
+    srcs = [
+        "CmdHandlerImplConfig.cpp",
+        "CmdListConfig.cpp",
+        "commands/config/CmdConfigReload.cpp",
+    ],
+    headers = [
+        "commands/config/CmdConfigReload.h",
+    ],
+    exported_deps = [
+        ":cmd-handler",
+        ":fboss2-lib",
+        "//folly:conv",
+    ],
+)
+
+cpp_binary(
+    name = "fboss2-dev",
+    srcs = [
+        "Main.cpp",
+        "oss/CmdListConfig.cpp",
+    ],
+    deps = [
+        ":cmd-common-utils",
+        ":cmd-global-options",
+        ":cmd-subcommands",
+        ":fboss2-config-lib",  # @manual
+        ":fboss2-lib",
+        "//folly/init:init",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "CLI11",
+    ],
+)
+
 cpp_binary(
     name = "fboss2-routing-protocol",
     srcs = [

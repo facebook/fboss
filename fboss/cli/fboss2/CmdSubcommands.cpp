@@ -34,6 +34,8 @@ const std::map<std::string, std::string>& kSupportedVerbs() {
       {"stop", "Stop event"},
       {"get", "Get object"},
       {"reload", "Reload object"},
+      // Only implemented in fboss2-dev for now.
+      {"config", "Configuration commands"},
   };
 
   return supportedVerbs;
