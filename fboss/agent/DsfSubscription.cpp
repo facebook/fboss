@@ -388,6 +388,9 @@ void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
       bool needsUpdate = false;
       {
         std::lock_guard<std::mutex> lock(dsfUpdateMutex_);
+        // Explicitly fail in tests - dsfUpdateQueue should have 1-to-1
+        // mapping with updates in event base.
+        DCHECK(!dsfUpdateQueue_.empty());
         if (dsfUpdateQueue_.empty()) {
           XLOG(ERR)
               << "DsfUpdateQueue should have 1-to-1 mapping "
