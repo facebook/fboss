@@ -38,7 +38,7 @@ facebook::fboss::utility::NeighborInfo getNeighborInfo(
     facebook::fboss::AgentEnsemble& ensemble) {
   auto switchId = ensemble.getSw()
                       ->getScopeResolver()
-                      ->scope(ensemble.masterLogicalPortIds())
+                      ->scope(ensemble.masterLogicalPortIds()[0])
                       .switchId();
   auto client = ensemble.getHwAgentTestClient(switchId);
   facebook::fboss::IfAndIP neighbor;
