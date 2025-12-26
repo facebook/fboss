@@ -1,1 +1,73 @@
-{}
+{
+  "testData": {
+    "LADAKH800BCLS_MCB.MCB_CPLD": {
+      "i2cTestData": {
+        "i2cGetData": [
+          {
+            "reg": "0x04",
+            "expected": "0xde"
+          }
+        ],
+        "i2cSetData": [
+          {
+            "reg": "0x04",
+            "value": "0xde"
+          }
+        ]
+      }
+    },
+    "LADAKH800BCLS_MCB.MCB_FAN_CPLD": {
+      "i2cTestData": {
+        "i2cSetData": [
+          {
+            "reg": "0x32",
+            "value": "0x16"
+          },
+          {
+            "reg": "0x42",
+            "value": "0x16"
+          },
+          {
+            "reg": "0x52",
+            "value": "0x16"
+          },
+          {
+            "reg": "0x62",
+            "value": "0x16"
+          },
+          {
+            "reg": "0x72",
+            "value": "0x16"
+          },
+          {
+            "reg": "0x82",
+            "value": "0x16"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "fan1",
+          "fan2",
+          "fan3",
+          "fan4",
+          "fan5",
+          "fan6"
+        ]
+      },
+      "watchdogTestData": {
+        "numWatchdogs": 1
+      }
+    },
+    "LADAKH800BCLS_MCB.48V_HSC_MONITOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "pin",
+          "iout1"
+        ]
+      }
+    }
+  }
+}
