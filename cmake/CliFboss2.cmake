@@ -476,6 +476,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/utils/CLIParserUtils.cpp
   fboss/cli/fboss2/utils/CmdClientUtils.cpp
   fboss/cli/fboss2/utils/CmdUtilsCommon.cpp
+  fboss/cli/fboss2/utils/PortMap.cpp
   fboss/cli/fboss2/utils/Table.cpp
   fboss/cli/fboss2/utils/HostInfo.h
   fboss/cli/fboss2/utils/FilterOp.h
@@ -570,6 +571,8 @@ install(TARGETS fboss2)
 
 # Config commands library for fboss2-dev
 add_library(fboss2_config_lib
+  fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h
+  fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.cpp
   fboss/cli/fboss2/commands/config/CmdConfigReload.h
   fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
   fboss/cli/fboss2/CmdListConfig.cpp

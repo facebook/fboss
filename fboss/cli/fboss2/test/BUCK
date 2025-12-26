@@ -53,6 +53,7 @@ cpp_unittest(
 cpp_unittest(
     name = "cmd_test",
     srcs = [
+        "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigReloadTest.cpp",
         "CmdGetPcapTest.cpp",
         "CmdSetPortStateTest.cpp",
@@ -86,6 +87,7 @@ cpp_unittest(
         "CmdShowTransceiverTest.cpp",
         "CmdStartPcapTest.cpp",
         "CmdStopPcapTest.cpp",
+        "PortMapTest.cpp",
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",

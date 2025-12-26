@@ -3,6 +3,7 @@
 # cmd_test - Command tests from BUCK file
 add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/TestMain.cpp
+  fboss/cli/fboss2/test/CmdConfigAppliedInfoTest.cpp
   fboss/cli/fboss2/test/CmdConfigReloadTest.cpp
   fboss/cli/fboss2/test/CmdSetPortStateTest.cpp
   fboss/cli/fboss2/test/CmdShowAclTest.cpp
@@ -36,6 +37,7 @@ add_executable(fboss2_cmd_test
   # fboss/cli/fboss2/test/CmdShowTransceiverTest.cpp - excluded (depends on configerator bgp namespace)
   fboss/cli/fboss2/test/CmdStartPcapTest.cpp
   fboss/cli/fboss2/test/CmdStopPcapTest.cpp
+  fboss/cli/fboss2/test/PortMapTest.cpp
 )
 
 target_link_libraries(fboss2_cmd_test
