@@ -1,0 +1,51 @@
+# FBOSS Local Configuration Overrides
+#
+# Copyright (c) 2004-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+#
+# This file contains local overrides to the Meta fboss-reference.config
+# organized by common settings and kernel version-specific settings
+
+# Common overrides that apply to all kernel versions
+# Add config lines here
+common_overrides: |
+  # These changes disable settings in Meta reference config that don't exist in standard linux source
+  CONFIG_BOOT_CONFIG_EMBED_FILE=""
+  CONFIG_SYSTEM_TRUSTED_KEYS=""
+
+  # Drivers for Golden Eagle platform
+  CONFIG_EEPROM_AT24=m
+  CONFIG_SENSORS_TMP464=m
+  CONFIG_SENSORS_LM90=m
+  CONFIG_SENSORS_PMBUS=m
+  CONFIG_SENSORS_ADM1266=m
+  CONFIG_SENSORS_ISL68137=m
+  CONFIG_AD525X_DPOT=m
+  CONFIG_AD525X_DPOT_I2C=m
+  CONFIG_NET_VENDOR_AMD=y
+  CONFIG_AMD_XGBE=m
+  CONFIG_AMD_XGBE_DCB=y
+  CONFIG_AMD_XGBE_HAVE_ECC=y
+  CONFIG_X86_AMD_PLATFORM_DEVICE=y
+  CONFIG_I2C_DESIGNWARE_PLATFORM=y
+  CONFIG_I2C_DESIGNWARE_PCI=y
+  CONFIG_ACPI_SPCR_TABLE=y
+  CONFIG_SERIAL_8250_DW=m
+  CONFIG_SERIAL_8250_DWLIB=m
+  CONFIG_SERIAL_8250_PNP=y
+
+
+# Kernel version overrides
+# Add kernel version as key, then add config lines in the value
+kernel_version_overrides:
+  "6.4.3": |
+    # Specific overrides for kernel 6.4.3
+    # Add any 6.4.3-specific config lines here
+
+  "6.11.1": |
+    # Specific overrides for kernel 6.11.1
+    # Add any 6.11.1-specific config lines here
