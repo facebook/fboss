@@ -764,9 +764,11 @@ cpp_library(
     srcs = [
         "CmdHandlerImplConfig.cpp",
         "CmdListConfig.cpp",
+        "commands/config/CmdConfigAppliedInfo.cpp",
         "commands/config/CmdConfigReload.cpp",
     ],
     headers = [
+        "commands/config/CmdConfigAppliedInfo.h",
         "commands/config/CmdConfigReload.h",
     ],
     exported_deps = [
