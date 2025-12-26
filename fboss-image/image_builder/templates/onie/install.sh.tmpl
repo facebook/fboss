@@ -1,0 +1,101 @@
+#!/bin/sh
+# This is the root ONIE installation script, using the default_platform.conf library
+
+kernel_filename="%%KERNEL_FILENAME%%"
+initrd_filename="%%INITRD_FILENAME%%"
+
+# Configure the install partition. Used by create_demo_*_partition()
+demo_part_size=131072 # In kilobytes
+demo_volume_label=FBOSS
+demo_volume_revision_label=FBOSS
+demo_type=OS
+
+# Appends a command to a trap, which is needed because default trap behavior is to replace
+# previous trap for the same signal
+# - 1st arg:  code to add
+# - ref: http://stackoverflow.com/questions/3338030/multiple-bash-traps-for-the-same-signal
+
+_trap_push() {
+    local next="$1"
+    eval "trap_push() {
+        local oldcmd='$(echo "$next" | sed -e s/\'/\'\\\\\'\'/g)'
+        local newcmd=\"\$1; \$oldcmd\"
+        trap -- \"\$newcmd\" EXIT INT TERM HUP
+        _trap_push \"\$newcmd\"
+    }"
+}
+_trap_push true
+
+read_conf_file() {
+    local conf_file=$1
+    while IFS='=' read -r var value || [ -n "$var" ]
+    do
+        # remove newline character
+        var=$(echo $var | tr -d '\r\n')
+        value=$(echo $value | tr -d '\r\n')
+        # remove comment string
+        var=${var%#*}
+        value=${value%#*}
+        # skip blank line
+        [ -z "$var" ] && continue
+        # remove double quote in the beginning
+        tmp_val=${value#\"}
+        # remove double quote in the end
+        value=${tmp_val%\"}
+        eval "$var=\"$value\""
+    done < "$conf_file"
+}
+
+# bonk out on errors
+set -e
+
+cd $(dirname $0)
+if [ -r ./machine.conf ]; then
+  read_conf_file "./machine.conf"
+fi
+
+# get running machine from conf file
+if [ -r /etc/machine.conf ]; then
+    read_conf_file "/etc/machine.conf"
+elif [ -r /host/machine.conf ]; then
+    read_conf_file "/host/machine.conf"
+else
+    echo "cannot find machine.conf"
+    exit 1
+fi
+
+# The onie bin tool prefix
+onie_bin=
+# The persistent ONIE directory location
+onie_root_dir=/mnt/onie-boot/onie
+# The onie file system root
+onie_initrd_tmp=/
+
+
+. ./default_platform.conf
+
+create_partition
+mount_partition
+
+cp -f distro-setup.sh ${demo_mnt}
+echo "Extract chroot environment ... to ${demo_mnt}"
+./zstd -c -T0 -d rootfs.tar.zst | tar -x -C ${demo_mnt}
+
+[ -e ${demo_mnt}/dev/pts ] && {
+    mount -o bind /dev/pts ${demo_mnt}/dev/pts
+}
+
+mount -t proc proc ${demo_mnt}/proc
+mount -t sysfs sys ${demo_mnt}/sys
+cp -a ${blk_dev} ${demo_mnt}/${blk_dev}
+
+echo "Setting up distro .."
+chroot ${demo_mnt} /distro-setup.sh ${blk_dev}${blk_suffix}${demo_part}
+
+[ -e ${demo_mnt}/dev/pts ] && {
+   umount ${demo_mnt}/dev/pts
+}
+umount ${demo_mnt}/proc
+umount ${demo_mnt}/sys
+
+bootloader_menu_config
