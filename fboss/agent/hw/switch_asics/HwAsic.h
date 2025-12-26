@@ -462,6 +462,7 @@ class HwAsic {
     // side queuing along with CPU ports given not all platforms
     // are capable of CPU queuing.
     CPU_QUEUES,
+    SAI_SERDES_RX_REACH,
   };
 
   enum class AsicMode {
