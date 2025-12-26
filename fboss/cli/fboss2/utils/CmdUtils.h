@@ -417,6 +417,15 @@ class MirrorList : public BaseObjectArgType<std::string> {
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MIRROR_LIST;
 };
 
+class RevisionList : public BaseObjectArgType<std::string> {
+ public:
+  /* implicit */ RevisionList() : BaseObjectArgType() {}
+  /* implicit */ RevisionList(std::vector<std::string> v);
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_ID_REVISION_LIST;
+};
+
 // Called after CLI11 is initlized but before parsing, for any final
 // initialization steps
 void postAppInit(int argc, char* argv[], CLI::App& app);
