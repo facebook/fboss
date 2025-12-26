@@ -125,6 +125,11 @@ enum Loopback {
   OFF = 2,
 }
 
+enum RxReach {
+  RX_NORMAL_REACH = 0,
+  RX_EXTENDED_REACH = 1,
+}
+
 struct TxSettings {
   1: i16 pre = 0;
   2: i16 pre2 = 0;
@@ -201,6 +206,7 @@ struct RxSettings {
   39: optional i32 dcwStepFineOvVal;
   40: optional i32 dcwOvEn;
   41: optional i32 ffeLmsDynamicGatingEn;
+  42: optional RxReach rxReach;
 }
 
 struct LaneMap {
