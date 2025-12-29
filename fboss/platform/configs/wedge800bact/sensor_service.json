@@ -432,13 +432,13 @@
         },
         {
           "name": "MCB_U38_PWRBRK_VOUT",
-          "sysfsPath": "/run/devmap/sensors/MCB_PWRBRK_MONITOR/in3_input",
+          "sysfsPath": "/run/devmap/sensors/MCB_PWRBRK_MONITOR/in2_input",
           "type": 1,
           "compute": "@/1000"
         },
         {
           "name": "MCB_U38_PWRBRK_IOUT",
-          "sysfsPath": "/run/devmap/sensors/MCB_PWRBRK_MONITOR/curr3_input",
+          "sysfsPath": "/run/devmap/sensors/MCB_PWRBRK_MONITOR/curr2_input",
           "type": 2,
           "compute": "@/1000"
         },

@@ -925,7 +925,7 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_31",
           "address": "0x67",
-          "kernelDeviceName": "xdpe15284",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "MCB_PWRBRK_MONITOR"
         }
       ],
