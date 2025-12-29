@@ -67,7 +67,7 @@
         },
         "eth1/26/1": {
             "neighbor": "eth1/25/1",
-            "profileID": 35,
+            "profileID": 50,
             "hasTransceiver": true
         },
         "eth1/29/1": {
