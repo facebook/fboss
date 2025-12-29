@@ -11,12 +11,19 @@
 #include "fboss/cli/fboss2/CmdList.h"
 
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 
 namespace facebook::fboss {
 
 const CommandTree& kConfigCommandTree() {
   static CommandTree root = {
+      {"config",
+       "applied-info",
+       "Show config applied information",
+       commandHandler<CmdConfigAppliedInfo>,
+       argTypeHandler<CmdConfigAppliedInfoTraits>},
+
       {"config",
        "reload",
        "Reload agent configuration",
