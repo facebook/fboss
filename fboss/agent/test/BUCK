@@ -140,6 +140,7 @@ cpp_unittest(
         "//folly/io:iobuf",
         "//folly/logging:logging",
         "//folly/portability:gtest",
+        "//folly/synchronization:baton",
         "//thrift/lib/cpp2/async:pooled_request_channel",
         "//thrift/lib/cpp2/async:server_stream",
         "//thrift/lib/cpp2/protocol:protocol",
@@ -943,6 +944,9 @@ thrift_library(
         "serde",
     ],
     thrift_srcs = {"production_features.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 cpp_library(
