@@ -582,11 +582,11 @@
         },
         {
           "name": "SMB_NP_VDDC1_K0INT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X50/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X50/temp3_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -596,7 +596,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -632,11 +632,11 @@
         },
         {
           "name": "SMB_NP_CVDDC1_K1INT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X51/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X51/temp3_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -646,7 +646,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -666,7 +666,27 @@
           "type": 2,
           "thresholds": {
             "upperCriticalVal": 105,
-            "lowerCriticalVal": 0.01
+            "maxAlarmVal": 100
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SMB_NP_IFG_VDDM_K0INT",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X51/temp4_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 120,
+            "maxAlarmVal": 110
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SMB_NP_IFG_VDDM_K0EXT",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X51/temp2_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 120,
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -702,11 +722,11 @@
         },
         {
           "name": "SMB_NP_CVDDC2_K2INT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X52/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X52/temp3_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -716,7 +736,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -736,7 +756,27 @@
           "type": 2,
           "thresholds": {
             "upperCriticalVal": 112,
-            "lowerCriticalVal": 0.01
+            "maxAlarmVal": 107
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SMB_NP_D2D_VDDA_K0INT",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X52/temp4_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 120,
+            "maxAlarmVal": 110
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SMB_NP_D2D_VDDA_K0EXT",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X52/temp2_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 120,
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -772,11 +812,11 @@
         },
         {
           "name": "SMB_NP_IFG_VDDI1_K0INT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X53/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X53/temp3_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -786,7 +826,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -806,7 +846,27 @@
           "type": 2,
           "thresholds": {
             "upperCriticalVal": 126,
-            "lowerCriticalVal": 0.01
+            "maxAlarmVal": 120
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SMB_NP_IFG_VDDA_K0INT",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X53/temp4_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 120,
+            "maxAlarmVal": 110
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SMB_NP_IFG_VDDA_K0EXT",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X53/temp2_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 120,
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -842,11 +902,11 @@
         },
         {
           "name": "SMB_NP_IFG_VDDS_K0INT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X54/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X54/temp3_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -856,7 +916,37 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 110
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SMB_NP_IFG_VDDI2_K1",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X54/curr2_input",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 189,
+            "maxAlarmVal": 180
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SMB_NP_IFG_VDDI2_K1INT",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X54/temp4_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 120,
+            "maxAlarmVal": 110
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SMB_NP_IFG_VDDI2_K1EXT",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X54/temp2_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 120,
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -886,17 +976,27 @@
           "type": 2,
           "thresholds": {
             "upperCriticalVal": 168,
-            "lowerCriticalVal": 0.1
+            "maxAlarmVal": 160
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SMB_OSFP_P3V3_L_I_K01",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X55/curr2_input",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 168,
+            "maxAlarmVal": 160
           },
           "compute": "@/1000"
         },
         {
           "name": "SMB_OSFP_P3V3_L_K0INT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X55/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X55/temp3_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -906,7 +1006,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -936,17 +1036,27 @@
           "type": 2,
           "thresholds": {
             "upperCriticalVal": 168,
-            "lowerCriticalVal": 0.1
+            "maxAlarmVal": 160
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SMB_OSFP_P3V3_R_I_K01",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X56/curr2_input",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 168,
+            "maxAlarmVal": 160
           },
           "compute": "@/1000"
         },
         {
           "name": "SMB_OSFP_P3V3_R_K0INT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X56/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X56/temp3_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -956,7 +1066,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 110
           },
           "compute": "@/1000"
         },
@@ -976,7 +1086,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 120
           },
           "compute": "@/1000"
         },
@@ -985,8 +1095,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_LTC2979_0X5C/in2_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 0.897,
-            "lowerCriticalVal": 0.524
+            "upperCriticalVal": 0.8,
+            "lowerCriticalVal": 0.55,
+            "maxAlarmVal": 0.75,
+            "minAlarmVal": 0.6
           },
           "compute": "@/1000"
         },
@@ -995,8 +1107,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_LTC2979_0X5C/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 0.975,
-            "lowerCriticalVal": 0.578
+            "upperCriticalVal": 0.9,
+            "lowerCriticalVal": 0.6,
+            "maxAlarmVal": 0.8,
+            "minAlarmVal": 0.7
           },
           "compute": "@/1000"
         },
@@ -1006,7 +1120,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 0.806,
-            "lowerCriticalVal": 0.477
+            "lowerCriticalVal": 0.477,
+            "maxAlarmVal": 0.7,
+            "minAlarmVal": 0.5
           },
           "compute": "@/1000"
         },
@@ -1015,8 +1131,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_LTC2979_0X5C/in5_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.625,
-            "lowerCriticalVal": 0.963
+            "upperCriticalVal": 1.5,
+            "lowerCriticalVal": 0.963,
+            "maxAlarmVal": 1.4,
+            "minAlarmVal": 1
           },
           "compute": "@/1000"
         },
@@ -1026,7 +1144,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 1.56,
-            "lowerCriticalVal": 0.924
+            "lowerCriticalVal": 0.924,
+            "maxAlarmVal": 1.3,
+            "minAlarmVal": 1.1
           },
           "compute": "@/1000"
         },
@@ -1035,8 +1155,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_LTC2979_0X5C/in8_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 0.975,
-            "lowerCriticalVal": 0.578
+            "upperCriticalVal": 0.9,
+            "lowerCriticalVal": 0.578,
+            "maxAlarmVal": 0.8,
+            "minAlarmVal": 0.6
           },
           "compute": "@/1000"
         },
@@ -1046,7 +1168,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 1.56,
-            "lowerCriticalVal": 0.924
+            "lowerCriticalVal": 0.924,
+            "maxAlarmVal": 1.3,
+            "minAlarmVal": 1.1
           },
           "compute": "@/1000"
         },
@@ -1066,7 +1190,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 120
           },
           "compute": "@/1000"
         },
@@ -1076,7 +1200,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 0.754,
-            "lowerCriticalVal": 0.447
+            "lowerCriticalVal": 0.447,
+            "maxAlarmVal": 0.7,
+            "minAlarmVal": 0.5
           },
           "compute": "@/1000"
         },
@@ -1085,8 +1211,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_LTC2979_0X5D/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 0.903,
-            "lowerCriticalVal": 0.524
+            "upperCriticalVal": 0.904,
+            "lowerCriticalVal": 0.524,
+            "maxAlarmVal": 0.8,
+            "minAlarmVal": 0.6
           },
           "compute": "@/1000"
         },
@@ -1096,7 +1224,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.666,
-            "lowerCriticalVal": 3
+            "lowerCriticalVal": 3,
+            "maxAlarmVal": 3.55,
+            "minAlarmVal": 3.15
           },
           "compute": "@/1000"
         },
@@ -1106,7 +1236,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.666,
-            "lowerCriticalVal": 3
+            "lowerCriticalVal": 3,
+            "maxAlarmVal": 3.55,
+            "minAlarmVal": 3.15
           },
           "compute": "@/1000"
         },
@@ -1126,7 +1258,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 120
           },
           "compute": "@/1000"
         },
@@ -1136,7 +1268,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.696,
-            "lowerCriticalVal": 2.904
+            "lowerCriticalVal": 2.904,
+            "maxAlarmVal": 3.6,
+            "minAlarmVal": 3
           },
           "compute": "@/1000"
         },
@@ -1146,7 +1280,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 2.016,
-            "lowerCriticalVal": 1.584
+            "lowerCriticalVal": 1.584,
+            "maxAlarmVal": 1.9,
+            "minAlarmVal": 1.7
           },
           "compute": "@/1000"
         },
@@ -1156,7 +1292,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 1.2,
-            "lowerCriticalVal": 0.88
+            "lowerCriticalVal": 0.88,
+            "maxAlarmVal": 1.1,
+            "minAlarmVal": 0.9
           },
           "compute": "@/1000"
         },
@@ -1166,7 +1304,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 1.4,
-            "lowerCriticalVal": 1.056
+            "lowerCriticalVal": 1.056,
+            "maxAlarmVal": 1.3,
+            "minAlarmVal": 1.1
           },
           "compute": "@/1000"
         },
@@ -1176,7 +1316,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.696,
-            "lowerCriticalVal": 2.904
+            "lowerCriticalVal": 2.904,
+            "maxAlarmVal": 3.5,
+            "minAlarmVal": 3.1
           },
           "compute": "@/1000"
         },
@@ -1196,7 +1338,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 120
           },
           "compute": "@/1000"
         },
@@ -1206,7 +1348,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 5.6,
-            "lowerCriticalVal": 4.4
+            "lowerCriticalVal": 4.4,
+            "maxAlarmVal": 5.4,
+            "minAlarmVal": 4.6
           },
           "compute": "@/1000"
         },
@@ -1216,7 +1360,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.696,
-            "lowerCriticalVal": 2.904
+            "lowerCriticalVal": 2.904,
+            "maxAlarmVal": 3.5,
+            "minAlarmVal": 3.1
           },
           "compute": "@/1000"
         },
@@ -1226,7 +1372,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 2.016,
-            "lowerCriticalVal": 1.584
+            "lowerCriticalVal": 1.584,
+            "maxAlarmVal": 1.9,
+            "minAlarmVal": 1.7
           },
           "compute": "@/1000"
         },
@@ -1236,7 +1384,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 110,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 55
           },
           "compute": "@/1000"
         },
@@ -1246,7 +1394,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 110,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 55
           },
           "compute": "@/1000"
         },
@@ -1256,7 +1404,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 110,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 55
           },
           "compute": "@/1000"
         },
@@ -1266,7 +1414,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 110,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 55
           },
           "compute": "@/1000"
         },
@@ -1276,7 +1424,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 110,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 55
           },
           "compute": "@/1000"
         },
@@ -1286,7 +1434,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 110,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 55
           },
           "compute": "@/1000"
         },
@@ -1296,7 +1444,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 115,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 95
           },
           "compute": "@/1000"
         },
@@ -1306,7 +1454,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 115,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 95
           },
           "compute": "@/1000"
         },
@@ -1316,7 +1464,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 115,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 95
           },
           "compute": "@/1000"
         },
@@ -1326,7 +1474,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 115,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 95
           },
           "compute": "@/1000"
         }
