@@ -3,6 +3,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/LldpManager.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -602,5 +603,46 @@ TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
     });
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentPacketSendLldpTest : public AgentHwTest {
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::CPU_RX_TX};
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto cfg = AgentHwTest::initialConfig(ensemble);
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, {asic}, ensemble.isSai());
+    utility::addCpuQueueConfig(cfg, {asic}, ensemble.isSai());
+    return cfg;
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_enable_lldp = true;
+  }
+};
+
+TEST_F(AgentPacketSendLldpTest, LldpLoopbackTest) {
+  auto verify = [=, this]() {
+    auto* lldpManager = getSw()->getLldpMgr();
+    ASSERT_NE(lldpManager, nullptr);
+    lldpManager->sendLldpOnAllPorts();
+    size_t expectedNumLldpEntries =
+        this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT,
+                                    cfg::PortType::HYPER_PORT_MEMBER})
+            .size();
+    WITH_RETRIES({
+      auto* db = lldpManager->getDB();
+      auto neighbors = db->getNeighbors();
+      XLOG(DBG2) << "LLDP neighbors found: " << neighbors.size();
+      EXPECT_EVENTUALLY_GE(neighbors.size(), expectedNumLldpEntries);
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 } // namespace facebook::fboss
