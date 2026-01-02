@@ -506,6 +506,14 @@ bool ConfigValidator::isValidI2cDeviceConfig(
         *i2cDeviceConfig.pmUnitScopedName());
     return false;
   }
+  if (*i2cDeviceConfig.isEeprom() &&
+      i2cDeviceConfig.pmUnitScopedName()->find("EEPROM") == std::string::npos) {
+    XLOGF(
+        ERR,
+        "isEeprom is true but pmUnitScopedName '{}' does not contain 'EEPROM'",
+        *i2cDeviceConfig.pmUnitScopedName());
+    return false;
+  }
   return true;
 }
 
@@ -830,6 +838,13 @@ bool ConfigValidator::isValidPmUnitConfig(
       return false;
     }
   }
+
+  // Validate logical eeprom regions for overlaps
+  if (!isValidLogicalEepromRegions(
+          slotTypeConfigs, *pmUnitConfig.pluggedInSlotType(), pmUnitConfig)) {
+    return false;
+  }
+
   return true;
 }
 
@@ -1237,6 +1252,77 @@ bool ConfigValidator::isValidChassisEepromDevicePath(
     return false;
   }
 
+  return true;
+}
+
+bool ConfigValidator::isValidLogicalEepromRegions(
+    const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
+    const std::string& slotType,
+    const PmUnitConfig& pmUnitConfig) {
+  constexpr int kEepromSize = 512;
+  using EepromKey = std::pair<std::string, std::string>;
+  using EepromRegion = std::tuple<int, std::string, std::string>;
+  std::map<EepromKey, std::vector<EepromRegion>> eepromRegions;
+
+  if (slotTypeConfigs.contains(slotType)) {
+    const auto& slotTypeConfig = slotTypeConfigs.at(slotType);
+    if (slotTypeConfig.idpromConfig()) {
+      const auto& idprom = *slotTypeConfig.idpromConfig();
+      eepromRegions[{*idprom.busName(), *idprom.address()}].emplace_back(
+          *idprom.offset(), "IDPROM", *idprom.kernelDeviceName());
+    }
+  }
+
+  for (const auto& i2cDevice : *pmUnitConfig.i2cDeviceConfigs()) {
+    if (!*i2cDevice.isEeprom()) {
+      continue;
+    }
+    int offset = i2cDevice.eepromOffset() ? *i2cDevice.eepromOffset() : 0;
+    eepromRegions[{*i2cDevice.busName(), *i2cDevice.address()}].emplace_back(
+        offset, *i2cDevice.pmUnitScopedName(), *i2cDevice.kernelDeviceName());
+  }
+
+  for (const auto& [key, regions] : eepromRegions) {
+    if (regions.size() <= 1) {
+      continue;
+    }
+    const auto& [bus, addr] = key;
+    const auto& firstKernelDeviceName = std::get<2>(regions[0]);
+    for (size_t i = 1; i < regions.size(); ++i) {
+      if (std::get<2>(regions[i]) != firstKernelDeviceName) {
+        XLOG(ERR) << fmt::format(
+            "Logical eeproms {} and {} at (bus: {}, addr: {}) have different "
+            "kernelDeviceNames: {} vs {}",
+            std::get<1>(regions[0]),
+            std::get<1>(regions[i]),
+            bus,
+            addr,
+            firstKernelDeviceName,
+            std::get<2>(regions[i]));
+        return false;
+      }
+    }
+    for (size_t i = 0; i < regions.size(); ++i) {
+      for (size_t j = i + 1; j < regions.size(); ++j) {
+        int off1 = std::get<0>(regions[i]);
+        int off2 = std::get<0>(regions[j]);
+        if (off1 < off2 + kEepromSize && off2 < off1 + kEepromSize) {
+          XLOG(ERR) << fmt::format(
+              "Logical eeproms {} and {} at (bus: {}, addr: {}) have "
+              "overlapping regions: [{}, {}) and [{}, {})",
+              std::get<1>(regions[i]),
+              std::get<1>(regions[j]),
+              bus,
+              addr,
+              off1,
+              off1 + kEepromSize,
+              off2,
+              off2 + kEepromSize);
+          return false;
+        }
+      }
+    }
+  }
   return true;
 }
 

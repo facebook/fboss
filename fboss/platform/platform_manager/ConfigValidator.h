@@ -53,7 +53,10 @@ class ConfigValidator {
   bool isValidChassisEepromDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& chassisEepromDevicePath);
-
+  bool isValidLogicalEepromRegions(
+      const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
+      const std::string& slotType,
+      const PmUnitConfig& pmUnitConfig);
   // Used by other platform services config validation.
   virtual bool isValidSlotPath(
       const PlatformConfig& platformConfig,
