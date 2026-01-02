@@ -277,7 +277,8 @@ def get_platform_config_entry(
             ):
                 xphy_profile_side_config.numLanes = xphy_speed_setting.num_lanes
                 xphy_profile_side_config.modulation = xphy_speed_setting.modulation
-                xphy_profile_side_config.fec = xphy_speed_setting.fec
+                # Set FEC to NONE for XPHY (retimer PHYs like Agera3 don't do FEC encoding/decoding)
+                xphy_profile_side_config.fec = FecMode.NONE
                 if is_xphy(xphy_speed_setting.a_chip_settings.chip_type):
                     xphy_profile_side_config.interfaceType = (
                         xphy_speed_setting.a_chip_settings.chip_interface_type
