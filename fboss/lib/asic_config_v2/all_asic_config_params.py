@@ -1,10 +1,10 @@
 # pyre-strict
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import neteng.fboss.asic_config_v2.thrift_types as asic_config_thrift
 
-from neteng.fboss.fboss_common.ttypes import PlatformType
+from neteng.fboss.fboss_common.thrift_types import PlatformType
 
 
 all_params: Dict[PlatformType, Dict[str, Any]] = {
