@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Setup o/s mount points
+(cat <<EOF2
+tmpfs                   /tmp                    tmpfs   defaults        0 0
+tmpfs                   /dev/shm                tmpfs   defaults        0 0
+devpts                  /dev/pts                devpts  gid=5,mode=620  0 0
+sysfs                   /sys                    sysfs   defaults        0 0
+proc                    /proc                   proc    defaults        0 0
+${1}                    /                       btrfs   defaults        1 1
+EOF2
+) > /etc/fstab
+
+# Configure default hostname
+echo "HOSTNAME=FBOSS" > /etc/sysconfig/network
+
+# Disable selinux
+sed -ie "s/SELINUX=/SELINUX=disabled/g" /etc/selinux/config
+
+# Customizations
+
+exit 0
