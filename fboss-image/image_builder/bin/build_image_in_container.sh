@@ -168,9 +168,5 @@ kiwi-ng-3 \
 
 RC=$?
 
-if [ "${RC}" -eq 0 ]; then
-  ls -l "${TARGET_DIR}"/FBOSS-Distro-Image.x86_64-1.0.install.*
-fi
-
 dprint "Image generation completed with exit code ${RC}"
 exit "${RC}"
