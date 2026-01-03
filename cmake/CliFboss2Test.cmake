@@ -4,7 +4,12 @@
 add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/TestMain.cpp
   fboss/cli/fboss2/test/CmdConfigAppliedInfoTest.cpp
+  fboss/cli/fboss2/test/CmdConfigHistoryTest.cpp
+  fboss/cli/fboss2/test/CmdConfigInterfaceDescriptionTest.cpp
+  fboss/cli/fboss2/test/CmdConfigInterfaceMtuTest.cpp
   fboss/cli/fboss2/test/CmdConfigReloadTest.cpp
+  fboss/cli/fboss2/test/CmdConfigSessionDiffTest.cpp
+  fboss/cli/fboss2/test/CmdConfigSessionTest.cpp
   fboss/cli/fboss2/test/CmdSetPortStateTest.cpp
   fboss/cli/fboss2/test/CmdShowAclTest.cpp
   fboss/cli/fboss2/test/CmdShowAgentSslTest.cpp
