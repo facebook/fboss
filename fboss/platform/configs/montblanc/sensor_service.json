@@ -1497,15 +1497,10 @@
       "pmUnitName": "PSU",
       "sensors": [
         {
+          "__comment__": "Removed the thresholds to support both DC and AC PSUs",
           "name": "PSU1_L_VIN",
           "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/in1_input",
           "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 305,
-            "maxAlarmVal": 305,
-            "minAlarmVal": 90,
-            "lowerCriticalVal": 90
-          },
           "compute": "@/1000"
         },
         {
@@ -1639,15 +1634,10 @@
       "pmUnitName": "PSU",
       "sensors": [
         {
+          "__comment__": "Removed the thresholds to support both DC and AC PSUs",
           "name": "PSU2_R_VIN",
           "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/in1_input",
           "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 305,
-            "maxAlarmVal": 305,
-            "minAlarmVal": 90,
-            "lowerCriticalVal": 90
-          },
           "compute": "@/1000"
         },
         {
