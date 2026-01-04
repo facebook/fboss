@@ -1,0 +1,737 @@
+{
+  "platformName": "GLATH05A-64O",
+  "rootPmUnitName": "SCM",
+  "rootSlotType": "SCM_SLOT",
+  "slotTypeConfigs": {
+    "SCM_SLOT": {
+      "numOutgoingI2cBuses": 0,
+      "idpromConfig": {
+        "busName": "SMBus I801 adapter at 1000",
+        "address": "0x50",
+        "kernelDeviceName": "24c512",
+        "offset": 15360
+      },
+      "pmUnitName": "SCM"
+    },
+    "SMB_SLOT": {
+      "numOutgoingI2cBuses": 3,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x50",
+        "kernelDeviceName": "24c512",
+        "offset": 15872
+      },
+      "pmUnitName": "SMB"
+    },
+    "PSU_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "pmUnitName": "PSU"
+    },
+    "FAN_SLOT": {
+      "numOutgoingI2cBuses": 0,
+      "pmUnitName": "FAN"
+    }
+  },
+  "pmUnitConfigs": {
+    "SCM": {
+      "pluggedInSlotType": "SCM_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "SCM_I2C_MASTER0@0",
+          "address": "0x40",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "SCM_MPS_PMBUS"
+        }
+      ],
+      "outgoingSlotConfigs": {
+        "SMB_SLOT@0": {
+          "slotType": "SMB_SLOT",
+          "outgoingI2cBusNames": [
+            "SCM_I2C_MASTER1@0",
+            "SCM_I2C_MASTER1@2",
+            "SCM_I2C_MASTER1@3"
+          ]
+        }
+      },
+      "pciDeviceConfigs": [
+        {
+          "pmUnitScopedName": "SCM_FPGA",
+          "vendorId": "0x3475",
+          "deviceId": "0x0001",
+          "subSystemVendorId": "0x3475",
+          "subSystemDeviceId": "0x0008",
+          "i2cAdapterConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SCM_I2C_MASTER0",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8000"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SCM_I2C_MASTER1",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8080"
+              },
+              "numberOfAdapters": 8
+            }
+          ],
+          "spiMasterConfigs": [],
+          "ledCtrlConfigs": [],
+          "xcvrCtrlConfigs": [],
+          "infoRomConfigs": [
+            {
+              "pmUnitScopedName": "SCM_FPGA_INFO_ROM",
+              "deviceName": "fpga_info_iob",
+              "csrOffset": "0x100"
+            }
+          ],
+          "miscCtrlConfigs": [
+            {
+              "pmUnitScopedName": "SCM_ADC",
+              "deviceName": "adc",
+              "csrOffset": "0x7300"
+            }
+          ]
+        }
+      ],
+      "embeddedSensorConfigs": [
+        {
+          "pmUnitScopedName": "CPU_CORE_TEMP",
+          "sysfsPath": "/sys/bus/platform/devices/coretemp.0"
+        },
+        {
+          "pmUnitScopedName": "NVME_TEMP",
+          "sysfsPath": "/sys/class/nvme/nvme0"
+        }
+      ]
+    },
+    "SMB": {
+      "pluggedInSlotType": "SMB_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x23",
+          "kernelDeviceName": "glath05a-64o_cpld",
+          "pmUnitScopedName": "SMB_CPLD"
+        },
+        {
+          "busName": "INCOMING@2",
+          "address": "0x60",
+          "kernelDeviceName": "glath05a64o_fancpld",
+          "pmUnitScopedName": "FAN_CPLD"
+        },
+        {
+          "busName": "INCOMING@2",
+          "address": "0x48",
+          "kernelDeviceName": "lm75",
+          "pmUnitScopedName": "FAN_TMP75",
+          "initRegSettings": [
+            {
+              "regOffset": 3,
+              "ioBuf": [
+                100
+              ]
+            }
+          ]
+        },
+        {
+          "busName": "SMB_I2C_MASTER0@5",
+          "address": "0x48",
+          "kernelDeviceName": "lm75",
+          "pmUnitScopedName": "SMB_MGMT_TMP75",
+          "initRegSettings": [
+            {
+              "regOffset": 3,
+              "ioBuf": [
+                110
+              ]
+            }
+          ]
+        },
+        {
+          "busName": "SMB_I2C_MASTER0@0",
+          "address": "0x4d",
+          "kernelDeviceName": "max6581",
+          "pmUnitScopedName": "SMB_MAX6581"
+        },
+        {
+          "busName": "SMB_I2C_MASTER1@0",
+          "address": "0x45",
+          "kernelDeviceName": "raa228228",
+          "pmUnitScopedName": "SMB_RAA228926_TH5_CORE"
+        },
+        {
+          "busName": "SMB_I2C_MASTER1@1",
+          "address": "0x46",
+          "kernelDeviceName": "bp4a_isl68226",
+          "pmUnitScopedName": "SMB_ISL68226_TH5_0V9_ANALOG"
+        },
+        {
+          "busName": "SMB_I2C_MASTER1@2",
+          "address": "0x47",
+          "kernelDeviceName": "bp4a_isl68226",
+          "pmUnitScopedName": "SMB_ISL68226_TH5_0V75_ANALOG"
+        },
+        {
+          "busName": "SMB_I2C_MASTER1@3",
+          "address": "0x4d",
+          "kernelDeviceName": "bp4a_isl68226",
+          "pmUnitScopedName": "SMB_ISL68226_OPTICS_A"
+        },
+        {
+          "busName": "SMB_I2C_MASTER1@4",
+          "address": "0x4c",
+          "kernelDeviceName": "bp4a_isl68226",
+          "pmUnitScopedName": "SMB_ISL68226_OPTICS_B"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x50",
+          "kernelDeviceName": "24c512",
+          "pmUnitScopedName": "CHASSIS_EEPROM",
+          "isEeprom": true,
+          "eepromOffset": 15360
+        }
+      ],
+      "outgoingSlotConfigs": {
+        "PSU_SLOT@0": {
+          "slotType": "PSU_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/SMB_SLOT@0/[SMB_FPGA]",
+              "presenceFileName": "psu1_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": [
+            "SMB_I2C_MASTER0@3"
+          ]
+        },
+        "PSU_SLOT@1": {
+          "slotType": "PSU_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/SMB_SLOT@0/[SMB_FPGA]",
+              "presenceFileName": "psu2_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": [
+            "SMB_I2C_MASTER0@4"
+          ]
+        },
+        "FAN_SLOT@0": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/SMB_SLOT@0/[FAN_CPLD]",
+              "presenceFileName": "fan1_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": []
+        },
+        "FAN_SLOT@1": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/SMB_SLOT@0/[FAN_CPLD]",
+              "presenceFileName": "fan2_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": []
+        },
+        "FAN_SLOT@2": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/SMB_SLOT@0/[FAN_CPLD]",
+              "presenceFileName": "fan3_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": []
+        },
+        "FAN_SLOT@3": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/SMB_SLOT@0/[FAN_CPLD]",
+              "presenceFileName": "fan4_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": []
+        }
+      },
+      "pciDeviceConfigs": [
+        {
+          "pmUnitScopedName": "SMB_FPGA",
+          "vendorId": "0x3475",
+          "deviceId": "0x0001",
+          "subSystemVendorId": "0x3475",
+          "subSystemDeviceId": "0x0009",
+          "i2cAdapterConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_I2C_MASTER0",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8080"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_I2C_MASTER1",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8100"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_I2C_MASTER2",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8180"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_I2C_MASTER3",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8200"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_I2C_MASTER4",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8280"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_I2C_MASTER5",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8300"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_I2C_MASTER6",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8380"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_I2C_MASTER7",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8400"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_I2C_MASTER8",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8480"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_I2C_MASTER9",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8500"
+              },
+              "numberOfAdapters": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_I2C_MASTER10",
+                "deviceName": "i2c_master",
+                "csrOffset": "0x8580"
+              },
+              "numberOfAdapters": 8
+            }
+          ],
+          "spiMasterConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_SPI_MASTER0",
+                "deviceName": "spi_master",
+                "csrOffset": "0x7900"
+              },
+              "spiDeviceConfigs": [
+                {
+                  "pmUnitScopedName": "SMB_SPI_MASTER0_DEVICE1",
+                  "chipSelect": 0,
+                  "modalias": "spidev",
+                  "maxSpeedHz": 25000000
+                }
+              ]
+            }
+          ],
+          "ledCtrlBlockConfigs": [
+            {
+              "pmUnitScopedNamePrefix": "OSFP",
+              "deviceName": "port_led",
+              "csrOffsetCalc": "0x6100 + ({portNum} - {startPort})*0x20 + ({ledNum} - 1)*0x10",
+              "numPorts": 64,
+              "ledPerPort": 2,
+              "startPort": 1
+            }
+          ],
+          "ledCtrlConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SYSTEM_STATUS_LED",
+                "deviceName": "sys_led",
+                "csrOffset": "0x6050"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "FAN_STATUS_LED",
+                "deviceName": "fan_led",
+                "csrOffset": "0x6060"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "PSU1_STATUS_LED",
+                "deviceName": "psu_led",
+                "csrOffset": "0x6070"
+              }
+            }
+          ],
+          "xcvrCtrlBlockConfigs": [
+            {
+              "pmUnitScopedNamePrefix": "OSFP",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0xa000 + ({portNum} - {startPort})*0x10",
+              "numPorts": 64,
+              "startPort": 1
+            }
+          ],
+          "infoRomConfigs": [
+            {
+              "pmUnitScopedName": "SMB_FPGA_INFO_ROM",
+              "deviceName": "fpga_info_iob",
+              "csrOffset": "0x100"
+            }
+          ]
+        }
+      ]
+    },
+    "PSU": {
+      "pluggedInSlotType": "PSU_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x58",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "PSU_PMBUS",
+          "initRegSettings": [
+            {
+              "regOffset": 16,
+              "ioBuf": [
+                -128
+              ]
+            }
+          ]
+        }
+      ],
+      "outgoingSlotConfigs": {},
+      "pciDeviceConfigs": []
+    },
+    "FAN": {
+      "pluggedInSlotType": "FAN_SLOT",
+      "i2cDeviceConfigs": [],
+      "outgoingSlotConfigs": {},
+      "pciDeviceConfigs": []
+    }
+  },
+  "i2cAdaptersFromCpu": [
+    "SMBus I801 adapter at 1000"
+  ],
+  "symbolicLinkToDevicePath": {
+    "/run/devmap/fpgas/MERU_SCM_CPLD": "/[SCM_FPGA]",
+    "/run/devmap/fpgas/MERU_SCM_CPLD_INFO_ROM": "/[SCM_FPGA_INFO_ROM]",
+    "/run/devmap/inforoms/MERU_SCM_CPLD_INFO_ROM": "/[SCM_FPGA_INFO_ROM]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS0_CH0": "/[SCM_I2C_MASTER0@0]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS0_CH1": "/[SCM_I2C_MASTER0@1]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS0_CH2": "/[SCM_I2C_MASTER0@2]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS0_CH3": "/[SCM_I2C_MASTER0@3]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS0_CH4": "/[SCM_I2C_MASTER0@4]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS0_CH5": "/[SCM_I2C_MASTER0@5]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS0_CH6": "/[SCM_I2C_MASTER0@6]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS0_CH7": "/[SCM_I2C_MASTER0@7]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS1_CH0": "/[SCM_I2C_MASTER1@0]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS1_CH1": "/[SCM_I2C_MASTER1@1]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS1_CH2": "/[SCM_I2C_MASTER1@2]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS1_CH3": "/[SCM_I2C_MASTER1@3]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS1_CH4": "/[SCM_I2C_MASTER1@4]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS1_CH5": "/[SCM_I2C_MASTER1@5]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS1_CH6": "/[SCM_I2C_MASTER1@6]",
+    "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS1_CH7": "/[SCM_I2C_MASTER1@7]",
+    "/run/devmap/eeproms/GLATH05A-64O_SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
+    "/run/devmap/sensors/CPU_MPS_PMBUS": "/[SCM_MPS_PMBUS]",
+    "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
+    "/run/devmap/sensors/NVME_TEMP": "/[NVME_TEMP]",
+    "/run/devmap/fpgas/GLATH05A-64O_SMB_FPGA": "/SMB_SLOT@0/[SMB_FPGA]",
+    "/run/devmap/fpgas/GLATH05A-64O_SMB_FPGA_INFO_ROM": "/SMB_SLOT@0/[SMB_FPGA_INFO_ROM]",
+    "/run/devmap/inforoms/GLATH05A-64O_SMB_FPGA_INFO_ROM": "/SMB_SLOT@0/[SMB_FPGA_INFO_ROM]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS0_CH0": "/SMB_SLOT@0/[SMB_I2C_MASTER0@0]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS0_CH1": "/SMB_SLOT@0/[SMB_I2C_MASTER0@1]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS0_CH2": "/SMB_SLOT@0/[SMB_I2C_MASTER0@2]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS0_CH3": "/SMB_SLOT@0/[SMB_I2C_MASTER0@3]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS0_CH4": "/SMB_SLOT@0/[SMB_I2C_MASTER0@4]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS0_CH5": "/SMB_SLOT@0/[SMB_I2C_MASTER0@5]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS0_CH6": "/SMB_SLOT@0/[SMB_I2C_MASTER0@6]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS0_CH7": "/SMB_SLOT@0/[SMB_I2C_MASTER0@7]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS1_CH0": "/SMB_SLOT@0/[SMB_I2C_MASTER1@0]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS1_CH1": "/SMB_SLOT@0/[SMB_I2C_MASTER1@1]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS1_CH2": "/SMB_SLOT@0/[SMB_I2C_MASTER1@2]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS1_CH3": "/SMB_SLOT@0/[SMB_I2C_MASTER1@3]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS1_CH4": "/SMB_SLOT@0/[SMB_I2C_MASTER1@4]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS1_CH5": "/SMB_SLOT@0/[SMB_I2C_MASTER1@5]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS1_CH6": "/SMB_SLOT@0/[SMB_I2C_MASTER1@6]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS1_CH7": "/SMB_SLOT@0/[SMB_I2C_MASTER1@7]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS2_CH0": "/SMB_SLOT@0/[SMB_I2C_MASTER2@0]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS2_CH1": "/SMB_SLOT@0/[SMB_I2C_MASTER2@1]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS2_CH2": "/SMB_SLOT@0/[SMB_I2C_MASTER2@2]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS2_CH3": "/SMB_SLOT@0/[SMB_I2C_MASTER2@3]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS2_CH4": "/SMB_SLOT@0/[SMB_I2C_MASTER2@4]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS2_CH5": "/SMB_SLOT@0/[SMB_I2C_MASTER2@5]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS2_CH6": "/SMB_SLOT@0/[SMB_I2C_MASTER2@6]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS2_CH7": "/SMB_SLOT@0/[SMB_I2C_MASTER2@7]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS3_CH0": "/SMB_SLOT@0/[SMB_I2C_MASTER3@0]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS3_CH1": "/SMB_SLOT@0/[SMB_I2C_MASTER3@1]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS3_CH2": "/SMB_SLOT@0/[SMB_I2C_MASTER3@2]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS3_CH3": "/SMB_SLOT@0/[SMB_I2C_MASTER3@3]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS3_CH4": "/SMB_SLOT@0/[SMB_I2C_MASTER3@4]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS3_CH5": "/SMB_SLOT@0/[SMB_I2C_MASTER3@5]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS3_CH6": "/SMB_SLOT@0/[SMB_I2C_MASTER3@6]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS3_CH7": "/SMB_SLOT@0/[SMB_I2C_MASTER3@7]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS4_CH0": "/SMB_SLOT@0/[SMB_I2C_MASTER4@0]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS4_CH1": "/SMB_SLOT@0/[SMB_I2C_MASTER4@1]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS4_CH2": "/SMB_SLOT@0/[SMB_I2C_MASTER4@2]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS4_CH3": "/SMB_SLOT@0/[SMB_I2C_MASTER4@3]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS4_CH4": "/SMB_SLOT@0/[SMB_I2C_MASTER4@4]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS4_CH5": "/SMB_SLOT@0/[SMB_I2C_MASTER4@5]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS4_CH6": "/SMB_SLOT@0/[SMB_I2C_MASTER4@6]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS4_CH7": "/SMB_SLOT@0/[SMB_I2C_MASTER4@7]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS5_CH0": "/SMB_SLOT@0/[SMB_I2C_MASTER5@0]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS5_CH1": "/SMB_SLOT@0/[SMB_I2C_MASTER5@1]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS5_CH2": "/SMB_SLOT@0/[SMB_I2C_MASTER5@2]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS5_CH3": "/SMB_SLOT@0/[SMB_I2C_MASTER5@3]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS5_CH4": "/SMB_SLOT@0/[SMB_I2C_MASTER5@4]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS5_CH5": "/SMB_SLOT@0/[SMB_I2C_MASTER5@5]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS5_CH6": "/SMB_SLOT@0/[SMB_I2C_MASTER5@6]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS5_CH7": "/SMB_SLOT@0/[SMB_I2C_MASTER5@7]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS6_CH0": "/SMB_SLOT@0/[SMB_I2C_MASTER6@0]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS6_CH1": "/SMB_SLOT@0/[SMB_I2C_MASTER6@1]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS6_CH2": "/SMB_SLOT@0/[SMB_I2C_MASTER6@2]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS6_CH3": "/SMB_SLOT@0/[SMB_I2C_MASTER6@3]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS6_CH4": "/SMB_SLOT@0/[SMB_I2C_MASTER6@4]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS6_CH5": "/SMB_SLOT@0/[SMB_I2C_MASTER6@5]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS6_CH6": "/SMB_SLOT@0/[SMB_I2C_MASTER6@6]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS6_CH7": "/SMB_SLOT@0/[SMB_I2C_MASTER6@7]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS7_CH0": "/SMB_SLOT@0/[SMB_I2C_MASTER7@0]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS7_CH1": "/SMB_SLOT@0/[SMB_I2C_MASTER7@1]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS7_CH2": "/SMB_SLOT@0/[SMB_I2C_MASTER7@2]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS7_CH3": "/SMB_SLOT@0/[SMB_I2C_MASTER7@3]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS7_CH4": "/SMB_SLOT@0/[SMB_I2C_MASTER7@4]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS7_CH5": "/SMB_SLOT@0/[SMB_I2C_MASTER7@5]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS7_CH6": "/SMB_SLOT@0/[SMB_I2C_MASTER7@6]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS7_CH7": "/SMB_SLOT@0/[SMB_I2C_MASTER7@7]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS8_CH0": "/SMB_SLOT@0/[SMB_I2C_MASTER8@0]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS8_CH1": "/SMB_SLOT@0/[SMB_I2C_MASTER8@1]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS8_CH2": "/SMB_SLOT@0/[SMB_I2C_MASTER8@2]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS8_CH3": "/SMB_SLOT@0/[SMB_I2C_MASTER8@3]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS8_CH4": "/SMB_SLOT@0/[SMB_I2C_MASTER8@4]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS8_CH5": "/SMB_SLOT@0/[SMB_I2C_MASTER8@5]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS8_CH6": "/SMB_SLOT@0/[SMB_I2C_MASTER8@6]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS8_CH7": "/SMB_SLOT@0/[SMB_I2C_MASTER8@7]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS9_CH0": "/SMB_SLOT@0/[SMB_I2C_MASTER9@0]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS9_CH1": "/SMB_SLOT@0/[SMB_I2C_MASTER9@1]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS9_CH2": "/SMB_SLOT@0/[SMB_I2C_MASTER9@2]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS9_CH3": "/SMB_SLOT@0/[SMB_I2C_MASTER9@3]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS9_CH4": "/SMB_SLOT@0/[SMB_I2C_MASTER9@4]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS9_CH5": "/SMB_SLOT@0/[SMB_I2C_MASTER9@5]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS9_CH6": "/SMB_SLOT@0/[SMB_I2C_MASTER9@6]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS9_CH7": "/SMB_SLOT@0/[SMB_I2C_MASTER9@7]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS10_CH0": "/SMB_SLOT@0/[SMB_I2C_MASTER10@0]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS10_CH1": "/SMB_SLOT@0/[SMB_I2C_MASTER10@1]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS10_CH2": "/SMB_SLOT@0/[SMB_I2C_MASTER10@2]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS10_CH3": "/SMB_SLOT@0/[SMB_I2C_MASTER10@3]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS10_CH4": "/SMB_SLOT@0/[SMB_I2C_MASTER10@4]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS10_CH5": "/SMB_SLOT@0/[SMB_I2C_MASTER10@5]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS10_CH6": "/SMB_SLOT@0/[SMB_I2C_MASTER10@6]",
+    "/run/devmap/i2c-busses/GLATH05A-64O_SMB_FPGA_SMBUS10_CH7": "/SMB_SLOT@0/[SMB_I2C_MASTER10@7]",
+    "/run/devmap/cplds/GLATH05A-64O_SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]",
+    "/run/devmap/cplds/FAN_CPLD": "/SMB_SLOT@0/[FAN_CPLD]",
+    "/run/devmap/sensors/FAN_CPLD": "/SMB_SLOT@0/[FAN_CPLD]",
+    "/run/devmap/sensors/FAN_TMP75": "/SMB_SLOT@0/[FAN_TMP75]",
+    "/run/devmap/sensors/SMB_MGMT_TMP75": "/SMB_SLOT@0/[SMB_MGMT_TMP75]",
+    "/run/devmap/sensors/SMB_MAX6581": "/SMB_SLOT@0/[SMB_MAX6581]",
+    "/run/devmap/sensors/SMB_RAA228926_TH5_CORE": "/SMB_SLOT@0/[SMB_RAA228926_TH5_CORE]",
+    "/run/devmap/sensors/SMB_ISL68226_TH5_0V9_ANALOG": "/SMB_SLOT@0/[SMB_ISL68226_TH5_0V9_ANALOG]",
+    "/run/devmap/sensors/SMB_ISL68226_TH5_0V75_ANALOG": "/SMB_SLOT@0/[SMB_ISL68226_TH5_0V75_ANALOG]",
+    "/run/devmap/sensors/SMB_ISL68226_OPTICS_A": "/SMB_SLOT@0/[SMB_ISL68226_OPTICS_A]",
+    "/run/devmap/sensors/SMB_ISL68226_OPTICS_B": "/SMB_SLOT@0/[SMB_ISL68226_OPTICS_B]",
+    "/run/devmap/eeproms/CHASSIS_EEPROM": "/SMB_SLOT@0/[CHASSIS_EEPROM]",
+    "/run/devmap/flashes/SMB_SPI_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI_MASTER0_DEVICE1]",
+    "/run/devmap/xcvrs/xcvr_io_1": "/SMB_SLOT@0/[SMB_I2C_MASTER2@0]",
+    "/run/devmap/xcvrs/xcvr_ctrl_1": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_1]",
+    "/run/devmap/xcvrs/xcvr_io_2": "/SMB_SLOT@0/[SMB_I2C_MASTER2@1]",
+    "/run/devmap/xcvrs/xcvr_ctrl_2": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_2]",
+    "/run/devmap/xcvrs/xcvr_io_3": "/SMB_SLOT@0/[SMB_I2C_MASTER2@2]",
+    "/run/devmap/xcvrs/xcvr_ctrl_3": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_3]",
+    "/run/devmap/xcvrs/xcvr_io_4": "/SMB_SLOT@0/[SMB_I2C_MASTER2@3]",
+    "/run/devmap/xcvrs/xcvr_ctrl_4": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_4]",
+    "/run/devmap/xcvrs/xcvr_io_5": "/SMB_SLOT@0/[SMB_I2C_MASTER2@4]",
+    "/run/devmap/xcvrs/xcvr_ctrl_5": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_5]",
+    "/run/devmap/xcvrs/xcvr_io_6": "/SMB_SLOT@0/[SMB_I2C_MASTER2@5]",
+    "/run/devmap/xcvrs/xcvr_ctrl_6": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_6]",
+    "/run/devmap/xcvrs/xcvr_io_7": "/SMB_SLOT@0/[SMB_I2C_MASTER2@6]",
+    "/run/devmap/xcvrs/xcvr_ctrl_7": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_7]",
+    "/run/devmap/xcvrs/xcvr_io_8": "/SMB_SLOT@0/[SMB_I2C_MASTER2@7]",
+    "/run/devmap/xcvrs/xcvr_ctrl_8": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_8]",
+    "/run/devmap/xcvrs/xcvr_io_9": "/SMB_SLOT@0/[SMB_I2C_MASTER3@0]",
+    "/run/devmap/xcvrs/xcvr_ctrl_9": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_9]",
+    "/run/devmap/xcvrs/xcvr_io_10": "/SMB_SLOT@0/[SMB_I2C_MASTER3@1]",
+    "/run/devmap/xcvrs/xcvr_ctrl_10": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_10]",
+    "/run/devmap/xcvrs/xcvr_io_11": "/SMB_SLOT@0/[SMB_I2C_MASTER3@2]",
+    "/run/devmap/xcvrs/xcvr_ctrl_11": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_11]",
+    "/run/devmap/xcvrs/xcvr_io_12": "/SMB_SLOT@0/[SMB_I2C_MASTER3@3]",
+    "/run/devmap/xcvrs/xcvr_ctrl_12": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_12]",
+    "/run/devmap/xcvrs/xcvr_io_13": "/SMB_SLOT@0/[SMB_I2C_MASTER3@4]",
+    "/run/devmap/xcvrs/xcvr_ctrl_13": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_13]",
+    "/run/devmap/xcvrs/xcvr_io_14": "/SMB_SLOT@0/[SMB_I2C_MASTER3@5]",
+    "/run/devmap/xcvrs/xcvr_ctrl_14": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_14]",
+    "/run/devmap/xcvrs/xcvr_io_15": "/SMB_SLOT@0/[SMB_I2C_MASTER3@6]",
+    "/run/devmap/xcvrs/xcvr_ctrl_15": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_15]",
+    "/run/devmap/xcvrs/xcvr_io_16": "/SMB_SLOT@0/[SMB_I2C_MASTER3@7]",
+    "/run/devmap/xcvrs/xcvr_ctrl_16": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_16]",
+    "/run/devmap/xcvrs/xcvr_io_17": "/SMB_SLOT@0/[SMB_I2C_MASTER4@0]",
+    "/run/devmap/xcvrs/xcvr_ctrl_17": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_17]",
+    "/run/devmap/xcvrs/xcvr_io_18": "/SMB_SLOT@0/[SMB_I2C_MASTER4@1]",
+    "/run/devmap/xcvrs/xcvr_ctrl_18": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_18]",
+    "/run/devmap/xcvrs/xcvr_io_19": "/SMB_SLOT@0/[SMB_I2C_MASTER4@2]",
+    "/run/devmap/xcvrs/xcvr_ctrl_19": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_19]",
+    "/run/devmap/xcvrs/xcvr_io_20": "/SMB_SLOT@0/[SMB_I2C_MASTER4@3]",
+    "/run/devmap/xcvrs/xcvr_ctrl_20": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_20]",
+    "/run/devmap/xcvrs/xcvr_io_21": "/SMB_SLOT@0/[SMB_I2C_MASTER4@4]",
+    "/run/devmap/xcvrs/xcvr_ctrl_21": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_21]",
+    "/run/devmap/xcvrs/xcvr_io_22": "/SMB_SLOT@0/[SMB_I2C_MASTER4@5]",
+    "/run/devmap/xcvrs/xcvr_ctrl_22": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_22]",
+    "/run/devmap/xcvrs/xcvr_io_23": "/SMB_SLOT@0/[SMB_I2C_MASTER4@6]",
+    "/run/devmap/xcvrs/xcvr_ctrl_23": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_23]",
+    "/run/devmap/xcvrs/xcvr_io_24": "/SMB_SLOT@0/[SMB_I2C_MASTER4@7]",
+    "/run/devmap/xcvrs/xcvr_ctrl_24": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_24]",
+    "/run/devmap/xcvrs/xcvr_io_25": "/SMB_SLOT@0/[SMB_I2C_MASTER5@0]",
+    "/run/devmap/xcvrs/xcvr_ctrl_25": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_25]",
+    "/run/devmap/xcvrs/xcvr_io_26": "/SMB_SLOT@0/[SMB_I2C_MASTER5@1]",
+    "/run/devmap/xcvrs/xcvr_ctrl_26": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_26]",
+    "/run/devmap/xcvrs/xcvr_io_27": "/SMB_SLOT@0/[SMB_I2C_MASTER5@2]",
+    "/run/devmap/xcvrs/xcvr_ctrl_27": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_27]",
+    "/run/devmap/xcvrs/xcvr_io_28": "/SMB_SLOT@0/[SMB_I2C_MASTER5@3]",
+    "/run/devmap/xcvrs/xcvr_ctrl_28": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_28]",
+    "/run/devmap/xcvrs/xcvr_io_29": "/SMB_SLOT@0/[SMB_I2C_MASTER5@4]",
+    "/run/devmap/xcvrs/xcvr_ctrl_29": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_29]",
+    "/run/devmap/xcvrs/xcvr_io_30": "/SMB_SLOT@0/[SMB_I2C_MASTER5@5]",
+    "/run/devmap/xcvrs/xcvr_ctrl_30": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_30]",
+    "/run/devmap/xcvrs/xcvr_io_31": "/SMB_SLOT@0/[SMB_I2C_MASTER5@6]",
+    "/run/devmap/xcvrs/xcvr_ctrl_31": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_31]",
+    "/run/devmap/xcvrs/xcvr_io_32": "/SMB_SLOT@0/[SMB_I2C_MASTER5@7]",
+    "/run/devmap/xcvrs/xcvr_ctrl_32": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_32]",
+    "/run/devmap/xcvrs/xcvr_io_33": "/SMB_SLOT@0/[SMB_I2C_MASTER6@0]",
+    "/run/devmap/xcvrs/xcvr_ctrl_33": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_33]",
+    "/run/devmap/xcvrs/xcvr_io_34": "/SMB_SLOT@0/[SMB_I2C_MASTER6@1]",
+    "/run/devmap/xcvrs/xcvr_ctrl_34": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_34]",
+    "/run/devmap/xcvrs/xcvr_io_35": "/SMB_SLOT@0/[SMB_I2C_MASTER6@2]",
+    "/run/devmap/xcvrs/xcvr_ctrl_35": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_35]",
+    "/run/devmap/xcvrs/xcvr_io_36": "/SMB_SLOT@0/[SMB_I2C_MASTER6@3]",
+    "/run/devmap/xcvrs/xcvr_ctrl_36": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_36]",
+    "/run/devmap/xcvrs/xcvr_io_37": "/SMB_SLOT@0/[SMB_I2C_MASTER6@4]",
+    "/run/devmap/xcvrs/xcvr_ctrl_37": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_37]",
+    "/run/devmap/xcvrs/xcvr_io_38": "/SMB_SLOT@0/[SMB_I2C_MASTER6@5]",
+    "/run/devmap/xcvrs/xcvr_ctrl_38": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_38]",
+    "/run/devmap/xcvrs/xcvr_io_39": "/SMB_SLOT@0/[SMB_I2C_MASTER6@6]",
+    "/run/devmap/xcvrs/xcvr_ctrl_39": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_39]",
+    "/run/devmap/xcvrs/xcvr_io_40": "/SMB_SLOT@0/[SMB_I2C_MASTER6@7]",
+    "/run/devmap/xcvrs/xcvr_ctrl_40": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_40]",
+    "/run/devmap/xcvrs/xcvr_io_41": "/SMB_SLOT@0/[SMB_I2C_MASTER7@0]",
+    "/run/devmap/xcvrs/xcvr_ctrl_41": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_41]",
+    "/run/devmap/xcvrs/xcvr_io_42": "/SMB_SLOT@0/[SMB_I2C_MASTER7@1]",
+    "/run/devmap/xcvrs/xcvr_ctrl_42": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_42]",
+    "/run/devmap/xcvrs/xcvr_io_43": "/SMB_SLOT@0/[SMB_I2C_MASTER7@2]",
+    "/run/devmap/xcvrs/xcvr_ctrl_43": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_43]",
+    "/run/devmap/xcvrs/xcvr_io_44": "/SMB_SLOT@0/[SMB_I2C_MASTER7@3]",
+    "/run/devmap/xcvrs/xcvr_ctrl_44": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_44]",
+    "/run/devmap/xcvrs/xcvr_io_45": "/SMB_SLOT@0/[SMB_I2C_MASTER7@4]",
+    "/run/devmap/xcvrs/xcvr_ctrl_45": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_45]",
+    "/run/devmap/xcvrs/xcvr_io_46": "/SMB_SLOT@0/[SMB_I2C_MASTER7@5]",
+    "/run/devmap/xcvrs/xcvr_ctrl_46": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_46]",
+    "/run/devmap/xcvrs/xcvr_io_47": "/SMB_SLOT@0/[SMB_I2C_MASTER7@6]",
+    "/run/devmap/xcvrs/xcvr_ctrl_47": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_47]",
+    "/run/devmap/xcvrs/xcvr_io_48": "/SMB_SLOT@0/[SMB_I2C_MASTER7@7]",
+    "/run/devmap/xcvrs/xcvr_ctrl_48": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_48]",
+    "/run/devmap/xcvrs/xcvr_io_49": "/SMB_SLOT@0/[SMB_I2C_MASTER8@0]",
+    "/run/devmap/xcvrs/xcvr_ctrl_49": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_49]",
+    "/run/devmap/xcvrs/xcvr_io_50": "/SMB_SLOT@0/[SMB_I2C_MASTER8@1]",
+    "/run/devmap/xcvrs/xcvr_ctrl_50": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_50]",
+    "/run/devmap/xcvrs/xcvr_io_51": "/SMB_SLOT@0/[SMB_I2C_MASTER8@2]",
+    "/run/devmap/xcvrs/xcvr_ctrl_51": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_51]",
+    "/run/devmap/xcvrs/xcvr_io_52": "/SMB_SLOT@0/[SMB_I2C_MASTER8@3]",
+    "/run/devmap/xcvrs/xcvr_ctrl_52": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_52]",
+    "/run/devmap/xcvrs/xcvr_io_53": "/SMB_SLOT@0/[SMB_I2C_MASTER8@4]",
+    "/run/devmap/xcvrs/xcvr_ctrl_53": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_53]",
+    "/run/devmap/xcvrs/xcvr_io_54": "/SMB_SLOT@0/[SMB_I2C_MASTER8@5]",
+    "/run/devmap/xcvrs/xcvr_ctrl_54": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_54]",
+    "/run/devmap/xcvrs/xcvr_io_55": "/SMB_SLOT@0/[SMB_I2C_MASTER8@6]",
+    "/run/devmap/xcvrs/xcvr_ctrl_55": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_55]",
+    "/run/devmap/xcvrs/xcvr_io_56": "/SMB_SLOT@0/[SMB_I2C_MASTER8@7]",
+    "/run/devmap/xcvrs/xcvr_ctrl_56": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_56]",
+    "/run/devmap/xcvrs/xcvr_io_57": "/SMB_SLOT@0/[SMB_I2C_MASTER9@0]",
+    "/run/devmap/xcvrs/xcvr_ctrl_57": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_57]",
+    "/run/devmap/xcvrs/xcvr_io_58": "/SMB_SLOT@0/[SMB_I2C_MASTER9@1]",
+    "/run/devmap/xcvrs/xcvr_ctrl_58": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_58]",
+    "/run/devmap/xcvrs/xcvr_io_59": "/SMB_SLOT@0/[SMB_I2C_MASTER9@2]",
+    "/run/devmap/xcvrs/xcvr_ctrl_59": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_59]",
+    "/run/devmap/xcvrs/xcvr_io_60": "/SMB_SLOT@0/[SMB_I2C_MASTER9@3]",
+    "/run/devmap/xcvrs/xcvr_ctrl_60": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_60]",
+    "/run/devmap/xcvrs/xcvr_io_61": "/SMB_SLOT@0/[SMB_I2C_MASTER9@4]",
+    "/run/devmap/xcvrs/xcvr_ctrl_61": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_61]",
+    "/run/devmap/xcvrs/xcvr_io_62": "/SMB_SLOT@0/[SMB_I2C_MASTER9@5]",
+    "/run/devmap/xcvrs/xcvr_ctrl_62": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_62]",
+    "/run/devmap/xcvrs/xcvr_io_63": "/SMB_SLOT@0/[SMB_I2C_MASTER9@6]",
+    "/run/devmap/xcvrs/xcvr_ctrl_63": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_63]",
+    "/run/devmap/xcvrs/xcvr_io_64": "/SMB_SLOT@0/[SMB_I2C_MASTER9@7]",
+    "/run/devmap/xcvrs/xcvr_ctrl_64": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_64]",
+    "/run/devmap/sensors/PSU1_PMBUS": "/SMB_SLOT@0/PSU_SLOT@0/[PSU_PMBUS]",
+    "/run/devmap/sensors/PSU2_PMBUS": "/SMB_SLOT@0/PSU_SLOT@1/[PSU_PMBUS]"
+  },
+  "chassisEepromDevicePath": "/SMB_SLOT@0/[CHASSIS_EEPROM]",
+  "numXcvrs": 64,
+  "bspKmodsRpmName": "arista_bsp_kmods",
+  "bspKmodsRpmVersion": "0.7.16-1",
+  "requiredKmodsToLoad": [
+    "spidev",
+    "i2c_i801",
+    "scd",
+    "ledtrig_timer"
+  ]
+}
