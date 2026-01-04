@@ -1356,3 +1356,71 @@ TEST(ConfigValidatorTest, ChassisEepromDevicePath) {
   config.chassisEepromDevicePath() = "/[SOME_OTHER_EEPROM]";
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
+
+TEST(ConfigValidatorTest, LogicalEepromRegions) {
+  auto config = getBasicConfig();
+
+  // Get the chassis eeprom from the basic config
+  auto chassisEeprom =
+      config.pmUnitConfigs()->at("SCM").i2cDeviceConfigs()->at(0);
+
+  // Create two logical eeproms on the same physical device
+  I2cDeviceConfig eeprom1, eeprom2;
+  eeprom1.pmUnitScopedName() = "EEPROM_1";
+  eeprom1.busName() = "SMB_BUS";
+  eeprom1.address() = "0x51";
+  eeprom1.kernelDeviceName() = "24c512";
+  eeprom1.isEeprom() = true;
+  eeprom1.eepromOffset() = 15360;
+
+  eeprom2.pmUnitScopedName() = "EEPROM_2";
+  eeprom2.busName() = "SMB_BUS";
+  eeprom2.address() = "0x51";
+  eeprom2.kernelDeviceName() = "24c512";
+  eeprom2.isEeprom() = true;
+  eeprom2.eepromOffset() = 15872;
+
+  auto pmUnitConfig = config.pmUnitConfigs()->at("SCM");
+  pmUnitConfig.i2cDeviceConfigs() = {chassisEeprom, eeprom1, eeprom2};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+
+  // Valid: Non-overlapping regions
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Invalid: Overlapping regions (both start at offset 0)
+  eeprom1.eepromOffset() = 0;
+  eeprom2.eepromOffset() = 0;
+  pmUnitConfig.i2cDeviceConfigs() = {chassisEeprom, eeprom1, eeprom2};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Invalid: Partially overlapping regions
+  eeprom1.eepromOffset() = 0;
+  eeprom2.eepromOffset() = 511;
+  pmUnitConfig.i2cDeviceConfigs() = {chassisEeprom, eeprom1, eeprom2};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Invalid: Different kernelDeviceNames for same physical device
+  eeprom1.eepromOffset() = 0;
+  eeprom2.eepromOffset() = 512;
+  eeprom2.kernelDeviceName() = "24c128";
+  pmUnitConfig.i2cDeviceConfigs() = {chassisEeprom, eeprom1, eeprom2};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Valid: Different physical devices (two different eeproms)
+  eeprom2.address() = "0x52";
+  eeprom1.eepromOffset() = 0;
+  eeprom2.eepromOffset() = 0;
+  pmUnitConfig.i2cDeviceConfigs() = {chassisEeprom, eeprom1, eeprom2};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Valid: Different physical devices (different buses)
+  eeprom2.address() = "0x51";
+  eeprom2.busName() = "OTHER_BUS";
+  pmUnitConfig.i2cDeviceConfigs() = {chassisEeprom, eeprom1, eeprom2};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
