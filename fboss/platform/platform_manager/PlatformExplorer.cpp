@@ -354,7 +354,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
           FbossEepromInterface(eepromPath, *idpromConfig.offset()));
       const auto& eepromContents =
           dataStore_.getEepromContents(idpromDevicePath);
-      if (idpromDevicePath == platformConfig_.chassisEepromDevicePath()) {
+      if (idpromDevicePath == *platformConfig_.chassisEepromDevicePath()) {
         updateHardwareVersions(eepromContents);
       }
       pmUnitNameInEeprom = eepromContents.getProductName();
@@ -498,6 +498,11 @@ void PlatformExplorer::exploreI2cDevices(
               Utils().createDevicePath(
                   slotPath, *i2cDeviceConfig.pmUnitScopedName()),
               FbossEepromInterface(eepromPath, 0));
+          if (devicePath == *platformConfig_.chassisEepromDevicePath()) {
+            const auto& eepromContents =
+                dataStore_.getEepromContents(devicePath);
+            updateHardwareVersions(eepromContents);
+          }
         } catch (const std::exception& e) {
           auto errMsg = fmt::format(
               "Could not fetch contents of EEPROM device {} in {}. {}",
