@@ -176,7 +176,7 @@ void LldpManager::handlePacket(
       newPort->setActiveState(portActiveState);
       return newState;
     };
-    std::string updateMsg = "set remote port active state from lldp to ";
+    std::string updateMsg = "set port active state from lldp to ";
     if (!portActiveState.has_value()) {
       updateMsg += "unknown";
     } else if (portActiveState.value()) {
@@ -382,9 +382,9 @@ void LldpManager::fillLldpTlv(
   if (portDrainState.has_value()) {
     writeTl(LldpTlvType::ORG_SPECIFIC, PORT_DRAIN_STATE_TLV_LENGTH, &cursor);
     // Write Facebook OUI (3 bytes)
-    cursor.writeBE<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE1_);
-    cursor.writeBE<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE2_);
-    cursor.writeBE<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE3_);
+    cursor.writeBE<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE1());
+    cursor.writeBE<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE2());
+    cursor.writeBE<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE3());
     // Write subtype (1 byte)
     cursor.writeBE<uint8_t>(
         static_cast<uint8_t>(FacebookLldpSubtype::PORT_DRAIN_STATE));

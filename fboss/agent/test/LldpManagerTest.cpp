@@ -554,4 +554,109 @@ TEST(LldpManagerTest, PortDrainStateRxTest) {
   // Test without drain state
   lldpPortDrainStateRxHelper(cfg::SwitchType::NPU, VlanID(1), std::nullopt);
 }
+
+TEST(LldpManagerTest, RemotePortDrainStateInSwitchState) {
+  auto remotePortDrainStateHelper = [](cfg::SwitchType switchType,
+                                       const std::optional<VlanID>& vlanID) {
+    FLAGS_lldp_port_drain_state = true;
+
+    cfg::SwitchConfig config = testConfigA(switchType);
+    *config.ports()[0].routable() = true;
+
+    auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
+    auto sw = handle->getSw();
+
+    PortID portID(1);
+
+    // Verify initial state - portActiveState should not be set
+    auto initialPort = sw->getState()->getPorts()->getNodeIf(portID);
+    EXPECT_FALSE(initialPort->isActive().has_value());
+
+    // Test 1: Receive LLDP with drain state = true
+    uint32_t pktSizeDrained = LldpManager::LldpPktSize(
+        "remotesys", "remoteport", "remoteportdesc", "FBOSS", true);
+    auto pktDrained = sw->allocatePacket(pktSizeDrained);
+
+    LldpManager::fillLldpTlv(
+        pktDrained.get(),
+        MacAddress("2:2:2:2:2:10"),
+        vlanID,
+        "FBOSS",
+        "remotesys",
+        "remoteport",
+        "remoteportdesc",
+        120,
+        LldpManager::SYSTEM_CAPABILITY_ROUTER,
+        true); // port is drained
+
+    handle->rxPacket(
+        std::make_unique<folly::IOBuf>(*pktDrained->buf()),
+        PortDescriptor(portID),
+        vlanID);
+
+    // Wait for state updates to complete
+    waitForStateUpdates(sw);
+
+    // Verify port state shows remote port is inactive (drained)
+    auto portAfterDrained = sw->getState()->getPorts()->getNodeIf(portID);
+    EXPECT_TRUE(portAfterDrained->isActive().has_value());
+    EXPECT_FALSE(portAfterDrained->isActive().value());
+
+    // Test 2: Receive LLDP with drain state = false
+    uint32_t pktSizeUndrained = LldpManager::LldpPktSize(
+        "remotesys", "remoteport", "remoteportdesc", "FBOSS", true);
+    auto pktUndrained = sw->allocatePacket(pktSizeUndrained);
+
+    LldpManager::fillLldpTlv(
+        pktUndrained.get(),
+        MacAddress("2:2:2:2:2:10"),
+        vlanID,
+        "FBOSS",
+        "remotesys",
+        "remoteport",
+        "remoteportdesc",
+        120,
+        LldpManager::SYSTEM_CAPABILITY_ROUTER,
+        false); // port is undrained
+
+    handle->rxPacket(
+        std::make_unique<folly::IOBuf>(*pktUndrained->buf()),
+        PortDescriptor(portID),
+        vlanID);
+
+    // Wait for state updates to complete
+    waitForStateUpdates(sw);
+
+    // Verify port state shows remote port is active (undrained)
+    auto portAfterUndrained = sw->getState()->getPorts()->getNodeIf(portID);
+    EXPECT_TRUE(portAfterUndrained->isActive().has_value());
+    EXPECT_TRUE(portAfterUndrained->isActive().value());
+
+    // Test 3: Receive LLDP without drain state TLV
+    auto pktNoDrainState = LldpManager::createLldpPkt(
+        sw,
+        MacAddress("2:2:2:2:2:10"),
+        vlanID,
+        "remotesys",
+        "remoteport",
+        "remoteportdesc",
+        120,
+        LldpManager::SYSTEM_CAPABILITY_ROUTER);
+
+    handle->rxPacket(
+        std::make_unique<folly::IOBuf>(*pktNoDrainState->buf()),
+        PortDescriptor(portID),
+        vlanID);
+
+    // Wait for state updates to complete
+    waitForStateUpdates(sw);
+
+    // Verify port state shows no remote port active state
+    auto portAfterNoDrainState = sw->getState()->getPorts()->getNodeIf(portID);
+    EXPECT_FALSE(portAfterNoDrainState->isActive().has_value());
+  };
+
+  // Test with NPU switch type
+  remotePortDrainStateHelper(cfg::SwitchType::NPU, VlanID(1));
+}
 } // unnamed namespace
