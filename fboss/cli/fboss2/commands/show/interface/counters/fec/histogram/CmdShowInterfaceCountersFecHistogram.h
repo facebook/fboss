@@ -108,9 +108,9 @@ class CmdShowInterfaceCountersFecHistogram
       int numBins = nBitValues.nBitCorrectedMax()->size();
       std::vector<Table::RowData> rowData;
 
-      rowData.push_back(interfaceName);
+      rowData.emplace_back(interfaceName);
       for (int binId = 0; binId < numBins; binId++) {
-        rowData.push_back(
+        rowData.emplace_back(
             nBitValues.nBitCorrectedMax()->find(binId) !=
                     nBitValues.nBitCorrectedMax()->end()
                 ? styledCw(

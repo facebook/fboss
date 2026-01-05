@@ -295,7 +295,7 @@ std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
       std::vector<std::string> pathElements;
       for (const auto& pathElm : *extPath.path()) {
         if (pathElm.any().has_value()) {
-          pathElements.push_back("*");
+          pathElements.emplace_back("*");
         } else if (pathElm.regex().has_value()) {
           pathElements.push_back(*pathElm.regex());
         } else {
