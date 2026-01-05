@@ -2680,7 +2680,8 @@ int dumpTransceiverI2cLog(
 bool setTransceiverLoopback(
     DirectI2cInfo i2cInfo,
     std::vector<std::string> portList,
-    LoopbackMode mode) {
+    LoopbackMode mode,
+    folly::EventBase& evb) {
   TransceiverManagementInterface managementInterface;
 
   if (FLAGS_direct_i2c) {
@@ -2714,7 +2715,6 @@ bool setTransceiverLoopback(
       throw FbossError("qsfp_service not found running");
     }
 
-    folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
     auto client = getQsfpClient(evb);
 
     for (auto& portName : portList) {
