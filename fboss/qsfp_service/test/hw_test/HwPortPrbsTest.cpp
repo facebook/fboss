@@ -273,4 +273,165 @@ TEST_SET_PRBS(SYSTEM, PAM4, true);
 TEST_SET_PRBS(LINE, PAM4, true);
 TEST_SET_PRBS(SYSTEM, PAM4, false);
 TEST_SET_PRBS(LINE, PAM4, false);
+
+/*
+ * HwPortPrbsTestAll - Runs all PRBS test combinations in a single iteration
+ * This class tests all combinations of:
+ *   - Side: SYSTEM, LINE
+ *   - Modulation: NRZ, PAM4
+ *   - Enable: true, false
+ */
+class HwPortPrbsTestAll : public HwExternalPhyPortTest {
+ public:
+  const std::vector<phy::ExternalPhy::Feature>& neededFeatures()
+      const override {
+    return getPrbsNeededFeatures();
+  }
+
+  std::vector<qsfp_production_features::QsfpProductionFeature>
+  getProductionFeatures() const override {
+    std::vector<qsfp_production_features::QsfpProductionFeature> featureVector =
+        HwExternalPhyPortTest::getProductionFeatures();
+    // Add all PRBS profile features since we test all combinations
+    featureVector.push_back(
+        qsfp_production_features::QsfpProductionFeature::
+            XPHY_SYSTEM_NRZ_PROFILE);
+    featureVector.push_back(
+        qsfp_production_features::QsfpProductionFeature::
+            XPHY_SYSTEM_PAM4_PROFILE);
+    featureVector.push_back(
+        qsfp_production_features::QsfpProductionFeature::XPHY_LINE_NRZ_PROFILE);
+    featureVector.push_back(
+        qsfp_production_features::QsfpProductionFeature::
+            XPHY_LINE_PAM4_PROFILE);
+    return featureVector;
+  }
+
+ protected:
+  std::vector<std::pair<PortID, cfg::PortProfileID>> findAvailableXphyPortsFor(
+      phy::Side side,
+      phy::IpModulation modulation) {
+    const auto& origAvailablePorts =
+        HwExternalPhyPortTest::findAvailableXphyPorts();
+    return filterXphyPortsByModulation(
+        origAvailablePorts, getHwQsfpEnsemble(), side, modulation);
+  }
+
+  void setupAndVerify(const PrbsTestConfig& config) {
+    XLOG(INFO) << "Running PRBS test for side:"
+               << apache::thrift::util::enumNameSafe(config.side)
+               << ", modulation:"
+               << apache::thrift::util::enumNameSafe(config.modulation)
+               << ", enable:" << (config.enable ? "true" : "false");
+
+    const auto& availableXphyPorts =
+        findAvailableXphyPortsFor(config.side, config.modulation);
+    if (availableXphyPorts.empty()) {
+      XLOG(INFO) << "No available xphy ports for side:"
+                 << apache::thrift::util::enumNameSafe(config.side)
+                 << ", modulation:"
+                 << apache::thrift::util::enumNameSafe(config.modulation);
+      return;
+    }
+
+    auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+    auto platformType = wedgeManager->getPlatformType();
+    auto portToProfileAndPoly = buildPortToProfileAndPoly(
+        platformType, config.modulation, availableXphyPorts);
+
+    setupPrbsOnPorts(getHwQsfpEnsemble(), config, portToProfileAndPoly);
+    verifyPrbsOnPorts(getHwQsfpEnsemble(), config, portToProfileAndPoly);
+  }
+
+  void verifyAcrossWarmBootsWithIterations(
+      const std::vector<PrbsTestConfig>& configs) {
+    auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+    auto platformType = wedgeManager->getPlatformType();
+
+    if (!didWarmBoot()) {
+      for (const auto& config : configs) {
+        XLOG(INFO) << "STAGE: cold boot setup() for side:"
+                   << apache::thrift::util::enumNameSafe(config.side)
+                   << ", modulation:"
+                   << apache::thrift::util::enumNameSafe(config.modulation);
+
+        const auto& availableXphyPorts =
+            findAvailableXphyPortsFor(config.side, config.modulation);
+        if (availableXphyPorts.empty()) {
+          continue;
+        }
+        auto portToProfileAndPoly = buildPortToProfileAndPoly(
+            platformType, config.modulation, availableXphyPorts);
+
+        setupPrbsOnPorts(getHwQsfpEnsemble(), config, portToProfileAndPoly);
+
+        XLOG(INFO) << "STAGE: cold boot verify() for side:"
+                   << apache::thrift::util::enumNameSafe(config.side)
+                   << ", modulation:"
+                   << apache::thrift::util::enumNameSafe(config.modulation);
+        verifyPrbsOnPorts(getHwQsfpEnsemble(), config, portToProfileAndPoly);
+      }
+    }
+
+    if (FLAGS_setup_for_warmboot) {
+      XLOG(INFO) << "STAGE: setupForWarmboot";
+      getHwQsfpEnsemble()->setupForWarmboot();
+    }
+
+    if (didWarmBoot()) {
+      for (const auto& config : configs) {
+        XLOG(INFO) << "STAGE: warm boot verify() for side:"
+                   << apache::thrift::util::enumNameSafe(config.side)
+                   << ", modulation:"
+                   << apache::thrift::util::enumNameSafe(config.modulation);
+
+        const auto& availableXphyPorts =
+            findAvailableXphyPortsFor(config.side, config.modulation);
+        if (availableXphyPorts.empty()) {
+          continue;
+        }
+        auto portToProfileAndPoly = buildPortToProfileAndPoly(
+            platformType, config.modulation, availableXphyPorts);
+
+        verifyPrbsOnPorts(getHwQsfpEnsemble(), config, portToProfileAndPoly);
+      }
+    }
+  }
+
+  void runAllTests() {
+    const std::vector<PrbsTestConfig> allConfigs = {
+        {phy::Side::SYSTEM, phy::IpModulation::NRZ, true},
+        {phy::Side::LINE, phy::IpModulation::NRZ, true},
+        {phy::Side::SYSTEM, phy::IpModulation::NRZ, false},
+        {phy::Side::LINE, phy::IpModulation::NRZ, false},
+        {phy::Side::SYSTEM, phy::IpModulation::PAM4, true},
+        {phy::Side::LINE, phy::IpModulation::PAM4, true},
+        {phy::Side::SYSTEM, phy::IpModulation::PAM4, false},
+        {phy::Side::LINE, phy::IpModulation::PAM4, false},
+    };
+
+    // Run all 8 configurations with setupAndVerify (no warm boot)
+    if (!didWarmBoot()) {
+      for (const auto& config : allConfigs) {
+        setupAndVerify(config);
+      }
+    }
+
+    // Warm boot verification sequence with specific configurations:
+    // Cold boot: Setup/Verify {SYSTEM, NRZ, true}, Setup/Verify {LINE, PAM4,
+    // true} setupForWarmboot() Warm boot: Verify {SYSTEM, NRZ, true}, Verify
+    // {LINE, PAM4, true}
+    const std::vector<PrbsTestConfig> warmBootConfigs = {
+        {phy::Side::SYSTEM, phy::IpModulation::NRZ, true},
+        {phy::Side::LINE, phy::IpModulation::PAM4, true},
+    };
+
+    verifyAcrossWarmBootsWithIterations(warmBootConfigs);
+  }
+};
+
+TEST_F(HwPortPrbsTestAll, TestAll) {
+  runAllTests();
+}
+
 } // namespace facebook::fboss
