@@ -460,7 +460,8 @@ void ConfigSession::restartService(
   if (level == cli::ConfigActionLevel::AGENT_COLDBOOT) {
     // Step 1: Stop the service
     try {
-      folly::Subprocess stopProc({"/usr/bin/systemctl", "stop", serviceName});
+      folly::Subprocess stopProc(
+          {"/usr/bin/sudo", "/usr/bin/systemctl", "stop", serviceName});
       stopProc.waitChecked();
     } catch (const std::exception& ex) {
       throw std::runtime_error(
@@ -488,7 +489,8 @@ void ConfigSession::restartService(
 
     // Step 3: Start the service
     try {
-      folly::Subprocess startProc({"/usr/bin/systemctl", "start", serviceName});
+      folly::Subprocess startProc(
+          {"/usr/bin/sudo", "/usr/bin/systemctl", "start", serviceName});
       startProc.waitChecked();
     } catch (const std::exception& ex) {
       throw std::runtime_error(
@@ -498,7 +500,7 @@ void ConfigSession::restartService(
     // For warmboot, just do a simple restart
     try {
       folly::Subprocess restartProc(
-          {"/usr/bin/systemctl", "restart", serviceName});
+          {"/usr/bin/sudo", "/usr/bin/systemctl", "restart", serviceName});
       restartProc.waitChecked();
     } catch (const std::exception& ex) {
       throw std::runtime_error(

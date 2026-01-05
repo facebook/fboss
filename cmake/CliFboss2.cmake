@@ -632,6 +632,10 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.cpp
+  fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h
+  fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h
+  fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h
+  fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.cpp
   fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.cpp
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h
