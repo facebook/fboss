@@ -32,36 +32,163 @@ static const std::unordered_map<
         {PlatformType::PLATFORM_FUJI,
          {{{phy::IpModulation::NRZ, {31}}, {phy::IpModulation::PAM4, {31}}}}},
 };
+
+const std::vector<phy::ExternalPhy::Feature>& getPrbsNeededFeatures() {
+  static const std::vector<phy::ExternalPhy::Feature> kNeededFeatures = {
+      phy::ExternalPhy::Feature::PRBS, phy::ExternalPhy::Feature::PRBS_STATS};
+  return kNeededFeatures;
 }
+
+std::vector<std::pair<PortID, cfg::PortProfileID>> filterXphyPortsByModulation(
+    const std::vector<std::pair<PortID, cfg::PortProfileID>>& availablePorts,
+    HwQsfpEnsemble* ensemble,
+    phy::Side side,
+    phy::IpModulation modulation) {
+  std::vector<std::pair<PortID, cfg::PortProfileID>> filteredPorts;
+  for (const auto& [port, profile] : availablePorts) {
+    const auto& expectedPhyPortConfig =
+        ensemble->getPhyManager()->getDesiredPhyPortConfig(
+            port, profile, std::nullopt);
+    auto ipModulation =
+        (side == phy::Side::SYSTEM
+             ? *expectedPhyPortConfig.profile.system.modulation()
+             : *expectedPhyPortConfig.profile.line.modulation());
+    if (ipModulation != modulation) {
+      continue;
+    }
+    filteredPorts.emplace_back(port, profile);
+  }
+  return filteredPorts;
+}
+
+// Configuration struct for PRBS tests
+struct PrbsTestConfig {
+  phy::Side side;
+  phy::IpModulation modulation;
+  bool enable;
+};
+
+void setupPrbsOnPorts(
+    HwQsfpEnsemble* ensemble,
+    const PrbsTestConfig& config,
+    const std::unordered_map<PortID, std::pair<cfg::PortProfileID, int32_t>>&
+        portToProfileAndPoly) {
+  auto qsfpServiceHandler = ensemble->getQsfpServiceHandler();
+  for (const auto& [port, profileAndPoly] : portToProfileAndPoly) {
+    XLOG(INFO) << "About to set port:" << port << ", profile:"
+               << apache::thrift::util::enumNameSafe(profileAndPoly.first)
+               << ", side:" << apache::thrift::util::enumNameSafe(config.side)
+               << ", modulation:"
+               << apache::thrift::util::enumNameSafe(config.modulation)
+               << ", polynominal=" << profileAndPoly.second
+               << ", enabled=" << (config.enable ? "true" : "false");
+    phy::PortPrbsState prbs;
+    prbs.enabled() = config.enable;
+    prbs.polynominal() = profileAndPoly.second;
+    qsfpServiceHandler->programXphyPortPrbs(port, config.side, prbs);
+  }
+}
+
+void verifyPrbsOnPorts(
+    HwQsfpEnsemble* ensemble,
+    const PrbsTestConfig& config,
+    const std::unordered_map<PortID, std::pair<cfg::PortProfileID, int32_t>>&
+        portToProfileAndPoly) {
+  auto qsfpServiceHandler = ensemble->getQsfpServiceHandler();
+  auto phyManager = ensemble->getPhyManager();
+  phy::PortComponent component =
+      (config.side == phy::Side::SYSTEM ? phy::PortComponent::GB_SYSTEM
+                                        : phy::PortComponent::GB_LINE);
+  for (const auto& [port, profileAndPoly] : portToProfileAndPoly) {
+    const auto& hwPrbs = qsfpServiceHandler->getXphyPortPrbs(port, config.side);
+    EXPECT_EQ(*hwPrbs.enabled(), config.enable)
+        << "Port:" << port << " has undesired prbs enable state for side:"
+        << apache::thrift::util::enumNameSafe(config.side);
+    EXPECT_EQ(*hwPrbs.polynominal(), profileAndPoly.second)
+        << "Port:" << port << " has undesired prbs polynominal for side:"
+        << apache::thrift::util::enumNameSafe(config.side);
+
+    phy::PrbsStats prbsStats;
+    qsfpServiceHandler->getPortPrbsStats(prbsStats, port, component);
+    EXPECT_EQ(*prbsStats.portId(), static_cast<int32_t>(port));
+    EXPECT_EQ(*prbsStats.component(), component);
+    const auto& laneStats = *prbsStats.laneStats();
+    if (config.enable) {
+      const auto& actualPortConfig = phyManager->getHwPhyPortConfig(port);
+      const auto& lanes = (config.side == phy::Side::SYSTEM)
+          ? actualPortConfig.config.system.lanes
+          : actualPortConfig.config.line.lanes;
+      EXPECT_EQ(laneStats.size(), lanes.size());
+      int laneStatsIdx = 0;
+      for (const auto& laneIt : lanes) {
+        EXPECT_EQ(laneIt.first, uint32_t(*laneStats[laneStatsIdx++].laneId()));
+      }
+    } else {
+      EXPECT_TRUE(laneStats.empty());
+    }
+  }
+}
+
+std::unordered_map<PortID, std::pair<cfg::PortProfileID, int32_t>>
+buildPortToProfileAndPoly(
+    PlatformType platformType,
+    phy::IpModulation modulation,
+    const std::vector<std::pair<PortID, cfg::PortProfileID>>&
+        availableXphyPorts) {
+  std::unordered_map<PortID, std::pair<cfg::PortProfileID, int32_t>>
+      portToProfileAndPoly;
+
+  auto ipModToPolynominalListIt = kSupportedPolynominal.find(platformType);
+  if (ipModToPolynominalListIt == kSupportedPolynominal.end()) {
+    throw FbossError(
+        "Platform:",
+        apache::thrift::util::enumNameSafe(platformType),
+        " doesn't have supported polynominal list");
+  }
+
+  auto polynominalList = ipModToPolynominalListIt->second.find(modulation);
+  if (polynominalList == ipModToPolynominalListIt->second.end()) {
+    throw FbossError(
+        "IpModulation:",
+        apache::thrift::util::enumNameSafe(modulation),
+        " doesn't have supported polynominal list");
+  }
+
+  // Make sure we assign one poly value to one port
+  if (availableXphyPorts.size() >= polynominalList->second.size()) {
+    for (size_t i = 0; i < polynominalList->second.size(); i++) {
+      const auto& portToProfile = availableXphyPorts[i];
+      portToProfileAndPoly.emplace(
+          portToProfile.first,
+          std::make_pair(portToProfile.second, polynominalList->second[i]));
+    }
+  } else {
+    throw FbossError(
+        "Not enough available ports(",
+        availableXphyPorts.size(),
+        ") to support all polynominals(",
+        polynominalList->second.size(),
+        ")");
+  }
+
+  return portToProfileAndPoly;
+}
+} // namespace
 
 template <phy::Side Side, phy::IpModulation Modulation>
 class HwPortPrbsTest : public HwExternalPhyPortTest {
  public:
   const std::vector<phy::ExternalPhy::Feature>& neededFeatures()
       const override {
-    static const std::vector<phy::ExternalPhy::Feature> kNeededFeatures = {
-        phy::ExternalPhy::Feature::PRBS, phy::ExternalPhy::Feature::PRBS_STATS};
-    return kNeededFeatures;
+    return getPrbsNeededFeatures();
   }
 
   std::vector<std::pair<PortID, cfg::PortProfileID>> findAvailableXphyPorts()
       override {
-    std::vector<std::pair<PortID, cfg::PortProfileID>> filteredPorts;
     const auto& origAvailablePorts =
         HwExternalPhyPortTest::findAvailableXphyPorts();
-    for (const auto& [port, profile] : origAvailablePorts) {
-      const auto& expectedPhyPortConfig =
-          getHwQsfpEnsemble()->getPhyManager()->getDesiredPhyPortConfig(
-              port, profile, std::nullopt);
-      auto ipModulation =
-          (Side == phy::Side::SYSTEM
-               ? *expectedPhyPortConfig.profile.system.modulation()
-               : *expectedPhyPortConfig.profile.line.modulation());
-      if (ipModulation != Modulation) {
-        continue;
-      }
-      filteredPorts.push_back(std::make_pair(port, profile));
-    }
+    auto filteredPorts = filterXphyPortsByModulation(
+        origAvailablePorts, getHwQsfpEnsemble(), Side, Modulation);
     CHECK(!filteredPorts.empty())
         << "Can't find xphy ports to support features:" << neededFeatureNames();
     return filteredPorts;
@@ -101,99 +228,21 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
 
  protected:
   void runTest(bool enable) {
-    // Find any available xphy port
     const auto& availableXphyPorts = findAvailableXphyPorts();
 
     auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-    auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
-    auto phyManager = getHwQsfpEnsemble()->getPhyManager();
     auto platformType = wedgeManager->getPlatformType();
-    auto ipModToPolynominalListIt = kSupportedPolynominal.find(platformType);
-    if (ipModToPolynominalListIt == kSupportedPolynominal.end()) {
-      throw FbossError(
-          "Platform:",
-          platformType,
-          " doesn't have supoorted polynominal list");
-    }
 
-    auto polynominalList = ipModToPolynominalListIt->second.find(Modulation);
-    if (polynominalList == ipModToPolynominalListIt->second.end()) {
-      throw FbossError(
-          "IpModulation:",
-          apache::thrift::util::enumNameSafe(Modulation),
-          " doesn't have supoorted polynominal list");
-    }
+    auto portToProfileAndPoly =
+        buildPortToProfileAndPoly(platformType, Modulation, availableXphyPorts);
 
-    // Make sure we assign one poly value to one port
-    std::unordered_map<PortID, std::pair<cfg::PortProfileID, int32_t>>
-        portToProfileAndPoly;
-    if (availableXphyPorts.size() >= polynominalList->second.size()) {
-      for (int i = 0; i < polynominalList->second.size(); i++) {
-        const auto& portToProfile = availableXphyPorts[i];
-        portToProfileAndPoly.emplace(
-            portToProfile.first,
-            std::make_pair(portToProfile.second, polynominalList->second[i]));
-      }
-    } else {
-      throw FbossError(
-          "Not enough available ports(",
-          availableXphyPorts.size(),
-          ") to support all polynominals(",
-          polynominalList->second.size(),
-          ")");
-    }
-
-    auto setup = [qsfpServiceHandler, enable, &portToProfileAndPoly]() {
-      for (const auto& [port, profileAndPoly] : portToProfileAndPoly) {
-        XLOG(INFO) << "About to set port:" << port << ", profile:"
-                   << apache::thrift::util::enumNameSafe(profileAndPoly.first)
-                   << ", side:" << apache::thrift::util::enumNameSafe(Side)
-                   << ", polynominal=" << profileAndPoly.second
-                   << ", enabled=" << (enable ? "true" : "false");
-        // Then try to program xphy prbs
-        phy::PortPrbsState prbs;
-        prbs.enabled() = enable;
-        prbs.polynominal() = profileAndPoly.second;
-        qsfpServiceHandler->programXphyPortPrbs(port, Side, prbs);
-      }
+    PrbsTestConfig config{Side, Modulation, enable};
+    auto setup = [this, &config, &portToProfileAndPoly]() {
+      setupPrbsOnPorts(getHwQsfpEnsemble(), config, portToProfileAndPoly);
     };
 
-    auto verify = [qsfpServiceHandler,
-                   phyManager,
-                   enable,
-                   &portToProfileAndPoly]() {
-      phy::PortComponent component =
-          (Side == phy::Side::SYSTEM ? phy::PortComponent::GB_SYSTEM
-                                     : phy::PortComponent::GB_LINE);
-      // Verify all programmed xphy prbs matching with the desired values
-      for (const auto& [port, profileAndPoly] : portToProfileAndPoly) {
-        const auto& hwPrbs = qsfpServiceHandler->getXphyPortPrbs(port, Side);
-        EXPECT_EQ(*hwPrbs.enabled(), enable)
-            << "Port:" << port << " has undesired prbs enable state";
-        EXPECT_EQ(*hwPrbs.polynominal(), profileAndPoly.second)
-            << "Port:" << port << " has undesired prbs polynominal";
-
-        // Verify prbs stats collection is enabled or not
-        phy::PrbsStats prbsStats;
-        qsfpServiceHandler->getPortPrbsStats(prbsStats, port, component);
-        EXPECT_EQ(*prbsStats.portId(), static_cast<int32_t>(port));
-        EXPECT_EQ(*prbsStats.component(), component);
-        const auto& laneStats = *prbsStats.laneStats();
-        if (enable) {
-          const auto& actualPortConfig = phyManager->getHwPhyPortConfig(port);
-          const auto& lanes = (Side == phy::Side::SYSTEM)
-              ? actualPortConfig.config.system.lanes
-              : actualPortConfig.config.line.lanes;
-          EXPECT_EQ(laneStats.size(), lanes.size());
-          int laneStatsIdx = 0;
-          for (const auto& laneIt : lanes) {
-            EXPECT_EQ(
-                laneIt.first, uint32_t(*laneStats[laneStatsIdx++].laneId()));
-          }
-        } else {
-          EXPECT_TRUE(laneStats.empty());
-        }
-      }
+    auto verify = [this, &config, &portToProfileAndPoly]() {
+      verifyPrbsOnPorts(getHwQsfpEnsemble(), config, portToProfileAndPoly);
     };
     verifyAcrossWarmBoots(setup, verify);
   }
