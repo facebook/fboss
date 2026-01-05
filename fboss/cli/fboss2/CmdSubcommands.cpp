@@ -239,6 +239,9 @@ CLI::App* CmdSubcommands::addCommand(
               "<name> <attr> <value> [<attr> <value> ...] where <attr> is one "
               "of: shared-bytes, headroom-bytes, reserved-bytes");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_VLAN_ID:
+          subCmd->add_option("vlan_id", args, "VLAN ID (1-4094)");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;
