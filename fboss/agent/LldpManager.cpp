@@ -159,6 +159,35 @@ void LldpManager::handlePacket(
       sw_->updateState("clear port LED state from lldp", updateFn);
     }
   }
+
+  // Update remote port active state based on LLDP TLV drain state
+  auto portDrainState = neighbor->getPortDrainState();
+  std::optional<bool> portActiveState = std::nullopt;
+  if (portDrainState.has_value()) {
+    // If drained = true, then active = false; if drained = false, then active =
+    // true
+    portActiveState = !portDrainState.value();
+  }
+  if (portActiveState != port->isActive()) {
+    auto updateFn = [pid,
+                     portActiveState](const shared_ptr<SwitchState>& state) {
+      auto newState = state->clone();
+      auto newPort = state->getPorts()->getNodeIf(pid)->modify(&newState);
+      newPort->setActiveState(portActiveState);
+      return newState;
+    };
+    std::string updateMsg = "set remote port active state from lldp to ";
+    if (!portActiveState.has_value()) {
+      updateMsg += "unknown";
+    } else if (portActiveState.value()) {
+      updateMsg += "active";
+    } else {
+      updateMsg += "inactive";
+    }
+    updateMsg += " on port " + port->getName();
+    sw_->updateState(updateMsg, updateFn);
+  }
+
   db_.update(neighbor);
 }
 
