@@ -6751,6 +6751,9 @@
           "test_name_regex": "HwMacsecTest.*$"
         },
         {
+          "test_name_regex": "HwPortPrbsTestAll.*$"
+        },
+        {
           "test_name_regex": "HwPortPrbsTest_LINE_PAM4.*$"
         },
         {
@@ -11375,6 +11378,9 @@
           "test_name_regex": "HwMacsecTest.*$"
         },
         {
+          "test_name_regex": "HwPortPrbsTestAll.*$"
+        },
+        {
           "test_name_regex": "HwPortPrbsTest_SYSTEM_NRZ.*$"
         },
         {
@@ -11558,6 +11564,9 @@
     "yamp_8x16Q/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "HwMacsecTest.*$"
+        },
+        {
+          "test_name_regex": "HwPortPrbsTestAll.*$"
         },
         {
           "test_name_regex": "HwPortPrbsTest_SYSTEM_NRZ.*$"
