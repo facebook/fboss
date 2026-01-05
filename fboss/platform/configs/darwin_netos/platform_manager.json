@@ -466,6 +466,7 @@
   "requiredKmodsToLoad": [
     "i2c_i801",
     "scd",
-    "scd_spi"
+    "scd_spi",
+    "ledtrig_timer"
   ]
 }
