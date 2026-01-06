@@ -88,6 +88,7 @@ inline const int kUdfAclRethDmaLenFieldSizeInBytes(2);
 
 class SwitchState;
 class Interface;
+class Port;
 class SwitchSettings;
 class PlatformMapping;
 struct AgentConfig;
@@ -496,5 +497,20 @@ std::optional<VlanID> getDefaultTxVlanIdIf(
 
 std::optional<VlanID> getDefaultTxVlanId(
     const std::shared_ptr<SwitchSettings>& settings);
+
+/**
+ * Check if a port is drained.
+ * A port is considered drained if either the port itself is drained
+ * OR the switch is drained (logical OR).
+ *
+ * @param state The current switch state
+ * @param port The port to check
+ * @param portSwitchId The switch ID for the port
+ * @return true if the port or switch is drained, false otherwise
+ */
+bool isPortDrained(
+    const std::shared_ptr<SwitchState>& state,
+    const Port* port,
+    SwitchID portSwitchId);
 
 } // namespace facebook::fboss

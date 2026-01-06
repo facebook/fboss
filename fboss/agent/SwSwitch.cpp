@@ -387,16 +387,6 @@ void updatePhyFb303Stats(
   }
 }
 
-bool isPortDrained(
-    const std::shared_ptr<SwitchState>& state,
-    const Port* port,
-    SwitchID portSwitchId) {
-  HwSwitchMatcher matcher(std::unordered_set<SwitchID>({portSwitchId}));
-  const auto& switchSettings = state->getSwitchSettings()->getSwitchSettings(
-      HwSwitchMatcher(std::unordered_set<SwitchID>({portSwitchId})));
-  return switchSettings->isSwitchDrained() || port->isDrained();
-}
-
 std::string getVirtualDeviceIdToEligibleNumActivePortsStr(
     const std::map<int32_t, int32_t>& virtualDeviceIdToEligibleNumActivePorts) {
   std::vector<std::string> stringPairs;
