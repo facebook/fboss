@@ -5267,14 +5267,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
 
   if (origSwitchSettings->getSwitchDrainState() !=
       *cfg_->switchSettings()->switchDrainState()) {
-    auto numVoqSwtitches =
-        newSwitchSettings->getSwitchIdsOfType(cfg::SwitchType::VOQ).size();
-    auto numFabSwtitches =
-        newSwitchSettings->getSwitchIdsOfType(cfg::SwitchType::FABRIC).size();
-    if (numFabSwtitches == 0 && numVoqSwtitches == 0) {
-      throw FbossError(
-          "Switch drain/isolate is supported only on VOQ, Fabric switches");
-    }
     newSwitchSettings->setSwitchDrainState(
         *cfg_->switchSettings()->switchDrainState());
     switchSettingsChange = true;
