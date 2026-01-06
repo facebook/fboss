@@ -2935,8 +2935,16 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   for (const auto& tag : *portConf->expectedLLDPValues()) {
     lldpmap[tag.first] = tag.second;
   }
-
-  newPort->setAdminState(*portConf->state());
+  if (*portConf->portType() != cfg::PortType::HYPER_PORT) {
+    newPort->setAdminState(*portConf->state());
+  } else {
+    // hyper port admin state should be controlled by LACP protocol.
+    // So, hyper port is always disabled (default state) in prod config
+    // hyper port could be force enabled through config only in testing
+    if (*portConf->state() == cfg::PortState::ENABLED) {
+      newPort->setAdminState(*portConf->state());
+    }
+  }
   newPort->setIngressVlan(VlanID(*portConf->ingressVlan()));
   newPort->setVlans(vlans);
   if (portConf->portType() == cfg::PortType::HYPER_PORT &&
