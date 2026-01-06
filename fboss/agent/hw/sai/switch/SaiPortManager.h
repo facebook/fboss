@@ -503,6 +503,8 @@ class SaiPortManager {
       const std::shared_ptr<Port>& swPort,
       const std::optional<cfg::PortPfc>& newPfc,
       const std::optional<cfg::PortPfc>& oldPfc);
+  SaiPortSerdesTraits::Attributes::RxReach::ValueType getSaiRxReach(
+      const std::vector<phy::RxReach>& rxReaches) const;
   void programPfcDurationCounter(
       const std::shared_ptr<Port>& swPort,
       const std::optional<cfg::PortPfc>& newPfc,
