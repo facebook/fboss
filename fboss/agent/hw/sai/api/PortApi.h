@@ -915,6 +915,9 @@ struct SaiPortSerdesTraits {
         std::vector<sai_uint32_t>,
         SaiU32ListDefault>;
     /* extension attributes */
+    struct AttributeRxReachWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
     struct AttributeRVgaWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -985,6 +988,9 @@ struct SaiPortSerdesTraits {
     struct AttributeRxAfeAdaptiveEnableWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
+    using RxReach = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxReachWrapper>;
     using RVga =
         SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeRVgaWrapper>;
     using Dco =
@@ -1342,6 +1348,7 @@ SAI_ATTRIBUTE_NAME(PortSerdes, RxDiffEncoderEn);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgEnableScan);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxFfeLengthBitmap);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxFfeLmsDynamicGatingEn);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxReach);
 SAI_ATTRIBUTE_NAME(PortSerdes, RVga);
 SAI_ATTRIBUTE_NAME(PortSerdes, Dco);
 SAI_ATTRIBUTE_NAME(PortSerdes, FltM);

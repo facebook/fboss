@@ -60,6 +60,15 @@ SaiPortSerdesTraits::Attributes::AttributeRVgaWrapper::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxReachWrapper::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  return SAI_PORT_SERDES_ATTR_REACH_MODE;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeDcoWrapper::operator()() {
 #if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_DCO;
