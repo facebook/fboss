@@ -16,6 +16,7 @@
 #include <folly/io/Cursor.h>
 #include <folly/logging/xlog.h>
 #include <unistd.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
@@ -407,7 +408,8 @@ std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
     const std::string& portname,
     const std::string& portdesc,
     const uint16_t ttl,
-    const uint16_t capabilities) {
+    const uint16_t capabilities,
+    const std::optional<bool> portDrainState) {
   return createLldpPkt(
       [sw](uint32_t size) { return sw->allocatePacket(size); },
       macaddr,
@@ -416,7 +418,8 @@ std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
       portname,
       portdesc,
       ttl,
-      capabilities);
+      capabilities,
+      portDrainState);
 }
 
 std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
@@ -427,9 +430,11 @@ std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
     const std::string& portname,
     const std::string& portdesc,
     const uint16_t ttl,
-    const uint16_t capabilities) {
+    const uint16_t capabilities,
+    const std::optional<bool> portDrainState) {
   static std::string lldpSysDescStr("FBOSS");
-  uint32_t frameLen = LldpPktSize(hostname, portname, portdesc, lldpSysDescStr);
+  uint32_t frameLen = LldpPktSize(
+      hostname, portname, portdesc, lldpSysDescStr, portDrainState.has_value());
 
   auto pkt = allocatePacket(frameLen);
   fillLldpTlv(
@@ -441,7 +446,8 @@ std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
       portname,
       portdesc,
       ttl,
-      capabilities);
+      capabilities,
+      portDrainState);
   return pkt;
 }
 void LldpManager::sendLldpInfo(const std::shared_ptr<Port>& port) {
@@ -459,6 +465,14 @@ void LldpManager::sendLldpInfo(const std::shared_ptr<Port>& port) {
     hostname[0] = '\0';
   }
 
+  // Determine port drain state based on port and switch drain state
+  // Only send drain state if the flag is enabled
+  std::optional<bool> portDrainState = std::nullopt;
+  if (FLAGS_lldp_port_drain_state) {
+    auto state = sw_->getState();
+    portDrainState = isPortDrained(state, port.get(), switchId);
+  }
+
   auto pkt = LldpManager::createLldpPkt(
       sw_,
       cpuMac,
@@ -467,15 +481,20 @@ void LldpManager::sendLldpInfo(const std::shared_ptr<Port>& port) {
       port->getName(),
       port->getDescription(),
       TTL_TLV_VALUE,
-      SYSTEM_CAPABILITY_ROUTER);
+      SYSTEM_CAPABILITY_ROUTER,
+      portDrainState);
 
   // this LLDP packet HAS to exit out of the port specified here.
   sw_->sendNetworkControlPacketAsync(
       std::move(pkt), PortDescriptor(thisPortID));
 
-  XLOG(DBG4) << "sent LLDP " << " on port " << port->getID() << " with CPU MAC "
+  XLOG(DBG4) << "sent LLDP on port " << port->getID() << " with CPU MAC "
              << cpuMac.toString() << " port id " << port->getName()
-             << " and vlan " << port->getIngressVlan();
+             << " and vlan " << port->getIngressVlan()
+             << (portDrainState.has_value()
+                     ? (portDrainState.value() ? " drain state DRAINED"
+                                               : " drain state UNDRAINED")
+                     : "");
 }
 
 } // namespace facebook::fboss
