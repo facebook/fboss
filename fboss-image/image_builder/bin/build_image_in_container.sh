@@ -19,6 +19,7 @@ ORIGINAL_ARGS=("$0" "$@")
 # Default values
 DESCRIPTION_DIR="${WSROOT}/templates/centos-09.0"
 TARGET_DIR="${WSROOT}/output"
+KIWI_DEBUG=""
 
 # User configurable variables (fboss tarfile and kernel rpm directory)
 FBOSS_TARFILE=""
@@ -35,6 +36,7 @@ help() {
   echo "  -f|--fboss-tarfile          Location of compressed FBOSS tar file to add to image"
   echo "  -k|--kernel-rpm-dir         Directory containing kernel rpms to install (default: download LTS 6.12)"
   echo ""
+  echo "  -d|--debug                  Enable kiwi-ng debug"
   echo "  -h|--help                   Print this help message"
   echo ""
 }
@@ -67,6 +69,11 @@ while [[ $# -gt 0 ]]; do
   -k | --kernel-rpm-dir)
     KERNEL_RPM_DIR=$2
     shift 2
+    ;;
+
+  -d | --debug)
+    KIWI_DEBUG=" --debug "
+    shift 1
     ;;
 
   -h | --help)
@@ -161,7 +168,7 @@ dprint "Generating PXE and USB bootable image, this will take few minutes..."
 kiwi-ng-3 \
   --profile FBOSS \
   --type oem \
-  system build \
+  ${KIWI_DEBUG} system build \
   --description "${DESCRIPTION_DIR}" \
   --target-dir "${TARGET_DIR}" \
   >>"${LOG_FILE}" 2>&1
