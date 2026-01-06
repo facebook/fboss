@@ -2848,13 +2848,14 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       << ", pinConfigs: " << (pinConfigsUnchanged ? "UNCHANGED" : "CHANGED")
       << ", with matcher:" << matcher.toString();
 
-  // Port drain is applicable to only fabric ports.
+  // Port drain is applicable to fabric ports and interface ports.
   if (*portConf->drainState() == cfg::PortDrainState::DRAINED &&
-      *portConf->portType() != cfg::PortType::FABRIC_PORT) {
+      *portConf->portType() != cfg::PortType::FABRIC_PORT &&
+      *portConf->portType() != cfg::PortType::INTERFACE_PORT) {
     throw FbossError(
         "Port ",
         orig->getID(),
-        " cannot be drained as it's NOT a DSF fabric port");
+        " cannot be drained as it's neither a DSF fabric port nor an interface port");
   }
 
   bool portFlowletConfigUnchanged = true;
