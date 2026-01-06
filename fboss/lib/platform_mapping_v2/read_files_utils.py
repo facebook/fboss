@@ -14,6 +14,7 @@ from neteng.fboss.phy.ttypes import (
     FecMode,
     InterfaceType,
     IpModulation,
+    RxReach,
     RxSettings,
     TxSettings,
 )
@@ -393,6 +394,12 @@ def read_si_settings(
             tx_setting.ffeCoeff5 = int(row[Column.TX_FFE_COEFF_5])
 
         rx_setting = RxSettings()
+        if "RX_REACH" in column_names and row[Column.RX_REACH]:
+            rx_setting.rxReach = (
+                RxReach.RX_NORMAL_REACH
+                if int(row[Column.RX_REACH]) == 0
+                else RxReach.RX_EXTENDED_REACH
+            )
         if "RX_CTLE_CODE" in column_names and row[Column.RX_CTLE_CODE]:
             rx_setting.ctlCode = int(row[Column.RX_CTLE_CODE])
         if "RX_DSP_MODE" in column_names and row[Column.RX_DSP_MODE]:
