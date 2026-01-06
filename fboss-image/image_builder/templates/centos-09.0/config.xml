@@ -114,6 +114,7 @@
         <package name="vim"/>
         <package name="vi"/>
         <package name="btrfs-progs"/>
+        <package name="nvme-cli"/>
     </packages>
 
     <packages type="bootstrap">
