@@ -30,7 +30,7 @@ add_fb_python_unittest(
     ${DISTRO_CLI_TEST_HELPERS}
     ${DISTRO_CLI_LIB_SOURCES}
   ENV
-    "PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}/fboss-image/distro_cli"
+    "PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}/fboss-image"
 )
 
 install_fb_python_executable(distro_cli_tests)
