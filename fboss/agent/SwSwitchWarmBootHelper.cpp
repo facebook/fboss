@@ -9,16 +9,12 @@
 #include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsyncLogger.h"
+#include "fboss/agent/FileBasedWarmbootUtils.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/WarmBootFileUtils.h"
-
-namespace {
-constexpr auto forceColdBootFlag = "sw_cold_boot_once";
-} // namespace
 
 namespace facebook::fboss {
 
@@ -32,7 +28,7 @@ SwSwitchWarmBootHelper::SwSwitchWarmBootHelper(
     // Make sure the warm boot directory exists.
     utilCreateDir(warmBootDir_);
 
-    canWarmBoot_ = checkAndClearWarmBootFlags();
+    canWarmBoot_ = checkAndClearWarmBootFlags(directoryUtil_, asicTable_);
 
     auto bootType = canWarmBoot_ ? "WARM" : "COLD";
     XLOG(DBG1) << "Will attempt " << bootType << " boot";
@@ -63,52 +59,14 @@ state::WarmbootState SwSwitchWarmBootHelper::getWarmBootState() const {
   return WarmBootFileUtils::getWarmBootState(warmBootThriftSwitchStateFile());
 }
 
-bool SwSwitchWarmBootHelper::checkAndClearWarmBootFlags() {
-  bool forceColdBoot = removeFile(forceColdBootOnceFlag(), true /*log*/);
-  forceColdBoot =
-      forceColdBoot || checkFileExists(forceColdBootOnceFlagLegacy());
-  bool canWarmBoot = removeFile(warmBootFlag(), true /*log*/);
-  canWarmBoot = canWarmBoot || checkFileExists(warmBootFlagLegacy());
-  if (forceColdBoot || !canWarmBoot) {
-    // cold boot was enforced or warm boot flag is absent
-    return false;
-  }
-  if (!asicTable_->isFeatureSupportedOnAllAsic(HwAsic::Feature::WARMBOOT)) {
-    // asic does not support warm boot
-    XLOG(WARNING) << "Warm boot not supported for network hardware";
-    return false;
-  }
-  // if warm boot flag is present, switch state must exist
-  CHECK(checkFileExists(warmBootThriftSwitchStateFile()));
-  // command line override
-  return FLAGS_can_warm_boot;
-}
-
-std::string SwSwitchWarmBootHelper::forceColdBootOnceFlag() const {
-  auto rc = folly::to<std::string>(warmBootDir_, "/", forceColdBootFlag);
-  CHECK_EQ(rc, AgentDirectoryUtil().getSwColdBootOnceFile(warmBootDir_));
-  return rc;
-}
-
 std::string SwSwitchWarmBootHelper::warmBootThriftSwitchStateFile() const {
   return folly::to<std::string>(
       warmBootDir_, "/", FLAGS_thrift_switch_state_file);
 }
 
-std::string SwSwitchWarmBootHelper::warmBootFlag() const {
-  return directoryUtil_->getSwSwitchCanWarmBootFile();
-}
-
 void SwSwitchWarmBootHelper::setCanWarmBoot() {
-  WarmBootFileUtils::setCanWarmBoot(warmBootFlag());
-}
-
-std::string SwSwitchWarmBootHelper::warmBootFlagLegacy() const {
-  return folly::to<std::string>(warmBootFlag(), "_0");
-}
-
-std::string SwSwitchWarmBootHelper::forceColdBootOnceFlagLegacy() const {
-  return folly::to<std::string>(forceColdBootOnceFlag(), "_0");
+  auto warmBootFlagPath = directoryUtil_->getSwSwitchCanWarmBootFile();
+  WarmBootFileUtils::setCanWarmBoot(warmBootFlagPath);
 }
 
 std::pair<std::shared_ptr<SwitchState>, std::unique_ptr<RoutingInformationBase>>

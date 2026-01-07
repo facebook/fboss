@@ -1837,6 +1837,20 @@ cpp_library(
 )
 
 cpp_library(
+    name = "file_based_warmboot_utils",
+    srcs = [
+        "FileBasedWarmbootUtils.cpp",
+    ],
+    exported_deps = [
+        ":agent_dir_util",
+        ":agent_features",
+        ":hw_asic_table",
+        "//fboss/lib:common_file_utils",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "sw_switch_warmboot_helper",
     srcs = [
         "SwSwitchWarmBootHelper.cpp",
@@ -1845,12 +1859,12 @@ cpp_library(
         ":agent_dir_util",
         ":agent_features",
         ":async_logger",
+        ":file_based_warmboot_utils",
         ":hw_asic_table",
         ":switch_state-cpp2-types",
         ":utils",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
-        "//fboss/lib:common_file_utils",
         "//fboss/lib:warm_boot_file_utils",
         "//folly:file_util",
         "//folly/logging:logging",
