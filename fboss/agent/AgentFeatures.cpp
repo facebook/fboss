@@ -390,6 +390,8 @@ DEFINE_bool(
     false,
     "Enable sending and receiving port drain state in LLDP packets");
 
+DEFINE_bool(enable_agent_drain, false, "Enable drain in wedge agent");
+
 DEFINE_bool(
     enable_state_delta_logging,
     false,
