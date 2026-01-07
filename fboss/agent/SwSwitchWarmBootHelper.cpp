@@ -4,7 +4,6 @@
 
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
-#include <iomanip>
 
 #include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/AgentFeatures.h"
@@ -69,6 +68,13 @@ void SwSwitchWarmBootHelper::setCanWarmBoot() {
   WarmBootFileUtils::setCanWarmBoot(warmBootFlagPath);
 }
 
+void SwSwitchWarmBootHelper::logBoot(
+    const std::string& bootType,
+    const std::string& sdkVersion,
+    const std::string& agentVersion) {
+  logBootHistory(directoryUtil_, bootType, sdkVersion, agentVersion);
+}
+
 std::pair<std::shared_ptr<SwitchState>, std::unique_ptr<RoutingInformationBase>>
 SwSwitchWarmBootHelper::reconstructStateAndRib(
     std::optional<state::WarmbootState> warmBootState,
@@ -95,34 +101,4 @@ SwSwitchWarmBootHelper::reconstructStateAndRib(
   return std::make_pair(state, std::move(rib));
 }
 
-void SwSwitchWarmBootHelper::logBoot(
-    const std::string& bootType,
-    const std::string& sdkVersion,
-    const std::string& agentVersion) {
-  folly::File logFile;
-  try {
-    logFile = folly::File(
-        AgentDirectoryUtil().getAgentBootHistoryLogFile(),
-        O_RDWR | O_CREAT | O_APPEND);
-  } catch (const std::system_error&) {
-    //   /var/facebook/logs/fboss/ might not exist for testing switch
-    XLOG(WARNING)
-        << "Agent boot history log failed to create under /var/facebook/logs/fboss/, using /tmp/";
-    logFile =
-        folly::File("/tmp/wedge_agent_starts.log", O_RDWR | O_CREAT | O_TRUNC);
-  }
-
-  auto now = std::chrono::system_clock::now();
-  auto timer = std::chrono::system_clock::to_time_t(now);
-  std::tm tm;
-  localtime_r(&timer, &tm);
-
-  std::ostringstream oss;
-  oss << "[ " << std::put_time(&tm, "%Y %B %d %H:%M:%S")
-      << " ]: " << "Start of a " << bootType << ", "
-      << "SDK version: " << sdkVersion << ", "
-      << "Agent version: " << agentVersion << std::endl;
-  auto ossString = oss.str();
-  folly::writeFull(logFile.fd(), ossString.c_str(), ossString.size());
-}
 } // namespace facebook::fboss

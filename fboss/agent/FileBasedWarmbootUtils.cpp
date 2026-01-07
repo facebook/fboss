@@ -2,6 +2,12 @@
 
 #include "fboss/agent/FileBasedWarmbootUtils.h"
 
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+
+#include <folly/File.h>
+#include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/AgentDirectoryUtil.h"
@@ -53,6 +59,38 @@ bool checkAndClearWarmBootFlags(
       directoryUtil->getWarmBootDir(), FLAGS_thrift_switch_state_file)));
   // command line override
   return FLAGS_can_warm_boot;
+}
+
+void logBootHistory(
+    const AgentDirectoryUtil* directoryUtil,
+    const std::string& bootType,
+    const std::string& sdkVersion,
+    const std::string& agentVersion) {
+  folly::File logFile;
+  try {
+    logFile = folly::File(
+        directoryUtil->getAgentBootHistoryLogFile(),
+        O_RDWR | O_CREAT | O_APPEND);
+  } catch (const std::system_error&) {
+    //   /var/facebook/logs/fboss/ might not exist for testing switch
+    XLOG(WARNING)
+        << "Agent boot history log failed to create under /var/facebook/logs/fboss/, using /tmp/";
+    logFile =
+        folly::File("/tmp/wedge_agent_starts.log", O_RDWR | O_CREAT | O_TRUNC);
+  }
+
+  auto now = std::chrono::system_clock::now();
+  auto timer = std::chrono::system_clock::to_time_t(now);
+  std::tm tm{};
+  localtime_r(&timer, &tm);
+
+  std::ostringstream oss;
+  oss << "[ " << std::put_time(&tm, "%Y %B %d %H:%M:%S")
+      << " ]: " << "Start of a " << bootType << ", "
+      << "SDK version: " << sdkVersion << ", "
+      << "Agent version: " << agentVersion << std::endl;
+  auto ossString = oss.str();
+  folly::writeFull(logFile.fd(), ossString.c_str(), ossString.size());
 }
 
 } // namespace facebook::fboss

@@ -1846,6 +1846,8 @@ cpp_library(
         ":agent_features",
         ":hw_asic_table",
         "//fboss/lib:common_file_utils",
+        "//folly:file",
+        "//folly:file_util",
         "//folly/logging:logging",
     ],
 )

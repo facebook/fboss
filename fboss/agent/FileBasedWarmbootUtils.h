@@ -41,4 +41,14 @@ bool checkAndClearWarmBootFlags(
     const AgentDirectoryUtil* directoryUtil,
     HwAsicTable* asicTable);
 
+/**
+ * Logs boot information (type, SDK version, agent version) to boot history
+ * file.
+ */
+void logBootHistory(
+    const AgentDirectoryUtil* directoryUtil,
+    const std::string& bootType,
+    const std::string& sdkVersion,
+    const std::string& agentVersion);
+
 } // namespace facebook::fboss
