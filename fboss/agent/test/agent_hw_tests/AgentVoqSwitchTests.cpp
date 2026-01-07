@@ -1036,12 +1036,13 @@ TEST_F(AgentVoqSwitchTest, verifyAI23ModeConfig) {
 
         // Check if AI23_mode is enabled in the config
         bool isAI23ModeEnabled =
-            configOutput.find("AI23_mode=1") != std::string::npos;
+            (configOutput.find("AI23_mode=1") != std::string::npos ||
+             configOutput.find("AI23_mode.BCM88897=3") != std::string::npos);
         XLOG(DBG2) << "Switch ID: " << switchId << ", AI23_mode enabled? "
                    << (isAI23ModeEnabled ? "yes" : "no");
 
         EXPECT_TRUE(isAI23ModeEnabled)
-            << "AI23_mode=1 is not enabled for SAI major version "
+            << "AI23_mode=1 or AI23_mode.BCM88897=3 is not enabled for SAI major version "
             << sdkMajorVersionNum << " on switch ID " << switchId;
       } else {
         XLOG(DBG2)
