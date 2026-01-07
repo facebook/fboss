@@ -771,6 +771,7 @@ add_library(sw_switch_warmboot_helper
 )
 
 target_link_libraries(sw_switch_warmboot_helper
+  agent_features
   async_logger
   fboss_error
   hw_asic_table
