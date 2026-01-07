@@ -65,6 +65,7 @@ add_library(prbs_stats_entry
 )
 
 target_link_libraries(hw_switch_warmboot_helper
+  agent_features
   async_logger
   utils
   common_file_utils

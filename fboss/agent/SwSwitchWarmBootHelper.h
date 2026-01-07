@@ -6,9 +6,6 @@
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 
-DECLARE_bool(can_warm_boot);
-DECLARE_string(thrift_switch_state_file);
-
 namespace facebook::fboss {
 
 class SwitchState;

@@ -7,6 +7,7 @@
 #include <iomanip>
 
 #include "fboss/agent/AgentDirectoryUtil.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsyncLogger.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/Utils.h"
@@ -18,12 +19,6 @@
 namespace {
 constexpr auto forceColdBootFlag = "sw_cold_boot_once";
 } // namespace
-
-DEFINE_bool(can_warm_boot, true, "Enable/disable warm boot functionality");
-DEFINE_string(
-    thrift_switch_state_file,
-    "thrift_switch_state",
-    "File for dumping switch state in serialized thrift format on exit");
 
 namespace facebook::fboss {
 
