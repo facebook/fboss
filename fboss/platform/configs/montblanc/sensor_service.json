@@ -2392,8 +2392,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_VRM1/in2_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 0.811,
-            "maxAlarmVal": 0.8,
+            "upperCriticalVal": 0.839,
+            "maxAlarmVal": 0.8289,
             "minAlarmVal": 0.7,
             "lowerCriticalVal": 0.679
           },
