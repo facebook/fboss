@@ -117,6 +117,17 @@ target_link_libraries(port_test_utils
   state
 )
 
+add_library(trunk_test_utils
+  fboss/agent/test/utils/TrunkTestUtils.cpp
+)
+
+target_link_libraries(trunk_test_utils
+  agent_hw_test_ctrl_cpp2
+  fboss_types
+  state
+  agent_ensemble
+)
+
 add_library(config_utils
   fboss/agent/test/utils/ConfigUtils.cpp
 )
@@ -131,6 +142,8 @@ target_link_libraries(config_utils
   switch_config_cpp2
   test_ensemble_if
   port_test_utils
+  trunk_test_utils
+  trunk_utils
 )
 
 add_library(asic_test_utils
@@ -155,17 +168,6 @@ target_link_libraries(qos_test_utils
   state
   test_ensemble_if
   Folly::folly
-)
-
-add_library(trunk_test_utils
-  fboss/agent/test/utils/TrunkTestUtils.cpp
-)
-
-target_link_libraries(trunk_test_utils
-  agent_hw_test_ctrl_cpp2
-  fboss_types
-  state
-  agent_ensemble
 )
 
 add_library(l2learn_observer_util
