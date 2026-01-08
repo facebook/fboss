@@ -67,3 +67,35 @@ def sandbox_tempdir(prefix: str = "test_") -> Generator[Path, None, None]:
         if tmpdir.exists():
             shutil.rmtree(tmpdir)
 
+
+
+@contextmanager
+def override_artifact_store_dir(store_dir: Path) -> Generator[None, None, None]:
+    """Temporarily override ArtifactStore.ARTIFACT_STORE_DIR for testing.
+
+    This is necessary in sandboxed test environments where the default artifact
+    store directory may be read-only. The override is automatically restored when
+    the context exits.
+
+    Args:
+        store_dir: Path to use as the artifact store directory
+
+    Yields:
+        None
+
+    Example:
+        with sandbox_tempdir("artifacts_") as tmpdir:
+            with override_artifact_store_dir(tmpdir):
+                # ArtifactStore will now use tmpdir
+                store = ArtifactStore()
+                # ... test code ...
+            # ArtifactStore.ARTIFACT_STORE_DIR is restored
+    """
+    from distro_cli.lib.artifact import ArtifactStore
+    
+    original = ArtifactStore.ARTIFACT_STORE_DIR
+    try:
+        ArtifactStore.ARTIFACT_STORE_DIR = store_dir
+        yield
+    finally:
+        ArtifactStore.ARTIFACT_STORE_DIR = original
