@@ -29,6 +29,7 @@
 #include <vector>
 
 DECLARE_bool(nodeZ);
+DECLARE_bool(hyper_port);
 
 namespace facebook::fboss {
 class PortMap;
