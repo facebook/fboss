@@ -2404,8 +2404,9 @@ void SaiPortManager::updateStats(
         curPortStats.cableLengthMeters() =
             std::ceil(cablePropogationDelayNS / 5.0);
       } catch (const SaiApiError& e) {
-        XLOG(ERR) << "Failed to get cable propogation delay for port " << portId
-                  << ": " << e.what();
+        XLOG_EVERY_MS(ERR, 10000)
+            << "Failed to get cable propogation delay for port " << portId
+            << ": " << e.what();
       }
     }
   }
