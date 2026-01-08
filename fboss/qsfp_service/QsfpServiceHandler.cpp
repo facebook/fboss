@@ -67,12 +67,6 @@ void QsfpServiceHandler::init() {
 
   XLOG(INFO) << "Initializing TransceiverManager";
   tcvrManager_->init();
-  if (FLAGS_subscribe_to_state_from_fsdb) {
-    fsdbSubscriber_ = std::make_unique<QsfpFsdbSubscriber>();
-    fsdbSubscriber_->subscribeToSwitchStatePortMap(
-        getTransceiverManager(), getPortManager());
-  }
-
   if (FLAGS_port_manager_mode) {
     XLOG(INFO) << "Initializing PortManager";
     portManager_->init();
