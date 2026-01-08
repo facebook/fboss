@@ -1915,6 +1915,7 @@ cpp_library(
     exported_deps = [
         ":agent_command_executor",
         ":agent_dir_util",
+        ":agent_features",
         ":agent_netwhoami",
         ":fboss-error",
         ":fboss_common_init",
