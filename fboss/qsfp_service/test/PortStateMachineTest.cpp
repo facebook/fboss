@@ -816,6 +816,9 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
         actualValue = stateMachine.get_attribute(isTransceiverJustRemediated);
       } else if (attrName == "needToResetToDiscovered") {
         actualValue = stateMachine.get_attribute(needToResetToDiscovered);
+      } else if (attrName == "newTransceiverInsertedAfterInit") {
+        actualValue =
+            stateMachine.get_attribute(newTransceiverInsertedAfterInit);
       } else {
         FAIL() << "Unknown attribute name: " << attrName;
         continue;
@@ -1865,6 +1868,121 @@ TEST_F(PortStateMachineTest, ensureNoFwUpgradeOnPortUpAndI2cConnectionIssues) {
         "firmware_upgrade_on_tcvr_insert", "f", gflags::SET_FLAGS_DEFAULT);
     gflags::SetCommandLineOptionWithMode(
         "firmware_upgrade_supported", "f", gflags::SET_FLAGS_DEFAULT);
+  }
+}
+
+TEST_F(PortStateMachineTest, ensureFwUpgradeOnTcvrInsertWithPortsDown) {
+  /*
+   * This test verifies that when firmware_upgrade_on_tcvr_insert and
+   * firmware_upgrade_supported flags are enabled, and a transceiver is
+   * newly inserted (after init) with all ports down, it is correctly
+   * selected as a candidate for firmware upgrade.
+   */
+  const std::string kTestName = "ensureFwUpgradeOnTcvrInsertWithPortsDown";
+
+  // We need to capture the firmware upgrade candidates during stateUpdate
+  std::unordered_set<TransceiverID> tcvrsForFwUpgrade;
+
+  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+
+    verifyStateMachine(
+        {makeStates(
+            TransceiverStateMachineState::NOT_PRESENT,
+            PortStateMachineState::UNINITIALIZED,
+            isMultiTcvr,
+            isMultiPort)},
+        makeStates(
+            TransceiverStateMachineState::DISCOVERED /* tcvr1State */,
+            PortStateMachineState::INITIALIZED /* port1State */,
+            isMultiTcvr /* isMultiTcvr */,
+            isMultiPort /* isMultiPort */) /* expected state */,
+        [this, isMultiTcvr, isMultiPort]() {
+          // Enable firmware upgrade flags
+          gflags::SetCommandLineOptionWithMode(
+              "firmware_upgrade_on_tcvr_insert",
+              "t",
+              gflags::SET_FLAGS_DEFAULT);
+          gflags::SetCommandLineOptionWithMode(
+              "firmware_upgrade_supported", "t", gflags::SET_FLAGS_DEFAULT);
+          // To avoid state expectation on i2c failure case.
+          setupProgramInternalPhyPortsFailMock(isMultiTcvr);
+          setupProgramExternalPhyPortsFailMock(isMultiTcvr);
+
+          // Mark transceiver as not present
+          setMockCmisPresence(false, isMultiTcvr);
+          setMockCmisTransceiverReady(false, isMultiTcvr);
+          detectPresence(isMultiTcvr);
+
+          // Refresh state machines a few times to let state settle
+          for (int i = 0; i < 3; i++) {
+            portManager_->refreshStateMachines();
+          }
+          assertCurrentStateEquals(makeStates(
+              TransceiverStateMachineState::TRANSCEIVER_READY /* tcvr1State */,
+              PortStateMachineState::INITIALIZED /* port1State */,
+              isMultiTcvr /* isMultiTcvr */,
+              isMultiPort /* isMultiPort */));
+
+          // Verify TransceiverManager is fully initialized
+          ASSERT_TRUE(transceiverManager_->isFullyInitialized());
+
+          // Verify all ports are down
+          auto [allPortsDown1, _] =
+              transceiverManager_->areAllPortsDown(tcvrId1_);
+          ASSERT_TRUE(allPortsDown1);
+          if (isMultiTcvr) {
+            auto [allPortsDown2, __] =
+                transceiverManager_->areAllPortsDown(tcvrId2_);
+            ASSERT_TRUE(allPortsDown2);
+          }
+        } /* preUpdate */,
+        [this, &tcvrsForFwUpgrade, isMultiTcvr]() {
+          // Mark transceiver as present (simulating insertion after init)
+          setMockCmisPresence(true, isMultiTcvr);
+          setMockCmisTransceiverReady(true, isMultiTcvr);
+
+          removeProgramInternalPhyPortsFailMock(isMultiTcvr);
+          removeProgramExternalPhyPortsFailMock(isMultiTcvr);
+
+          // Run refreshTransceivers to detect the newly inserted transceiver
+          transceiverManager_->refreshTransceivers();
+
+          // Check newTransceiverInsertedAfterInit attribute is set
+          std::map<std::string, bool> finalAttr = {
+              {"newTransceiverInsertedAfterInit", true}};
+          verifyStateMachineAttributes(isMultiTcvr, finalAttr);
+
+          // Check if transceivers are candidates for firmware upgrade
+          std::vector<TransceiverID> refreshedTcvrs{tcvrId1_};
+          if (isMultiTcvr) {
+            refreshedTcvrs.push_back(tcvrId2_);
+          }
+          tcvrsForFwUpgrade =
+              transceiverManager_->findPotentialTcvrsForFirmwareUpgrade(
+                  refreshedTcvrs);
+          // Verify that the transceivers are selected for firmware upgrade
+          ASSERT_TRUE(tcvrsForFwUpgrade.contains(tcvrId1_))
+              << "Transceiver " << tcvrId1_
+              << " should be selected for fw upgrade on insert with ports down";
+          if (isMultiTcvr) {
+            ASSERT_TRUE(tcvrsForFwUpgrade.contains(tcvrId2_))
+                << "Transceiver " << tcvrId2_
+                << " should be selected for fw upgrade on insert with ports "
+                   "down";
+          }
+        } /* stateUpdate */,
+        [this, isMultiTcvr, &tcvrsForFwUpgrade]() {
+          // Reset flags
+          gflags::SetCommandLineOptionWithMode(
+              "firmware_upgrade_on_tcvr_insert",
+              "f",
+              gflags::SET_FLAGS_DEFAULT);
+          gflags::SetCommandLineOptionWithMode(
+              "firmware_upgrade_supported", "f", gflags::SET_FLAGS_DEFAULT);
+        } /* verify */,
+        kTestName,
+        true /* isMock */);
   }
 }
 
