@@ -2584,6 +2584,96 @@ TEST_F(PortStateMachineTest, reseatTransceiver) {
   }
 }
 
+TEST_F(PortStateMachineTest, verifyOnlyPortDownIsUnsafeForRemediation) {
+  // This test verifies that updatePortActiveStatusInTransceiverManager()
+  // correctly marks ports as inactive (operState = false) ONLY when the port
+  // is in PORT_DOWN state. All other states should be considered as unsafe for
+  // remediation / fw upgrade.
+  const std::string kTestName = "verifyOnlyPortDownIsUnsafeForRemediation";
+
+  // Test port states that should be considered SAFE (operState = true)
+  // using state combinations supported by setState()
+  std::vector<std::pair<TransceiverStateMachineState, PortStateMachineState>>
+      safeStatePairs = {
+          {TransceiverStateMachineState::TRANSCEIVER_READY,
+           PortStateMachineState::UNINITIALIZED},
+          {TransceiverStateMachineState::DISCOVERED,
+           PortStateMachineState::INITIALIZED},
+          {TransceiverStateMachineState::DISCOVERED,
+           PortStateMachineState::IPHY_PORTS_PROGRAMMED},
+          {TransceiverStateMachineState::DISCOVERED,
+           PortStateMachineState::XPHY_PORTS_PROGRAMMED},
+          {TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+           PortStateMachineState::XPHY_PORTS_PROGRAMMED},
+          {TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+           PortStateMachineState::TRANSCEIVERS_PROGRAMMED},
+          {TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+           PortStateMachineState::PORT_UP},
+      };
+
+  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+    verifyStateUnchanged(
+        statePairsToStructs(safeStatePairs, isMultiTcvr, isMultiPort),
+        []() {} /* preUpdate */,
+        [this]() {
+          portManager_->updatePortActiveStatusInTransceiverManager();
+        } /* stateUpdate */,
+        [this, isMultiTcvr]() {
+          auto [allPortsDown, downPorts] =
+              transceiverManager_->areAllPortsDown(tcvrId1_);
+          EXPECT_FALSE(allPortsDown)
+              << "Non-PORT_DOWN states should NOT be considered as port down.";
+          EXPECT_TRUE(downPorts.empty())
+              << "Non-PORT_DOWN states should NOT have any down ports.";
+
+          if (isMultiTcvr) {
+            auto [allPortsDown2, downPorts2] =
+                transceiverManager_->areAllPortsDown(tcvrId2_);
+            EXPECT_FALSE(allPortsDown2)
+                << "Non-PORT_DOWN states should NOT be considered as port down for tcvr2.";
+            EXPECT_TRUE(downPorts2.empty())
+                << "Non-PORT_DOWN states should NOT have any down ports for tcvr2.";
+          }
+        } /* verify */,
+        kTestName + "_safe_states",
+        true /* isMock */);
+  }
+
+  // Test PORT_DOWN which should be the ONLY state considered unsafe
+  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+    verifyStateUnchanged(
+        {makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_DOWN,
+            isMultiTcvr,
+            isMultiPort)},
+        []() {} /* preUpdate */,
+        [this]() {
+          portManager_->updatePortActiveStatusInTransceiverManager();
+        } /* stateUpdate */,
+        [this, isMultiTcvr, isMultiPort]() {
+          auto [allPortsDown, downPorts] =
+              transceiverManager_->areAllPortsDown(tcvrId1_);
+          EXPECT_TRUE(allPortsDown)
+              << "PORT_DOWN should be considered as port down.";
+          int expectedDownPorts = isMultiPort ? 2 : 1;
+          EXPECT_EQ(downPorts.size(), expectedDownPorts)
+              << "PORT_DOWN should report all ports as down.";
+
+          if (isMultiTcvr) {
+            auto [allPortsDown2, downPorts2] =
+                transceiverManager_->areAllPortsDown(tcvrId2_);
+            EXPECT_TRUE(allPortsDown2)
+                << "PORT_DOWN should be considered as port down for tcvr2.";
+            EXPECT_EQ(downPorts2.size(), 1)
+                << "PORT_DOWN should report port as down for tcvr2.";
+          }
+        } /* verify */,
+        kTestName + "_PORT_DOWN_is_unsafe",
+        true /* isMock */);
+  }
+}
+
 TEST_F(PortStateMachineTest, agentDisableEnablePort) {
   std::string kTestName = "agentDisableEnablePort";
   for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
