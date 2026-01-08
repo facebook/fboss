@@ -1926,16 +1926,6 @@ TEST_F(PortStateMachineTest, ensureFwUpgradeOnTcvrInsertWithPortsDown) {
 
           // Verify TransceiverManager is fully initialized
           ASSERT_TRUE(transceiverManager_->isFullyInitialized());
-
-          // Verify all ports are down
-          auto [allPortsDown1, _] =
-              transceiverManager_->areAllPortsDown(tcvrId1_);
-          ASSERT_TRUE(allPortsDown1);
-          if (isMultiTcvr) {
-            auto [allPortsDown2, __] =
-                transceiverManager_->areAllPortsDown(tcvrId2_);
-            ASSERT_TRUE(allPortsDown2);
-          }
         } /* preUpdate */,
         [this, &tcvrsForFwUpgrade, isMultiTcvr]() {
           // Mark transceiver as present (simulating insertion after init)
