@@ -119,6 +119,16 @@ python3 -m unittest discover -s tests -p '*_test.py'
 python3 -m unittest tests.cli_test
 ```
 
+#### With CMake
+
+```bash
+# Build and run all tests
+cmake --build . --target distro_cli_tests
+
+# Run via CTest
+ctest -R distro_cli -V
+```
+
 ### Linting
 
 ```bash
