@@ -147,10 +147,18 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
     programDefaultRoutes(ecmpHelper6);
     programDefaultRoutes(ecmpHelper4);
 
+    auto checkNhop = [this](const auto& nhop) {
+      auto port = getProgrammedState()->getPort(nhop.portDesc.phyPortID());
+      bool isHyperPort = (port->getPortType() == cfg::PortType::HYPER_PORT);
+      ASSERT_EQ(isHyperPort, FLAGS_hyper_port);
+    };
+
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      checkNhop(ecmpHelper6.nhop(0));
       return ecmpHelper6.resolveNextHops(in, {ecmpHelper6.nhop(0).portDesc});
     });
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      checkNhop(ecmpHelper4.nhop(0));
       return ecmpHelper4.resolveNextHops(in, {ecmpHelper4.nhop(0).portDesc});
     });
     CHECK_EQ(ecmpHelper4.nhop(0).portDesc, ecmpHelper6.nhop(0).portDesc);
