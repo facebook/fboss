@@ -18,6 +18,10 @@ jobs:
       - name: Run fboss-image build
         run: ./fboss-image/distro_cli/fboss-image build fboss-image/from_source.json
 
+      - name: Run distro_cli tests
+        run: |
+          docker exec ${USER}-fboss-image-builder ctest -R distro_cli -V
+
       - name: Cleanup
         if: always()
         run: |
