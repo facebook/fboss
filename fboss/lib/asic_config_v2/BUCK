@@ -68,8 +68,9 @@ python_binary(
         ":montblanc",
         ":wedge800bact",
         "//fboss/agent/hw/config:asic_config_v2-python-types",
-        "//fboss/lib/if:fboss_common-python-types",
-        "//thrift/lib/python:types",
+        "//fboss/lib/if:fboss_common-py-deprecated",
+        "//thrift/lib/py:server_base",
+        "//thrift/lib/py/util:py_util",
     ],
 )
 
@@ -126,6 +127,6 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         "//fboss/agent/hw/config:asic_config_v2-python-types",
-        "//fboss/lib/if:fboss_common-python-types",
+        "//fboss/lib/if:fboss_common-py-deprecated",
     ],
 )

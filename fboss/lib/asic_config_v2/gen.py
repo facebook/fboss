@@ -13,8 +13,8 @@ from fboss.lib.asic_config_v2.icecube800bc import gen_icecube800bc_asic_config
 
 from fboss.lib.asic_config_v2.montblanc import gen_montblanc_asic_config
 from fboss.lib.asic_config_v2.wedge800bact import gen_wedge800bact_asic_config
-from neteng.fboss.fboss_common.thrift_types import PlatformType
-from thrift.python.serializer import Protocol, serialize
+from neteng.fboss.fboss_common.ttypes import PlatformType
+from thrift.util import Serializer
 
 _PLATFORM_TO_ASIC_CONFIG_FUNC: Dict[PlatformType, Any] = {
     PlatformType.PLATFORM_ICECUBE800BC: gen_icecube800bc_asic_config,
@@ -24,6 +24,8 @@ _PLATFORM_TO_ASIC_CONFIG_FUNC: Dict[PlatformType, Any] = {
 
 _FBOSS_DIR: str = os.getcwd() + "/fboss"
 OUTPUT_DIR: str = f"{_FBOSS_DIR}/lib/asic_config_v2/generated_asic_configs"
+
+from thrift.protocol import TSimpleJSONProtocol
 
 
 def generate_all_asic_configs() -> None:
@@ -37,7 +39,9 @@ def generate_all_asic_configs() -> None:
         if platform not in _PLATFORM_TO_ASIC_CONFIG_FUNC:
             continue
         # Convert PLATFORM_ICECUBE800BC -> icecube800bc
-        platform_str = platform.name.replace("PLATFORM_", "").lower()
+        platform_str = (
+            PlatformType._VALUES_TO_NAMES[platform].replace("PLATFORM_", "").lower()
+        )
         asic_config_func = _PLATFORM_TO_ASIC_CONFIG_FUNC[platform]
         for config_name, config_data in asic_config_map.items():
             deepcopy_config_data = config_data.copy()
@@ -70,7 +74,9 @@ def generate_all_asic_configs() -> None:
                     file.write(file_contents)
             else:
                 thrift_contents = asic_config.export()
-                serialized = serialize(thrift_contents, protocol=Protocol.JSON)
+                serialized = Serializer.serialize(
+                    TSimpleJSONProtocol.TSimpleJSONProtocolFactory(), thrift_contents
+                )
                 # Parse the serialized JSON and format it with indentation
                 json_data = json.loads(serialized.decode("utf-8"))
                 prettified_json = json.dumps(json_data, indent=2)
