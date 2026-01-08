@@ -1455,7 +1455,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -2172,7 +2171,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -2889,7 +2887,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -3606,7 +3603,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -4323,7 +4319,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -5040,7 +5035,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -5757,7 +5751,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -6474,7 +6467,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -7171,7 +7163,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -7828,7 +7819,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
