@@ -2723,4 +2723,88 @@ TEST_F(PortStateMachineTest, agentDisableEnablePort) {
         true /* isMock */);
   }
 }
+
+// This test verifies that when remediation is ENABLED, coldboot config changes
+// do NOT trigger remediation on transceivers that are already programmed with
+// ports up. The transceiver should remain in TRANSCEIVER_PROGRAMMED / PORT_UP
+// state after the config change and refresh cycles.
+TEST_F(PortStateMachineTest, agentConfigChangedColdBootNoRemediationOnPortUp) {
+  const std::string kTestName =
+      "agentConfigChangedColdBootNoRemediationOnPortUp";
+  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+
+    verifyStateUnchanged(
+        {makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_UP,
+            isMultiTcvr /* isMultiTcvr */,
+            isMultiPort /* isMultiPort */)},
+        [this]() {
+          // Enable remediation (remove pause) - this is key to the test
+          transceiverManager_->setPauseRemediation(0, nullptr /* evb */);
+          sleep(1);
+        } /* preUpdate */,
+        [this, isMultiTcvr]() {
+          triggerAgentConfigChanged(true /* isAgentColdBoot */);
+          for (int i = 0; i < 5; i++) {
+            portManager_->refreshStateMachines();
+            std::map<std::string, bool> expectedAttrValues = {
+                {"isTransceiverJustRemediated", false}};
+            verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
+          }
+        } /* stateUpdate */,
+        [this, isMultiTcvr]() {
+          // Verify that remediation was NOT triggered even though it's enabled
+          std::map<std::string, bool> expectedAttrValues = {
+              {"isTransceiverProgrammed", true},
+              {"isTransceiverJustRemediated", false}};
+          verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
+        } /* verify */,
+        kTestName,
+        true /* isMock */);
+  }
+}
+
+// This test verifies that when remediation is ENABLED, warmboot config changes
+// do NOT trigger remediation on transceivers that are already programmed with
+// ports up. The transceiver should remain in TRANSCEIVER_PROGRAMMED / PORT_UP
+// state after the config change and refresh cycles.
+TEST_F(PortStateMachineTest, agentConfigChangedWarmBootNoRemediationOnPortUp) {
+  const std::string kTestName =
+      "agentConfigChangedWarmBootNoRemediationOnPortUp";
+  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+
+    verifyStateUnchanged(
+        {makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_UP,
+            isMultiTcvr /* isMultiTcvr */,
+            isMultiPort /* isMultiPort */)},
+        [this]() {
+          // Enable remediation (remove pause) - this is key to the test
+          transceiverManager_->setPauseRemediation(0, nullptr /* evb */);
+          sleep(1);
+        } /* preUpdate */,
+        [this, isMultiTcvr]() {
+          triggerAgentConfigChanged(false /* isAgentColdBoot */);
+          for (int i = 0; i < 5; i++) {
+            portManager_->refreshStateMachines();
+            std::map<std::string, bool> expectedAttrValues = {
+                {"isTransceiverJustRemediated", false}};
+            verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
+          }
+        } /* stateUpdate */,
+        [this, isMultiTcvr]() {
+          // Verify that remediation was NOT triggered even though it's enabled
+          std::map<std::string, bool> expectedAttrValues = {
+              {"isTransceiverProgrammed", true},
+              {"isTransceiverJustRemediated", false}};
+          verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
+        } /* verify */,
+        kTestName,
+        true /* isMock */);
+  }
+}
 } // namespace facebook::fboss
