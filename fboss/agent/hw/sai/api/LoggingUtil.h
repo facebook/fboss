@@ -448,6 +448,24 @@ struct formatter<facebook::fboss::AclEntryAction<T>> {
   }
 };
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+// Formatting for SaiJsonString
+template <>
+struct formatter<facebook::fboss::SaiJsonString> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const facebook::fboss::SaiJsonString& jsonString,
+      FormatContext& ctx) const {
+    return format_to(ctx.out(), "{}", jsonString.str());
+  }
+};
+#endif
+
 // Formatting for sai_u32_range_t
 template <>
 struct formatter<sai_u32_range_t> {
