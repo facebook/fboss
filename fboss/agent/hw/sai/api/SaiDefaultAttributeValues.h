@@ -227,12 +227,4 @@ using SaiObjectIdListDefault = SaiListDefault<sai_object_list_t>;
 using SaiU32ListDefault = SaiListDefault<sai_u32_list_t>;
 using SaiS8ListDefault = SaiListDefault<sai_s8_list_t>;
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
-struct SaiJsonDefault {
-  SaiJsonString operator()() const {
-    return SaiJsonString{};
-  }
-};
-#endif
-
 } // namespace facebook::fboss
