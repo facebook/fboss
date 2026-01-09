@@ -73,6 +73,7 @@ cpp_unittest(
         "CmdConfigSessionDiffTest.cpp",
         "CmdConfigSessionTest.cpp",
         "CmdGetPcapTest.cpp",
+        "CmdListConfigTest.cpp",
         "CmdSetPortStateTest.cpp",
         "CmdShowAclTest.cpp",
         "CmdShowAgentSslTest.cpp",
