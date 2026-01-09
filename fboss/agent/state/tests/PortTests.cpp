@@ -44,6 +44,8 @@ void prepareDefaultSwPort(Platform* platform, shared_ptr<Port> port) {
   }
   port->resetPinConfigs(
       platform->getPlatformMapping()->getPortIphyPinConfigs(matcher));
+  port->setSerdesCustomCollection(
+      platform->getPlatformMapping()->getPortSerdesCustomCollection(matcher));
 }
 
 HwSwitchMatcher scope() {
