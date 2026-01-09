@@ -936,13 +936,18 @@ cfg::SwitchConfig genPortVlanCfg(
   CHECK_GT(portToDefaultProfileID.size(), 0);
   const auto& platformPorts = platformMapping->getPlatformPorts();
   for (auto const& [portID, profileID] : portToDefaultProfileID) {
-    if (!FLAGS_hide_fabric_ports ||
-        *platformPorts.find(static_cast<int32_t>(portID))
-                ->second.mapping()
-                ->portType() != cfg::PortType::FABRIC_PORT) {
-      config.ports()->push_back(
-          createDefaultPortConfig(platformMapping, asic, portID, profileID));
+    if ((FLAGS_hide_fabric_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::FABRIC_PORT) ||
+        (FLAGS_hide_interface_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::INTERFACE_PORT)) {
+      continue;
     }
+    config.ports()->push_back(
+        createDefaultPortConfig(platformMapping, asic, portID, profileID));
   }
   auto const kFabricTxQueueConfig = "FabricTxQueueConfig";
   config.portQueueConfigs()[kFabricTxQueueConfig] = getFabTxQueueConfig();
