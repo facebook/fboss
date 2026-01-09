@@ -211,12 +211,12 @@ createQsfpManagers() {
   if (FLAGS_port_manager_mode) {
     // When port_manager_mode is enabled, we want Port Manager to own the
     // PhyManager.
-    portManager = std::make_unique<PortManager>(
+    portManager = createPortManager(
+        platformType,
         wedgeManager.get(),
         std::move(phyManager),
         platformMapping,
-        threads,
-        wedgeManager->getFsdbSyncManager());
+        threads);
   } else {
     if (phyManager) {
       wedgeManager->setPhyManager(std::move(phyManager));

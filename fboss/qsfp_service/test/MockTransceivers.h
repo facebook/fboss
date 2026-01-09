@@ -46,7 +46,7 @@ class MockSff8472Module : public Sff8472Module {
   MOCK_METHOD1(
       ensureRxOutputSquelchEnabled,
       void(const std::vector<HostLaneSettings>&));
-  MOCK_METHOD0(resetDataPath, void());
+  MOCK_METHOD1(resetDataPath, void(const std::string&));
   MOCK_METHOD1(updateCachedTransceiverInfoLocked, void(ModuleStatus));
   MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
 };
@@ -101,7 +101,7 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD1(
       ensureRxOutputSquelchEnabled,
       void(const std::vector<HostLaneSettings>&));
-  MOCK_METHOD0(resetDataPath, void());
+  MOCK_METHOD1(resetDataPath, void(const std::string&));
   MOCK_METHOD1(updateQsfpData, void(bool));
   MOCK_METHOD1(updateCachedTransceiverInfoLocked, void(ModuleStatus));
   MOCK_CONST_METHOD0(ensureOutOfReset, void());

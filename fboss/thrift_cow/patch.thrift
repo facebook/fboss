@@ -1,6 +1,9 @@
 include "thrift/annotation/thrift.thrift"
 include "thrift/annotation/cpp.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace py3 neteng.fboss.thrift_cow
 namespace py neteng.fboss.thrift_cow.patch
 namespace py.asyncio neteng.fboss.asyncio.thrift_cow.patch

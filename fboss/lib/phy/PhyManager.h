@@ -355,7 +355,7 @@ class PhyManager {
   }
 
   // Number of slot in the platform
-  int numOfSlot_;
+  int numOfSlot_{0};
 
   // Since we're planning to allow PhyManager to use SW PortID to change
   // the xphy config for a FBOSS port, and current PlatformMapping has this

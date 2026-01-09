@@ -219,6 +219,7 @@ void HwTestThriftHandler::triggerParityError() {
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       triggerCiscoParityError(hwSwitch_);
       break;
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:

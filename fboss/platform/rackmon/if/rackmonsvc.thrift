@@ -6,6 +6,9 @@ namespace hack Rackmonsvc
 include "fboss/agent/if/fboss.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 /*
  * Please refer to below document for the Modbus protocal and terms:
  * https://modbus.org/docs/Modbus_Application_Protocol_V1_1b.pdf
@@ -254,6 +257,37 @@ struct PowerLossSiren {
   3: PowerPortStatus port3;
 }
 
+/*
+ * Request to send a raw Modbus command.
+ * This allows sending vendor-specific commands (e.g., MEI commands for
+ * firmware updates) that don't fit the standard Modbus register model.
+ */
+struct RawCommandRequest {
+  /* Raw Modbus command bytes (without CRC - will be added automatically).
+     Should include device address and function code. */
+  1: list<byte> cmd;
+
+  /* Expected response length in bytes (including CRC). */
+  2: i32 responseLength;
+
+  /* Optional timeout in milliseconds. */
+  3: optional i32 timeout;
+
+  /* Can be either of ModbusDeviceInfo.devAddress (if address is unique to
+     the system) or ModbusDeviceInfo.uniqueDevAddress (Recommended). */
+  4: optional i16 uniqueDevAddress;
+}
+
+/*
+ * Response from a raw Modbus command.
+ */
+struct RawCommandResponse {
+  1: RackmonStatusCode status;
+
+  /* Raw response bytes (excluding CRC). Empty if status is not SUCCESS. */
+  2: list<byte> data;
+}
+
 service RackmonCtrl {
   /*
    * List the summary of all the detected Modbus devices.
@@ -325,4 +359,13 @@ service RackmonCtrl {
    * Get the status of 6 Power Loss GPIO pins (3 RS485 ports, 2 pins per port).
    */
   PowerLossSiren getPowerLossSiren() throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Send a raw Modbus command to a device.
+   * This allows sending vendor-specific commands that don't fit the standard
+   * Modbus register model (e.g., MEI commands for firmware updates).
+   */
+  RawCommandResponse sendRawCommand(1: RawCommandRequest req) throws (
+    1: fboss.FbossBaseError error,
+  );
 }

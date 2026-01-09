@@ -54,6 +54,11 @@ class SwSwitchHandlerTest : public ::testing::Test {
     sw_->getHwSwitchHandler()->start();
   }
 
+  void TearDown() override {
+    sw_->getHwSwitchHandler()->stop();
+    sw_.reset();
+  }
+
  protected:
   AgentConfig createAgentConfig() {
     auto config = testConfigB();
@@ -603,6 +608,7 @@ TEST_F(SwSwitchHandlerTest, switchRunStateTest) {
   std::vector<StateDelta> deltas;
   deltas.emplace_back(stateV0, stateV1);
   auto delta = StateDelta(stateV0, stateV1);
+  auto operDeltaExpected = delta.getOperDelta();
   auto checkState = [&](auto state,
                         std::optional<int32_t> switchId = std::nullopt) {
     WITH_RETRIES({
@@ -616,7 +622,18 @@ TEST_F(SwSwitchHandlerTest, switchRunStateTest) {
     });
   };
   checkState(SwitchRunState::UNINITIALIZED);
-  getHwSwitchHandler()->stateChanged(deltas, true);
+
+  // Setup initial state before clients connect to enable INITIALIZED state
+  getHwSwitchHandler()->connected(SwitchID(1));
+  getHwSwitchHandler()->connected(SwitchID(2));
+  sw_->init(HwWriteBehavior::WRITE, SwitchFlags::DEFAULT);
+  sw_->initialConfigApplied(std::chrono::steady_clock::now());
+  getHwSwitchHandler()->stateChanged(
+      StateDelta(std::make_shared<SwitchState>(), sw_->getState()), false);
+
+  auto initialSyncExpected =
+      StateDelta(std::make_shared<SwitchState>(), sw_->getState())
+          .getOperDelta();
 
   std::thread stateUpdateThread([this,
                                  &delta,
@@ -636,39 +653,42 @@ TEST_F(SwSwitchHandlerTest, switchRunStateTest) {
     getHwSwitchHandler()->stop();
   });
 
-  auto clientThreadBody =
-      [this, &delta, &client1StartBaton, &client2StartBaton](int64_t switchId) {
-        int64_t ackNum{0};
-        OperDeltaFilter filter((SwitchID(switchId)));
-        // connect and get next state delta
-        auto getEmptyOper = []() {
-          auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
-          operDelta->operDeltas() = {fsdb::OperDelta()};
-          return operDelta;
-        };
-        auto operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-            switchId, getEmptyOper(), ackNum++);
-        EXPECT_EQ(
-            operDelta.operDeltas()->back(),
-            *filter.filterWithSwitchStateRootPath(delta.getOperDelta()));
-        if (switchId == 1) {
-          client1StartBaton.wait();
-        } else {
-          client2StartBaton.wait();
-        }
-        // request next state delta. the empty oper passed serves as success
-        // indicator for previous delta
-        operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-            switchId, getEmptyOper(), ackNum++);
-        EXPECT_EQ(
-            operDelta.operDeltas()->back(),
-            *filter.filterWithSwitchStateRootPath(delta.getOperDelta()));
-        // this request will be cancelled
-        operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-            switchId, getEmptyOper(), ackNum++);
-        // this request will be cancelled
-        EXPECT_EQ(operDelta.operDeltas()->size(), 0);
-      };
+  auto clientThreadBody = [this,
+                           &initialSyncExpected,
+                           &operDeltaExpected,
+                           &client1StartBaton,
+                           &client2StartBaton](int64_t switchId) {
+    int64_t ackNum{0};
+    OperDeltaFilter filter((SwitchID(switchId)));
+    // connect and get next state delta
+    auto getEmptyOper = []() {
+      auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
+      operDelta->operDeltas() = {fsdb::OperDelta()};
+      return operDelta;
+    };
+    auto operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+        switchId, getEmptyOper(), ackNum++);
+    EXPECT_EQ(
+        operDelta.operDeltas()->back(),
+        *filter.filterWithSwitchStateRootPath(initialSyncExpected));
+    if (switchId == 1) {
+      client1StartBaton.wait();
+    } else {
+      client2StartBaton.wait();
+    }
+    // request next state delta. the empty oper passed serves as success
+    // indicator for previous delta
+    operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+        switchId, getEmptyOper(), ackNum++);
+    EXPECT_EQ(
+        operDelta.operDeltas()->back(),
+        *filter.filterWithSwitchStateRootPath(operDeltaExpected));
+    // this request will be cancelled
+    operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+        switchId, getEmptyOper(), ackNum++);
+    // this request will be cancelled
+    EXPECT_EQ(operDelta.operDeltas()->size(), 0);
+  };
 
   std::thread clientRequestThread1([&]() { clientThreadBody(1); });
   std::thread clientRequestThread2([&]() { clientThreadBody(2); });

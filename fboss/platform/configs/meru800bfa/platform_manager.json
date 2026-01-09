@@ -80,12 +80,18 @@
             }
           ],
           "spiMasterConfigs": [],
-          "xcvrCtrlConfigs": [],
           "infoRomConfigs": [
             {
               "pmUnitScopedName": "SCM_FPGA_INFO_ROM",
               "deviceName": "fpga_info_iob",
               "csrOffset": "0x100"
+            }
+          ],
+          "miscCtrlConfigs": [
+            {
+              "pmUnitScopedName": "SCM_ADC",
+              "deviceName": "adc",
+              "csrOffset": "0x7300"
             }
           ]
         }

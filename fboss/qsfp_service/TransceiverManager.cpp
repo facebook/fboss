@@ -291,7 +291,7 @@ void TransceiverManager::init() {
   startThreads();
 
   // Initialize the PhyManager all ExternalPhy for the system
-  initExternalPhyMap();
+  initExternalPhyMap(phyManager_.get());
   // Initialize the I2c bus
   initTransceiverMap();
 
@@ -2885,6 +2885,11 @@ void TransceiverManager::setCanWarmBoot() {
 }
 
 void TransceiverManager::restoreWarmBootPhyState() {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("restoreWarmbootPhyState");
+    return;
+  }
+
   // Only need to restore warm boot state if this is a warm boot
   if (!canWarmBoot_) {
     XLOG(INFO) << "[Cold Boot] No need to restore warm boot state";
@@ -3573,8 +3578,8 @@ void TransceiverManager::getSymbolErrorHistogram(
 std::map<uint32_t, phy::PhyIDInfo> TransceiverManager::getAllPortPhyInfo() {
   std::map<uint32_t, phy::PhyIDInfo> resultMap;
 
-  auto allPlatformPortsIt = platformMapping_->getPlatformPorts();
-  for (auto platformPortIt : allPlatformPortsIt) {
+  const auto& allPlatformPortsIt = platformMapping_->getPlatformPorts();
+  for (const auto& platformPortIt : allPlatformPortsIt) {
     auto portId = platformPortIt.first;
     GlobalXphyID xphyId;
     try {

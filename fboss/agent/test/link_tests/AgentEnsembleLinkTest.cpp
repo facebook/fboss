@@ -61,8 +61,6 @@ long swAgentMemThreshold(facebook::fboss::PlatformType platform) {
     case facebook::fboss::PlatformType::PLATFORM_DARWIN48V:
     case facebook::fboss::PlatformType::PLATFORM_MINIPACK:
     case facebook::fboss::PlatformType::PLATFORM_YAMP:
-    case facebook::fboss::PlatformType::PLATFORM_FUJI:
-    case facebook::fboss::PlatformType::PLATFORM_ELBERT:
       return 3 * 1000 * 1000 * 1000L; // 3GB
     case facebook::fboss::PlatformType::PLATFORM_MORGAN800CC:
       return 5 * 1000 * 1000 * 1000L; // 5GB
@@ -570,6 +568,10 @@ void AgentEnsembleLinkTest::logLinkDbgMessage(
   std::map<std::string, phy::PhyInfo> xPhyInfos;
   std::map<int32_t, TransceiverInfo> tcvrInfos;
 
+  auto cabledTcvrPorts = getCabledTransceiverPorts();
+  std::unordered_set<PortID> cabledTcvrPortSet(
+      cabledTcvrPorts.begin(), cabledTcvrPorts.end());
+
   try {
     qsfpServiceClient->sync_getInterfacePhyInfo(xPhyInfos, portNames);
   } catch (const std::exception& ex) {
@@ -579,6 +581,9 @@ void AgentEnsembleLinkTest::logLinkDbgMessage(
 
   std::vector<int32_t> tcvrIds;
   for (auto portID : portIDs) {
+    if (!cabledTcvrPortSet.contains(portID)) {
+      continue;
+    }
     tcvrIds.push_back(
         getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(portID));
   }
@@ -607,6 +612,9 @@ void AgentEnsembleLinkTest::logLinkDbgMessage(
       XLOG(ERR) << "XPHY info missing for " << portName;
     }
 
+    if (!cabledTcvrPortSet.contains(portID)) {
+      continue;
+    }
     auto tcvrId =
         getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(portID);
     if (tcvrInfos.find(tcvrId) != tcvrInfos.end()) {

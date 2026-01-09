@@ -35,5 +35,15 @@ all_params: Dict[PlatformType, Dict[str, Any]] = {
             ),
         }
     },
+    PlatformType.PLATFORM_WEDGE800BACT: {
+        "base": {
+            "asic_config_params": asic_config_thrift.AsicConfigParameters(
+                configType=asic_config_thrift.AsicConfigType.YAML_CONFIG,
+                exactMatch=False,
+                mmuLossless=False,
+                configGenType=asic_config_thrift.AsicConfigGenType.DEFAULT,
+            ),
+        },
+    },
     PlatformType.PLATFORM_MINIPACK3N: {},
 }

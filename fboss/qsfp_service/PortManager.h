@@ -218,6 +218,8 @@ class PortManager {
       TransceiverID tcvrId,
       bool xPhyNeedResetDataPath);
 
+  virtual std::map<uint32_t, phy::PhyIDInfo> getAllPortPhyInfo();
+
   phy::PhyInfo getPhyInfo(const std::string& portName);
 
   // TEST ONLY
@@ -363,10 +365,7 @@ class PortManager {
       std::map<int32_t, PortStateMachineState>& states,
       std::unique_ptr<std::vector<int32_t>> ids);
 
-  /*
-   * function to initialize all the Phy in the system
-   */
-  bool initExternalPhyMap(bool forceWarmboot = false);
+  virtual void initExternalPhyMap(bool forceWarmboot = false);
 
  protected:
   void publishLinkSnapshots(PortID portId);

@@ -111,6 +111,22 @@
     "wedge400c": [
         
     ],
+    "wedge800bact": [
+        7,
+        8
+    ],
+    "wedge800bnhp": [
+        7,
+        8
+    ],
+    "wedge800cact": [
+        7,
+        8
+    ],
+    "wedge800cnhp": [
+        7,
+        8
+    ],
     "yamp_8x16Q": [
         1,
         2,
@@ -230,6 +246,22 @@
     ],
     "wedge400c": [
         
+    ],
+    "wedge800bact": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "wedge800bnhp": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "wedge800cact": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "wedge800cnhp": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
     ],
     "yamp_8x16Q": [
         "EXTERNAL_PHY",

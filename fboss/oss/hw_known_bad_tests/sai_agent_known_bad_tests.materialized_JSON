@@ -3629,12 +3629,6 @@
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
-        },
-        {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
         },
         {
@@ -3971,12 +3965,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -7040,12 +7028,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         }
     ],
     "brcm/13.0_ea_odp/13.0_ea_odp/tomahawk5/multi_switch": [
@@ -7378,12 +7360,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -10456,12 +10432,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5/multi_switch": [
@@ -10794,12 +10764,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -15196,12 +15160,6 @@
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
-        },
-        {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastToMidPriQ$"
         },
         {
@@ -15422,6 +15380,12 @@
         },
         {
           "test_name_regex": "warm_boot.AgentTrunkTest.TrunkMemberPortDownMinLinksViolated$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar/multi_switch": [
@@ -15439,12 +15403,6 @@
         },
         {
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
-        },
-        {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastToMidPriQ$"
@@ -15873,6 +15831,12 @@
         },
         {
           "test_name_regex": "warm_boot.AgentTrunkTest.TrunkMemberPortDownMinLinksViolated$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/gibraltar/multi_switch": [
@@ -17103,6 +17067,175 @@
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
         }
     ],
+    "leaba/25.11.5210/25.11.5210/graphene202x/mono": [
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
+        },
+        {
+          "test_name_regex": "AgentCoppQueueStuckTest.CpuQueueHighRateTraffic$"
+        },
+        {
+          "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningMacMoveTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgress.*$"
+        },
+        {
+          "test_name_regex": "AgentHwAclQualifierTest.AclVlanIDQualifier$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentTunnelMgrTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentTunnelMgrTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentNeighborResolutionOverFlowTest.neighborResolutionOverFlow$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendTest.ArpRequestToFrontPanelPortSwitched$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentRouteTest/[01].StaticIp2MplsRoutes$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
+        }
+    ],
+    "leaba/25.11.5210/25.11.5210/graphene202x/multi_switch": [
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
+        },
+        {
+          "test_name_regex": "AgentCoppQueueStuckTest.CpuQueueHighRateTraffic$"
+        },
+        {
+          "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningMacMoveTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgress.*$"
+        },
+        {
+          "test_name_regex": "AgentHwAclQualifierTest.AclVlanIDQualifier$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentTunnelMgrTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentTunnelMgrTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentNeighborResolutionOverFlowTest.neighborResolutionOverFlow$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendTest.ArpRequestToFrontPanelPortSwitched$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentRouteTest/[01].StaticIp2MplsRoutes$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
+        }
+    ],
     "leaba/25.5.5210/25.5.5210/gibraltar/mono": [
         {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
@@ -17307,6 +17440,12 @@
         },
         {
           "test_name_regex": "warm_boot.AgentTrunkTest.TrunkMemberPortDownMinLinksViolated$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
         }
     ],
     "leaba/25.5.5210/25.5.5210/gibraltar/multi_switch": [

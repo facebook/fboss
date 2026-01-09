@@ -15,6 +15,7 @@
 
 #include <boost/assign.hpp>
 
+#include <folly/Format.h>
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
@@ -887,7 +888,7 @@ folly::Future<bool> QsfpModule::futureRefresh() {
     }
   }
 
-  return via(i2cEvb).thenValue([&](auto&&) mutable {
+  return via(i2cEvb).thenValue([this](auto&&) mutable {
     try {
       this->refresh();
       return true;
@@ -1224,8 +1225,8 @@ QsfpModule::futureReadTransceiver(TransceiverIOParameters param) {
     return std::make_pair(id, readTransceiver(param));
   }
   // As with all the other i2c transactions, run in the i2c event base thread
-  return via(i2cEvb).thenValue([&, param, id](auto&&) mutable {
-    return std::make_pair(id, readTransceiver(param));
+  return via(i2cEvb).thenValue([this, param, id](auto&&) mutable {
+    return std::make_pair(id, this->readTransceiver(param));
   });
 }
 
@@ -1282,8 +1283,8 @@ folly::Future<std::pair<int32_t, bool>> QsfpModule::futureWriteTransceiver(
     return std::make_pair(id, writeTransceiver(param, data.data()));
   }
   // As with all the other i2c transactions, run in the i2c event base thread
-  return via(i2cEvb).thenValue([&, param, id, data](auto&&) mutable {
-    return std::make_pair(id, writeTransceiver(param, data.data()));
+  return via(i2cEvb).thenValue([this, param, id, data](auto&&) mutable {
+    return std::make_pair(id, this->writeTransceiver(param, data.data()));
   });
 }
 
@@ -1459,7 +1460,9 @@ void QsfpModule::programTransceiver(
       }
 
       if (needResetDataPath) {
-        resetDataPath();
+        XLOG(INFO) << fmt::format(
+            "Transceiver {:s}: Resetting data path", getNameString());
+        resetDataPath(getNameString());
       }
 
       // Since we're touching the transceiver, we need to update the cached

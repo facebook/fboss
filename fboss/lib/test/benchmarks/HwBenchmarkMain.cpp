@@ -22,7 +22,6 @@
 const int64_t kUsecPerSecond = 1000000;
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
-DECLARE_int64(bm_max_iters);
 
 DEFINE_bool(
     setup_for_warmboot,

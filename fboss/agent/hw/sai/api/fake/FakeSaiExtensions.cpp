@@ -137,6 +137,11 @@ SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxReachWrapper::operator()() {
+  return SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_REACH;
+}
+
 std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
     AttributeRxAfeAdaptiveEnableWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_ADAPTIVE_ENABLE;
@@ -454,7 +459,12 @@ SaiSwitchTraits::Attributes::AttributeNoAclsForTrapsWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiTxPacketTraits::Attributes::AttributePacketType::operator()() {
-  return std::nullopt;
+  return SAI_HOSTIF_PACKET_ATTR_PACKET_TYPE;
+}
+
+std::optional<sai_attr_id_t>
+SaiRxPacketTraits::Attributes::AttributePacketType::operator()() {
+  return SAI_HOSTIF_PACKET_ATTR_PACKET_TYPE;
 }
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {

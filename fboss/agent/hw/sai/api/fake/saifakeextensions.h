@@ -56,7 +56,8 @@ typedef enum _sai_port_serdes_extensions_attr_t {
   SAI_PORT_SERDES_ATTR_EXT_TX_LDO_BYPASS,
   SAI_PORT_SERDES_ATTR_EXT_RX_LDO_BYPASS,
   SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LENGTH_BITMAP,
-  SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LMS_DYNAMIC_GATING_EN
+  SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LMS_DYNAMIC_GATING_EN,
+  SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_REACH
 } sai_port_serdes_extensions_attr_t;
 
 typedef enum _sai_switch_extensions_attr_t {
@@ -126,6 +127,16 @@ typedef enum _sai_tam_event_extensions_attr_t {
   SAI_TAM_TRANSPORT_ATTR_FAKE_SRC_MAC_ADDRESS = SAI_TAM_TRANSPORT_ATTR_END,
   SAI_TAM_TRANSPORT_ATTR_FAKE_DST_MAC_ADDRESS,
 } sai_tam_event_extensions_attr_t;
+
+typedef enum _sai_hostif_packet_extensions_attr_t {
+  SAI_HOSTIF_PACKET_ATTR_PACKET_TYPE =
+      SAI_HOSTIF_PACKET_ATTR_CUSTOM_RANGE_START,
+} sai_hostif_packet_extensions_attr_t;
+
+typedef enum _sai_hostif_packet_type_t {
+  SAI_HOSTIF_PACKET_TYPE_DEFAULT = 0,
+  SAI_HOSTIF_PACKET_TYPE_LINK_MONITORING = 1,
+} sai_hostif_packet_type_t;
 
 typedef enum _sai_port_extensions_attr_t {
   SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID = SAI_PORT_ATTR_CUSTOM_RANGE_START,

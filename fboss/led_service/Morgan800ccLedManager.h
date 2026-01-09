@@ -17,11 +17,13 @@ namespace facebook::fboss {
 class Morgan800ccLedManager : public BspLedManager {
  public:
   Morgan800ccLedManager();
-  virtual ~Morgan800ccLedManager() override {}
+  virtual ~Morgan800ccLedManager() override = default;
 
   // Forbidden copy constructor and assignment operator
   Morgan800ccLedManager(Morgan800ccLedManager const&) = delete;
   Morgan800ccLedManager& operator=(Morgan800ccLedManager const&) = delete;
+  Morgan800ccLedManager(Morgan800ccLedManager&&) = delete;
+  Morgan800ccLedManager& operator=(Morgan800ccLedManager&&) = delete;
 };
 
 } // namespace facebook::fboss

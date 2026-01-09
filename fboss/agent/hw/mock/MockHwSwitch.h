@@ -71,11 +71,11 @@ class MockHwSwitch : public HwSwitch {
 
   MOCK_METHOD3(
       sendPacketOutOfPortSyncForPktType_,
-      bool(TxPacket*, facebook::fboss::PortID, facebook::fboss::TxPacketType));
+      bool(TxPacket*, facebook::fboss::PortID, facebook::fboss::PacketType));
   bool sendPacketOutOfPortSyncForPktType(
       std::unique_ptr<TxPacket> pkt,
       const facebook::fboss::PortID& portID,
-      facebook::fboss::TxPacketType packetType) noexcept override;
+      facebook::fboss::PacketType packetType) noexcept override;
 
   MOCK_CONST_METHOD0(transactionsSupported, bool());
   MOCK_METHOD0(updateStatsImpl, void());

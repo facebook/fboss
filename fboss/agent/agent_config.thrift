@@ -12,6 +12,9 @@ include "fboss/agent/switch_config.thrift"
 include "fboss/agent/platform_config.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 enum AgentRunMode {
   MONO = 0,
   MULTI_SWITCH = 1,

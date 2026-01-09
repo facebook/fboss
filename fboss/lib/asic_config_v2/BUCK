@@ -66,6 +66,7 @@ python_binary(
         ":all_asic_config_params",
         ":icecube800bc",
         ":montblanc",
+        ":wedge800bact",
         "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
         "//fboss/lib/if:fboss_common-py-deprecated",
         "//thrift/lib/py:server_base",
@@ -76,6 +77,20 @@ python_binary(
 python_library(
     name = "montblanc",
     srcs = ["montblanc.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":tomahawk5",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
+        "//fboss/lib/platform_mapping_v2:asic_vendor_config",
+        "//fboss/lib/platform_mapping_v2:gen-library",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_config-py-deprecated",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
+    ],
+)
+
+python_library(
+    name = "wedge800bact",
+    srcs = ["wedge800bact.py"],
     labels = ["autodeps2_generated"],
     deps = [
         ":tomahawk5",

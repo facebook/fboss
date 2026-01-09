@@ -15,6 +15,7 @@
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
 
+#include <folly/Format.h>
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>

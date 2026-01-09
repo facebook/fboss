@@ -79,7 +79,7 @@ class HwSwitchHandler {
   virtual bool sendPacketOutOfPortSyncForPktType(
       std::unique_ptr<TxPacket> pkt,
       const PortID& portID,
-      TxPacketType packetType) noexcept = 0;
+      PacketType packetType) noexcept = 0;
 
   virtual bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const = 0;

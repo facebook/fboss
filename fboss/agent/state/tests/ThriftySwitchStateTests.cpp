@@ -375,21 +375,103 @@ TEST(ThriftySwitchState, IpAddressConversion) {
   }
 }
 
-TEST(ThriftySwitchState, FibsInfoMapClearedOnDeserialize) {
+TEST(ThriftySwitchState, ToThriftFibsInfoMapMigration) {
+  // Test that toThrift() correctly migrates fibsInfoMap to fibsMap for rollback
+  // compatibility
+  auto state = std::make_shared<SwitchState>();
+  const auto& matcherKey = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+
+  // Create a FibInfo with a populated FibsMap
+  auto fibInfo = std::make_shared<FibInfo>();
+  auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
+
+  // Create a FibContainer for VRF 0
+  RouterID vrf0(0);
+  auto fibContainer =
+      std::make_shared<ForwardingInformationBaseContainer>(vrf0);
+  fibsMap->updateForwardingInformationBaseContainer(fibContainer);
+
+  // Create a FibContainer for VRF 1
+  RouterID vrf1(1);
+  auto fibContainer1 =
+      std::make_shared<ForwardingInformationBaseContainer>(vrf1);
+  fibsMap->updateForwardingInformationBaseContainer(fibContainer1);
+
+  // Set the fibsMap in FibInfo
+  fibInfo->resetFibsMap(fibsMap);
+
+  // Create MultiSwitchFibInfoMap and add the FibInfo
+  auto fibsInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+  fibsInfoMap->updateFibInfo(fibInfo, scope());
+  state->resetFibsInfoMap(fibsInfoMap);
+
+  // Call toThrift() and verify fibsMap is populated
+  auto stateThrift = state->toThrift();
+
+  // Verify fibsMap is populated with the correct structure
+  ASSERT_TRUE(stateThrift.fibsMap().has_value());
+  EXPECT_FALSE(stateThrift.fibsMap()->empty());
+  EXPECT_TRUE(
+      stateThrift.fibsMap()->find(matcherKey) != stateThrift.fibsMap()->end());
+
+  // Verify the fibsMap contains both VRF 0 and VRF 1
+  const auto& fibsMapThrift = stateThrift.fibsMap()->at(matcherKey);
+  EXPECT_TRUE(fibsMapThrift.find(0) != fibsMapThrift.end());
+  EXPECT_TRUE(fibsMapThrift.find(1) != fibsMapThrift.end());
+
+  // Verify fibsInfoMap is still populated in thrift
+  ASSERT_TRUE(stateThrift.fibsInfoMap().has_value());
+  EXPECT_FALSE(stateThrift.fibsInfoMap()->empty());
+}
+
+TEST(ThriftySwitchState, FromThriftFibsInfoMapMigration) {
+  // Test that fromThrift() correctly migrates fibsMap to fibsInfoMap
   auto state = SwitchState();
   auto stateThrift = state.toThrift();
+  const auto& matcherKey = HwSwitchMatcher::defaultHwSwitchMatcherKey();
 
-  state::FibInfoFields fibInfo;
-  std::map<std::string, state::FibInfoFields> fibInfoMap;
-  fibInfoMap[HwSwitchMatcher::defaultHwSwitchMatcherKey()] = fibInfo;
-  stateThrift.fibsInfoMap() = fibInfoMap;
+  // Create fibsMap with FibContainers for VRF 0 and VRF 1
+  std::map<std::string, std::map<int16_t, state::FibContainerFields>> fibsMap;
+  std::map<int16_t, state::FibContainerFields> vrfFibMap;
 
-  // Verify the thrift object has populated FibsInfoMap
-  EXPECT_TRUE(stateThrift.fibsInfoMap().has_value());
-  EXPECT_FALSE(stateThrift.fibsInfoMap()->empty());
+  // Create FibContainer fields for VRF 0
+  state::FibContainerFields fibContainer0;
+  fibContainer0.vrf() = 0;
+  vrfFibMap[0] = fibContainer0;
 
+  // Create FibContainer fields for VRF 1
+  state::FibContainerFields fibContainer1;
+  fibContainer1.vrf() = 1;
+  vrfFibMap[1] = fibContainer1;
+
+  fibsMap[matcherKey] = vrfFibMap;
+  stateThrift.fibsMap() = fibsMap;
+
+  // Ensure fibsInfoMap is empty in thrift
+  stateThrift.fibsInfoMap() = std::map<std::string, state::FibInfoFields>();
+
+  // Call fromThrift() and verify fibsInfoMap is populated
   auto deserializedState = SwitchState::fromThrift(stateThrift);
 
-  // Verify FibsInfoMap is cleared after deserialization
-  EXPECT_TRUE(deserializedState->getFibsInfoMap()->empty());
+  // Verify fibsInfoMap is populated
+  auto fibsInfoMap = deserializedState->getFibsInfoMap();
+  ASSERT_NE(fibsInfoMap, nullptr);
+  EXPECT_FALSE(fibsInfoMap->empty());
+
+  // Verify the FibInfo exists for the default matcher
+  auto fibInfo = fibsInfoMap->getFibInfo(scope());
+  ASSERT_NE(fibInfo, nullptr);
+
+  // Verify the fibsMap within FibInfo contains both VRF 0 and VRF 1
+  auto internalFibsMap = fibInfo->getfibsMap();
+  ASSERT_NE(internalFibsMap, nullptr);
+
+  // Verify VRF IDs are correct
+  EXPECT_EQ(
+      internalFibsMap->getFibContainerIf(RouterID(0))->getID(), RouterID(0));
+  EXPECT_EQ(
+      internalFibsMap->getFibContainerIf(RouterID(1))->getID(), RouterID(1));
+
+  // Verify old fibsMap is cleared after migration
+  EXPECT_TRUE(deserializedState->getFibs()->empty());
 }

@@ -982,7 +982,11 @@ void SaiPortManager::programSerdes(
           HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING) ||
       swPort->getPortType() == cfg::PortType::RECYCLE_PORT ||
       swPort->getPortType() == cfg::PortType::EVENTOR_PORT ||
-      swPort->getPortType() == cfg::PortType::HYPER_PORT) {
+      swPort->getPortType() == cfg::PortType::HYPER_PORT
+#if defined(CHENAB_SAI_SDK)
+      || swPort->getPortType() == cfg::PortType::MANAGEMENT_PORT
+#endif
+  ) {
     return;
   }
 
@@ -1134,6 +1138,27 @@ void SaiPortManager::programSerdes(
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
 
+  // Set RX Reach if ASIC supports and platform mapping has a rxReach
+  // setting
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SERDES_RX_REACH)) {
+    std::vector<phy::RxReach> rxReachVals;
+    for (const auto& pinConfig : swPort->getPinConfigs()) {
+      if (auto rx = pinConfig.rx()) {
+        if (auto rxReachOpt = rx->rxReach()) {
+          rxReachVals.push_back(rxReachOpt.value());
+        }
+      }
+    }
+    if (!rxReachVals.empty()) {
+      SaiPortSerdesTraits::Attributes::RxReach rxReach;
+      rxReach = getSaiRxReach(rxReachVals);
+      SaiApiTable::getInstance()->portApi().setAttribute(
+          portHandle->serdes->adapterKey(), rxReach);
+    }
+  }
+#endif
+
   if (platform_->getAsic()->getAsicType() ==
           cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
       platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT &&
@@ -1235,7 +1260,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
       if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_YUBA) {
+              cfg::AsicType::ASIC_TYPE_YUBA ||
+          platform_->getAsic()->getAsicType() ==
+              cfg::AsicType::ASIC_TYPE_G202X) {
         if (auto firPre1 = tx->firPre1()) {
           txPre1.push_back(zeroPreemphasis ? 0 : *firPre1);
         }
@@ -1409,16 +1436,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre2{}, txPre2);
-    if (platform_->getAsic()->getAsicType() !=
-        cfg::AsicType::ASIC_TYPE_CHENAB) {
-      // post2 and post3 are unsupported by chenab but fboss thrift model
-      // (phy.thrift) has them non-optional instead of passing them as zero,
-      // ignore them.
-      setTxRxAttr(
-          attrs, SaiPortSerdesTraits::Attributes::TxFirPost2{}, txPost2);
-      setTxRxAttr(
-          attrs, SaiPortSerdesTraits::Attributes::TxFirPost3{}, txPost3);
-    }
+    setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost2{}, txPost2);
+    setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost3{}, txPost3);
+
     if (platform_->getAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
       setTxRxAttr(
@@ -1551,7 +1571,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         attrs, SaiPortSerdesTraits::Attributes::Preemphasis{}, preempahsis);
   }
 
-  if (numExpectedRxLanes) {
+  if (numExpectedRxLanes &&
+      platform_->getAsic()->getAsicVendor() ==
+          HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
     setTxRxAttr(
         attrs, SaiPortSerdesTraits::Attributes::RxCtleCode{}, rxCtleCode);
 

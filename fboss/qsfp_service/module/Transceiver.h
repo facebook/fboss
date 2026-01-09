@@ -245,7 +245,7 @@ class Transceiver {
     return true;
   }
 
-  virtual void resetDataPath() = 0;
+  virtual void resetDataPath(const std::string& portName) = 0;
 
   virtual std::optional<DiagsCapability> getDiagsCapability() const = 0;
 

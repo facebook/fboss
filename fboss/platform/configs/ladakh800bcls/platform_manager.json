@@ -64,7 +64,60 @@
     "SMBus I801 adapter at 5000",
     "SMBus iSMT adapter at 20fffa7b000"
   ],
-  "versionedPmUnitConfigs": {},
+  "versionedPmUnitConfigs": {
+    "NETLAKE": [
+      {
+        "pmUnitConfig": {
+          "pluggedInSlotType": "COMESE_SLOT",
+          "i2cDeviceConfigs": [
+            {
+              "busName": "INCOMING@0",
+              "address": "0x11",
+              "kernelDeviceName": "mp9941",
+              "pmUnitScopedName": "COME_HWMON1"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x22",
+              "kernelDeviceName": "mp9941",
+              "pmUnitScopedName": "COME_HWMON2"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x45",
+              "kernelDeviceName": "mp9941",
+              "pmUnitScopedName": "COME_HWMON3"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x66",
+              "kernelDeviceName": "mp9941",
+              "pmUnitScopedName": "COME_HWMON4"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x76",
+              "kernelDeviceName": "mp2993",
+              "pmUnitScopedName": "COME_HWMON5"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x48",
+              "kernelDeviceName": "tmp75",
+              "pmUnitScopedName": "COME_INLET_TSENSOR"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x4a",
+              "kernelDeviceName": "tmp75",
+              "pmUnitScopedName": "COME_OUTLET_TSENSOR"
+            }
+          ]
+        },
+        "productSubVersion": 2
+      }
+    ]
+  },
   "pmUnitConfigs": {
     "LADAKH800BCLS_MCB": {
       "pluggedInSlotType": "MCB_SLOT",
@@ -449,22 +502,13 @@
               ]
             }
           ],
-          "xcvrCtrlConfigs": [
+          "xcvrCtrlBlockConfigs": [
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "IOB_XCVR_CTRL_PORT_1",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1030"
-              },
-              "portNumber": 1
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "IOB_XCVR_CTRL_PORT_2",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1034"
-              },
-              "portNumber": 2
+              "pmUnitScopedNamePrefix": "IOB",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x1030 + ({portNum} - {startPort})*0x4",
+              "numPorts": 2,
+              "startPort": 1
             }
           ],
           "infoRomConfigs": [
@@ -490,13 +534,15 @@
               "pmUnitScopedNamePrefix": "RTM_L_MDIO_BUS",
               "deviceName": "mdio_controller",
               "csrOffsetCalc": "0x48200 + {busIndex}*0x20",
-              "numBuses": 16
+              "numBuses": 16,
+              "iobufOffsetCalc": "0x480c0 + {busIndex}*0x4"
             },
             {
               "pmUnitScopedNamePrefix": "RTM_R_MDIO_BUS",
               "deviceName": "mdio_controller",
               "csrOffsetCalc": "0x40200 + {busIndex}*0x20",
-              "numBuses": 16
+              "numBuses": 16,
+              "iobufOffsetCalc": "0x400c0 + {busIndex}*0x4"
             }
           ]
         }

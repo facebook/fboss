@@ -10,6 +10,7 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
 #include "fboss/lib/phy/BspSaiPhyManager.h"
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/platforms/wedge/BspWedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/FbossMacsecHandler.h"
 
@@ -51,9 +52,26 @@ bool isElbert8DD() {
 }
 
 std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
+    PortManager* portMgr,
     WedgeManager* wedgeMgr) {
-  // Use default FbossMacsecHandler
-  return std::make_shared<FbossMacsecHandler>(wedgeMgr);
+  // Use default FbossMacsecHandler with nullptr for portManager
+  return std::make_shared<FbossMacsecHandler>(portMgr, wedgeMgr);
+}
+
+std::unique_ptr<PortManager> createPortManager(
+    PlatformType /* platformType */,
+    WedgeManager* wedgeManager,
+    std::unique_ptr<PhyManager> phyManager,
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads) {
+  // brcm_pai should not be used for Elbert, so can default to base PortManager
+  return std::make_unique<PortManager>(
+      wedgeManager,
+      std::move(phyManager),
+      platformMapping,
+      threads,
+      wedgeManager->getFsdbSyncManager());
 }
 
 std::unique_ptr<PhyManager> createPhyManager(
@@ -79,4 +97,5 @@ std::unique_ptr<PhyManager> createPhyManager(
   }
   return nullptr;
 }
+
 } // namespace facebook::fboss

@@ -413,7 +413,8 @@ void IPv6Handler::handleRouterSolicitation(
   auto resp = sw_->allocatePacket(pktLen);
   RWPrivateCursor respCursor(resp->buf());
   IPv6RouteAdvertiser::createAdvertisementPacket(
-      intf.get(), &respCursor, dstMac, dstIP);
+      sw_, intf.get(), &respCursor, dstMac, dstIP);
+  XLOG(DBG4) << PktUtil::hexDump(resp->buf());
   // Based on the router solicidtation and advertisement mechanism, the
   // advertisement should send back to who request such solicidation. Besides,
   // right now, only servers send RSW router solicidation. It's kinda safe to
@@ -925,10 +926,7 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
       if (interface->getRouterID() == RouterID(0) &&
           interface->canReachAddress(targetIP)) {
         sendMulticastNeighborSolicitation(
-            sw,
-            targetIP,
-            interface->getMac(),
-            interface->getVlanIDIf_DEPRECATED());
+            sw, targetIP, interface->getMac(), sw->getVlanIDForTx(interface));
       }
     }
   }
@@ -992,7 +990,7 @@ void IPv6Handler::resolveDestAndHandlePacket(
         if (nullptr == entry) {
           // No entry in NDP table, create a neighbor solicitation packet
           sendMulticastNeighborSolicitation(
-              sw_, target, intf->getMac(), intf->getVlanIDIf_DEPRECATED());
+              sw_, target, intf->getMac(), sw_->getVlanIDForTx(intf));
           // Notify the updater that we sent a solicitation out
           sw_->sentNeighborSolicitation(intf, target);
         } else {
@@ -1100,7 +1098,7 @@ void IPv6Handler::floodNeighborAdvertisements() {
         }
 
         sendNeighborAdvertisement(
-            intf->getVlanIDIf_DEPRECATED(),
+            sw_->getVlanIDForTx(intf),
             intf->getMac(),
             addrEntry.asV6(),
             MacAddress::BROADCAST,

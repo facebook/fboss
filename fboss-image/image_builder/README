@@ -1,0 +1,41 @@
+This directory contains files necessary to generate bootable images for FBOSS using the kiwi ng tool.
+
+KIWI NG Documentation:
+    https://osinside.github.io/kiwi/overview.html
+
+KIWI NG XML Schema:
+    https://github.com/OSInside/kiwi.git
+
+    Steps to validate schema changes:
+        1) Clone the above repository
+        2) xmllint --relaxng  kiwi/kiwi/schema/kiwi.rng <templates/centos-09.0/config.xml>
+
+The directories here are:
+
+    bin         - executable scripts that do the real work
+    lib         - helper code that is common across scripts
+    logs        - all logs go here
+    templates   - kiwi-ng image templates
+    output      - all build output goes here
+
+image_builder/bin:
+    build_image.sh                  - Build docker (if needed) and launch build_image_in_container.sh
+    build_image_in_container.sh     - Script that builds the image inside docker container
+
+image_builder/templates:
+    Contains the template(s) that contain the information needed by kiwi-ng-3
+    to generate
+        centos-09.0     - CentOS-9.0 based FBOSS image template files
+
+image_builder/output:
+    All generated output goes into this directory
+
+To build a bootable image the steps are as follows (all scripts support -h or --help option)
+
+    Build and launch the docker:
+        git clone https://github.com/facebook/fboss <wsdir>
+        <wsdir>/fboss-image/image_builder/bin/build_image.sh -b          # Launch image build inside docker
+
+    This will generate the many files in /image_builder/output, the main being:
+        FBOSS-Distro-Image.x86_64-1.0.install.tar
+        FBOSS-Distro-Image.x86_64-1.0.install.iso

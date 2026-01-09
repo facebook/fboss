@@ -4220,6 +4220,7 @@ void BcmSwitch::disableHotSwap() const {
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
       case cfg::AsicType::ASIC_TYPE_RAMON:
       case cfg::AsicType::ASIC_TYPE_RAMON3:
+      case cfg::AsicType::ASIC_TYPE_G202X:
         CHECK(0) << " Invalid ASIC type";
     }
   }

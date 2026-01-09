@@ -51,8 +51,10 @@ std::shared_ptr<SwitchState> disableTTLDecrement(
     throw FbossError("Next hop ttl decrement is not supported on this ASIC");
   }
   auto newState = state->clone();
-  for (auto iter : std::as_const(*newState->getFibs())) {
-    auto fibMap = iter.second;
+  for (auto iter : std::as_const(*newState->getFibsInfoMap())) {
+    auto fibInfo = iter.second;
+    auto fibMap = fibInfo->getfibsMap();
+    CHECK(fibMap) << "ForwardingInformationBaseMap is null";
     auto fibContainer = fibMap->getFibContainerIf(routerId);
     if (!fibContainer) {
       continue;

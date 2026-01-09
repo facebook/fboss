@@ -5,6 +5,10 @@ namespace hack NetengFbossPlatformManager
 namespace py3 fboss.platform.platform_manager
 
 include "fboss/platform/platform_manager/platform_manager_presence.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 //            +-+-+-+ +-+-+-+ +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+
 //            |I|2|C| |B|u|s| |N|a|m|i|n|g| |C|o|n|v|e|n|t|i|o|n|
@@ -331,6 +335,7 @@ struct FanPwmCtrlConfig {
 // `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
 //
 // `portNumber`: Port number which is associated with this config.
+// Deprecated: do not use
 struct XcvrCtrlConfig {
   1: FpgaIpBlockConfig fpgaIpBlockConfig;
   2: i32 portNumber;
@@ -464,8 +469,8 @@ struct LedCtrlBlockConfig {
 // the kernel driver.
 //
 // `csrOffsetCalc`: Calculation to get the csr offset for fpga block
-//  This expression includes a base start address, port, a starting port number
-//  or index, and a led number. Final offset result is in hex format.
+//  This expression includes a base start address, busIndex
+//  Final offset result is in hex format.
 //  Example:
 //  csrOffsetCalc: "0x200 + {busIndex}*0x20"
 //  busIndex=0:
@@ -477,11 +482,25 @@ struct LedCtrlBlockConfig {
 //
 //
 // `numBuses`: Number of buses for this block config
+//
+//
+// `iobufOffsetCalc`: Calculation to get the iobuf offset for fpga block
+//  This expression includes a base start address, busIndex
+//  Final offset result is in hex format.
+//  Example:
+//  iobufOffsetCalc: "0x200 + {busIndex}*0x4"
+//  busIndex=0:
+//    iobufOffsetCalc: "0x200 + 0*0x4"
+//    iobufOffsetCalc: "0x200"
+//  busIndex=1:
+//    iobufOffsetCalc: "0x200 + 1*0x4"
+//    iobufOffsetCalc: "0x204"
 struct MdioBusBlockConfig {
   1: string pmUnitScopedNamePrefix;
   2: string deviceName;
   3: string csrOffsetCalc;
   4: i32 numBuses;
+  5: string iobufOffsetCalc;
 }
 
 // Defines PCI Devices in the PmUnits. A new PciDeviceConfig should be created
@@ -534,13 +553,13 @@ struct PciDeviceConfig {
   9: list<FpgaIpBlockConfig> watchdogConfigs;
   10: list<FanPwmCtrlConfig> fanTachoPwmConfigs;
   11: list<LedCtrlConfig> ledCtrlConfigs; // Deprecated: do not use
-  12: list<XcvrCtrlConfig> xcvrCtrlConfigs;
+  12: list<XcvrCtrlConfig> xcvrCtrlConfigs; // Deprecated: do not use
   13: list<FpgaIpBlockConfig> infoRomConfigs;
   14: list<FpgaIpBlockConfig> miscCtrlConfigs;
   15: optional string desiredDriver;
   16: list<LedCtrlBlockConfig> ledCtrlBlockConfigs;
   17: list<XcvrCtrlBlockConfig> xcvrCtrlBlockConfigs;
-  18: list<FpgaIpBlockConfig> mdioBusConfigs;
+  18: list<FpgaIpBlockConfig> mdioBusConfigs; // Deprecated: do not use
   19: list<FpgaIpBlockConfig> sysLedCtrlConfigs;
   20: list<MdioBusBlockConfig> mdioBusBlockConfigs;
 }

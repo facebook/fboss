@@ -137,7 +137,11 @@ void IPv6RAImpl::initPacket(const Interface* intf) {
   buf_.append(totalLength);
   RWPrivateCursor cursor(&buf_);
   IPv6RouteAdvertiser::createAdvertisementPacket(
-      intf, &cursor, MacAddress("33:33:00:00:00:01"), IPAddressV6("ff02::1"));
+      sw_,
+      intf,
+      &cursor,
+      MacAddress("33:33:00:00:00:01"),
+      IPAddressV6("ff02::1"));
 }
 
 void IPv6RAImpl::sendRouteAdvertisement() {
@@ -215,6 +219,7 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
 }
 
 /* static */ void IPv6RouteAdvertiser::createAdvertisementPacket(
+    SwSwitch* sw,
     const Interface* intf,
     folly::io::RWPrivateCursor* cursor,
     folly::MacAddress dstMac,
@@ -300,7 +305,7 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
       cursor,
       dstMac,
       intf->getMac(),
-      intf->getVlanIDIf_DEPRECATED(),
+      sw->getVlanIDForTx(intf->getID()),
       ipv6,
       bodyLength,
       serializeBody);

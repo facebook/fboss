@@ -197,6 +197,9 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
+          "test_name_regex": "HwPortPrbsTestAll.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -206,6 +209,9 @@
     "fuji_5x16Q/physdk-barchetta2-7.4/barchetta2-7.4": [
         {
           "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwPortPrbsTestAll.*$"
         },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
@@ -627,6 +633,28 @@
           "test_name_regex": "OpticsFwUpgradeTest.*$"
         }
     ],
+    "wedge800bnhp/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        }
+    ],
+    "wedge800bnhp/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        }
+    ],
     "wedge800cact/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "DummyTest.*$"
@@ -639,6 +667,28 @@
         }
     ],
     "wedge800cact/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        }
+    ],
+    "wedge800cnhp/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        }
+    ],
+    "wedge800cnhp/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "DummyTest.*$"
         },

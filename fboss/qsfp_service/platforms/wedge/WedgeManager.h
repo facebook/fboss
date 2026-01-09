@@ -117,7 +117,8 @@ class WedgeManager : public TransceiverManager {
   /*
    * This function will call PhyManager to create all the ExternalPhy objects
    */
-  bool initExternalPhyMap(bool forceWarmboot = false) override;
+  bool initExternalPhyMap(PhyManager* phyManager, bool forceWarmboot = false)
+      override;
 
   /*
    * Virtual function to program a PHY port on external PHY. This is a dummy

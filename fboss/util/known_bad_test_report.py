@@ -257,20 +257,21 @@ class ScubaQueryBuilder:
 
         sql_query = f"""
             SELECT
-                SUM(1, `weight`) AS `count`,
-                COUNT(1) AS `samples`,
-                `test_name`,
-                `status`
-            FROM `testinfra_db_results`
+                COUNT(1) AS `count`,
+                `Sandcastle Job Alias` as `sandcastle_alias`,
+                `Test Case` as `test_case`,
+                `Status` AS `status`
+            FROM `fboss_testing`
             WHERE
                 {consider_results_since} <= `time`
                 AND `time` <= {current_time}
-                AND `sandcastle_alias` RLIKE '{job_name_regex}'
-                AND ((`purpose`) IN ('stress-run'))
-                AND (status IS TRUE)
+                AND `Sandcastle Job Alias` RLIKE '{job_name_regex}'
+                AND (`Purpose` = 'STRESS_RUN')
+                AND (`Status` = 'PASSED')
             GROUP BY
-                `test_name`,
-                `status`
+                `Sandcastle Job Alias`,
+                `Test Case`,
+                `Status`
             ORDER BY
                 `count` DESC
             """
@@ -752,9 +753,10 @@ def main() -> Optional[int]:
             tests = {}
 
             for _, row in df.iterrows():
-                if row["status"] == PASSED and row["count"] == 7:
-                    if row["test_name"] not in tests:
-                        tests[row["test_name"]] = row["status"]
+                if row["status"] == "PASSED" and row["count"] == 7:
+                    test_key = f"{row['sandcastle_alias']}::{row['test_case']}"
+                    if test_key not in tests:
+                        tests[test_key] = row["status"]
 
             logger.info(f"Found {len(tests)} known bad tests passing 7 times in a row")
 

@@ -8,6 +8,10 @@ namespace py.asyncio neteng.fboss.asyncio.common
 include "fboss/agent/if/mpls.thrift"
 include "common/network/if/Address.thrift"
 include "thrift/annotation/cpp.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 @cpp.Type{name = "::folly::fbstring"}
 typedef binary fbbinary
@@ -85,9 +89,9 @@ enum ForwardingClass {
 }
 
 /*
- * Packet type being transmitted, primarily used for fabric ports
+ * Packet type for transmit and receive, primarily used for fabric ports
  */
-enum TxPacketType {
+enum PacketType {
   DEFAULT = 0,
   FABRIC_LINK_MONITORING = 1,
 }

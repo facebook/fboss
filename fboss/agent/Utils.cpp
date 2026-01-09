@@ -752,7 +752,13 @@ std::optional<VlanID> getVlanIDFromVlanOrIntf(
     if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
       vlanID = vlanOrIntf->getID();
     } else {
-      vlanID = vlanOrIntf->getVlanIDIf_DEPRECATED();
+      switch (vlanOrIntf->getType()) {
+        case cfg::InterfaceType::VLAN:
+          return vlanOrIntf->getVlanID();
+        case cfg::InterfaceType::PORT:
+        case cfg::InterfaceType::SYSTEM_PORT:
+          return std::nullopt;
+      }
     }
   }
 
@@ -1342,6 +1348,15 @@ InterfaceID getInterfaceIDForPort(
   }
 
   throw FbossError("Interface not found for port ", portID);
+}
+
+bool isPortDrained(
+    const std::shared_ptr<SwitchState>& state,
+    const Port* port,
+    SwitchID portSwitchId) {
+  const auto& switchSettings = state->getSwitchSettings()->getSwitchSettings(
+      HwSwitchMatcher(std::unordered_set<SwitchID>({portSwitchId})));
+  return switchSettings->isSwitchDrained() || port->isDrained();
 }
 
 } // namespace facebook::fboss

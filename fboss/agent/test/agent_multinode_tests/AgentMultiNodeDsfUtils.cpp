@@ -162,7 +162,7 @@ std::set<std::string> getActiveFabricPorts(const std::string& switchName) {
 
 bool verifyPortActiveState(
     const std::string& switchName,
-    std::set<std::string> fabricPorts,
+    std::set<std::string>& fabricPorts,
     const PortActiveState& activeState) {
   auto verifyPortActiveStateHelper = [switchName, fabricPorts, activeState] {
     auto fabricPortNameToPortInfo = getFabricPortNameToPortInfo(switchName);
@@ -543,24 +543,37 @@ bool verifyPortCableLength(const std::string& switchName) {
   //    FDSW Fabric ports towards SDSW
 
   // Verify if all connected fabric ports have valid cable length
-  XLOG(DBG2) << "Verifying Fabric Port Cable Length: " << switchName;
-  for (const auto& [_, portInfo] :
-       getActiveFabricPortNameToPortInfo(switchName)) {
-    if (portInfo.cableLengthMeters().has_value() &&
-        portInfo.cableLengthMeters().value() >= 0) {
-      // Cable length may vary on different test setups. Thus, verify
-      // if the Cable length query returns a valid non-0 cable length.
-      continue;
+  auto verifyCableLengthHelper = [switchName]() {
+    XLOG(DBG2) << "Verifying Fabric Port Cable Length: " << switchName;
+    for (const auto& [_, portInfo] :
+         getActiveFabricPortNameToPortInfo(switchName)) {
+      if (portInfo.cableLengthMeters().has_value() &&
+          portInfo.cableLengthMeters().value() >= 0) {
+        // Cable length may vary on different test setups. Thus, verify
+        // if the Cable length query returns a valid non-0 cable length.
+        continue;
+      }
+
+      XLOG(DBG2) << "From " << switchName
+                 << " Port: " << portInfo.name().value()
+                 << " has invalid cable length: "
+                 << portInfo.cableLengthMeters().value_or(-1);
+
+      return false;
     }
 
-    XLOG(DBG2) << "From " << switchName << " Port: " << portInfo.name().value()
-               << " has invalid cable length: "
-               << portInfo.cableLengthMeters().value_or(-1);
+    return true;
+  };
 
-    return false;
-  }
-
-  return true;
+  // Cable length is collected during periodic stats collection, not immediately
+  // when port comes up. For Netcastle runs, it requires additional time to
+  // retrieve cable length stats after the agent is up. Thus, retry with a
+  // dedicated loop to allow stats collection to complete.
+  return checkWithRetryErrorReturn(
+      verifyCableLengthHelper,
+      30 /* num retries */,
+      std::chrono::milliseconds(2000) /* sleep between retries */,
+      true /* retry on exception */);
 }
 
 bool verifyFabricPorts(const std::string& switchName) {
@@ -1243,7 +1256,7 @@ bool verifyDsfGracefulFabricLinkDisableOrDrain(
         portDisableOrDrainFunc) {
   XLOG(DBG2) << "Verifying DSF Graceful Fabric link Down";
 
-  CHECK(activeFabricPortNameToPortInfo.size() > 2);
+  CHECK_GT(activeFabricPortNameToPortInfo.size(), 2);
   auto rIter = activeFabricPortNameToPortInfo.rbegin();
   auto lastActivePort = rIter->first;
   auto secondLastActivePort = std::next(rIter)->first;
@@ -1508,10 +1521,29 @@ std::set<std::string> getOneFabricSwitchForEachCluster(
 int32_t getFirstActiveFabricPort(const std::string& switchName) {
   auto activeFabricPortNameToPortInfo =
       getActiveFabricPortNameToPortInfo(switchName);
-  CHECK(activeFabricPortNameToPortInfo.size() > 0);
+  CHECK_GT(activeFabricPortNameToPortInfo.size(), 0);
   auto portInfo = activeFabricPortNameToPortInfo.cbegin()->second;
 
   return portInfo.portId().value();
+}
+
+int64_t getSystemPortMin(
+    const std::unique_ptr<TopologyInfo>& topologyInfo,
+    const std::string& switchName) {
+  CHECK(
+      topologyInfo->getSwitchNameToSwitchIds().find(switchName) !=
+      topologyInfo->getSwitchNameToSwitchIds().end());
+  auto switchId =
+      *topologyInfo->getSwitchNameToSwitchIds().at(switchName).begin();
+  auto switchIdToDsfNode = getSwitchIdToDsfNode(switchName);
+  CHECK(switchIdToDsfNode.find(switchId) != switchIdToDsfNode.end());
+  auto ranges = switchIdToDsfNode.at(switchId).systemPortRanges();
+
+  // TODO: Extend to work with multiple system port ranges
+  CHECK_GE(ranges->systemPortRanges()->size(), 1);
+  auto systemPortMin = *ranges->systemPortRanges()->front().minimum();
+
+  return systemPortMin;
 }
 
 } // namespace facebook::fboss::utility

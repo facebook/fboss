@@ -3,6 +3,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/LldpManager.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -118,7 +119,8 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
           scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
       auto asicType = getAsic(portSwitchId).getAsicType();
       if (asicType != cfg::AsicType::ASIC_TYPE_EBRO &&
-          asicType != cfg::AsicType::ASIC_TYPE_YUBA) {
+          asicType != cfg::AsicType::ASIC_TYPE_YUBA &&
+          asicType != cfg::AsicType::ASIC_TYPE_G202X) {
         EXPECT_EVENTUALLY_EQ(
             1,
             *portStatsAfter.outMulticastPkts_() -
@@ -180,7 +182,8 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPortWithBufClone) {
           scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
       auto asicType = getAsic(portSwitchId).getAsicType();
       if (asicType != cfg::AsicType::ASIC_TYPE_EBRO &&
-          asicType != cfg::AsicType::ASIC_TYPE_YUBA) {
+          asicType != cfg::AsicType::ASIC_TYPE_YUBA &&
+          asicType != cfg::AsicType::ASIC_TYPE_G202X) {
         EXPECT_EVENTUALLY_EQ(
             numPkts,
             *portStatsAfter.outMulticastPkts_() -
@@ -199,8 +202,15 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
     utility::setupEcmpDataplaneLoopOnAllPorts(getAgentEnsemble());
   };
   auto verify = [this]() {
-    std::vector<PortID> portsUnderTest{
-        masterLogicalInterfacePortIds()[0], masterLogicalInterfacePortIds()[1]};
+    std::vector<PortID> portsUnderTest;
+    if (FLAGS_hyper_port) {
+      portsUnderTest = {
+          masterLogicalHyperPortIds()[0], masterLogicalHyperPortIds()[1]};
+    } else {
+      portsUnderTest = {
+          masterLogicalInterfacePortIds()[0],
+          masterLogicalInterfacePortIds()[1]};
+    }
     auto createHighRateTraffic = [=, this]() {
       auto sendPacket = [=, this](
                             AgentEnsemble* ensemble,
@@ -483,7 +493,8 @@ class AgentPacketFloodTest : public AgentHwTest {
         return false;
       }
       if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
-          asic->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA) {
+          asic->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA &&
+          asic->getAsicType() != cfg::AsicType::ASIC_TYPE_G202X) {
         if (packetsAfter <= packetsBefore) {
           return false;
         }
@@ -582,7 +593,8 @@ TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
           scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
       auto asicType = getAsic(portSwitchId).getAsicType();
       if (asicType != cfg::AsicType::ASIC_TYPE_EBRO &&
-          asicType != cfg::AsicType::ASIC_TYPE_YUBA) {
+          asicType != cfg::AsicType::ASIC_TYPE_YUBA &&
+          asicType != cfg::AsicType::ASIC_TYPE_G202X) {
         EXPECT_EVENTUALLY_EQ(
             1,
             *portStatsAfter.outBroadcastPkts_() -
@@ -591,5 +603,46 @@ TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
     });
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentPacketSendLldpTest : public AgentHwTest {
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::CPU_RX_TX};
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto cfg = AgentHwTest::initialConfig(ensemble);
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, {asic}, ensemble.isSai());
+    utility::addCpuQueueConfig(cfg, {asic}, ensemble.isSai());
+    return cfg;
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_enable_lldp = true;
+  }
+};
+
+TEST_F(AgentPacketSendLldpTest, LldpLoopbackTest) {
+  auto verify = [=, this]() {
+    auto* lldpManager = getSw()->getLldpMgr();
+    ASSERT_NE(lldpManager, nullptr);
+    lldpManager->sendLldpOnAllPorts();
+    size_t expectedNumLldpEntries =
+        this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT,
+                                    cfg::PortType::HYPER_PORT_MEMBER})
+            .size();
+    WITH_RETRIES({
+      auto* db = lldpManager->getDB();
+      auto neighbors = db->getNeighbors();
+      XLOG(DBG2) << "LLDP neighbors found: " << neighbors.size();
+      EXPECT_EVENTUALLY_GE(neighbors.size(), expectedNumLldpEntries);
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 } // namespace facebook::fboss

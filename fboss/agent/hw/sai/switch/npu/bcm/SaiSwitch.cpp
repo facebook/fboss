@@ -800,12 +800,12 @@ void incrementJ3InterruptCounter(
 }
 #endif
 
-int32_t getFabricTransmitPacketType(facebook::fboss::TxPacketType pktType) {
+int32_t getFabricTransmitPacketType(facebook::fboss::PacketType pktType) {
   switch (pktType) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
-    case facebook::fboss::TxPacketType::DEFAULT:
+    case facebook::fboss::PacketType::DEFAULT:
       return SAI_HOSTIF_PACKET_TYPE_DEFAULT;
-    case facebook::fboss::TxPacketType::FABRIC_LINK_MONITORING:
+    case facebook::fboss::PacketType::FABRIC_LINK_MONITORING:
       return SAI_HOSTIF_PACKET_TYPE_LINK_MONITORING;
 #endif
     default:
@@ -819,6 +819,21 @@ int32_t getFabricTransmitPacketType(facebook::fboss::TxPacketType pktType) {
 } // namespace
 
 namespace facebook::fboss {
+
+PacketType getReceivedPacketType(int32_t packetType) {
+  switch (packetType) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+    case SAI_HOSTIF_PACKET_TYPE_DEFAULT:
+      return PacketType::DEFAULT;
+    case SAI_HOSTIF_PACKET_TYPE_LINK_MONITORING:
+      return PacketType::FABRIC_LINK_MONITORING;
+#endif
+    default:
+      break;
+  }
+  throw FbossError(
+      "Unknown packet type in received packet type : ", packetType);
+}
 
 void SaiSwitch::switchEventCallback(
     sai_size_t /*buffer_size*/,
@@ -1051,7 +1066,7 @@ void SaiSwitch::initTechSupport() {
 bool SaiSwitch::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> pkt,
     const PortID& portID,
-    TxPacketType packetType) {
+    PacketType packetType) {
   CHECK(
       getSwitchType() == cfg::SwitchType::VOQ ||
       getSwitchType() == cfg::SwitchType::FABRIC)

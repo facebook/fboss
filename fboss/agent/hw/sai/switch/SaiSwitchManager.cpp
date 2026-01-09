@@ -1394,15 +1394,18 @@ void SaiSwitchManager::updateSramLowBufferLimitHitCounter() {
 }
 
 void SaiSwitchManager::setSwitchIsolate(bool isolate) {
+  auto switchType = platform_->getAsic()->getSwitchType();
   // Supported only for FABRIC switches!
-  // It is checked while applying thrift config
-  CHECK(
-      platform_->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC ||
-      platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ);
-  XLOG(DBG2) << " Setting switch state to : "
-             << (isolate ? "DRAINED" : "UNDRAINED");
-  switch_->setOptionalAttribute(
-      SaiSwitchTraits::Attributes::SwitchIsolate{isolate});
+  if (switchType == cfg::SwitchType::FABRIC ||
+      switchType == cfg::SwitchType::VOQ) {
+    XLOG(DBG2) << " Setting switch state to : "
+               << (isolate ? "DRAINED" : "UNDRAINED");
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::SwitchIsolate{isolate});
+  } else {
+    XLOG(DBG2) << "Ignoring setSwitchIsolate for switch type "
+               << apache::thrift::util::enumNameSafe(switchType);
+  }
 }
 
 std::vector<sai_object_id_t> SaiSwitchManager::getUdfGroupIds(

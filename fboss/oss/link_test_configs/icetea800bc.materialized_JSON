@@ -5,6 +5,7 @@
     "disable_neighbor_updates": "true",
     "enable_replayer": "true",
     "log_variable_name": "true",
+    "qsfp_port_manager_mode": "true",
     "sai_configure_six_tap": "true"
   },
   "sw": {

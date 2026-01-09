@@ -41,6 +41,14 @@ fbiob::AuxData RuntimeConfigBuilder::createLedAuxData(
   return auxData;
 }
 
+fbiob::AuxData RuntimeConfigBuilder::createSysLedAuxData(
+    const FpgaIpBlockConfig& sysLedCtrlConf) {
+  auto auxData =
+      createBaseAuxData(sysLedCtrlConf, fbiob::AuxDeviceType::SYSLED);
+
+  return auxData;
+}
+
 fbiob::AuxData RuntimeConfigBuilder::createGpioAuxData(
     const FpgaIpBlockConfig& gpioChipConf) {
   auto auxData = createBaseAuxData(gpioChipConf, fbiob::AuxDeviceType::GPIO);
@@ -246,6 +254,9 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
 
       for (const auto& ledCtrl : Utils::createLedCtrlConfigs(dev)) {
         pciDevice.auxDevices()->push_back(createLedAuxData(ledCtrl));
+      }
+      for (const auto& sysLedCtrl : *dev.sysLedCtrlConfigs()) {
+        pciDevice.auxDevices()->push_back(createSysLedAuxData(sysLedCtrl));
       }
       for (const auto& xcvrCtrl : Utils::createXcvrCtrlConfigs(dev)) {
         pciDevice.auxDevices()->push_back(createXcvrAuxData(xcvrCtrl));

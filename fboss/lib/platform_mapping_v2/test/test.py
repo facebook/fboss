@@ -75,6 +75,7 @@ class TestPlatformMappingGeneration(unittest.TestCase):
             ),
             supportedProfiles={
                 PortProfileID.PROFILE_100G_4_NRZ_RS528_OPTICAL: PlatformPortConfig(
+                    subsumedPorts=[2],
                     pins=PortPinConfig(
                         iphy=[
                             PinConfig(
@@ -162,7 +163,7 @@ class TestPlatformMappingGeneration(unittest.TestCase):
             mapping=PlatformPortMapping(
                 id=2,
                 name="eth1/2/2",
-                controllingPort=2,
+                controllingPort=1,
                 pins=[
                     PinConnection(
                         a=PinID(chip="NPU-TH5_NIF-slot1/chip1/core0", lane=1),

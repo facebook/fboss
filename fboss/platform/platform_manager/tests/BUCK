@@ -110,3 +110,28 @@ cpp_unittest(
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
+
+cpp_unittest(
+    name = "pci_explorer_test",
+    srcs = [
+        "PciExplorerTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/helpers:mock_platform_fs_utils",
+        "//fboss/platform/platform_manager:pci_explorer",
+    ],
+)
+
+cpp_unittest(
+    name = "platform_manager_handler_test",
+    srcs = [
+        "PlatformManagerHandlerTest.cpp",
+    ],
+    supports_static_listing = False,
+    deps = [
+        "//fboss/platform/platform_manager:platform_manager_handler",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)

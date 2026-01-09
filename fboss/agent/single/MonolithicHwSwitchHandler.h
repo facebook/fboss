@@ -38,7 +38,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
   bool sendPacketOutOfPortSyncForPktType(
       std::unique_ptr<TxPacket> pkt,
       const PortID& portID,
-      TxPacketType packetType) noexcept override;
+      PacketType packetType) noexcept override;
 
   bool isValidStateUpdate(const StateDelta& delta) const;
 

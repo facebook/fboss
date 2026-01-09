@@ -1396,6 +1396,7 @@ bcm_device:
       sai_stats_support_mask: 0x802
       sai_disable_internal_port_serdes: 1
       stat_custom_receive0_management_mode: 1
+      sai_stats_disable_mask: 0x800
       global_flexctr_ing_action_num_reserved: 20
       global_flexctr_ing_pool_num_reserved: 8
       global_flexctr_ing_op_profile_num_reserved: 20

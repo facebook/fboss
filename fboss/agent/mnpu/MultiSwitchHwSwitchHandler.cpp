@@ -43,7 +43,7 @@ bool MultiSwitchHwSwitchHandler::sendPacketSwitchedAsync(
 bool MultiSwitchHwSwitchHandler::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> pkt,
     const PortID& portID,
-    TxPacketType packetType) noexcept {
+    PacketType packetType) noexcept {
   return sendPacketOutViaThriftStream(
       std::move(pkt), portID, std::nullopt /*queue*/, packetType);
 }
@@ -55,7 +55,8 @@ bool MultiSwitchHwSwitchHandler::transactionsSupported(
     return true;
   }
   if (asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
-      asicType == cfg::AsicType::ASIC_TYPE_YUBA) {
+      asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
+      asicType == cfg::AsicType::ASIC_TYPE_G202X) {
     return true;
   }
   if (sdkVersion.has_value() && sdkVersion.value().saiSdk().has_value()) {
@@ -98,7 +99,7 @@ bool MultiSwitchHwSwitchHandler::sendPacketOutViaThriftStream(
     std::unique_ptr<TxPacket> pkt,
     std::optional<PortID> portID,
     std::optional<uint8_t> queue,
-    std::optional<TxPacketType> packetType) {
+    std::optional<PacketType> packetType) {
   SwitchID switchId;
   // Find the actual switch ID that owns the port
   if (portID.has_value()) {

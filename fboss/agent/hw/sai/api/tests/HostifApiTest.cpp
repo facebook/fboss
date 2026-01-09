@@ -59,9 +59,8 @@ TEST_F(HostifApiTest, sendPacket) {
   SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(7);
   SaiTxPacketTraits::TxAttributes a{
       txType, egressPort, egressQueueIndex, std::nullopt};
-  folly::StringPiece testPacket = "TESTPACKET";
-  SaiHostifApiPacket txPacket{
-      (void*)(testPacket.toString().c_str()), testPacket.toString().length()};
+  std::string testPacket = "TESTPACKET";
+  SaiHostifApiPacket txPacket{(void*)(testPacket.c_str()), testPacket.length()};
   hostifApi->send(a, 0, txPacket);
 }
 
@@ -182,4 +181,47 @@ TEST_F(HostifApiTest, setTrapAttributes) {
   SaiHostifTrapTraits::Attributes::TrapType trapType(
       SAI_HOSTIF_TRAP_TYPE_EAPOL);
   EXPECT_THROW(hostifApi->setAttribute(trapId, trapType), SaiApiError);
+}
+
+TEST_F(HostifApiTest, formatRxPacketAttributes) {
+  SaiRxPacketTraits::Attributes::TrapId trapId(42);
+  EXPECT_EQ("TrapId: 42", fmt::format("{}", trapId));
+  SaiRxPacketTraits::Attributes::IngressPort ingressPort(10);
+  EXPECT_EQ("IngressPort: 10", fmt::format("{}", ingressPort));
+  SaiRxPacketTraits::Attributes::IngressLag ingressLag(20);
+  EXPECT_EQ("IngressLag: 20", fmt::format("{}", ingressLag));
+}
+
+TEST_F(HostifApiTest, formatTxPacketAttributes) {
+  SaiTxPacketTraits::Attributes::TxType txType(
+      SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
+  EXPECT_EQ("TxType: 0", fmt::format("{}", txType));
+  SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(10);
+  EXPECT_EQ("EgressPortOrLag: 10", fmt::format("{}", egressPort));
+  SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(7);
+  EXPECT_EQ("EgressQueueIndex: 7", fmt::format("{}", egressQueueIndex));
+}
+
+TEST_F(HostifApiTest, sendPacketWithPacketType) {
+  SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(10);
+  SaiTxPacketTraits::Attributes::TxType txType(
+      SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
+  SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(7);
+  SaiTxPacketTraits::Attributes::PacketType packetType(1);
+  SaiTxPacketTraits::TxAttributes a{
+      txType, egressPort, egressQueueIndex, packetType};
+  std::string testPacket = "TESTPACKET";
+  SaiHostifApiPacket txPacket{(void*)(testPacket.c_str()), testPacket.length()};
+  hostifApi->send(a, 0, txPacket);
+}
+
+TEST_F(HostifApiTest, formatRxPacketAttributesWithPacketType) {
+  SaiRxPacketTraits::Attributes::TrapId trapId(42);
+  EXPECT_EQ("TrapId: 42", fmt::format("{}", trapId));
+  SaiRxPacketTraits::Attributes::IngressPort ingressPort(10);
+  EXPECT_EQ("IngressPort: 10", fmt::format("{}", ingressPort));
+  SaiRxPacketTraits::Attributes::IngressLag ingressLag(20);
+  EXPECT_EQ("IngressLag: 20", fmt::format("{}", ingressLag));
+  SaiRxPacketTraits::Attributes::PacketType packetType(1);
+  EXPECT_EQ("PacketType: 1", fmt::format("{}", packetType));
 }

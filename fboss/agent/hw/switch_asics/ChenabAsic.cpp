@@ -234,6 +234,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
+    case HwAsic::Feature::SAI_SERDES_RX_REACH:
       return false;
   }
   return false;

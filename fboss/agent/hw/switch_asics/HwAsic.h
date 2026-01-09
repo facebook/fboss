@@ -462,6 +462,7 @@ class HwAsic {
     // side queuing along with CPU ports given not all platforms
     // are capable of CPU queuing.
     CPU_QUEUES,
+    SAI_SERDES_RX_REACH,
   };
 
   enum class AsicMode {
@@ -486,6 +487,7 @@ class HwAsic {
   enum InterfaceNodeRole {
     IN_CLUSTER_NODE,
     DUAL_STAGE_EDGE_NODE,
+    HYPER_PORT_EDGE_NODE,
   };
   virtual ~HwAsic() {}
   static std::unique_ptr<HwAsic> makeAsic(

@@ -8,11 +8,14 @@
 namespace facebook {
 namespace fboss {
 
+class PortManager;
+
 class FbossMacsecHandler : public mka::MacsecHandler {
  public:
-  // Explicit constructor taking the wedgeManager object
-  explicit FbossMacsecHandler(TransceiverManager* wedgeManager)
-      : wedgeManager_(wedgeManager) {}
+  // Constructor taking both portManager and wedgeManager
+  // portManager can be nullptr when not in port manager mode
+  FbossMacsecHandler(PortManager* portManager, TransceiverManager* wedgeManager)
+      : portManager_(portManager), wedgeManager_(wedgeManager) {}
 
   // Virtual function for sakInstallRx. The Macsec supporting platform should
   // implement this API in the subclass
@@ -85,6 +88,8 @@ class FbossMacsecHandler : public mka::MacsecHandler {
   }
 
  protected:
+  // PortManager object pointer (optional, only in port manager mode)
+  PortManager* portManager_{nullptr};
   // TransceiverManager or WedgeManager object pointer passed by QsfpService
   // main
   TransceiverManager* wedgeManager_;

@@ -1,3 +1,8 @@
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace py neteng.fboss.bcm_config
 namespace py3 neteng.fboss.bcm_config
 namespace py.asyncio neteng.fboss.asyncio.bcm_config

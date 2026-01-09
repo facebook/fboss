@@ -156,6 +156,7 @@ thrift_library(
     thrift_srcs = {"sensor_service_stats.thrift": []},
     deps = [
         "//fboss/platform/sensor_service/if:sensor_service",
+        "//thrift/annotation:thrift",
     ],
 )
 

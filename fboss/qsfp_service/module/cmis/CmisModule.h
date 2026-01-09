@@ -10,6 +10,7 @@
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
+#include <chrono>
 #include <optional>
 
 namespace facebook {
@@ -203,6 +204,46 @@ class CmisModule : public QsfpModule {
   bool staticPagesCached_{false};
 
   /*
+   * Structure to hold datapath init/deinit state per port using timers
+   * progStartTimer: Time point when datapath programming started.
+   * progDoneTimer: Time point when datapath programming finished.
+   * elapsedTime: Elapsed time for datapath programming (in milliseconds).
+   */
+  struct PortTimer {
+    std::chrono::steady_clock::time_point progStartTimer;
+    std::chrono::steady_clock::time_point progDoneTimer;
+    std::chrono::milliseconds elapsedTime{0};
+  };
+
+  /*
+   * Structure to track datapath initialization and de-initialization state
+   * per port.
+   *
+   * deInitTimers: Timers tracking datapath de-initialization
+   *               (start, done, and elapsed time)
+   * initTimers: Timers tracking datapath initialization
+   *             (start, done, and elapsed time)
+   * dpDeinitFailureCounter: Counter tracking the number of times spec violation
+   *                         for dp-deinit duration module advertisement.
+   * dpInitFailureCounter: Counter tracking the number of times spec violation
+   *                       for dp-init duration module advertisement.
+   */
+  struct DatapathState {
+    PortTimer deInitTimers;
+    PortTimer initTimers;
+    bool dpDeinitDone{false};
+    bool dpInitDone{false};
+    uint64_t dpDeinitFailureCounter{0};
+    uint64_t dpInitFailureCounter{0};
+  };
+
+  /*
+   * Map to track datapath init/deinit state per port ID
+   * Key: Port ID (string), Value: DatapathState structure
+   */
+  std::map<std::string, DatapathState> portDatapathStates_;
+
+  /*
    * This function returns a pointer to the value in the static cached
    * data after checking the length fits. The thread needs to have the lock
    * before calling this function.
@@ -262,6 +303,7 @@ class CmisModule : public QsfpModule {
    * if newAppSelCode is provided, use that directly instead of deriving
    */
   void setApplicationCodeLocked(
+      const std::string& portName,
       cfg::PortSpeed speed,
       uint8_t startHostLane,
       uint8_t numHostLanesForPort,
@@ -275,6 +317,7 @@ class CmisModule : public QsfpModule {
    * config already matches.
    */
   std::optional<ApplicationAdvertisingField> getAppSelCodeForSpeed(
+      const std::string& portName,
       cfg::PortSpeed speed,
       uint8_t startHostLane,
       uint8_t numHostLanesForPort);
@@ -288,6 +331,7 @@ class CmisModule : public QsfpModule {
    * Otherwise, the default setApplicationSelectCode will be used.
    */
   void programApplicationSelectCode(
+      const std::string& portName,
       uint8_t appSelCode,
       uint8_t moduleMediaInterfaceCode,
       uint8_t startHostLane,
@@ -520,7 +564,7 @@ class CmisModule : public QsfpModule {
 
   bool supportRemediate() override;
 
-  void resetDataPath() override;
+  void resetDataPath(const std::string& portName) override;
 
   /*
    * returns whether optics frequency is tunable or not
@@ -653,7 +697,28 @@ class CmisModule : public QsfpModule {
    */
   MediaInterfaceCode getModuleMediaInterface() const override;
 
+  uint64_t getExpectedDatapathDelayUsec(bool /*init*/);
   uint64_t maxRetriesWith500msDelay(bool /*init*/);
+
+  /*
+   * Program the datapath for the specified port. When isInit is true, releases
+   * lanes from DEACTIVATED state to ACTIVATED state. When isInit is false, sets
+   * lanes to DEACTIVATED state. This function:
+   * - Writes to DATA_PATH_DEINIT register (set bits for deinit, clear for init)
+   * - Polls the datapath state machine until lanes reach target state
+   * - Tracks timing and failure counters
+   * - Returns true if operation succeeds, false on timeout or failure
+   *
+   * @param portName The name of the port being programmed
+   * @param hostLaneMask Bitmask of host lanes to program
+   * @param isInit If true, initialize (activate); if false, deinitialize
+   * (deactivate)
+   * @return true if datapath operation completed successfully, false otherwise
+   */
+  bool dataPathProgram(
+      const std::string& portName,
+      uint8_t hostLaneMask,
+      bool isInit);
 
   /*
    * Check if the datapath for the specified lanes has been updated to one of
@@ -664,6 +729,7 @@ class CmisModule : public QsfpModule {
       const std::vector<CmisLaneState>& states);
 
   void resetDataPathWithFunc(
+      const std::string& portName,
       std::optional<std::function<void()>> afterDataPathDeinitFunc =
           std::nullopt,
       uint8_t hostLaneMask = 0xFF);

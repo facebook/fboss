@@ -902,15 +902,13 @@ static void populateInterfaceDetail(
     const std::shared_ptr<SwitchState> state) {
   *interfaceDetail.interfaceName() = intf->getName();
   *interfaceDetail.interfaceId() = intf->getID();
-  if (intf->getVlanIDIf_DEPRECATED().has_value()) {
-    *interfaceDetail.vlanId() = intf->getVlanID();
-  }
   switch (intf->getType()) {
     case cfg::InterfaceType::PORT: {
       auto port = state->getPorts()->getNode(intf->getPortID());
       interfaceDetail.portNames()->emplace_back(port->getName());
     } break;
     case cfg::InterfaceType::VLAN: {
+      *interfaceDetail.vlanId() = intf->getVlanID();
       auto vlan = state->getVlans()->getNodeIf(intf->getVlanID());
       if (!intf->isVirtual() && vlan != nullptr) {
         auto members = vlan->getPorts();
@@ -1945,6 +1943,15 @@ void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
       sw_->getState(), [&routes](const RouterID& /*rid*/, const auto& route) {
         routes.emplace_back(route->toRouteDetails(true));
       });
+}
+
+void ThriftHandler::getRouteTableSize(RouteCount& routeCount) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  auto state = sw_->getState();
+  auto [v4Count, v6Count] = state->getFibsInfoMap()->getRouteCount();
+  *routeCount.v4Count() = v4Count;
+  *routeCount.v6Count() = v6Count;
 }
 
 void ThriftHandler::getIpRoute(

@@ -1,3 +1,8 @@
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.pim_state
 namespace php fboss_common
@@ -11,6 +16,8 @@ enum PimError {
   PIM_SCD_COUNTER_NOT_CLEARED = 0,
   # Same for Minipack / Fuji PIM, which uses a different scratchpad counter.
   PIM_MINIPACK_SCRATCHPAD_COUNTER_NOT_CLEARED = 1,
+  # PIM fails getPimType() check. This is a good indicator that communication with PIM is not working as expected.
+  PIM_GET_TYPE_FAILED = 2,
 }
 
 struct PimState {

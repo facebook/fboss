@@ -208,10 +208,6 @@ void PortManager::syncPorts(
   }
 }
 
-bool PortManager::initExternalPhyMap(bool forceWarmboot) {
-  return true;
-}
-
 void PortManager::programXphyPort(
     PortID portId,
     cfg::PortProfileID portProfileId) {
@@ -685,18 +681,8 @@ void PortManager::programExternalPhyPorts(
     }
 
     const auto initializedPorts = *tcvrToInitializedPorts_It->second->rlock();
-    const auto& portToPortInfoIt =
-        transceiverManager_->getSynchronizedProgrammedIphyPortToPortInfo(
-            tcvrId);
-    if (!portToPortInfoIt) {
-      // This is due to the iphy ports are disabled. So no need to program
-      // xphy
-      XLOG(DBG2) << "Skip programming xphy ports for Transceiver=" << tcvrId
-                 << ". Can't find programmed iphy port and port info";
-      return;
-    }
-
-    const auto& programmedPortToPortInfo = portToPortInfoIt->rlock();
+    const auto& programmedPortToPortInfo =
+        transceiverManager_->getProgrammedIphyPortToPortInfo(tcvrId);
     const auto& transceiverInfo =
         transceiverManager_->getTransceiverInfo(tcvrId);
 
@@ -706,8 +692,8 @@ void PortManager::programExternalPhyPorts(
         continue;
       }
 
-      auto portToPortInfoItr = programmedPortToPortInfo->find(portId);
-      if (portToPortInfoItr == programmedPortToPortInfo->end()) {
+      auto portToPortInfoItr = programmedPortToPortInfo.find(portId);
+      if (portToPortInfoItr == programmedPortToPortInfo.end()) {
         continue;
       }
 
@@ -2063,6 +2049,36 @@ void PortManager::publishPortStatToFsdb(
   if (FLAGS_publish_stats_to_fsdb) {
     fsdbSyncManager_->updatePortStat(std::move(portNameStr), std::move(stat));
   }
+}
+
+void PortManager::initExternalPhyMap(bool forceWarmboot) {
+  transceiverManager_->initExternalPhyMap(phyManager_.get(), forceWarmboot);
+  restoreWarmBootPhyState();
+}
+
+/*
+ * getAllPortPhyInfo
+ *
+ * Get the map of software port id to PortPhyInfo in the system. This function
+ * mainly for debugging
+ */
+std::map<uint32_t, phy::PhyIDInfo> PortManager::getAllPortPhyInfo() {
+  std::map<uint32_t, phy::PhyIDInfo> resultMap;
+
+  const auto& allPlatformPortsIt = platformMapping_->getPlatformPorts();
+  for (const auto& platformPortIt : allPlatformPortsIt) {
+    auto portId = platformPortIt.first;
+    GlobalXphyID xphyId;
+    try {
+      xphyId = phyManager_->getGlobalXphyIDbyPortID(PortID(portId));
+    } catch (FbossError&) {
+      continue;
+    }
+    phy::PhyIDInfo phyIdInfo = phyManager_->getPhyIDInfo(xphyId);
+    resultMap[portId] = phyIdInfo;
+  }
+
+  return resultMap;
 }
 
 } // namespace facebook::fboss

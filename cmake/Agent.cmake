@@ -234,7 +234,9 @@ target_link_libraries(shel_manager
 )
 
 add_library(fsdb_adapted_sub_manager
+  fboss/agent/FsdbAdaptedCowStorage.cpp
   fboss/agent/FsdbAdaptedSubManager.cpp
+  fboss/agent/FsdbAdaptedTemplateInstantiations.cpp
 )
 
 target_link_libraries(fsdb_adapted_sub_manager
@@ -764,21 +766,34 @@ target_link_libraries(fboss_sw_agent
   -Wl,--no-whole-archive
 )
 
+add_library(file_based_warmboot_utils
+  fboss/agent/FileBasedWarmbootUtils.cpp
+)
+
+target_link_libraries(file_based_warmboot_utils
+  agent_dir_util
+  agent_features
+  hw_asic_table
+  Folly::folly
+ common_file_utils
+)
+
 add_library(sw_switch_warmboot_helper
   fboss/agent/SwSwitchWarmBootHelper.cpp
 )
 
 target_link_libraries(sw_switch_warmboot_helper
+  agent_features
   async_logger
   fboss_error
   hw_asic_table
   state
   standalone_rib
   utils
-  common_file_utils
   Folly::folly
   switch_state_cpp2
   warm_boot_file_utils
+  file_based_warmboot_utils
 )
 
 add_library(sw_agent_initializer
