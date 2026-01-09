@@ -1857,6 +1857,18 @@ cpp_library(
 )
 
 cpp_library(
+    name = "thrift_based_warmboot_utils",
+    srcs = [
+        "ThriftBasedWarmbootUtils.cpp",
+    ],
+    exported_deps = [
+        ":hw_asic_table",
+        ":hw_switch_thrift_client_table",
+        ":switch_state-cpp2-types",
+    ],
+)
+
+cpp_library(
     name = "sw_switch_warmboot_helper",
     srcs = [
         "SwSwitchWarmBootHelper.cpp",
