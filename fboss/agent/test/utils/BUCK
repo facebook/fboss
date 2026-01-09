@@ -176,7 +176,9 @@ cpp_library(
     ],
     headers = ["HyperPortTestUtils.h"],
     exported_deps = [
+        "//fboss/agent:agent_features",
         "//fboss/agent:fboss-types",
+        "//fboss/agent/state:state",
     ],
 )
 
