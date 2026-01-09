@@ -161,6 +161,32 @@ struct WrappedSaiType<std::vector<sai_port_snr_values_t>> {
 };
 #endif
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+struct SaiJsonString {
+  std::string value;
+
+  SaiJsonString() = default;
+  SaiJsonString(std::string s) : value(std::move(s)) {}
+  SaiJsonString(const char* s) : value(s) {}
+
+  bool operator==(const SaiJsonString& other) const {
+    return value == other.value;
+  }
+  bool operator!=(const SaiJsonString& other) const {
+    return !(*this == other);
+  }
+
+  std::string str() const {
+    return value;
+  }
+};
+
+template <>
+struct WrappedSaiType<SaiJsonString> {
+  using value = sai_json_t;
+};
+#endif
+
 template <>
 struct WrappedSaiType<std::array<char, 32>> {
   using value = char[32];
