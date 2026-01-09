@@ -128,6 +128,16 @@ target_link_libraries(trunk_test_utils
   agent_ensemble
 )
 
+add_library(hyper_port_test_utils
+  fboss/agent/test/utils/HyperPortTestUtils.cpp
+)
+
+target_link_libraries(hyper_port_test_utils
+  fboss_types
+  switch_config_cpp2
+  state
+)
+
 add_library(config_utils
   fboss/agent/test/utils/ConfigUtils.cpp
 )
