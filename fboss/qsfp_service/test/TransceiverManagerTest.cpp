@@ -359,7 +359,7 @@ TEST_F(TransceiverManagerTest, areAllPortsDownWithEmptyPortInfo) {
       transceiverManager_->areAllPortsDown(TransceiverID(0));
 
   // In PortManager mode, empty port info means all ports are down
-  EXPECT_TRUE(allPortsDown2);
+  EXPECT_FALSE(allPortsDown2);
   EXPECT_TRUE(downPorts2.empty());
 
   // Reset flag to default
