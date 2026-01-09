@@ -13,6 +13,8 @@
 #include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/CommonFileUtils.h"
 
 namespace facebook::fboss {
@@ -91,6 +93,32 @@ void logBootHistory(
       << "Agent version: " << agentVersion << std::endl;
   auto ossString = oss.str();
   folly::writeFull(logFile.fd(), ossString.c_str(), ossString.size());
+}
+
+std::pair<std::shared_ptr<SwitchState>, std::unique_ptr<RoutingInformationBase>>
+reconstructStateAndRib(
+    std::optional<state::WarmbootState> warmBootState,
+    bool hasL3) {
+  std::unique_ptr<RoutingInformationBase> rib{};
+  std::shared_ptr<SwitchState> state{nullptr};
+  if (warmBootState.has_value()) {
+    /* warm boot: reconstruct from warm boot state */
+    state = SwitchState::fromThrift(*(warmBootState->swSwitchState()));
+    rib = RoutingInformationBase::fromThrift(
+        *(warmBootState->routeTables()),
+        state->getFibsInfoMap(),
+        state->getLabelForwardingInformationBase());
+  } else {
+    state = SwitchState::fromThrift(state::SwitchState{});
+    /* cold boot, setup default rib */
+    std::map<int32_t, state::RouteTableFields> routeTables{};
+    if (hasL3) {
+      /* at least one switch supports route programming, setup default vrf */
+      routeTables.emplace(kDefaultVrf, state::RouteTableFields{});
+    }
+    rib = RoutingInformationBase::fromThrift(routeTables);
+  }
+  return std::make_pair(state, std::move(rib));
 }
 
 } // namespace facebook::fboss

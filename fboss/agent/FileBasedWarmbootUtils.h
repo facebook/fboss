@@ -2,12 +2,19 @@
 
 #pragma once
 
+#include <memory>
+#include <optional>
 #include <string>
+#include <utility>
+
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 
 namespace facebook::fboss {
 
 class AgentDirectoryUtil;
 class HwAsicTable;
+class SwitchState;
+class RoutingInformationBase;
 
 /**
  * Constructs file path for legacy force cold boot once flag.
@@ -50,5 +57,13 @@ void logBootHistory(
     const std::string& bootType,
     const std::string& sdkVersion,
     const std::string& agentVersion);
+
+/**
+ * Reconstructs SwitchState and RoutingInformationBase from warmboot state.
+ * If warmBootState is present, reconstructs from saved state.
+ * Otherwise, creates cold boot state with optional default VRF.
+ */
+std::pair<std::shared_ptr<SwitchState>, std::unique_ptr<RoutingInformationBase>>
+reconstructStateAndRib(std::optional<state::WarmbootState> wbState, bool hasL3);
 
 } // namespace facebook::fboss

@@ -30,13 +30,6 @@ class SwSwitchWarmBootHelper {
       const std::string& sdkVersion,
       const std::string& agentVersion);
 
-  static std::pair<
-      std::shared_ptr<SwitchState>,
-      std::unique_ptr<RoutingInformationBase>>
-  reconstructStateAndRib(
-      std::optional<state::WarmbootState> wbState,
-      bool hasL3);
-
  private:
   void setCanWarmBoot();
 
