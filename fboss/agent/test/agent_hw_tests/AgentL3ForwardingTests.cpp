@@ -182,45 +182,67 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
         auto dstIp =
             folly::IPAddress(isV6 ? "100:100:100::1" : "100.100.100.1");
         constexpr uint8_t kTtl = 255;
-        auto pkt = utility::makeUDPTxPacket(
-            getSw(),
-            vlanId,
-            intfMac,
-            intfMac,
-            srcIp,
-            dstIp,
-            10000,
-            10001,
-            0,
-            kTtl,
-            std::vector<uint8_t>(memberPorts.size() * kBytesPerPort, 0xff));
-        getSw()->sendPacketOutOfPortAsync(
-            std::move(pkt), ecmpHelper6.nhop(1).portDesc.phyPortID());
+        for (auto i = 0; i < memberPorts.size(); ++i) {
+          auto pkt = utility::makeUDPTxPacket(
+              getSw(),
+              vlanId,
+              intfMac,
+              intfMac,
+              srcIp,
+              dstIp,
+              10000,
+              10001,
+              0,
+              kTtl,
+              std::vector<uint8_t>(kBytesPerPort, 0xff));
+          getSw()->sendPacketOutOfPortAsync(
+              std::move(pkt), ecmpHelper6.nhop(1).portDesc.phyPortID());
+        }
       }
     };
     auto port = ecmpHelper6.nhop(0).portDesc.phyPortID();
-    auto portStatsBefore = getLatestPortStats(port);
+    auto allPorts = memberPorts;
+    allPorts.push_back(port);
+    auto portStatsBefore = getLatestPortStats(allPorts);
     pumpTraffic();
     WITH_RETRIES({
-      auto portStatsAfter = getLatestPortStats(port);
-      XLOG(INFO) << " Out pkts, before:" << *portStatsBefore.outUnicastPkts_()
-                 << " after:" << *portStatsAfter.outUnicastPkts_()
-                 << " Out bytes before: " << *portStatsBefore.outBytes_()
-                 << " after: " << *portStatsAfter.outBytes_();
+      auto portStatsAfter = getLatestPortStats(allPorts);
+      XLOG(DBG2) << " Out pkts, before:"
+                 << *portStatsBefore[port].outUnicastPkts_()
+                 << " after:" << *portStatsAfter[port].outUnicastPkts_()
+                 << " Out bytes before: " << *portStatsBefore[port].outBytes_()
+                 << " after: " << *portStatsAfter[port].outBytes_();
       EXPECT_EVENTUALLY_EQ(
-          *portStatsAfter.outUnicastPkts_(),
-          *portStatsBefore.outUnicastPkts_() + 2);
+          *portStatsAfter[port].outUnicastPkts_(),
+          *portStatsBefore[port].outUnicastPkts_() + memberPorts.size() * 2);
       EXPECT_EVENTUALLY_GE(
-          *portStatsAfter.outBytes_(),
-          *portStatsBefore.outBytes_() +
+          *portStatsAfter[port].outBytes_(),
+          *portStatsBefore[port].outBytes_() +
               memberPorts.size() * 2 * kBytesPerPort);
+      if (memberPorts.size() > 1) {
+        for (auto memberPort : memberPorts) {
+          XLOG(DBG2) << " Member port: " << memberPort << ". Out pkts, before:"
+                     << *portStatsBefore[memberPort].outUnicastPkts_()
+                     << " after:"
+                     << *portStatsAfter[memberPort].outUnicastPkts_()
+                     << " Out bytes before: "
+                     << *portStatsBefore[memberPort].outBytes_()
+                     << " after: " << *portStatsAfter[memberPort].outBytes_();
+          EXPECT_EVENTUALLY_GE(
+              *portStatsAfter[memberPort].outBytes_(),
+              *portStatsBefore[memberPort].outBytes_() + 2 * kBytesPerPort);
+        }
+      }
     });
     handler.clearAllPortStats();
     WITH_RETRIES({
-      auto portStatsAfter = getLatestPortStats(port);
-      XLOG(INFO) << " Out pkts, after:" << *portStatsAfter.outUnicastPkts_()
-                 << std::endl;
-      EXPECT_EVENTUALLY_EQ(*portStatsAfter.outUnicastPkts_(), 0);
+      auto portStatsAfter = getLatestPortStats(allPorts);
+      for (auto aPort : allPorts) {
+        XLOG(INFO) << " Out pkts on port: " << aPort
+                   << " after:" << *portStatsAfter[aPort].outUnicastPkts_()
+                   << std::endl;
+        EXPECT_EVENTUALLY_EQ(*portStatsAfter[aPort].outUnicastPkts_(), 0);
+      }
     });
   };
   verifyAcrossWarmBoots(setup, verify);
