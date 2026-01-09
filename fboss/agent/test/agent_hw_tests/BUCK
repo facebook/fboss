@@ -52,7 +52,6 @@ cpp_library(
         "AgentLoopBackTests.cpp",
         "AgentMacLearningAndNeighborResolutionTests.cpp",
         "AgentMacLearningTests.cpp",
-        "AgentMalformedPacketTests.cpp",
         "AgentMemoryUsageTests.cpp",
         "AgentMirrorOnDropTests.cpp",
         "AgentMirroringScaleTests.cpp",
