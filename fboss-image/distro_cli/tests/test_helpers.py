@@ -15,6 +15,7 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
+from distro_cli.lib.artifact import ArtifactStore
 from distro_cli.lib.docker.image import build_fboss_builder_image
 
 logger = logging.getLogger(__name__)
@@ -33,10 +34,10 @@ def ensure_test_docker_image():
 
 
 @contextmanager
-def sandbox_tempdir(prefix: str = "test_") -> Generator[Path, None, None]:
-    """Create a temporary directory that works in sandboxed test environments.
+def enter_tempdir(prefix: str = "test_") -> Generator[Path, None, None]:
+    """Create a temporary directory that works in both Bazel and non-Bazel test environments.
 
-    When TEST_TMPDIR environment variable is set (e.g., in Bazel sandbox), creates
+    When TEST_TMPDIR environment variable is set (e.g., in Bazel sandboxed tests), creates
     the temporary directory under TEST_TMPDIR which is guaranteed to be writable.
     Otherwise, uses the system's default temporary directory.
 
@@ -47,7 +48,7 @@ def sandbox_tempdir(prefix: str = "test_") -> Generator[Path, None, None]:
         Path to the temporary directory
 
     Example:
-        with sandbox_tempdir("my_test_") as tmpdir:
+        with enter_tempdir("my_test_") as tmpdir:
             test_file = tmpdir / "test.txt"
             test_file.write_text("test content")
     """
@@ -66,3 +67,33 @@ def sandbox_tempdir(prefix: str = "test_") -> Generator[Path, None, None]:
         # Clean up
         if tmpdir.exists():
             shutil.rmtree(tmpdir)
+
+
+@contextmanager
+def override_artifact_store_dir(store_dir: Path) -> Generator[None, None, None]:
+    """Temporarily override ArtifactStore.ARTIFACT_STORE_DIR for testing.
+
+    This is necessary in sandboxed test environments where the default artifact
+    store directory may be read-only. The override is automatically restored when
+    the context exits.
+
+    Args:
+        store_dir: Path to use as the artifact store directory
+
+    Yields:
+        None
+
+    Example:
+        with enter_tempdir("artifacts_") as tmpdir:
+            with override_artifact_store_dir(tmpdir):
+                # ArtifactStore will now use tmpdir
+                store = ArtifactStore()
+                # ... test code ...
+            # ArtifactStore.ARTIFACT_STORE_DIR is restored
+    """
+    original = ArtifactStore.ARTIFACT_STORE_DIR
+    try:
+        ArtifactStore.ARTIFACT_STORE_DIR = store_dir
+        yield
+    finally:
+        ArtifactStore.ARTIFACT_STORE_DIR = original
