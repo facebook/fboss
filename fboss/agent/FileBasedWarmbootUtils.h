@@ -19,7 +19,8 @@ class RoutingInformationBase;
 /**
  * Constructs file path for legacy force cold boot once flag.
  */
-std::string getForceColdBootOnceFlagLegacy(const std::string& warmBootDir);
+std::string getForceColdBootOnceFlagLegacy(
+    const AgentDirectoryUtil* directoryUtil);
 
 /**
  * Constructs file path for legacy warmboot flag.
@@ -30,6 +31,34 @@ std::string getWarmBootFlagLegacy(const AgentDirectoryUtil* directoryUtil);
  * Constructs file path for warmboot thrift switch state file.
  */
 std::string getWarmBootThriftSwitchStateFile(
+    const std::string& warmBootDir,
+    const std::string& thriftSwitchStateFile);
+
+/**
+ * Checks if the force cold boot flag exists.
+ * If the flag exists, it will be removed.
+ * Returns true if force cold boot is requested.
+ */
+bool checkForceColdBootFlag(const AgentDirectoryUtil* directoryUtil);
+
+/**
+ * Checks if the warmboot flag exists.
+ * If the flag exists, it will be removed.
+ * Returns true if warmboot flag was present.
+ */
+bool checkCanWarmBootFlag(const AgentDirectoryUtil* directoryUtil);
+
+/**
+ * Checks if the ASIC supports warmboot.
+ * Returns true if warmboot is supported.
+ */
+bool checkAsicSupportsWarmboot(HwAsicTable* asicTable);
+
+/**
+ * Checks if the warmboot state file exists.
+ * Returns true if the file exists.
+ */
+bool checkWarmbootStateFileExists(
     const std::string& warmBootDir,
     const std::string& thriftSwitchStateFile);
 

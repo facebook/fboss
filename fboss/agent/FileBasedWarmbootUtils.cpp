@@ -35,25 +35,49 @@ std::string getWarmBootThriftSwitchStateFile(
   return folly::to<std::string>(warmBootDir, "/", thriftSwitchStateFile);
 }
 
-bool checkAndClearWarmBootFlags(
-    const AgentDirectoryUtil* directoryUtil,
-    HwAsicTable* asicTable) {
+bool checkForceColdBootFlag(const AgentDirectoryUtil* directoryUtil) {
   bool forceColdBoot =
       removeFile(directoryUtil->getSwColdBootOnceFile(), true /*log*/);
   forceColdBoot = forceColdBoot ||
       checkFileExists(getForceColdBootOnceFlagLegacy(directoryUtil));
+  return forceColdBoot;
+}
+
+bool checkCanWarmBootFlag(const AgentDirectoryUtil* directoryUtil) {
   bool canWarmBoot =
       removeFile(directoryUtil->getSwSwitchCanWarmBootFile(), true /*log*/);
   canWarmBoot =
       canWarmBoot || checkFileExists(getWarmBootFlagLegacy(directoryUtil));
+  return canWarmBoot;
+}
+
+bool checkAsicSupportsWarmboot(HwAsicTable* asicTable) {
+  if (!asicTable->isFeatureSupportedOnAllAsic(HwAsic::Feature::WARMBOOT)) {
+    XLOG(WARNING) << "Warm boot not supported for network hardware";
+    return false;
+  }
+  return true;
+}
+
+bool checkWarmbootStateFileExists(
+    const std::string& warmBootDir,
+    const std::string& thriftSwitchStateFile) {
+  return checkFileExists(
+      getWarmBootThriftSwitchStateFile(warmBootDir, thriftSwitchStateFile));
+}
+
+bool checkAndClearWarmBootFlags(
+    const AgentDirectoryUtil* directoryUtil,
+    HwAsicTable* asicTable) {
+  bool forceColdBoot = checkForceColdBootFlag(directoryUtil);
+  bool canWarmBoot = checkCanWarmBootFlag(directoryUtil);
 
   if (forceColdBoot || !canWarmBoot) {
     // cold boot was enforced or warm boot flag is absent
     return false;
   }
-  if (!asicTable->isFeatureSupportedOnAllAsic(HwAsic::Feature::WARMBOOT)) {
+  if (!checkAsicSupportsWarmboot(asicTable)) {
     // asic does not support warm boot
-    XLOG(WARNING) << "Warm boot not supported for network hardware";
     return false;
   }
   // if warm boot flag is present, switch state must exist
