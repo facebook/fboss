@@ -2285,17 +2285,6 @@ TransceiverManager::findPotentialTcvrsForFirmwareUpgrade(
                    << TransceiverParam(tcvrId) << PortParam(portName);
         potentialTcvrsForFwUpgrade.insert(tcvrId);
       } else if (FLAGS_firmware_upgrade_on_tcvr_insert) {
-        if (FLAGS_port_manager_mode) {
-          // In PortManager mode, a transceiver can be in DISCOVERED state while
-          // its PORT is up - this should only happen when we get i2c connection
-          // errors but transceiver is inserted and data is passing through.
-          auto [allPortsDown, downPorts] = areAllPortsDown(tcvrId);
-          if (!allPortsDown) {
-            // Some ports are still up.
-            continue;
-          }
-        }
-
         auto stateMachine = stateMachineControllers_.find(tcvrId);
         if (stateMachine != stateMachineControllers_.end() &&
             stateMachine->second->getStateMachine().rlock()->get_attribute(
@@ -2581,9 +2570,10 @@ std::pair<bool, std::vector<std::string>> TransceiverManager::areAllPortsDown(
   if (portToPortInfoWithLock->empty()) {
     XLOG(WARN) << "Can't find any programmed port for Transceiver:" << id
                << " in cached tcvrToPortInfo_";
-    //  In PortManager mode, we can interpret an empty map as indicative of no
-    //  ports being up. Otherwise, we should interpret this as ports being up.
-    return {FLAGS_port_manager_mode, {}};
+    //  If no port information for the transceiver is found, we must assume that
+    //  ports are up to ensure we don't accidentally remediate on warmboot. This
+    //  is consistent for Port Manager mode and non-Port Manager mode.
+    return {false, {}};
   }
   bool anyPortUp = false;
   std::vector<std::string> downPorts;

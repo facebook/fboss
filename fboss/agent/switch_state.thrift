@@ -170,6 +170,8 @@ struct PortFields {
   62: optional bool resetQueueCreditBalance;
   // Switch ID for use with fabric links in Fabric Link Monitoring
   63: optional i32 portSwitchId;
+  // Serdes custom collection JSON string
+  64: optional string serdesCustomCollection;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields

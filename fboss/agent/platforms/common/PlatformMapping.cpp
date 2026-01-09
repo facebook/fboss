@@ -428,6 +428,23 @@ PlatformMapping::getPortTransceiverPinConfigs(
   return std::nullopt;
 }
 
+std::optional<std::string> PlatformMapping::getPortSerdesCustomCollection(
+    PlatformPortProfileConfigMatcher matcher) const {
+  auto portID = matcher.getPortIDIf();
+  auto profileID = matcher.getProfileID();
+  if (!portID.has_value()) {
+    throw FbossError("getPortSerdesCustomCollection miss portID match factor");
+  }
+  const auto& platformPortConfig =
+      getPlatformPortConfig(portID.value(), profileID);
+
+  if (auto serdesCustomCollection =
+          platformPortConfig.pins()->serdesCustomCollection()) {
+    return *serdesCustomCollection;
+  }
+  return std::nullopt;
+}
+
 std::set<uint8_t> PlatformMapping::getTransceiverHostLanes(
     PlatformPortProfileConfigMatcher matcher) const {
   auto portID = matcher.getPortIDIf();

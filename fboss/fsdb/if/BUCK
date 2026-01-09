@@ -139,7 +139,6 @@ cpp_library(
     name = "fsdb_model",
     headers = ["FsdbModel.h"],
     exported_deps = [
-        "//fboss/fsdb/if/facebook:fsdb_model-cpp2-reflection",
         "//fboss/fsdb/if/facebook:fsdb_model-cpp2-thriftpath",
         "//fboss/fsdb/if/facebook:fsdb_model-cpp2-types",
     ],
