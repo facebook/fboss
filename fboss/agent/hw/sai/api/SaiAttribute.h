@@ -181,6 +181,9 @@ DEFINE_extract(
     portfrequencyoffsetppmlist);
 DEFINE_extract(std::vector<sai_port_snr_values_t>, portsnrlist);
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+DEFINE_extract(facebook::fboss::SaiJsonString, json);
+#endif
 DEFINE_extract(facebook::fboss::AclEntryFieldU8, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU16, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU32, aclfield);
@@ -280,6 +283,30 @@ void _fill(const SaiListT& src, std::vector<T>& dst) {
   dst.resize(src.count);
   std::copy(src.list, src.list + src.count, std::begin(dst));
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+// sai_json_t contains a sai_s8_list_t json member
+inline void _fill(facebook::fboss::SaiJsonString& src, sai_json_t& dst) {
+  dst.json.count = src.value.size();
+  dst.json.list = reinterpret_cast<sai_int8_t*>(src.value.data());
+}
+
+inline void _fill(const sai_json_t& src, facebook::fboss::SaiJsonString& dst) {
+  if (src.json.count == 0) {
+    dst.value.clear();
+    return;
+  }
+  dst.value.resize(src.json.count);
+  std::copy(
+      src.json.list, src.json.list + src.json.count, std::begin(dst.value));
+}
+
+inline void _realloc(
+    const sai_json_t& src,
+    facebook::fboss::SaiJsonString& dst) {
+  dst.value.resize(src.json.count);
+}
+#endif
 
 inline bool compareQosMap(const sai_qos_map_t& lhs, const sai_qos_map_t& rhs) {
   if (lhs.key.tc != rhs.key.tc) {

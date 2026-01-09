@@ -166,6 +166,7 @@ struct FakePortSerdes {
   std::vector<int32_t> rxInstgEnableScan;
   std::vector<int32_t> rxFfeLengthBitmap;
   std::vector<int32_t> rxFfeLmsDynamicGatingEn;
+  std::string serdesCustomCollection;
 };
 
 struct FakePortConnector {

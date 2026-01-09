@@ -268,6 +268,15 @@ class SaiApi {
           return std::optional<typename AttrT::ValueType>();
         }
       }
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+      // Similar to empty vectors, treat empty SaiJsonString as nullopt
+      // to avoid warmboot state mismatch when SDK returns empty JSON
+      if constexpr (std::is_same_v<typename AttrT::ValueType, SaiJsonString>) {
+        if (result.empty()) {
+          return std::optional<typename AttrT::ValueType>();
+        }
+      }
+#endif
       return std::optional<typename AttrT::ValueType>(result);
     } catch (const SaiApiError& e) {
       if constexpr (std::remove_reference_t<AttrT>::HasDefaultGetter) {
