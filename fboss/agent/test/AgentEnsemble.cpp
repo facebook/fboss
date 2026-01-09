@@ -106,6 +106,12 @@ void AgentEnsemble::setupEnsemble(
         FLAGS_hide_management_ports) {
       continue;
     }
+    if (*platformPorts.find(static_cast<int32_t>(port.first))
+                ->second.mapping()
+                ->portType() == cfg::PortType::INTERFACE_PORT &&
+        FLAGS_hide_interface_ports) {
+      continue;
+    }
     masterLogicalPortIds_.push_back(port.first);
     auto switchId = getSw()->getScopeResolver()->scope(port.first).switchId();
     switchId2PortIds_[switchId].push_back(port.first);

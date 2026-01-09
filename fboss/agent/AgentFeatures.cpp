@@ -30,6 +30,8 @@ DEFINE_bool(hide_fabric_ports, false, "Elide ports of type fabric");
 
 DEFINE_bool(hide_management_ports, false, "Elide ports of type management");
 
+DEFINE_bool(hide_interface_ports, false, "Elide ports of type interface");
+
 // DSF Subscriber flags
 DEFINE_bool(
     dsf_subscribe,

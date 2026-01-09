@@ -3069,12 +3069,16 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     auto portMaps =
         managerTable_->portManager().reconstructPortsFromStore(getSwitchType());
     auto ports = std::make_shared<MultiSwitchPortMap>();
-    if (FLAGS_hide_fabric_ports) {
+    if (FLAGS_hide_fabric_ports || FLAGS_hide_interface_ports) {
       for (const auto& portMap : std::as_const(*portMaps)) {
         for (const auto& [id, port] : std::as_const(*portMap.second)) {
-          if (port->getPortType() != cfg::PortType::FABRIC_PORT) {
-            ports->addNode(port, scopeResolver->scope(port));
+          if ((port->getPortType() == cfg::PortType::FABRIC_PORT &&
+               FLAGS_hide_fabric_ports) ||
+              (port->getPortType() == cfg::PortType::INTERFACE_PORT &&
+               FLAGS_hide_interface_ports)) {
+            continue;
           }
+          ports->addNode(port, scopeResolver->scope(port));
         }
       }
     } else {

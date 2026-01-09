@@ -35,6 +35,7 @@ DECLARE_bool(enable_acl_table_chain_group);
 DECLARE_int32(oper_sync_req_timeout);
 DECLARE_bool(hide_fabric_ports);
 DECLARE_bool(hide_management_ports);
+DECLARE_bool(hide_interface_ports);
 
 DECLARE_bool(dsf_subscribe);
 DECLARE_bool(dsf_subscriber_skip_hw_writes);
