@@ -919,7 +919,7 @@ struct SaiPortSerdesTraits {
         EnumType,
         SAI_PORT_SERDES_ATTR_CUSTOM_COLLECTION,
         SaiJsonString,
-        SaiJsonDefault>;
+        StdNullOptDefault<SaiJsonString>>;
 #endif
     /* extension attributes */
     struct AttributeRxReachWrapper {

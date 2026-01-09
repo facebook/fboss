@@ -176,6 +176,21 @@ struct SaiJsonString {
     return !(*this == other);
   }
 
+  // Returns true if the JSON string is empty
+  // or contains only empty attributes (Cisco SDK for SerDes Custom Collection)
+  // This is used to treat SDK-returned empty JSON as nullopt to avoid
+  // warmboot state mismatch.
+  bool empty() const {
+    std::string_view effective = value;
+    if (!effective.empty() && effective.back() == '\0') {
+      effective.remove_suffix(1);
+    }
+    // Todo: Cisco returns "{\"attributes\":[]} by default, will ask to change
+    // to general "{}"
+    return effective.empty() || effective == "{}" ||
+        effective == "{\"attributes\":[]}";
+  }
+
   std::string str() const {
     return value;
   }

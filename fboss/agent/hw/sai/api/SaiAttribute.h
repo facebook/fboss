@@ -292,6 +292,10 @@ inline void _fill(facebook::fboss::SaiJsonString& src, sai_json_t& dst) {
 }
 
 inline void _fill(const sai_json_t& src, facebook::fboss::SaiJsonString& dst) {
+  if (src.json.count == 0) {
+    dst.value.clear();
+    return;
+  }
   dst.value.resize(src.json.count);
   std::copy(
       src.json.list, src.json.list + src.json.count, std::begin(dst.value));
