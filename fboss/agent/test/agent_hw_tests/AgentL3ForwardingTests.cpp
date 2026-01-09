@@ -6,6 +6,7 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/HyperPortTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
@@ -166,6 +167,12 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
   auto verify = [=, this]() {
     ThriftHandler handler(getSw());
     verifyHwAgentConnectionState(handler);
+    auto memberPorts = utility::getHyperPortMembers(
+        getProgrammedState(), ecmpHelper6.nhop(0).portDesc.phyPortID());
+    if (memberPorts.empty()) {
+      memberPorts.push_back(ecmpHelper6.nhop(0).portDesc.phyPortID());
+    }
+    auto constexpr kBytesPerPort = 1000;
     auto pumpTraffic = [=, this]() {
       for (auto isV6 : {true, false}) {
         auto vlanId = getVlanIDForTx();
@@ -185,7 +192,8 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
             10000,
             10001,
             0,
-            kTtl);
+            kTtl,
+            std::vector<uint8_t>(memberPorts.size() * kBytesPerPort, 0xff));
         getSw()->sendPacketOutOfPortAsync(
             std::move(pkt), ecmpHelper6.nhop(1).portDesc.phyPortID());
       }
@@ -196,10 +204,16 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
     WITH_RETRIES({
       auto portStatsAfter = getLatestPortStats(port);
       XLOG(INFO) << " Out pkts, before:" << *portStatsBefore.outUnicastPkts_()
-                 << " after:" << *portStatsAfter.outUnicastPkts_() << std::endl;
+                 << " after:" << *portStatsAfter.outUnicastPkts_()
+                 << " Out bytes before: " << *portStatsBefore.outBytes_()
+                 << " after: " << *portStatsAfter.outBytes_();
       EXPECT_EVENTUALLY_EQ(
           *portStatsAfter.outUnicastPkts_(),
           *portStatsBefore.outUnicastPkts_() + 2);
+      EXPECT_EVENTUALLY_GE(
+          *portStatsAfter.outBytes_(),
+          *portStatsBefore.outBytes_() +
+              memberPorts.size() * 2 * kBytesPerPort);
     });
     handler.clearAllPortStats();
     WITH_RETRIES({
