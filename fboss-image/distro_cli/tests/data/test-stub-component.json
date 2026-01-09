@@ -1,0 +1,9 @@
+{
+  "kernel": {
+    "execute": ["kernel/stub_build.sh"],
+    "artifact": "kernel-test.rpms.tar"
+  },
+  "distribution_formats": {
+    "usb": "output/test-stub-component.iso"
+  }
+}
