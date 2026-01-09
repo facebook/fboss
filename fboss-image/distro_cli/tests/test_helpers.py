@@ -15,6 +15,7 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
+from distro_cli.lib.artifact import ArtifactStore
 from distro_cli.lib.docker.image import build_fboss_builder_image
 
 logger = logging.getLogger(__name__)
@@ -68,7 +69,6 @@ def sandbox_tempdir(prefix: str = "test_") -> Generator[Path, None, None]:
             shutil.rmtree(tmpdir)
 
 
-
 @contextmanager
 def override_artifact_store_dir(store_dir: Path) -> Generator[None, None, None]:
     """Temporarily override ArtifactStore.ARTIFACT_STORE_DIR for testing.
@@ -91,8 +91,6 @@ def override_artifact_store_dir(store_dir: Path) -> Generator[None, None, None]:
                 # ... test code ...
             # ArtifactStore.ARTIFACT_STORE_DIR is restored
     """
-    from distro_cli.lib.artifact import ArtifactStore
-    
     original = ArtifactStore.ARTIFACT_STORE_DIR
     try:
         ArtifactStore.ARTIFACT_STORE_DIR = store_dir
