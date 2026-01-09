@@ -15,6 +15,7 @@ cpp_library(
     headers = [
         "WeutilInterface.h",
     ],
+    preferred_linkage = "static",
     exported_deps = [
         ":config_utils_lib",
         ":eeprom_content_validator",
@@ -30,6 +31,7 @@ cpp_library(
     ],
     exported_external_deps = [
         "gflags",
+        ("boost", None, "boost_algorithm"),
     ],
 )
 
