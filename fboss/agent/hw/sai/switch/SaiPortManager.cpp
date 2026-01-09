@@ -3626,7 +3626,8 @@ void SaiPortManager::changeZeroPreemphasis(
         portHandle->port->adapterKey(),
         newPort->getPinConfigs(),
         portHandle->serdes,
-        newPort->getZeroPreemphasis());
+        newPort->getZeroPreemphasis(),
+        newPort->getSerdesCustomCollection());
     if (platform_->isSerdesApiSupported() &&
         platform_->getAsic()->isSupported(
             HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING)) {
