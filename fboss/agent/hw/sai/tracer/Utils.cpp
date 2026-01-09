@@ -1047,6 +1047,50 @@ void prbsRxStateAttr(
 #endif
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+void jsonAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    vector<string>& attrLines,
+    bool logEntry) {
+  // sai_json_t contains sai_s8_list_t json member
+  // Access via attr_list[i].value.json.json
+  uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
+      listIndex + 1, sizeof(sai_int8_t), attr_list[i].value.json.json.count);
+
+  string prefix = to<string>("s_a", "[", i, "].value.json.json.");
+  attrLines.push_back(
+      to<string>(prefix, "count=", attr_list[i].value.json.json.count));
+
+  if (attr_list[i].value.json.json.list) {
+    attrLines.push_back(
+        to<string>(prefix, "list=(sai_int8_t*)(list_", listIndex, ")"));
+    if (logEntry) {
+      // Print the JSON string as a readable comment first
+      uint32_t strLen = std::min(attr_list[i].value.json.json.count, listLimit);
+      std::string jsonStr(
+          reinterpret_cast<const char*>(attr_list[i].value.json.json.list),
+          strLen);
+      attrLines.push_back(to<string>("// JSON: ", jsonStr));
+
+      // Also output the actual byte values for replay
+      for (int j = 0; j < strLen; ++j) {
+        attrLines.push_back(
+            to<string>(
+                prefix,
+                "list[",
+                j,
+                "]=",
+                attr_list[i].value.json.json.list[j]));
+      }
+    }
+  } else {
+    attrLines.push_back(to<string>(prefix, "list=NULL"));
+  }
+}
+#endif
+
 std::string toCapital(const std::string& input) {
   std::string output;
   for (int i = 0; i < input.length(); ++i) {
