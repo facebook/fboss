@@ -1814,6 +1814,8 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   port->resetPinConfigs(
       platform_->getPlatformMapping()->getPortIphyPinConfigs(matcher));
   port->setSpeed(speed);
+  port->setSerdesCustomCollection(
+      platform_->getPlatformMapping()->getPortSerdesCustomCollection(matcher));
 
   // admin state
   bool isEnabled = GET_OPT_ATTR(Port, AdminState, attributes);
