@@ -1,5 +1,6 @@
 # pyre-strict
 import copy
+import json
 import re
 from collections import defaultdict
 from typing import Any, Dict, List, Optional
@@ -544,18 +545,18 @@ def _create_override_from_si_setting(
 
 
 def _format_custom_collection_json(custom_collection: Dict[str, List[int]]) -> str:
-    return str(
+    return json.dumps(
         {
             "attributes": [
                 {
                     key: {
                         "sai_metadata": {
-                            "sai_attr_value_type": "SAI_ATTR_VALUE_TYPE_INT_32_LIST",
-                            "value": value,
-                        }
+                            "sai_attr_value_type": "SAI_ATTR_VALUE_TYPE_INT32_LIST",
+                        },
+                        "value": value,
                     }
+                    for key, value in custom_collection.items()
                 }
-                for key, value in custom_collection.items()
             ]
         }
     )

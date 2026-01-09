@@ -1071,7 +1071,8 @@ void SaiPortManager::programSerdes(
           saiPort->adapterKey(),
           swPort->getPinConfigs(),
           serdes,
-          swPort->getZeroPreemphasis() && supportsZeroPreemphasis);
+          swPort->getZeroPreemphasis() && supportsZeroPreemphasis,
+          swPort->getSerdesCustomCollection());
   if (serdes &&
       checkPortSerdesAttributes(serdes->attributes(), serdesAttributes)) {
     portHandle->serdes = serdes;
@@ -1183,7 +1184,8 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     PortSaiId portSaiId,
     const std::vector<phy::PinConfig>& pinConfigs,
     const std::shared_ptr<SaiPortSerdes>& serdes,
-    bool zeroPreemphasis) {
+    bool zeroPreemphasis,
+    const std::optional<std::string>& customCollection) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
@@ -1626,6 +1628,14 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         SaiPortSerdesTraits::Attributes::RxAcCouplingByPass{},
         rxAcCouplingByPass);
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+  if (customCollection.has_value()) {
+    std::get<std::optional<SaiPortSerdesTraits::Attributes::CustomCollection>>(
+        attrs) = SaiPortSerdesTraits::Attributes::CustomCollection{
+        customCollection.value()};
+  }
+#endif
   return attrs;
 }
 

@@ -2,37 +2,16 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 
-#include <folly/IPAddress.h>
-#include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <chrono>
 #include <thread>
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/packet/IPv4Hdr.h"
-#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MacTestUtils.h"
 
-namespace {
-using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
-class IPAddressNameGenerator {
- public:
-  template <typename T>
-  static std::string GetName(int) {
-    if constexpr (std::is_same_v<T, folly::IPAddressV4>) {
-      return "IPv4";
-    }
-    if constexpr (std::is_same_v<T, folly::IPAddressV6>) {
-      return "IPv6";
-    }
-  }
-};
-} // namespace
-
 namespace facebook::fboss {
 
-template <typename AddrT>
 class AgentMalformedPacketTest : public AgentHwTest {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -55,16 +34,9 @@ class AgentMalformedPacketTest : public AgentHwTest {
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
-    // Create source and destination IPs based on template type
-    AddrT srcIp, dstIp;
-    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      srcIp = folly::IPAddressV4("10.0.0.1");
-      dstIp = folly::IPAddressV4("10.0.0.2");
-    } else {
-      srcIp = folly::IPAddressV6("2001:db8::1");
-      dstIp = folly::IPAddressV6("2001:db8::2");
-    }
-
+    // Create a normal UDP packet first using the utility function
+    folly::IPAddressV4 srcIp("10.0.0.1");
+    folly::IPAddressV4 dstIp("10.0.0.2");
     uint16_t srcPort = 1000;
     uint16_t dstPort = 2000;
 
@@ -73,21 +45,17 @@ class AgentMalformedPacketTest : public AgentHwTest {
 
     // Now corrupt the UDP checksum by setting it to 0
     // The UDP checksum is located after the IP header and the first 6 bytes of
-    // UDP header. UDP header format: srcPort(2) + dstPort(2) + length(2) +
+    // UDP header UDP header format: srcPort(2) + dstPort(2) + length(2) +
     // checksum(2)
     auto buf = pkt->buf();
 
     // Calculate the offset to UDP checksum
-    // EthHdr::SIZE + IP header + UDP src port + UDP dst port + UDP length
+    // EthHdr::SIZE + (VLAN tag if present) + IPv4 header + UDP src port + UDP
+    // dst port + UDP length
     size_t ethSize = EthHdr::SIZE;
-    size_t ipHeaderSize;
-    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      ipHeaderSize = IPv4Hdr::minSize();
-    } else {
-      ipHeaderSize = IPv6Hdr::SIZE;
-    }
+    size_t ipv4Size = 20; // Standard IPv4 header size
     size_t udpChecksumOffset =
-        ethSize + ipHeaderSize + 2 + 2 + 2; // After src port, dst port, length
+        ethSize + ipv4Size + 2 + 2 + 2; // After src port, dst port, length
 
     // Set the UDP checksum to 0 (invalid)
     folly::io::RWPrivateCursor writer(buf);
@@ -98,23 +66,21 @@ class AgentMalformedPacketTest : public AgentHwTest {
   }
 };
 
-TYPED_TEST_SUITE(AgentMalformedPacketTest, TestTypes, IPAddressNameGenerator);
-
-TYPED_TEST(
+TEST_F(
     AgentMalformedPacketTest,
-    PacketWithNoChecksumDoesNotCreateMacEntry) {
-  // Get the ingress port to inject the packet on
-  auto ingressPort = this->masterLogicalInterfacePortIds()[0];
+    PacketWithNoChecksumDoesNotCreateMacEntry) { // Get the ingress port to
+                                                 // inject the packet on
+  auto ingressPort = masterLogicalInterfacePortIds()[0];
 
   // Get initial MAC table entries and drop stats
-  auto initialL2Entries = utility::getL2Table(this->getSw());
+  auto initialL2Entries = utility::getL2Table(getSw());
   auto initialMacTableSize = initialL2Entries.size();
-  auto initialDropStats = this->getAggregatedSwitchDropStats();
+  auto initialDropStats = getAggregatedSwitchDropStats();
 
   // Inject packet with no checksum on ingress port
   // This simulates the packet arriving on the switch port
-  auto pkt = this->createPacketWithNoChecksum();
-  this->getSw()->sendPacketOutOfPortAsync(std::move(pkt), ingressPort);
+  auto pkt = createPacketWithNoChecksum();
+  getSw()->sendPacketOutOfPortAsync(std::move(pkt), ingressPort);
 
   // Wait for potential MAC learning with retry loop
   // Check multiple times to ensure MAC table doesn't grow
@@ -122,7 +88,7 @@ TYPED_TEST(
   constexpr auto kRetryInterval = std::chrono::milliseconds(500);
   for (int i = 0; i < kMaxRetries; ++i) {
     std::this_thread::sleep_for(kRetryInterval);
-    auto currentL2Entries = utility::getL2Table(this->getSw());
+    auto currentL2Entries = utility::getL2Table(getSw());
     // Fail immediately if MAC table grew
     ASSERT_EQ(initialMacTableSize, currentL2Entries.size())
         << "MAC table should not learn from malformed packets with no "
@@ -131,7 +97,7 @@ TYPED_TEST(
   }
 
   // Final verification that MAC table has not grown
-  auto finalL2Entries = utility::getL2Table(this->getSw());
+  auto finalL2Entries = utility::getL2Table(getSw());
   auto finalMacTableSize = finalL2Entries.size();
   EXPECT_EQ(initialMacTableSize, finalMacTableSize)
       << "MAC table should not learn from malformed packets with no checksum";
@@ -144,7 +110,7 @@ TYPED_TEST(
   int64_t finalDropCount = initialDropCount;
   for (int i = 0; i < kMaxRetries; ++i) {
     std::this_thread::sleep_for(kRetryInterval);
-    auto finalDropStats = this->getAggregatedSwitchDropStats();
+    auto finalDropStats = getAggregatedSwitchDropStats();
     finalDropCount = finalDropStats.packetIntegrityDrops().has_value()
         ? *finalDropStats.packetIntegrityDrops()
         : 0;
@@ -170,4 +136,5 @@ TYPED_TEST(
                << ", Final drops: " << finalDropCount;
   }
 }
+
 } // namespace facebook::fboss

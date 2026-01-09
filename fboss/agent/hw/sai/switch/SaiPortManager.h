@@ -168,7 +168,8 @@ class SaiPortManager {
       PortSaiId portSaid,
       const std::vector<phy::PinConfig>& pinConfigs,
       const std::shared_ptr<SaiPortSerdes>& serdes,
-      bool zeroPreemphasis = false);
+      bool zeroPreemphasis = false,
+      const std::optional<std::string>& customCollection = std::nullopt);
 
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);
