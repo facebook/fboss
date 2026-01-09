@@ -133,6 +133,7 @@ add_library(hyper_port_test_utils
 )
 
 target_link_libraries(hyper_port_test_utils
+  agent_features
   fboss_types
   switch_config_cpp2
   state
