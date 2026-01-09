@@ -296,6 +296,12 @@ inline void _fill(const sai_json_t& src, facebook::fboss::SaiJsonString& dst) {
   std::copy(
       src.json.list, src.json.list + src.json.count, std::begin(dst.value));
 }
+
+inline void _realloc(
+    const sai_json_t& src,
+    facebook::fboss::SaiJsonString& dst) {
+  dst.value.resize(src.json.count);
+}
 #endif
 
 inline bool compareQosMap(const sai_qos_map_t& lhs, const sai_qos_map_t& rhs) {
