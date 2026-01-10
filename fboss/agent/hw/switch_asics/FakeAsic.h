@@ -239,4 +239,25 @@ class FakeAsic : public HwAsic {
     return std::nullopt;
   }
 };
+
+/**
+ * FakeAsicNoWarmboot is a FakeAsic that does not support warmboot.
+ * This is useful for testing cold boot scenarios.
+ */
+class FakeAsicNoWarmboot : public FakeAsic {
+ public:
+  using FakeAsic::FakeAsic;
+
+  bool isSupported(Feature feature) const override {
+    if (feature == Feature::WARMBOOT) {
+      return false;
+    }
+    return FakeAsic::isSupported(feature);
+  }
+
+  cfg::AsicType getAsicType() const override {
+    return cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT;
+  }
+};
+
 } // namespace facebook::fboss
