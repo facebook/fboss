@@ -13,6 +13,7 @@
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
+#include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 
 namespace facebook::fboss {
 
@@ -21,5 +22,7 @@ CmdHandler<CmdConfigAppliedInfo, CmdConfigAppliedInfoTraits>::run();
 template void CmdHandler<CmdConfigReload, CmdConfigReloadTraits>::run();
 template void
 CmdHandler<CmdConfigSessionCommit, CmdConfigSessionCommitTraits>::run();
+template void
+CmdHandler<CmdConfigSessionDiff, CmdConfigSessionDiffTraits>::run();
 
 } // namespace facebook::fboss
