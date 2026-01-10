@@ -1320,8 +1320,9 @@ void SwSwitch::exitFatal() const noexcept {
 std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
-  bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
-                                                     : BootType::COLD_BOOT;
+  bootType_ = swSwitchWarmbootHelper_->canWarmBootFromFile()
+      ? BootType::WARM_BOOT
+      : BootType::COLD_BOOT;
   XLOG(INFO) << kNetworkEventLogPrefix
              << " Boot Type: " << apache::thrift::util::enumNameSafe(bootType_)
              << " | SDK version: " << getAsicSdkVersion(sdkVersion_)

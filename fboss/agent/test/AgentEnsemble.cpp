@@ -155,7 +155,7 @@ void AgentEnsemble::setupEnsemble(
 void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
   auto* initializer = agentInitializer();
   auto hwWriteBehavior = HwWriteBehavior::WRITE;
-  if (getSw()->getWarmBootHelper()->canWarmBoot()) {
+  if (getSw()->getWarmBootHelper()->canWarmBootFromFile()) {
     hwWriteBehavior = HwWriteBehavior::LOG_FAIL;
     if (getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT)) {
