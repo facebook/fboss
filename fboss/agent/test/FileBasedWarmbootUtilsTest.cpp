@@ -198,80 +198,6 @@ TEST_F(
 }
 
 // ============================================================================
-// CHECK AND CLEAR WARMBOOT FLAGS TESTS
-// ============================================================================
-
-TEST_F(FileBasedWarmbootUtilsTest, CheckAndClearWarmBootFlagsSuccessCase) {
-  // Setup: Create warmboot flag and state file
-  auto warmbootFlagPath = directoryUtil_->getSwSwitchCanWarmBootFile();
-  auto warmBootDir = directoryUtil_->getWarmBootDir();
-  auto stateFilePath = getWarmBootThriftSwitchStateFile(
-      warmBootDir, FLAGS_thrift_switch_state_file);
-  createDir(std::filesystem::path(warmbootFlagPath).parent_path().string());
-  createTestFile(warmbootFlagPath);
-  createDir(std::filesystem::path(stateFilePath).parent_path().string());
-  createTestFile(stateFilePath);
-
-  bool result =
-      checkAndClearWarmBootFlags(directoryUtil_.get(), asicTable_.get());
-
-  EXPECT_TRUE(result);
-}
-
-TEST_F(
-    FileBasedWarmbootUtilsTest,
-    CheckAndClearWarmBootFlagsFailsWhenForceColdBoot) {
-  // Setup: Create force cold boot flag, warmboot flag, and state file
-  auto forceColdBootPath = directoryUtil_->getSwColdBootOnceFile();
-  auto warmbootFlagPath = directoryUtil_->getSwSwitchCanWarmBootFile();
-  auto warmBootDir = directoryUtil_->getWarmBootDir();
-  auto stateFilePath = getWarmBootThriftSwitchStateFile(
-      warmBootDir, FLAGS_thrift_switch_state_file);
-
-  createDir(std::filesystem::path(forceColdBootPath).parent_path().string());
-  createTestFile(forceColdBootPath);
-  createDir(std::filesystem::path(warmbootFlagPath).parent_path().string());
-  createTestFile(warmbootFlagPath);
-  createDir(std::filesystem::path(stateFilePath).parent_path().string());
-  createTestFile(stateFilePath);
-
-  bool result =
-      checkAndClearWarmBootFlags(directoryUtil_.get(), asicTable_.get());
-
-  EXPECT_FALSE(result);
-}
-
-TEST_F(
-    FileBasedWarmbootUtilsTest,
-    CheckAndClearWarmBootFlagsFailsWhenNoWarmbootFlag) {
-  // Setup: Create state file but no warmboot flag
-  auto warmBootDir = directoryUtil_->getWarmBootDir();
-  auto stateFilePath = getWarmBootThriftSwitchStateFile(
-      warmBootDir, FLAGS_thrift_switch_state_file);
-  createDir(std::filesystem::path(stateFilePath).parent_path().string());
-  createTestFile(stateFilePath);
-
-  bool result =
-      checkAndClearWarmBootFlags(directoryUtil_.get(), asicTable_.get());
-
-  EXPECT_FALSE(result);
-}
-
-TEST_F(
-    FileBasedWarmbootUtilsTest,
-    CheckAndClearWarmBootFlagsCheckFailsWhenStateFileDoesNotExist) {
-  // Setup: Create warmboot flag but no state file
-  auto warmbootFlagPath = directoryUtil_->getSwSwitchCanWarmBootFile();
-
-  createDir(std::filesystem::path(warmbootFlagPath).parent_path().string());
-  createTestFile(warmbootFlagPath);
-
-  // This should CHECK-fail since warmboot flag exists but state file doesn't
-  EXPECT_DEATH(
-      checkAndClearWarmBootFlags(directoryUtil_.get(), asicTable_.get()), "");
-}
-
-// ============================================================================
 // LOG BOOT TESTS
 // ============================================================================
 
@@ -404,10 +330,16 @@ TEST_F(FileBasedWarmbootUtilsTest, WarmbootWorkflowEndToEnd) {
   createTestWarmbootState(stateFilePath);
 
   // 3. Check flags
-  bool canWarmboot =
-      checkAndClearWarmBootFlags(directoryUtil_.get(), asicTable_.get());
+  bool forceColdBoot = checkForceColdBootFlag(directoryUtil_.get());
+  bool canWarmBoot = checkCanWarmBootFlag(directoryUtil_.get());
+  bool asicSupportsWarmboot = checkAsicSupportsWarmboot(asicTable_.get());
+  bool stateFileExists =
+      checkWarmbootStateFileExists(warmBootDir, FLAGS_thrift_switch_state_file);
 
-  EXPECT_TRUE(canWarmboot);
+  EXPECT_FALSE(forceColdBoot);
+  EXPECT_TRUE(canWarmBoot);
+  EXPECT_TRUE(asicSupportsWarmboot);
+  EXPECT_TRUE(stateFileExists);
 
   // 4. Log boot
   logBootHistory(directoryUtil_.get(), "warm", "1.0.0", "2.0.0");
@@ -429,11 +361,10 @@ TEST_F(FileBasedWarmbootUtilsTest, ColdBootWorkflowEndToEnd) {
   createDir(std::filesystem::path(warmbootFlagPath).parent_path().string());
   createTestFile(warmbootFlagPath);
 
-  // 3. Check flags
-  bool canWarmboot =
-      checkAndClearWarmBootFlags(directoryUtil_.get(), asicTable_.get());
+  // 3. Check flags - force cold boot should take precedence
+  bool forceColdBoot = checkForceColdBootFlag(directoryUtil_.get());
 
-  EXPECT_FALSE(canWarmboot);
+  EXPECT_TRUE(forceColdBoot);
 
   // 4. Log boot
   logBootHistory(directoryUtil_.get(), "cold", "1.0.0", "2.0.0");

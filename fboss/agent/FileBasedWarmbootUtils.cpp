@@ -66,27 +66,6 @@ bool checkWarmbootStateFileExists(
       getWarmBootThriftSwitchStateFile(warmBootDir, thriftSwitchStateFile));
 }
 
-bool checkAndClearWarmBootFlags(
-    const AgentDirectoryUtil* directoryUtil,
-    HwAsicTable* asicTable) {
-  bool forceColdBoot = checkForceColdBootFlag(directoryUtil);
-  bool canWarmBoot = checkCanWarmBootFlag(directoryUtil);
-
-  if (forceColdBoot || !canWarmBoot) {
-    // cold boot was enforced or warm boot flag is absent
-    return false;
-  }
-  if (!checkAsicSupportsWarmboot(asicTable)) {
-    // asic does not support warm boot
-    return false;
-  }
-  // if warm boot flag is present, switch state must exist
-  CHECK(checkFileExists(getWarmBootThriftSwitchStateFile(
-      directoryUtil->getWarmBootDir(), FLAGS_thrift_switch_state_file)));
-  // command line override
-  return FLAGS_can_warm_boot;
-}
-
 void logBootHistory(
     const AgentDirectoryUtil* directoryUtil,
     const std::string& bootType,

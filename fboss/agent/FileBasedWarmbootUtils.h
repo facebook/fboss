@@ -63,21 +63,6 @@ bool checkWarmbootStateFileExists(
     const std::string& thriftSwitchStateFile);
 
 /**
- * Checks and clears warmboot flags, returning whether warmboot can proceed.
- * This checks:
- * - Force cold boot flag (if present, returns false)
- * - Warmboot flag (if absent, returns false)
- * - ASIC warmboot support (if not supported, returns false)
- * - Switch state file existence (must exist if warmboot flag present)
- * - Command line flags
- *
- * Returns true if all conditions for warmboot are met.
- */
-bool checkAndClearWarmBootFlags(
-    const AgentDirectoryUtil* directoryUtil,
-    HwAsicTable* asicTable);
-
-/**
  * Logs boot information (type, SDK version, agent version) to boot history
  * file.
  */
