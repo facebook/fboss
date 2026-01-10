@@ -767,6 +767,16 @@ target_link_libraries(fboss_sw_agent
   -Wl,--no-whole-archive
 )
 
+add_library(thrift_based_warmboot_utils
+  fboss/agent/ThriftBasedWarmbootUtils.cpp
+)
+
+target_link_libraries(thrift_based_warmboot_utils
+  hw_asic_table
+  hw_switch_thrift_client_table
+  switch_state_cpp2
+)
+
 add_library(file_based_warmboot_utils
   fboss/agent/FileBasedWarmbootUtils.cpp
 )
@@ -796,6 +806,7 @@ target_link_libraries(sw_switch_warmboot_helper
   Folly::folly
   warm_boot_file_utils
   file_based_warmboot_utils
+  thrift_based_warmboot_utils
 )
 
 add_library(sw_agent_initializer

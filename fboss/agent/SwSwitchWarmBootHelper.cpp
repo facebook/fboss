@@ -10,6 +10,7 @@
 #include "fboss/agent/AsyncLogger.h"
 #include "fboss/agent/FileBasedWarmbootUtils.h"
 #include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/ThriftBasedWarmbootUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -48,6 +49,18 @@ bool SwSwitchWarmBootHelper::canWarmBootFromFile() const {
   AsyncLogger::setBootType(canWarmbootFromFile);
 
   return canWarmbootFromFile;
+}
+
+bool SwSwitchWarmBootHelper::canWarmBootFromThrift(
+    bool isRunModeMultiSwitch,
+    HwAsicTable* asicTable,
+    HwSwitchThriftClientTable* hwSwitchThriftClientTable) {
+  if (!FLAGS_recover_from_hw_switch) {
+    return false;
+  }
+  recoveredStateFromHW_ = checkAndGetWarmbootStateFromHwSwitch(
+      isRunModeMultiSwitch, asicTable, hwSwitchThriftClientTable);
+  return recoveredStateFromHW_.has_value();
 }
 
 void SwSwitchWarmBootHelper::storeWarmBootState(

@@ -1880,6 +1880,7 @@ cpp_library(
         ":file_based_warmboot_utils",
         ":hw_asic_table",
         ":switch_state-cpp2-types",
+        ":thrift_based_warmboot_utils",
         ":utils",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",

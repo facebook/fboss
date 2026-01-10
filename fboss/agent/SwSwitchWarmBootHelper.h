@@ -12,6 +12,7 @@ class SwitchState;
 class RoutingInformationBase;
 class AgentDirectoryUtil;
 class HwAsicTable;
+class HwSwitchThriftClientTable;
 
 class SwSwitchWarmBootHelper {
  public:
@@ -19,6 +20,10 @@ class SwSwitchWarmBootHelper {
       const AgentDirectoryUtil* directoryUtil,
       HwAsicTable* table);
   bool canWarmBootFromFile() const;
+  bool canWarmBootFromThrift(
+      bool isRunModeMultiSwitch,
+      HwAsicTable* asicTable,
+      HwSwitchThriftClientTable* hwSwitchThriftClientTable);
   void storeWarmBootState(const state::WarmbootState& switchStateThrift);
   state::WarmbootState getWarmBootState() const;
   std::string warmBootThriftSwitchStateFile() const;
@@ -38,6 +43,7 @@ class SwSwitchWarmBootHelper {
   bool forceColdBootFlag_{false};
   bool canWarmBootFlag_{false};
   bool asicCanWarmBoot_{false};
+  std::optional<state::WarmbootState> recoveredStateFromHW_;
 };
 
 } // namespace facebook::fboss
