@@ -231,7 +231,9 @@ int main(int argc, char* argv[]) {
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
-      tryOpenBus(bus);
+      if (FLAGS_direct_i2c) {
+        tryOpenBus(bus);
+      }
     } catch (const std::exception& ex) {
       fprintf(stderr, "error: unable to open device: %s\n", ex.what());
       return EX_IOERR;
