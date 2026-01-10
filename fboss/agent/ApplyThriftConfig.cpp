@@ -1163,6 +1163,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         switch (node->getAsicType()) {
           case cfg::AsicType::ASIC_TYPE_MOCK:
           case cfg::AsicType::ASIC_TYPE_FAKE:
+          case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
           case cfg::AsicType::ASIC_TYPE_JERICHO2:
             asicCore = 1;
             break;
