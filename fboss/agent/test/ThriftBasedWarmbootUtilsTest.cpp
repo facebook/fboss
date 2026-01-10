@@ -6,61 +6,15 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/HwAsicTable.h"
-#include "fboss/agent/HwSwitchThriftClientTable.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/test/TestUtils.h"
 
 using ::testing::_;
 using ::testing::Return;
 using ::testing::Throw;
 
 namespace facebook::fboss {
-class HwSwitchThriftClientTableForTesting : public HwSwitchThriftClientTable {
- public:
-  HwSwitchThriftClientTableForTesting(
-      int16_t basePort,
-      const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo)
-      : HwSwitchThriftClientTable(basePort, switchIdToSwitchInfo) {}
-
-  // Override the base class virtual methods
-  state::SwitchState getProgrammedState(
-      const SwitchID& /* switchId */) override {
-    if (shouldThrowOnGetProgrammedState_) {
-      throw std::runtime_error("Failed to get programmed state");
-    }
-    return programmedState_;
-  }
-
-  SwitchRunState getHwSwitchRunState(const SwitchID& /* switchId */) override {
-    if (shouldThrowOnGetRunState_) {
-      throw std::runtime_error("Failed to get run state");
-    }
-    return runState_;
-  }
-
-  // Test control methods
-  void setRunState(SwitchRunState state) {
-    runState_ = state;
-  }
-
-  void setShouldThrowOnGetProgrammedState(bool shouldThrow) {
-    shouldThrowOnGetProgrammedState_ = shouldThrow;
-  }
-
-  void setShouldThrowOnGetRunState(bool shouldThrow) {
-    shouldThrowOnGetRunState_ = shouldThrow;
-  }
-
-  void setProgrammedState(const state::SwitchState& state) {
-    programmedState_ = state;
-  }
-
- private:
-  state::SwitchState programmedState_;
-  SwitchRunState runState_{SwitchRunState::INITIALIZED};
-  bool shouldThrowOnGetProgrammedState_{false};
-  bool shouldThrowOnGetRunState_{false};
-};
 
 class ThriftBasedWarmbootUtilsTest : public ::testing::Test {
  public:

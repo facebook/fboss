@@ -20,9 +20,11 @@
 #include <optional>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwSwitchThriftClientTable.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/mnpu/MultiSwitchHwSwitchHandler.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -689,5 +691,54 @@ std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
     const AgentConfig* config,
     const AgentDirectoryUtil* dirUtil,
     HwSwitchHandlerInitFn initFunc = nullptr);
+
+/**
+ * A test implementation of HwSwitchThriftClientTable that allows controlling
+ * the behavior of getProgrammedState and getHwSwitchRunState for testing.
+ */
+class HwSwitchThriftClientTableForTesting : public HwSwitchThriftClientTable {
+ public:
+  HwSwitchThriftClientTableForTesting(
+      int16_t basePort,
+      const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo)
+      : HwSwitchThriftClientTable(basePort, switchIdToSwitchInfo) {}
+
+  state::SwitchState getProgrammedState(
+      const SwitchID& /* switchId */) override {
+    if (shouldThrowOnGetProgrammedState_) {
+      throw std::runtime_error("Failed to get programmed state");
+    }
+    return programmedState_;
+  }
+
+  SwitchRunState getHwSwitchRunState(const SwitchID& /* switchId */) override {
+    if (shouldThrowOnGetRunState_) {
+      throw std::runtime_error("Failed to get run state");
+    }
+    return runState_;
+  }
+
+  void setRunState(SwitchRunState state) {
+    runState_ = state;
+  }
+
+  void setShouldThrowOnGetProgrammedState(bool shouldThrow) {
+    shouldThrowOnGetProgrammedState_ = shouldThrow;
+  }
+
+  void setShouldThrowOnGetRunState(bool shouldThrow) {
+    shouldThrowOnGetRunState_ = shouldThrow;
+  }
+
+  void setProgrammedState(const state::SwitchState& state) {
+    programmedState_ = state;
+  }
+
+ private:
+  state::SwitchState programmedState_;
+  SwitchRunState runState_{SwitchRunState::INITIALIZED};
+  bool shouldThrowOnGetProgrammedState_{false};
+  bool shouldThrowOnGetRunState_{false};
+};
 
 } // namespace facebook::fboss
