@@ -671,7 +671,9 @@ void HwSwitchEnsemble::setupEnsemble(
         std::nullopt /*multiSwitchStatsPrefix*/);
   }
 
-  auto bootType = swSwitchWarmBootHelper_->canWarmBootFromFile()
+  auto bootType =
+      swSwitchWarmBootHelper_->canWarmBoot(
+          false /*isRunModeMultiSwitch*/, nullptr /*hwSwitchThriftClientTable*/)
       ? BootType::WARM_BOOT
       : BootType::COLD_BOOT;
   std::optional<state::WarmbootState> wbState;

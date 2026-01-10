@@ -19,10 +19,6 @@ class SwSwitchWarmBootHelper {
   explicit SwSwitchWarmBootHelper(
       const AgentDirectoryUtil* directoryUtil,
       HwAsicTable* table);
-  bool canWarmBootFromFile() const;
-  bool canWarmBootFromThrift(
-      bool isRunModeMultiSwitch,
-      HwSwitchThriftClientTable* hwSwitchThriftClientTable);
   bool canWarmBoot(
       bool isRunModeMultiSwitch,
       HwSwitchThriftClientTable* hwSwitchThriftClientTable);
@@ -39,6 +35,10 @@ class SwSwitchWarmBootHelper {
 
  private:
   void setCanWarmBoot();
+  bool canWarmBootFromFile() const;
+  bool canWarmBootFromThrift(
+      bool isRunModeMultiSwitch,
+      HwSwitchThriftClientTable* hwSwitchThriftClientTable);
 
   const AgentDirectoryUtil* directoryUtil_;
   const HwAsicTable* asicTable_;
