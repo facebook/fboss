@@ -14,6 +14,7 @@
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
+#include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 
 namespace facebook::fboss {
 
@@ -30,11 +31,17 @@ const CommandTree& kConfigCommandTree() {
           "session",
           "Manage config session",
           {{
-              "commit",
-              "Commit the current config session",
-              commandHandler<CmdConfigSessionCommit>,
-              argTypeHandler<CmdConfigSessionCommitTraits>,
-          }},
+               "commit",
+               "Commit the current config session",
+               commandHandler<CmdConfigSessionCommit>,
+               argTypeHandler<CmdConfigSessionCommitTraits>,
+           },
+           {
+               "diff",
+               "Show diff between configs (session vs live, session vs revision, or revision vs revision)",
+               commandHandler<CmdConfigSessionDiff>,
+               argTypeHandler<CmdConfigSessionDiffTraits>,
+           }},
       },
 
       {"config",
