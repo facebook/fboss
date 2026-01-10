@@ -4500,7 +4500,9 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
   productInfo->initialize();
 
   auto mode = productInfo->getType();
-  if (mode == PlatformType::PLATFORM_MERU400BFU) {
+  if (mode == PlatformType::PLATFORM_WEDGE100) {
+    return std::make_pair(std::make_unique<Wedge100I2CBus>(), 0);
+  } else if (mode == PlatformType::PLATFORM_MERU400BFU) {
     auto systemContainer =
         BspGenericSystemContainer<Meru400bfuBspPlatformMapping>::getInstance()
             .get();
