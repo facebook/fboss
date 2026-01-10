@@ -22,7 +22,7 @@ class HwSwitchThriftClientTable;
  */
 std::optional<state::WarmbootState> checkAndGetWarmbootStateFromHwSwitch(
     bool isRunModeMultiSwitch,
-    HwAsicTable* asicTable,
+    const HwAsicTable* asicTable,
     HwSwitchThriftClientTable* hwSwitchThriftClientTable);
 
 } // namespace facebook::fboss

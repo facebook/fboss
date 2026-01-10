@@ -23,7 +23,7 @@ state::WarmbootState getWarmBootStateFromHwSwitch(
 
 std::optional<state::WarmbootState> checkAndGetWarmbootStateFromHwSwitch(
     bool isRunModeMultiSwitch,
-    HwAsicTable* asicTable,
+    const HwAsicTable* asicTable,
     HwSwitchThriftClientTable* hwSwitchThriftClientTable) {
   if (!isRunModeMultiSwitch) {
     return std::nullopt;
