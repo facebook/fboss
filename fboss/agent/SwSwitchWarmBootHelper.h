@@ -22,7 +22,9 @@ class SwSwitchWarmBootHelper {
   bool canWarmBootFromFile() const;
   bool canWarmBootFromThrift(
       bool isRunModeMultiSwitch,
-      HwAsicTable* asicTable,
+      HwSwitchThriftClientTable* hwSwitchThriftClientTable);
+  bool canWarmBoot(
+      bool isRunModeMultiSwitch,
       HwSwitchThriftClientTable* hwSwitchThriftClientTable);
   void storeWarmBootState(const state::WarmbootState& switchStateThrift);
   state::WarmbootState getWarmBootState() const;
@@ -39,6 +41,7 @@ class SwSwitchWarmBootHelper {
   void setCanWarmBoot();
 
   const AgentDirectoryUtil* directoryUtil_;
+  const HwAsicTable* asicTable_;
   const std::string warmBootDir_;
   bool forceColdBootFlag_{false};
   bool canWarmBootFlag_{false};

@@ -22,6 +22,7 @@ SwSwitchWarmBootHelper::SwSwitchWarmBootHelper(
     const AgentDirectoryUtil* directoryUtil,
     HwAsicTable* asicTable)
     : directoryUtil_(directoryUtil),
+      asicTable_(asicTable),
       warmBootDir_(directoryUtil_->getWarmBootDir()) {
   if (!warmBootDir_.empty()) {
     // Make sure the warm boot directory exists.
@@ -34,33 +35,52 @@ SwSwitchWarmBootHelper::SwSwitchWarmBootHelper(
 }
 
 bool SwSwitchWarmBootHelper::canWarmBootFromFile() const {
-  bool canWarmbootFromFile = false;
   if (!forceColdBootFlag_ && canWarmBootFlag_ && asicCanWarmBoot_ &&
       FLAGS_can_warm_boot) {
     CHECK(checkWarmbootStateFileExists(
         warmBootDir_, FLAGS_thrift_switch_state_file));
-    canWarmbootFromFile = true;
+    return true;
   }
-
-  XLOG(DBG1) << "Will attempt " << (canWarmbootFromFile ? "WARM" : "COLD")
-             << " boot";
-
-  // Notify Async logger about the boot type
-  AsyncLogger::setBootType(canWarmbootFromFile);
-
-  return canWarmbootFromFile;
+  return false;
 }
 
 bool SwSwitchWarmBootHelper::canWarmBootFromThrift(
     bool isRunModeMultiSwitch,
-    HwAsicTable* asicTable,
     HwSwitchThriftClientTable* hwSwitchThriftClientTable) {
   if (!FLAGS_recover_from_hw_switch) {
     return false;
   }
   recoveredStateFromHW_ = checkAndGetWarmbootStateFromHwSwitch(
-      isRunModeMultiSwitch, asicTable, hwSwitchThriftClientTable);
+      isRunModeMultiSwitch, asicTable_, hwSwitchThriftClientTable);
   return recoveredStateFromHW_.has_value();
+}
+
+bool SwSwitchWarmBootHelper::canWarmBoot(
+    bool isRunModeMultiSwitch,
+    HwSwitchThriftClientTable* hwSwitchThriftClientTable) {
+  bool canWarmBoot = false;
+  bool warmBootFromThrift = false;
+  if (forceColdBootFlag_ || !asicCanWarmBoot_ || !FLAGS_can_warm_boot) {
+    // 1. First check if ASIC does not support warmboot and if there's flag
+    // override to coldboot.
+    canWarmBoot = false;
+  } else if (canWarmBootFromFile()) {
+    // 2. Check if we can warmboot from file
+    canWarmBoot = true;
+  } else if (FLAGS_recover_from_hw_switch) {
+    // 3. Check if we can warmboot from thrift
+    canWarmBoot =
+        canWarmBootFromThrift(isRunModeMultiSwitch, hwSwitchThriftClientTable);
+    warmBootFromThrift = canWarmBoot;
+  }
+
+  XLOG(DBG1) << "Will attempt " << (canWarmBoot ? "WARM" : "COLD") << " boot"
+             << (canWarmBoot ? (std::string("from") +
+                                (warmBootFromThrift ? " thrift" : " file"))
+                             : "");
+  // Notify Async logger about the boot type
+  AsyncLogger::setBootType(canWarmBoot);
+  return canWarmBoot;
 }
 
 void SwSwitchWarmBootHelper::storeWarmBootState(
