@@ -1320,7 +1320,8 @@ void SwSwitch::exitFatal() const noexcept {
 std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
-  bootType_ = swSwitchWarmbootHelper_->canWarmBootFromFile()
+  bootType_ = swSwitchWarmbootHelper_->canWarmBoot(
+                  isRunModeMultiSwitch(), getHwSwitchThriftClientTable())
       ? BootType::WARM_BOOT
       : BootType::COLD_BOOT;
   XLOG(INFO) << kNetworkEventLogPrefix
