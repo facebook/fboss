@@ -34,6 +34,10 @@ struct LinkActiveEvent {
   3: optional i32 numActiveFabricPortsAtFwIsolate;
 }
 
+struct LinkFwDisableEvent {
+  1: list<i32> portIds;
+}
+
 struct FabricConnectivityDelta {
   1: optional ctrl.FabricEndpoint oldConnectivity;
   2: optional ctrl.FabricEndpoint newConnectivity;
@@ -55,6 +59,7 @@ struct LinkChangeEvent {
   2: LinkActiveEvent linkActiveEvents;
   3: LinkConnectivityEvent linkConnectivityEvents;
   4: LinkChangeEventType eventType;
+  5: LinkFwDisableEvent linkFwDisableEvent;
 }
 
 struct SwitchReachabilityChangeEvent {
