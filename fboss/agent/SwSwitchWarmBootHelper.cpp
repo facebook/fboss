@@ -21,29 +21,38 @@ SwSwitchWarmBootHelper::SwSwitchWarmBootHelper(
     const AgentDirectoryUtil* directoryUtil,
     HwAsicTable* asicTable)
     : directoryUtil_(directoryUtil),
-      warmBootDir_(directoryUtil_->getWarmBootDir()),
-      asicTable_(asicTable) {
+      warmBootDir_(directoryUtil_->getWarmBootDir()) {
   if (!warmBootDir_.empty()) {
     // Make sure the warm boot directory exists.
     utilCreateDir(warmBootDir_);
 
-    canWarmBoot_ = checkAndClearWarmBootFlags(directoryUtil_, asicTable_);
-
-    auto bootType = canWarmBoot_ ? "WARM" : "COLD";
-    XLOG(DBG1) << "Will attempt " << bootType << " boot";
-
-    // Notify Async logger about the boot type
-    AsyncLogger::setBootType(canWarmBoot_);
+    forceColdBootFlag_ = checkForceColdBootFlag(directoryUtil_);
+    canWarmBootFlag_ = checkCanWarmBootFlag(directoryUtil_);
+    asicCanWarmBoot_ = checkAsicSupportsWarmboot(asicTable);
   }
 }
 
-bool SwSwitchWarmBootHelper::canWarmBoot() const {
-  return canWarmBoot_;
+bool SwSwitchWarmBootHelper::canWarmBootFromFile() const {
+  bool canWarmbootFromFile = false;
+  if (!forceColdBootFlag_ && canWarmBootFlag_ && asicCanWarmBoot_ &&
+      FLAGS_can_warm_boot) {
+    CHECK(checkWarmbootStateFileExists(
+        warmBootDir_, FLAGS_thrift_switch_state_file));
+    canWarmbootFromFile = true;
+  }
+
+  XLOG(DBG1) << "Will attempt " << (canWarmbootFromFile ? "WARM" : "COLD")
+             << " boot";
+
+  // Notify Async logger about the boot type
+  AsyncLogger::setBootType(canWarmbootFromFile);
+
+  return canWarmbootFromFile;
 }
 
 void SwSwitchWarmBootHelper::storeWarmBootState(
     const state::WarmbootState& switchStateThrift) {
-  if (!asicTable_->isFeatureSupportedOnAllAsic(HwAsic::Feature::WARMBOOT)) {
+  if (!asicCanWarmBoot_) {
     XLOG(WARNING)
         << "skip saving warm boot state, as warm boot not supported for network hardware";
     return;

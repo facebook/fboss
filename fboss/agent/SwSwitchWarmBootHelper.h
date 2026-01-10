@@ -18,7 +18,7 @@ class SwSwitchWarmBootHelper {
   explicit SwSwitchWarmBootHelper(
       const AgentDirectoryUtil* directoryUtil,
       HwAsicTable* table);
-  bool canWarmBoot() const;
+  bool canWarmBootFromFile() const;
   void storeWarmBootState(const state::WarmbootState& switchStateThrift);
   state::WarmbootState getWarmBootState() const;
   std::string warmBootThriftSwitchStateFile() const;
@@ -35,8 +35,9 @@ class SwSwitchWarmBootHelper {
 
   const AgentDirectoryUtil* directoryUtil_;
   const std::string warmBootDir_;
-  bool canWarmBoot_{false};
-  HwAsicTable* asicTable_;
+  bool forceColdBootFlag_{false};
+  bool canWarmBootFlag_{false};
+  bool asicCanWarmBoot_{false};
 };
 
 } // namespace facebook::fboss
