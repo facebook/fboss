@@ -697,6 +697,13 @@ class CmisModule : public QsfpModule {
    */
   MediaInterfaceCode getModuleMediaInterface() const override;
 
+  /*
+   * Helper function to read the datapath max delay time from module spec.
+   * Returns the max delay time in microseconds if found, or std::nullopt if
+   * unable to retrieve from the module.
+   */
+  std::optional<uint64_t> getDatapathMaxDelayFromModuleSpec(bool init);
+
   uint64_t getExpectedDatapathDelayUsec(bool /*init*/);
   uint64_t maxRetriesWith500msDelay(bool /*init*/);
 

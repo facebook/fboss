@@ -44,9 +44,6 @@ constexpr int kUsecVdmLatchHold = 100000;
 constexpr int kUsecDiagSelectLatchWait = 200000;
 constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 10000000; // 10 seconds
-// We may need special handling for scenarios where Init time takes
-// more than 120 seconds. we will likely need to refactor code.
-constexpr int kUsecDatapathStateUpdateTimeMaxFboss = 120000000; // 120 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
 constexpr double kU16TypeLsbDivisor = 256.0;
 constexpr int kVdmDescriptorLength = 2;
@@ -4385,45 +4382,56 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
   return prbsStats;
 }
 
+std::optional<uint64_t> CmisModule::getDatapathMaxDelayFromModuleSpec(
+    bool init) {
+  // Read the datapath init/deinit max time from module.
+  uint8_t specVal;
+  readCmisField(CmisField::MAX_DPINIT_TIME, &specVal);
+  // MAX_DP_DEINIT_TIME: bits 7-4
+  // MAX_DP_INIT_TIME: bits 3-0
+  uint8_t spec = 0;
+  if (init) {
+    spec = specVal & DP_INIT_MAX_MASK;
+  } else {
+    spec = specVal & DP_DINIT_MAX_MASK;
+    spec >>= DP_DINIT_BITSHIFT;
+  }
+  auto itr = DpInitValToTimeMap.find(spec);
+  if (itr != DpInitValToTimeMap.end()) {
+    uint64_t maxTime = itr->second;
+    QSFP_LOG(INFO, this) << fmt::format(
+        "Datapath max {:s} time from spec is {:d} uSec",
+        init ? "init" : "deinit",
+        maxTime);
+    return maxTime;
+  }
+  QSFP_LOG(ERR, this) << fmt::format(
+      "Datapath max {:s} time unable to retrieve from val map spec {:x}",
+      init ? "init" : "deinit",
+      spec);
+  return std::nullopt;
+}
+
 uint64_t CmisModule::getExpectedDatapathDelayUsec(bool init) {
-  if (isAecModule()) {
-    // Read the datapath init/deinit max time from module.
-    uint8_t specVal;
-    readCmisField(CmisField::MAX_DPINIT_TIME, &specVal);
-    // MAX_DP_DEINIT_TIME: bits 7-4
-    // MAX_DP_INIT_TIME: bits 3-0
-    uint8_t spec = 0;
-    if (init) {
-      spec = specVal & DP_INIT_MAX_MASK;
-    } else {
-      spec = specVal & DP_DINIT_MAX_MASK;
-      spec >>= DP_DINIT_BITSHIFT;
-    }
-    auto itr = DpInitValToTimeMap.find(spec);
-    if (itr != DpInitValToTimeMap.end()) {
-      uint64_t maxTime = itr->second;
+  if (isTunableOptics() || isAecModule()) {
+    // For tunable optics (ZR modules) and AEC cables, use module advertisement.
+    auto maxTime = getDatapathMaxDelayFromModuleSpec(init);
+    if (maxTime.has_value()) {
       QSFP_LOG(INFO, this) << fmt::format(
-          "Datapath max {:s} time from spec is {:d} uSec",
-          init ? "init" : "deinit",
-          maxTime);
-      if (kUsecDatapathStateUpdateTimeMaxFboss > maxTime) {
-        return maxTime;
-      } else {
-        QSFP_LOG(ERR, this) << fmt::format(
-            "Datapath max {:s} time from spec {:d} uSec is greater than max allowed time {:d} uSec",
-            init ? "init" : "deinit",
-            maxTime,
-            kUsecDatapathStateUpdateTimeMaxFboss);
-      }
+          "Module time required for {} is {}",
+          (init) ? "init" : "deinit",
+          maxTime.value());
+      return maxTime.value();
     } else {
       QSFP_LOG(ERR, this) << fmt::format(
-          "Datapath max {:s} time unable to retrieve from val map spec {:x}",
-          init ? "init" : "deinit",
-          spec);
+          "Module did not specify the max time required for {}",
+          (init) ? "init" : "deinit");
     }
+  } else {
+    QSFP_LOG(INFO, this) << fmt::format(
+        "Default max Init/DeInit time {:d} uSec", kUsecDatapathStateUpdateTime);
   }
-  QSFP_LOG(INFO, this) << fmt::format(
-      "Default max Init/DeInit time {:d} uSec", kUsecDatapathStateUpdateTime);
+
   return kUsecDatapathStateUpdateTime;
 }
 
@@ -4502,7 +4510,8 @@ bool CmisModule::dataPathProgram(
       : std::vector<CmisLaneState>{CmisLaneState::DEACTIVATED};
 
   // Wait for operation to complete, retry every 500ms, up to 20 loops
-  const auto kMaxRetries = maxRetriesWith500msDelay(isInit);
+  const auto kMaxRetries =
+      (kUsecDatapathStateUpdateTime) / (kUsecDatapathStatePollTime);
   int retryCount = 0;
   while (!isDatapathUpdated(hostLaneMask, targetStates) &&
          retryCount < kMaxRetries) {
