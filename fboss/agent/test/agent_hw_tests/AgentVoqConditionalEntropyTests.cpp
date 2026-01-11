@@ -98,6 +98,13 @@ class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
     }
     return {getEcmpWidth() + 1};
   }
+
+ protected:
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    // conditional entropy is only applicable to regular eth interface ports
+    FLAGS_hide_interface_ports = false;
+  }
 };
 
 TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
