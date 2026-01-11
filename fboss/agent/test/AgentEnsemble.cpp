@@ -644,7 +644,9 @@ bool AgentEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
   return utility::ensureSendPacketSwitched(
       this,
       std::move(pkt),
-      masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}),
+      masterLogicalPortIds(
+          std::set<cfg::PortType>{
+              cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}),
       getPortStats,
       masterLogicalSysPortIds(),
       getSysPortStats,
@@ -664,7 +666,11 @@ bool AgentEnsemble::ensureSendPacketOutOfPort(
       this,
       std::move(pkt),
       portID,
-      masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}),
+      masterLogicalPortIds(
+          std::set<cfg::PortType>{
+              cfg::PortType::INTERFACE_PORT,
+              cfg::PortType::HYPER_PORT,
+              cfg::PortType::HYPER_PORT_MEMBER}),
       getPortStats,
       queue,
       kMsWaitForStatsRetry);
