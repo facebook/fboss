@@ -735,6 +735,15 @@ class CmisModule : public QsfpModule {
       uint8_t hostLaneMask = 0xFF);
 
   /*
+   * Helper function to reset data path for tunable optics (ZR modules)
+   * using dataPathProgram for deinit/init operations
+   */
+  void resetDataPathForTunableOptics(
+      const std::string& portName,
+      std::optional<std::function<void()>> afterDataPathDeinitFunc,
+      uint8_t hostLaneMask);
+
+  /*
    * Set the PRBS Generator and Checker on a module for the desired side (Line
    * or System side)
    */
