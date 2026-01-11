@@ -3171,9 +3171,18 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
 
     if (isTunableOptics()) {
       if (portState.opticalChannelConfig.has_value()) {
-        programTunableModule(portState.opticalChannelConfig.value());
+        auto& dpState = portDatapathStates_[portName];
+        auto& initTimers = dpState.initTimers;
+        // If dp-initialization start timer is not set, invoke
+        // programTunableModule
+        if (initTimers.progStartTimer.time_since_epoch().count() == 0) {
+          programTunableModule(portState.opticalChannelConfig.value());
+        } else {
+          QSFP_LOG(INFO, this) << "DP_INIT in prog";
+        }
       } else {
-        QSFP_LOG(ERR, this) << "Tunable optics requires optical channel config";
+        throw FbossError(
+            "Tunable optics requires optical channel config for transceiver programming");
       }
     }
 
@@ -4592,7 +4601,16 @@ void CmisModule::resetDataPathForTunableOptics(
 
   // Step 2: Execute callback function after deactivation
   if (afterDataPathDeinitFunc) {
-    (*afterDataPathDeinitFunc)();
+    auto& dpState = portDatapathStates_[portName];
+    auto& initTimers = dpState.initTimers;
+    // If dp-initialization start timer is not set, invoke the AppSel callback
+    if (initTimers.progStartTimer.time_since_epoch().count() == 0) {
+      (*afterDataPathDeinitFunc)();
+    } else {
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "DATA_PATH_INIT in progresss dpInitTimer {:d}",
+          initTimers.progStartTimer.time_since_epoch().count());
+    }
   }
 
   // Step 3: Initialize data path
