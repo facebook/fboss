@@ -4,6 +4,7 @@
     "counter_refresh_interval": "0",
     "disable_neighbor_updates": "true",
     "ecmp_width": "512",
+    "enable_1to1_intf_route_table_mapping": "true",
     "enable_replayer": "true",
     "log_variable_name": "true",
     "qsfp_port_manager_mode": "true",
