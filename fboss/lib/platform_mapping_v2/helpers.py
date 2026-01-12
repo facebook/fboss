@@ -21,7 +21,6 @@ from neteng.fboss.phy.ttypes import (
     RxSettings,
     TxSettings,
 )
-
 from neteng.fboss.platform_config.ttypes import (
     PlatformPortConfigFactor,
     PlatformPortConfigOverride,
@@ -38,9 +37,7 @@ from neteng.fboss.platform_mapping_config.ttypes import (
     SiSettingPinConnection,
     SpeedSetting,
 )
-
 from neteng.fboss.switch_config.ttypes import PortProfileID, PortSpeed
-
 from neteng.fboss.transceiver.ttypes import TransmitterTechnology, Vendor
 
 

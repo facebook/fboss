@@ -33,7 +33,6 @@ from neteng.fboss.platform_mapping_config.ttypes import (
     SpeedSetting,
     TransceiverOverrideSetting,
 )
-
 from neteng.fboss.switch_config.ttypes import PortProfileID, PortSpeed, PortType
 from neteng.fboss.transceiver.ttypes import (
     MediaInterfaceCode,

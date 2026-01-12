@@ -29,13 +29,11 @@ from fboss.lib.platform_mapping_v2.read_files_utils import (
 )
 from fboss.lib.platform_mapping_v2.si_settings import SiSettings
 from fboss.lib.platform_mapping_v2.static_mapping import StaticMapping
-
 from neteng.fboss.phy.ttypes import (
     DataPlanePhyChip,
     DataPlanePhyChipType,
     PortPinConfig,
 )
-
 from neteng.fboss.platform_config.ttypes import (
     PlatformMapping,
     PlatformPortConfig,

@@ -5,7 +5,6 @@ import filecmp
 import os
 import sys
 import unittest
-
 from typing import Dict, List
 
 from fboss.lib.platform_mapping_v2.gen import (
