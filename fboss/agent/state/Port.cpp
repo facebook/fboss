@@ -77,7 +77,7 @@ InterfaceID Port::getInterfaceID() const {
   // For non VOQ/Fabric switches, in practice, a port is always part of a
   // single VLAN (and thus single interface).
   auto intfs = getInterfaceIDs();
-  CHECK_EQ(intfs.size(), 1);
+  CHECK_EQ(intfs.size(), 1) << "Invalid interfaces for port " << getName();
   return InterfaceID(intfs.at(0));
 }
 

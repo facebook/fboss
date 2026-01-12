@@ -246,4 +246,102 @@ TEST_F(FwUtilOperationsTest, DoJtagOperationFileOverwrite) {
   EXPECT_EQ(fileContent2, "200");
 }
 
+TEST_F(FwUtilOperationsTest, PerformJamUpgradeMissingBinary) {
+  if (!createdPlatformFile_) {
+    GTEST_SKIP() << "Skipping test: unable to create platform name file";
+  }
+
+  // Create FwUtilImpl with non-existent binary file
+  std::string missingBinary = tempDir_.string() + "/missing.bin";
+  FwUtilImpl fwUtil(missingBinary, configFilePath_, false, false);
+
+  JamConfig jamConfig;
+  std::vector<std::string> extraArgs = {"-a", "-v"};
+  jamConfig.jamExtraArgs() = extraArgs;
+
+  // Should throw because binary file doesn't exist
+  EXPECT_THROW(fwUtil.performJamUpgrade(jamConfig), std::runtime_error);
+}
+
+TEST_F(FwUtilOperationsTest, PerformXappUpgradeMissingBinary) {
+  if (!createdPlatformFile_) {
+    GTEST_SKIP() << "Skipping test: unable to create platform name file";
+  }
+
+  // Create FwUtilImpl with non-existent binary file
+  std::string missingBinary = tempDir_.string() + "/missing.bin";
+  FwUtilImpl fwUtil(missingBinary, configFilePath_, false, false);
+
+  XappConfig xappConfig;
+  std::vector<std::string> extraArgs = {"-d", "0"};
+  xappConfig.xappExtraArgs() = extraArgs;
+
+  // Should throw because binary file doesn't exist
+  EXPECT_THROW(fwUtil.performXappUpgrade(xappConfig), std::runtime_error);
+}
+
+TEST_F(FwUtilOperationsTest, DoGpiosetOperationSuccess) {
+  FwUtilImpl fwUtil(binaryFilePath_.string(), configFilePath_, false, false);
+
+  GpiosetConfig gpiosetConfig;
+  gpiosetConfig.gpioChip() = "gpiochip0";
+  gpiosetConfig.gpioChipPin() = "10";
+  gpiosetConfig.gpioChipValue() = "1";
+
+  // Will throw in test environment without GPIO hardware
+  EXPECT_THROW(
+      fwUtil.doGpiosetOperation(gpiosetConfig, "test_fpd"), std::exception);
+}
+
+TEST_F(FwUtilOperationsTest, DoGpiosetOperationInvalidChip) {
+  FwUtilImpl fwUtil(binaryFilePath_.string(), configFilePath_, false, false);
+
+  GpiosetConfig gpiosetConfig;
+  gpiosetConfig.gpioChip() = "invalid_chip";
+  gpiosetConfig.gpioChipPin() = "10";
+  gpiosetConfig.gpioChipValue() = "1";
+
+  // Should fail with invalid GPIO chip
+  EXPECT_THROW(
+      fwUtil.doGpiosetOperation(gpiosetConfig, "test_fpd"), std::exception);
+}
+
+TEST_F(FwUtilOperationsTest, DoGpiogetOperationSuccess) {
+  FwUtilImpl fwUtil(binaryFilePath_.string(), configFilePath_, false, false);
+
+  GpiogetConfig gpiogetConfig;
+  gpiogetConfig.gpioChip() = "gpiochip0";
+  gpiogetConfig.gpioChipPin() = "10";
+
+  // Will throw in test environment without GPIO hardware
+  EXPECT_THROW(
+      fwUtil.doGpiogetOperation(gpiogetConfig, "test_fpd"), std::exception);
+}
+
+TEST_F(FwUtilOperationsTest, DoWriteToPortOperationSuccess) {
+  FwUtilImpl fwUtil(binaryFilePath_.string(), configFilePath_, false, false);
+
+  // Create a test port file
+  std::string testPortFile = tempDir_.string() + "/test_port";
+  std::ofstream portFile(testPortFile, std::ios::binary);
+  portFile << std::string(256, '\0'); // Create 256-byte file
+  portFile.close();
+
+  WriteToPortConfig writeConfig;
+  writeConfig.portFile() = testPortFile;
+  writeConfig.hexOffset() = "0x10";
+  writeConfig.hexByteValue() = "0xFF";
+
+  // Should write byte to port file
+  EXPECT_NO_THROW(fwUtil.doWriteToPortOperation(writeConfig, "test_platform"));
+
+  // Verify byte was written at correct offset
+  std::ifstream readPort(testPortFile, std::ios::binary);
+  readPort.seekg(0x10);
+  char readByte;
+  readPort.read(&readByte, 1);
+  EXPECT_TRUE(readPort.good()) << "Failed to read from port file";
+  EXPECT_EQ(static_cast<unsigned char>(readByte), 0xFF);
+}
+
 } // namespace facebook::fboss::platform::fw_util

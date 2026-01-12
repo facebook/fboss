@@ -187,7 +187,8 @@ class HwPacketFloodTest : public HwLinkStateDependentTest {
         return false;
       }
       if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
-          getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA) {
+          getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA &&
+          getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_G202X) {
         if (packetsAfter <= packetsBefore) {
           return false;
         }

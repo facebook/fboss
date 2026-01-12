@@ -2,7 +2,6 @@
 from typing import Dict, List
 
 from neteng.fboss.platform_mapping_config.ttypes import Port
-
 from neteng.fboss.switch_config.ttypes import PortProfileID
 
 

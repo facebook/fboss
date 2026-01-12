@@ -25,13 +25,24 @@ DECLARE_int32(max_l2_entries);
 DECLARE_int32(max_ndp_entries);
 DECLARE_int32(max_arp_entries);
 
+// the number of rounds to add/churn fboss routes and neighbors is limited by
+// the time to run the test. The default number of rounds is chosen to finish
+// the test in 15mins
+DEFINE_int32(ndp_churn_rounds, 1, "Number of rounds to churn NDP entries");
+DEFINE_int32(route_churn_rounds, 3, "Number of rounds to churn routes");
+
+// optional flags for use in manual stress tests
+DEFINE_int32(
+    delay_churn_start_ms,
+    0,
+    "After initial programming, delay churn (in msec, default 0)");
+DEFINE_int32(
+    delay_exit_ms,
+    0,
+    "At the end of test, delay exit (in msec, default 0)");
+
 namespace {
 constexpr uint64_t kBaseMac = 0xFEEEC2000010;
-// the number of rounds to add/churn fboss routes and neighbors is limited by
-// the time to run the test. The number of rounds is chosen to finish in test in
-// 15mins
-constexpr int kNumChurn = 1;
-constexpr int kNumChurnRoute = 3;
 constexpr int kMaxScaleMacTxPortIdx = 1;
 constexpr int kMaxScaleMacRxPortIdx = 0;
 constexpr int kMacChurnTxPortIdx = 2;
@@ -777,6 +788,10 @@ void initSystemScaleTest(
   } else {
     XLOG(DBG2) << " rx_pps: " << rxPPS << " rx_bps: " << rxBPS;
   }
+
+  if (FLAGS_delay_exit_ms) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(FLAGS_delay_exit_ms));
+  }
 }
 
 void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
@@ -810,7 +825,11 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
       ensemble->getSw()->getState(),
       ensemble->getSw()->needL2EntryForNeighbor());
   configureMaxRouteEntries(ensemble, generator);
-  for (auto i = 0; i < kNumChurnRoute; i++) {
+  if ((FLAGS_delay_churn_start_ms > 0) && (FLAGS_route_churn_rounds > 0)) {
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(FLAGS_delay_churn_start_ms));
+  }
+  for (auto i = 0; i < FLAGS_route_churn_rounds; i++) {
     removeAllRouteEntries(ensemble);
     configureMaxRouteEntries(ensemble, generator);
   }
@@ -818,7 +837,11 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
   auto [rxPktsBefore, rxBytesBefore] = startRxMeasure(ensemble);
   XLOG(INFO) << "churn neighbor entries";
   configureMaxNeighborEntries(ensemble);
-  for (auto i = 0; i < kNumChurn; i++) {
+  if ((FLAGS_delay_churn_start_ms > 0) && (FLAGS_ndp_churn_rounds > 0)) {
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(FLAGS_delay_churn_start_ms));
+  }
+  for (auto i = 0; i < FLAGS_ndp_churn_rounds; i++) {
     removeAllNeighbors(ensemble);
     configureMaxNeighborEntries(ensemble);
   }
@@ -859,6 +882,11 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
   } else {
     XLOG(DBG2) << " rx_pps: " << rxPPS << " rx_bps: " << rxBPS;
   }
+
+  if (FLAGS_delay_exit_ms) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(FLAGS_delay_exit_ms));
+  }
+
   if (FLAGS_setup_for_warmboot) {
     ScopedCallTimer timeIt;
     // Static such that the object destructor runs as late as possible. In

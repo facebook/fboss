@@ -14,6 +14,9 @@ include "fboss/agent/hw/hardware_stats.thrift"
 include "thrift/annotation/thrift.thrift"
 include "fboss/agent/switch_config.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 @cpp.Type{name = "std::unique_ptr<folly::IOBuf>"}
 typedef binary fbbinary
 
@@ -29,6 +32,10 @@ struct LinkActiveEvent {
   1: map<i32, bool> port2IsActive;
   2: bool fwIsolated;
   3: optional i32 numActiveFabricPortsAtFwIsolate;
+}
+
+struct LinkFwDisableEvent {
+  1: list<i32> portIds;
 }
 
 struct FabricConnectivityDelta {
@@ -52,6 +59,7 @@ struct LinkChangeEvent {
   2: LinkActiveEvent linkActiveEvents;
   3: LinkConnectivityEvent linkConnectivityEvents;
   4: LinkChangeEventType eventType;
+  5: LinkFwDisableEvent linkFwDisableEvent;
 }
 
 struct SwitchReachabilityChangeEvent {

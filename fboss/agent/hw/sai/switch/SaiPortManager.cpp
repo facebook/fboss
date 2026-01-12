@@ -527,6 +527,7 @@ int getWorstCaseAssumedOpticsDelayNS(
     const cfg::PortType& portType) {
   switch (asic.getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
@@ -543,6 +544,7 @@ int getWorstCaseAssumedOpticsDelayNS(
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       break;
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
       if (portType == cfg::PortType::FABRIC_PORT) {
@@ -1813,6 +1815,8 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   port->resetPinConfigs(
       platform_->getPlatformMapping()->getPortIphyPinConfigs(matcher));
   port->setSpeed(speed);
+  port->setSerdesCustomCollection(
+      platform_->getPlatformMapping()->getPortSerdesCustomCollection(matcher));
 
   // admin state
   bool isEnabled = GET_OPT_ATTR(Port, AdminState, attributes);
@@ -2403,8 +2407,9 @@ void SaiPortManager::updateStats(
         curPortStats.cableLengthMeters() =
             std::ceil(cablePropogationDelayNS / 5.0);
       } catch (const SaiApiError& e) {
-        XLOG(ERR) << "Failed to get cable propogation delay for port " << portId
-                  << ": " << e.what();
+        XLOG_EVERY_MS(ERR, 10000)
+            << "Failed to get cable propogation delay for port " << portId
+            << ": " << e.what();
       }
     }
   }
@@ -3622,7 +3627,8 @@ void SaiPortManager::changeZeroPreemphasis(
         portHandle->port->adapterKey(),
         newPort->getPinConfigs(),
         portHandle->serdes,
-        newPort->getZeroPreemphasis());
+        newPort->getZeroPreemphasis(),
+        newPort->getSerdesCustomCollection());
     if (platform_->isSerdesApiSupported() &&
         platform_->getAsic()->isSupported(
             HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING)) {

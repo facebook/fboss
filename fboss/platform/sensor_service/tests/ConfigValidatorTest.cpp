@@ -63,8 +63,12 @@ SensorConfig createBasicSensorConfig() {
   config.pmUnitSensorsList() = {pmUnitSensors};
   config.temperatureConfigs() = {
       createTemperatureConfig("ASIC", {"TEMP_SENSOR"})};
-  config.powerConfig() = createPowerConfig({createPerSlotPowerConfig(
-      "PSU1", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")});
+  config.powerConfig() = createPowerConfig(
+      {createPerSlotPowerConfig(
+          "PSU1", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")},
+      {},
+      0.0,
+      {"VOLTAGE_SENSOR"});
   return config;
 }
 
@@ -76,14 +80,18 @@ TEST(ConfigValidatorTest, ValidConfig) {
   pmUnitSensors1.slotPath() = "/";
   pmUnitSensors1.sensors() = {
       createPmSensor("SENSOR1", "/run/devmap/sensors/CPU_CORE_TEMP"),
-      createPmSensor("POWER_SENSOR", "/run/devmap/sensors/POWER")};
+      createPmSensor("POWER_SENSOR", "/run/devmap/sensors/POWER"),
+      createPmSensor("INPUT_VOLTAGE", "/run/devmap/sensors/INPUT_VOLTAGE")};
   pmUnitSensors2.slotPath() = "/BCB_SLOT@0";
   pmUnitSensors2.sensors() = {
       createPmSensor("SENSOR2", "/run/devmap/sensors/BCB_FAN_CPLD")};
   config.pmUnitSensorsList() = {pmUnitSensors1, pmUnitSensors2};
   config.temperatureConfigs() = {createTemperatureConfig("ASIC", {"SENSOR1"})};
-  config.powerConfig() =
-      createPowerConfig({createPerSlotPowerConfig("PSU1", "POWER_SENSOR")});
+  config.powerConfig() = createPowerConfig(
+      {createPerSlotPowerConfig("PSU1", "POWER_SENSOR")},
+      {},
+      0.0,
+      {"INPUT_VOLTAGE"});
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
@@ -125,26 +133,43 @@ TEST(ConfigValidatorTest, InvalidPmSensors) {
 TEST(ConfigValidatorTest, ValidPowerConfig) {
   auto config = createBasicSensorConfig();
 
-  config.powerConfig() =
-      createPowerConfig({createPerSlotPowerConfig("PSU1", "POWER_SENSOR")});
+  config.powerConfig() = createPowerConfig(
+      {createPerSlotPowerConfig("PSU1", "POWER_SENSOR")},
+      {},
+      0.0,
+      {"VOLTAGE_SENSOR"});
   EXPECT_TRUE(ConfigValidator().isValid(config));
 
-  config.powerConfig() = createPowerConfig({createPerSlotPowerConfig(
-      "PSU2", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")});
+  config.powerConfig() = createPowerConfig(
+      {createPerSlotPowerConfig(
+          "PSU2", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")},
+      {},
+      0.0,
+      {"VOLTAGE_SENSOR"});
   EXPECT_TRUE(ConfigValidator().isValid(config));
 
-  config.powerConfig() =
-      createPowerConfig({createPerSlotPowerConfig("PEM1", "POWER_SENSOR")});
+  config.powerConfig() = createPowerConfig(
+      {createPerSlotPowerConfig("PEM1", "POWER_SENSOR")},
+      {},
+      0.0,
+      {"VOLTAGE_SENSOR"});
   EXPECT_TRUE(ConfigValidator().isValid(config));
 
   config.powerConfig() = createPowerConfig(
       {createPerSlotPowerConfig("PSU1", "POWER_SENSOR"),
        createPerSlotPowerConfig(
-           "PSU2", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")});
+           "PSU2", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")},
+      {},
+      0.0,
+      {"VOLTAGE_SENSOR"});
   EXPECT_TRUE(ConfigValidator().isValid(config));
 
-  config.powerConfig() = createPowerConfig({createPerSlotPowerConfig(
-      "HSC", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")});
+  config.powerConfig() = createPowerConfig(
+      {createPerSlotPowerConfig(
+          "HSC", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")},
+      {},
+      0.0,
+      {"VOLTAGE_SENSOR"});
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
@@ -153,6 +178,19 @@ TEST(ConfigValidatorTest, InvalidPowerConfigMissingPerSlotPowerConfigs) {
 
   // Test 1: PowerConfig with no perSlotPowerConfigs (empty vector)
   config.powerConfig() = createPowerConfig({});
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidPowerConfigEmptyInputVoltageSensors) {
+  auto config = createBasicSensorConfig();
+
+  // inputVoltageSensors is mandatory and must not be empty
+  config.powerConfig() = createPowerConfig(
+      {createPerSlotPowerConfig(
+          "PSU1", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")},
+      {},
+      0.0,
+      {});
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
@@ -328,6 +366,8 @@ TEST(ConfigValidatorTest, ValidPowerConfigComplexScenario) {
       createPmSensor("PSU2_POWER", "/run/devmap/sensors/PSU2_POWER"));
   pmUnitSensors.sensors()->emplace_back(
       createPmSensor("FAN1_POWER", "/run/devmap/sensors/FAN1_POWER"));
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("INPUT_VIN", "/run/devmap/sensors/INPUT_VIN"));
 
   config.powerConfig() = createPowerConfig(
       {createPerSlotPowerConfig(
@@ -337,7 +377,8 @@ TEST(ConfigValidatorTest, ValidPowerConfigComplexScenario) {
            "PEM1", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR"),
        createPerSlotPowerConfig("PEM10", "POWER_SENSOR")},
       {"FAN1_POWER"},
-      10.5);
+      10.5,
+      {"INPUT_VIN"});
 
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
@@ -589,8 +630,11 @@ TEST(ConfigValidatorTest, InvalidTemperatureConfigWithVersionedSensors) {
   pmUnitSensors.versionedSensors() = {versionedPmSensor};
 
   config.pmUnitSensorsList() = {pmUnitSensors};
-  config.powerConfig() =
-      createPowerConfig({createPerSlotPowerConfig("PSU1", "POWER_SENSOR")});
+  config.powerConfig() = createPowerConfig(
+      {createPerSlotPowerConfig("PSU1", "POWER_SENSOR")},
+      {},
+      0.0,
+      {"POWER_SENSOR"});
 
   // Test 1: Valid config with base sensor
   config.temperatureConfigs() = {

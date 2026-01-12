@@ -16,6 +16,9 @@ include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/python.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 @cpp.Type{name = "uint64_t"}
 typedef i64 u64
 
@@ -1531,6 +1534,8 @@ enum AsicType {
   ASIC_TYPE_CHENAB = 17,
   ASIC_TYPE_TOMAHAWK6 = 18,
   ASIC_TYPE_AGERA3 = 19,
+  ASIC_TYPE_G202X = 20,
+  ASIC_TYPE_FAKE_NO_WARMBOOT = 21,
 }
 /**
  * The configuration for an interface

@@ -21,6 +21,9 @@ include "thrift/annotation/python.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 typedef common.fbbinary fbbinary
 typedef common.fbstring fbstring
 typedef common.ClientInformation ClientInformation
@@ -60,6 +63,7 @@ enum PortError {
   LANE_SWAP_DETECTED = 2,
   MISMATCHED_NEIGHBOR = 3,
   MISSING_EXPECTED_NEIGHBOR = 4,
+  LINK_DISABLED_BY_FIRMWARE = 5,
 }
 
 struct IpPrefix {
@@ -820,6 +824,11 @@ struct EcmpDetails {
   4: i32 flowletTableSize;
 }
 
+struct RouteCount {
+  1: i64 v4Count;
+  2: i64 v6Count;
+}
+
 enum FirmwareOpStatus {
   UNKNOWN = 0,
   LOADED = 1,
@@ -1560,6 +1569,11 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   list<FabricMonitoringDetail> getFabricMonitoringDetails() throws (
     1: fboss.FbossBaseError error,
   );
+
+  /*
+   * Get total route count (v4 and v6) from the FIB
+   */
+  RouteCount getRouteTableSize() throws (1: fboss.FbossBaseError error);
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

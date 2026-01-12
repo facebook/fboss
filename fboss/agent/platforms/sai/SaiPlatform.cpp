@@ -154,15 +154,17 @@ SaiPlatform::SaiPlatform(
   const auto& platPorts = getPlatformPorts();
   CHECK(portsByMasterPort.size() > 1);
   for (const auto& itPort : portsByMasterPort) {
-    if (FLAGS_hide_fabric_ports) {
-      if (*platPorts.find(static_cast<int32_t>(itPort.first))
-               ->second.mapping()
-               ->portType() != cfg::PortType::FABRIC_PORT) {
-        masterLogicalPortIds_.push_back(itPort.first);
-      }
-    } else {
-      masterLogicalPortIds_.push_back(itPort.first);
+    if ((FLAGS_hide_fabric_ports &&
+         *platPorts.find(static_cast<int32_t>(itPort.first))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::FABRIC_PORT) ||
+        (FLAGS_hide_interface_ports &&
+         *platPorts.find(static_cast<int32_t>(itPort.first))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::INTERFACE_PORT)) {
+      continue;
     }
+    masterLogicalPortIds_.push_back(itPort.first);
   }
 }
 
@@ -300,6 +302,12 @@ std::string SaiPlatform::getHwAsicConfig(
 }
 
 void SaiPlatform::initSaiProfileValues() {
+  auto platformMode = getType();
+  // LADAKH800BCLS need SAI_CUSTOM_KERNEL_BDE_NAME to support mnpu
+  if (platformMode == PlatformType::PLATFORM_LADAKH800BCLS) {
+    kSaiProfileValues.insert(
+        std::make_pair("SAI_CUSTOM_KERNEL_BDE_NAME", "linux_ngbde"));
+  }
   kSaiProfileValues.insert(
       std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
   kSaiProfileValues.insert(

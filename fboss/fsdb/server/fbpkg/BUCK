@@ -8,6 +8,10 @@ fboss_fbpkg_builder(
         "aarch64",
         "x86_64",
     ],
+    buck_modes = [
+        "opt",
+        "opt-asan",
+    ],
     path_actions = {
         "fsdb": "//fboss/fsdb/server:fsdb",
         "fsdb.service": "//neteng/fboss/fsdb:fsdb.service",

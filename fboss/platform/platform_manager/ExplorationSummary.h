@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "fboss/platform/platform_manager/DataStore.h"
+#include "fboss/platform/platform_manager/ScubaLogger.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_service_types.h"
 
 namespace facebook::fboss::platform::platform_manager {
@@ -100,7 +100,7 @@ class ExplorationSummary {
 
   explicit ExplorationSummary(
       const PlatformConfig& config,
-      const DataStore& dataStore);
+      ScubaLogger& scubaLogger);
   virtual ~ExplorationSummary() = default;
   void addError(
       ExplorationErrorType errorType,
@@ -120,7 +120,7 @@ class ExplorationSummary {
 
  private:
   const PlatformConfig& platformConfig_;
-  const DataStore& dataStore_;
+  ScubaLogger& scubaLogger_;
   uint nExpectedErrs_{0}, nErrs_{0};
   std::map<std::string, std::vector<ExplorationError>> devicePathToErrors_{},
       devicePathToExpectedErrors_{};

@@ -6,6 +6,7 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/HyperPortTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
@@ -147,10 +148,18 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
     programDefaultRoutes(ecmpHelper6);
     programDefaultRoutes(ecmpHelper4);
 
+    auto checkNhop = [this](const auto& nhop) {
+      auto port = getProgrammedState()->getPort(nhop.portDesc.phyPortID());
+      bool isHyperPort = (port->getPortType() == cfg::PortType::HYPER_PORT);
+      ASSERT_EQ(isHyperPort, FLAGS_hyper_port);
+    };
+
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      checkNhop(ecmpHelper6.nhop(0));
       return ecmpHelper6.resolveNextHops(in, {ecmpHelper6.nhop(0).portDesc});
     });
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      checkNhop(ecmpHelper4.nhop(0));
       return ecmpHelper4.resolveNextHops(in, {ecmpHelper4.nhop(0).portDesc});
     });
     CHECK_EQ(ecmpHelper4.nhop(0).portDesc, ecmpHelper6.nhop(0).portDesc);
@@ -158,6 +167,12 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
   auto verify = [=, this]() {
     ThriftHandler handler(getSw());
     verifyHwAgentConnectionState(handler);
+    auto memberPorts = utility::getHyperPortMembers(
+        getProgrammedState(), ecmpHelper6.nhop(0).portDesc.phyPortID());
+    if (memberPorts.empty()) {
+      memberPorts.push_back(ecmpHelper6.nhop(0).portDesc.phyPortID());
+    }
+    auto constexpr kBytesPerPort = 1000;
     auto pumpTraffic = [=, this]() {
       for (auto isV6 : {true, false}) {
         auto vlanId = getVlanIDForTx();
@@ -167,38 +182,67 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
         auto dstIp =
             folly::IPAddress(isV6 ? "100:100:100::1" : "100.100.100.1");
         constexpr uint8_t kTtl = 255;
-        auto pkt = utility::makeUDPTxPacket(
-            getSw(),
-            vlanId,
-            intfMac,
-            intfMac,
-            srcIp,
-            dstIp,
-            10000,
-            10001,
-            0,
-            kTtl);
-        getSw()->sendPacketOutOfPortAsync(
-            std::move(pkt), ecmpHelper6.nhop(1).portDesc.phyPortID());
+        for (auto i = 0; i < memberPorts.size(); ++i) {
+          auto pkt = utility::makeUDPTxPacket(
+              getSw(),
+              vlanId,
+              intfMac,
+              intfMac,
+              srcIp,
+              dstIp,
+              10000,
+              10001,
+              0,
+              kTtl,
+              std::vector<uint8_t>(kBytesPerPort, 0xff));
+          getSw()->sendPacketOutOfPortAsync(
+              std::move(pkt), ecmpHelper6.nhop(1).portDesc.phyPortID());
+        }
       }
     };
     auto port = ecmpHelper6.nhop(0).portDesc.phyPortID();
-    auto portStatsBefore = getLatestPortStats(port);
+    auto allPorts = memberPorts;
+    allPorts.push_back(port);
+    auto portStatsBefore = getLatestPortStats(allPorts);
     pumpTraffic();
     WITH_RETRIES({
-      auto portStatsAfter = getLatestPortStats(port);
-      XLOG(INFO) << " Out pkts, before:" << *portStatsBefore.outUnicastPkts_()
-                 << " after:" << *portStatsAfter.outUnicastPkts_() << std::endl;
+      auto portStatsAfter = getLatestPortStats(allPorts);
+      XLOG(DBG2) << " Out pkts, before:"
+                 << *portStatsBefore[port].outUnicastPkts_()
+                 << " after:" << *portStatsAfter[port].outUnicastPkts_()
+                 << " Out bytes before: " << *portStatsBefore[port].outBytes_()
+                 << " after: " << *portStatsAfter[port].outBytes_();
       EXPECT_EVENTUALLY_EQ(
-          *portStatsAfter.outUnicastPkts_(),
-          *portStatsBefore.outUnicastPkts_() + 2);
+          *portStatsAfter[port].outUnicastPkts_(),
+          *portStatsBefore[port].outUnicastPkts_() + memberPorts.size() * 2);
+      EXPECT_EVENTUALLY_GE(
+          *portStatsAfter[port].outBytes_(),
+          *portStatsBefore[port].outBytes_() +
+              memberPorts.size() * 2 * kBytesPerPort);
+      if (memberPorts.size() > 1) {
+        for (auto memberPort : memberPorts) {
+          XLOG(DBG2) << " Member port: " << memberPort << ". Out pkts, before:"
+                     << *portStatsBefore[memberPort].outUnicastPkts_()
+                     << " after:"
+                     << *portStatsAfter[memberPort].outUnicastPkts_()
+                     << " Out bytes before: "
+                     << *portStatsBefore[memberPort].outBytes_()
+                     << " after: " << *portStatsAfter[memberPort].outBytes_();
+          EXPECT_EVENTUALLY_GE(
+              *portStatsAfter[memberPort].outBytes_(),
+              *portStatsBefore[memberPort].outBytes_() + 2 * kBytesPerPort);
+        }
+      }
     });
     handler.clearAllPortStats();
     WITH_RETRIES({
-      auto portStatsAfter = getLatestPortStats(port);
-      XLOG(INFO) << " Out pkts, after:" << *portStatsAfter.outUnicastPkts_()
-                 << std::endl;
-      EXPECT_EVENTUALLY_EQ(*portStatsAfter.outUnicastPkts_(), 0);
+      auto portStatsAfter = getLatestPortStats(allPorts);
+      for (auto aPort : allPorts) {
+        XLOG(INFO) << " Out pkts on port: " << aPort
+                   << " after:" << *portStatsAfter[aPort].outUnicastPkts_()
+                   << std::endl;
+        EXPECT_EVENTUALLY_EQ(*portStatsAfter[aPort].outUnicastPkts_(), 0);
+      }
     });
   };
   verifyAcrossWarmBoots(setup, verify);

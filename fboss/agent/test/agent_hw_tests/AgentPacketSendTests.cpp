@@ -3,6 +3,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/LldpManager.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -10,6 +11,7 @@
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/MultiPortTrafficTestUtils.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <chrono>
@@ -84,8 +86,8 @@ class AgentSwitchedPacketSendTest : public AgentPacketSendTest {
 TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
-    auto portStatsBefore =
-        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT_MEMBER})[0]);
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
@@ -101,10 +103,15 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
     // vlan tag should be removed
     auto pktLengthSent = EthHdr::SIZE + payLoadSize;
     getSw()->sendPacketOutOfPortAsync(
-        std::move(txPacket), masterLogicalInterfacePortIds()[0], std::nullopt);
+        std::move(txPacket),
+        masterLogicalPortIds(
+            {cfg::PortType::INTERFACE_PORT,
+             cfg::PortType::HYPER_PORT_MEMBER})[0],
+        std::nullopt);
     WITH_RETRIES({
-      auto portStatsAfter =
-          getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+      auto portStatsAfter = getLatestPortStats(masterLogicalPortIds(
+          {cfg::PortType::INTERFACE_PORT,
+           cfg::PortType::HYPER_PORT_MEMBER})[0]);
       XLOG(DBG2) << "Lldp Packet:" << " before pkts:"
                  << *portStatsBefore.outMulticastPkts_()
                  << ", after pkts:" << *portStatsAfter.outMulticastPkts_()
@@ -118,7 +125,8 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
           scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
       auto asicType = getAsic(portSwitchId).getAsicType();
       if (asicType != cfg::AsicType::ASIC_TYPE_EBRO &&
-          asicType != cfg::AsicType::ASIC_TYPE_YUBA) {
+          asicType != cfg::AsicType::ASIC_TYPE_YUBA &&
+          asicType != cfg::AsicType::ASIC_TYPE_G202X) {
         EXPECT_EVENTUALLY_EQ(
             1,
             *portStatsAfter.outMulticastPkts_() -
@@ -132,8 +140,8 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
 TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPortWithBufClone) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
-    auto portStatsBefore =
-        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT_MEMBER})[0]);
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
@@ -156,7 +164,9 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPortWithBufClone) {
       bufs.push_back(buf);
       getSw()->sendPacketOutOfPortAsync(
           std::move(txPacket),
-          masterLogicalInterfacePortIds()[0],
+          masterLogicalPortIds(
+              {cfg::PortType::INTERFACE_PORT,
+               cfg::PortType::HYPER_PORT_MEMBER})[0],
           std::nullopt);
     }
     for (auto buf : bufs) {
@@ -165,8 +175,9 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPortWithBufClone) {
     // vlan tag should be removed
     auto pktLengthSent = (EthHdr::SIZE + payLoadSize) * numPkts;
     WITH_RETRIES({
-      auto portStatsAfter =
-          getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+      auto portStatsAfter = getLatestPortStats(masterLogicalPortIds(
+          {cfg::PortType::INTERFACE_PORT,
+           cfg::PortType::HYPER_PORT_MEMBER})[0]);
       XLOG(DBG2) << "Lldp Packet:" << " before pkts:"
                  << *portStatsBefore.outMulticastPkts_()
                  << ", after pkts:" << *portStatsAfter.outMulticastPkts_()
@@ -180,7 +191,8 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPortWithBufClone) {
           scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
       auto asicType = getAsic(portSwitchId).getAsicType();
       if (asicType != cfg::AsicType::ASIC_TYPE_EBRO &&
-          asicType != cfg::AsicType::ASIC_TYPE_YUBA) {
+          asicType != cfg::AsicType::ASIC_TYPE_YUBA &&
+          asicType != cfg::AsicType::ASIC_TYPE_G202X) {
         EXPECT_EVENTUALLY_EQ(
             numPkts,
             *portStatsAfter.outMulticastPkts_() -
@@ -317,17 +329,23 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
-    auto payLoadSize = 256;
     auto expectedNumPktsReceived = 1;
     for (const auto& port :
-         {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
-      auto txPacket = utility::makeEthTxPacket(
+         {masterLogicalPortIds(
+              {cfg::PortType::INTERFACE_PORT,
+               cfg::PortType::HYPER_PORT_MEMBER})[0],
+          masterLogicalPortIds(
+              {cfg::PortType::INTERFACE_PORT,
+               cfg::PortType::HYPER_PORT_MEMBER})[1]}) {
+      auto txPacket = utility::makeLLDPPacket(
           getSw(),
-          vlanId,
           srcMac,
-          folly::MacAddress("01:80:c2:00:00:0e"),
-          facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP,
-          std::vector<uint8_t>(payLoadSize, 0xff));
+          vlanId,
+          "rsw1dx.21.frc3",
+          "eth1/1/1",
+          "fsw001.p023.f01.frc3:eth4/9/1",
+          LldpManager::TTL_TLV_VALUE,
+          LldpManager::SYSTEM_CAPABILITY_ROUTER);
       getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(txPacket), port);
       WITH_RETRIES_N_TIMED(5, 20ms, {
         ASSERT_EVENTUALLY_TRUE(
@@ -402,7 +420,13 @@ TEST_F(AgentPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
     static auto payload = std::vector<uint8_t>(payLoadSize, 0xff);
     payload[0] = 0x1; // sub-version of lacp packet
     auto expectedNumPktsReceived = 1;
-    for (auto port : {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
+    for (auto port :
+         {masterLogicalPortIds(
+              {cfg::PortType::INTERFACE_PORT,
+               cfg::PortType::HYPER_PORT_MEMBER})[0],
+          masterLogicalPortIds(
+              {cfg::PortType::INTERFACE_PORT,
+               cfg::PortType::HYPER_PORT_MEMBER})[1]}) {
       // verify lacp packet properly sent and received from lag
       auto txPacket = utility::makeEthTxPacket(
           getAgentEnsemble()->getSw(),
@@ -490,7 +514,8 @@ class AgentPacketFloodTest : public AgentHwTest {
         return false;
       }
       if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
-          asic->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA) {
+          asic->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA &&
+          asic->getAsicType() != cfg::AsicType::ASIC_TYPE_G202X) {
         if (packetsAfter <= packetsBefore) {
           return false;
         }
@@ -503,7 +528,8 @@ class AgentPacketFloodTest : public AgentHwTest {
 TEST_F(AgentPacketFloodTest, ArpRequestFloodTest) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
-    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
+    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}));
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
@@ -519,7 +545,9 @@ TEST_F(AgentPacketFloodTest, ArpRequestFloodTest) {
         ARP_OPER::ARP_OPER_REQUEST,
         std::nullopt);
     getAgentEnsemble()->ensureSendPacketOutOfPort(
-        std::move(txPacket), masterLogicalPortIds()[0]);
+        std::move(txPacket),
+        masterLogicalPortIds(
+            {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0]);
     EXPECT_TRUE(checkPacketFlooding(portStatsBefore, false));
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -534,7 +562,8 @@ TEST_F(AgentPacketFloodTest, NdpFloodTest) {
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto success = false;
     while (retries--) {
-      auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
+      auto portStatsBefore = getLatestPortStats(masterLogicalPortIds(
+          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}));
       auto txPacket = utility::makeNeighborSolicitation(
           getSw(),
           vlanId,
@@ -542,7 +571,9 @@ TEST_F(AgentPacketFloodTest, NdpFloodTest) {
           folly::IPAddressV6(folly::IPAddressV6::LINK_LOCAL, intfMac),
           folly::IPAddressV6("1::2"));
       getAgentEnsemble()->ensureSendPacketOutOfPort(
-          std::move(txPacket), masterLogicalPortIds()[0]);
+          std::move(txPacket),
+          masterLogicalPortIds(
+              {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0]);
       if (checkPacketFlooding(portStatsBefore, true)) {
         success = true;
         break;
@@ -558,8 +589,8 @@ TEST_F(AgentPacketFloodTest, NdpFloodTest) {
 TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
-    auto portStatsBefore =
-        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0]);
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
@@ -576,8 +607,8 @@ TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
         std::nullopt);
     getSw()->sendPacketSwitchedAsync(std::move(txPacket));
     WITH_RETRIES({
-      auto portStatsAfter =
-          getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+      auto portStatsAfter = getLatestPortStats(masterLogicalPortIds(
+          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0]);
       XLOG(DBG2) << "ARP Packet:" << " before pkts:"
                  << *portStatsBefore.outBroadcastPkts_()
                  << ", after pkts:" << *portStatsAfter.outBroadcastPkts_()
@@ -589,7 +620,8 @@ TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
           scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
       auto asicType = getAsic(portSwitchId).getAsicType();
       if (asicType != cfg::AsicType::ASIC_TYPE_EBRO &&
-          asicType != cfg::AsicType::ASIC_TYPE_YUBA) {
+          asicType != cfg::AsicType::ASIC_TYPE_YUBA &&
+          asicType != cfg::AsicType::ASIC_TYPE_G202X) {
         EXPECT_EVENTUALLY_EQ(
             1,
             *portStatsAfter.outBroadcastPkts_() -
@@ -598,5 +630,46 @@ TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
     });
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentPacketSendLldpTest : public AgentHwTest {
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::CPU_RX_TX};
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto cfg = AgentHwTest::initialConfig(ensemble);
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, {asic}, ensemble.isSai());
+    utility::addCpuQueueConfig(cfg, {asic}, ensemble.isSai());
+    return cfg;
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_enable_lldp = true;
+  }
+};
+
+TEST_F(AgentPacketSendLldpTest, LldpLoopbackTest) {
+  auto verify = [=, this]() {
+    auto* lldpManager = getSw()->getLldpMgr();
+    ASSERT_NE(lldpManager, nullptr);
+    lldpManager->sendLldpOnAllPorts();
+    size_t expectedNumLldpEntries =
+        this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT,
+                                    cfg::PortType::HYPER_PORT_MEMBER})
+            .size();
+    WITH_RETRIES({
+      auto* db = lldpManager->getDB();
+      auto neighbors = db->getNeighbors();
+      XLOG(DBG2) << "LLDP neighbors found: " << neighbors.size();
+      EXPECT_EVENTUALLY_GE(neighbors.size(), expectedNumLldpEntries);
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 } // namespace facebook::fboss

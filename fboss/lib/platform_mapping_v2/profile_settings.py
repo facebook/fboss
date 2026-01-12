@@ -12,9 +12,7 @@ from fboss.lib.platform_mapping_v2.helpers import (
     transmitter_tech_from_profile,
 )
 from neteng.fboss.phy.ttypes import DataPlanePhyChipType
-
 from neteng.fboss.platform_mapping_config.ttypes import SpeedSetting
-
 from neteng.fboss.switch_config.ttypes import PortProfileID
 
 

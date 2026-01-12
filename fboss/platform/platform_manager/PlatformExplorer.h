@@ -13,10 +13,12 @@
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/PresenceChecker.h"
+#include "fboss/platform/platform_manager/ScubaLogger.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_service_types.h"
 
 namespace facebook::fboss::platform::platform_manager {
+
 class PlatformExplorer {
  public:
   // Regex patterns for matching fw_ver format.
@@ -27,13 +29,17 @@ class PlatformExplorer {
 
   auto static constexpr kGroupedFirmwareVersion = "{}.firmware_version.{}";
 
-  auto static constexpr kChassisEepromVersion =
+  auto static constexpr kChassisEepromVersion = "chassis_eeprom_version";
+  auto static constexpr kChassisEepromVersionODS =
       "platform_explorer.chassis_eeprom_version.{}";
-  auto static constexpr kProductionState =
+  auto static constexpr kProductionState = "production_state";
+  auto static constexpr kProductionStateODS =
       "platform_explorer.production_state.{}";
-  auto static constexpr kProductionSubState =
+  auto static constexpr kProductionSubState = "production_sub_state";
+  auto static constexpr kProductionSubStateODS =
       "platform_explorer.production_sub_state.{}";
-  auto static constexpr kVariantVersion =
+  auto static constexpr kVariantVersion = "variant_version";
+  auto static constexpr kVariantVersionODS =
       "platform_explorer.variant_version.{}";
 
   auto static constexpr kFwVerErrorFileNotFound = "ERROR_FILE_NOT_FOUND";
@@ -42,6 +48,8 @@ class PlatformExplorer {
 
   explicit PlatformExplorer(
       const PlatformConfig& config,
+      DataStore& dataStore,
+      ScubaLogger& scubaLogger,
       std::shared_ptr<PlatformFsUtils> platformFsUtils =
           std::make_shared<PlatformFsUtils>());
 
@@ -85,6 +93,12 @@ class PlatformExplorer {
       const std::string& slotPath,
       const std::string& pm);
 
+  // update datastore with firmware versions
+  void updateFirmwareVersions();
+
+  // Update datastore with hardware versions
+  void updateHardwareVersions(const FbossEepromInterface& chassisEepromContent);
+
   // Publish firmware versions read from /run/devmap files to ODS.
   void publishFirmwareVersions();
 
@@ -106,6 +120,10 @@ class PlatformExplorer {
   // This member is thread safe since callers could be on different threads
   // E.g thrift API call on `getLastPmStatus`.
   folly::Synchronized<PlatformManagerStatus> platformManagerStatus_;
+
+  PlatformConfig platformConfig_{};
+  DataStore& dataStore_;
+
   ExplorationSummary explorationSummary_;
 
  private:
@@ -130,10 +148,8 @@ class PlatformExplorer {
       auto&& deviceCreationLambda);
   void genHumanReadableEeproms();
 
-  PlatformConfig platformConfig_{};
   I2cExplorer i2cExplorer_{};
   PciExplorer pciExplorer_;
-  DataStore dataStore_;
   DevicePathResolver devicePathResolver_;
   PresenceChecker presenceChecker_;
   std::shared_ptr<PlatformFsUtils> platformFsUtils_;

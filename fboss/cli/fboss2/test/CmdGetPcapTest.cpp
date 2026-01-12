@@ -5,7 +5,6 @@
 
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
 
 using namespace ::testing;
 
@@ -28,7 +27,7 @@ class CmdGetPcapTestFixture : public CmdHandlerTestBase {
 TEST_F(CmdGetPcapTestFixture, queryClient) {
   auto cmd = CmdGetPcap();
   auto getPcapOutput = cmd.queryClient(localhost());
-  EXPECT_THRIFT_EQ(getPcapOutput, expectedGetPcapOutput);
+  EXPECT_EQ(getPcapOutput, expectedGetPcapOutput);
 }
 
 TEST_F(CmdGetPcapTestFixture, printOutput) {

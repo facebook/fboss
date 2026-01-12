@@ -229,7 +229,7 @@ class MultiNodeOpenrTest : public MultiNodeTest {
   void checkRoute(TIpAddress prefix, uint8_t length, bool exists) {
     WITH_RETRIES({
       const auto& fibContainer =
-          sw()->getState()->getFibs()->getNode(RouterID(0));
+          sw()->getState()->getFibsInfoMap()->getFibContainer(RouterID(0));
       auto fib = fibContainer->template getFib<TIpAddress>();
       auto testRoute = fib->getRouteIf({prefix, length});
       if (exists) {

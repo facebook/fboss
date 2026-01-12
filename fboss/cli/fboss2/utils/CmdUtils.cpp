@@ -295,7 +295,7 @@ std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
       std::vector<std::string> pathElements;
       for (const auto& pathElm : *extPath.path()) {
         if (pathElm.any().has_value()) {
-          pathElements.push_back("*");
+          pathElements.emplace_back("*");
         } else if (pathElm.regex().has_value()) {
           pathElements.push_back(*pathElm.regex());
         } else {
@@ -471,6 +471,43 @@ getUncachedSwitchReachabilityInfo(
     std::cerr << e.what();
   }
   return reachabilityMatrix;
+}
+
+RevisionList::RevisionList(std::vector<std::string> v) {
+  // Validate each revision specifier
+  for (const auto& revision : v) {
+    if (revision == "current") {
+      // "current" is always valid
+      data_.push_back(revision);
+      continue;
+    }
+
+    // Must be in the form "rN" where N is a positive integer
+    if (revision.empty() || revision[0] != 'r') {
+      throw std::invalid_argument(
+          "Invalid revision specifier: '" + revision +
+          "'. Expected 'rN' or 'current'");
+    }
+
+    // Extract the number part after 'r'
+    std::string revNum = revision.substr(1);
+    if (revNum.empty()) {
+      throw std::invalid_argument(
+          "Invalid revision specifier: '" + revision +
+          "'. Expected 'rN' or 'current'");
+    }
+
+    // Validate that it's all digits
+    for (char c : revNum) {
+      if (!std::isdigit(c)) {
+        throw std::invalid_argument(
+            "Invalid revision number: '" + revision +
+            "'. Expected 'rN' or 'current'");
+      }
+    }
+
+    data_.push_back(revision);
+  }
 }
 
 } // namespace facebook::fboss::utils

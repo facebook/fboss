@@ -697,6 +697,13 @@ class CmisModule : public QsfpModule {
    */
   MediaInterfaceCode getModuleMediaInterface() const override;
 
+  /*
+   * Helper function to read the datapath max delay time from module spec.
+   * Returns the max delay time in microseconds if found, or std::nullopt if
+   * unable to retrieve from the module.
+   */
+  std::optional<uint64_t> getDatapathMaxDelayFromModuleSpec(bool init);
+
   uint64_t getExpectedDatapathDelayUsec(bool /*init*/);
   uint64_t maxRetriesWith500msDelay(bool /*init*/);
 
@@ -733,6 +740,15 @@ class CmisModule : public QsfpModule {
       std::optional<std::function<void()>> afterDataPathDeinitFunc =
           std::nullopt,
       uint8_t hostLaneMask = 0xFF);
+
+  /*
+   * Helper function to reset data path for tunable optics (ZR modules)
+   * using dataPathProgram for deinit/init operations
+   */
+  void resetDataPathForTunableOptics(
+      const std::string& portName,
+      std::optional<std::function<void()>> afterDataPathDeinitFunc,
+      uint8_t hostLaneMask);
 
   /*
    * Set the PRBS Generator and Checker on a module for the desired side (Line

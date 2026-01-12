@@ -1350,4 +1350,13 @@ InterfaceID getInterfaceIDForPort(
   throw FbossError("Interface not found for port ", portID);
 }
 
+bool isPortDrained(
+    const std::shared_ptr<SwitchState>& state,
+    const Port* port,
+    SwitchID portSwitchId) {
+  const auto& switchSettings = state->getSwitchSettings()->getSwitchSettings(
+      HwSwitchMatcher(std::unordered_set<SwitchID>({portSwitchId})));
+  return switchSettings->isSwitchDrained() || port->isDrained();
+}
+
 } // namespace facebook::fboss

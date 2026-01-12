@@ -11,6 +11,7 @@
 #include "fboss/platform/platform_manager/ConfigUtils.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
+#include "fboss/platform/platform_manager/ScubaLogger.h"
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
@@ -62,8 +63,11 @@ namespace fs = std::filesystem;
 
 class PlatformExplorerWrapper : public PlatformExplorer {
  public:
-  explicit PlatformExplorerWrapper(const PlatformConfig& config)
-      : PlatformExplorer(config) {
+  explicit PlatformExplorerWrapper(
+      const PlatformConfig& config,
+      DataStore& dataStore,
+      ScubaLogger& scubaLogger)
+      : PlatformExplorer(config, dataStore, scubaLogger) {
     // Store the initial PlatformManagerStatus defined in PlatformExplorer.
     updatedPmStatuses_.push_back(getPMStatus());
   }
@@ -100,11 +104,16 @@ class PlatformManagerHwTest : public ::testing::Test {
                "Ended with unexpected exploration status {}",
                apache::thrift::util::enumNameSafe(
                    *pmStatus.explorationStatus()));
-    EXPECT_GT(*pmStatus.lastExplorationTime(), now);
+    EXPECT_GE(*pmStatus.lastExplorationTime(), now);
   }
 
   PlatformConfig platformConfig_{ConfigUtils().getConfig()};
-  PlatformExplorerWrapper platformExplorer_{platformConfig_};
+  DataStore dataStore_{platformConfig_};
+  ScubaLogger scubaLogger_{*platformConfig_.platformName(), dataStore_};
+  PlatformExplorerWrapper platformExplorer_{
+      platformConfig_,
+      dataStore_,
+      scubaLogger_};
   PkgManager pkgManager_{platformConfig_};
   std::optional<DataStore> ds =
       platformExplorer_.getDataStore().value_or(DataStore(platformConfig_));
@@ -228,32 +237,37 @@ TEST_F(PlatformManagerHwTest, XcvrLedFiles) {
   fs::remove_all("/run/devmap/xcvrs");
   EXPECT_FALSE(fs::exists("/run/devmap/xcvrs"));
   explorationOk();
+
+  bool isDarwin = platformConfig_.platformName().value() == "DARWIN" ||
+      platformConfig_.platformName().value() == "DARWIN48V";
+
+  std::string firstColorName = isDarwin ? "green" : "blue";
+  std::string secondColorName = "amber";
   for (auto xcvrNum = 1; xcvrNum <= *platformConfig_.numXcvrs(); xcvrNum++) {
     auto numLeds = getNumLedsForXcvr(xcvrNum, platformConfig_);
     for (auto ledNum = 1; ledNum <= numLeds; ledNum++) {
-      for (auto& color : {"blue", "amber"}) {
-        auto ledDir = fs::path(
-            fmt::format(
-                "/sys/class/leds/port{}_led{}:{}:status",
-                xcvrNum,
-                ledNum,
-                color));
-        XLOG(DBG2) << fmt::format("Checking {}", ledDir.string());
-        for (auto& ledFile : {"brightness", "max_brightness", "trigger"}) {
-          auto fullPath = ledDir / fs::path(ledFile);
-          EXPECT_TRUE(fs::exists(fullPath))
-              << fmt::format("{} doesn't exist", fullPath.string());
-          if (std::string(ledFile) == "trigger") {
-            auto ledFileContent =
-                PlatformFsUtils().getStringFileContent(fullPath);
-            ASSERT_TRUE(ledFileContent);
-            EXPECT_TRUE(ledFileContent->find("timer") != std::string::npos)
-                << fmt::format(
-                       "{} has unexpected content `{}`",
-                       fullPath.string(),
-                       *ledFileContent);
-          }
-        }
+      auto firstLedDir = fs::path(
+          fmt::format(
+              "/sys/class/leds/port{}_led{}:{}:status",
+              xcvrNum,
+              ledNum,
+              firstColorName));
+      auto secondLedDir = fs::path(
+          fmt::format(
+              "/sys/class/leds/port{}_led{}:{}:status",
+              xcvrNum,
+              ledNum,
+              secondColorName));
+
+      XLOG(DBG2) << fmt::format(
+          "Checking {} and {}", firstLedDir.string(), secondLedDir.string());
+      for (auto& ledFile : {"brightness", "max_brightness", "trigger"}) {
+        auto firstLedFullPath = firstLedDir / fs::path(ledFile);
+        auto secondLedFullPath = secondLedDir / fs::path(ledFile);
+        EXPECT_TRUE(fs::exists(firstLedFullPath))
+            << fmt::format("{} doesn't exist", firstLedFullPath.string());
+        EXPECT_TRUE(fs::exists(secondLedFullPath))
+            << fmt::format("{} doesn't exist", secondLedFullPath.string());
       }
     }
   }

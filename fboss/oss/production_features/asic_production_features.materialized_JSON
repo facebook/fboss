@@ -129,7 +129,8 @@
         75,
         76,
         77,
-        89
+        89,
+        95
     ],
     "ramon3": [
         1,
@@ -362,7 +363,8 @@
         89,
         90,
         94,
-        93
+        93,
+        96
     ],
     "tomahawk6": [
         2,
@@ -599,7 +601,8 @@
         "GLOBAL_TC_RATE_LIMIT",
         "COPP_SHAPER",
         "COPP_SCHEDULER",
-        "AM_IDLES"
+        "AM_IDLES",
+        "MIRROR_ON_DROP_DNX"
     ],
     "ramon3": [
         "FABRIC",
@@ -832,7 +835,8 @@
         "AM_IDLES",
         "ALTERNATE_ARS_MEMBERS",
         "L2_QOS",
-        "PFC_TX_DURATION"
+        "PFC_TX_DURATION",
+        "MIRROR_ON_DROP_XGS"
     ],
     "tomahawk6": [
         "CPU_RX_TX",

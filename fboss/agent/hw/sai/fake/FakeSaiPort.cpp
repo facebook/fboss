@@ -1403,6 +1403,16 @@ sai_status_t set_port_serdes_attribute_fn(
       }
       break;
 
+    case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_REACH:
+      fillVec(
+          portSerdes.rxReach,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxReach)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
     case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_CTLE_CODE:
       fillVec(
           portSerdes.rxCtlCode,
@@ -1730,6 +1740,13 @@ sai_status_t set_port_serdes_attribute_fn(
         return SAI_STATUS_INVALID_ATTRIBUTE_0;
       }
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+    case SAI_PORT_SERDES_ATTR_CUSTOM_COLLECTION:
+      portSerdes.serdesCustomCollection = std::string(
+          reinterpret_cast<const char*>(attr->value.json.json.list),
+          attr->value.json.json.count);
+      break;
+#endif
     default:
       return SAI_STATUS_NOT_SUPPORTED;
   }
@@ -1828,6 +1845,13 @@ sai_status_t get_port_serdes_attribute_fn(
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
         copyVecToList(portSerdes.txLutMode, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_REACH:
+        if (!checkListSize(attr_list[i].value.s32list, portSerdes.rxReach)) {
+          attr_list[i].value.s32list.count = portSerdes.rxReach.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.rxReach, attr_list[i].value.s32list);
         break;
       case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_CTLE_CODE:
         if (!checkListSize(attr_list[i].value.s32list, portSerdes.rxCtlCode)) {
@@ -2150,6 +2174,22 @@ sai_status_t get_port_serdes_attribute_fn(
         copyVecToList(
             portSerdes.rxFfeLmsDynamicGatingEn, attr_list[i].value.s32list);
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+      case SAI_PORT_SERDES_ATTR_CUSTOM_COLLECTION:
+        if (portSerdes.serdesCustomCollection.size() >
+            attr_list[i].value.json.json.count) {
+          attr_list[i].value.json.json.count =
+              portSerdes.serdesCustomCollection.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        std::copy(
+            portSerdes.serdesCustomCollection.begin(),
+            portSerdes.serdesCustomCollection.end(),
+            attr_list[i].value.json.json.list);
+        attr_list[i].value.json.json.count =
+            portSerdes.serdesCustomCollection.size();
+        break;
+#endif
       default:
         return SAI_STATUS_NOT_IMPLEMENTED;
     }

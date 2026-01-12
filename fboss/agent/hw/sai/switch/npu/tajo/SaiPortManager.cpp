@@ -56,7 +56,8 @@ void SaiPortManager::changePortByRecreate(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
   // If YUBA, disable port before recreating
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
     SaiPortTraits::Attributes::AdminState adminDisable{false};
     SaiPortHandle* portHandle = getPortHandle(oldPort->getID());
     SaiApiTable::getInstance()->portApi().setAttribute(
@@ -65,7 +66,8 @@ void SaiPortManager::changePortByRecreate(
 
   // If YUBA and new or old port has 100G, we will delete/remove both/all ports
   // in the group and add/create back both/all ports in the group.
-  if ((platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) &&
+  if ((platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) &&
       (newPort->getProfileID() ==
            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL ||
        oldPort->getProfileID() ==
@@ -119,6 +121,12 @@ void SaiPortManager::programPfcDurationCounterEnable(
     const std::shared_ptr<Port>& /* swPort */,
     const std::optional<cfg::PortPfc>& /* newPfc */,
     const std::optional<cfg::PortPfc>& /* oldPfc */) {}
+
+SaiPortSerdesTraits::Attributes::RxReach::ValueType
+SaiPortManager::getSaiRxReach(
+    const std::vector<phy::RxReach>& /* rxReaches */) const {
+  throw FbossError("RxReach is not supported on this platform");
+}
 
 const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
     const PortID& /* portId */) {

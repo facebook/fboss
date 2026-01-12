@@ -22,6 +22,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
+#include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -363,6 +364,7 @@ void ProdInvariantTest::verifySafeDiagCommands() {
 
   switch (asic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
@@ -377,6 +379,7 @@ void ProdInvariantTest::verifySafeDiagCommands() {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       break;
 
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
@@ -790,6 +793,33 @@ TEST_F(ProdInvariantStswTest, verifyInvariants) {
     verifyFlowletAcls();
     verifyDlbGroups();
   };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+class DSFProdInvariantTest : public AgentEnsembleTest {
+ public:
+  cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) override {
+    auto config = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+    utility::addNetworkAIQosMaps(config, ensemble.getL3Asics());
+    utility::setDefaultCpuTrafficPolicyConfig(
+        config, ensemble.getL3Asics(), ensemble.isSai());
+    utility::addCpuQueueConfig(config, ensemble.getL3Asics(), ensemble.isSai());
+    return config;
+  }
+
+  void SetUp() override {
+    // Create required directories for warm boot helper
+    AgentEnsembleTest::SetUp();
+    XLOG(DBG2) << "DSF ProdInvariantTest setup done";
+  }
+};
+
+TEST_F(DSFProdInvariantTest, verifyInitialSetup) {
+  auto setup = [&]() {};
+  auto verify = [&]() {};
   verifyAcrossWarmBoots(setup, verify);
 }
 

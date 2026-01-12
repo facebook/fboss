@@ -32613,6 +32613,309 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity$"
         }
     ],
+    "morgan800cc/sai/asicsdk-1.42.8/25.11.5210": [
+        {
+          "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "OpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity$"
+        }
+    ],
+    "morgan800cc/sai/asicsdk-1.42.8/25.11.5210/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "OpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity$"
+        }
+    ],
+    "morgan800cc/sai/asicsdk-1.42.8/25.11.5210/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "OpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity$"
+        }
+    ],
     "morgan800cc/sai/asicsdk-1.42.8/25.5.5210": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
@@ -33219,7 +33522,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity$"
         }
     ],
-    "morgan800cc/sai/asicsdk-24.8.3001_yuba/24.8.3001_yuba": [
+    "morgan800cc/sai/asicsdk-25.11.5210/25.11.5210": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -33320,7 +33623,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity$"
         }
     ],
-    "morgan800cc/sai/asicsdk-24.8.3001_yuba/24.8.3001_yuba/physdk-credo-0.7.2/credo-0.7.2": [
+    "morgan800cc/sai/asicsdk-25.11.5210/25.11.5210/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -33421,7 +33724,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity$"
         }
     ],
-    "morgan800cc/sai/asicsdk-24.8.3001_yuba/24.8.3001_yuba/physdk-credo-0.9.0/credo-0.9.0": [
+    "morgan800cc/sai/asicsdk-25.11.5210/25.11.5210/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -37049,6 +37352,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -37071,6 +37377,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -37153,6 +37462,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -37175,6 +37487,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -37257,6 +37572,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -37279,6 +37597,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -37361,6 +37682,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -37383,6 +37707,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -37465,6 +37792,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -37487,6 +37817,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -37569,6 +37902,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -37591,6 +37927,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -37673,6 +38012,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -37695,6 +38037,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -37777,6 +38122,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -37799,6 +38147,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -37881,6 +38232,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -37903,6 +38257,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -37988,6 +38345,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -38010,6 +38370,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -38089,6 +38452,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -38111,6 +38477,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -38190,6 +38559,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -38212,6 +38584,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -38291,6 +38666,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -38313,6 +38691,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -38392,6 +38773,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -38414,6 +38798,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -38493,6 +38880,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -38515,6 +38905,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -38594,6 +38987,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -38616,6 +39012,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -38695,6 +39094,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -38717,6 +39119,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -38796,6 +39201,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -38818,6 +39226,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -38897,6 +39308,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -38919,6 +39333,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -38998,6 +39415,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -39020,6 +39440,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -39099,6 +39522,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -39121,6 +39547,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -39200,6 +39629,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -39222,6 +39654,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -39301,6 +39736,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -39323,6 +39761,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -39402,6 +39843,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -39424,6 +39868,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -39503,6 +39950,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -39525,6 +39975,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -39604,6 +40057,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -39626,6 +40082,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -39705,6 +40164,9 @@
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
         },
         {
@@ -39727,6 +40189,9 @@
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
@@ -44295,6 +44760,255 @@
           "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         }
     ],
+    "wedge400c/sai/asicsdk-1.42.8/25.11.5210": [
+        {
+          "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "OpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.warm_boot.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        }
+    ],
+    "wedge400c/sai/asicsdk-1.42.8/25.11.5210/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "OpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.warm_boot.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        }
+    ],
+    "wedge400c/sai/asicsdk-1.42.8/25.11.5210/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "OpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.warm_boot.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        }
+    ],
     "wedge400c/sai/asicsdk-1.42.8/25.5.5210": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
@@ -44793,7 +45507,7 @@
           "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         }
     ],
-    "wedge400c/sai/asicsdk-24.8.3001_yuba/24.8.3001_yuba": [
+    "wedge400c/sai/asicsdk-25.11.5210/25.11.5210": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -44876,7 +45590,7 @@
           "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         }
     ],
-    "wedge400c/sai/asicsdk-24.8.3001_yuba/24.8.3001_yuba/physdk-credo-0.7.2/credo-0.7.2": [
+    "wedge400c/sai/asicsdk-25.11.5210/25.11.5210/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -44959,7 +45673,7 @@
           "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         }
     ],
-    "wedge400c/sai/asicsdk-24.8.3001_yuba/24.8.3001_yuba/physdk-credo-0.9.0/credo-0.9.0": [
+    "wedge400c/sai/asicsdk-25.11.5210/25.11.5210/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },

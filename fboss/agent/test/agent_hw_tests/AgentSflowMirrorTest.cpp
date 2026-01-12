@@ -385,7 +385,8 @@ device:
   std::optional<uint32_t> getHwLogicalPortId(PortID port) const {
     auto asic = checkSameAndGetAsic();
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
-        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
       return std::nullopt;
     }
     return getSw()->getHwLogicalPortId(port);
@@ -424,7 +425,8 @@ device:
      */
     auto asic = checkSameAndGetAsic();
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
-        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
       auto systemPortId = sflowPayload[0] << 8 | sflowPayload[1];
       expectedSrcPortId =
           static_cast<PortID>(systemPortId - asic->getSflowPortIDOffset());
@@ -763,6 +765,8 @@ device:
 
     if (checkSameAndGetAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
         checkSameAndGetAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA &&
+        checkSameAndGetAsic()->getAsicType() !=
+            cfg::AsicType::ASIC_TYPE_G202X &&
         checkSameAndGetAsic()->getAsicType() !=
             cfg::AsicType::ASIC_TYPE_JERICHO3) {
       // Call parseSflowShim here. And verify

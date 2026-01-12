@@ -10,7 +10,7 @@
 
 #include "fboss/agent/platforms/sai/SaiWedge800CACTPlatform.h"
 
-#include "fboss/agent/hw/switch_asics/YubaAsic.h"
+#include "fboss/agent/hw/switch_asics/G202xAsic.h"
 #include "fboss/agent/platforms/common/wedge800cact/Wedge800CACTPlatformMapping.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -33,7 +33,7 @@ void SaiWedge800CACTPlatform::setupAsic(
     const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(!fabricNodeRole.has_value());
-  asic_ = std::make_unique<YubaAsic>(switchId, switchInfo);
+  asic_ = std::make_unique<G202xAsic>(switchId, switchInfo);
   asic_->setDefaultStreamType(cfg::StreamType::UNICAST);
 }
 

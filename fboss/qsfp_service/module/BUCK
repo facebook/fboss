@@ -42,7 +42,6 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/lib/firmware_storage:firmware_storage",
         "//fboss/lib/link_snapshots:async_filewriter_factory",
-        "//fboss/lib/link_snapshots:snapshot_manager",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:prbs-cpp2-types",
         "//fboss/lib/usb:i2-api",

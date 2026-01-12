@@ -10,7 +10,7 @@
 
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/SwSwitchWarmBootHelper.h"
+#include "fboss/agent/FileBasedWarmbootUtils.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 
@@ -161,7 +161,10 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
    * GE since some tests add v4 routes
    */
   EXPECT_GE(
-      state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(),
+      state_->getFibsInfoMap()
+          ->getFibContainer(RouterID(0))
+          ->getFibV4()
+          ->size(),
       kNumIntfs + 1);
   /*
    * Assert that EcmpResourceMgr leaves the ports state untouched
@@ -293,8 +296,7 @@ void BaseEcmpResourceManagerTest::TearDown() {
   {
     auto wbState = sw_->gracefulExitState();
     auto [reconstructedState, reconstructedRib] =
-        sw_->getWarmBootHelper()->reconstructStateAndRib(
-            wbState, true /*hasL3*/);
+        reconstructStateAndRib(wbState, true /*hasL3*/);
     // Assert reconstructed RIB matches both reconstructed
     // state and current SwitchState. The above APIs will
     // be used on WB to reconstruct both rib and switch
@@ -402,7 +404,8 @@ void BaseEcmpResourceManagerTest::updateRoutes(
 std::unique_ptr<std::vector<UnicastRoute>>
 BaseEcmpResourceManagerTest::getClientRoutes(ClientID client) const {
   auto fibContainer =
-      sw_->getState()->getFibs()->getAllNodes()->getFibContainerIf(RouterID(0));
+      sw_->getState()->getFibsInfoMap()->getAllFibNodes()->getFibContainerIf(
+          RouterID(0));
   auto unicastRoutes = std::make_unique<std::vector<UnicastRoute>>();
   auto fillInRoutes = [&unicastRoutes](const auto& fibIn) {
     for (const auto& [_, route] : std::as_const(*fibIn)) {
@@ -473,7 +476,10 @@ void BaseEcmpResourceManagerTest::assertTargetState(
    * GE since some tests add v4 routes
    */
   EXPECT_GE(
-      state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(),
+      state_->getFibsInfoMap()
+          ->getFibContainer(RouterID(0))
+          ->getFibV4()
+          ->size(),
       kNumIntfs + 1);
   std::set<RouteNextHopSet> primaryEcmpGroups, backupEcmpGroups,
       mergedEcmpGroups;

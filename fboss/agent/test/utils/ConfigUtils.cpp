@@ -16,6 +16,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
@@ -103,6 +104,38 @@ cfg::InterfaceType getInterfaceType(const HwAsic& asic) {
     return cfg::InterfaceType::PORT;
   }
   return cfg::InterfaceType::VLAN;
+}
+
+void populateHyperPortAggregates(
+    const PlatformMapping* platformMapping,
+    cfg::SwitchConfig& config) {
+  const auto& platformPorts = platformMapping->getPlatformPorts();
+  for (const auto& [portID, portEntry] : platformPorts) {
+    if (*portEntry.mapping()->portType() != cfg::PortType::HYPER_PORT) {
+      continue;
+    }
+    const auto& supportedProfiles = *portEntry.supportedProfiles();
+    if (supportedProfiles.empty()) {
+      continue;
+    }
+    const auto& firstProfile = supportedProfiles.begin()->second;
+    auto subsumedPorts = firstProfile.subsumedPorts();
+    if (!subsumedPorts) {
+      continue;
+    }
+    std::vector<int32_t> memberPortIDs;
+    for (auto subsumedPort : *subsumedPorts) {
+      memberPortIDs.push_back(static_cast<int32_t>(subsumedPort));
+    }
+    addAggPort(
+        static_cast<int>(portID),
+        memberPortIDs,
+        &config,
+        cfg::LacpPortRate::FAST,
+        1.0,
+        cfg::AggregatePortType::HYPER_PORT,
+        *portEntry.mapping()->name());
+  }
 }
 } // namespace
 folly::MacAddress kLocalCpuMac() {
@@ -788,6 +821,11 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
           portScope);
     }
   }
+
+  if (FLAGS_hyper_port) {
+    populateHyperPortAggregates(platformMapping, config);
+  }
+
   return config;
 }
 
@@ -846,7 +884,8 @@ cfg::SwitchConfig genPortVlanCfg(
       switchInfo.connectionHandle() = "15:00";
     } else if (
         asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
-        asicType == cfg::AsicType::ASIC_TYPE_YUBA) {
+        asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
+        asicType == cfg::AsicType::ASIC_TYPE_G202X) {
       switchInfo.connectionHandle() = "/dev/uio0";
     }
     switchInfo.systemPortRanges() = asic->getSystemPortRanges();
@@ -858,6 +897,10 @@ cfg::SwitchConfig genPortVlanCfg(
     }
     if (asic->getInbandPortId().has_value()) {
       switchInfo.inbandPortId() = *asic->getInbandPortId();
+    }
+    if (platformType.has_value() &&
+        platformType.value() == PlatformType::PLATFORM_LADAKH800BCLS) {
+      populateSwitchInfoForLadakh(static_cast<SwitchID>(switchId), switchInfo);
     }
     defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
     populateSwitchInfo(
@@ -893,13 +936,18 @@ cfg::SwitchConfig genPortVlanCfg(
   CHECK_GT(portToDefaultProfileID.size(), 0);
   const auto& platformPorts = platformMapping->getPlatformPorts();
   for (auto const& [portID, profileID] : portToDefaultProfileID) {
-    if (!FLAGS_hide_fabric_ports ||
-        *platformPorts.find(static_cast<int32_t>(portID))
-                ->second.mapping()
-                ->portType() != cfg::PortType::FABRIC_PORT) {
-      config.ports()->push_back(
-          createDefaultPortConfig(platformMapping, asic, portID, profileID));
+    if ((FLAGS_hide_fabric_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::FABRIC_PORT) ||
+        (FLAGS_hide_interface_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::INTERFACE_PORT)) {
+      continue;
     }
+    config.ports()->push_back(
+        createDefaultPortConfig(platformMapping, asic, portID, profileID));
   }
   auto const kFabricTxQueueConfig = "FabricTxQueueConfig";
   config.portQueueConfigs()[kFabricTxQueueConfig] = getFabTxQueueConfig();
@@ -1035,6 +1083,23 @@ void populateSwitchInfo(
   config.dsfNodes() = newDsfNodes;
 }
 
+void populateSwitchInfoForLadakh(
+    SwitchID switchId,
+    cfg::SwitchInfo& switchInfo) {
+  cfg::Range64 portIdRange;
+  switchInfo.switchIndex() = static_cast<int64_t>(switchId);
+  if (switchId == SwitchID(0)) {
+    portIdRange.minimum() = 1;
+    portIdRange.maximum() = 512;
+    switchInfo.connectionHandle() = "0000:15:00=0";
+  } else {
+    portIdRange.minimum() = 2049;
+    portIdRange.maximum() = 2560;
+    switchInfo.connectionHandle() = "0000:18:00=0";
+  }
+  switchInfo.portIdRange() = portIdRange;
+}
+
 cfg::SwitchConfig
 oneL3IntfTwoPortConfig(const SwSwitch* sw, PortID port1, PortID port2) {
   std::vector<PortID> ports{port1, port2};
@@ -1054,10 +1119,20 @@ cfg::SwitchConfig oneL3IntfTwoPortConfig(
     PortID port1,
     PortID port2,
     bool supportsAddRemovePort,
-    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    const std::optional<PlatformType> platformType) {
   std::vector<PortID> ports{port1, port2};
   return oneL3IntfNPortConfig(
-      platformMapping, asic, ports, supportsAddRemovePort, lbModeMap);
+      platformMapping,
+      asic,
+      ports,
+      supportsAddRemovePort,
+      lbModeMap,
+      true /*interfaceHasSubnet*/,
+      kBaseVlanId,
+      true /*optimizePortProfile*/,
+      true /*setInterfaceMac*/,
+      platformType);
 }
 
 cfg::SwitchConfig oneL3IntfNPortConfig(
@@ -1069,7 +1144,8 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
     bool interfaceHasSubnet,
     int baseVlanId,
     bool optimizePortProfile,
-    bool setInterfaceMac) {
+    bool setInterfaceMac,
+    const std::optional<PlatformType> platformType) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<VlanID> vlans{VlanID(baseVlanId)};
   std::vector<PortID> vlanPorts;
@@ -1086,7 +1162,11 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
       vlans,
       lbModeMap,
       supportsAddRemovePort,
-      optimizePortProfile);
+      optimizePortProfile,
+      false /*enableFabricPorts*/,
+      std::nullopt /*switchIdToSwitchInfo*/,
+      std::nullopt /*hwAsicTable*/,
+      platformType);
 
   config.interfaces()->resize(1);
   config.interfaces()[0].intfID() = baseVlanId;
@@ -1635,6 +1715,30 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       setInterfaceMac,
       baseIntfId,
       enableFabricPorts,
+      intfTypeVal);
+}
+
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    const std::vector<PortID>& ports,
+    bool supportsAddRemovePort,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    PlatformType platformType) {
+  cfg::InterfaceType intfTypeVal = getInterfaceType(*asic);
+  return onePortPerInterfaceConfigImpl(
+      platformMapping,
+      asic,
+      ports,
+      supportsAddRemovePort,
+      lbModeMap,
+      true /*interfaceHasSubnet*/,
+      true /*setInterfaceMac*/,
+      kBaseVlanId,
+      false /*enableFabricPorts*/,
+      std::nullopt /*switchIdToSwitchInfo*/,
+      std::nullopt /*hwAsicTable*/,
+      platformType,
       intfTypeVal);
 }
 

@@ -4197,6 +4197,7 @@ void BcmSwitch::disableHotSwap() const {
   if (getPlatform()->isDisableHotSwapSupported()) {
     switch (getPlatform()->getAsic()->getAsicType()) {
       case cfg::AsicType::ASIC_TYPE_FAKE:
+      case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
       case cfg::AsicType::ASIC_TYPE_TRIDENT2:
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
         // For TD2 and TH, we patch the SDK to disable hot swap,
@@ -4220,6 +4221,7 @@ void BcmSwitch::disableHotSwap() const {
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
       case cfg::AsicType::ASIC_TYPE_RAMON:
       case cfg::AsicType::ASIC_TYPE_RAMON3:
+      case cfg::AsicType::ASIC_TYPE_G202X:
         CHECK(0) << " Invalid ASIC type";
     }
   }
