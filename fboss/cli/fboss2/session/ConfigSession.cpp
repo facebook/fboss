@@ -16,19 +16,24 @@
 #include <folly/FileUtil.h>
 #include <folly/Likely.h>
 #include <folly/String.h>
+#include <folly/Subprocess.h>
 #include <folly/json/json.h>
 #include <glog/logging.h>
 #include <pwd.h>
 #include <re2/re2.h>
 #include <sys/types.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <unistd.h>
 #include <cerrno>
-#include <cstdlib>
+#include <chrono>
 #include <filesystem>
+#include <sstream>
 #include <stdexcept>
+#include <thread>
 #include <utility>
 #include "fboss/agent/AgentDirectoryUtil.h"
+#include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
 
@@ -281,7 +286,9 @@ const utils::PortMap& ConfigSession::getPortMap() const {
   return *portMap_;
 }
 
-void ConfigSession::saveConfig() {
+void ConfigSession::saveConfig(
+    std::optional<cli::ConfigActionLevel> actionLevel,
+    cli::AgentType agent) {
   if (!configLoaded_) {
     throw std::runtime_error("No config loaded to save");
   }
@@ -303,6 +310,11 @@ void ConfigSession::saveConfig() {
   // seeing partial/corrupted data.
   folly::writeFileAtomic(
       sessionConfigPath_, prettyJson, 0644, folly::SyncType::WITH_SYNC);
+
+  // If an action level was provided, update the required action metadata
+  if (actionLevel.has_value()) {
+    updateRequiredAction(*actionLevel, agent);
+  }
 }
 
 int ConfigSession::extractRevisionNumber(const std::string& filenameOrPath) {
@@ -322,6 +334,158 @@ int ConfigSession::extractRevisionNumber(const std::string& filenameOrPath) {
     return revision;
   }
   return -1;
+}
+
+std::string ConfigSession::getMetadataPath() const {
+  // Store metadata in the same directory as session config
+  fs::path sessionPath(sessionConfigPath_);
+  return (sessionPath.parent_path() / "conf_metadata.json").string();
+}
+
+std::string ConfigSession::getServiceName(cli::AgentType agent) {
+  switch (agent) {
+    case cli::AgentType::WEDGE_AGENT:
+      return "wedge_agent";
+  }
+  throw std::runtime_error("Unknown agent type");
+}
+
+void ConfigSession::loadActionLevel() {
+  std::string metadataPath = getMetadataPath();
+  // Note: We don't initialize requiredActions_ here since getRequiredAction()
+  // returns HITLESS by default for agents not in the map, and
+  // updateRequiredAction() handles adding new agents.
+
+  if (!fs::exists(metadataPath)) {
+    return;
+  }
+
+  std::string content;
+  if (!folly::readFile(metadataPath.c_str(), content)) {
+    // If we can't read the file, keep defaults
+    return;
+  }
+
+  // Parse JSON with symbolic enum names using fbthrift's folly_dynamic API
+  // LENIENT adherence allows parsing both string names and integer values
+  try {
+    folly::dynamic json = folly::parseJson(content);
+    cli::ConfigSessionMetadata metadata;
+    facebook::thrift::from_dynamic(
+        metadata,
+        json,
+        facebook::thrift::dynamic_format::PORTABLE,
+        facebook::thrift::format_adherence::LENIENT);
+    requiredActions_ = *metadata.action();
+  } catch (const std::exception& ex) {
+    // If JSON parsing fails, keep defaults
+    LOG(WARNING) << "Failed to parse metadata file: " << ex.what();
+  }
+}
+
+void ConfigSession::saveActionLevel() {
+  std::string metadataPath = getMetadataPath();
+
+  // Build Thrift metadata struct and serialize to JSON with symbolic enum names
+  // Using PORTABLE format for human-readable enum names instead of integers
+  cli::ConfigSessionMetadata metadata;
+  metadata.action() = requiredActions_;
+
+  folly::dynamic json = facebook::thrift::to_dynamic(
+      metadata, facebook::thrift::dynamic_format::PORTABLE);
+  std::string prettyJson = folly::toPrettyJson(json);
+  folly::writeFileAtomic(
+      metadataPath, prettyJson, 0644, folly::SyncType::WITH_SYNC);
+}
+
+void ConfigSession::updateRequiredAction(
+    cli::ConfigActionLevel actionLevel,
+    cli::AgentType agent) {
+  // Initialize to HITLESS if not present
+  if (requiredActions_.find(agent) == requiredActions_.end()) {
+    requiredActions_[agent] = cli::ConfigActionLevel::HITLESS;
+  }
+
+  // Only update if the new action level is higher (more impactful)
+  if (static_cast<int>(actionLevel) >
+      static_cast<int>(requiredActions_[agent])) {
+    requiredActions_[agent] = actionLevel;
+    saveActionLevel();
+  }
+}
+
+cli::ConfigActionLevel ConfigSession::getRequiredAction(
+    cli::AgentType agent) const {
+  auto it = requiredActions_.find(agent);
+  if (it != requiredActions_.end()) {
+    return it->second;
+  }
+  return cli::ConfigActionLevel::HITLESS;
+}
+
+void ConfigSession::resetRequiredAction(cli::AgentType agent) {
+  requiredActions_[agent] = cli::ConfigActionLevel::HITLESS;
+
+  // If all agents are HITLESS, remove the file entirely
+  bool allHitless = true;
+  for (const auto& [a, level] : requiredActions_) {
+    if (level != cli::ConfigActionLevel::HITLESS) {
+      allHitless = false;
+      break;
+    }
+  }
+  if (allHitless) {
+    std::string metadataPath = getMetadataPath();
+    std::error_code ec;
+    fs::remove(metadataPath, ec);
+    // Ignore errors - file might not exist
+  } else {
+    // Only save if there are remaining agents with non-HITLESS levels
+    saveActionLevel();
+  }
+}
+
+void ConfigSession::restartAgent(cli::AgentType agent) {
+  std::string serviceName = getServiceName(agent);
+
+  LOG(INFO) << "Restarting " << serviceName << " via systemd...";
+
+  // Use systemctl to restart the service
+  // Using folly::Subprocess with explicit args avoids shell injection
+  try {
+    folly::Subprocess restartProc(
+        {"/usr/bin/systemctl", "restart", serviceName});
+    restartProc.waitChecked();
+  } catch (const std::exception& ex) {
+    throw std::runtime_error(
+        fmt::format("Failed to restart {}: {}", serviceName, ex.what()));
+  }
+
+  // Wait for the service to be active (up to 60 seconds)
+  constexpr int maxWaitSeconds = 60;
+  constexpr int pollIntervalMs = 500;
+  int waitedMs = 0;
+
+  while (waitedMs < maxWaitSeconds * 1000) {
+    try {
+      folly::Subprocess checkProc(
+          {"/usr/bin/systemctl", "is-active", "--quiet", serviceName});
+      checkProc.waitChecked();
+      // If waitChecked() doesn't throw, the service is active
+      LOG(INFO) << serviceName << " is now active";
+      return;
+    } catch (const folly::CalledProcessError&) {
+      // Service not active yet, keep waiting
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(pollIntervalMs));
+    waitedMs += pollIntervalMs;
+  }
+
+  throw std::runtime_error(
+      fmt::format(
+          "{} did not become active within {} seconds",
+          serviceName,
+          maxWaitSeconds));
 }
 
 void ConfigSession::loadConfig() {
@@ -350,6 +514,8 @@ void ConfigSession::initializeSession() {
     ensureDirectoryExists(sessionPath.parent_path().string());
     copySystemConfigToSession();
   }
+  // Load the action level from disk (survives across CLI invocations)
+  loadActionLevel();
 }
 
 void ConfigSession::copySystemConfigToSession() {
@@ -388,7 +554,7 @@ void ConfigSession::copySystemConfigToSession() {
       sessionConfigPath_, configData, 0644, folly::SyncType::WITH_SYNC);
 }
 
-int ConfigSession::commit(const HostInfo& hostInfo) {
+ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   if (!sessionExists()) {
     throw std::runtime_error(
         "No config session exists. Make a config change first.");
@@ -437,28 +603,46 @@ int ConfigSession::commit(const HostInfo& hostInfo) {
   // Atomically update the symlink to point to the new config
   atomicSymlinkUpdate(systemConfigPath_, targetConfigPath);
 
-  // Reload the config - if this fails, rollback the symlink atomically
+  // Check the required action level for this commit
+  auto actionLevel = getRequiredAction(cli::AgentType::WEDGE_AGENT);
+
+  // Apply the config based on the required action level
   try {
-    auto client =
-        utils::createClient<apache::thrift::Client<facebook::fboss::FbossCtrl>>(
-            hostInfo);
-    client->sync_reloadConfig();
-    LOG(INFO) << "Config committed as revision r" << revision;
+    if (actionLevel == cli::ConfigActionLevel::AGENT_RESTART) {
+      // For AGENT_RESTART changes, restart the agent via systemd
+      // This will cause the agent to pick up the new config on startup
+      restartAgent(cli::AgentType::WEDGE_AGENT);
+      LOG(INFO) << "Config committed as revision r" << revision
+                << " (agent restarted)";
+    } else {
+      // For HITLESS changes, use reloadConfig() which applies without restart
+      auto client = utils::createClient<
+          apache::thrift::Client<facebook::fboss::FbossCtrl>>(hostInfo);
+      client->sync_reloadConfig();
+      LOG(INFO) << "Config committed as revision r" << revision
+                << " (config reloaded)";
+    }
   } catch (const std::exception& ex) {
     // Rollback: atomically restore the old symlink
     try {
       atomicSymlinkUpdate(systemConfigPath_, oldSymlinkTarget);
+      // If this was an AGENT_RESTART change, we need to restart the agent again
+      // so it picks up the old config (in case the restart was partially
+      // successful before failing)
+      if (actionLevel == cli::ConfigActionLevel::AGENT_RESTART) {
+        restartAgent(cli::AgentType::WEDGE_AGENT);
+      }
     } catch (const std::exception& rollbackEx) {
       // If rollback also fails, include both errors in the message
       throw std::runtime_error(
           fmt::format(
-              "Failed to reload config: {}. Additionally, failed to rollback the config: {}",
+              "Failed to apply config: {}. Additionally, failed to rollback the config: {}",
               ex.what(),
               rollbackEx.what()));
     }
     throw std::runtime_error(
         fmt::format(
-            "Failed to reload config, config was rolled back automatically: {}",
+            "Failed to apply config, config was rolled back automatically: {}",
             ex.what()));
   }
 
@@ -472,7 +656,10 @@ int ConfigSession::commit(const HostInfo& hostInfo) {
         ec.message());
   }
 
-  return revision;
+  // Reset action level after successful commit
+  resetRequiredAction(cli::AgentType::WEDGE_AGENT);
+
+  return CommitResult{revision, actionLevel};
 }
 
 int ConfigSession::rollback(const HostInfo& hostInfo) {
@@ -498,12 +685,14 @@ int ConfigSession::rollback(
   ensureDirectoryExists(cliConfigDir_);
 
   // Build the path to the target revision
-  std::string targetConfigPath = cliConfigDir_ + "/agent-" + revision + ".conf";
+  std::string targetConfigPath =
+      fmt::format("{}/agent-{}.conf", cliConfigDir_, revision);
 
   // Check if the target revision exists
   if (!fs::exists(targetConfigPath)) {
     throw std::runtime_error(
-        "Revision " + revision + " does not exist at " + targetConfigPath);
+        fmt::format(
+            "Revision {} does not exist at {}", revision, targetConfigPath));
   }
 
   std::error_code ec;
@@ -511,14 +700,17 @@ int ConfigSession::rollback(
   // Verify that the system config is a symlink
   if (!fs::is_symlink(systemConfigPath_)) {
     throw std::runtime_error(
-        systemConfigPath_ + " is not a symlink. Expected it to be a symlink.");
+        fmt::format(
+            "{} is not a symlink. Expected it to be a symlink.",
+            systemConfigPath_));
   }
 
   // Read the old symlink target in case we need to undo the rollback
   std::string oldSymlinkTarget = fs::read_symlink(systemConfigPath_, ec);
   if (ec) {
     throw std::runtime_error(
-        "Failed to read symlink " + systemConfigPath_ + ": " + ec.message());
+        fmt::format(
+            "Failed to read symlink {}: {}", systemConfigPath_, ec.message()));
   }
 
   // First, create a new revision with the same content as the target revision
