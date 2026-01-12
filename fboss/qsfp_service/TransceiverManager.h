@@ -19,6 +19,7 @@
 #include "fboss/lib/ThreadHeartbeat.h"
 #include "fboss/lib/firmware_storage/FbossFwStorage.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
+#include "fboss/lib/link_snapshots/SnapshotManager.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
@@ -97,6 +98,8 @@ class TransceiverManager {
       "agentConfigLastAppliedInMs";
   static constexpr const char* kAgentConfigLastColdbootAppliedInMsKey =
       "agentConfigLastColdbootAppliedInMs";
+  static constexpr auto kSnapshotIntervalSeconds = 10;
+
   using TcvrInfoMap = std::map<int32_t, TransceiverInfo>;
 
   explicit TransceiverManager(
@@ -507,6 +510,11 @@ class TransceiverManager {
   Transceiver* FOLLY_NULLABLE overrideTransceiverForTesting(
       TransceiverID id,
       std::unique_ptr<Transceiver> overrideTcvr);
+
+  folly::Synchronized<std::unordered_map<TransceiverID, SnapshotManager>>&
+  getSnapshotManagersForTesting() {
+    return snapshotManagers_;
+  }
 
   // If the transceiver doesn't exist, this will return std::nullopt.
   std::optional<TransceiverInfo> getTransceiverInfoOptional(
@@ -1172,6 +1180,11 @@ class TransceiverManager {
 
   folly::Synchronized<std::unordered_set<TransceiverID>>
       tcvrsReadyForProgramming_;
+
+  folly::Synchronized<std::unordered_map<TransceiverID, SnapshotManager>>
+      snapshotManagers_;
+
+  void updateSnapshots();
 
   friend class TransceiverStateMachineTest;
 };

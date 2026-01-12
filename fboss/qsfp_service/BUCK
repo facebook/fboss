@@ -141,6 +141,7 @@ cpp_library(
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/lib/firmware_storage:firmware_storage",
         "//fboss/lib/i2c:i2c_controller_stats-cpp2-types",
+        "//fboss/lib/link_snapshots:snapshot_manager",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:phy_management_base",
         "//fboss/lib/phy:prbs-cpp2-types",

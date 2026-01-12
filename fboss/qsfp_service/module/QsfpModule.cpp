@@ -106,10 +106,6 @@ QsfpModule::QsfpModule(
     std::string tcvrName)
     : Transceiver(),
       qsfpImpl_(qsfpImpl),
-      snapshots_(SnapshotManager(
-          portNames,
-          SnapshotLogSource::QSFP_SERVICE,
-          kSnapshotIntervalSeconds)),
       portNames_(portNames),
       tcvrName_(std::move(tcvrName)) {
   CHECK(!portNames.empty())
@@ -602,9 +598,6 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   tcvrState.interfaces() = getInterfaces();
   tcvrStats.interfaces() = getInterfaces();
 
-  phy::LinkSnapshot snapshot;
-  snapshot.transceiverInfo() = info;
-  snapshots_.wlock()->addSnapshot(snapshot);
   *info_.wlock() = info;
 }
 
@@ -1590,12 +1583,6 @@ void QsfpModule::setPortStateLocked(bool programEnd) {
   } else {
     portState_.tcvrProgrammingStartTs() = static_cast<int64_t>(ns);
   }
-}
-
-void QsfpModule::publishSnapshots() {
-  auto snapshotsLocked = snapshots_.wlock();
-  snapshotsLocked->publishAllSnapshots();
-  snapshotsLocked->publishFutureSnapshots();
 }
 
 bool QsfpModule::tryRemediate(
