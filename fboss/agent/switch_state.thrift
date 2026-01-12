@@ -16,6 +16,9 @@ include "fboss/agent/if/ctrl.thrift"
 include "fboss/mka_service/if/mka_structs.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 struct VlanInfo {
   1: bool tagged;
 }
@@ -122,17 +125,28 @@ struct PortFields {
   47: bool rxLaneSquelch = false;
   48: bool zeroPreemphasis = false;
 
-  // Set only for ASICs that distinguish UP from ACTIVE e.g. J2, J3 etc.
-  // On those ASICs, an UP port is ACTIVE only if bi-directional connectivity
-  // is established and ports on both sides are ready to send data traffic.
+  // Indicates whether a port is ACTIVE (ready for data traffic) vs merely UP.
   //
-  // When set, portActiveState::
-  //  false => port is INACTIVE
-  //  true => port is ACTIVE
+  // This field serves two purposes:
   //
-  // When portActiveState is set,
-  //  - if portOperState is DOWN, portActiveState is always INACTIVE
-  //  - if portOperState is UP, portActiveState is either ACTIVE or INACTIVE.
+  // 1. Local port readiness (hardware-determined):
+  //    - Set by ASICs that distinguish UP from ACTIVE (e.g., J2, J3)
+  //    - ACTIVE means bi-directional connectivity is established and both
+  //      sides are ready to send data traffic
+  //    Constraints:
+  //      - When portOperState is DOWN, portActiveState must be INACTIVE
+  //      - When portOperState is UP, portActiveState may be ACTIVE or INACTIVE
+  //
+  // 2. Remote neighbor port state (LLDP-learned):
+  //    - Tracks drain state of remote/neighbor port via LLDP TLV
+  //    - LLDP drain state is inverted: drained=true -> active=false
+  //    - Allows traffic engineering based on neighbor readiness
+  //
+  // Semantics:
+  //   true  => Port is ACTIVE (ready for traffic)
+  //   false => Port is INACTIVE (up but not ready, or neighbor is drained)
+  //   unset => Active state is not tracked for this port
+  //
   49: optional bool portActiveState;
   50: optional bool disableTTLDecrement;
   51: optional bool txEnable;
@@ -156,6 +170,8 @@ struct PortFields {
   62: optional bool resetQueueCreditBalance;
   // Switch ID for use with fabric links in Fabric Link Monitoring
   63: optional i32 portSwitchId;
+  // Serdes custom collection JSON string
+  64: optional string serdesCustomCollection;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields

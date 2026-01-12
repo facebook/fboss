@@ -349,6 +349,11 @@ void ArpHandler::sendArpRequest(
 void ArpHandler::sendArpRequest(
     SwSwitch* sw,
     const folly::IPAddressV4& targetIP) {
+  if (!sw->isFullyInitialized()) {
+    XLOG(DBG2) << "Dropping ARP request since device not ready";
+    return;
+  }
+
   auto intf =
       sw->getState()->getInterfaces()->getIntfToReach(RouterID(0), targetIP);
 

@@ -45,8 +45,8 @@ class RouteManagerTest : public ManagerTestBase {
 
 TEST_F(RouteManagerTest, verifySwitchStateConstruction) {
   auto newState = saiPlatform->getHwSwitch()->getProgrammedState()->clone();
-  auto fib4 = newState->getFibs()
-                  ->getNode(RouterID(0))
+  auto fib4 = newState->getFibsInfoMap()
+                  ->getFibContainer(RouterID(0))
                   ->getFibV4()
                   ->modify(RouterID(0), &newState);
   for (int i = 0; i < 10; i++) {
@@ -76,7 +76,9 @@ TEST_F(RouteManagerTest, verifySwitchStateConstruction) {
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
   auto hwState = saiSwitch->constructSwitchStateWithFib();
   auto swState = saiPlatform->getHwSwitch()->getProgrammedState();
-  ASSERT_EQ(hwState->getFibs()->toThrift(), swState->getFibs()->toThrift());
+  ASSERT_EQ(
+      hwState->getFibsInfoMap()->toThrift(),
+      swState->getFibsInfoMap()->toThrift());
 }
 
 TEST_F(RouteManagerTest, addRoute) {

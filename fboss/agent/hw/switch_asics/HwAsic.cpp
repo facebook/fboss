@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/switch_asics/CredoPhyAsic.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/FakeAsic.h"
+#include "fboss/agent/hw/switch_asics/G202xAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/hw/switch_asics/MockAsic.h"
@@ -84,6 +85,9 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
   switch (*switchInfo.asicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
       return std::make_unique<FakeAsic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
+      return std::make_unique<FakeAsicNoWarmboot>(
+          switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_MOCK:
       return std::make_unique<MockAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
@@ -104,6 +108,8 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
       return std::make_unique<EbroAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_YUBA:
       return std::make_unique<YubaAsic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_G202X:
+      return std::make_unique<G202xAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_CHENAB:
       return std::make_unique<ChenabAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_JERICHO2:

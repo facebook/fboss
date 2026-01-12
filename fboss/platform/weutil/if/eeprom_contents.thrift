@@ -3,6 +3,10 @@ namespace hack NetengFbossPlatform
 namespace py3 facebook.fboss.platform
 
 include "thrift/annotation/hack.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 // This is a common thrift struct for both V5 and V6 EEPROMs
 // See https://facebook.github.io/fboss/docs/platform/meta_eeprom_format_v6/ for details.

@@ -105,9 +105,6 @@ class AgentMirrorOnDropTest
   const int kL3DropTrapId = 0x1B;
   const int kAclDropTrapId = 0x1C;
   const int kNoDestFoundTrapId = 0xB5;
-  const int kHyperPortL3DropTrapId = 0x1A;
-  const int kHyperPortAclDropTrapId = 0x2F;
-  const int kHyperPortNoDestFoundTrapId = 0x1C;
 
   // Test constants. We switch the event IDs around to get test coverage.
   const int kL3DropEventId = 0;
@@ -446,10 +443,7 @@ class AgentMirrorOnDropTest
     int truncateSize = kTruncateSize;
     if (portType == cfg::PortType::EVENTOR_PORT) {
       truncateSize = kEventorPayloadSize;
-      if (!FLAGS_hyper_port) {
-        XLOG(DBG2) << "eventor port, exclude 12 byte eventor header";
-        cursor.skip(12); // eventor sequence number, timestamp, sample
-      }
+      cursor.skip(12); // eventor sequence number, timestamp, sample
     }
 
     // Validate MoD header
@@ -1016,8 +1010,7 @@ TEST_P(AgentMirrorOnDropTest, PacketProcessingDefaultRouteDrop) {
         GetParam(),
         kL3DropEventId,
         makeSSPA(injectionPortId),
-        makeTrapDSPA(
-            FLAGS_hyper_port ? kHyperPortL3DropTrapId : kL3DropTrapId));
+        makeTrapDSPA(kL3DropTrapId));
 
     // See if ACL counters increased.
     auto [maxRetryCount, sleepTimeMsecs] =
@@ -1091,9 +1084,7 @@ TEST_P(AgentMirrorOnDropTest, PacketProcessingNullRouteDrop) {
         GetParam(),
         kNullRouteDropEventId,
         makeSSPA(injectionPortId),
-        makeTrapDSPA(
-            FLAGS_hyper_port ? kHyperPortNoDestFoundTrapId
-                             : kNoDestFoundTrapId));
+        makeTrapDSPA(kNoDestFoundTrapId));
 
     auto [maxRetryCount, sleepTimeMsecs] =
         utility::getRetryCountAndDelay(getSw()->getHwAsicTable());
@@ -1148,8 +1139,7 @@ TEST_P(AgentMirrorOnDropTest, PacketProcessingAclDrop) {
         GetParam(),
         kAclDropEventId,
         makeSSPA(injectionPortId),
-        makeTrapDSPA(
-            FLAGS_hyper_port ? kHyperPortAclDropTrapId : kAclDropTrapId));
+        makeTrapDSPA(kAclDropTrapId));
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1215,8 +1205,7 @@ TEST_P(AgentMirrorOnDropTest, MultipleEventIDs) {
         GetParam(),
         1, // for INGRESS_PACKET_PROCESSING_DISCARDS
         makeSSPA(injectionPortId),
-        makeTrapDSPA(
-            FLAGS_hyper_port ? kHyperPortL3DropTrapId : kL3DropTrapId));
+        makeTrapDSPA(kL3DropTrapId));
   };
 
   verifyAcrossWarmBoots(setup, verify);

@@ -14,6 +14,9 @@ include "fboss/fsdb/if/fsdb_common.thrift"
 include "fboss/platform/sensor_service/sensor_service_stats.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 // mirrors of structs fboss/fsdb/if/facebook/fsdb_model.thrift with oss only portions
 struct AgentData {
   1: agent_config.AgentConfig config;

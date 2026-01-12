@@ -1375,13 +1375,13 @@ void PortManager::updatePortActiveStatusInTransceiverManager() {
 
   auto multiTcvrQsfpToAgentPort = *multiTcvrQsfpPortToAgentPort_.rlock();
   for (auto& [tcvrId, lockedInitializedPorts] : tcvrToInitializedPorts_) {
-    std::unordered_set<PortID> activePorts;
+    std::unordered_set<PortID> inactivePorts;
     // Create a copy to avoid holding two locks at once.
     std::set<PortID> initializedPorts = *lockedInitializedPorts->rlock();
     for (const auto& portId : initializedPorts) {
       auto portState = getPortState(portId);
-      if (portState == PortStateMachineState::PORT_UP) {
-        activePorts.insert(portId);
+      if (portState == PortStateMachineState::PORT_DOWN) {
+        inactivePorts.insert(portId);
       }
     }
 
@@ -1411,8 +1411,11 @@ void PortManager::updatePortActiveStatusInTransceiverManager() {
         }
         portInfo.status->portEnabled =
             initializedPorts.find(portId) != initializedPorts.end();
+        // Make an assumption that if port is not explicitly marked as
+        // PORT_DOWN, we consider it as port up. To ensure we don't prematurely
+        // remediate or upgrade transceiver.
         portInfo.status->operState =
-            activePorts.find(portId) != activePorts.end();
+            inactivePorts.find(portId) == inactivePorts.end();
       }
     }
   }

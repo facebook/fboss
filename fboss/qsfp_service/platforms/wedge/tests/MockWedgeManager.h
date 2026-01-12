@@ -106,6 +106,11 @@ class MockWedgeManager : public WedgeManager {
     throw FbossError("Can't find Transceiver=", id);
   }
 
+  folly::Synchronized<std::unordered_map<TransceiverID, SnapshotManager>>&
+  getSnapshotManagersForTesting() {
+    return TransceiverManager::getSnapshotManagersForTesting();
+  }
+
   int getNumQsfpModules() const override {
     return numModules_;
   }

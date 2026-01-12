@@ -2392,8 +2392,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_VRM1/in2_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 0.811,
-            "maxAlarmVal": 0.8,
+            "upperCriticalVal": 0.839,
+            "maxAlarmVal": 0.8289,
             "minAlarmVal": 0.7,
             "lowerCriticalVal": 0.679
           },
@@ -5454,18 +5454,6 @@
           "compute": "@/1000"
         },
         {
-          "name": "SMB_3V3_L_VRM_VOUT",
-          "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 3.63,
-            "maxAlarmVal": 3.465,
-            "minAlarmVal": 3.135,
-            "lowerCriticalVal": 2.97
-          },
-          "compute": "@/1000"
-        },
-        {
           "name": "SMB_3V3_L_VRM_TEMP",
           "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/temp1_input",
           "type": 3,
@@ -5494,6 +5482,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 2,
@@ -5521,6 +5521,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 2,
@@ -5548,6 +5560,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 2,
@@ -5575,6 +5599,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 2,
@@ -5602,6 +5638,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 2,
@@ -5629,6 +5677,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 3,
@@ -5656,6 +5716,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 4,
@@ -5683,6 +5755,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 4,
@@ -5710,6 +5794,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 2,
@@ -5737,6 +5833,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 2,
@@ -5764,6 +5872,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 2,
@@ -5791,6 +5911,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 2,
@@ -5818,6 +5950,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 2,
@@ -5845,6 +5989,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 3,
@@ -5872,6 +6028,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 3,
@@ -5899,6 +6067,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 3,
@@ -5926,6 +6106,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 4,
@@ -5953,6 +6145,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_L_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 4,
@@ -5998,18 +6202,6 @@
           "compute": "@/1000"
         },
         {
-          "name": "SMB_3V3_R_VRM_VOUT",
-          "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 3.63,
-            "maxAlarmVal": 3.465,
-            "minAlarmVal": 3.135,
-            "lowerCriticalVal": 2.97
-          },
-          "compute": "@/1000"
-        },
-        {
           "name": "SMB_3V3_R_VRM_TEMP",
           "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/temp1_input",
           "type": 3,
@@ -6038,6 +6230,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 2,
@@ -6065,6 +6269,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 2,
@@ -6092,6 +6308,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 2,
@@ -6119,6 +6347,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 2,
@@ -6146,6 +6386,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 2,
@@ -6173,6 +6425,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 3,
@@ -6200,6 +6464,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 4,
@@ -6227,6 +6503,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "3*@/1000"
             }
           ],
           "productProductionState": 4,
@@ -6254,6 +6542,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 2,
@@ -6281,6 +6581,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 2,
@@ -6308,6 +6620,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 2,
@@ -6335,6 +6659,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 2,
@@ -6362,6 +6698,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 2,
@@ -6389,6 +6737,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 3,
@@ -6416,6 +6776,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 3,
@@ -6443,6 +6815,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 3,
@@ -6470,6 +6854,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 4,
@@ -6497,6 +6893,18 @@
                 "maxAlarmVal": 706.2
               },
               "compute": "@/1000000"
+            },
+            {
+              "name": "SMB_3V3_R_VRM_VOUT",
+              "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 3.63,
+                "maxAlarmVal": 3.465,
+                "minAlarmVal": 3.135,
+                "lowerCriticalVal": 2.97
+              },
+              "compute": "@/1000"
             }
           ],
           "productProductionState": 4,

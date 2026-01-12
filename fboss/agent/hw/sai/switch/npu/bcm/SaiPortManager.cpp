@@ -307,6 +307,23 @@ void SaiPortManager::programPfcDurationCounterEnable(
 #endif
 }
 
+SaiPortSerdesTraits::Attributes::RxReach::ValueType
+SaiPortManager::getSaiRxReach(
+    const std::vector<phy::RxReach>& rxReaches) const {
+  SaiPortSerdesTraits::Attributes::RxReach::ValueType rxReach;
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  for (auto& phyRxReach : rxReaches) {
+    rxReach.push_back(
+        phyRxReach == phy::RxReach::RX_NORMAL_REACH
+            ? SAI_PORT_SERDES_REACH_MODE_NR
+            : SAI_PORT_SERDES_REACH_MODE_ER);
+  }
+#else
+  throw FbossError("RxReach is not supported in this SAI version");
+#endif
+  return rxReach;
+}
+
 const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
     const PortID& portId) {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)

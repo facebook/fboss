@@ -74,9 +74,12 @@ add_executable(platform_manager_device_path_resolver_test
 
 target_link_libraries(platform_manager_device_path_resolver_test
   platform_manager_device_path_resolver
+  platform_fs_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+gtest_discover_tests(platform_manager_device_path_resolver_test)
 
 add_executable(platform_manager_presence_checker_test
   fboss/platform/platform_manager/tests/PresenceCheckerTest.cpp
@@ -104,3 +107,17 @@ target_link_libraries(platform_manager_pci_explorer_test
 )
 
 gtest_discover_tests(platform_manager_pci_explorer_test)
+
+add_executable(platform_manager_handler_test
+  fboss/platform/platform_manager/tests/PlatformManagerHandlerTest.cpp
+)
+
+target_link_libraries(platform_manager_handler_test
+  platform_manager_handler
+  platform_manager_pkg_manager
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_manager_handler_test)

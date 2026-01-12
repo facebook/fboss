@@ -7,6 +7,9 @@ include "fboss/platform/platform_manager/platform_manager_config.thrift"
 include "fboss/platform/bsp_tests/fbiob_device_config.thrift"
 include "fboss/platform/bsp_tests/bsp_tests_config.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 // Runtime configuration structure - final configuration used in BspTests
 // built by combining PlatformManager config with BspTestConfig data
 struct RuntimeConfig {

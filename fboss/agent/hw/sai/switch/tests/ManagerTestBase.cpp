@@ -255,7 +255,6 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
     case cfg::PortSpeed::GIGE:
     case cfg::PortSpeed::THREEPOINTTWOT:
       throw FbossError("profile gig and 3.2T ethernet is not available");
-      break;
     case cfg::PortSpeed::XG:
       swPort->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL);
       break;
@@ -320,6 +319,9 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
     swPort->setProfileConfig(*profileConfig->iphy());
     swPort->resetPinConfigs(
         saiPlatform->getPlatformMapping()->getPortIphyPinConfigs(matcher));
+    swPort->setSerdesCustomCollection(
+        saiPlatform->getPlatformMapping()->getPortSerdesCustomCollection(
+            matcher));
   }
   phy::PortPrbsState prbsState;
   prbsState.enabled() = true;
@@ -381,7 +383,6 @@ InterfaceID ManagerTestBase::getIntfID(int id, cfg::InterfaceType type) const {
       return InterfaceID(getSysPortId(id));
     case cfg::InterfaceType::PORT:
       return InterfaceID(id);
-      break;
   }
   XLOG(FATAL) << "Unhandled interface type";
 }

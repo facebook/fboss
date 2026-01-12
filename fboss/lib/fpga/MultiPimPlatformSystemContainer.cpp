@@ -11,6 +11,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/fpga/FpgaDevice.h"
+#include "fboss/qsfp_service/StatsPublisher.h"
 
 namespace facebook::fboss {
 
@@ -34,6 +35,7 @@ void MultiPimPlatformSystemContainer::setPimContainer(
   // Always replace with new pim container. Although it shouldn't happen in
   // prod.
   pims_[pim] = std::move(pimContainer);
+  StatsPublisher::initPerPimFb303Stats(PimID(pim));
 }
 
 std::map<int, PimState> MultiPimPlatformSystemContainer::getPimStates() const {

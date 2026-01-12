@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 #include "fboss/platform/weutil/Weutil.h"
 
+#include <boost/algorithm/string.hpp>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -32,12 +33,7 @@ std::unique_ptr<WeutilInterface> createWeUtilIntf(
   }
   weutil::ConfigUtils configUtils(platformName);
   weutil::FruEeprom fruEeprom;
-  std::string upperEepromName = eepromName;
-  std::transform(
-      upperEepromName.begin(),
-      upperEepromName.end(),
-      upperEepromName.begin(),
-      ::toupper);
+  auto upperEepromName = boost::to_upper_copy(eepromName);
   if (upperEepromName == "CHASSIS" || upperEepromName.empty()) {
     fruEeprom = configUtils.getFruEeprom(configUtils.getChassisEepromName());
   } else {

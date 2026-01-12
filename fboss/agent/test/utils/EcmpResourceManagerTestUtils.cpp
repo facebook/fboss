@@ -21,12 +21,12 @@ namespace facebook::fboss {
 namespace {
 const std::shared_ptr<ForwardingInformationBaseV6> cfib(
     const std::shared_ptr<SwitchState>& newState) {
-  return newState->getFibs()->getNode(RouterID(0))->getFibV6();
+  return newState->getFibsInfoMap()->getFibContainer(RouterID(0))->getFibV6();
 }
 
 const std::shared_ptr<ForwardingInformationBaseV4> cfib4(
     const std::shared_ptr<SwitchState>& newState) {
-  return newState->getFibs()->getNode(RouterID(0))->getFibV4();
+  return newState->getFibsInfoMap()->getFibContainer(RouterID(0))->getFibV4();
 }
 
 std::map<RouteNextHopSet, EcmpResourceManager::NextHopGroupId>
@@ -512,7 +512,9 @@ void assertRibFibEquivalence(
     }
   };
 
-  validateFib(state->getFibs()->getNode(RouterID(0))->getFibV6());
-  validateFib(state->getFibs()->getNode(RouterID(0))->getFibV4());
+  validateFib(
+      state->getFibsInfoMap()->getFibContainer(RouterID(0))->getFibV6());
+  validateFib(
+      state->getFibsInfoMap()->getFibContainer(RouterID(0))->getFibV4());
 }
 } // namespace facebook::fboss

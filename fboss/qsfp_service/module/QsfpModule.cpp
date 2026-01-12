@@ -15,6 +15,7 @@
 
 #include <boost/assign.hpp>
 
+#include <folly/Format.h>
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
@@ -105,10 +106,6 @@ QsfpModule::QsfpModule(
     std::string tcvrName)
     : Transceiver(),
       qsfpImpl_(qsfpImpl),
-      snapshots_(SnapshotManager(
-          portNames,
-          SnapshotLogSource::QSFP_SERVICE,
-          kSnapshotIntervalSeconds)),
       portNames_(portNames),
       tcvrName_(std::move(tcvrName)) {
   CHECK(!portNames.empty())
@@ -601,9 +598,6 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   tcvrState.interfaces() = getInterfaces();
   tcvrStats.interfaces() = getInterfaces();
 
-  phy::LinkSnapshot snapshot;
-  snapshot.transceiverInfo() = info;
-  snapshots_.wlock()->addSnapshot(snapshot);
   *info_.wlock() = info;
 }
 
@@ -887,7 +881,7 @@ folly::Future<bool> QsfpModule::futureRefresh() {
     }
   }
 
-  return via(i2cEvb).thenValue([&](auto&&) mutable {
+  return via(i2cEvb).thenValue([this](auto&&) mutable {
     try {
       this->refresh();
       return true;
@@ -1224,8 +1218,8 @@ QsfpModule::futureReadTransceiver(TransceiverIOParameters param) {
     return std::make_pair(id, readTransceiver(param));
   }
   // As with all the other i2c transactions, run in the i2c event base thread
-  return via(i2cEvb).thenValue([&, param, id](auto&&) mutable {
-    return std::make_pair(id, readTransceiver(param));
+  return via(i2cEvb).thenValue([this, param, id](auto&&) mutable {
+    return std::make_pair(id, this->readTransceiver(param));
   });
 }
 
@@ -1282,8 +1276,8 @@ folly::Future<std::pair<int32_t, bool>> QsfpModule::futureWriteTransceiver(
     return std::make_pair(id, writeTransceiver(param, data.data()));
   }
   // As with all the other i2c transactions, run in the i2c event base thread
-  return via(i2cEvb).thenValue([&, param, id, data](auto&&) mutable {
-    return std::make_pair(id, writeTransceiver(param, data.data()));
+  return via(i2cEvb).thenValue([this, param, id, data](auto&&) mutable {
+    return std::make_pair(id, this->writeTransceiver(param, data.data()));
   });
 }
 
@@ -1459,6 +1453,8 @@ void QsfpModule::programTransceiver(
       }
 
       if (needResetDataPath) {
+        XLOG(INFO) << fmt::format(
+            "Transceiver {:s}: Resetting data path", getNameString());
         resetDataPath(getNameString());
       }
 
@@ -1587,12 +1583,6 @@ void QsfpModule::setPortStateLocked(bool programEnd) {
   } else {
     portState_.tcvrProgrammingStartTs() = static_cast<int64_t>(ns);
   }
-}
-
-void QsfpModule::publishSnapshots() {
-  auto snapshotsLocked = snapshots_.wlock();
-  snapshotsLocked->publishAllSnapshots();
-  snapshotsLocked->publishFutureSnapshots();
 }
 
 bool QsfpModule::tryRemediate(

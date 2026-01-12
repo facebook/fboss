@@ -10,6 +10,9 @@ include "fboss/lib/phy/prbs.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 /*
  * UNINITIALIZED - when transceiverManager has just been created and init() is not yet called
  * INITIALIZED - when transceiverManager->init() is complete i.e. systemContainer, pimContainer, phys are initialized

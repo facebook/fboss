@@ -23,7 +23,7 @@ class Wedge100Manager : public WedgeManager {
       const std::shared_ptr<const PlatformMapping> platformMapping,
       const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
           threads);
-  ~Wedge100Manager() override {}
+  ~Wedge100Manager() override = default;
   int getNumQsfpModules() const override {
     return 32;
   }
@@ -32,6 +32,8 @@ class Wedge100Manager : public WedgeManager {
   // Forbidden copy constructor and assignment operator
   Wedge100Manager(Wedge100Manager const&) = delete;
   Wedge100Manager& operator=(Wedge100Manager const&) = delete;
+  Wedge100Manager(Wedge100Manager&&) = delete;
+  Wedge100Manager& operator=(Wedge100Manager&&) = delete;
 
   std::unique_ptr<TransceiverI2CApi> getI2CBus() override;
 

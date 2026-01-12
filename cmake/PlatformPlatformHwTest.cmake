@@ -12,4 +12,5 @@ target_link_libraries(platform_hw_test
   ${LIBGMOCK_LIBRARIES}
   platform_checks
   platform_manager_config_utils
+  scuba_logger
 )

@@ -27,7 +27,8 @@ class MacAddressCheck : public PlatformCheck {
 
  protected:
   virtual folly::MacAddress getMacAddress(const std::string& interface);
-  virtual folly::MacAddress getEepromMacAddress();
+  virtual std::unordered_map<std::string, folly::MacAddress>
+  getEepromMacAddressList();
 };
 
 } // namespace facebook::fboss::platform::platform_checks

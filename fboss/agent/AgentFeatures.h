@@ -35,6 +35,7 @@ DECLARE_bool(enable_acl_table_chain_group);
 DECLARE_int32(oper_sync_req_timeout);
 DECLARE_bool(hide_fabric_ports);
 DECLARE_bool(hide_management_ports);
+DECLARE_bool(hide_interface_ports);
 
 DECLARE_bool(dsf_subscribe);
 DECLARE_bool(dsf_subscriber_skip_hw_writes);
@@ -123,6 +124,7 @@ DECLARE_bool(enable_th5_ars_scale_mode);
 DECLARE_bool(check_wb_handles);
 DECLARE_bool(enable_fabric_link_monitoring);
 DECLARE_bool(lldp_port_drain_state);
+DECLARE_bool(enable_agent_drain);
 DECLARE_bool(enable_state_delta_logging);
 DECLARE_bool(strip_vlan_for_pipeline_bypass);
 DECLARE_string(state_delta_log_file);
@@ -131,6 +133,7 @@ DECLARE_int32(state_delta_log_timeout_ms);
 DECLARE_int32(fsdbStatsStreamIntervalSeconds);
 DECLARE_bool(recover_from_hw_switch);
 DECLARE_int32(fabric_link_monitoring_max_l1_l2_switch_ids);
-
 DECLARE_bool(recover_from_hw_switch);
 DECLARE_bool(montblanc_odd_ports_8x100G);
+DECLARE_bool(can_warm_boot);
+DECLARE_string(thrift_switch_state_file);

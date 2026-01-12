@@ -62,6 +62,8 @@ class LedManager {
   LedManager();
   virtual ~LedManager();
 
+  void subscribeToFsdb();
+
   // Initialize the Led Manager, get system container
   virtual void initLedManager() {}
 

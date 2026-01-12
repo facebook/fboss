@@ -44,9 +44,6 @@ constexpr int kUsecVdmLatchHold = 100000;
 constexpr int kUsecDiagSelectLatchWait = 200000;
 constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 10000000; // 10 seconds
-// We may need special handling for scenarios where Init time takes
-// more than 120 seconds. we will likely need to refactor code.
-constexpr int kUsecDatapathStateUpdateTimeMaxFboss = 120000000; // 120 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
 constexpr double kU16TypeLsbDivisor = 256.0;
 constexpr int kVdmDescriptorLength = 2;
@@ -67,6 +64,8 @@ constexpr uint8_t DP_DINIT_BITSHIFT = 4;
 
 // Tunable module const expr
 constexpr double kMhzToGhzFactor = 0.000001;
+// DeInitAllMask
+constexpr uint8_t kFullDataPathDeInitMask = 0xFF;
 
 // TODO @sanabani: Change To Map
 std::array<std::string, 9> channelConfigErrorMsg = {
@@ -2809,7 +2808,8 @@ void CmisModule::setApplicationCodeLocked(
 
     // Check if current AppSel matches the desired one
     uint8_t currentAppSelCode = getCurrentAppSelCode(startHostLane);
-    if (currentAppSelCode == newAppSelCode) {
+    auto& dpState = portDatapathStates_[portName];
+    if (currentAppSelCode == newAppSelCode && dpState.dpInitDone) {
       QSFP_LOG(INFO, this) << folly::sformat(
           "AppSel code matches: current {:#x} new {:#x}, skipping programming",
           currentAppSelCode,
@@ -3171,9 +3171,18 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
 
     if (isTunableOptics()) {
       if (portState.opticalChannelConfig.has_value()) {
-        programTunableModule(portState.opticalChannelConfig.value());
+        auto& dpState = portDatapathStates_[portName];
+        auto& initTimers = dpState.initTimers;
+        // If dp-initialization start timer is not set, invoke
+        // programTunableModule
+        if (initTimers.progStartTimer.time_since_epoch().count() == 0) {
+          programTunableModule(portState.opticalChannelConfig.value());
+        } else {
+          QSFP_LOG(INFO, this) << "DP_INIT in prog";
+        }
       } else {
-        QSFP_LOG(ERR, this) << "Tunable optics requires optical channel config";
+        throw FbossError(
+            "Tunable optics requires optical channel config for transceiver programming");
       }
     }
 
@@ -3410,7 +3419,12 @@ bool CmisModule::ensureTransceiverReadyLocked() {
   // return true else return false as the optics state machine might be in
   // transition and need more time to be ready
   if (powerState == PowerControlState::HIGH_POWER_OVERRIDE) {
-    return isModuleInReadyState();
+    if (isTunableOptics()) {
+      return (isModuleInReadyState()) &&
+          (dataPathProgram(getNameString(), kFullDataPathDeInitMask, false));
+    } else {
+      return isModuleInReadyState();
+    }
   }
 
   // If the optics current power configuration is Low Power then set the LP
@@ -3435,32 +3449,10 @@ bool CmisModule::ensureTransceiverReadyLocked() {
     QSFP_LOG(INFO, this) << folly::sformat(
         "Optics is tunable {}", getNameString());
     // Deactivate all the datapath lane before putting into the high power mode
-    uint8_t dataPathDeInitReg;
-    readCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInitReg);
-    QSFP_LOG(INFO, this) << folly::sformat(
-        "deinit value {} {}", dataPathDeInitReg, getNameString());
-    // First deactivate all the lanes
-    uint8_t dataPathDeInit = 0xFF;
-    writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
-    /* TODO: The generic implementation based on the counter
-     * is coming in the diff stack D83613514.
-     * The module takes around 2 to 3 seconds to be in dp-deactivated state.
-     */
-    // Wait for all datapath state machines to get Deactivated
-    const auto maxRetriesDeInit = maxRetriesWith500msDelay(/*init=*/false);
-
-    auto retries = 0;
-    while (retries++ < maxRetriesDeInit) {
-      /* sleep override */
-      usleep(kUsecDatapathStatePollTime);
-      if (isDatapathUpdated(dataPathDeInit, {CmisLaneState::DEACTIVATED})) {
-        break;
-      }
-    }
-    if (retries >= maxRetriesDeInit) {
-      QSFP_LOG(ERR, this) << fmt::format(
-          "Datapath could not deactivate even after waiting {:d} uSec",
-          kUsecDatapathStateUpdateTime);
+    // for shutting down the laser
+    if (!dataPathProgram(
+            getNameString(), kFullDataPathDeInitMask, /*isInit*/ false)) {
+      return false;
     }
   }
 
@@ -4399,45 +4391,56 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
   return prbsStats;
 }
 
+std::optional<uint64_t> CmisModule::getDatapathMaxDelayFromModuleSpec(
+    bool init) {
+  // Read the datapath init/deinit max time from module.
+  uint8_t specVal;
+  readCmisField(CmisField::MAX_DPINIT_TIME, &specVal);
+  // MAX_DP_DEINIT_TIME: bits 7-4
+  // MAX_DP_INIT_TIME: bits 3-0
+  uint8_t spec = 0;
+  if (init) {
+    spec = specVal & DP_INIT_MAX_MASK;
+  } else {
+    spec = specVal & DP_DINIT_MAX_MASK;
+    spec >>= DP_DINIT_BITSHIFT;
+  }
+  auto itr = DpInitValToTimeMap.find(spec);
+  if (itr != DpInitValToTimeMap.end()) {
+    uint64_t maxTime = itr->second;
+    QSFP_LOG(INFO, this) << fmt::format(
+        "Datapath max {:s} time from spec is {:d} uSec",
+        init ? "init" : "deinit",
+        maxTime);
+    return maxTime;
+  }
+  QSFP_LOG(ERR, this) << fmt::format(
+      "Datapath max {:s} time unable to retrieve from val map spec {:x}",
+      init ? "init" : "deinit",
+      spec);
+  return std::nullopt;
+}
+
 uint64_t CmisModule::getExpectedDatapathDelayUsec(bool init) {
-  if (isAecModule()) {
-    // Read the datapath init/deinit max time from module.
-    uint8_t specVal;
-    readCmisField(CmisField::MAX_DPINIT_TIME, &specVal);
-    // MAX_DP_DEINIT_TIME: bits 7-4
-    // MAX_DP_INIT_TIME: bits 3-0
-    uint8_t spec = 0;
-    if (init) {
-      spec = specVal & DP_INIT_MAX_MASK;
-    } else {
-      spec = specVal & DP_DINIT_MAX_MASK;
-      spec >>= DP_DINIT_BITSHIFT;
-    }
-    auto itr = DpInitValToTimeMap.find(spec);
-    if (itr != DpInitValToTimeMap.end()) {
-      uint64_t maxTime = itr->second;
+  if (isTunableOptics() || isAecModule()) {
+    // For tunable optics (ZR modules) and AEC cables, use module advertisement.
+    auto maxTime = getDatapathMaxDelayFromModuleSpec(init);
+    if (maxTime.has_value()) {
       QSFP_LOG(INFO, this) << fmt::format(
-          "Datapath max {:s} time from spec is {:d} uSec",
-          init ? "init" : "deinit",
-          maxTime);
-      if (kUsecDatapathStateUpdateTimeMaxFboss > maxTime) {
-        return maxTime;
-      } else {
-        QSFP_LOG(ERR, this) << fmt::format(
-            "Datapath max {:s} time from spec {:d} uSec is greater than max allowed time {:d} uSec",
-            init ? "init" : "deinit",
-            maxTime,
-            kUsecDatapathStateUpdateTimeMaxFboss);
-      }
+          "Module time required for {} is {}",
+          (init) ? "init" : "deinit",
+          maxTime.value());
+      return maxTime.value();
     } else {
       QSFP_LOG(ERR, this) << fmt::format(
-          "Datapath max {:s} time unable to retrieve from val map spec {:x}",
-          init ? "init" : "deinit",
-          spec);
+          "Module did not specify the max time required for {}",
+          (init) ? "init" : "deinit");
     }
+  } else {
+    QSFP_LOG(INFO, this) << fmt::format(
+        "Default max Init/DeInit time {:d} uSec", kUsecDatapathStateUpdateTime);
   }
-  QSFP_LOG(INFO, this) << fmt::format(
-      "Default max Init/DeInit time {:d} uSec", kUsecDatapathStateUpdateTime);
+
   return kUsecDatapathStateUpdateTime;
 }
 
@@ -4516,7 +4519,8 @@ bool CmisModule::dataPathProgram(
       : std::vector<CmisLaneState>{CmisLaneState::DEACTIVATED};
 
   // Wait for operation to complete, retry every 500ms, up to 20 loops
-  const auto kMaxRetries = maxRetriesWith500msDelay(isInit);
+  const auto kMaxRetries =
+      (kUsecDatapathStateUpdateTime) / (kUsecDatapathStatePollTime);
   int retryCount = 0;
   while (!isDatapathUpdated(hostLaneMask, targetStates) &&
          retryCount < kMaxRetries) {
@@ -4542,6 +4546,16 @@ bool CmisModule::dataPathProgram(
         opName,
         dpFailureCounter);
     timers.progStartTimer = std::chrono::steady_clock::time_point();
+    /*
+     * If data_path_init is completed set the dpInitDone and dpDeInitDone flag
+     * to false for the next ProgramTransceiver event
+     */
+    if (isInit) {
+      QSFP_LOG(INFO, this) << "Port " << portName
+                           << " data path init done resetting flags";
+      dpState.dpInitDone = false;
+      dpState.dpDeinitDone = false;
+    }
     return true;
   }
 
@@ -4552,6 +4566,9 @@ bool CmisModule::dataPathProgram(
                          .count();
 
   if (elapsedUsec > expectedDelayUsec) {
+    // Reset timer and increment failure counter
+    timers.progStartTimer = std::chrono::steady_clock::time_point();
+    dpFailureCounter++;
     QSFP_LOG(ERR, this) << fmt::format(
         "Port {} datapath {} exceeded expected time ({} us > {} us), "
         "dp_{}_failure_counter {}",
@@ -4561,8 +4578,7 @@ bool CmisModule::dataPathProgram(
         expectedDelayUsec,
         opName,
         dpFailureCounter);
-    // Reset timer and increment failure counter
-    dpFailureCounter++;
+    return false;
   }
 
   if (!dpDone) {
@@ -4573,6 +4589,44 @@ bool CmisModule::dataPathProgram(
   return false;
 }
 
+void CmisModule::resetDataPathForTunableOptics(
+    const std::string& portName,
+    std::optional<std::function<void()>> afterDataPathDeinitFunc,
+    uint8_t hostLaneMask) {
+  // Step 1: De-initialize data path
+  if (!dataPathProgram(portName, hostLaneMask, false)) {
+    throw FbossError(
+        "Data path de-initialize not yet completed for port ", portName);
+  }
+
+  // Step 2: Execute callback function after deactivation
+  if (afterDataPathDeinitFunc) {
+    auto& dpState = portDatapathStates_[portName];
+    auto& initTimers = dpState.initTimers;
+    // If dp-initialization start timer is not set, invoke the AppSel callback
+    if (initTimers.progStartTimer.time_since_epoch().count() == 0) {
+      (*afterDataPathDeinitFunc)();
+    } else {
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "DATA_PATH_INIT in progresss dpInitTimer {:d}",
+          initTimers.progStartTimer.time_since_epoch().count());
+    }
+  }
+
+  // Step 3: Initialize data path
+  if (!dataPathProgram(portName, hostLaneMask, true)) {
+    throw FbossError(
+        "Data path initialize not yet completed for port ", portName);
+  }
+
+  // Step 4: Update last reset time for affected lanes
+  for (int lane = 0; lane < CmisModule::kMaxOsfpNumLanes; lane++) {
+    if ((1 << lane) & hostLaneMask) {
+      lastDatapathResetTimes_[lane] = std::time(nullptr);
+    }
+  }
+}
+
 void CmisModule::resetDataPathWithFunc(
     const std::string& portName,
     std::optional<std::function<void()>> afterDataPathDeinitFunc,
@@ -4581,62 +4635,71 @@ void CmisModule::resetDataPathWithFunc(
     return;
   }
 
-  uint8_t dataPathDeInitReg;
-  readCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInitReg);
-  // First deactivate all the lanes
-  uint8_t dataPathDeInit = dataPathDeInitReg | hostLaneMask;
-  writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
+  if (isTunableOptics()) {
+    // For tunable optics (ZR modules), use dataPathProgram for deinit/init
+    resetDataPathForTunableOptics(
+        portName, afterDataPathDeinitFunc, hostLaneMask);
+  } else {
+    // For non-tunable optics, use inline deinit/init logic
+    uint8_t dataPathDeInitReg;
+    readCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInitReg);
+    // First deactivate all the lanes
+    uint8_t dataPathDeInit = dataPathDeInitReg | hostLaneMask;
+    writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
 
-  // Wait for all datapath state machines to get Deactivated
-  const auto maxRetriesDeInit = maxRetriesWith500msDelay(/*init=*/false);
+    // Wait for all datapath state machines to get Deactivated
+    const auto maxRetriesDeInit = maxRetriesWith500msDelay(/*init=*/false);
 
-  auto retries = 0;
-  while (retries++ < maxRetriesDeInit) {
-    /* sleep override */
-    usleep(kUsecDatapathStatePollTime);
-    if (isDatapathUpdated(hostLaneMask, {CmisLaneState::DEACTIVATED})) {
-      break;
+    auto retries = 0;
+    while (retries++ < maxRetriesDeInit) {
+      /* sleep override */
+      usleep(kUsecDatapathStatePollTime);
+      if (isDatapathUpdated(hostLaneMask, {CmisLaneState::DEACTIVATED})) {
+        break;
+      }
+    }
+    if (retries >= maxRetriesDeInit) {
+      QSFP_LOG(ERR, this) << fmt::format(
+          "Datapath could not deactivate even after waiting {:d} uSec",
+          kUsecDatapathStateUpdateTime);
+    }
+
+    // Call the afterDataPathDeinitFunc() after deactivate all lanes
+    if (afterDataPathDeinitFunc) {
+      (*afterDataPathDeinitFunc)();
+    }
+
+    // Release the lanes from DeInit.
+    dataPathDeInit = dataPathDeInitReg & ~(hostLaneMask);
+    writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
+
+    // Wait for the datapath to come out of deactivated state
+    const auto maxRetriesInit = maxRetriesWith500msDelay(/*init=*/true);
+    retries = 0;
+    while (retries++ < maxRetriesInit) {
+      /* sleep override */
+      usleep(kUsecDatapathStatePollTime);
+      if (isDatapathUpdated(
+              hostLaneMask,
+              {CmisLaneState::ACTIVATED,
+               CmisLaneState::DATAPATH_INITIALIZED})) {
+        break;
+      }
+    }
+    if (retries >= maxRetriesInit) {
+      QSFP_LOG(ERR, this) << fmt::format(
+          "Datapath didn't come out of deactivated state even after waiting {:d} uSec",
+          kUsecDatapathStateUpdateTime);
+    }
+
+    // Update the last datapath reset time for all the lanes in hostLaneMask
+    for (int lane = 0; lane < CmisModule::kMaxOsfpNumLanes; lane++) {
+      if ((1 << lane) & hostLaneMask) {
+        lastDatapathResetTimes_[lane] = std::time(nullptr);
+      }
     }
   }
-  if (retries >= maxRetriesDeInit) {
-    QSFP_LOG(ERR, this) << fmt::format(
-        "Datapath could not deactivate even after waiting {:d} uSec",
-        kUsecDatapathStateUpdateTime);
-  }
 
-  // Call the afterDataPathDeinitFunc() after detactivate all lanes
-  if (afterDataPathDeinitFunc) {
-    (*afterDataPathDeinitFunc)();
-  }
-
-  // Release the lanes from DeInit.
-  dataPathDeInit = dataPathDeInitReg & ~(hostLaneMask);
-  writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
-
-  // Wait for the datapath to come out of deactivated state
-  const auto maxRetriesInit = maxRetriesWith500msDelay(/*init=*/true);
-  retries = 0;
-  while (retries++ < maxRetriesInit) {
-    /* sleep override */
-    usleep(kUsecDatapathStatePollTime);
-    if (isDatapathUpdated(
-            hostLaneMask,
-            {CmisLaneState::ACTIVATED, CmisLaneState::DATAPATH_INITIALIZED})) {
-      break;
-    }
-  }
-  if (retries >= maxRetriesInit) {
-    QSFP_LOG(ERR, this) << fmt::format(
-        "Datapath didn't come out of deactivated state even after waiting {:d} uSec",
-        kUsecDatapathStateUpdateTime);
-  }
-
-  // Update the last datapath reset time for all the lanes in hostLaneMask
-  for (int lane = 0; lane < CmisModule::kMaxOsfpNumLanes; lane++) {
-    if ((1 << lane) & hostLaneMask) {
-      lastDatapathResetTimes_[lane] = std::time(nullptr);
-    }
-  }
   QSFP_LOG(INFO, this) << folly::sformat(
       "DATA_PATH_DEINIT set and reset done for host lane mask 0x{:#x}",
       hostLaneMask);

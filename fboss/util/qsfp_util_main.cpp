@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
   const folly::Init init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
-  folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
+  folly::EventBase evb;
 
   if (FLAGS_list_commands) {
     listCommands();
@@ -231,7 +231,9 @@ int main(int argc, char* argv[]) {
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
-      tryOpenBus(bus);
+      if (FLAGS_direct_i2c) {
+        tryOpenBus(bus);
+      }
     } catch (const std::exception& ex) {
       fprintf(stderr, "error: unable to open device: %s\n", ex.what());
       return EX_IOERR;
@@ -363,7 +365,7 @@ int main(int argc, char* argv[]) {
         lbModeStr = "electricalLoopback";
       }
 
-      if (setTransceiverLoopback(i2cInfo, portNames, loopback)) {
+      if (setTransceiverLoopback(i2cInfo, portNames, loopback, evb)) {
         printf(
             "QSFP %d: done setting module loopback mode %s\n",
             portNum,

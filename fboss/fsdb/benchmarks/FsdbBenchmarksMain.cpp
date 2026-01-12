@@ -6,7 +6,6 @@
 #include <folly/json/json.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
-#include <gflags/gflags.h>
 #include <gtest/gtest.h>
 
 #include <sys/resource.h>

@@ -131,10 +131,26 @@ class AgentCoppTest : public AgentHwTest {
     }
   }
 
+  std::vector<PortID> portIdsForTest() {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds();
+    }
+    return masterLogicalInterfacePortIds();
+  }
+
   folly::IPAddress getInSubnetNonSwitchIP() const {
-    auto configIntf = initialConfig(*getAgentEnsemble()).interfaces()[0];
-    auto ipAddress = configIntf.ipAddresses()[0];
-    return folly::IPAddress::createNetwork(ipAddress, -1, true).first;
+    auto config = initialConfig(*getAgentEnsemble());
+    if (!(this->isSupportedOnAllAsics(HwAsic::Feature::VOQ))) {
+      auto ipAddress = config.interfaces()[0].ipAddresses()[0];
+      return folly::IPAddress::createNetwork(ipAddress, -1, true).first;
+    }
+    for (const auto& configIntf : *config.interfaces()) {
+      if (configIntf.scope() == cfg::Scope::GLOBAL) {
+        auto ipAddress = configIntf.ipAddresses()[0];
+        return folly::IPAddress::createNetwork(ipAddress, -1, true).first;
+      }
+    }
+    throw FbossError("No global scope interfaces configured on VOQ switches");
   }
 
   void sendTcpPkts(
@@ -156,7 +172,7 @@ class AgentCoppTest : public AgentHwTest {
         dstIpAddress,
         l4SrcPort,
         l4DstPort,
-        masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0],
+        portIdsForTest()[0],
         trafficClass,
         payload);
   }
@@ -215,9 +231,7 @@ class AgentCoppTest : public AgentHwTest {
     utility::SwSwitchPacketSnooper snooper(
         getSw(), "snoop", std::nullopt, ethFrame, packetComparator);
     if (outOfPort) {
-      getSw()->sendPacketOutOfPortAsync(
-          std::move(pkt),
-          masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]);
+      getSw()->sendPacketOutOfPortAsync(std::move(pkt), portIdsForTest()[0]);
     } else {
       getSw()->sendPacketSwitchedAsync(std::move(pkt));
     }
@@ -268,8 +282,7 @@ class AgentCoppTest : public AgentHwTest {
     };
     utility::sendPktAndVerifyCpuQueue(
         getSw(),
-        switchIdForPort(
-            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        switchIdForPort(portIdsForTest()[0]),
         queueId,
         sendAndInspect,
         expectQueueHit ? kNumPktsToSend : 0,
@@ -319,8 +332,7 @@ class AgentCoppTest : public AgentHwTest {
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
-        switchIdForPort(
-            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        switchIdForPort(portIdsForTest()[0]),
 
         queueId,
         0 /* retryTimes */,
@@ -331,8 +343,7 @@ class AgentCoppTest : public AgentHwTest {
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
-        switchIdForPort(
-            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        switchIdForPort(portIdsForTest()[0]),
 
         queueId,
         kGetQueueOutPktsRetryTimes,
@@ -370,8 +381,7 @@ class AgentCoppTest : public AgentHwTest {
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
-        switchIdForPort(
-            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        switchIdForPort(portIdsForTest()[0]),
 
         queueId,
         0 /* retryTimes */,
@@ -382,8 +392,7 @@ class AgentCoppTest : public AgentHwTest {
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
-        switchIdForPort(
-            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        switchIdForPort(portIdsForTest()[0]),
 
         queueId,
         kGetQueueOutPktsRetryTimes,
@@ -472,16 +481,14 @@ class AgentCoppTest : public AgentHwTest {
       const int expectedPktDelta = 1) {
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        switchIdForPort(
-            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        switchIdForPort(portIdsForTest()[0]),
         queueId,
         0 /* retryTimes */,
         0 /* expectedNumPkts */);
     sendArpPkts(numPktsToSend, dstIpAddress, arpType, outOfPort);
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        switchIdForPort(
-            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        switchIdForPort(portIdsForTest()[0]),
         queueId,
         kGetQueueOutPktsRetryTimes,
         beforeOutPkts + 1);
@@ -544,8 +551,7 @@ class AgentCoppTest : public AgentHwTest {
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
-        switchIdForPort(
-            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        switchIdForPort(portIdsForTest()[0]),
 
         queueId,
         0 /* retryTimes */,
@@ -560,8 +566,7 @@ class AgentCoppTest : public AgentHwTest {
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
-        switchIdForPort(
-            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        switchIdForPort(portIdsForTest()[0]),
 
         queueId,
         kGetQueueOutPktsRetryTimes,
@@ -583,8 +588,7 @@ class AgentCoppTest : public AgentHwTest {
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
-        switchIdForPort(
-            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        switchIdForPort(portIdsForTest()[0]),
 
         queueId,
         0 /* retryTimes */,
@@ -605,8 +609,7 @@ class AgentCoppTest : public AgentHwTest {
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
-        switchIdForPort(
-            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        switchIdForPort(portIdsForTest()[0]),
 
         queueId,
         kGetQueueOutPktsRetryTimes,
@@ -666,8 +669,7 @@ class AgentCoppTest : public AgentHwTest {
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
-        switchIdForPort(
-            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        switchIdForPort(portIdsForTest()[0]),
 
         queueId,
         0 /* retryTimes */,
@@ -676,8 +678,7 @@ class AgentCoppTest : public AgentHwTest {
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
-        switchIdForPort(
-            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        switchIdForPort(portIdsForTest()[0]),
 
         queueId,
         kGetQueueOutPktsRetryTimes,
@@ -733,8 +734,7 @@ TYPED_TEST(AgentCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
           0,
           utility::getQueueOutPacketsWithRetry(
               this->getSw(),
-              this->switchIdForPort(this->masterLogicalPortIds(
-                  {cfg::PortType::INTERFACE_PORT})[0]),
+              this->switchIdForPort(this->portIdsForTest()[0]),
               utility::getCoppHighPriQueueId(
                   checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
               kGetQueueOutPktsRetryTimes,
@@ -764,8 +764,7 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
           0,
           utility::getQueueOutPacketsWithRetry(
               this->getSw(),
-              this->switchIdForPort(this->masterLogicalPortIds(
-                  {cfg::PortType::INTERFACE_PORT})[0]),
+              this->switchIdForPort(this->portIdsForTest()[0]),
               utility::getCoppHighPriQueueId(
                   checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
               kGetQueueOutPktsRetryTimes,
@@ -810,8 +809,7 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
           0,
           utility::getQueueOutPacketsWithRetry(
               this->getSw(),
-              this->switchIdForPort(this->masterLogicalPortIds(
-                  {cfg::PortType::INTERFACE_PORT})[0]),
+              this->switchIdForPort(this->portIdsForTest()[0]),
               utility::getCoppHighPriQueueId(
                   checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
               kGetQueueOutPktsRetryTimes,
@@ -830,8 +828,7 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
           0,
           utility::getQueueOutPacketsWithRetry(
               this->getSw(),
-              this->switchIdForPort(this->masterLogicalPortIds(
-                  {cfg::PortType::INTERFACE_PORT})[0]),
+              this->switchIdForPort(this->portIdsForTest()[0]),
               utility::getCoppHighPriQueueId(
                   checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
               kGetQueueOutPktsRetryTimes,
@@ -1190,7 +1187,7 @@ TYPED_TEST(AgentCoppTest, UnresolvedRoutesToLowPriQueue) {
     auto wrapper = this->getSw()->getRouteUpdater();
     ecmp6.programRoutes(&wrapper, 1);
   };
-  auto randomIP = folly::IPAddressV6("2::2");
+  auto randomIP = this->getInSubnetNonSwitchIP();
   auto verify = [=, this]() {
     this->sendTcpPktAndVerifyCpuQueue(
         utility::kCoppLowPriQueueId,
@@ -1420,6 +1417,13 @@ class AgentCoppQosTest : public AgentHwTest {
     auto prefix = folly::CIDRNetwork{kIpForLowPriorityQueue, 128};
     utility::addTrapPacketAcl(asic, &cfg, prefix);
     return cfg;
+  }
+
+  std::vector<PortID> portIdsForTest() {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds();
+    }
+    return masterLogicalInterfacePortIds();
   }
 
   void setupEcmpDataplaneLoop() {
@@ -1730,7 +1734,7 @@ TEST_F(AgentCoppQueueStuckTest, CpuQueueHighRateTraffic) {
     // Create dataplane loop with lowerPriority traffic on port0
     auto baseVlan = getVlanIDForTx();
     createLineRateTrafficOnPort(
-        masterLogicalInterfacePortIds()[0], baseVlan, kIpForLowPriorityQueue);
+        portIdsForTest()[0], baseVlan, kIpForLowPriorityQueue);
 
     const double kVariance = 0.30; // i.e. + or -30%
     uint64_t kDurationInSecs = 12;
@@ -1753,8 +1757,7 @@ TEST_F(AgentCoppQueueStuckTest, CpuQueueHighRateTraffic) {
       uint64_t lowPriorityPacketCountBefore =
           utility::getQueueOutPacketsWithRetry(
               this->getSw(),
-              this->switchIdForPort(this->masterLogicalPortIds(
-                  {cfg::PortType::INTERFACE_PORT})[0]),
+              this->switchIdForPort(this->portIdsForTest()[0]),
               utility::kCoppLowPriQueueId,
               0 /* retryTimes */,
               0 /* expectedNumPkts */);
@@ -1763,8 +1766,7 @@ TEST_F(AgentCoppQueueStuckTest, CpuQueueHighRateTraffic) {
       uint64_t lowPriorityPacketCountAfter =
           utility::getQueueOutPacketsWithRetry(
               this->getSw(),
-              this->switchIdForPort(this->masterLogicalPortIds(
-                  {cfg::PortType::INTERFACE_PORT})[0]),
+              this->switchIdForPort(this->portIdsForTest()[0]),
               utility::kCoppLowPriQueueId,
               0 /* retryTimes */,
               0 /* expectedNumPkts */);
@@ -1814,10 +1816,7 @@ TEST_F(AgentCoppGlobalRateLimitTest, verifyLowPriorityTrafficRateLimit) {
     auto switchDropStatsBefore = getAggregatedSwitchDropStats();
     auto rateLimitDropBefore = *switchDropStatsBefore.tc0RateLimitDrops();
     createLineRateTrafficOnPort(
-        masterLogicalInterfacePortIds()[0],
-        baseVlan,
-        kIpForLowPriorityQueue,
-        false);
+        portIdsForTest()[0], baseVlan, kIpForLowPriorityQueue, false);
 
     const double kVariance = 0.50; // i.e. + or -50%
     uint64_t kDurationInSecs = 12;
@@ -1826,21 +1825,18 @@ TEST_F(AgentCoppGlobalRateLimitTest, verifyLowPriorityTrafficRateLimit) {
     auto expectedRateHigh = expectedRate * (1 + kVariance);
     // most packets should be dropped due to rate limit, since even one packet
     // in L3 dataplane loop could cause ~1Gbps traffic on J3
-    auto expectedRateLimitDropLow = getAgentEnsemble()->getMinPktsForLineRate(
-                                        masterLogicalInterfacePortIds()[0]) *
-        0.99;
+    auto expectedRateLimitDropLow =
+        getAgentEnsemble()->getMinPktsForLineRate(portIdsForTest()[0]) * 0.99;
     WITH_RETRIES({
       // Read low priority copp queue counters
       uint64_t lowPriorityPacketCountBefore =
           utility::getQueueOutPacketsWithRetry(
               this->getSw(),
-              this->switchIdForPort(this->masterLogicalPortIds(
-                  {cfg::PortType::INTERFACE_PORT})[0]),
+              this->switchIdForPort(this->portIdsForTest()[0]),
               utility::kCoppLowPriQueueId,
               0 /* retryTimes */,
               0 /* expectedNumPkts */);
-      auto portStatsBefore =
-          getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+      auto portStatsBefore = getLatestPortStats(portIdsForTest()[0]);
       auto portQueuePacketsBefore = portStatsBefore.queueOutPackets_()
                                         ->find(utility::kCoppLowPriQueueId)
                                         ->second;
@@ -1850,13 +1846,11 @@ TEST_F(AgentCoppGlobalRateLimitTest, verifyLowPriorityTrafficRateLimit) {
       uint64_t lowPriorityPacketCountAfter =
           utility::getQueueOutPacketsWithRetry(
               this->getSw(),
-              this->switchIdForPort(this->masterLogicalPortIds(
-                  {cfg::PortType::INTERFACE_PORT})[0]),
+              this->switchIdForPort(this->portIdsForTest()[0]),
               utility::kCoppLowPriQueueId,
               0 /* retryTimes */,
               0 /* expectedNumPkts */);
-      auto portStatsAfter =
-          getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+      auto portStatsAfter = getLatestPortStats(portIdsForTest()[0]);
       auto portQueuePacketsAfter = portStatsAfter.queueOutPackets_()
                                        ->find(utility::kCoppLowPriQueueId)
                                        ->second;
@@ -1909,13 +1903,13 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
 
     // Create dataplane loop with lowerPriority traffic on port0
     createLineRateTrafficOnPort(
-        masterLogicalInterfacePortIds()[0], baseVlan, kIpForLowPriorityQueue);
+        portIdsForTest()[0], baseVlan, kIpForLowPriorityQueue);
     std::optional<VlanID> nextVlan;
     if (baseVlan) {
       nextVlan = *baseVlan + 1;
     }
 
-    auto portId = masterLogicalInterfacePortIds()[1];
+    auto portId = portIdsForTest()[1];
     auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
 
@@ -1923,8 +1917,7 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
     auto highPriorityCoppQueueStatsBefore =
         utility::getQueueOutPacketsWithRetry(
             getSw(),
-            this->switchIdForPort(
-                this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+            this->switchIdForPort(this->portIdsForTest()[0]),
             utility::getCoppHighPriQueueId(asic),
             kReceiveRetries,
             0);
@@ -1942,8 +1935,7 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
     // Check high priority queue stats to see if all packets are received
     auto highPriorityCoppQueueStatsAfter = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        this->switchIdForPort(
-            this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        this->switchIdForPort(this->portIdsForTest()[0]),
         utility::getCoppHighPriQueueId(asic),
         kReceiveRetries,
         highPriorityCoppQueueStatsBefore + kHigherPriorityPacketCount);
@@ -1955,8 +1947,7 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
     // then verify mid priority traffic vs low priority traffic
     auto midPriorityCoppQueueStatsBefore = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        this->switchIdForPort(
-            this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        this->switchIdForPort(this->portIdsForTest()[0]),
         utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()),
         kReceiveRetries,
         0);
@@ -1974,8 +1965,7 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
     // Check mid priority queue stats to see if all packets are received
     auto midPriorityCoppQueueStatsAfter = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        this->switchIdForPort(
-            this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        this->switchIdForPort(this->portIdsForTest()[0]),
         utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()),
         kReceiveRetries,
         highPriorityCoppQueueStatsBefore + kHigherPriorityPacketCount);

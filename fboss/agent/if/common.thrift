@@ -8,6 +8,10 @@ namespace py.asyncio neteng.fboss.asyncio.common
 include "fboss/agent/if/mpls.thrift"
 include "common/network/if/Address.thrift"
 include "thrift/annotation/cpp.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 @cpp.Type{name = "::folly::fbstring"}
 typedef binary fbbinary
