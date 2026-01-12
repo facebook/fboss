@@ -287,5 +287,4 @@ std::string AgentDirectoryUtil::getTestHwAgentConfigFile(
 std::string AgentDirectoryUtil::getAgentBootHistoryLogFile() const {
   return "/var/facebook/logs/fboss/wedge_agent_boot_history.log";
 }
-
 } // namespace facebook::fboss

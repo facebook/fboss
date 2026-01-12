@@ -106,6 +106,12 @@ void AgentEnsemble::setupEnsemble(
         FLAGS_hide_management_ports) {
       continue;
     }
+    if (*platformPorts.find(static_cast<int32_t>(port.first))
+                ->second.mapping()
+                ->portType() == cfg::PortType::INTERFACE_PORT &&
+        FLAGS_hide_interface_ports) {
+      continue;
+    }
     masterLogicalPortIds_.push_back(port.first);
     auto switchId = getSw()->getScopeResolver()->scope(port.first).switchId();
     switchId2PortIds_[switchId].push_back(port.first);
@@ -149,7 +155,9 @@ void AgentEnsemble::setupEnsemble(
 void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
   auto* initializer = agentInitializer();
   auto hwWriteBehavior = HwWriteBehavior::WRITE;
-  if (getSw()->getWarmBootHelper()->canWarmBoot()) {
+  if (getSw()->getWarmBootHelper()->canWarmBoot(
+          getSw()->isRunModeMultiSwitch(),
+          getSw()->getHwSwitchThriftClientTable())) {
     hwWriteBehavior = HwWriteBehavior::LOG_FAIL;
     if (getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT)) {
@@ -636,7 +644,9 @@ bool AgentEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
   return utility::ensureSendPacketSwitched(
       this,
       std::move(pkt),
-      masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}),
+      masterLogicalPortIds(
+          std::set<cfg::PortType>{
+              cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}),
       getPortStats,
       masterLogicalSysPortIds(),
       getSysPortStats,
@@ -656,7 +666,11 @@ bool AgentEnsemble::ensureSendPacketOutOfPort(
       this,
       std::move(pkt),
       portID,
-      masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}),
+      masterLogicalPortIds(
+          std::set<cfg::PortType>{
+              cfg::PortType::INTERFACE_PORT,
+              cfg::PortType::HYPER_PORT,
+              cfg::PortType::HYPER_PORT_MEMBER}),
       getPortStats,
       queue,
       kMsWaitForStatsRetry);
@@ -707,8 +721,8 @@ void AgentEnsemble::createAndDumpOverriddenAgentConfig() {
   std::vector<gflags::CommandLineFlagInfo> flags;
   gflags::GetAllFlags(&flags);
   for (const auto& flag : flags) {
-    // Skip writing flags if 1) default value, and 2) config itself.
-    if (!flag.is_default && flag.name != kConfig) {
+    // Skip writing flags if config is itself.
+    if (flag.name != kConfig) {
       defaultCommandLineArgs.emplace(flag.name, flag.current_value);
     }
   }

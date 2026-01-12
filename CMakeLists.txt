@@ -182,6 +182,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-compare")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused-variable")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
 if (WITH_ASAN)
@@ -1010,6 +1011,7 @@ add_dependencies(fboss_platform_services
   data_corral_service
   # Utilities
   sensor_service_client
+  fixmyfboss
   # Unit Tests
   platform_config_lib_config_lib_test
   platform_manager_device_path_resolver_test
@@ -1023,6 +1025,7 @@ add_dependencies(fboss_platform_services
   platform_manager_config_validator_test
   platform_manager_presence_checker_test
   platform_manager_i2c_explorer_test
+  platform_manager_handler_test
   weutil_crc16_ccitt_test
   weutil_fboss_eeprom_interface_test
   sensor_service_sw_test
@@ -1050,6 +1053,12 @@ add_custom_target(led_targets)
 add_dependencies(led_targets
   led_service
   led_service_hw_test
+)
+
+add_custom_target(fboss2_targets)
+add_dependencies(fboss2_targets
+  fboss2
+  fboss2_cmd_test
 )
 
 add_custom_target(fboss_other_services)

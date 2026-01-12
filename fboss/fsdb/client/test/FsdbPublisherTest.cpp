@@ -246,6 +246,10 @@ class TestPublisher : public PublisherT {
     blockStream_.store(false);
   }
 
+  bool isInitialSyncComplete() const {
+    return PublisherT::initialSyncComplete_.load();
+  }
+
  private:
   folly::Baton<> generatorStart_;
   std::atomic<bool> blockStream_{false};
@@ -373,6 +377,9 @@ class DeltaPublisherTest : public ::testing::Test {
     FLAGS_publish_queue_full_min_updates =
         (TestPublisher<FsdbDeltaPublisher>::publishQueueSize - 4);
     FLAGS_publish_queue_memory_limit_mb = 1;
+    // Disable heartbeat to prevent it from adding items to the queue
+    // during the test.
+    FLAGS_fsdb_publisher_heartbeat_interval_secs = 0;
     streamEvbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
     connRetryEvbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
     streamPublisher_ = std::make_unique<TestPublisher<FsdbDeltaPublisher>>(
@@ -421,6 +428,13 @@ TEST_F(DeltaPublisherTest, publisherQueueMemoryLimit) {
             counterPrefix + ".chunksWritten.sum"),
         1);
   });
+
+  // Wait for serveStream to consume the initial update before blocking.
+  // This ensures the queue is empty when we start the memory limit test.
+  // Without this, there's a race where the initial update may still be
+  // in the queue, causing the memory check to trigger prematurely.
+  WITH_RETRIES(
+      { EXPECT_EVENTUALLY_TRUE(streamPublisher_->isInitialSyncComplete()); });
 
   // Block serveStream after initial consumption to simulate stuck processing
   streamPublisher_->blockStream();

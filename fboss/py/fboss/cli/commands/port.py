@@ -81,9 +81,9 @@ class PortDetailsCmd(cmds.FbossCmd):
                 break
             value /= 1000
 
-        assert (
-            bps_per_unit is not None and suffix
-        ), "Unable to convert bps to human readable format"
+        assert bps_per_unit is not None and suffix, (
+            "Unable to convert bps to human readable format"
+        )
 
         return bps_per_unit, suffix
 

@@ -97,3 +97,52 @@ target_compile_definitions(rackmon_test PRIVATE __TEST__=1)
 
 install(TARGETS rackmon_test)
 gtest_discover_tests(rackmon_test)
+
+# Firmware Update Library and Tools
+add_library(updater_lib
+  fboss/platform/rackmon/rack_firmware_update/UpdaterExceptions.cpp
+  fboss/platform/rackmon/rack_firmware_update/UpdaterUtils.cpp
+  fboss/platform/rackmon/rack_firmware_update/RackmonClient.cpp
+  fboss/platform/rackmon/rack_firmware_update/HexFileParser.cpp
+  fboss/platform/rackmon/rack_firmware_update/FirmwareUpdater.cpp
+  fboss/platform/rackmon/rack_firmware_update/MEIFirmwareUpdater.cpp
+  fboss/platform/rackmon/rack_firmware_update/MailboxFirmwareUpdater.cpp
+)
+
+target_link_libraries(updater_lib
+  rackmon_cpp2
+  Folly::folly
+  gflags
+)
+
+target_include_directories(updater_lib PRIVATE
+  fboss/platform/rackmon/rack_firmware_update
+)
+
+# PSU Update Tool (Delta ORv3)
+add_executable(psu_update_delta_orv3
+  fboss/platform/rackmon/rack_firmware_update/psu_update_delta_orv3.cpp
+)
+
+target_link_libraries(psu_update_delta_orv3
+  updater_lib
+  rackmon_cpp2
+  Folly::folly
+  gflags
+)
+
+install(TARGETS psu_update_delta_orv3)
+
+# Device Update Tool (Mailbox Protocol for BBU/PSU variants)
+add_executable(device_update_mailbox
+  fboss/platform/rackmon/rack_firmware_update/device_update_mailbox.cpp
+)
+
+target_link_libraries(device_update_mailbox
+  updater_lib
+  rackmon_cpp2
+  Folly::folly
+  gflags
+)
+
+install(TARGETS device_update_mailbox)

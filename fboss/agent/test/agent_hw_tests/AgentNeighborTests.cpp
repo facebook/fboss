@@ -198,11 +198,18 @@ class AgentNeighborTest : public AgentHwTest {
     XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
   }
 
+  std::vector<PortID> portIdsForTest() const {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds();
+    }
+    return masterLogicalInterfacePortIds();
+  }
+
   PortDescriptor portDescriptor() const {
     if (programToTrunk) {
       return PortDescriptor(kAggID);
     }
-    return PortDescriptor(masterLogicalInterfacePortIds()[0]);
+    return PortDescriptor(portIdsForTest()[0]);
   }
 
   auto getNeighborTable(std::shared_ptr<SwitchState> state) {
@@ -538,7 +545,7 @@ TYPED_TEST(AgentNeighborTest, LinkDownOnResolvedEntry) {
       auto state = this->addNeighbor(in);
       return this->resolveNeighbor(state);
     });
-    this->bringDownPort(this->masterLogicalInterfacePortIds()[0]);
+    this->bringDownPort(this->portIdsForTest()[0]);
   };
   auto verify = [this]() {
     // There is a behavior differnce b/w SAI and BcmSwitch on link down
@@ -560,8 +567,8 @@ TYPED_TEST(AgentNeighborTest, LinkDownAndUpOnResolvedEntry) {
       auto state = this->addNeighbor(in);
       return this->resolveNeighbor(state);
     });
-    this->bringDownPort(this->masterLogicalInterfacePortIds()[0]);
-    this->bringUpPort(this->masterLogicalInterfacePortIds()[0]);
+    this->bringDownPort(this->portIdsForTest()[0]);
+    this->bringUpPort(this->portIdsForTest()[0]);
   };
   auto verify = [this]() {
     // There is a behavior differnce b/w SAI and BcmSwitch on link down
@@ -639,6 +646,13 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     return ecmpHelper6.ip(PortDescriptor(port));
   }
 
+  std::vector<PortID> portIdsForTest() {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds();
+    }
+    return masterLogicalInterfacePortIds();
+  }
+
   void oneNeighborPerPortSetup(const std::vector<PortID>& portIds) {
     auto cfg = initialConfig(*getAgentEnsemble());
     if (FLAGS_disable_loopback) {
@@ -711,16 +725,15 @@ TYPED_TEST_SUITE(AgentNeighborOnMultiplePortsTest, IntfNbrTableTypes);
 TYPED_TEST(AgentNeighborOnMultiplePortsTest, ResolveOnTwoPorts) {
   auto setup = [&]() {
     this->oneNeighborPerPortSetup(
-        {this->masterLogicalInterfacePortIds()[0],
-         this->masterLogicalInterfacePortIds()[1]});
+        {this->portIdsForTest()[0], this->portIdsForTest()[1]});
   };
   auto verify = [&]() {
     EXPECT_FALSE(this->isProgrammedToCPU(
-        this->masterLogicalInterfacePortIds()[0],
-        this->neighborIP(this->masterLogicalInterfacePortIds()[0])));
+        this->portIdsForTest()[0],
+        this->neighborIP(this->portIdsForTest()[0])));
     EXPECT_FALSE(this->isProgrammedToCPU(
-        this->masterLogicalInterfacePortIds()[1],
-        this->neighborIP(this->masterLogicalInterfacePortIds()[1])));
+        this->portIdsForTest()[1],
+        this->neighborIP(this->portIdsForTest()[1])));
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

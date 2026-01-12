@@ -6,9 +6,9 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
+#include <thrift/lib/cpp2/reflection/testing.h>
 #include "fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
 
 using namespace ::testing;
 
@@ -35,7 +35,7 @@ TEST_F(CmdStopPcapTestFixture, queryClient) {
 
   auto cmd = CmdStopPcap();
   auto stopPcapOutput = cmd.queryClient(localhost());
-  EXPECT_THRIFT_EQ(stopPcapOutput, expectedStopPcapOutput);
+  EXPECT_EQ(stopPcapOutput, expectedStopPcapOutput);
 }
 
 TEST_F(CmdStopPcapTestFixture, printOutput) {

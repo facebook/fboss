@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <folly/IPAddressV4.h>
+#include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 #include <memory>
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
@@ -23,28 +24,39 @@ class CmdHandlerTestBase : public ::testing::Test {
         "test.host", "test-oob.host", folly::IPAddressV6("::1"));
   }
 
+  // Helper to create server config with short idle timeout to avoid 5-7 second
+  // delays in test responses. Without this, the default idle timeout causes
+  // the server to wait before sending responses back to the client.
+  static auto createFastMockServerConfig() {
+    return [](apache::thrift::ThriftServer& server) {
+      server.setIdleTimeout(std::chrono::milliseconds(50));
+    };
+  }
+
   void setupMockedAgentServer() {
     mockedAgentServer_ =
         std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-            mockedAgent_);
+            mockedAgent_, createFastMockServerConfig());
     // set global agent thrift port to the fake server created on localhost
     CmdGlobalOptions::getInstance()->setAgentThriftPort(
         mockedAgentServer_->getAddress().getPort());
 
     mockedQsfpServer_ =
         std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-            mockedQsfpService_);
+            mockedQsfpService_, createFastMockServerConfig());
     // set global agent thrift port to the fake server created on localhost
     CmdGlobalOptions::getInstance()->setQsfpThriftPort(
         mockedQsfpServer_->getAddress().getPort());
   }
 
   void setupMockedBgpServer() {
+#ifndef IS_OSS
     mockedBgpServer_ =
         std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-            mockedBgpService_);
+            mockedBgpService_, createFastMockServerConfig());
     CmdGlobalOptions::getInstance()->setBgpThriftPort(
         mockedBgpServer_->getAddress().getPort());
+#endif
   }
 
   void TearDown() override {

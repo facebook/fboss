@@ -406,13 +406,34 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
   auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
 
   // Lambda to refresh state machine and return true if all transceivers are
-  // in TRANSCEIVER_PROGRAMMED state
+  // in TRANSCEIVER_PROGRAMMED state. In port manager mode, also check that
+  // all ports are in PORT_UP state since the transceiver and port state
+  // machines are separate and may transition at different rates.
   auto refreshStateMachinesAndCheckTcvrProgrammed = [&]() {
     qsfpServiceHandler->refreshStateMachines();
     for (auto id : tcvrsToTest) {
       auto curState = wedgeMgr->getCurrentState(TransceiverID(id));
       if (curState != TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
         return false;
+      }
+      // In port manager mode, also verify ports are in expected state
+      if (FLAGS_port_manager_mode) {
+        auto portMgr = qsfpServiceHandler->getPortManager();
+        const auto& portToPortInfo =
+            wedgeMgr->getProgrammedIphyPortToPortInfo(TransceiverID(id));
+        for (const auto& [portId, tcvrPortInfo] : portToPortInfo) {
+          if (!tcvrPortInfo.status.has_value()) {
+            continue;
+          }
+          auto portStatus = tcvrPortInfo.status.value();
+          // If port is enabled, expect PORT_DOWN state since we set ports down
+          if (portStatus.portEnabled) {
+            auto portState = portMgr->getPortState(portId);
+            if (portState != PortStateMachineState::PORT_DOWN) {
+              return false;
+            }
+          }
+        }
       }
     }
     return true;

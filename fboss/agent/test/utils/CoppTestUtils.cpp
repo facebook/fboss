@@ -104,6 +104,7 @@ cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
 uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
   switch (hwAsic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
@@ -148,6 +149,7 @@ uint16_t getCoppHighPriQueueId(const std::vector<const HwAsic*>& hwAsics) {
 cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
   switch (hwAsic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:

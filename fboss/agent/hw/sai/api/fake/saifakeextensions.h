@@ -56,7 +56,8 @@ typedef enum _sai_port_serdes_extensions_attr_t {
   SAI_PORT_SERDES_ATTR_EXT_TX_LDO_BYPASS,
   SAI_PORT_SERDES_ATTR_EXT_RX_LDO_BYPASS,
   SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LENGTH_BITMAP,
-  SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LMS_DYNAMIC_GATING_EN
+  SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LMS_DYNAMIC_GATING_EN,
+  SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_REACH
 } sai_port_serdes_extensions_attr_t;
 
 typedef enum _sai_switch_extensions_attr_t {

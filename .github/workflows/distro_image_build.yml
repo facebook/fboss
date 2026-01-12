@@ -1,0 +1,25 @@
+name: Distro Image Build
+run-name: Distro Image Build
+
+on:
+  pull_request:
+  # Allow manually triggering the workflow
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  Distro-Image-Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+
+      - name: Run fboss-image build
+        run: ./fboss-image/distro_cli/fboss-image build fboss-image/from_source.json
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop ${USER}-fboss-image-builder 2>/dev/null || true
+          docker rm ${USER}-fboss-image-builder 2>/dev/null || true

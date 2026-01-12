@@ -13,6 +13,7 @@
 
 #include <folly/executors/IOThreadPoolExecutor.h>
 #include <folly/executors/thread_factory/NamedThreadFactory.h>
+#include <folly/synchronization/Baton.h>
 #include <gtest/gtest.h>
 
 using ::testing::_;
@@ -246,6 +247,55 @@ class DsfSubscriptionTest : public ::testing::Test {
     return *subscription_->dsfSessionThrift().state();
   }
 
+  // Run multiple threads concurrently with synchronized start
+  void runConcurrentThreads(std::vector<std::function<void()>>& threadFns) {
+    std::atomic<bool> startFlag{false};
+    std::vector<std::thread> threads;
+    threads.reserve(threadFns.size());
+
+    for (auto& fn : threadFns) {
+      threads.emplace_back([&startFlag, fn]() {
+        while (!startFlag.load()) {
+          std::this_thread::yield();
+        }
+        fn();
+      });
+    }
+
+    // Start all threads simultaneously
+    startFlag.store(true);
+
+    // Wait for all threads to complete
+    for (auto& thread : threads) {
+      thread.join();
+    }
+  }
+
+  // Wait for event base queue to drain
+  void waitForQueueDrain() {
+    WITH_RETRIES({
+      ASSERT_EVENTUALLY_EQ(
+          this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+    });
+  }
+
+  // Verify final state after updates
+  void verifySysPortAndRif(
+      size_t beforeNumSysPorts,
+      size_t beforeNumRifs,
+      int expectedSysPortsPerSwitch) {
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          this->getRemoteSystemPorts()->size(),
+          beforeNumSysPorts +
+              (this->kNumRemoteSwitchAsics * expectedSysPortsPerSwitch));
+      EXPECT_EVENTUALLY_EQ(
+          this->getRemoteInterfaces()->size(),
+          beforeNumRifs +
+              (this->kNumRemoteSwitchAsics * expectedSysPortsPerSwitch));
+    });
+  }
+
  protected:
   void verifyRemoteIntfRouteDelta(
       StateDelta delta,
@@ -254,28 +304,29 @@ class DsfSubscriptionTest : public ::testing::Test {
     auto routesAdded = 0;
     auto routesDeleted = 0;
 
-    for (const auto& routeDelta : delta.getFibsDelta()) {
-      DeltaFunctions::forEachChanged(
-          routeDelta.getFibDelta<folly::IPAddressV4>(),
-          [&](const auto& /*oldNode*/, const auto& /*newNode*/) {},
-          [&](const auto& added) {
-            EXPECT_TRUE(added->isConnected());
-            EXPECT_EQ(added->getID().rfind(intfV4AddrPrefix, 0), 0);
-            routesAdded++;
-          },
-          [&](const auto& /*removed*/) { routesDeleted++; });
+    for (const auto& fibsInfoDelta : delta.getFibsInfoDelta()) {
+      for (const auto& routeDelta : fibsInfoDelta.getFibsMapDelta()) {
+        DeltaFunctions::forEachChanged(
+            routeDelta.getFibDelta<folly::IPAddressV4>(),
+            [&](const auto& /*oldNode*/, const auto& /*newNode*/) {},
+            [&](const auto& added) {
+              EXPECT_TRUE(added->isConnected());
+              EXPECT_EQ(added->getID().rfind(intfV4AddrPrefix, 0), 0);
+              routesAdded++;
+            },
+            [&](const auto& /*removed*/) { routesDeleted++; });
 
-      DeltaFunctions::forEachChanged(
-          routeDelta.getFibDelta<folly::IPAddressV6>(),
-          [&](const auto& /*oldNode*/, const auto& /*newNode*/) {},
-          [&](const auto& added) {
-            EXPECT_TRUE(added->isConnected());
-            EXPECT_EQ(added->getID().rfind(intfV6AddrPrefix, 0), 0);
-            routesAdded++;
-          },
-          [&](const auto& /*removed*/) { routesDeleted++; });
+        DeltaFunctions::forEachChanged(
+            routeDelta.getFibDelta<folly::IPAddressV6>(),
+            [&](const auto& /*oldNode*/, const auto& /*newNode*/) {},
+            [&](const auto& added) {
+              EXPECT_TRUE(added->isConnected());
+              EXPECT_EQ(added->getID().rfind(intfV6AddrPrefix, 0), 0);
+              routesAdded++;
+            },
+            [&](const auto& /*removed*/) { routesDeleted++; });
+      }
     }
-
     EXPECT_EQ(routesAdded, expectedRouteAdded);
     EXPECT_EQ(routesDeleted, expectedRouteDeleted);
   }
@@ -798,11 +849,11 @@ TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
 
   this->subscription_ = this->createSubscription();
 
-  // Enqueue a long running event to hwUpdateEvb_ to simulate the race
-  // condition
+  // Use Baton to block hwUpdateEvb_ and simulate the race condition
+  folly::Baton<> baton;
   this->hwUpdatePool_->getEventBase()->runInEventBaseThread(
-      [&]() { std::this_thread::sleep_for(std::chrono::seconds(5)); });
-  // Wait for the sleep event to be in progress
+      [&]() { baton.wait(); });
+  // Wait for the blocking event to be in progress
   WITH_RETRIES({
     ASSERT_EVENTUALLY_EQ(
         this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
@@ -812,17 +863,19 @@ TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
 
   auto queueSysPortUpdate = [&](int numSysPorts) {
-    auto sysPorts = this->makeSysPorts(numSysPorts);
-    auto rifs = makeRifs(sysPorts.get());
-    std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
-    std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
-    switchId2SystemPorts[SwitchID(kRemoteSwitchIdBegin)] = sysPorts;
-    switchId2Intfs[SwitchID(kRemoteSwitchIdBegin)] = rifs;
     DsfSubscription::DsfUpdate update;
-    update.switchId2SystemPorts = switchId2SystemPorts;
-    update.switchId2Intfs = switchId2Intfs;
+    for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+      auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, numSysPorts);
+      auto rifs = makeRifs(sysPorts.get());
+      update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+      update.switchId2Intfs[remoteSwitchId] = rifs;
+    }
     this->subscription_->queueDsfUpdate(std::move(update));
   };
+
+  auto beforeNumSysPorts = this->getRemoteSystemPorts()->size();
+  auto beforeNumRifs = this->getRemoteInterfaces()->size();
+  auto finalNumSysPorts = 2;
 
   // Step 1: First queueDsfUpdate call - should queue one event
   queueSysPortUpdate(1 /* numSysPorts */);
@@ -840,10 +893,8 @@ TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
   EXPECT_EQ(queueSizeAfterGR, initialQueueSize + 2);
 
-  // Step 3: Second queueDsfUpdate call - should ideally queue a third event,
-  // but due to the race condition, it will only update nextDsfUpdate_ and
-  // NOT queue a third event
-  queueSysPortUpdate(2 /* numSysPorts */);
+  // Step 3: Second queueDsfUpdate call - should queue a third event.
+  queueSysPortUpdate(finalNumSysPorts);
 
   // Verify the fix of race condition: there should be only 3 events in the
   // queue. The GR expiry should not be the last event.
@@ -851,11 +902,479 @@ TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
   EXPECT_EQ(finalQueueSize, initialQueueSize + 3);
 
+  // Unblock the event base to process all queued events
+  baton.post();
+
   // Wait for all events to be processed and exit
   WITH_RETRIES({
     ASSERT_EVENTUALLY_EQ(
         this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
   });
+
+  WITH_RETRIES({
+    auto remoteRifs = this->getRemoteInterfaces();
+    EXPECT_EVENTUALLY_EQ(
+        remoteRifs->size(),
+        beforeNumRifs + (this->kNumRemoteSwitchAsics * finalNumSysPorts));
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(),
+        beforeNumSysPorts + (this->kNumRemoteSwitchAsics * finalNumSysPorts));
+    for (const auto [_, rif] : std::as_const(*remoteRifs)) {
+      EXPECT_EVENTUALLY_EQ(rif->getNdpTable()->size(), 1);
+      EXPECT_EVENTUALLY_EQ(rif->getArpTable()->size(), 1);
+    }
+  });
+}
+
+TYPED_TEST(DsfSubscriptionTest, MultipleQueuedDsfUpdatesCoalesce) {
+  // Test that multiple DSF updates queued in quick succession are coalesced
+  // when no GR event occurs. Only the latest update should be processed.
+  this->subscription_ = this->createSubscription();
+
+  // Use Baton to block hwUpdateEvb_
+  folly::Baton<> baton;
+  this->hwUpdatePool_->getEventBase()->runInEventBaseThread(
+      [&]() { baton.wait(); });
+
+  // Wait for the blocking event to be in progress
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  auto initialQueueSize =
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
+  auto beforeNumSysPorts = this->getRemoteSystemPorts()->size();
+  auto beforeNumRifs = this->getRemoteInterfaces()->size();
+
+  auto queueSysPortUpdate = [&](int numSysPorts) {
+    DsfSubscription::DsfUpdate update;
+    for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+      auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, numSysPorts);
+      auto rifs = makeRifs(sysPorts.get());
+      update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+      update.switchId2Intfs[remoteSwitchId] = rifs;
+    }
+    this->subscription_->queueDsfUpdate(std::move(update));
+  };
+
+  // Queue first update with 1 sysport per switch
+  queueSysPortUpdate(1 /*numSysPorts*/);
+
+  // First update should add one event
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 1);
+
+  // Queue second update with 2 sysports per switch - should coalesce
+  queueSysPortUpdate(2 /*numSysPorts*/);
+
+  // Second update should NOT add a new event (coalesced with first)
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 1);
+
+  // Queue third update with 3 sysports per switch - should also coalesce
+  queueSysPortUpdate(3 /*numSysPorts*/);
+
+  // Third update should still be coalesced - only 1 event total
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 1);
+
+  // Unblock the event base to process all queued events
+  baton.post();
+
+  // Wait for all events to be processed
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  // Verify the final state reflects the LAST update (3 sysports per switch)
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(),
+        beforeNumSysPorts + (this->kNumRemoteSwitchAsics * 3));
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteInterfaces()->size(),
+        beforeNumRifs + (this->kNumRemoteSwitchAsics * 3));
+  });
+}
+
+TYPED_TEST(DsfSubscriptionTest, GREventSeparatesUpdates) {
+  // Test that when a GR event occurs between DSF updates, both updates
+  // are processed separately (not coalesced).
+  this->subscription_ = this->createSubscription();
+
+  // Use Baton to block hwUpdateEvb_
+  folly::Baton<> baton;
+  this->hwUpdatePool_->getEventBase()->runInEventBaseThread(
+      [&]() { baton.wait(); });
+
+  // Wait for the blocking event to be in progress
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  auto initialQueueSize =
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
+  auto beforeNumSysPorts = this->getRemoteSystemPorts()->size();
+  auto beforeNumRifs = this->getRemoteInterfaces()->size();
+
+  auto queueSysPortUpdate = [&](int numSysPorts) {
+    DsfSubscription::DsfUpdate update;
+    for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+      auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, numSysPorts);
+      auto rifs = makeRifs(sysPorts.get());
+      update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+      update.switchId2Intfs[remoteSwitchId] = rifs;
+    }
+    this->subscription_->queueDsfUpdate(std::move(update));
+  };
+
+  // Queue first update
+  queueSysPortUpdate(1 /*numSysPorts*/);
+
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 1);
+
+  // Trigger GR event - this should set lastEventGR_ flag
+  this->subscription_->processGRHoldTimerExpired();
+
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 2);
+
+  // Queue second update - should NOT coalesce due to GR event
+  queueSysPortUpdate(2 /*numSysPorts*/);
+
+  // Should have 3 events: first update, GR, second update
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 3);
+
+  // Queue third update - should coalesce with second (no GR between them)
+  queueSysPortUpdate(3 /*numSysPorts*/);
+
+  // Still 3 events (third coalesced with second)
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 3);
+
+  // Unblock the event base to process all queued events
+  baton.post();
+
+  // Wait for all events to be processed
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  // Verify the final state reflects the last update (3 sysports per switch)
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(),
+        beforeNumSysPorts + (this->kNumRemoteSwitchAsics * 3));
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteInterfaces()->size(),
+        beforeNumRifs + (this->kNumRemoteSwitchAsics * 3));
+  });
+}
+
+TYPED_TEST(DsfSubscriptionTest, MultipleGREventsSeparateUpdates) {
+  // Test that multiple GR events each cause subsequent updates to be
+  // queued separately.
+  this->subscription_ = this->createSubscription();
+
+  // Use Baton to block hwUpdateEvb_
+  folly::Baton<> baton;
+  this->hwUpdatePool_->getEventBase()->runInEventBaseThread(
+      [&]() { baton.wait(); });
+
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  auto initialQueueSize =
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
+  auto beforeNumSysPorts = this->getRemoteSystemPorts()->size();
+  auto beforeNumRifs = this->getRemoteInterfaces()->size();
+
+  auto queueSysPortUpdate = [&](int numSysPorts) {
+    DsfSubscription::DsfUpdate update;
+    for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+      auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, numSysPorts);
+      auto rifs = makeRifs(sysPorts.get());
+      update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+      update.switchId2Intfs[remoteSwitchId] = rifs;
+    }
+    this->subscription_->queueDsfUpdate(std::move(update));
+  };
+
+  // Sequence: Update1 -> GR1 -> Update2 -> GR2 -> Update3
+  // Expected events: 5 total
+
+  // Update 1
+  queueSysPortUpdate(1 /*numSysPorts*/);
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 1);
+
+  // GR 1
+  this->subscription_->processGRHoldTimerExpired();
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 2);
+
+  // Update 2 (should not coalesce due to GR1)
+  queueSysPortUpdate(2 /*numSysPorts*/);
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 3);
+
+  // GR 2
+  this->subscription_->processGRHoldTimerExpired();
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 4);
+
+  // Update 3 (should not coalesce due to GR2)
+  queueSysPortUpdate(3 /*numSysPorts*/);
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 5);
+
+  // Unblock the event base to process all queued events
+  baton.post();
+
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  // Final state should reflect last update
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(),
+        beforeNumSysPorts + (this->kNumRemoteSwitchAsics * 3));
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteInterfaces()->size(),
+        beforeNumRifs + (this->kNumRemoteSwitchAsics * 3));
+  });
+}
+
+TYPED_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued) {
+  // Test that an update is skipped when newer updates exist in the queue
+  // after a GR event. This verifies the optimization in queueDsfUpdate where
+  // needsUpdate = dsfUpdateQueue_.empty() - if the queue is not empty after
+  // dequeueing the current update, the current update is skipped.
+  //
+  // Scenario: Update1 -> GR -> Update2
+  // When Update1's event runs, it dequeues Update1 but sees Update2 still in
+  // the queue, so it skips processing (needsUpdate = false).
+  //
+  // We verify this by checking the SW switch state generation number:
+  // - If Update1 is skipped: 2 state updates (GR + Update2)
+  // - If Update1 is NOT skipped: 3 state updates (Update1 + GR + Update2)
+  this->subscription_ = this->createSubscription();
+
+  // Use Baton to block hwUpdateEvb_ and simulate the race condition
+  folly::Baton<> baton;
+  this->hwUpdatePool_->getEventBase()->runInEventBaseThread(
+      [&]() { baton.wait(); });
+  // Wait for the blocking event to be in progress
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  auto initialQueueSize =
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
+
+  // Record the initial state generation
+  auto initialStateGeneration = this->sw_->getState()->getGeneration();
+
+  auto queueSysPortUpdate = [&](int numSysPorts) {
+    DsfSubscription::DsfUpdate update;
+    for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+      auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, numSysPorts);
+      auto rifs = makeRifs(sysPorts.get());
+      update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+      update.switchId2Intfs[remoteSwitchId] = rifs;
+    }
+    this->subscription_->queueDsfUpdate(std::move(update));
+  };
+
+  // Queue Update1 with 10 sysports per switch
+  queueSysPortUpdate(10);
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 1);
+
+  // Trigger GR event - this sets lastEventGR_ flag
+  this->subscription_->processGRHoldTimerExpired();
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 2);
+
+  // Queue Update2 with 2 sysports per switch - because of GR, this will
+  // be queued as a separate entry. When Update1's event runs, it will see
+  // Update2 in the queue and skip processing Update1.
+  queueSysPortUpdate(2);
+  EXPECT_EQ(
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
+      initialQueueSize + 3);
+
+  // Unblock the event base to process all queued events
+  baton.post();
+
+  // Wait for all events to be processed
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  // Wait for state updates to complete
+  waitForStateUpdates(this->sw_);
+
+  // Verify the state generation only incremented by 2 (GR + Update2).
+  // If Update1 was NOT skipped, the generation would increment by 3.
+  // This proves Update1 was skipped because the queue was not empty after
+  // dequeueing it (Update2 was still in the queue).
+  auto finalStateGeneration = this->sw_->getState()->getGeneration();
+  auto stateUpdates = finalStateGeneration - initialStateGeneration;
+
+  // We expect exactly 2 state updates:
+  // 1. GR event (processGRHoldTimerExpired calls updateDsfState)
+  // 2. Update2 event (queue was empty after dequeue, so needsUpdate = true)
+  // Update1 is skipped because queue was NOT empty after dequeue.
+  EXPECT_EQ(stateUpdates, 2);
+}
+
+TYPED_TEST(DsfSubscriptionTest, ConcurrentQueueDsfUpdates) {
+  // Test that multiple threads concurrently calling queueDsfUpdate() works
+  // correctly. All updates should eventually be processed, and both the
+  // dsfUpdateQueue and event base queue should be empty afterwards.
+  this->subscription_ = this->createSubscription();
+
+  auto beforeNumSysPorts = this->getRemoteSystemPorts()->size();
+  auto beforeNumRifs = this->getRemoteInterfaces()->size();
+
+  constexpr int kNumThreads = 10;
+  constexpr int kUpdatesPerThread = 5;
+  constexpr int kFinalNumSysPorts = 3;
+
+  auto queueSysPortUpdate = [&](int numSysPorts) {
+    DsfSubscription::DsfUpdate update;
+    for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+      auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, numSysPorts);
+      auto rifs = makeRifs(sysPorts.get());
+      update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+      update.switchId2Intfs[remoteSwitchId] = rifs;
+    }
+    this->subscription_->queueDsfUpdate(std::move(update));
+  };
+
+  // Create thread functions
+  std::vector<std::function<void()>> threadFns;
+  threadFns.reserve(kNumThreads);
+  for (int t = 0; t < kNumThreads; ++t) {
+    threadFns.emplace_back([&, t]() {
+      for (int i = 0; i < kUpdatesPerThread; ++i) {
+        queueSysPortUpdate(
+            (t * kUpdatesPerThread + i) % kUpdatesPerThread +
+            1 /*numSysPorts*/);
+      }
+    });
+  }
+
+  // Run all threads concurrently
+  this->runConcurrentThreads(threadFns);
+
+  // Wait for all events to be processed
+  this->waitForQueueDrain();
+
+  // Verify dsfUpdateQueue_ is empty by checking we can still queue new updates
+  // and they get processed normally
+  queueSysPortUpdate(kFinalNumSysPorts /*numSysPorts*/);
+
+  this->waitForQueueDrain();
+
+  // Verify final state
+  this->verifySysPortAndRif(
+      beforeNumSysPorts, beforeNumRifs, kFinalNumSysPorts);
+}
+
+TYPED_TEST(DsfSubscriptionTest, ConcurrentQueueDsfUpdateAndGRExpiry) {
+  // Test that multiple threads concurrently calling queueDsfUpdate and
+  // processGRHoldTimerExpired do not cause deadlock. Both dsfUpdateQueue and
+  // event base queue should be processed afterwards, and enqueueing new updates
+  // should lead to normal processing.
+  this->subscription_ = this->createSubscription();
+
+  auto beforeNumSysPorts = this->getRemoteSystemPorts()->size();
+  auto beforeNumRifs = this->getRemoteInterfaces()->size();
+
+  constexpr int kNumUpdateThreads = 5;
+  constexpr int kNumGRThreads = 3;
+  constexpr int kUpdatesPerThread = 10;
+  constexpr int kGRsPerThread = 5;
+  constexpr int kFinalNumSysPorts = 4;
+
+  auto queueSysPortUpdate = [&](int numSysPorts) {
+    DsfSubscription::DsfUpdate update;
+    for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+      auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, numSysPorts);
+      auto rifs = makeRifs(sysPorts.get());
+      update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+      update.switchId2Intfs[remoteSwitchId] = rifs;
+    }
+    this->subscription_->queueDsfUpdate(std::move(update));
+  };
+
+  // Create thread functions for both update and GR threads
+  std::vector<std::function<void()>> threadFns;
+
+  // Threads that call queueDsfUpdate
+  threadFns.reserve(kNumUpdateThreads + kNumGRThreads);
+  for (int t = 0; t < kNumUpdateThreads; ++t) {
+    threadFns.emplace_back([&, t]() {
+      for (int i = 0; i < kUpdatesPerThread; ++i) {
+        queueSysPortUpdate(
+            (t * kUpdatesPerThread + i) % kNumUpdateThreads +
+            1 /*numSysPorts*/);
+      }
+    });
+  }
+
+  // Threads that call processGRHoldTimerExpired
+  for (int t = 0; t < kNumGRThreads; ++t) {
+    threadFns.emplace_back([&]() {
+      for (int i = 0; i < kGRsPerThread; ++i) {
+        this->subscription_->processGRHoldTimerExpired();
+      }
+    });
+  }
+
+  // Run all threads concurrently
+  this->runConcurrentThreads(threadFns);
+
+  // Wait for all events to be processed - should not deadlock
+  this->waitForQueueDrain();
+
+  // Verify the system is in a healthy state by enqueueing a new update
+  // and checking it gets processed normally
+  queueSysPortUpdate(kFinalNumSysPorts /*numSysPorts*/);
+
+  this->waitForQueueDrain();
+
+  // Verify final state
+  this->verifySysPortAndRif(
+      beforeNumSysPorts, beforeNumRifs, kFinalNumSysPorts);
 }
 
 } // namespace facebook::fboss

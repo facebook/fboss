@@ -130,10 +130,8 @@ void DsfSubscription::stop() {
     sw_->stats()->failedDsfSubscription(remoteNodeName_, -1);
   }
   tearDownSubscription();
-  // Nullify any pending update lambdas already scheduled on
-  // hwUpdateEvb_
-  auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
-  nextDsfUpdateWlock->reset();
+  // Clear any pending update lambdas already scheduled on hwUpdateEvb_
+  clearDsfUpdateQueueAndGRFlag();
   stopped_ = true;
 }
 void DsfSubscription::setupSubscription() {
@@ -367,48 +365,61 @@ void DsfSubscription::queueRemoteStateChanged(
 }
 
 void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
-  bool needsScheduling = false;
+  std::lock_guard<std::mutex> lock(dsfUpdateMutex_);
+  // If the queue is empty or the last event was a GR event,
+  // we need to add to queue and schedule an update.
+  // Otherwise, we overwrite the last update in the queue.
+  if (dsfUpdateQueue_.empty() || lastEventGR_) {
+    dsfUpdateQueue_.push_back(std::move(dsfUpdate));
+    // Reset the GR flag after processing
+    lastEventGR_ = false;
 
-  {
-    auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
-    // If nextDsfUpdate is not null, then just overwrite
-    // nextDsfUpdate with latest info but don't schedule
-    // another lambda on the hwUpdateThread. The idea here
-    // is that since nextDsfUpdate_ was not empty it implies
-    // we have already scheduled a update on the hwUpdateEvb
-    // and that update will now simply consume the latest
-    // contents.
-    needsScheduling = (*nextDsfUpdateWlock == nullptr);
-    *nextDsfUpdateWlock = std::make_unique<DsfUpdate>(std::move(dsfUpdate));
-  }
-  /*
-   * Schedule updates async on hwUpdateEvb, so we don't
-   * keep the streamEventEvb blocked waiting on HW updates.
-   * Doing everything on streamEvb slows down convergence
-   * when multiple session have simultaneous updates.
-   * This is most acutely felt during bootup, where several
-   * hundred sessions come up close together and wait on
-   * each other for initial sync to complete.
-   */
-  if (needsScheduling) {
+    /*
+     * Schedule updates async on hwUpdateEvb, so we don't
+     * keep the streamEventEvb blocked waiting on HW updates.
+     * Doing everything on streamEvb slows down convergence
+     * when multiple session have simultaneous updates.
+     * This is most acutely felt during bootup, where several
+     * hundred sessions come up close together and wait on
+     * each other for initial sync to complete.
+     */
     hwUpdateEvb_->runInEventBaseThread([this]() {
       DsfUpdate update;
+      bool needsUpdate = false;
       {
-        auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
-        if (*nextDsfUpdateWlock == nullptr) {
-          // Update was already done or cancelled
+        std::lock_guard<std::mutex> lock(dsfUpdateMutex_);
+        // Explicitly fail in tests - dsfUpdateQueue should have 1-to-1
+        // mapping with updates in event base.
+        DCHECK(!dsfUpdateQueue_.empty());
+        if (dsfUpdateQueue_.empty()) {
+          XLOG(ERR)
+              << "DsfUpdateQueue should have 1-to-1 mapping "
+              << "to the events being scheduled in the event base."
+              << "The event is scheduled but no dsf update is in the queue";
           return;
         }
-        update = std::move(**nextDsfUpdateWlock);
-        nextDsfUpdateWlock->reset();
-
-        // At this point nextDsfUpdate should be null
-        CHECK_EQ(*nextDsfUpdateWlock, nullptr);
+        update = std::move(dsfUpdateQueue_.front());
+        dsfUpdateQueue_.pop_front();
+        // If dsfUpdate queue is not empty after dequeue, there are newer
+        // updates queued after GR and therefore we can skip processing the
+        // update.
+        needsUpdate = dsfUpdateQueue_.empty();
       }
-      updateWithRollbackProtection(
-          update.switchId2SystemPorts, update.switchId2Intfs);
+      if (needsUpdate) {
+        updateWithRollbackProtection(
+            update.switchId2SystemPorts, update.switchId2Intfs);
+      }
     });
+  } else {
+    // Overwrite the last update in the queue
+    dsfUpdateQueue_.back() = std::move(dsfUpdate);
   }
+}
+
+void DsfSubscription::clearDsfUpdateQueueAndGRFlag() {
+  std::lock_guard<std::mutex> lock(dsfUpdateMutex_);
+  dsfUpdateQueue_.clear();
+  lastEventGR_ = false;
 }
 
 bool DsfSubscription::isLocal(SwitchID nodeSwitchId) const {
@@ -458,8 +469,7 @@ void DsfSubscription::updateDsfState(
       // subscription
       tearDownSubscription();
       // Clear any queued updates
-      auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
-      nextDsfUpdateWlock->reset();
+      clearDsfUpdateQueueAndGRFlag();
       // Setup subscription again to trigger a full resync
       setupSubscription();
     }
@@ -569,13 +579,13 @@ void DsfSubscription::processGRHoldTimerExpired() {
   };
 
   {
-    // Hold the lock while enqueueing the GR expiry update. This is to avoid
-    // another DSF update comes in at the same time and not being enqueued
-    // because of the non-null nextDsfUpdate_.
-    auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+    // Hold the lock while enqueueing the GR expiry update. Set lastEventGR_
+    // so that the next DSF update will be enqueued separately rather than
+    // overwriting previous DSF updates.
+    std::lock_guard<std::mutex> lock(dsfUpdateMutex_);
+    lastEventGR_ = true;
     hwUpdateEvb_->runInEventBaseThread(
         [this, updateDsfStateFn]() { updateDsfState(updateDsfStateFn); });
-    nextDsfUpdateWlock->reset();
   }
 }
 } // namespace facebook::fboss

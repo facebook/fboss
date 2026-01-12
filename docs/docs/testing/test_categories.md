@@ -175,6 +175,37 @@ feel free to run all tests and work through them however you please.
 ```bash file=../fboss/oss/hw_sanity_tests/t1_agent_hw_tests.conf
 ```
 
+### QSFP HW Tests
+
+:::note
+T1 QSFP HW tests scope is controlled by the known-bad and unsupported test files, so do not need a dedicated test list via `--filter_file`.
+:::
+
+`run_test.py`:
+```bash
+./bin/run_test.py qsfp \
+--qsfp-config ./share/qsfp_test_configs/$CONFIG \
+--known-bad-tests-file ./share/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON \
+--unsupported-tests-file ./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON \
+--skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+```
+
+### Link Tests
+
+:::note
+T1 Link tests scope is controlled by the known-bad and unsupported test files, so do not need a dedicated test list via `--filter_file`.
+:::
+
+`run_test.py`:
+```bash
+./bin/run_test.py link \
+--agent-run-mode mono \
+--config ./share/link_test_configs/$CONFIG \
+--qsfp-config /opt/fboss/share/qsfp_test_configs/$QSFP_CONFIG \
+--known-bad-tests-file ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON \
+--skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+```
+
 ### Agent Benchmark Tests
 
 - `sai_tx_slow_path_rate-sai_impl` binary

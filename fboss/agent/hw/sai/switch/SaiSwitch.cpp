@@ -64,6 +64,8 @@
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -597,9 +599,8 @@ std::shared_ptr<SwitchState> SaiSwitch::constructSwitchStateWithFib() noexcept {
   const auto& switchStateRoutesMap =
       managerTable_->routeManager().getSwitchStateRoutesMap();
 
-  // Create a new MultiSwitchForwardingInformationBaseMap
-  auto fibMap = std::make_shared<MultiSwitchForwardingInformationBaseMap>();
-  auto scopeResolver = platform_->scopeResolver();
+  // Create a new ForwardingInformationBaseMap for the new design
+  auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
 
   // Group routes by router ID
   std::map<RouterID, std::vector<std::shared_ptr<RouteV4>>> routesV4;
@@ -617,8 +618,7 @@ std::shared_ptr<SwitchState> SaiSwitch::constructSwitchStateWithFib() noexcept {
     // Create FIB containers
     auto fibContainer =
         std::make_shared<ForwardingInformationBaseContainer>(routerId);
-    fibMap->updateForwardingInformationBaseContainer(
-        fibContainer, scopeResolver->scope(fibContainer));
+    fibsMap->updateForwardingInformationBaseContainer(fibContainer);
   }
 
   // Iterate through the switchStateRoutesMap
@@ -649,7 +649,7 @@ std::shared_ptr<SwitchState> SaiSwitch::constructSwitchStateWithFib() noexcept {
     }
     auto fibV4 =
         std::make_shared<ForwardingInformationBaseV4>(std::move(v4Container));
-    fibMap->getNodeIf(routerId)->setFib<folly::IPAddressV4>(fibV4);
+    fibsMap->getNodeIf(routerId)->setFib<folly::IPAddressV4>(fibV4);
   }
 
   // Process each router ID with v6 routes
@@ -663,10 +663,21 @@ std::shared_ptr<SwitchState> SaiSwitch::constructSwitchStateWithFib() noexcept {
     }
     auto fibV6 =
         std::make_shared<ForwardingInformationBaseV6>(std::move(v6Container));
-    fibMap->getNodeIf(routerId)->setFib<folly::IPAddressV6>(fibV6);
+    fibsMap->getNodeIf(routerId)->setFib<folly::IPAddressV6>(fibV6);
   }
 
-  state->resetForwardingInformationBases(fibMap);
+  // Create FibInfo and set the fibsMap
+  auto fibInfo = std::make_shared<FibInfo>();
+  fibInfo->resetFibsMap(fibsMap);
+
+  // Create MultiSwitchFibInfoMap and add the FibInfo
+  auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+  auto scopeResolver = platform_->scopeResolver();
+  auto scope = scopeResolver->scope(fibInfo);
+  fibInfoMap->updateFibInfo(fibInfo, scope);
+
+  // Reset the fibsInfoMap in the state
+  state->resetFibsInfoMap(fibInfoMap);
   state->publish();
   return state;
 }
@@ -687,21 +698,23 @@ void SaiSwitch::preRollback(const StateDelta& delta) noexcept {
     // removing unclaimed entries.
     // To avoid such rollback failure, remove added routes in new state as step
     // 0. This would ensure enough room in the hardware for replaying old state.
-    for (const auto& routeDelta : delta.getFibsDelta()) {
-      auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
-                                          : routeDelta.getNew()->getID();
-      processAddedDelta(
-          routeDelta.getFibDelta<folly::IPAddressV4>(),
-          managerTable_->routeManager(),
-          lockPolicy,
-          &SaiRouteManager::removeRouteForRollback<folly::IPAddressV4>,
-          routerID);
-      processAddedDelta(
-          routeDelta.getFibDelta<folly::IPAddressV6>(),
-          managerTable_->routeManager(),
-          lockPolicy,
-          &SaiRouteManager::removeRouteForRollback<folly::IPAddressV6>,
-          routerID);
+    for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
+      for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
+        auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
+                                            : routeDelta.getNew()->getID();
+        processAddedDelta(
+            routeDelta.getFibDelta<folly::IPAddressV4>(),
+            managerTable_->routeManager(),
+            lockPolicy,
+            &SaiRouteManager::removeRouteForRollback<folly::IPAddressV4>,
+            routerID);
+        processAddedDelta(
+            routeDelta.getFibDelta<folly::IPAddressV6>(),
+            managerTable_->routeManager(),
+            lockPolicy,
+            &SaiRouteManager::removeRouteForRollback<folly::IPAddressV6>,
+            routerID);
+      }
     }
   } catch (const std::exception& ex) {
     // Rollback failed. Fail hard.
@@ -881,21 +894,23 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       false);
   processDefaultDataPlanePolicyDelta(delta, lockPolicy);
 
-  for (const auto& routeDelta : delta.getFibsDelta()) {
-    auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
-                                        : routeDelta.getNew()->getID();
-    processRemovedDelta(
-        routeDelta.getFibDelta<folly::IPAddressV4>(),
-        managerTable_->routeManager(),
-        lockPolicy,
-        &SaiRouteManager::removeRoute<folly::IPAddressV4>,
-        routerID);
-    processRemovedDelta(
-        routeDelta.getFibDelta<folly::IPAddressV6>(),
-        managerTable_->routeManager(),
-        lockPolicy,
-        &SaiRouteManager::removeRoute<folly::IPAddressV6>,
-        routerID);
+  for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
+    for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
+      auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
+                                          : routeDelta.getNew()->getID();
+      processRemovedDelta(
+          routeDelta.getFibDelta<folly::IPAddressV4>(),
+          managerTable_->routeManager(),
+          lockPolicy,
+          &SaiRouteManager::removeRoute<folly::IPAddressV4>,
+          routerID);
+      processRemovedDelta(
+          routeDelta.getFibDelta<folly::IPAddressV6>(),
+          managerTable_->routeManager(),
+          lockPolicy,
+          &SaiRouteManager::removeRoute<folly::IPAddressV6>,
+          routerID);
+    }
   }
 
   for (const auto& vlanDelta : delta.getVlansDelta()) {
@@ -1255,13 +1270,15 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
             rid);
       };
 
-  for (const auto& routeDelta : delta.getFibsDelta()) {
-    auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
-                                        : routeDelta.getNew()->getID();
-    processV4RoutesChangedAndAddedDelta(
-        routerID, routeDelta.getFibDelta<folly::IPAddressV4>());
-    processV6RoutesChangedAndAddedDelta(
-        routerID, routeDelta.getFibDelta<folly::IPAddressV6>());
+  for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
+    for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
+      auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
+                                          : routeDelta.getNew()->getID();
+      processV4RoutesChangedAndAddedDelta(
+          routerID, routeDelta.getFibDelta<folly::IPAddressV4>());
+      processV6RoutesChangedAndAddedDelta(
+          routerID, routeDelta.getFibDelta<folly::IPAddressV6>());
+    }
   }
   {
     auto multiSwitchControlPlaneDelta = delta.getControlPlaneDelta();
@@ -3052,12 +3069,16 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     auto portMaps =
         managerTable_->portManager().reconstructPortsFromStore(getSwitchType());
     auto ports = std::make_shared<MultiSwitchPortMap>();
-    if (FLAGS_hide_fabric_ports) {
+    if (FLAGS_hide_fabric_ports || FLAGS_hide_interface_ports) {
       for (const auto& portMap : std::as_const(*portMaps)) {
         for (const auto& [id, port] : std::as_const(*portMap.second)) {
-          if (port->getPortType() != cfg::PortType::FABRIC_PORT) {
-            ports->addNode(port, scopeResolver->scope(port));
+          if ((port->getPortType() == cfg::PortType::FABRIC_PORT &&
+               FLAGS_hide_fabric_ports) ||
+              (port->getPortType() == cfg::PortType::INTERFACE_PORT &&
+               FLAGS_hide_interface_ports)) {
+            continue;
           }
+          ports->addNode(port, scopeResolver->scope(port));
         }
       }
     } else {

@@ -241,6 +241,14 @@
             },
             {
               "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_10",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0xc000",
+                "csrOffset": "0xc000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "MCB_IOB_I2C_MASTER_11",
                 "deviceName": "i2c_master_smb",
                 "iobufOffset": "0xd000",
@@ -434,7 +442,8 @@
             "MCB_MUX_A@3",
             "MCB_IOB_I2C_MASTER_7",
             "MCB_IOB_I2C_MASTER_8",
-            "MCB_IOB_I2C_MASTER_9"
+            "MCB_IOB_I2C_MASTER_9",
+            "MCB_IOB_I2C_MASTER_10"
           ]
         },
         "PDB_SLOT@0": {

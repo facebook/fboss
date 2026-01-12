@@ -128,6 +128,7 @@ struct FakePortSerdes {
   std::vector<uint32_t> txFirPost2;
   std::vector<uint32_t> txFirPost3;
   std::vector<uint32_t> txLutMode;
+  std::vector<int32_t> rxReach;
   std::vector<int32_t> rxCtlCode;
   std::vector<int32_t> rxDspMode;
   std::vector<int32_t> rxAfeTrim;
@@ -165,6 +166,7 @@ struct FakePortSerdes {
   std::vector<int32_t> rxInstgEnableScan;
   std::vector<int32_t> rxFfeLengthBitmap;
   std::vector<int32_t> rxFfeLmsDynamicGatingEn;
+  std::string serdesCustomCollection;
 };
 
 struct FakePortConnector {

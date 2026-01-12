@@ -50,13 +50,20 @@ int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(&argc, &argv);
 
+  std::optional<ScubaLogger> scubaLogger;
+  std::optional<DataStore> dataStore;
   try {
-    auto config = ConfigUtils().getConfig();
+    PlatformConfig config = ConfigUtils().getConfig();
+
+    dataStore.emplace(config);
+    scubaLogger.emplace(*config.platformName(), dataStore.value());
 
     PkgManager pkgManager(config);
     pkgManager.processAll();
-    PlatformExplorer platformExplorer(config);
+    PlatformExplorer platformExplorer(
+        config, dataStore.value(), scubaLogger.value());
     platformExplorer.explore();
+
     if (FLAGS_run_once) {
       XLOG(INFO) << fmt::format(
           "Ran with --run_once={}. Skipping running as a daemon...",
@@ -77,7 +84,6 @@ int main(int argc, char** argv) {
             notifySocketEnv);
       }
     }
-
     std::optional<DataStore> ds = platformExplorer.getDataStore();
     if (!ds.has_value()) {
       XLOG(ERR)
@@ -102,13 +108,9 @@ int main(int argc, char** argv) {
     XLOG(INFO) << "================ STOPPED PLATFORM BINARY ================";
     return 0;
   } catch (const std::exception& ex) {
-    // Log unexpected crash to Scuba
-    std::unordered_map<std::string, std::string> normals;
-
-    normals["event"] = "unexpected_crash";
-    normals["error_message"] = ex.what();
-
-    ScubaLogger::log(normals);
+    if (scubaLogger.has_value()) {
+      scubaLogger->logCrash(ex);
+    }
     XLOG(FATAL) << "Platform Manager crashed with unexpected exception: "
                 << ex.what();
     return 1;

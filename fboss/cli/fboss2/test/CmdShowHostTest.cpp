@@ -7,10 +7,10 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
+#include <thrift/lib/cpp2/reflection/testing.h>
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
 #include "fboss/cli/fboss2/commands/show/host/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
 
 using namespace ::testing;
 
@@ -18,7 +18,12 @@ namespace facebook::fboss {
 
 std::vector<NdpEntryThrift> createMockNdpEntries() {
   NdpEntryThrift ndpEntry1;
+#ifdef IS_OSS
+  // TODO: relying on public DNS for unit tests is britle.
+  folly::IPAddressV6 ipv6_1("2a03:2880:f36e:1:face:b00c:0:25de");
+#else
   folly::IPAddressV6 ipv6_1("2401:db00:e13d:846::59");
+#endif
   network::thrift::BinaryAddress binaryAddr1 =
       facebook::network::toBinaryAddress(ipv6_1);
 
@@ -27,7 +32,11 @@ std::vector<NdpEntryThrift> createMockNdpEntries() {
   ndpEntry1.classID() = 32;
 
   NdpEntryThrift ndpEntry2;
+#ifdef IS_OSS
+  folly::IPAddressV6 ipv6_2("2a03:2880:f121:83:face:b00c:0:25de");
+#else
   folly::IPAddressV6 ipv6_2("2401:db00:e13d:846::3d");
+#endif
   network::thrift::BinaryAddress binaryAddr2 =
       facebook::network::toBinaryAddress(ipv6_2);
 
@@ -35,16 +44,9 @@ std::vector<NdpEntryThrift> createMockNdpEntries() {
   ndpEntry2.port() = 1;
   ndpEntry2.classID() = 0;
 
-  NdpEntryThrift ndpEntry3;
-  folly::IPAddressV6 ipv6_3("2401:db00:e13d:846::41");
-  network::thrift::BinaryAddress binaryAddr3 =
-      facebook::network::toBinaryAddress(ipv6_3);
-
-  ndpEntry3.ip() = binaryAddr3;
-  ndpEntry3.port() = 51;
-  ndpEntry3.classID() = 0;
-
-  std::vector<NdpEntryThrift> entries{ndpEntry1, ndpEntry2, ndpEntry3};
+  // Only return entries that will be in the final model to avoid unnecessary
+  // DNS lookups during tests
+  std::vector<NdpEntryThrift> entries{ndpEntry1, ndpEntry2};
   return entries;
 }
 
@@ -99,7 +101,11 @@ cli::ShowHostModel createSortedHostModel() {
   entry1.portName() = "eth4/3/1";
   entry1.portID() = 1;
   entry1.queueID() = "Olympic";
+#ifdef IS_OSS
+  entry1.hostName() = "edge-star-mini6-shv-01-bru2";
+#else
   entry1.hostName() = "eth3-6-1.fsw005.p031.f01.pnb6";
+#endif
   entry1.adminState() = "Enabled";
   entry1.linkState() = "Down";
   entry1.speed() = "200G";
@@ -112,7 +118,11 @@ cli::ShowHostModel createSortedHostModel() {
   entry2.portName() = "eth5/5/1";
   entry2.portID() = 106;
   entry2.queueID() = "22";
+#ifdef IS_OSS
+  entry2.hostName() = "edge-star-mini6-shv-01-sjc6";
+#else
   entry2.hostName() = "eth3-6-1.fsw005.p045.f01.pnb6";
+#endif
   entry2.adminState() = "Disabled";
   entry2.linkState() = "Up";
   entry2.speed() = "549G";
@@ -172,10 +182,17 @@ TEST_F(CmdShowHostTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput =
+#ifdef IS_OSS
+      " Port      ID   Queue ID  Hostname                     Admin State  Link State  Speed  FEC       InErr  InDiscard  OutErr  OutDiscard \n"
+      "---------------------------------------------------------------------------------------------------------------------------------------------------\n"
+      " eth4/3/1  1    Olympic   edge-star-mini6-shv-01-bru2  Enabled      Down        200G   RS528     10     43         2       98         \n"
+      " eth5/5/1  106  22        edge-star-mini6-shv-01-sjc6  Disabled     Up          549G   RS544_2N  56     72         12      9          \n\n";
+#else
       " Port      ID   Queue ID  Hostname                       Admin State  Link State  Speed  FEC       InErr  InDiscard  OutErr  OutDiscard \n"
       "-----------------------------------------------------------------------------------------------------------------------------------------------------\n"
       " eth4/3/1  1    Olympic   eth3-6-1.fsw005.p031.f01.pnb6  Enabled      Down        200G   RS528     10     43         2       98         \n"
       " eth5/5/1  106  22        eth3-6-1.fsw005.p045.f01.pnb6  Disabled     Up          549G   RS544_2N  56     72         12      9          \n\n";
+#endif
 
   EXPECT_EQ(output, expectOutput);
 }

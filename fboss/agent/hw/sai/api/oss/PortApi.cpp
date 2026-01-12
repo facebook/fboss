@@ -47,6 +47,10 @@ std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRVgaWrapper::operator()() {
   return std::nullopt;
 }
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxReachWrapper::operator()() {
+  return std::nullopt;
+}
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeDcoWrapper::operator()() {

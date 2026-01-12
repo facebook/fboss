@@ -22,6 +22,29 @@ void expectVersions(const char* deviceName, const char* versionString) {
               versionString)),
       1);
 }
+
+void expectHardwareVersion(const char* odsKey, const char* value) {
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          fmt::vformat(odsKey, fmt::make_format_args(value))),
+      1);
+}
+
+PlatformConfig createMinimalPlatformConfig() {
+  PlatformConfig platformConfig;
+  platformConfig.rootPmUnitName() = "TEST_ROOT_PM";
+  platformConfig.rootSlotType() = "TEST_SLOT";
+  platformConfig.chassisEepromDevicePath() = "/[CHASSIS_EEPROM]";
+
+  SlotTypeConfig slotTypeConfig;
+  slotTypeConfig.pmUnitName() = "TEST_ROOT_PM";
+  platformConfig.slotTypeConfigs()["TEST_SLOT"] = slotTypeConfig;
+
+  PmUnitConfig pmUnitConfig;
+  platformConfig.pmUnitConfigs()["TEST_ROOT_PM"] = pmUnitConfig;
+
+  return platformConfig;
+}
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
@@ -76,7 +99,12 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   platformConfig.symbolicLinkToDevicePath()[cpldHwmonTrapPath] = "";
   platformConfig.symbolicLinkToDevicePath()[fpgaNonePath] = "";
 
-  PlatformExplorer explorer(platformConfig, platformFsUtils);
+  DataStore dataStore(platformConfig);
+  facebook::fboss::platform::platform_manager::ScubaLogger scubaLogger(
+      *platformConfig.platformName(), dataStore);
+  PlatformExplorer explorer(
+      platformConfig, dataStore, scubaLogger, platformFsUtils);
+  explorer.updateFirmwareVersions();
   explorer.publishFirmwareVersions();
 
   expectVersions("TEST_FPGA_FWVER", "1.2");
@@ -94,48 +122,208 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   expectVersions("NONE", PlatformExplorer::kFwVerErrorFileNotFound);
 }
 
-// Test that exceptions in createDeviceSymLink are properly handled
+TEST(PlatformExplorerTest, PublishHardwareVersions) {
+  auto tmpDir = folly::test::TemporaryDirectory();
+  auto platformFsUtils =
+      std::make_shared<PlatformFsUtils>(tmpDir.path().string());
+
+  PlatformConfig platformConfig;
+  DataStore dataStore(platformConfig);
+
+  // Directly populate the hardware versions in the dataStore
+  // This simulates what updateHardwareVersions() does when reading from EEPROM
+  dataStore.updateHardwareVersion(PlatformExplorer::kChassisEepromVersion, "5");
+  dataStore.updateHardwareVersion(PlatformExplorer::kProductionState, "GA");
+  dataStore.updateHardwareVersion(PlatformExplorer::kProductionSubState, "V3");
+  dataStore.updateHardwareVersion(PlatformExplorer::kVariantVersion, "A2");
+
+  facebook::fboss::platform::platform_manager::ScubaLogger scubaLogger(
+      *platformConfig.platformName(), dataStore);
+  PlatformExplorer explorer(
+      platformConfig, dataStore, scubaLogger, platformFsUtils);
+
+  // Test that publishHardwareVersions correctly publishes to ODS
+  explorer.publishHardwareVersions();
+
+  // Verify the hardware versions were published to ODS counters
+  expectHardwareVersion(PlatformExplorer::kChassisEepromVersionODS, "5");
+  expectHardwareVersion(PlatformExplorer::kProductionStateODS, "GA");
+  expectHardwareVersion(PlatformExplorer::kProductionSubStateODS, "V3");
+  expectHardwareVersion(PlatformExplorer::kVariantVersionODS, "A2");
+}
+
 TEST(PlatformExplorerTest, SymlinkExceptionHandling) {
   auto tmpDir = folly::test::TemporaryDirectory();
   auto platformFsUtils =
       std::make_shared<PlatformFsUtils>(tmpDir.path().string());
 
-  // Create a platform config with minimal setup
+  auto platformConfig = createMinimalPlatformConfig();
+  std::string unsupportedLinkPath = "/run/devmap/unsupported/device";
+  platformConfig.symbolicLinkToDevicePath()[unsupportedLinkPath] =
+      "/[TEST_DEVICE]";
+
+  DataStore dataStore(platformConfig);
+  ScubaLogger scubaLogger(*platformConfig.platformName(), dataStore);
+  PlatformExplorer explorer(
+      platformConfig, dataStore, scubaLogger, platformFsUtils);
+
+  EXPECT_TRUE(platformFsUtils->createDirectories("/run/devmap/unsupported"));
+  EXPECT_NO_THROW(explorer.explore());
+  EXPECT_FALSE(platformFsUtils->exists(unsupportedLinkPath));
+}
+
+TEST(PlatformExplorerTest, GetFpgaInstanceIdUniquePerDevice) {
+  auto platformConfig = createMinimalPlatformConfig();
+  auto platformFsUtils = std::make_shared<PlatformFsUtils>();
+  DataStore dataStore(platformConfig);
+  ScubaLogger scubaLogger(*platformConfig.platformName(), dataStore);
+
+  PlatformExplorer explorer(
+      platformConfig, dataStore, scubaLogger, platformFsUtils);
+
+  auto id1 = explorer.getFpgaInstanceId("/", "FPGA1");
+  auto id2 = explorer.getFpgaInstanceId("/", "FPGA2");
+  auto id3 = explorer.getFpgaInstanceId("/SLOT1", "FPGA1");
+
+  EXPECT_NE(id1, id2);
+  EXPECT_NE(id1, id3);
+  EXPECT_NE(id2, id3);
+
+  auto id1Again = explorer.getFpgaInstanceId("/", "FPGA1");
+  EXPECT_EQ(id1, id1Again);
+}
+
+class TestablePlatformExplorer : public PlatformExplorer {
+ public:
+  using PlatformExplorer::explorationSummary_;
+  using PlatformExplorer::PlatformExplorer;
+  using PlatformExplorer::updatePmStatus;
+
+  PlatformManagerStatus getLastStatus() const {
+    return platformManagerStatus_.copy();
+  }
+};
+
+TEST(PlatformExplorerTest, ExplorePmUnitWithEmbeddedSensors) {
+  auto tmpDir = folly::test::TemporaryDirectory();
+  auto platformFsUtils =
+      std::make_shared<PlatformFsUtils>(tmpDir.path().string());
+
   PlatformConfig platformConfig;
-
-  // Set required fields for explore() to work
-  platformConfig.rootPmUnitName() = "TEST_ROOT_PM";
+  platformConfig.rootPmUnitName() = "TEST_PM_WITH_SENSORS";
   platformConfig.rootSlotType() = "TEST_SLOT";
+  platformConfig.chassisEepromDevicePath() = "/[CHASSIS_EEPROM]";
+  platformConfig.i2cAdaptersFromCpu() = {};
 
-  // Create the slot type config
   SlotTypeConfig slotTypeConfig;
-  slotTypeConfig.pmUnitName() = "TEST_ROOT_PM";
+  slotTypeConfig.pmUnitName() = "TEST_PM_WITH_SENSORS";
   platformConfig.slotTypeConfigs()["TEST_SLOT"] = slotTypeConfig;
 
-  // Create the PM unit config
   PmUnitConfig pmUnitConfig;
-  platformConfig.pmUnitConfigs()["TEST_ROOT_PM"] = pmUnitConfig;
+  EmbeddedSensorConfig sensorConfig1;
+  sensorConfig1.pmUnitScopedName() = "TEMP_SENSOR1";
+  sensorConfig1.sysfsPath() = "/sys/class/hwmon/hwmon0/temp1_input";
+  EmbeddedSensorConfig sensorConfig2;
+  sensorConfig2.pmUnitScopedName() = "TEMP_SENSOR2";
+  sensorConfig2.sysfsPath() = "/sys/class/hwmon/hwmon1/temp1_input";
+  pmUnitConfig.embeddedSensorConfigs() = {sensorConfig1, sensorConfig2};
+  platformConfig.pmUnitConfigs()["TEST_PM_WITH_SENSORS"] = pmUnitConfig;
 
-  // Add a symbolic link with an unsupported path that will trigger the
-  // exception
-  std::string unsupportedLinkPath = "/run/devmap/unsupported/device";
-  std::string devicePath = "/[TEST_DEVICE]";
-  platformConfig.symbolicLinkToDevicePath()[unsupportedLinkPath] = devicePath;
+  DataStore dataStore(platformConfig);
+  ScubaLogger scubaLogger(*platformConfig.platformName(), dataStore);
+  TestablePlatformExplorer explorer(
+      platformConfig, dataStore, scubaLogger, platformFsUtils);
 
-  // Create the explorer
-  PlatformExplorer explorer(platformConfig, platformFsUtils);
-
-  // Make sure the directory exists so we can check it later
-  std::string unsupportedDir = "/run/devmap/unsupported";
-  EXPECT_TRUE(platformFsUtils->createDirectories(unsupportedDir));
-
-  // This should trigger the exception in createDeviceSymLink but it should be
-  // caught and not crash the program
   EXPECT_NO_THROW(explorer.explore());
 
-  // Verify that the exception was handled gracefully by checking that
-  // the symlink was not created
-  EXPECT_FALSE(platformFsUtils->exists(unsupportedLinkPath));
+  // Verify exploration status changed
+  auto status = explorer.getLastStatus();
+  EXPECT_NE(*status.explorationStatus(), ExplorationStatus::UNSTARTED);
+
+  // Verify embedded sensors were stored in dataStore with correct paths
+  std::string sensor1DevicePath = "/[TEMP_SENSOR1]";
+  std::string sensor2DevicePath = "/[TEMP_SENSOR2]";
+  EXPECT_TRUE(dataStore.hasSysfsPath(sensor1DevicePath));
+  EXPECT_TRUE(dataStore.hasSysfsPath(sensor2DevicePath));
+  EXPECT_EQ(
+      dataStore.getSysfsPath(sensor1DevicePath),
+      "/sys/class/hwmon/hwmon0/temp1_input");
+  EXPECT_EQ(
+      dataStore.getSysfsPath(sensor2DevicePath),
+      "/sys/class/hwmon/hwmon1/temp1_input");
+}
+
+TEST(PlatformExplorerTest, ExploreSlotWithOutgoingI2cBuses) {
+  auto tmpDir = folly::test::TemporaryDirectory();
+  auto platformFsUtils =
+      std::make_shared<PlatformFsUtils>(tmpDir.path().string());
+
+  PlatformConfig platformConfig;
+  platformConfig.rootPmUnitName() = "ROOT_PM";
+  platformConfig.rootSlotType() = "ROOT_SLOT";
+  platformConfig.chassisEepromDevicePath() = "/[CHASSIS_EEPROM]";
+  platformConfig.i2cAdaptersFromCpu() = {};
+
+  SlotTypeConfig rootSlotTypeConfig;
+  rootSlotTypeConfig.pmUnitName() = "ROOT_PM";
+  platformConfig.slotTypeConfigs()["ROOT_SLOT"] = rootSlotTypeConfig;
+
+  SlotTypeConfig childSlotTypeConfig;
+  childSlotTypeConfig.pmUnitName() = "CHILD_PM";
+  platformConfig.slotTypeConfigs()["CHILD_SLOT_TYPE"] = childSlotTypeConfig;
+
+  PmUnitConfig rootPmUnitConfig;
+  SlotConfig childSlotConfig;
+  childSlotConfig.slotType() = "CHILD_SLOT_TYPE";
+  childSlotConfig.outgoingI2cBusNames() = {"MUX@0", "MUX@1"};
+  rootPmUnitConfig.outgoingSlotConfigs()["CHILD_SLOT@0"] = childSlotConfig;
+  platformConfig.pmUnitConfigs()["ROOT_PM"] = rootPmUnitConfig;
+
+  PmUnitConfig childPmUnitConfig;
+  platformConfig.pmUnitConfigs()["CHILD_PM"] = childPmUnitConfig;
+
+  DataStore dataStore(platformConfig);
+  ScubaLogger scubaLogger(*platformConfig.platformName(), dataStore);
+  TestablePlatformExplorer explorer(
+      platformConfig, dataStore, scubaLogger, platformFsUtils);
+
+  SlotConfig slotConfig;
+  slotConfig.slotType() = "CHILD_SLOT_TYPE";
+  slotConfig.outgoingI2cBusNames() = {"MUX@0"};
+
+  EXPECT_THROW(
+      explorer.exploreSlot("/", "CHILD_SLOT@0", slotConfig),
+      std::runtime_error);
+}
+
+TEST(PlatformExplorerTest, GetPmUnitInfoSuccess) {
+  auto tmpDir = folly::test::TemporaryDirectory();
+  auto platformFsUtils =
+      std::make_shared<PlatformFsUtils>(tmpDir.path().string());
+  auto platformConfig = createMinimalPlatformConfig();
+  platformConfig.i2cAdaptersFromCpu() = {};
+
+  DataStore dataStore(platformConfig);
+  ScubaLogger scubaLogger(*platformConfig.platformName(), dataStore);
+  TestablePlatformExplorer explorer(
+      platformConfig, dataStore, scubaLogger, platformFsUtils);
+
+  explorer.explore();
+  auto pmUnitInfo = explorer.getPmUnitInfo("/");
+  EXPECT_EQ(*pmUnitInfo.name(), "TEST_ROOT_PM");
+}
+
+TEST(PlatformExplorerTest, GetPmUnitInfoThrowsForNonExistentSlot) {
+  auto platformConfig = createMinimalPlatformConfig();
+  auto platformFsUtils = std::make_shared<PlatformFsUtils>();
+  DataStore dataStore(platformConfig);
+  ScubaLogger scubaLogger(*platformConfig.platformName(), dataStore);
+
+  PlatformExplorer explorer(
+      platformConfig, dataStore, scubaLogger, platformFsUtils);
+
+  EXPECT_THROW(
+      explorer.getPmUnitInfo("/NON_EXISTENT_SLOT"), std::runtime_error);
 }
 
 } // namespace facebook::fboss::platform::platform_manager

@@ -17309,7 +17309,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                    "lane": 0
+                    "lane": 8
                   },
                   "line": [
                     {
@@ -17364,7 +17364,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                      "lane": 0
+                      "lane": 8
                     },
                     "tx": {
                       "pre": 0,
@@ -17413,7 +17413,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                    "lane": 1
+                    "lane": 9
                   },
                   "line": [
                     {
@@ -17468,7 +17468,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                      "lane": 1
+                      "lane": 9
                     },
                     "tx": {
                       "pre": 0,
@@ -17517,7 +17517,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                    "lane": 2
+                    "lane": 10
                   },
                   "line": [
                     {
@@ -17572,7 +17572,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                      "lane": 2
+                      "lane": 10
                     },
                     "tx": {
                       "pre": 0,
@@ -17621,7 +17621,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                    "lane": 3
+                    "lane": 11
                   },
                   "line": [
                     {
@@ -17676,7 +17676,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                      "lane": 3
+                      "lane": 11
                     },
                     "tx": {
                       "pre": 0,
@@ -17725,7 +17725,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                    "lane": 4
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -17780,7 +17780,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                      "lane": 4
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 0,
@@ -17829,7 +17829,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                    "lane": 5
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -17884,7 +17884,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                      "lane": 5
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 0,
@@ -17933,7 +17933,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                    "lane": 6
+                    "lane": 14
                   },
                   "line": [
                     {
@@ -17988,7 +17988,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                      "lane": 6
+                      "lane": 14
                     },
                     "tx": {
                       "pre": 0,
@@ -18037,7 +18037,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                    "lane": 7
+                    "lane": 15
                   },
                   "line": [
                     {
@@ -18092,7 +18092,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip1/core0",
-                      "lane": 7
+                      "lane": 15
                     },
                     "tx": {
                       "pre": 0,
@@ -18141,13 +18141,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                    "lane": 0
+                    "lane": 24
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                        "lane": 0
+                        "lane": 16
                       },
                       "z": {
                         "end": {
@@ -18196,7 +18196,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                      "lane": 0
+                      "lane": 24
                     },
                     "tx": {
                       "pre": 0,
@@ -18213,7 +18213,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                      "lane": 0
+                      "lane": 16
                     },
                     "tx": {
                       "pre": 0,
@@ -18245,13 +18245,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                    "lane": 1
+                    "lane": 25
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                        "lane": 1
+                        "lane": 17
                       },
                       "z": {
                         "end": {
@@ -18300,7 +18300,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                      "lane": 1
+                      "lane": 25
                     },
                     "tx": {
                       "pre": 0,
@@ -18317,7 +18317,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                      "lane": 1
+                      "lane": 17
                     },
                     "tx": {
                       "pre": 0,
@@ -18349,13 +18349,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                    "lane": 2
+                    "lane": 26
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                        "lane": 2
+                        "lane": 18
                       },
                       "z": {
                         "end": {
@@ -18404,7 +18404,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                      "lane": 2
+                      "lane": 26
                     },
                     "tx": {
                       "pre": 0,
@@ -18421,7 +18421,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                      "lane": 2
+                      "lane": 18
                     },
                     "tx": {
                       "pre": 0,
@@ -18453,13 +18453,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                    "lane": 3
+                    "lane": 27
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                        "lane": 3
+                        "lane": 19
                       },
                       "z": {
                         "end": {
@@ -18508,7 +18508,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                      "lane": 3
+                      "lane": 27
                     },
                     "tx": {
                       "pre": 0,
@@ -18525,7 +18525,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                      "lane": 3
+                      "lane": 19
                     },
                     "tx": {
                       "pre": 0,
@@ -18557,13 +18557,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                    "lane": 4
+                    "lane": 28
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                        "lane": 4
+                        "lane": 20
                       },
                       "z": {
                         "end": {
@@ -18612,7 +18612,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                      "lane": 4
+                      "lane": 28
                     },
                     "tx": {
                       "pre": 0,
@@ -18629,7 +18629,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                      "lane": 4
+                      "lane": 20
                     },
                     "tx": {
                       "pre": 0,
@@ -18661,13 +18661,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                    "lane": 5
+                    "lane": 29
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                        "lane": 5
+                        "lane": 21
                       },
                       "z": {
                         "end": {
@@ -18716,7 +18716,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                      "lane": 5
+                      "lane": 29
                     },
                     "tx": {
                       "pre": 0,
@@ -18733,7 +18733,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                      "lane": 5
+                      "lane": 21
                     },
                     "tx": {
                       "pre": 0,
@@ -18765,13 +18765,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                    "lane": 6
+                    "lane": 30
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                        "lane": 6
+                        "lane": 22
                       },
                       "z": {
                         "end": {
@@ -18820,7 +18820,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                      "lane": 6
+                      "lane": 30
                     },
                     "tx": {
                       "pre": 0,
@@ -18837,7 +18837,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                      "lane": 6
+                      "lane": 22
                     },
                     "tx": {
                       "pre": 0,
@@ -18869,13 +18869,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                    "lane": 7
+                    "lane": 31
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                        "lane": 7
+                        "lane": 23
                       },
                       "z": {
                         "end": {
@@ -18924,7 +18924,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip2/core0",
-                      "lane": 7
+                      "lane": 31
                     },
                     "tx": {
                       "pre": 0,
@@ -18941,7 +18941,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip2/core0",
-                      "lane": 7
+                      "lane": 23
                     },
                     "tx": {
                       "pre": 0,
@@ -18973,13 +18973,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                    "lane": 0
+                    "lane": 40
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                        "lane": 0
+                        "lane": 32
                       },
                       "z": {
                         "end": {
@@ -19028,7 +19028,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                      "lane": 0
+                      "lane": 40
                     },
                     "tx": {
                       "pre": 0,
@@ -19045,7 +19045,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                      "lane": 0
+                      "lane": 32
                     },
                     "tx": {
                       "pre": 0,
@@ -19077,13 +19077,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                    "lane": 1
+                    "lane": 41
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                        "lane": 1
+                        "lane": 33
                       },
                       "z": {
                         "end": {
@@ -19132,7 +19132,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                      "lane": 1
+                      "lane": 41
                     },
                     "tx": {
                       "pre": 0,
@@ -19149,7 +19149,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                      "lane": 1
+                      "lane": 33
                     },
                     "tx": {
                       "pre": 0,
@@ -19181,13 +19181,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                    "lane": 2
+                    "lane": 42
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                        "lane": 2
+                        "lane": 34
                       },
                       "z": {
                         "end": {
@@ -19236,7 +19236,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                      "lane": 2
+                      "lane": 42
                     },
                     "tx": {
                       "pre": 0,
@@ -19253,7 +19253,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                      "lane": 2
+                      "lane": 34
                     },
                     "tx": {
                       "pre": 0,
@@ -19285,13 +19285,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                    "lane": 3
+                    "lane": 43
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                        "lane": 3
+                        "lane": 35
                       },
                       "z": {
                         "end": {
@@ -19340,7 +19340,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                      "lane": 3
+                      "lane": 43
                     },
                     "tx": {
                       "pre": 0,
@@ -19357,7 +19357,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                      "lane": 3
+                      "lane": 35
                     },
                     "tx": {
                       "pre": 0,
@@ -19389,13 +19389,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                    "lane": 4
+                    "lane": 44
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                        "lane": 4
+                        "lane": 36
                       },
                       "z": {
                         "end": {
@@ -19444,7 +19444,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                      "lane": 4
+                      "lane": 44
                     },
                     "tx": {
                       "pre": 0,
@@ -19461,7 +19461,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                      "lane": 4
+                      "lane": 36
                     },
                     "tx": {
                       "pre": 0,
@@ -19493,13 +19493,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                    "lane": 5
+                    "lane": 45
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                        "lane": 5
+                        "lane": 37
                       },
                       "z": {
                         "end": {
@@ -19548,7 +19548,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                      "lane": 5
+                      "lane": 45
                     },
                     "tx": {
                       "pre": 0,
@@ -19565,7 +19565,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                      "lane": 5
+                      "lane": 37
                     },
                     "tx": {
                       "pre": 0,
@@ -19597,13 +19597,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                    "lane": 6
+                    "lane": 46
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                        "lane": 6
+                        "lane": 38
                       },
                       "z": {
                         "end": {
@@ -19652,7 +19652,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                      "lane": 6
+                      "lane": 46
                     },
                     "tx": {
                       "pre": 0,
@@ -19669,7 +19669,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                      "lane": 6
+                      "lane": 38
                     },
                     "tx": {
                       "pre": 0,
@@ -19701,13 +19701,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                    "lane": 7
+                    "lane": 47
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                        "lane": 7
+                        "lane": 39
                       },
                       "z": {
                         "end": {
@@ -19756,7 +19756,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip3/core0",
-                      "lane": 7
+                      "lane": 47
                     },
                     "tx": {
                       "pre": 0,
@@ -19773,7 +19773,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip3/core0",
-                      "lane": 7
+                      "lane": 39
                     },
                     "tx": {
                       "pre": 0,
@@ -19805,13 +19805,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                    "lane": 0
+                    "lane": 56
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                        "lane": 0
+                        "lane": 48
                       },
                       "z": {
                         "end": {
@@ -19860,7 +19860,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                      "lane": 0
+                      "lane": 56
                     },
                     "tx": {
                       "pre": 0,
@@ -19877,7 +19877,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                      "lane": 0
+                      "lane": 48
                     },
                     "tx": {
                       "pre": 0,
@@ -19909,13 +19909,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                    "lane": 1
+                    "lane": 57
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                        "lane": 1
+                        "lane": 49
                       },
                       "z": {
                         "end": {
@@ -19964,7 +19964,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                      "lane": 1
+                      "lane": 57
                     },
                     "tx": {
                       "pre": 0,
@@ -19981,7 +19981,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                      "lane": 1
+                      "lane": 49
                     },
                     "tx": {
                       "pre": 0,
@@ -20013,13 +20013,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                    "lane": 2
+                    "lane": 58
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                        "lane": 2
+                        "lane": 50
                       },
                       "z": {
                         "end": {
@@ -20068,7 +20068,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                      "lane": 2
+                      "lane": 58
                     },
                     "tx": {
                       "pre": 0,
@@ -20085,7 +20085,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                      "lane": 2
+                      "lane": 50
                     },
                     "tx": {
                       "pre": 0,
@@ -20117,13 +20117,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                    "lane": 3
+                    "lane": 59
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                        "lane": 3
+                        "lane": 51
                       },
                       "z": {
                         "end": {
@@ -20172,7 +20172,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                      "lane": 3
+                      "lane": 59
                     },
                     "tx": {
                       "pre": 0,
@@ -20189,7 +20189,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                      "lane": 3
+                      "lane": 51
                     },
                     "tx": {
                       "pre": 0,
@@ -20221,13 +20221,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                    "lane": 4
+                    "lane": 60
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                        "lane": 4
+                        "lane": 52
                       },
                       "z": {
                         "end": {
@@ -20276,7 +20276,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                      "lane": 4
+                      "lane": 60
                     },
                     "tx": {
                       "pre": 0,
@@ -20293,7 +20293,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                      "lane": 4
+                      "lane": 52
                     },
                     "tx": {
                       "pre": 0,
@@ -20325,13 +20325,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                    "lane": 5
+                    "lane": 61
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                        "lane": 5
+                        "lane": 53
                       },
                       "z": {
                         "end": {
@@ -20380,7 +20380,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                      "lane": 5
+                      "lane": 61
                     },
                     "tx": {
                       "pre": 0,
@@ -20397,7 +20397,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                      "lane": 5
+                      "lane": 53
                     },
                     "tx": {
                       "pre": 0,
@@ -20429,13 +20429,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                    "lane": 6
+                    "lane": 62
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                        "lane": 6
+                        "lane": 54
                       },
                       "z": {
                         "end": {
@@ -20484,7 +20484,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                      "lane": 6
+                      "lane": 62
                     },
                     "tx": {
                       "pre": 0,
@@ -20501,7 +20501,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                      "lane": 6
+                      "lane": 54
                     },
                     "tx": {
                       "pre": 0,
@@ -20533,13 +20533,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                    "lane": 7
+                    "lane": 63
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                        "lane": 7
+                        "lane": 55
                       },
                       "z": {
                         "end": {
@@ -20588,7 +20588,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip4/core0",
-                      "lane": 7
+                      "lane": 63
                     },
                     "tx": {
                       "pre": 0,
@@ -20605,7 +20605,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip4/core0",
-                      "lane": 7
+                      "lane": 55
                     },
                     "tx": {
                       "pre": 0,
@@ -20637,13 +20637,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                    "lane": 0
+                    "lane": 72
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                        "lane": 0
+                        "lane": 64
                       },
                       "z": {
                         "end": {
@@ -20692,7 +20692,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                      "lane": 0
+                      "lane": 72
                     },
                     "tx": {
                       "pre": 0,
@@ -20709,7 +20709,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                      "lane": 0
+                      "lane": 64
                     },
                     "tx": {
                       "pre": 0,
@@ -20741,13 +20741,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                    "lane": 1
+                    "lane": 73
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                        "lane": 1
+                        "lane": 65
                       },
                       "z": {
                         "end": {
@@ -20796,7 +20796,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                      "lane": 1
+                      "lane": 73
                     },
                     "tx": {
                       "pre": 0,
@@ -20813,7 +20813,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                      "lane": 1
+                      "lane": 65
                     },
                     "tx": {
                       "pre": 0,
@@ -20845,13 +20845,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                    "lane": 2
+                    "lane": 74
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                        "lane": 2
+                        "lane": 66
                       },
                       "z": {
                         "end": {
@@ -20900,7 +20900,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                      "lane": 2
+                      "lane": 74
                     },
                     "tx": {
                       "pre": 0,
@@ -20917,7 +20917,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                      "lane": 2
+                      "lane": 66
                     },
                     "tx": {
                       "pre": 0,
@@ -20949,13 +20949,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                    "lane": 3
+                    "lane": 75
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                        "lane": 3
+                        "lane": 67
                       },
                       "z": {
                         "end": {
@@ -21004,7 +21004,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                      "lane": 3
+                      "lane": 75
                     },
                     "tx": {
                       "pre": 0,
@@ -21021,7 +21021,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                      "lane": 3
+                      "lane": 67
                     },
                     "tx": {
                       "pre": 0,
@@ -21053,13 +21053,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                    "lane": 4
+                    "lane": 76
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                        "lane": 4
+                        "lane": 68
                       },
                       "z": {
                         "end": {
@@ -21108,7 +21108,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                      "lane": 4
+                      "lane": 76
                     },
                     "tx": {
                       "pre": 0,
@@ -21125,7 +21125,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                      "lane": 4
+                      "lane": 68
                     },
                     "tx": {
                       "pre": 0,
@@ -21157,13 +21157,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                    "lane": 5
+                    "lane": 77
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                        "lane": 5
+                        "lane": 69
                       },
                       "z": {
                         "end": {
@@ -21212,7 +21212,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                      "lane": 5
+                      "lane": 77
                     },
                     "tx": {
                       "pre": 0,
@@ -21229,7 +21229,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                      "lane": 5
+                      "lane": 69
                     },
                     "tx": {
                       "pre": 0,
@@ -21261,13 +21261,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                    "lane": 6
+                    "lane": 78
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                        "lane": 6
+                        "lane": 70
                       },
                       "z": {
                         "end": {
@@ -21316,7 +21316,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                      "lane": 6
+                      "lane": 78
                     },
                     "tx": {
                       "pre": 0,
@@ -21333,7 +21333,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                      "lane": 6
+                      "lane": 70
                     },
                     "tx": {
                       "pre": 0,
@@ -21365,13 +21365,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                    "lane": 7
+                    "lane": 79
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                        "lane": 7
+                        "lane": 71
                       },
                       "z": {
                         "end": {
@@ -21420,7 +21420,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip5/core0",
-                      "lane": 7
+                      "lane": 79
                     },
                     "tx": {
                       "pre": 0,
@@ -21437,7 +21437,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip5/core0",
-                      "lane": 7
+                      "lane": 71
                     },
                     "tx": {
                       "pre": 0,
@@ -21469,13 +21469,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                    "lane": 0
+                    "lane": 88
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                        "lane": 0
+                        "lane": 80
                       },
                       "z": {
                         "end": {
@@ -21524,7 +21524,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                      "lane": 0
+                      "lane": 88
                     },
                     "tx": {
                       "pre": 0,
@@ -21541,7 +21541,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                      "lane": 0
+                      "lane": 80
                     },
                     "tx": {
                       "pre": 0,
@@ -21573,13 +21573,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                    "lane": 1
+                    "lane": 89
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                        "lane": 1
+                        "lane": 81
                       },
                       "z": {
                         "end": {
@@ -21628,7 +21628,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                      "lane": 1
+                      "lane": 89
                     },
                     "tx": {
                       "pre": 0,
@@ -21645,7 +21645,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                      "lane": 1
+                      "lane": 81
                     },
                     "tx": {
                       "pre": 0,
@@ -21677,13 +21677,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                    "lane": 2
+                    "lane": 90
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                        "lane": 2
+                        "lane": 82
                       },
                       "z": {
                         "end": {
@@ -21732,7 +21732,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                      "lane": 2
+                      "lane": 90
                     },
                     "tx": {
                       "pre": 0,
@@ -21749,7 +21749,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                      "lane": 2
+                      "lane": 82
                     },
                     "tx": {
                       "pre": 0,
@@ -21781,13 +21781,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                    "lane": 3
+                    "lane": 91
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                        "lane": 3
+                        "lane": 83
                       },
                       "z": {
                         "end": {
@@ -21836,7 +21836,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                      "lane": 3
+                      "lane": 91
                     },
                     "tx": {
                       "pre": 0,
@@ -21853,7 +21853,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                      "lane": 3
+                      "lane": 83
                     },
                     "tx": {
                       "pre": 0,
@@ -21885,13 +21885,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                    "lane": 4
+                    "lane": 92
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                        "lane": 4
+                        "lane": 84
                       },
                       "z": {
                         "end": {
@@ -21940,7 +21940,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                      "lane": 4
+                      "lane": 92
                     },
                     "tx": {
                       "pre": 0,
@@ -21957,7 +21957,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                      "lane": 4
+                      "lane": 84
                     },
                     "tx": {
                       "pre": 0,
@@ -21989,13 +21989,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                    "lane": 5
+                    "lane": 93
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                        "lane": 5
+                        "lane": 85
                       },
                       "z": {
                         "end": {
@@ -22044,7 +22044,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                      "lane": 5
+                      "lane": 93
                     },
                     "tx": {
                       "pre": 0,
@@ -22061,7 +22061,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                      "lane": 5
+                      "lane": 85
                     },
                     "tx": {
                       "pre": 0,
@@ -22093,13 +22093,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                    "lane": 6
+                    "lane": 94
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                        "lane": 6
+                        "lane": 86
                       },
                       "z": {
                         "end": {
@@ -22148,7 +22148,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                      "lane": 6
+                      "lane": 94
                     },
                     "tx": {
                       "pre": 0,
@@ -22165,7 +22165,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                      "lane": 6
+                      "lane": 86
                     },
                     "tx": {
                       "pre": 0,
@@ -22197,13 +22197,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                    "lane": 7
+                    "lane": 95
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                        "lane": 7
+                        "lane": 87
                       },
                       "z": {
                         "end": {
@@ -22252,7 +22252,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip6/core0",
-                      "lane": 7
+                      "lane": 95
                     },
                     "tx": {
                       "pre": 0,
@@ -22269,7 +22269,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip6/core0",
-                      "lane": 7
+                      "lane": 87
                     },
                     "tx": {
                       "pre": 0,
@@ -22301,13 +22301,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                    "lane": 0
+                    "lane": 104
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                        "lane": 0
+                        "lane": 96
                       },
                       "z": {
                         "end": {
@@ -22356,7 +22356,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                      "lane": 0
+                      "lane": 104
                     },
                     "tx": {
                       "pre": 0,
@@ -22373,7 +22373,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                      "lane": 0
+                      "lane": 96
                     },
                     "tx": {
                       "pre": 0,
@@ -22405,13 +22405,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                    "lane": 1
+                    "lane": 105
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                        "lane": 1
+                        "lane": 97
                       },
                       "z": {
                         "end": {
@@ -22460,7 +22460,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                      "lane": 1
+                      "lane": 105
                     },
                     "tx": {
                       "pre": 0,
@@ -22477,7 +22477,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                      "lane": 1
+                      "lane": 97
                     },
                     "tx": {
                       "pre": 0,
@@ -22509,13 +22509,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                    "lane": 2
+                    "lane": 106
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                        "lane": 2
+                        "lane": 98
                       },
                       "z": {
                         "end": {
@@ -22564,7 +22564,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                      "lane": 2
+                      "lane": 106
                     },
                     "tx": {
                       "pre": 0,
@@ -22581,7 +22581,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                      "lane": 2
+                      "lane": 98
                     },
                     "tx": {
                       "pre": 0,
@@ -22613,13 +22613,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                    "lane": 3
+                    "lane": 107
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                        "lane": 3
+                        "lane": 99
                       },
                       "z": {
                         "end": {
@@ -22668,7 +22668,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                      "lane": 3
+                      "lane": 107
                     },
                     "tx": {
                       "pre": 0,
@@ -22685,7 +22685,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                      "lane": 3
+                      "lane": 99
                     },
                     "tx": {
                       "pre": 0,
@@ -22717,13 +22717,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                    "lane": 4
+                    "lane": 108
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                        "lane": 4
+                        "lane": 100
                       },
                       "z": {
                         "end": {
@@ -22772,7 +22772,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                      "lane": 4
+                      "lane": 108
                     },
                     "tx": {
                       "pre": 0,
@@ -22789,7 +22789,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                      "lane": 4
+                      "lane": 100
                     },
                     "tx": {
                       "pre": 0,
@@ -22821,13 +22821,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                    "lane": 5
+                    "lane": 109
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                        "lane": 5
+                        "lane": 101
                       },
                       "z": {
                         "end": {
@@ -22876,7 +22876,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                      "lane": 5
+                      "lane": 109
                     },
                     "tx": {
                       "pre": 0,
@@ -22893,7 +22893,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                      "lane": 5
+                      "lane": 101
                     },
                     "tx": {
                       "pre": 0,
@@ -22925,13 +22925,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                    "lane": 6
+                    "lane": 110
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                        "lane": 6
+                        "lane": 102
                       },
                       "z": {
                         "end": {
@@ -22980,7 +22980,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                      "lane": 6
+                      "lane": 110
                     },
                     "tx": {
                       "pre": 0,
@@ -22997,7 +22997,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                      "lane": 6
+                      "lane": 102
                     },
                     "tx": {
                       "pre": 0,
@@ -23029,13 +23029,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                    "lane": 7
+                    "lane": 111
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                        "lane": 7
+                        "lane": 103
                       },
                       "z": {
                         "end": {
@@ -23084,7 +23084,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip7/core0",
-                      "lane": 7
+                      "lane": 111
                     },
                     "tx": {
                       "pre": 0,
@@ -23101,7 +23101,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip7/core0",
-                      "lane": 7
+                      "lane": 103
                     },
                     "tx": {
                       "pre": 0,
@@ -23133,13 +23133,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                    "lane": 0
+                    "lane": 120
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                        "lane": 0
+                        "lane": 112
                       },
                       "z": {
                         "end": {
@@ -23188,7 +23188,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                      "lane": 0
+                      "lane": 120
                     },
                     "tx": {
                       "pre": 0,
@@ -23205,7 +23205,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                      "lane": 0
+                      "lane": 112
                     },
                     "tx": {
                       "pre": 0,
@@ -23237,13 +23237,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                    "lane": 1
+                    "lane": 121
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                        "lane": 1
+                        "lane": 113
                       },
                       "z": {
                         "end": {
@@ -23292,7 +23292,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                      "lane": 1
+                      "lane": 121
                     },
                     "tx": {
                       "pre": 0,
@@ -23309,7 +23309,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                      "lane": 1
+                      "lane": 113
                     },
                     "tx": {
                       "pre": 0,
@@ -23341,13 +23341,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                    "lane": 2
+                    "lane": 122
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                        "lane": 2
+                        "lane": 114
                       },
                       "z": {
                         "end": {
@@ -23396,7 +23396,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                      "lane": 2
+                      "lane": 122
                     },
                     "tx": {
                       "pre": 0,
@@ -23413,7 +23413,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                      "lane": 2
+                      "lane": 114
                     },
                     "tx": {
                       "pre": 0,
@@ -23445,13 +23445,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                    "lane": 3
+                    "lane": 123
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                        "lane": 3
+                        "lane": 115
                       },
                       "z": {
                         "end": {
@@ -23500,7 +23500,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                      "lane": 3
+                      "lane": 123
                     },
                     "tx": {
                       "pre": 0,
@@ -23517,7 +23517,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                      "lane": 3
+                      "lane": 115
                     },
                     "tx": {
                       "pre": 0,
@@ -23549,13 +23549,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                    "lane": 4
+                    "lane": 124
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                        "lane": 4
+                        "lane": 116
                       },
                       "z": {
                         "end": {
@@ -23604,7 +23604,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                      "lane": 4
+                      "lane": 124
                     },
                     "tx": {
                       "pre": 0,
@@ -23621,7 +23621,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                      "lane": 4
+                      "lane": 116
                     },
                     "tx": {
                       "pre": 0,
@@ -23653,13 +23653,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                    "lane": 5
+                    "lane": 125
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                        "lane": 5
+                        "lane": 117
                       },
                       "z": {
                         "end": {
@@ -23708,7 +23708,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                      "lane": 5
+                      "lane": 125
                     },
                     "tx": {
                       "pre": 0,
@@ -23725,7 +23725,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                      "lane": 5
+                      "lane": 117
                     },
                     "tx": {
                       "pre": 0,
@@ -23757,13 +23757,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                    "lane": 6
+                    "lane": 126
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                        "lane": 6
+                        "lane": 118
                       },
                       "z": {
                         "end": {
@@ -23812,7 +23812,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                      "lane": 6
+                      "lane": 126
                     },
                     "tx": {
                       "pre": 0,
@@ -23829,7 +23829,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                      "lane": 6
+                      "lane": 118
                     },
                     "tx": {
                       "pre": 0,
@@ -23861,13 +23861,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                    "lane": 7
+                    "lane": 127
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                        "lane": 7
+                        "lane": 119
                       },
                       "z": {
                         "end": {
@@ -23916,7 +23916,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip8/core0",
-                      "lane": 7
+                      "lane": 127
                     },
                     "tx": {
                       "pre": 0,
@@ -23933,7 +23933,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip8/core0",
-                      "lane": 7
+                      "lane": 119
                     },
                     "tx": {
                       "pre": 0,
@@ -23965,13 +23965,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                    "lane": 0
+                    "lane": 136
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                        "lane": 0
+                        "lane": 128
                       },
                       "z": {
                         "end": {
@@ -24020,7 +24020,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                      "lane": 0
+                      "lane": 136
                     },
                     "tx": {
                       "pre": 0,
@@ -24037,7 +24037,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                      "lane": 0
+                      "lane": 128
                     },
                     "tx": {
                       "pre": 0,
@@ -24069,13 +24069,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                    "lane": 1
+                    "lane": 137
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                        "lane": 1
+                        "lane": 129
                       },
                       "z": {
                         "end": {
@@ -24124,7 +24124,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                      "lane": 1
+                      "lane": 137
                     },
                     "tx": {
                       "pre": 0,
@@ -24141,7 +24141,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                      "lane": 1
+                      "lane": 129
                     },
                     "tx": {
                       "pre": 0,
@@ -24173,13 +24173,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                    "lane": 2
+                    "lane": 138
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                        "lane": 2
+                        "lane": 130
                       },
                       "z": {
                         "end": {
@@ -24228,7 +24228,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                      "lane": 2
+                      "lane": 138
                     },
                     "tx": {
                       "pre": 0,
@@ -24245,7 +24245,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                      "lane": 2
+                      "lane": 130
                     },
                     "tx": {
                       "pre": 0,
@@ -24277,13 +24277,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                    "lane": 3
+                    "lane": 139
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                        "lane": 3
+                        "lane": 131
                       },
                       "z": {
                         "end": {
@@ -24332,7 +24332,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                      "lane": 3
+                      "lane": 139
                     },
                     "tx": {
                       "pre": 0,
@@ -24349,7 +24349,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                      "lane": 3
+                      "lane": 131
                     },
                     "tx": {
                       "pre": 0,
@@ -24381,13 +24381,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                    "lane": 4
+                    "lane": 140
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                        "lane": 4
+                        "lane": 132
                       },
                       "z": {
                         "end": {
@@ -24436,7 +24436,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                      "lane": 4
+                      "lane": 140
                     },
                     "tx": {
                       "pre": 0,
@@ -24453,7 +24453,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                      "lane": 4
+                      "lane": 132
                     },
                     "tx": {
                       "pre": 0,
@@ -24485,13 +24485,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                    "lane": 5
+                    "lane": 141
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                        "lane": 5
+                        "lane": 133
                       },
                       "z": {
                         "end": {
@@ -24540,7 +24540,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                      "lane": 5
+                      "lane": 141
                     },
                     "tx": {
                       "pre": 0,
@@ -24557,7 +24557,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                      "lane": 5
+                      "lane": 133
                     },
                     "tx": {
                       "pre": 0,
@@ -24589,13 +24589,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                    "lane": 6
+                    "lane": 142
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                        "lane": 6
+                        "lane": 134
                       },
                       "z": {
                         "end": {
@@ -24644,7 +24644,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                      "lane": 6
+                      "lane": 142
                     },
                     "tx": {
                       "pre": 0,
@@ -24661,7 +24661,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                      "lane": 6
+                      "lane": 134
                     },
                     "tx": {
                       "pre": 0,
@@ -24693,13 +24693,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                    "lane": 7
+                    "lane": 143
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                        "lane": 7
+                        "lane": 135
                       },
                       "z": {
                         "end": {
@@ -24748,7 +24748,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip9/core0",
-                      "lane": 7
+                      "lane": 143
                     },
                     "tx": {
                       "pre": 0,
@@ -24765,7 +24765,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip9/core0",
-                      "lane": 7
+                      "lane": 135
                     },
                     "tx": {
                       "pre": 0,
@@ -24797,13 +24797,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                    "lane": 0
+                    "lane": 152
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                        "lane": 0
+                        "lane": 144
                       },
                       "z": {
                         "end": {
@@ -24852,7 +24852,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                      "lane": 0
+                      "lane": 152
                     },
                     "tx": {
                       "pre": 0,
@@ -24869,7 +24869,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                      "lane": 0
+                      "lane": 144
                     },
                     "tx": {
                       "pre": 0,
@@ -24901,13 +24901,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                    "lane": 1
+                    "lane": 153
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                        "lane": 1
+                        "lane": 145
                       },
                       "z": {
                         "end": {
@@ -24956,7 +24956,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                      "lane": 1
+                      "lane": 153
                     },
                     "tx": {
                       "pre": 0,
@@ -24973,7 +24973,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                      "lane": 1
+                      "lane": 145
                     },
                     "tx": {
                       "pre": 0,
@@ -25005,13 +25005,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                    "lane": 2
+                    "lane": 154
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                        "lane": 2
+                        "lane": 146
                       },
                       "z": {
                         "end": {
@@ -25060,7 +25060,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                      "lane": 2
+                      "lane": 154
                     },
                     "tx": {
                       "pre": 0,
@@ -25077,7 +25077,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                      "lane": 2
+                      "lane": 146
                     },
                     "tx": {
                       "pre": 0,
@@ -25109,13 +25109,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                    "lane": 3
+                    "lane": 155
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                        "lane": 3
+                        "lane": 147
                       },
                       "z": {
                         "end": {
@@ -25164,7 +25164,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                      "lane": 3
+                      "lane": 155
                     },
                     "tx": {
                       "pre": 0,
@@ -25181,7 +25181,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                      "lane": 3
+                      "lane": 147
                     },
                     "tx": {
                       "pre": 0,
@@ -25213,13 +25213,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                    "lane": 4
+                    "lane": 156
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                        "lane": 4
+                        "lane": 148
                       },
                       "z": {
                         "end": {
@@ -25268,7 +25268,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                      "lane": 4
+                      "lane": 156
                     },
                     "tx": {
                       "pre": 0,
@@ -25285,7 +25285,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                      "lane": 4
+                      "lane": 148
                     },
                     "tx": {
                       "pre": 0,
@@ -25317,13 +25317,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                    "lane": 5
+                    "lane": 157
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                        "lane": 5
+                        "lane": 149
                       },
                       "z": {
                         "end": {
@@ -25372,7 +25372,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                      "lane": 5
+                      "lane": 157
                     },
                     "tx": {
                       "pre": 0,
@@ -25389,7 +25389,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                      "lane": 5
+                      "lane": 149
                     },
                     "tx": {
                       "pre": 0,
@@ -25421,13 +25421,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                    "lane": 6
+                    "lane": 158
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                        "lane": 6
+                        "lane": 150
                       },
                       "z": {
                         "end": {
@@ -25476,7 +25476,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                      "lane": 6
+                      "lane": 158
                     },
                     "tx": {
                       "pre": 0,
@@ -25493,7 +25493,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                      "lane": 6
+                      "lane": 150
                     },
                     "tx": {
                       "pre": 0,
@@ -25525,13 +25525,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                    "lane": 7
+                    "lane": 159
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                        "lane": 7
+                        "lane": 151
                       },
                       "z": {
                         "end": {
@@ -25580,7 +25580,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip10/core0",
-                      "lane": 7
+                      "lane": 159
                     },
                     "tx": {
                       "pre": 0,
@@ -25597,7 +25597,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip10/core0",
-                      "lane": 7
+                      "lane": 151
                     },
                     "tx": {
                       "pre": 0,
@@ -25629,13 +25629,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                    "lane": 0
+                    "lane": 168
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                        "lane": 0
+                        "lane": 160
                       },
                       "z": {
                         "end": {
@@ -25684,7 +25684,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                      "lane": 0
+                      "lane": 168
                     },
                     "tx": {
                       "pre": 0,
@@ -25701,7 +25701,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                      "lane": 0
+                      "lane": 160
                     },
                     "tx": {
                       "pre": 0,
@@ -25733,13 +25733,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                    "lane": 1
+                    "lane": 169
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                        "lane": 1
+                        "lane": 161
                       },
                       "z": {
                         "end": {
@@ -25788,7 +25788,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                      "lane": 1
+                      "lane": 169
                     },
                     "tx": {
                       "pre": 0,
@@ -25805,7 +25805,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                      "lane": 1
+                      "lane": 161
                     },
                     "tx": {
                       "pre": 0,
@@ -25837,13 +25837,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                    "lane": 2
+                    "lane": 170
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                        "lane": 2
+                        "lane": 162
                       },
                       "z": {
                         "end": {
@@ -25892,7 +25892,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                      "lane": 2
+                      "lane": 170
                     },
                     "tx": {
                       "pre": 0,
@@ -25909,7 +25909,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                      "lane": 2
+                      "lane": 162
                     },
                     "tx": {
                       "pre": 0,
@@ -25941,13 +25941,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                    "lane": 3
+                    "lane": 171
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                        "lane": 3
+                        "lane": 163
                       },
                       "z": {
                         "end": {
@@ -25996,7 +25996,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                      "lane": 3
+                      "lane": 171
                     },
                     "tx": {
                       "pre": 0,
@@ -26013,7 +26013,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                      "lane": 3
+                      "lane": 163
                     },
                     "tx": {
                       "pre": 0,
@@ -26045,13 +26045,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                    "lane": 4
+                    "lane": 172
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                        "lane": 4
+                        "lane": 164
                       },
                       "z": {
                         "end": {
@@ -26100,7 +26100,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                      "lane": 4
+                      "lane": 172
                     },
                     "tx": {
                       "pre": 0,
@@ -26117,7 +26117,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                      "lane": 4
+                      "lane": 164
                     },
                     "tx": {
                       "pre": 0,
@@ -26149,13 +26149,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                    "lane": 5
+                    "lane": 173
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                        "lane": 5
+                        "lane": 165
                       },
                       "z": {
                         "end": {
@@ -26204,7 +26204,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                      "lane": 5
+                      "lane": 173
                     },
                     "tx": {
                       "pre": 0,
@@ -26221,7 +26221,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                      "lane": 5
+                      "lane": 165
                     },
                     "tx": {
                       "pre": 0,
@@ -26253,13 +26253,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                    "lane": 6
+                    "lane": 174
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                        "lane": 6
+                        "lane": 166
                       },
                       "z": {
                         "end": {
@@ -26308,7 +26308,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                      "lane": 6
+                      "lane": 174
                     },
                     "tx": {
                       "pre": 0,
@@ -26325,7 +26325,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                      "lane": 6
+                      "lane": 166
                     },
                     "tx": {
                       "pre": 0,
@@ -26357,13 +26357,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                    "lane": 7
+                    "lane": 175
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                        "lane": 7
+                        "lane": 167
                       },
                       "z": {
                         "end": {
@@ -26412,7 +26412,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip11/core0",
-                      "lane": 7
+                      "lane": 175
                     },
                     "tx": {
                       "pre": 0,
@@ -26429,7 +26429,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip11/core0",
-                      "lane": 7
+                      "lane": 167
                     },
                     "tx": {
                       "pre": 0,
@@ -26461,13 +26461,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                    "lane": 0
+                    "lane": 184
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                        "lane": 0
+                        "lane": 176
                       },
                       "z": {
                         "end": {
@@ -26516,7 +26516,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                      "lane": 0
+                      "lane": 184
                     },
                     "tx": {
                       "pre": 0,
@@ -26533,7 +26533,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                      "lane": 0
+                      "lane": 176
                     },
                     "tx": {
                       "pre": 0,
@@ -26565,13 +26565,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                    "lane": 1
+                    "lane": 185
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                        "lane": 1
+                        "lane": 177
                       },
                       "z": {
                         "end": {
@@ -26620,7 +26620,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                      "lane": 1
+                      "lane": 185
                     },
                     "tx": {
                       "pre": 0,
@@ -26637,7 +26637,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                      "lane": 1
+                      "lane": 177
                     },
                     "tx": {
                       "pre": 0,
@@ -26669,13 +26669,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                    "lane": 2
+                    "lane": 186
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                        "lane": 2
+                        "lane": 178
                       },
                       "z": {
                         "end": {
@@ -26724,7 +26724,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                      "lane": 2
+                      "lane": 186
                     },
                     "tx": {
                       "pre": 0,
@@ -26741,7 +26741,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                      "lane": 2
+                      "lane": 178
                     },
                     "tx": {
                       "pre": 0,
@@ -26773,13 +26773,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                    "lane": 3
+                    "lane": 187
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                        "lane": 3
+                        "lane": 179
                       },
                       "z": {
                         "end": {
@@ -26828,7 +26828,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                      "lane": 3
+                      "lane": 187
                     },
                     "tx": {
                       "pre": 0,
@@ -26845,7 +26845,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                      "lane": 3
+                      "lane": 179
                     },
                     "tx": {
                       "pre": 0,
@@ -26877,13 +26877,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                    "lane": 4
+                    "lane": 188
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                        "lane": 4
+                        "lane": 180
                       },
                       "z": {
                         "end": {
@@ -26932,7 +26932,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                      "lane": 4
+                      "lane": 188
                     },
                     "tx": {
                       "pre": 0,
@@ -26949,7 +26949,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                      "lane": 4
+                      "lane": 180
                     },
                     "tx": {
                       "pre": 0,
@@ -26981,13 +26981,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                    "lane": 5
+                    "lane": 189
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                        "lane": 5
+                        "lane": 181
                       },
                       "z": {
                         "end": {
@@ -27036,7 +27036,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                      "lane": 5
+                      "lane": 189
                     },
                     "tx": {
                       "pre": 0,
@@ -27053,7 +27053,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                      "lane": 5
+                      "lane": 181
                     },
                     "tx": {
                       "pre": 0,
@@ -27085,13 +27085,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                    "lane": 6
+                    "lane": 190
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                        "lane": 6
+                        "lane": 182
                       },
                       "z": {
                         "end": {
@@ -27140,7 +27140,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                      "lane": 6
+                      "lane": 190
                     },
                     "tx": {
                       "pre": 0,
@@ -27157,7 +27157,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                      "lane": 6
+                      "lane": 182
                     },
                     "tx": {
                       "pre": 0,
@@ -27189,13 +27189,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                    "lane": 7
+                    "lane": 191
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                        "lane": 7
+                        "lane": 183
                       },
                       "z": {
                         "end": {
@@ -27244,7 +27244,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip12/core0",
-                      "lane": 7
+                      "lane": 191
                     },
                     "tx": {
                       "pre": 0,
@@ -27261,7 +27261,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip12/core0",
-                      "lane": 7
+                      "lane": 183
                     },
                     "tx": {
                       "pre": 0,
@@ -27293,13 +27293,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                    "lane": 0
+                    "lane": 200
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                        "lane": 0
+                        "lane": 192
                       },
                       "z": {
                         "end": {
@@ -27348,7 +27348,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                      "lane": 0
+                      "lane": 200
                     },
                     "tx": {
                       "pre": 0,
@@ -27365,7 +27365,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                      "lane": 0
+                      "lane": 192
                     },
                     "tx": {
                       "pre": 0,
@@ -27397,13 +27397,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                    "lane": 1
+                    "lane": 201
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                        "lane": 1
+                        "lane": 193
                       },
                       "z": {
                         "end": {
@@ -27452,7 +27452,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                      "lane": 1
+                      "lane": 201
                     },
                     "tx": {
                       "pre": 0,
@@ -27469,7 +27469,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                      "lane": 1
+                      "lane": 193
                     },
                     "tx": {
                       "pre": 0,
@@ -27501,13 +27501,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                    "lane": 2
+                    "lane": 202
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                        "lane": 2
+                        "lane": 194
                       },
                       "z": {
                         "end": {
@@ -27556,7 +27556,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                      "lane": 2
+                      "lane": 202
                     },
                     "tx": {
                       "pre": 0,
@@ -27573,7 +27573,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                      "lane": 2
+                      "lane": 194
                     },
                     "tx": {
                       "pre": 0,
@@ -27605,13 +27605,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                    "lane": 3
+                    "lane": 203
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                        "lane": 3
+                        "lane": 195
                       },
                       "z": {
                         "end": {
@@ -27660,7 +27660,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                      "lane": 3
+                      "lane": 203
                     },
                     "tx": {
                       "pre": 0,
@@ -27677,7 +27677,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                      "lane": 3
+                      "lane": 195
                     },
                     "tx": {
                       "pre": 0,
@@ -27709,13 +27709,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                    "lane": 4
+                    "lane": 204
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                        "lane": 4
+                        "lane": 196
                       },
                       "z": {
                         "end": {
@@ -27764,7 +27764,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                      "lane": 4
+                      "lane": 204
                     },
                     "tx": {
                       "pre": 0,
@@ -27781,7 +27781,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                      "lane": 4
+                      "lane": 196
                     },
                     "tx": {
                       "pre": 0,
@@ -27813,13 +27813,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                    "lane": 5
+                    "lane": 205
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                        "lane": 5
+                        "lane": 197
                       },
                       "z": {
                         "end": {
@@ -27868,7 +27868,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                      "lane": 5
+                      "lane": 205
                     },
                     "tx": {
                       "pre": 0,
@@ -27885,7 +27885,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                      "lane": 5
+                      "lane": 197
                     },
                     "tx": {
                       "pre": 0,
@@ -27917,13 +27917,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                    "lane": 6
+                    "lane": 206
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                        "lane": 6
+                        "lane": 198
                       },
                       "z": {
                         "end": {
@@ -27972,7 +27972,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                      "lane": 6
+                      "lane": 206
                     },
                     "tx": {
                       "pre": 0,
@@ -27989,7 +27989,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                      "lane": 6
+                      "lane": 198
                     },
                     "tx": {
                       "pre": 0,
@@ -28021,13 +28021,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                    "lane": 7
+                    "lane": 207
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                        "lane": 7
+                        "lane": 199
                       },
                       "z": {
                         "end": {
@@ -28076,7 +28076,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip13/core0",
-                      "lane": 7
+                      "lane": 207
                     },
                     "tx": {
                       "pre": 0,
@@ -28093,7 +28093,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip13/core0",
-                      "lane": 7
+                      "lane": 199
                     },
                     "tx": {
                       "pre": 0,
@@ -28125,13 +28125,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                    "lane": 0
+                    "lane": 216
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                        "lane": 0
+                        "lane": 208
                       },
                       "z": {
                         "end": {
@@ -28180,7 +28180,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                      "lane": 0
+                      "lane": 216
                     },
                     "tx": {
                       "pre": 0,
@@ -28197,7 +28197,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                      "lane": 0
+                      "lane": 208
                     },
                     "tx": {
                       "pre": 0,
@@ -28229,13 +28229,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                    "lane": 1
+                    "lane": 217
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                        "lane": 1
+                        "lane": 209
                       },
                       "z": {
                         "end": {
@@ -28284,7 +28284,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                      "lane": 1
+                      "lane": 217
                     },
                     "tx": {
                       "pre": 0,
@@ -28301,7 +28301,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                      "lane": 1
+                      "lane": 209
                     },
                     "tx": {
                       "pre": 0,
@@ -28333,13 +28333,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                    "lane": 2
+                    "lane": 218
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                        "lane": 2
+                        "lane": 210
                       },
                       "z": {
                         "end": {
@@ -28388,7 +28388,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                      "lane": 2
+                      "lane": 218
                     },
                     "tx": {
                       "pre": 0,
@@ -28405,7 +28405,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                      "lane": 2
+                      "lane": 210
                     },
                     "tx": {
                       "pre": 0,
@@ -28437,13 +28437,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                    "lane": 3
+                    "lane": 219
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                        "lane": 3
+                        "lane": 211
                       },
                       "z": {
                         "end": {
@@ -28492,7 +28492,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                      "lane": 3
+                      "lane": 219
                     },
                     "tx": {
                       "pre": 0,
@@ -28509,7 +28509,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                      "lane": 3
+                      "lane": 211
                     },
                     "tx": {
                       "pre": 0,
@@ -28541,13 +28541,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                    "lane": 4
+                    "lane": 220
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                        "lane": 4
+                        "lane": 212
                       },
                       "z": {
                         "end": {
@@ -28596,7 +28596,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                      "lane": 4
+                      "lane": 220
                     },
                     "tx": {
                       "pre": 0,
@@ -28613,7 +28613,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                      "lane": 4
+                      "lane": 212
                     },
                     "tx": {
                       "pre": 0,
@@ -28645,13 +28645,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                    "lane": 5
+                    "lane": 221
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                        "lane": 5
+                        "lane": 213
                       },
                       "z": {
                         "end": {
@@ -28700,7 +28700,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                      "lane": 5
+                      "lane": 221
                     },
                     "tx": {
                       "pre": 0,
@@ -28717,7 +28717,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                      "lane": 5
+                      "lane": 213
                     },
                     "tx": {
                       "pre": 0,
@@ -28749,13 +28749,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                    "lane": 6
+                    "lane": 222
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                        "lane": 6
+                        "lane": 214
                       },
                       "z": {
                         "end": {
@@ -28804,7 +28804,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                      "lane": 6
+                      "lane": 222
                     },
                     "tx": {
                       "pre": 0,
@@ -28821,7 +28821,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                      "lane": 6
+                      "lane": 214
                     },
                     "tx": {
                       "pre": 0,
@@ -28853,13 +28853,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                    "lane": 7
+                    "lane": 223
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                        "lane": 7
+                        "lane": 215
                       },
                       "z": {
                         "end": {
@@ -28908,7 +28908,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip14/core0",
-                      "lane": 7
+                      "lane": 223
                     },
                     "tx": {
                       "pre": 0,
@@ -28925,7 +28925,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip14/core0",
-                      "lane": 7
+                      "lane": 215
                     },
                     "tx": {
                       "pre": 0,
@@ -28957,13 +28957,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                    "lane": 0
+                    "lane": 232
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                        "lane": 0
+                        "lane": 224
                       },
                       "z": {
                         "end": {
@@ -29012,7 +29012,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                      "lane": 0
+                      "lane": 232
                     },
                     "tx": {
                       "pre": 0,
@@ -29029,7 +29029,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                      "lane": 0
+                      "lane": 224
                     },
                     "tx": {
                       "pre": 0,
@@ -29061,13 +29061,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                    "lane": 1
+                    "lane": 233
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                        "lane": 1
+                        "lane": 225
                       },
                       "z": {
                         "end": {
@@ -29116,7 +29116,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                      "lane": 1
+                      "lane": 233
                     },
                     "tx": {
                       "pre": 0,
@@ -29133,7 +29133,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                      "lane": 1
+                      "lane": 225
                     },
                     "tx": {
                       "pre": 0,
@@ -29165,13 +29165,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                    "lane": 2
+                    "lane": 234
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                        "lane": 2
+                        "lane": 226
                       },
                       "z": {
                         "end": {
@@ -29220,7 +29220,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                      "lane": 2
+                      "lane": 234
                     },
                     "tx": {
                       "pre": 0,
@@ -29237,7 +29237,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                      "lane": 2
+                      "lane": 226
                     },
                     "tx": {
                       "pre": 0,
@@ -29269,13 +29269,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                    "lane": 3
+                    "lane": 235
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                        "lane": 3
+                        "lane": 227
                       },
                       "z": {
                         "end": {
@@ -29324,7 +29324,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                      "lane": 3
+                      "lane": 235
                     },
                     "tx": {
                       "pre": 0,
@@ -29341,7 +29341,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                      "lane": 3
+                      "lane": 227
                     },
                     "tx": {
                       "pre": 0,
@@ -29373,13 +29373,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                    "lane": 4
+                    "lane": 236
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                        "lane": 4
+                        "lane": 228
                       },
                       "z": {
                         "end": {
@@ -29428,7 +29428,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                      "lane": 4
+                      "lane": 236
                     },
                     "tx": {
                       "pre": 0,
@@ -29445,7 +29445,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                      "lane": 4
+                      "lane": 228
                     },
                     "tx": {
                       "pre": 0,
@@ -29477,13 +29477,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                    "lane": 5
+                    "lane": 237
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                        "lane": 5
+                        "lane": 229
                       },
                       "z": {
                         "end": {
@@ -29532,7 +29532,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                      "lane": 5
+                      "lane": 237
                     },
                     "tx": {
                       "pre": 0,
@@ -29549,7 +29549,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                      "lane": 5
+                      "lane": 229
                     },
                     "tx": {
                       "pre": 0,
@@ -29581,13 +29581,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                    "lane": 6
+                    "lane": 238
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                        "lane": 6
+                        "lane": 230
                       },
                       "z": {
                         "end": {
@@ -29636,7 +29636,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                      "lane": 6
+                      "lane": 238
                     },
                     "tx": {
                       "pre": 0,
@@ -29653,7 +29653,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                      "lane": 6
+                      "lane": 230
                     },
                     "tx": {
                       "pre": 0,
@@ -29685,13 +29685,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                    "lane": 7
+                    "lane": 239
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                        "lane": 7
+                        "lane": 231
                       },
                       "z": {
                         "end": {
@@ -29740,7 +29740,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip15/core0",
-                      "lane": 7
+                      "lane": 239
                     },
                     "tx": {
                       "pre": 0,
@@ -29757,7 +29757,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip15/core0",
-                      "lane": 7
+                      "lane": 231
                     },
                     "tx": {
                       "pre": 0,
@@ -29789,13 +29789,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                    "lane": 0
+                    "lane": 248
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                        "lane": 0
+                        "lane": 240
                       },
                       "z": {
                         "end": {
@@ -29844,7 +29844,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                      "lane": 0
+                      "lane": 248
                     },
                     "tx": {
                       "pre": 0,
@@ -29861,7 +29861,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                      "lane": 0
+                      "lane": 240
                     },
                     "tx": {
                       "pre": 0,
@@ -29893,13 +29893,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                    "lane": 1
+                    "lane": 249
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                        "lane": 1
+                        "lane": 241
                       },
                       "z": {
                         "end": {
@@ -29948,7 +29948,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                      "lane": 1
+                      "lane": 249
                     },
                     "tx": {
                       "pre": 0,
@@ -29965,7 +29965,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                      "lane": 1
+                      "lane": 241
                     },
                     "tx": {
                       "pre": 0,
@@ -29997,13 +29997,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                    "lane": 2
+                    "lane": 250
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                        "lane": 2
+                        "lane": 242
                       },
                       "z": {
                         "end": {
@@ -30052,7 +30052,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                      "lane": 2
+                      "lane": 250
                     },
                     "tx": {
                       "pre": 0,
@@ -30069,7 +30069,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                      "lane": 2
+                      "lane": 242
                     },
                     "tx": {
                       "pre": 0,
@@ -30101,13 +30101,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                    "lane": 3
+                    "lane": 251
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                        "lane": 3
+                        "lane": 243
                       },
                       "z": {
                         "end": {
@@ -30156,7 +30156,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                      "lane": 3
+                      "lane": 251
                     },
                     "tx": {
                       "pre": 0,
@@ -30173,7 +30173,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                      "lane": 3
+                      "lane": 243
                     },
                     "tx": {
                       "pre": 0,
@@ -30205,13 +30205,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                    "lane": 4
+                    "lane": 252
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                        "lane": 4
+                        "lane": 244
                       },
                       "z": {
                         "end": {
@@ -30260,7 +30260,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                      "lane": 4
+                      "lane": 252
                     },
                     "tx": {
                       "pre": 0,
@@ -30277,7 +30277,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                      "lane": 4
+                      "lane": 244
                     },
                     "tx": {
                       "pre": 0,
@@ -30309,13 +30309,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                    "lane": 5
+                    "lane": 253
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                        "lane": 5
+                        "lane": 245
                       },
                       "z": {
                         "end": {
@@ -30364,7 +30364,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                      "lane": 5
+                      "lane": 253
                     },
                     "tx": {
                       "pre": 0,
@@ -30381,7 +30381,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                      "lane": 5
+                      "lane": 245
                     },
                     "tx": {
                       "pre": 0,
@@ -30413,13 +30413,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                    "lane": 6
+                    "lane": 254
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                        "lane": 6
+                        "lane": 246
                       },
                       "z": {
                         "end": {
@@ -30468,7 +30468,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                      "lane": 6
+                      "lane": 254
                     },
                     "tx": {
                       "pre": 0,
@@ -30485,7 +30485,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                      "lane": 6
+                      "lane": 246
                     },
                     "tx": {
                       "pre": 0,
@@ -30517,13 +30517,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                    "lane": 7
+                    "lane": 255
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                        "lane": 7
+                        "lane": 247
                       },
                       "z": {
                         "end": {
@@ -30572,7 +30572,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip16/core0",
-                      "lane": 7
+                      "lane": 255
                     },
                     "tx": {
                       "pre": 0,
@@ -30589,7 +30589,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip16/core0",
-                      "lane": 7
+                      "lane": 247
                     },
                     "tx": {
                       "pre": 0,
@@ -51594,13 +51594,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                    "lane": 0
+                    "lane": 264
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                        "lane": 0
+                        "lane": 256
                       },
                       "z": {
                         "end": {
@@ -51649,7 +51649,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                      "lane": 0
+                      "lane": 264
                     },
                     "tx": {
                       "pre": 0,
@@ -51666,7 +51666,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                      "lane": 0
+                      "lane": 256
                     },
                     "tx": {
                       "pre": 0,
@@ -51698,13 +51698,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                    "lane": 1
+                    "lane": 265
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                        "lane": 1
+                        "lane": 257
                       },
                       "z": {
                         "end": {
@@ -51753,7 +51753,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                      "lane": 1
+                      "lane": 265
                     },
                     "tx": {
                       "pre": 0,
@@ -51770,7 +51770,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                      "lane": 1
+                      "lane": 257
                     },
                     "tx": {
                       "pre": 0,
@@ -51802,13 +51802,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                    "lane": 2
+                    "lane": 266
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                        "lane": 2
+                        "lane": 258
                       },
                       "z": {
                         "end": {
@@ -51857,7 +51857,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                      "lane": 2
+                      "lane": 266
                     },
                     "tx": {
                       "pre": 0,
@@ -51874,7 +51874,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                      "lane": 2
+                      "lane": 258
                     },
                     "tx": {
                       "pre": 0,
@@ -51906,13 +51906,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                    "lane": 3
+                    "lane": 267
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                        "lane": 3
+                        "lane": 259
                       },
                       "z": {
                         "end": {
@@ -51961,7 +51961,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                      "lane": 3
+                      "lane": 267
                     },
                     "tx": {
                       "pre": 0,
@@ -51978,7 +51978,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                      "lane": 3
+                      "lane": 259
                     },
                     "tx": {
                       "pre": 0,
@@ -52010,13 +52010,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                    "lane": 4
+                    "lane": 268
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                        "lane": 4
+                        "lane": 260
                       },
                       "z": {
                         "end": {
@@ -52065,7 +52065,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                      "lane": 4
+                      "lane": 268
                     },
                     "tx": {
                       "pre": 0,
@@ -52082,7 +52082,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                      "lane": 4
+                      "lane": 260
                     },
                     "tx": {
                       "pre": 0,
@@ -52114,13 +52114,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                    "lane": 5
+                    "lane": 269
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                        "lane": 5
+                        "lane": 261
                       },
                       "z": {
                         "end": {
@@ -52169,7 +52169,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                      "lane": 5
+                      "lane": 269
                     },
                     "tx": {
                       "pre": 0,
@@ -52186,7 +52186,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                      "lane": 5
+                      "lane": 261
                     },
                     "tx": {
                       "pre": 0,
@@ -52218,13 +52218,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                    "lane": 6
+                    "lane": 270
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                        "lane": 6
+                        "lane": 262
                       },
                       "z": {
                         "end": {
@@ -52273,7 +52273,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                      "lane": 6
+                      "lane": 270
                     },
                     "tx": {
                       "pre": 0,
@@ -52290,7 +52290,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                      "lane": 6
+                      "lane": 262
                     },
                     "tx": {
                       "pre": 0,
@@ -52322,13 +52322,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                    "lane": 7
+                    "lane": 271
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                        "lane": 7
+                        "lane": 263
                       },
                       "z": {
                         "end": {
@@ -52377,7 +52377,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip17/core0",
-                      "lane": 7
+                      "lane": 271
                     },
                     "tx": {
                       "pre": 0,
@@ -52394,7 +52394,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip17/core0",
-                      "lane": 7
+                      "lane": 263
                     },
                     "tx": {
                       "pre": 0,
@@ -52426,13 +52426,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                    "lane": 0
+                    "lane": 280
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                        "lane": 0
+                        "lane": 272
                       },
                       "z": {
                         "end": {
@@ -52481,7 +52481,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                      "lane": 0
+                      "lane": 280
                     },
                     "tx": {
                       "pre": 0,
@@ -52498,7 +52498,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                      "lane": 0
+                      "lane": 272
                     },
                     "tx": {
                       "pre": 0,
@@ -52530,13 +52530,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                    "lane": 1
+                    "lane": 281
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                        "lane": 1
+                        "lane": 273
                       },
                       "z": {
                         "end": {
@@ -52585,7 +52585,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                      "lane": 1
+                      "lane": 281
                     },
                     "tx": {
                       "pre": 0,
@@ -52602,7 +52602,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                      "lane": 1
+                      "lane": 273
                     },
                     "tx": {
                       "pre": 0,
@@ -52634,13 +52634,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                    "lane": 2
+                    "lane": 282
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                        "lane": 2
+                        "lane": 274
                       },
                       "z": {
                         "end": {
@@ -52689,7 +52689,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                      "lane": 2
+                      "lane": 282
                     },
                     "tx": {
                       "pre": 0,
@@ -52706,7 +52706,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                      "lane": 2
+                      "lane": 274
                     },
                     "tx": {
                       "pre": 0,
@@ -52738,13 +52738,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                    "lane": 3
+                    "lane": 283
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                        "lane": 3
+                        "lane": 275
                       },
                       "z": {
                         "end": {
@@ -52793,7 +52793,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                      "lane": 3
+                      "lane": 283
                     },
                     "tx": {
                       "pre": 0,
@@ -52810,7 +52810,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                      "lane": 3
+                      "lane": 275
                     },
                     "tx": {
                       "pre": 0,
@@ -52842,13 +52842,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                    "lane": 4
+                    "lane": 284
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                        "lane": 4
+                        "lane": 276
                       },
                       "z": {
                         "end": {
@@ -52897,7 +52897,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                      "lane": 4
+                      "lane": 284
                     },
                     "tx": {
                       "pre": 0,
@@ -52914,7 +52914,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                      "lane": 4
+                      "lane": 276
                     },
                     "tx": {
                       "pre": 0,
@@ -52946,13 +52946,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                    "lane": 5
+                    "lane": 285
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                        "lane": 5
+                        "lane": 277
                       },
                       "z": {
                         "end": {
@@ -53001,7 +53001,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                      "lane": 5
+                      "lane": 285
                     },
                     "tx": {
                       "pre": 0,
@@ -53018,7 +53018,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                      "lane": 5
+                      "lane": 277
                     },
                     "tx": {
                       "pre": 0,
@@ -53050,13 +53050,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                    "lane": 6
+                    "lane": 286
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                        "lane": 6
+                        "lane": 278
                       },
                       "z": {
                         "end": {
@@ -53105,7 +53105,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                      "lane": 6
+                      "lane": 286
                     },
                     "tx": {
                       "pre": 0,
@@ -53122,7 +53122,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                      "lane": 6
+                      "lane": 278
                     },
                     "tx": {
                       "pre": 0,
@@ -53154,13 +53154,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                    "lane": 7
+                    "lane": 287
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                        "lane": 7
+                        "lane": 279
                       },
                       "z": {
                         "end": {
@@ -53209,7 +53209,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip18/core0",
-                      "lane": 7
+                      "lane": 287
                     },
                     "tx": {
                       "pre": 0,
@@ -53226,7 +53226,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip18/core0",
-                      "lane": 7
+                      "lane": 279
                     },
                     "tx": {
                       "pre": 0,
@@ -53258,13 +53258,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                    "lane": 0
+                    "lane": 296
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                        "lane": 0
+                        "lane": 288
                       },
                       "z": {
                         "end": {
@@ -53313,7 +53313,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                      "lane": 0
+                      "lane": 296
                     },
                     "tx": {
                       "pre": 0,
@@ -53330,7 +53330,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                      "lane": 0
+                      "lane": 288
                     },
                     "tx": {
                       "pre": 0,
@@ -53362,13 +53362,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                    "lane": 1
+                    "lane": 297
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                        "lane": 1
+                        "lane": 289
                       },
                       "z": {
                         "end": {
@@ -53417,7 +53417,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                      "lane": 1
+                      "lane": 297
                     },
                     "tx": {
                       "pre": 0,
@@ -53434,7 +53434,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                      "lane": 1
+                      "lane": 289
                     },
                     "tx": {
                       "pre": 0,
@@ -53466,13 +53466,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                    "lane": 2
+                    "lane": 298
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                        "lane": 2
+                        "lane": 290
                       },
                       "z": {
                         "end": {
@@ -53521,7 +53521,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                      "lane": 2
+                      "lane": 298
                     },
                     "tx": {
                       "pre": 0,
@@ -53538,7 +53538,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                      "lane": 2
+                      "lane": 290
                     },
                     "tx": {
                       "pre": 0,
@@ -53570,13 +53570,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                    "lane": 3
+                    "lane": 299
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                        "lane": 3
+                        "lane": 291
                       },
                       "z": {
                         "end": {
@@ -53625,7 +53625,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                      "lane": 3
+                      "lane": 299
                     },
                     "tx": {
                       "pre": 0,
@@ -53642,7 +53642,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                      "lane": 3
+                      "lane": 291
                     },
                     "tx": {
                       "pre": 0,
@@ -53674,13 +53674,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                    "lane": 4
+                    "lane": 300
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                        "lane": 4
+                        "lane": 292
                       },
                       "z": {
                         "end": {
@@ -53729,7 +53729,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                      "lane": 4
+                      "lane": 300
                     },
                     "tx": {
                       "pre": 0,
@@ -53746,7 +53746,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                      "lane": 4
+                      "lane": 292
                     },
                     "tx": {
                       "pre": 0,
@@ -53778,13 +53778,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                    "lane": 5
+                    "lane": 301
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                        "lane": 5
+                        "lane": 293
                       },
                       "z": {
                         "end": {
@@ -53833,7 +53833,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                      "lane": 5
+                      "lane": 301
                     },
                     "tx": {
                       "pre": 0,
@@ -53850,7 +53850,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                      "lane": 5
+                      "lane": 293
                     },
                     "tx": {
                       "pre": 0,
@@ -53882,13 +53882,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                    "lane": 6
+                    "lane": 302
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                        "lane": 6
+                        "lane": 294
                       },
                       "z": {
                         "end": {
@@ -53937,7 +53937,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                      "lane": 6
+                      "lane": 302
                     },
                     "tx": {
                       "pre": 0,
@@ -53954,7 +53954,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                      "lane": 6
+                      "lane": 294
                     },
                     "tx": {
                       "pre": 0,
@@ -53986,13 +53986,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                    "lane": 7
+                    "lane": 303
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                        "lane": 7
+                        "lane": 295
                       },
                       "z": {
                         "end": {
@@ -54041,7 +54041,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip19/core0",
-                      "lane": 7
+                      "lane": 303
                     },
                     "tx": {
                       "pre": 0,
@@ -54058,7 +54058,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip19/core0",
-                      "lane": 7
+                      "lane": 295
                     },
                     "tx": {
                       "pre": 0,
@@ -54090,13 +54090,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                    "lane": 0
+                    "lane": 312
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                        "lane": 0
+                        "lane": 304
                       },
                       "z": {
                         "end": {
@@ -54145,7 +54145,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                      "lane": 0
+                      "lane": 312
                     },
                     "tx": {
                       "pre": 0,
@@ -54162,7 +54162,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                      "lane": 0
+                      "lane": 304
                     },
                     "tx": {
                       "pre": 0,
@@ -54194,13 +54194,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                    "lane": 1
+                    "lane": 313
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                        "lane": 1
+                        "lane": 305
                       },
                       "z": {
                         "end": {
@@ -54249,7 +54249,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                      "lane": 1
+                      "lane": 313
                     },
                     "tx": {
                       "pre": 0,
@@ -54266,7 +54266,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                      "lane": 1
+                      "lane": 305
                     },
                     "tx": {
                       "pre": 0,
@@ -54298,13 +54298,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                    "lane": 2
+                    "lane": 314
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                        "lane": 2
+                        "lane": 306
                       },
                       "z": {
                         "end": {
@@ -54353,7 +54353,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                      "lane": 2
+                      "lane": 314
                     },
                     "tx": {
                       "pre": 0,
@@ -54370,7 +54370,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                      "lane": 2
+                      "lane": 306
                     },
                     "tx": {
                       "pre": 0,
@@ -54402,13 +54402,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                    "lane": 3
+                    "lane": 315
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                        "lane": 3
+                        "lane": 307
                       },
                       "z": {
                         "end": {
@@ -54457,7 +54457,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                      "lane": 3
+                      "lane": 315
                     },
                     "tx": {
                       "pre": 0,
@@ -54474,7 +54474,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                      "lane": 3
+                      "lane": 307
                     },
                     "tx": {
                       "pre": 0,
@@ -54506,13 +54506,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                    "lane": 4
+                    "lane": 316
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                        "lane": 4
+                        "lane": 308
                       },
                       "z": {
                         "end": {
@@ -54561,7 +54561,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                      "lane": 4
+                      "lane": 316
                     },
                     "tx": {
                       "pre": 0,
@@ -54578,7 +54578,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                      "lane": 4
+                      "lane": 308
                     },
                     "tx": {
                       "pre": 0,
@@ -54610,13 +54610,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                    "lane": 5
+                    "lane": 317
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                        "lane": 5
+                        "lane": 309
                       },
                       "z": {
                         "end": {
@@ -54665,7 +54665,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                      "lane": 5
+                      "lane": 317
                     },
                     "tx": {
                       "pre": 0,
@@ -54682,7 +54682,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                      "lane": 5
+                      "lane": 309
                     },
                     "tx": {
                       "pre": 0,
@@ -54714,13 +54714,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                    "lane": 6
+                    "lane": 318
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                        "lane": 6
+                        "lane": 310
                       },
                       "z": {
                         "end": {
@@ -54769,7 +54769,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                      "lane": 6
+                      "lane": 318
                     },
                     "tx": {
                       "pre": 0,
@@ -54786,7 +54786,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                      "lane": 6
+                      "lane": 310
                     },
                     "tx": {
                       "pre": 0,
@@ -54818,13 +54818,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                    "lane": 7
+                    "lane": 319
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                        "lane": 7
+                        "lane": 311
                       },
                       "z": {
                         "end": {
@@ -54873,7 +54873,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip20/core0",
-                      "lane": 7
+                      "lane": 319
                     },
                     "tx": {
                       "pre": 0,
@@ -54890,7 +54890,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip20/core0",
-                      "lane": 7
+                      "lane": 311
                     },
                     "tx": {
                       "pre": 0,
@@ -54922,13 +54922,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                    "lane": 0
+                    "lane": 328
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                        "lane": 0
+                        "lane": 320
                       },
                       "z": {
                         "end": {
@@ -54977,7 +54977,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                      "lane": 0
+                      "lane": 328
                     },
                     "tx": {
                       "pre": 0,
@@ -54994,7 +54994,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                      "lane": 0
+                      "lane": 320
                     },
                     "tx": {
                       "pre": 0,
@@ -55026,13 +55026,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                    "lane": 1
+                    "lane": 329
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                        "lane": 1
+                        "lane": 321
                       },
                       "z": {
                         "end": {
@@ -55081,7 +55081,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                      "lane": 1
+                      "lane": 329
                     },
                     "tx": {
                       "pre": 0,
@@ -55098,7 +55098,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                      "lane": 1
+                      "lane": 321
                     },
                     "tx": {
                       "pre": 0,
@@ -55130,13 +55130,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                    "lane": 2
+                    "lane": 330
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                        "lane": 2
+                        "lane": 322
                       },
                       "z": {
                         "end": {
@@ -55185,7 +55185,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                      "lane": 2
+                      "lane": 330
                     },
                     "tx": {
                       "pre": 0,
@@ -55202,7 +55202,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                      "lane": 2
+                      "lane": 322
                     },
                     "tx": {
                       "pre": 0,
@@ -55234,13 +55234,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                    "lane": 3
+                    "lane": 331
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                        "lane": 3
+                        "lane": 323
                       },
                       "z": {
                         "end": {
@@ -55289,7 +55289,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                      "lane": 3
+                      "lane": 331
                     },
                     "tx": {
                       "pre": 0,
@@ -55306,7 +55306,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                      "lane": 3
+                      "lane": 323
                     },
                     "tx": {
                       "pre": 0,
@@ -55338,13 +55338,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                    "lane": 4
+                    "lane": 332
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                        "lane": 4
+                        "lane": 324
                       },
                       "z": {
                         "end": {
@@ -55393,7 +55393,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                      "lane": 4
+                      "lane": 332
                     },
                     "tx": {
                       "pre": 0,
@@ -55410,7 +55410,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                      "lane": 4
+                      "lane": 324
                     },
                     "tx": {
                       "pre": 0,
@@ -55442,13 +55442,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                    "lane": 5
+                    "lane": 333
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                        "lane": 5
+                        "lane": 325
                       },
                       "z": {
                         "end": {
@@ -55497,7 +55497,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                      "lane": 5
+                      "lane": 333
                     },
                     "tx": {
                       "pre": 0,
@@ -55514,7 +55514,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                      "lane": 5
+                      "lane": 325
                     },
                     "tx": {
                       "pre": 0,
@@ -55546,13 +55546,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                    "lane": 6
+                    "lane": 334
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                        "lane": 6
+                        "lane": 326
                       },
                       "z": {
                         "end": {
@@ -55601,7 +55601,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                      "lane": 6
+                      "lane": 334
                     },
                     "tx": {
                       "pre": 0,
@@ -55618,7 +55618,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                      "lane": 6
+                      "lane": 326
                     },
                     "tx": {
                       "pre": 0,
@@ -55650,13 +55650,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                    "lane": 7
+                    "lane": 335
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                        "lane": 7
+                        "lane": 327
                       },
                       "z": {
                         "end": {
@@ -55705,7 +55705,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip21/core0",
-                      "lane": 7
+                      "lane": 335
                     },
                     "tx": {
                       "pre": 0,
@@ -55722,7 +55722,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip21/core0",
-                      "lane": 7
+                      "lane": 327
                     },
                     "tx": {
                       "pre": 0,
@@ -55754,13 +55754,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                    "lane": 0
+                    "lane": 344
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                        "lane": 0
+                        "lane": 336
                       },
                       "z": {
                         "end": {
@@ -55809,7 +55809,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                      "lane": 0
+                      "lane": 344
                     },
                     "tx": {
                       "pre": 0,
@@ -55826,7 +55826,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                      "lane": 0
+                      "lane": 336
                     },
                     "tx": {
                       "pre": 0,
@@ -55858,13 +55858,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                    "lane": 1
+                    "lane": 345
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                        "lane": 1
+                        "lane": 337
                       },
                       "z": {
                         "end": {
@@ -55913,7 +55913,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                      "lane": 1
+                      "lane": 345
                     },
                     "tx": {
                       "pre": 0,
@@ -55930,7 +55930,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                      "lane": 1
+                      "lane": 337
                     },
                     "tx": {
                       "pre": 0,
@@ -55962,13 +55962,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                    "lane": 2
+                    "lane": 346
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                        "lane": 2
+                        "lane": 338
                       },
                       "z": {
                         "end": {
@@ -56017,7 +56017,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                      "lane": 2
+                      "lane": 346
                     },
                     "tx": {
                       "pre": 0,
@@ -56034,7 +56034,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                      "lane": 2
+                      "lane": 338
                     },
                     "tx": {
                       "pre": 0,
@@ -56066,13 +56066,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                    "lane": 3
+                    "lane": 347
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                        "lane": 3
+                        "lane": 339
                       },
                       "z": {
                         "end": {
@@ -56121,7 +56121,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                      "lane": 3
+                      "lane": 347
                     },
                     "tx": {
                       "pre": 0,
@@ -56138,7 +56138,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                      "lane": 3
+                      "lane": 339
                     },
                     "tx": {
                       "pre": 0,
@@ -56170,13 +56170,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                    "lane": 4
+                    "lane": 348
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                        "lane": 4
+                        "lane": 340
                       },
                       "z": {
                         "end": {
@@ -56225,7 +56225,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                      "lane": 4
+                      "lane": 348
                     },
                     "tx": {
                       "pre": 0,
@@ -56242,7 +56242,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                      "lane": 4
+                      "lane": 340
                     },
                     "tx": {
                       "pre": 0,
@@ -56274,13 +56274,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                    "lane": 5
+                    "lane": 349
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                        "lane": 5
+                        "lane": 341
                       },
                       "z": {
                         "end": {
@@ -56329,7 +56329,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                      "lane": 5
+                      "lane": 349
                     },
                     "tx": {
                       "pre": 0,
@@ -56346,7 +56346,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                      "lane": 5
+                      "lane": 341
                     },
                     "tx": {
                       "pre": 0,
@@ -56378,13 +56378,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                    "lane": 6
+                    "lane": 350
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                        "lane": 6
+                        "lane": 342
                       },
                       "z": {
                         "end": {
@@ -56433,7 +56433,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                      "lane": 6
+                      "lane": 350
                     },
                     "tx": {
                       "pre": 0,
@@ -56450,7 +56450,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                      "lane": 6
+                      "lane": 342
                     },
                     "tx": {
                       "pre": 0,
@@ -56482,13 +56482,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                    "lane": 7
+                    "lane": 351
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                        "lane": 7
+                        "lane": 343
                       },
                       "z": {
                         "end": {
@@ -56537,7 +56537,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip22/core0",
-                      "lane": 7
+                      "lane": 351
                     },
                     "tx": {
                       "pre": 0,
@@ -56554,7 +56554,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip22/core0",
-                      "lane": 7
+                      "lane": 343
                     },
                     "tx": {
                       "pre": 0,
@@ -56586,13 +56586,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                    "lane": 0
+                    "lane": 360
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                        "lane": 0
+                        "lane": 352
                       },
                       "z": {
                         "end": {
@@ -56641,7 +56641,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                      "lane": 0
+                      "lane": 360
                     },
                     "tx": {
                       "pre": 0,
@@ -56658,7 +56658,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                      "lane": 0
+                      "lane": 352
                     },
                     "tx": {
                       "pre": 0,
@@ -56690,13 +56690,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                    "lane": 1
+                    "lane": 361
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                        "lane": 1
+                        "lane": 353
                       },
                       "z": {
                         "end": {
@@ -56745,7 +56745,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                      "lane": 1
+                      "lane": 361
                     },
                     "tx": {
                       "pre": 0,
@@ -56762,7 +56762,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                      "lane": 1
+                      "lane": 353
                     },
                     "tx": {
                       "pre": 0,
@@ -56794,13 +56794,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                    "lane": 2
+                    "lane": 362
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                        "lane": 2
+                        "lane": 354
                       },
                       "z": {
                         "end": {
@@ -56849,7 +56849,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                      "lane": 2
+                      "lane": 362
                     },
                     "tx": {
                       "pre": 0,
@@ -56866,7 +56866,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                      "lane": 2
+                      "lane": 354
                     },
                     "tx": {
                       "pre": 0,
@@ -56898,13 +56898,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                    "lane": 3
+                    "lane": 363
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                        "lane": 3
+                        "lane": 355
                       },
                       "z": {
                         "end": {
@@ -56953,7 +56953,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                      "lane": 3
+                      "lane": 363
                     },
                     "tx": {
                       "pre": 0,
@@ -56970,7 +56970,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                      "lane": 3
+                      "lane": 355
                     },
                     "tx": {
                       "pre": 0,
@@ -57002,13 +57002,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                    "lane": 4
+                    "lane": 364
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                        "lane": 4
+                        "lane": 356
                       },
                       "z": {
                         "end": {
@@ -57057,7 +57057,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                      "lane": 4
+                      "lane": 364
                     },
                     "tx": {
                       "pre": 0,
@@ -57074,7 +57074,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                      "lane": 4
+                      "lane": 356
                     },
                     "tx": {
                       "pre": 0,
@@ -57106,13 +57106,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                    "lane": 5
+                    "lane": 365
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                        "lane": 5
+                        "lane": 357
                       },
                       "z": {
                         "end": {
@@ -57161,7 +57161,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                      "lane": 5
+                      "lane": 365
                     },
                     "tx": {
                       "pre": 0,
@@ -57178,7 +57178,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                      "lane": 5
+                      "lane": 357
                     },
                     "tx": {
                       "pre": 0,
@@ -57210,13 +57210,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                    "lane": 6
+                    "lane": 366
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                        "lane": 6
+                        "lane": 358
                       },
                       "z": {
                         "end": {
@@ -57265,7 +57265,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                      "lane": 6
+                      "lane": 366
                     },
                     "tx": {
                       "pre": 0,
@@ -57282,7 +57282,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                      "lane": 6
+                      "lane": 358
                     },
                     "tx": {
                       "pre": 0,
@@ -57314,13 +57314,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                    "lane": 7
+                    "lane": 367
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                        "lane": 7
+                        "lane": 359
                       },
                       "z": {
                         "end": {
@@ -57369,7 +57369,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip23/core0",
-                      "lane": 7
+                      "lane": 367
                     },
                     "tx": {
                       "pre": 0,
@@ -57386,7 +57386,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip23/core0",
-                      "lane": 7
+                      "lane": 359
                     },
                     "tx": {
                       "pre": 0,
@@ -57418,13 +57418,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                    "lane": 0
+                    "lane": 376
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                        "lane": 0
+                        "lane": 368
                       },
                       "z": {
                         "end": {
@@ -57473,7 +57473,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                      "lane": 0
+                      "lane": 376
                     },
                     "tx": {
                       "pre": 0,
@@ -57490,7 +57490,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                      "lane": 0
+                      "lane": 368
                     },
                     "tx": {
                       "pre": 0,
@@ -57522,13 +57522,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                    "lane": 1
+                    "lane": 377
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                        "lane": 1
+                        "lane": 369
                       },
                       "z": {
                         "end": {
@@ -57577,7 +57577,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                      "lane": 1
+                      "lane": 377
                     },
                     "tx": {
                       "pre": 0,
@@ -57594,7 +57594,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                      "lane": 1
+                      "lane": 369
                     },
                     "tx": {
                       "pre": 0,
@@ -57626,13 +57626,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                    "lane": 2
+                    "lane": 378
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                        "lane": 2
+                        "lane": 370
                       },
                       "z": {
                         "end": {
@@ -57681,7 +57681,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                      "lane": 2
+                      "lane": 378
                     },
                     "tx": {
                       "pre": 0,
@@ -57698,7 +57698,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                      "lane": 2
+                      "lane": 370
                     },
                     "tx": {
                       "pre": 0,
@@ -57730,13 +57730,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                    "lane": 3
+                    "lane": 379
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                        "lane": 3
+                        "lane": 371
                       },
                       "z": {
                         "end": {
@@ -57785,7 +57785,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                      "lane": 3
+                      "lane": 379
                     },
                     "tx": {
                       "pre": 0,
@@ -57802,7 +57802,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                      "lane": 3
+                      "lane": 371
                     },
                     "tx": {
                       "pre": 0,
@@ -57834,13 +57834,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                    "lane": 4
+                    "lane": 380
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                        "lane": 4
+                        "lane": 372
                       },
                       "z": {
                         "end": {
@@ -57889,7 +57889,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                      "lane": 4
+                      "lane": 380
                     },
                     "tx": {
                       "pre": 0,
@@ -57906,7 +57906,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                      "lane": 4
+                      "lane": 372
                     },
                     "tx": {
                       "pre": 0,
@@ -57938,13 +57938,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                    "lane": 5
+                    "lane": 381
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                        "lane": 5
+                        "lane": 373
                       },
                       "z": {
                         "end": {
@@ -57993,7 +57993,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                      "lane": 5
+                      "lane": 381
                     },
                     "tx": {
                       "pre": 0,
@@ -58010,7 +58010,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                      "lane": 5
+                      "lane": 373
                     },
                     "tx": {
                       "pre": 0,
@@ -58042,13 +58042,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                    "lane": 6
+                    "lane": 382
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                        "lane": 6
+                        "lane": 374
                       },
                       "z": {
                         "end": {
@@ -58097,7 +58097,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                      "lane": 6
+                      "lane": 382
                     },
                     "tx": {
                       "pre": 0,
@@ -58114,7 +58114,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                      "lane": 6
+                      "lane": 374
                     },
                     "tx": {
                       "pre": 0,
@@ -58146,13 +58146,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                    "lane": 7
+                    "lane": 383
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                        "lane": 7
+                        "lane": 375
                       },
                       "z": {
                         "end": {
@@ -58201,7 +58201,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip24/core0",
-                      "lane": 7
+                      "lane": 383
                     },
                     "tx": {
                       "pre": 0,
@@ -58218,7 +58218,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip24/core0",
-                      "lane": 7
+                      "lane": 375
                     },
                     "tx": {
                       "pre": 0,
@@ -58250,13 +58250,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                    "lane": 0
+                    "lane": 392
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                        "lane": 0
+                        "lane": 384
                       },
                       "z": {
                         "end": {
@@ -58305,7 +58305,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                      "lane": 0
+                      "lane": 392
                     },
                     "tx": {
                       "pre": 0,
@@ -58322,7 +58322,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                      "lane": 0
+                      "lane": 384
                     },
                     "tx": {
                       "pre": 0,
@@ -58354,13 +58354,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                    "lane": 1
+                    "lane": 393
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                        "lane": 1
+                        "lane": 385
                       },
                       "z": {
                         "end": {
@@ -58409,7 +58409,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                      "lane": 1
+                      "lane": 393
                     },
                     "tx": {
                       "pre": 0,
@@ -58426,7 +58426,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                      "lane": 1
+                      "lane": 385
                     },
                     "tx": {
                       "pre": 0,
@@ -58458,13 +58458,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                    "lane": 2
+                    "lane": 394
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                        "lane": 2
+                        "lane": 386
                       },
                       "z": {
                         "end": {
@@ -58513,7 +58513,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                      "lane": 2
+                      "lane": 394
                     },
                     "tx": {
                       "pre": 0,
@@ -58530,7 +58530,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                      "lane": 2
+                      "lane": 386
                     },
                     "tx": {
                       "pre": 0,
@@ -58562,13 +58562,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                    "lane": 3
+                    "lane": 395
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                        "lane": 3
+                        "lane": 387
                       },
                       "z": {
                         "end": {
@@ -58617,7 +58617,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                      "lane": 3
+                      "lane": 395
                     },
                     "tx": {
                       "pre": 0,
@@ -58634,7 +58634,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                      "lane": 3
+                      "lane": 387
                     },
                     "tx": {
                       "pre": 0,
@@ -58666,13 +58666,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                    "lane": 4
+                    "lane": 396
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                        "lane": 4
+                        "lane": 388
                       },
                       "z": {
                         "end": {
@@ -58721,7 +58721,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                      "lane": 4
+                      "lane": 396
                     },
                     "tx": {
                       "pre": 0,
@@ -58738,7 +58738,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                      "lane": 4
+                      "lane": 388
                     },
                     "tx": {
                       "pre": 0,
@@ -58770,13 +58770,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                    "lane": 5
+                    "lane": 397
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                        "lane": 5
+                        "lane": 389
                       },
                       "z": {
                         "end": {
@@ -58825,7 +58825,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                      "lane": 5
+                      "lane": 397
                     },
                     "tx": {
                       "pre": 0,
@@ -58842,7 +58842,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                      "lane": 5
+                      "lane": 389
                     },
                     "tx": {
                       "pre": 0,
@@ -58874,13 +58874,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                    "lane": 6
+                    "lane": 398
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                        "lane": 6
+                        "lane": 390
                       },
                       "z": {
                         "end": {
@@ -58929,7 +58929,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                      "lane": 6
+                      "lane": 398
                     },
                     "tx": {
                       "pre": 0,
@@ -58946,7 +58946,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                      "lane": 6
+                      "lane": 390
                     },
                     "tx": {
                       "pre": 0,
@@ -58978,13 +58978,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                    "lane": 7
+                    "lane": 399
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                        "lane": 7
+                        "lane": 391
                       },
                       "z": {
                         "end": {
@@ -59033,7 +59033,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip25/core0",
-                      "lane": 7
+                      "lane": 399
                     },
                     "tx": {
                       "pre": 0,
@@ -59050,7 +59050,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip25/core0",
-                      "lane": 7
+                      "lane": 391
                     },
                     "tx": {
                       "pre": 0,
@@ -59082,13 +59082,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                    "lane": 0
+                    "lane": 408
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                        "lane": 0
+                        "lane": 400
                       },
                       "z": {
                         "end": {
@@ -59137,7 +59137,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                      "lane": 0
+                      "lane": 408
                     },
                     "tx": {
                       "pre": 0,
@@ -59154,7 +59154,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                      "lane": 0
+                      "lane": 400
                     },
                     "tx": {
                       "pre": 0,
@@ -59186,13 +59186,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                    "lane": 1
+                    "lane": 409
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                        "lane": 1
+                        "lane": 401
                       },
                       "z": {
                         "end": {
@@ -59241,7 +59241,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                      "lane": 1
+                      "lane": 409
                     },
                     "tx": {
                       "pre": 0,
@@ -59258,7 +59258,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                      "lane": 1
+                      "lane": 401
                     },
                     "tx": {
                       "pre": 0,
@@ -59290,13 +59290,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                    "lane": 2
+                    "lane": 410
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                        "lane": 2
+                        "lane": 402
                       },
                       "z": {
                         "end": {
@@ -59345,7 +59345,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                      "lane": 2
+                      "lane": 410
                     },
                     "tx": {
                       "pre": 0,
@@ -59362,7 +59362,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                      "lane": 2
+                      "lane": 402
                     },
                     "tx": {
                       "pre": 0,
@@ -59394,13 +59394,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                    "lane": 3
+                    "lane": 411
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                        "lane": 3
+                        "lane": 403
                       },
                       "z": {
                         "end": {
@@ -59449,7 +59449,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                      "lane": 3
+                      "lane": 411
                     },
                     "tx": {
                       "pre": 0,
@@ -59466,7 +59466,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                      "lane": 3
+                      "lane": 403
                     },
                     "tx": {
                       "pre": 0,
@@ -59498,13 +59498,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                    "lane": 4
+                    "lane": 412
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                        "lane": 4
+                        "lane": 404
                       },
                       "z": {
                         "end": {
@@ -59553,7 +59553,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                      "lane": 4
+                      "lane": 412
                     },
                     "tx": {
                       "pre": 0,
@@ -59570,7 +59570,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                      "lane": 4
+                      "lane": 404
                     },
                     "tx": {
                       "pre": 0,
@@ -59602,13 +59602,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                    "lane": 5
+                    "lane": 413
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                        "lane": 5
+                        "lane": 405
                       },
                       "z": {
                         "end": {
@@ -59657,7 +59657,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                      "lane": 5
+                      "lane": 413
                     },
                     "tx": {
                       "pre": 0,
@@ -59674,7 +59674,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                      "lane": 5
+                      "lane": 405
                     },
                     "tx": {
                       "pre": 0,
@@ -59706,13 +59706,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                    "lane": 6
+                    "lane": 414
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                        "lane": 6
+                        "lane": 406
                       },
                       "z": {
                         "end": {
@@ -59761,7 +59761,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                      "lane": 6
+                      "lane": 414
                     },
                     "tx": {
                       "pre": 0,
@@ -59778,7 +59778,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                      "lane": 6
+                      "lane": 406
                     },
                     "tx": {
                       "pre": 0,
@@ -59810,13 +59810,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                    "lane": 7
+                    "lane": 415
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                        "lane": 7
+                        "lane": 407
                       },
                       "z": {
                         "end": {
@@ -59865,7 +59865,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip26/core0",
-                      "lane": 7
+                      "lane": 415
                     },
                     "tx": {
                       "pre": 0,
@@ -59882,7 +59882,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip26/core0",
-                      "lane": 7
+                      "lane": 407
                     },
                     "tx": {
                       "pre": 0,
@@ -59914,13 +59914,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                    "lane": 0
+                    "lane": 424
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                        "lane": 0
+                        "lane": 416
                       },
                       "z": {
                         "end": {
@@ -59969,7 +59969,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                      "lane": 0
+                      "lane": 424
                     },
                     "tx": {
                       "pre": 0,
@@ -59986,7 +59986,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                      "lane": 0
+                      "lane": 416
                     },
                     "tx": {
                       "pre": 0,
@@ -60018,13 +60018,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                    "lane": 1
+                    "lane": 425
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                        "lane": 1
+                        "lane": 417
                       },
                       "z": {
                         "end": {
@@ -60073,7 +60073,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                      "lane": 1
+                      "lane": 425
                     },
                     "tx": {
                       "pre": 0,
@@ -60090,7 +60090,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                      "lane": 1
+                      "lane": 417
                     },
                     "tx": {
                       "pre": 0,
@@ -60122,13 +60122,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                    "lane": 2
+                    "lane": 426
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                        "lane": 2
+                        "lane": 418
                       },
                       "z": {
                         "end": {
@@ -60177,7 +60177,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                      "lane": 2
+                      "lane": 426
                     },
                     "tx": {
                       "pre": 0,
@@ -60194,7 +60194,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                      "lane": 2
+                      "lane": 418
                     },
                     "tx": {
                       "pre": 0,
@@ -60226,13 +60226,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                    "lane": 3
+                    "lane": 427
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                        "lane": 3
+                        "lane": 419
                       },
                       "z": {
                         "end": {
@@ -60281,7 +60281,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                      "lane": 3
+                      "lane": 427
                     },
                     "tx": {
                       "pre": 0,
@@ -60298,7 +60298,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                      "lane": 3
+                      "lane": 419
                     },
                     "tx": {
                       "pre": 0,
@@ -60330,13 +60330,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                    "lane": 4
+                    "lane": 428
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                        "lane": 4
+                        "lane": 420
                       },
                       "z": {
                         "end": {
@@ -60385,7 +60385,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                      "lane": 4
+                      "lane": 428
                     },
                     "tx": {
                       "pre": 0,
@@ -60402,7 +60402,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                      "lane": 4
+                      "lane": 420
                     },
                     "tx": {
                       "pre": 0,
@@ -60434,13 +60434,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                    "lane": 5
+                    "lane": 429
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                        "lane": 5
+                        "lane": 421
                       },
                       "z": {
                         "end": {
@@ -60489,7 +60489,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                      "lane": 5
+                      "lane": 429
                     },
                     "tx": {
                       "pre": 0,
@@ -60506,7 +60506,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                      "lane": 5
+                      "lane": 421
                     },
                     "tx": {
                       "pre": 0,
@@ -60538,13 +60538,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                    "lane": 6
+                    "lane": 430
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                        "lane": 6
+                        "lane": 422
                       },
                       "z": {
                         "end": {
@@ -60593,7 +60593,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                      "lane": 6
+                      "lane": 430
                     },
                     "tx": {
                       "pre": 0,
@@ -60610,7 +60610,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                      "lane": 6
+                      "lane": 422
                     },
                     "tx": {
                       "pre": 0,
@@ -60642,13 +60642,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                    "lane": 7
+                    "lane": 431
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                        "lane": 7
+                        "lane": 423
                       },
                       "z": {
                         "end": {
@@ -60697,7 +60697,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip27/core0",
-                      "lane": 7
+                      "lane": 431
                     },
                     "tx": {
                       "pre": 0,
@@ -60714,7 +60714,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip27/core0",
-                      "lane": 7
+                      "lane": 423
                     },
                     "tx": {
                       "pre": 0,
@@ -60746,13 +60746,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                    "lane": 0
+                    "lane": 440
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                        "lane": 0
+                        "lane": 432
                       },
                       "z": {
                         "end": {
@@ -60801,7 +60801,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                      "lane": 0
+                      "lane": 440
                     },
                     "tx": {
                       "pre": 0,
@@ -60818,7 +60818,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                      "lane": 0
+                      "lane": 432
                     },
                     "tx": {
                       "pre": 0,
@@ -60850,13 +60850,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                    "lane": 1
+                    "lane": 441
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                        "lane": 1
+                        "lane": 433
                       },
                       "z": {
                         "end": {
@@ -60905,7 +60905,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                      "lane": 1
+                      "lane": 441
                     },
                     "tx": {
                       "pre": 0,
@@ -60922,7 +60922,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                      "lane": 1
+                      "lane": 433
                     },
                     "tx": {
                       "pre": 0,
@@ -60954,13 +60954,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                    "lane": 2
+                    "lane": 442
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                        "lane": 2
+                        "lane": 434
                       },
                       "z": {
                         "end": {
@@ -61009,7 +61009,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                      "lane": 2
+                      "lane": 442
                     },
                     "tx": {
                       "pre": 0,
@@ -61026,7 +61026,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                      "lane": 2
+                      "lane": 434
                     },
                     "tx": {
                       "pre": 0,
@@ -61058,13 +61058,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                    "lane": 3
+                    "lane": 443
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                        "lane": 3
+                        "lane": 435
                       },
                       "z": {
                         "end": {
@@ -61113,7 +61113,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                      "lane": 3
+                      "lane": 443
                     },
                     "tx": {
                       "pre": 0,
@@ -61130,7 +61130,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                      "lane": 3
+                      "lane": 435
                     },
                     "tx": {
                       "pre": 0,
@@ -61162,13 +61162,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                    "lane": 4
+                    "lane": 444
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                        "lane": 4
+                        "lane": 436
                       },
                       "z": {
                         "end": {
@@ -61217,7 +61217,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                      "lane": 4
+                      "lane": 444
                     },
                     "tx": {
                       "pre": 0,
@@ -61234,7 +61234,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                      "lane": 4
+                      "lane": 436
                     },
                     "tx": {
                       "pre": 0,
@@ -61266,13 +61266,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                    "lane": 5
+                    "lane": 445
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                        "lane": 5
+                        "lane": 437
                       },
                       "z": {
                         "end": {
@@ -61321,7 +61321,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                      "lane": 5
+                      "lane": 445
                     },
                     "tx": {
                       "pre": 0,
@@ -61338,7 +61338,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                      "lane": 5
+                      "lane": 437
                     },
                     "tx": {
                       "pre": 0,
@@ -61370,13 +61370,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                    "lane": 6
+                    "lane": 446
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                        "lane": 6
+                        "lane": 438
                       },
                       "z": {
                         "end": {
@@ -61425,7 +61425,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                      "lane": 6
+                      "lane": 446
                     },
                     "tx": {
                       "pre": 0,
@@ -61442,7 +61442,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                      "lane": 6
+                      "lane": 438
                     },
                     "tx": {
                       "pre": 0,
@@ -61474,13 +61474,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                    "lane": 7
+                    "lane": 447
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                        "lane": 7
+                        "lane": 439
                       },
                       "z": {
                         "end": {
@@ -61529,7 +61529,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip28/core0",
-                      "lane": 7
+                      "lane": 447
                     },
                     "tx": {
                       "pre": 0,
@@ -61546,7 +61546,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip28/core0",
-                      "lane": 7
+                      "lane": 439
                     },
                     "tx": {
                       "pre": 0,
@@ -61578,13 +61578,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                    "lane": 0
+                    "lane": 456
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                        "lane": 0
+                        "lane": 448
                       },
                       "z": {
                         "end": {
@@ -61633,7 +61633,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                      "lane": 0
+                      "lane": 456
                     },
                     "tx": {
                       "pre": 0,
@@ -61650,7 +61650,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                      "lane": 0
+                      "lane": 448
                     },
                     "tx": {
                       "pre": 0,
@@ -61682,13 +61682,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                    "lane": 1
+                    "lane": 457
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                        "lane": 1
+                        "lane": 449
                       },
                       "z": {
                         "end": {
@@ -61737,7 +61737,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                      "lane": 1
+                      "lane": 457
                     },
                     "tx": {
                       "pre": 0,
@@ -61754,7 +61754,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                      "lane": 1
+                      "lane": 449
                     },
                     "tx": {
                       "pre": 0,
@@ -61786,13 +61786,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                    "lane": 2
+                    "lane": 458
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                        "lane": 2
+                        "lane": 450
                       },
                       "z": {
                         "end": {
@@ -61841,7 +61841,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                      "lane": 2
+                      "lane": 458
                     },
                     "tx": {
                       "pre": 0,
@@ -61858,7 +61858,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                      "lane": 2
+                      "lane": 450
                     },
                     "tx": {
                       "pre": 0,
@@ -61890,13 +61890,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                    "lane": 3
+                    "lane": 459
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                        "lane": 3
+                        "lane": 451
                       },
                       "z": {
                         "end": {
@@ -61945,7 +61945,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                      "lane": 3
+                      "lane": 459
                     },
                     "tx": {
                       "pre": 0,
@@ -61962,7 +61962,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                      "lane": 3
+                      "lane": 451
                     },
                     "tx": {
                       "pre": 0,
@@ -61994,13 +61994,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                    "lane": 4
+                    "lane": 460
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                        "lane": 4
+                        "lane": 452
                       },
                       "z": {
                         "end": {
@@ -62049,7 +62049,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                      "lane": 4
+                      "lane": 460
                     },
                     "tx": {
                       "pre": 0,
@@ -62066,7 +62066,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                      "lane": 4
+                      "lane": 452
                     },
                     "tx": {
                       "pre": 0,
@@ -62098,13 +62098,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                    "lane": 5
+                    "lane": 461
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                        "lane": 5
+                        "lane": 453
                       },
                       "z": {
                         "end": {
@@ -62153,7 +62153,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                      "lane": 5
+                      "lane": 461
                     },
                     "tx": {
                       "pre": 0,
@@ -62170,7 +62170,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                      "lane": 5
+                      "lane": 453
                     },
                     "tx": {
                       "pre": 0,
@@ -62202,13 +62202,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                    "lane": 6
+                    "lane": 462
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                        "lane": 6
+                        "lane": 454
                       },
                       "z": {
                         "end": {
@@ -62257,7 +62257,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                      "lane": 6
+                      "lane": 462
                     },
                     "tx": {
                       "pre": 0,
@@ -62274,7 +62274,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                      "lane": 6
+                      "lane": 454
                     },
                     "tx": {
                       "pre": 0,
@@ -62306,13 +62306,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                    "lane": 7
+                    "lane": 463
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                        "lane": 7
+                        "lane": 455
                       },
                       "z": {
                         "end": {
@@ -62361,7 +62361,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip29/core0",
-                      "lane": 7
+                      "lane": 463
                     },
                     "tx": {
                       "pre": 0,
@@ -62378,7 +62378,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip29/core0",
-                      "lane": 7
+                      "lane": 455
                     },
                     "tx": {
                       "pre": 0,
@@ -62410,13 +62410,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                    "lane": 0
+                    "lane": 472
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                        "lane": 0
+                        "lane": 464
                       },
                       "z": {
                         "end": {
@@ -62465,7 +62465,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                      "lane": 0
+                      "lane": 472
                     },
                     "tx": {
                       "pre": 0,
@@ -62482,7 +62482,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                      "lane": 0
+                      "lane": 464
                     },
                     "tx": {
                       "pre": 0,
@@ -62514,13 +62514,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                    "lane": 1
+                    "lane": 473
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                        "lane": 1
+                        "lane": 465
                       },
                       "z": {
                         "end": {
@@ -62569,7 +62569,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                      "lane": 1
+                      "lane": 473
                     },
                     "tx": {
                       "pre": 0,
@@ -62586,7 +62586,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                      "lane": 1
+                      "lane": 465
                     },
                     "tx": {
                       "pre": 0,
@@ -62618,13 +62618,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                    "lane": 2
+                    "lane": 474
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                        "lane": 2
+                        "lane": 466
                       },
                       "z": {
                         "end": {
@@ -62673,7 +62673,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                      "lane": 2
+                      "lane": 474
                     },
                     "tx": {
                       "pre": 0,
@@ -62690,7 +62690,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                      "lane": 2
+                      "lane": 466
                     },
                     "tx": {
                       "pre": 0,
@@ -62722,13 +62722,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                    "lane": 3
+                    "lane": 475
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                        "lane": 3
+                        "lane": 467
                       },
                       "z": {
                         "end": {
@@ -62777,7 +62777,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                      "lane": 3
+                      "lane": 475
                     },
                     "tx": {
                       "pre": 0,
@@ -62794,7 +62794,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                      "lane": 3
+                      "lane": 467
                     },
                     "tx": {
                       "pre": 0,
@@ -62826,13 +62826,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                    "lane": 4
+                    "lane": 476
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                        "lane": 4
+                        "lane": 468
                       },
                       "z": {
                         "end": {
@@ -62881,7 +62881,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                      "lane": 4
+                      "lane": 476
                     },
                     "tx": {
                       "pre": 0,
@@ -62898,7 +62898,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                      "lane": 4
+                      "lane": 468
                     },
                     "tx": {
                       "pre": 0,
@@ -62930,13 +62930,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                    "lane": 5
+                    "lane": 477
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                        "lane": 5
+                        "lane": 469
                       },
                       "z": {
                         "end": {
@@ -62985,7 +62985,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                      "lane": 5
+                      "lane": 477
                     },
                     "tx": {
                       "pre": 0,
@@ -63002,7 +63002,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                      "lane": 5
+                      "lane": 469
                     },
                     "tx": {
                       "pre": 0,
@@ -63034,13 +63034,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                    "lane": 6
+                    "lane": 478
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                        "lane": 6
+                        "lane": 470
                       },
                       "z": {
                         "end": {
@@ -63089,7 +63089,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                      "lane": 6
+                      "lane": 478
                     },
                     "tx": {
                       "pre": 0,
@@ -63106,7 +63106,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                      "lane": 6
+                      "lane": 470
                     },
                     "tx": {
                       "pre": 0,
@@ -63138,13 +63138,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                    "lane": 7
+                    "lane": 479
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                        "lane": 7
+                        "lane": 471
                       },
                       "z": {
                         "end": {
@@ -63193,7 +63193,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip30/core0",
-                      "lane": 7
+                      "lane": 479
                     },
                     "tx": {
                       "pre": 0,
@@ -63210,7 +63210,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip30/core0",
-                      "lane": 7
+                      "lane": 471
                     },
                     "tx": {
                       "pre": 0,
@@ -63242,13 +63242,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                    "lane": 0
+                    "lane": 488
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                        "lane": 0
+                        "lane": 480
                       },
                       "z": {
                         "end": {
@@ -63297,7 +63297,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                      "lane": 0
+                      "lane": 488
                     },
                     "tx": {
                       "pre": 0,
@@ -63314,7 +63314,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                      "lane": 0
+                      "lane": 480
                     },
                     "tx": {
                       "pre": 0,
@@ -63346,13 +63346,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                    "lane": 1
+                    "lane": 489
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                        "lane": 1
+                        "lane": 481
                       },
                       "z": {
                         "end": {
@@ -63401,7 +63401,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                      "lane": 1
+                      "lane": 489
                     },
                     "tx": {
                       "pre": 0,
@@ -63418,7 +63418,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                      "lane": 1
+                      "lane": 481
                     },
                     "tx": {
                       "pre": 0,
@@ -63450,13 +63450,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                    "lane": 2
+                    "lane": 490
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                        "lane": 2
+                        "lane": 482
                       },
                       "z": {
                         "end": {
@@ -63505,7 +63505,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                      "lane": 2
+                      "lane": 490
                     },
                     "tx": {
                       "pre": 0,
@@ -63522,7 +63522,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                      "lane": 2
+                      "lane": 482
                     },
                     "tx": {
                       "pre": 0,
@@ -63554,13 +63554,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                    "lane": 3
+                    "lane": 491
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                        "lane": 3
+                        "lane": 483
                       },
                       "z": {
                         "end": {
@@ -63609,7 +63609,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                      "lane": 3
+                      "lane": 491
                     },
                     "tx": {
                       "pre": 0,
@@ -63626,7 +63626,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                      "lane": 3
+                      "lane": 483
                     },
                     "tx": {
                       "pre": 0,
@@ -63658,13 +63658,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                    "lane": 4
+                    "lane": 492
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                        "lane": 4
+                        "lane": 484
                       },
                       "z": {
                         "end": {
@@ -63713,7 +63713,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                      "lane": 4
+                      "lane": 492
                     },
                     "tx": {
                       "pre": 0,
@@ -63730,7 +63730,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                      "lane": 4
+                      "lane": 484
                     },
                     "tx": {
                       "pre": 0,
@@ -63762,13 +63762,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                    "lane": 5
+                    "lane": 493
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                        "lane": 5
+                        "lane": 485
                       },
                       "z": {
                         "end": {
@@ -63817,7 +63817,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                      "lane": 5
+                      "lane": 493
                     },
                     "tx": {
                       "pre": 0,
@@ -63834,7 +63834,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                      "lane": 5
+                      "lane": 485
                     },
                     "tx": {
                       "pre": 0,
@@ -63866,13 +63866,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                    "lane": 6
+                    "lane": 494
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                        "lane": 6
+                        "lane": 486
                       },
                       "z": {
                         "end": {
@@ -63921,7 +63921,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                      "lane": 6
+                      "lane": 494
                     },
                     "tx": {
                       "pre": 0,
@@ -63938,7 +63938,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                      "lane": 6
+                      "lane": 486
                     },
                     "tx": {
                       "pre": 0,
@@ -63970,13 +63970,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                    "lane": 7
+                    "lane": 495
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                        "lane": 7
+                        "lane": 487
                       },
                       "z": {
                         "end": {
@@ -64025,7 +64025,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip31/core0",
-                      "lane": 7
+                      "lane": 495
                     },
                     "tx": {
                       "pre": 0,
@@ -64042,7 +64042,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip31/core0",
-                      "lane": 7
+                      "lane": 487
                     },
                     "tx": {
                       "pre": 0,
@@ -64074,13 +64074,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                    "lane": 0
+                    "lane": 504
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                        "lane": 0
+                        "lane": 496
                       },
                       "z": {
                         "end": {
@@ -64129,7 +64129,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                      "lane": 0
+                      "lane": 504
                     },
                     "tx": {
                       "pre": 0,
@@ -64146,7 +64146,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                      "lane": 0
+                      "lane": 496
                     },
                     "tx": {
                       "pre": 0,
@@ -64178,13 +64178,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                    "lane": 1
+                    "lane": 505
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                        "lane": 1
+                        "lane": 497
                       },
                       "z": {
                         "end": {
@@ -64233,7 +64233,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                      "lane": 1
+                      "lane": 505
                     },
                     "tx": {
                       "pre": 0,
@@ -64250,7 +64250,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                      "lane": 1
+                      "lane": 497
                     },
                     "tx": {
                       "pre": 0,
@@ -64282,13 +64282,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                    "lane": 2
+                    "lane": 506
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                        "lane": 2
+                        "lane": 498
                       },
                       "z": {
                         "end": {
@@ -64337,7 +64337,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                      "lane": 2
+                      "lane": 506
                     },
                     "tx": {
                       "pre": 0,
@@ -64354,7 +64354,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                      "lane": 2
+                      "lane": 498
                     },
                     "tx": {
                       "pre": 0,
@@ -64386,13 +64386,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                    "lane": 3
+                    "lane": 507
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                        "lane": 3
+                        "lane": 499
                       },
                       "z": {
                         "end": {
@@ -64441,7 +64441,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                      "lane": 3
+                      "lane": 507
                     },
                     "tx": {
                       "pre": 0,
@@ -64458,7 +64458,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                      "lane": 3
+                      "lane": 499
                     },
                     "tx": {
                       "pre": 0,
@@ -64490,13 +64490,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                    "lane": 4
+                    "lane": 508
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                        "lane": 4
+                        "lane": 500
                       },
                       "z": {
                         "end": {
@@ -64545,7 +64545,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                      "lane": 4
+                      "lane": 508
                     },
                     "tx": {
                       "pre": 0,
@@ -64562,7 +64562,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                      "lane": 4
+                      "lane": 500
                     },
                     "tx": {
                       "pre": 0,
@@ -64594,13 +64594,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                    "lane": 5
+                    "lane": 509
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                        "lane": 5
+                        "lane": 501
                       },
                       "z": {
                         "end": {
@@ -64649,7 +64649,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                      "lane": 5
+                      "lane": 509
                     },
                     "tx": {
                       "pre": 0,
@@ -64666,7 +64666,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                      "lane": 5
+                      "lane": 501
                     },
                     "tx": {
                       "pre": 0,
@@ -64698,13 +64698,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                    "lane": 6
+                    "lane": 510
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                        "lane": 6
+                        "lane": 502
                       },
                       "z": {
                         "end": {
@@ -64753,7 +64753,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                      "lane": 6
+                      "lane": 510
                     },
                     "tx": {
                       "pre": 0,
@@ -64770,7 +64770,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                      "lane": 6
+                      "lane": 502
                     },
                     "tx": {
                       "pre": 0,
@@ -64802,13 +64802,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                    "lane": 7
+                    "lane": 511
                   },
                   "line": [
                     {
                       "a": {
                         "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                        "lane": 7
+                        "lane": 503
                       },
                       "z": {
                         "end": {
@@ -64857,7 +64857,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_SYSTEM-slot1/chip32/core0",
-                      "lane": 7
+                      "lane": 511
                     },
                     "tx": {
                       "pre": 0,
@@ -64874,7 +64874,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY-AGERA3_LINE-slot1/chip32/core0",
-                      "lane": 7
+                      "lane": 503
                     },
                     "tx": {
                       "pre": 0,
@@ -70224,14 +70224,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "xphyLine": {
           "numLanes": 1,
           "modulation": 2,
-          "fec": 11,
+          "fec": 1,
           "medium": 3,
           "interfaceType": 0
         },
         "xphySystem": {
           "numLanes": 1,
           "modulation": 2,
-          "fec": 11,
+          "fec": 1,
           "medium": 3,
           "interfaceType": 0
         }

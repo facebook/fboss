@@ -55,6 +55,7 @@ bool Ramon3Asic::isSupported(Feature feature) const {
       return fabricNodeRole_ == FabricNodeRole::DUAL_STAGE_L1;
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
+    case HwAsic::Feature::SAI_SERDES_RX_REACH:
     default:
       return false;
   }

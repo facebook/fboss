@@ -362,7 +362,7 @@ add_fbthrift_cpp_library(
 
 find_package(CLI11 CONFIG REQUIRED)
 
-add_executable(fboss2
+add_library(fboss2_lib
   fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h
   fboss/cli/fboss2/commands/clear/CmdClearArp.h
   fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h
@@ -471,13 +471,12 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
   fboss/cli/fboss2/CmdSubcommands.cpp
-  fboss/cli/fboss2/Main.cpp
   fboss/cli/fboss2/oss/CmdGlobalOptions.cpp
-  fboss/cli/fboss2/oss/CmdList.cpp
   fboss/cli/fboss2/utils/CmdUtils.cpp
   fboss/cli/fboss2/utils/CLIParserUtils.cpp
   fboss/cli/fboss2/utils/CmdClientUtils.cpp
   fboss/cli/fboss2/utils/CmdUtilsCommon.cpp
+  fboss/cli/fboss2/utils/PortMap.cpp
   fboss/cli/fboss2/utils/Table.cpp
   fboss/cli/fboss2/utils/HostInfo.h
   fboss/cli/fboss2/utils/FilterOp.h
@@ -493,7 +492,7 @@ add_executable(fboss2
   fboss/cli/fboss2/options/SSLPolicy.h
 )
 
-target_link_libraries(fboss2
+target_link_libraries(fboss2_lib
   CLI11::CLI11
   tabulate::tabulate
   fb303_cpp2
@@ -558,4 +557,48 @@ target_link_libraries(fboss2
   ${RE2}
 )
 
+add_executable(fboss2
+  fboss/cli/fboss2/Main.cpp
+  fboss/cli/fboss2/oss/CmdList.cpp
+)
+
+target_link_libraries(fboss2
+  fboss2_lib
+  Folly::folly
+)
+
 install(TARGETS fboss2)
+
+# Config commands library for fboss2-dev
+add_library(fboss2_config_lib
+  fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h
+  fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.cpp
+  fboss/cli/fboss2/commands/config/CmdConfigReload.h
+  fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.cpp
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.cpp
+  fboss/cli/fboss2/session/ConfigSession.h
+  fboss/cli/fboss2/session/ConfigSession.cpp
+  fboss/cli/fboss2/CmdListConfig.cpp
+  fboss/cli/fboss2/CmdHandlerImplConfig.cpp
+)
+
+target_link_libraries(fboss2_config_lib
+  fboss2_lib
+  agent_dir_util
+)
+
+add_executable(fboss2-dev
+  fboss/cli/fboss2/Main.cpp
+  fboss/cli/fboss2/oss/CmdListConfig.cpp
+)
+
+target_link_libraries(fboss2-dev
+  fboss2_config_lib
+  fboss2_lib
+  Folly::folly
+)
+
+install(TARGETS fboss2-dev)
