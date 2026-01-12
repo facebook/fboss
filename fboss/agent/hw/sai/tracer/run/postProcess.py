@@ -15,7 +15,6 @@ import argparse
 import os
 import re
 import shutil
-
 from enum import Enum
 
 # Config

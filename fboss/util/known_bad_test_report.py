@@ -38,7 +38,6 @@ from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
 import libfb.py.asyncio.tasks as task_api
-
 from analytics.bamboo import Bamboo as bb
 from libfb.py import employee
 from libfb.py.asyncio.await_utils import asyncio
@@ -721,7 +720,7 @@ def main() -> Optional[int]:
         type=str,
         default="all",
         choices=list(TEST_CONFIGS.keys()) + ["all"],
-        help=f"Test class to query. Options: {', '.join(list(TEST_CONFIGS.keys()) + ["all"])}. Default: {"all"}",
+        help=f"Test class to query. Options: {', '.join(list(TEST_CONFIGS.keys()) + ['all'])}. Default: {'all'}",
     )
 
     args = parser.parse_args()

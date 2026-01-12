@@ -6,7 +6,6 @@ from neteng.fboss.platform_mapping_config.ttypes import (
     SiSettingPinConnection,
     SiSettingRow,
 )
-
 from neteng.fboss.switch_config.ttypes import PortSpeed
 from neteng.fboss.transceiver.ttypes import TransmitterTechnology
 
