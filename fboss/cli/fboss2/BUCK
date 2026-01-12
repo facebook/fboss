@@ -313,6 +313,7 @@ cpp_library(
         "utils/CmdClientUtils.cpp",
         "utils/CmdUtils.cpp",
         "utils/NetwhoamiUtils.cpp",
+        "utils/PortMap.cpp",
         "utils/PrbsUtils.cpp",
         "utils/TeFlowUtils.cpp",
         "utils/clients/BmcClient.cpp",
@@ -524,6 +525,8 @@ cpp_library(
         "//employee/if:thrift-cpp2-types",
         "//fastcli:utils-cpp",
         "//fboss/agent:address_utils",
+        "//fboss/agent:agent_config-cpp2-types",
+        "//fboss/agent:fboss-types",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-clients",
@@ -667,6 +670,7 @@ cpp_library(
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly:conv",
+        "//folly:cpp_attributes",
         "//folly:format",
         "//folly:network_address",
         "//folly:range",
@@ -693,7 +697,7 @@ cpp_library(
         "//neteng/netwhoami/lib/cpp:recover",
         "//neteng/routing/policy/if:policy_thrift-cpp2-types",
         "//nettools/bgplib:bgp_structs",
-        "//nettools/bgplib:bgplib",
+        "//nettools/bgplib:bgplib_util",
         "//nettools/bgplib/if:bgp-structs-cpp2-types",
         "//nettools/skynet/if:query-cpp2-types",
         "//nettools/skynet/if:skynet_structs-cpp2-types",
@@ -720,6 +724,7 @@ cpp_library(
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [
+        "glog",
         ("boost", None, "boost_algorithm"),
     ],
 )
@@ -756,6 +761,69 @@ cli.metadata(
 auto_tab_complete(
     name = "fboss2-tab-complete",
     src = ":fboss2",
+)
+
+# Config commands are in a separate library/binary for now.
+cpp_library(
+    name = "fboss2-config-lib",
+    srcs = [
+        "CmdHandlerImplConfig.cpp",
+        "CmdListConfig.cpp",
+        "commands/config/CmdConfigAppliedInfo.cpp",
+        "commands/config/CmdConfigReload.cpp",
+        "commands/config/session/CmdConfigSessionCommit.cpp",
+        "commands/config/session/CmdConfigSessionDiff.cpp",
+        "session/ConfigSession.cpp",
+    ],
+    headers = [
+        "commands/config/CmdConfigAppliedInfo.h",
+        "commands/config/CmdConfigReload.h",
+        "commands/config/session/CmdConfigSessionCommit.h",
+        "commands/config/session/CmdConfigSessionDiff.h",
+        "session/ConfigSession.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
+        ":cmd-common-utils",
+        ":cmd-handler",
+        ":fboss2-lib",
+        "//fboss/agent:agent_config-cpp2-types",
+        "//fboss/agent:agent_dir_util",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//folly:conv",
+        "//folly:file_util",
+        "//folly:likely",
+        "//folly:string",
+        "//folly:subprocess",
+        "//folly/json:dynamic",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_external_deps = [
+        "glog",
+        ("boost", None, "boost_filesystem"),
+    ],
+)
+
+cpp_binary(
+    name = "fboss2-dev",
+    srcs = [
+        "Main.cpp",
+        "oss/CmdListConfig.cpp",
+    ],
+    deps = [
+        ":cmd-common-utils",
+        ":cmd-global-options",
+        ":cmd-subcommands",
+        ":fboss2-config-lib",  # @manual
+        ":fboss2-lib",
+        "//folly/init:init",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "CLI11",
+    ],
 )
 
 cpp_binary(
@@ -802,7 +870,7 @@ cpp_binary(
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
         "//neteng/routing/policy/if:policy_thrift-cpp2-types",
         "//nettools/bgplib:bgp_structs",
-        "//nettools/bgplib:bgplib",
+        "//nettools/bgplib:bgplib_util",
         "//nettools/bgplib/if:bgp-structs-cpp2-types",
         "//nettools/skynet/if:query-cpp2-types",
         "//nettools/skynet/if:skynet_structs-cpp2-types",

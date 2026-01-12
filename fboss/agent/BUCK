@@ -102,7 +102,9 @@ thrift_library(
     thrift_cpp2_options = "json,reflection",
     thrift_py_options = "json,sort_keys",
     thrift_srcs = {"agent_info.thrift": []},
-    deps = [],
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -142,6 +144,7 @@ thrift_library(
         "//fboss/agent/hw/sai/config:asic_config",
         "//fboss/lib/phy:phy",
         "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -205,7 +208,9 @@ thrift_library(
     thrift_cpp2_options = "json,reflection",
     thrift_py_options = "json,sort_keys",
     thrift_srcs = {"switch_reachability.thrift": []},
-    deps = [],
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -253,6 +258,7 @@ thrift_library(
         "//fboss/agent/if:asic_temp",
         "//fboss/lib/phy:phy",
         "//thrift/annotation:cpp",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -738,16 +744,24 @@ cpp_library(
 cpp_library(
     name = "fsdb_adapted_sub_manager",
     srcs = [
+        "FsdbAdaptedCowStorage.cpp",
         "FsdbAdaptedSubManager.cpp",
+        "FsdbAdaptedTemplateInstantiations.cpp",
     ],
     headers = [
+        "FsdbAdaptedCowStorage.h",
         "FsdbAdaptedSubManager.h",
+        "FsdbAdaptedSubManagerTypes.h",
+        "FsdbAdaptedTemplateInstantiations.h",
     ],
     exported_deps = [
         "//fboss/agent/state:state",
         "//fboss/fsdb/client:fsdb_sub_manager",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
         "//fboss/fsdb/if:fsdb_model",
+        "//fboss/thrift_cow/nodes:serializer",
         "//fboss/thrift_cow/storage:cow_storage",
+        "//folly:fbstring",
     ],
 )
 
@@ -944,6 +958,7 @@ cpp_library(
         ":fboss-types",
         ":fboss_event_base",
         ":fib_helpers",
+        ":file_based_warmboot_utils",
         ":fsdb_adapted_sub_manager",
         ":hw_switch_handler",
         ":hw_switch_thrift_client_table",
@@ -1823,19 +1838,52 @@ cpp_library(
 )
 
 cpp_library(
+    name = "file_based_warmboot_utils",
+    srcs = [
+        "FileBasedWarmbootUtils.cpp",
+    ],
+    exported_deps = [
+        ":agent_dir_util",
+        ":agent_features",
+        ":hw_asic_table",
+        ":switch_state-cpp2-types",
+        "//fboss/agent/rib:standalone_rib",
+        "//fboss/agent/state:state",
+        "//fboss/lib:common_file_utils",
+        "//folly:file",
+        "//folly:file_util",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "thrift_based_warmboot_utils",
+    srcs = [
+        "ThriftBasedWarmbootUtils.cpp",
+    ],
+    exported_deps = [
+        ":hw_asic_table",
+        ":hw_switch_thrift_client_table",
+        ":switch_state-cpp2-types",
+    ],
+)
+
+cpp_library(
     name = "sw_switch_warmboot_helper",
     srcs = [
         "SwSwitchWarmBootHelper.cpp",
     ],
     exported_deps = [
         ":agent_dir_util",
+        ":agent_features",
         ":async_logger",
+        ":file_based_warmboot_utils",
         ":hw_asic_table",
         ":switch_state-cpp2-types",
+        ":thrift_based_warmboot_utils",
         ":utils",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
-        "//fboss/lib:common_file_utils",
         "//fboss/lib:warm_boot_file_utils",
         "//folly:file_util",
         "//folly/logging:logging",
@@ -1884,6 +1932,7 @@ cpp_library(
     exported_deps = [
         ":agent_command_executor",
         ":agent_dir_util",
+        ":agent_features",
         ":agent_netwhoami",
         ":fboss-error",
         ":fboss_common_init",

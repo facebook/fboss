@@ -38,10 +38,9 @@ cpp_unittest(
         "FbossEepromInterfaceTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/platform/weutil:fboss_eeprom_lib",
         "//fboss/platform/weutil/if:eeprom_contents-cpp2-types",
-        "//folly:file_util",
-        "//folly/testing:test_util",
     ],
 )
 

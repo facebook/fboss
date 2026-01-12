@@ -83,6 +83,15 @@ FbossEepromInterface::FbossEepromInterface(
     const std::string& eepromPath,
     const uint16_t offset) {
   auto buffer = ParserUtils::loadEeprom(eepromPath, offset);
+  initFromBuffer(buffer);
+}
+
+FbossEepromInterface::FbossEepromInterface(
+    const std::vector<uint8_t>& eepromBuffer) {
+  initFromBuffer(eepromBuffer);
+}
+
+void FbossEepromInterface::initFromBuffer(const std::vector<uint8_t>& buffer) {
   if (buffer.size() < kHeaderSize) {
     throw std::runtime_error("Invalid EEPROM size");
   }

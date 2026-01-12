@@ -93,7 +93,8 @@ class LldpManager : private folly::AsyncTimeout {
       const std::string& portname,
       const std::string& portdesc,
       const uint16_t ttl,
-      const uint16_t capabilities);
+      const uint16_t capabilities,
+      const std::optional<bool> portDrainState = std::nullopt);
 
   static std::unique_ptr<TxPacket> createLldpPkt(
       const facebook::fboss::utility::AllocatePktFn& allocate,
@@ -103,7 +104,8 @@ class LldpManager : private folly::AsyncTimeout {
       const std::string& portname,
       const std::string& portdesc,
       const uint16_t ttl,
-      const uint16_t capabilities);
+      const uint16_t capabilities,
+      const std::optional<bool> portDrainState = std::nullopt);
 
   static void fillLldpTlv(
       TxPacket* pkt,

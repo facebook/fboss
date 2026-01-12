@@ -15,6 +15,7 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/EncapIndexAllocator.h"
 #include "fboss/agent/FbossHwUpdateError.h"
+#include "fboss/agent/FileBasedWarmbootUtils.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Platform.h"
@@ -670,14 +671,17 @@ void HwSwitchEnsemble::setupEnsemble(
         std::nullopt /*multiSwitchStatsPrefix*/);
   }
 
-  auto bootType = swSwitchWarmBootHelper_->canWarmBoot() ? BootType::WARM_BOOT
-                                                         : BootType::COLD_BOOT;
+  auto bootType =
+      swSwitchWarmBootHelper_->canWarmBoot(
+          false /*isRunModeMultiSwitch*/, nullptr /*hwSwitchThriftClientTable*/)
+      ? BootType::WARM_BOOT
+      : BootType::COLD_BOOT;
   std::optional<state::WarmbootState> wbState;
   if (bootType == BootType::WARM_BOOT) {
     wbState = swSwitchWarmBootHelper_->getWarmBootState();
   }
-  auto [initState, rib] = SwSwitchWarmBootHelper::reconstructStateAndRib(
-      wbState, scopeResolver_->hasL3());
+  auto [initState, rib] =
+      reconstructStateAndRib(wbState, scopeResolver_->hasL3());
   routingInformationBase_ = std::move(rib);
   HwSwitchCallback* callback = haveFeature(MULTISWITCH_THRIFT_SERVER)
       ? static_cast<HwSwitchCallback*>(thriftSyncer_.get())

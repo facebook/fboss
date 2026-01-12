@@ -588,8 +588,7 @@ class ThriftConfigApplier {
   std::shared_ptr<Mirror> updateMirror(
       const std::shared_ptr<Mirror>& orig,
       const cfg::Mirror* config);
-  std::shared_ptr<ForwardingInformationBaseMap>
-  updateForwardingInformationBaseContainers();
+  std::shared_ptr<FibInfo> updateForwardingInformationBaseInfo();
 
   std::shared_ptr<MirrorOnDropReportMap> updateMirrorOnDropReports();
   std::shared_ptr<MirrorOnDropReport> createMirrorOnDropReport(
@@ -856,11 +855,13 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         *cfg_->staticMplsRoutesToNull(),
         *cfg_->staticMplsRoutesToCPU());
   } else if (rib_) {
-    auto newFibs = updateForwardingInformationBaseContainers();
-    if (newFibs) {
-      new_->resetForwardingInformationBases(
-          toMultiSwitchMap<MultiSwitchForwardingInformationBaseMap>(
-              newFibs, scopeResolver_));
+    auto newFibInfo = updateForwardingInformationBaseInfo();
+    if (newFibInfo) {
+      auto newFibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+      // Get the scope for the FibInfo using the new scope resolver
+      newFibInfoMap->updateFibInfo(
+          newFibInfo, scopeResolver_.scope(newFibInfo));
+      new_->resetFibsInfoMap(newFibInfoMap);
       changed = true;
     }
 
@@ -1162,6 +1163,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         switch (node->getAsicType()) {
           case cfg::AsicType::ASIC_TYPE_MOCK:
           case cfg::AsicType::ASIC_TYPE_FAKE:
+          case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
           case cfg::AsicType::ASIC_TYPE_JERICHO2:
             asicCore = 1;
             break;
@@ -1186,6 +1188,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
           case cfg::AsicType::ASIC_TYPE_YUBA:
+          case cfg::AsicType::ASIC_TYPE_G202X:
           case cfg::AsicType::ASIC_TYPE_RAMON3:
             throw FbossError(
                 "Recycle ports are not applicable for AsicType: ",
@@ -1703,10 +1706,35 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
               SwitchID(switchId));
           port2InterfaceId_[portID].push_back(interfaceID);
         } break;
+        case cfg::PortType::HYPER_PORT_MEMBER: {
+          const std::vector<PortID>& hyperPortIDs =
+              platformMapping_->getPlatformPorts(cfg::PortType::HYPER_PORT);
+          for (const PortID& hyperPortID : hyperPortIDs) {
+            const auto& hyperPortPlatformPortEntry =
+                platformMapping_->getPlatformPort(hyperPortID);
+            const auto& hyperPortPlatformCfg =
+                hyperPortPlatformPortEntry.supportedProfiles()
+                    ->find(cfg::PortProfileID::PROFILE_DEFAULT)
+                    ->second;
+            CHECK(hyperPortPlatformCfg.subsumedPorts().has_value());
+            for (const auto& subsumedPortId :
+                 *hyperPortPlatformCfg.subsumedPorts()) {
+              if (PortID(subsumedPortId) == portID) {
+                // use interface ID of the hyper port
+                auto interfaceID = getSystemPortID(
+                    hyperPortID,
+                    hyperPortPlatformPortEntry.mapping()->scope().value(),
+                    *cfg_->switchSettings()->switchIdToSwitchInfo(),
+                    SwitchID(switchId));
+                port2InterfaceId_[portID].push_back(interfaceID);
+                break;
+              }
+            }
+          }
+        } break;
         case cfg::PortType::FABRIC_PORT:
         case cfg::PortType::CPU_PORT:
-        case cfg::PortType::HYPER_PORT_MEMBER:
-          // no interface for fabric/cpu/hyper member port
+          // no interface for fabric/cpu port
           break;
       }
     }
@@ -2815,19 +2843,30 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   const auto& newPinConfigs = platformMapping_->getPortIphyPinConfigs(matcher);
   auto pinConfigsUnchanged = (newPinConfigs == orig->getPinConfigs());
 
-  XLOG_IF(DBG2, !profileConfigUnchanged || !pinConfigsUnchanged)
+  const auto& newSerdesCustomCollection =
+      platformMapping_->getPortSerdesCustomCollection(matcher);
+  auto serdesCustomCollectionUnchanged =
+      (newSerdesCustomCollection == orig->getSerdesCustomCollection());
+
+  XLOG_IF(
+      DBG2,
+      !profileConfigUnchanged || !pinConfigsUnchanged ||
+          !serdesCustomCollectionUnchanged)
       << orig->getName() << " has profileConfig: "
       << (profileConfigUnchanged ? "UNCHANGED" : "CHANGED")
       << ", pinConfigs: " << (pinConfigsUnchanged ? "UNCHANGED" : "CHANGED")
+      << ", serdesCustomCollection: "
+      << (serdesCustomCollectionUnchanged ? "UNCHANGED" : "CHANGED")
       << ", with matcher:" << matcher.toString();
 
-  // Port drain is applicable to only fabric ports.
+  // Port drain is applicable to fabric ports and interface ports.
   if (*portConf->drainState() == cfg::PortDrainState::DRAINED &&
-      *portConf->portType() != cfg::PortType::FABRIC_PORT) {
+      *portConf->portType() != cfg::PortType::FABRIC_PORT &&
+      *portConf->portType() != cfg::PortType::INTERFACE_PORT) {
     throw FbossError(
         "Port ",
         orig->getID(),
-        " cannot be drained as it's NOT a DSF fabric port");
+        " cannot be drained as it's neither a DSF fabric port nor an interface port");
   }
 
   bool portFlowletConfigUnchanged = true;
@@ -2882,6 +2921,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           orig->getExpectedNeighborValues()->toThrift() &&
       *portConf->maxFrameSize() == orig->getMaxFrameSize() &&
       lookupClassesUnchanged && profileConfigUnchanged && pinConfigsUnchanged &&
+      serdesCustomCollectionUnchanged &&
       *portConf->portType() == orig->getPortType() &&
       *portConf->drainState() == orig->getPortDrainState() &&
       portFlowletConfigUnchanged &&
@@ -2907,8 +2947,16 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   for (const auto& tag : *portConf->expectedLLDPValues()) {
     lldpmap[tag.first] = tag.second;
   }
-
-  newPort->setAdminState(*portConf->state());
+  if (*portConf->portType() != cfg::PortType::HYPER_PORT) {
+    newPort->setAdminState(*portConf->state());
+  } else {
+    // hyper port admin state should be controlled by LACP protocol.
+    // So, hyper port is always disabled (default state) in prod config
+    // hyper port could be force enabled through config only in testing
+    if (*portConf->state() == cfg::PortState::ENABLED) {
+      newPort->setAdminState(*portConf->state());
+    }
+  }
   newPort->setIngressVlan(VlanID(*portConf->ingressVlan()));
   newPort->setVlans(vlans);
   if (portConf->portType() == cfg::PortType::HYPER_PORT &&
@@ -2937,6 +2985,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->resetPgConfigs(portPgCfgs);
   newPort->setProfileConfig(*newProfileConfigRef);
   newPort->resetPinConfigs(newPinConfigs);
+  newPort->setSerdesCustomCollection(newSerdesCustomCollection);
   newPort->setPortType(*portConf->portType());
   newPort->setInterfaceIDs(port2InterfaceId_[orig->getID()]);
   newPort->setExpectedNeighborReachability(
@@ -5239,14 +5288,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
 
   if (origSwitchSettings->getSwitchDrainState() !=
       *cfg_->switchSettings()->switchDrainState()) {
-    auto numVoqSwtitches =
-        newSwitchSettings->getSwitchIdsOfType(cfg::SwitchType::VOQ).size();
-    auto numFabSwtitches =
-        newSwitchSettings->getSwitchIdsOfType(cfg::SwitchType::FABRIC).size();
-    if (numFabSwtitches == 0 && numVoqSwtitches == 0) {
-      throw FbossError(
-          "Switch drain/isolate is supported only on VOQ, Fabric switches");
-    }
     newSwitchSettings->setSwitchDrainState(
         *cfg_->switchSettings()->switchDrainState());
     switchSettingsChange = true;
@@ -6118,13 +6159,19 @@ ThriftConfigApplier::updateMirrorOnDropReport(
   return newReport;
 }
 
-std::shared_ptr<ForwardingInformationBaseMap>
-ThriftConfigApplier::updateForwardingInformationBaseContainers() {
-  auto origForwardingInformationBaseMap = orig_->getFibs();
+std::shared_ptr<FibInfo>
+ThriftConfigApplier::updateForwardingInformationBaseInfo() {
   ForwardingInformationBaseMap::NodeContainer newFibContainers;
   bool changed = false;
 
   std::size_t numExistingProcessed = 0;
+
+  auto origFibInfoMap = orig_->getFibsInfoMap();
+  std::shared_ptr<ForwardingInformationBaseMap> origFibsMap;
+
+  if (origFibInfoMap && !origFibInfoMap->empty()) {
+    origFibsMap = origFibInfoMap->getAllFibNodes();
+  }
 
   for (const auto& interfaceCfg : *cfg_->interfaces()) {
     RouterID vrf(*interfaceCfg.routerID());
@@ -6132,7 +6179,7 @@ ThriftConfigApplier::updateForwardingInformationBaseContainers() {
       continue;
     }
 
-    auto origFibContainer = orig_->getFibs()->getNodeIf(vrf);
+    auto origFibContainer = origFibsMap ? origFibsMap->getNodeIf(vrf) : nullptr;
 
     std::shared_ptr<ForwardingInformationBaseContainer> newFibContainer{
         nullptr};
@@ -6147,8 +6194,8 @@ ThriftConfigApplier::updateForwardingInformationBaseContainers() {
     changed |= updateMap(&newFibContainers, origFibContainer, newFibContainer);
   }
 
-  if (numExistingProcessed != orig_->getFibs()->numNodes()) {
-    CHECK_LE(numExistingProcessed, orig_->getFibs()->numNodes());
+  if (origFibsMap && numExistingProcessed != origFibsMap->size()) {
+    CHECK_LE(numExistingProcessed, origFibsMap->size());
     changed = true;
   }
 
@@ -6156,7 +6203,15 @@ ThriftConfigApplier::updateForwardingInformationBaseContainers() {
     return nullptr;
   }
 
-  return std::make_shared<ForwardingInformationBaseMap>(newFibContainers);
+  // Create a new FibInfo with the FibContainers
+  auto newFibInfo = std::make_shared<FibInfo>();
+  auto newFibsMap =
+      std::make_shared<ForwardingInformationBaseMap>(newFibContainers);
+
+  // Set the FibsMapV2 in FibInfo
+  newFibInfo->resetFibsMap(newFibsMap);
+
+  return newFibInfo;
 }
 
 LabelNextHopEntry ThriftConfigApplier::getStaticLabelNextHopEntry(

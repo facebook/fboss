@@ -108,7 +108,7 @@ TEST_F(RibSerializationTest, fullRibSerDeser) {
 TEST_F(RibSerializationTest, serializeOnlyUnresolvedRoutes) {
   auto deserializedRibThrift = RoutingInformationBase::fromThrift(
       rib.warmBootState(),
-      curState->getFibs(),
+      curState->getFibsInfoMap(),
       curState->getLabelForwardingInformationBase());
   EXPECT_EQ(rib.toThrift(), deserializedRibThrift->toThrift());
 }
@@ -116,7 +116,7 @@ TEST_F(RibSerializationTest, serializeOnlyUnresolvedRoutes) {
 TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
   auto deserializedRibEmptyFibThrift = RoutingInformationBase::fromThrift(
       rib.warmBootState(),
-      std::make_shared<MultiSwitchForwardingInformationBaseMap>(),
+      std::make_shared<MultiSwitchFibInfoMap>(),
       std::make_shared<MultiLabelForwardingInformationBase>());
 
   auto deserializedRibNoFibThrift =
@@ -136,7 +136,7 @@ TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
 
   auto deserializedRibWithFibThrift = RoutingInformationBase::fromThrift(
       rib.warmBootState(),
-      curState->getFibs(),
+      curState->getFibsInfoMap(),
       curState->getLabelForwardingInformationBase());
   EXPECT_TRUE(ribEqual(rib, *deserializedRibWithFibThrift));
   EXPECT_EQ(

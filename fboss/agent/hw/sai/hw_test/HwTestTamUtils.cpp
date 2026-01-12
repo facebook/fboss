@@ -110,6 +110,7 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
   auto asic = ensemble->getPlatform()->getAsic()->getAsicType();
   switch (asic) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
@@ -124,6 +125,7 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       triggerCiscoParityError(ensemble);
       break;
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:

@@ -1401,7 +1401,19 @@ std::optional<TransceiverInfo> TransceiverManager::getTransceiverInfoOptional(
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);
   if (tcvrIt != lockedTransceivers->end()) {
-    return tcvrIt->second->getTransceiverInfo();
+    try {
+      return tcvrIt->second->getTransceiverInfo();
+    } catch (const std::exception&) {
+      // if the transceiver is present but we've never successfully collected
+      // tcvr info, return a dummy value (returning nullopt would be interpreted
+      // as the tcvr not being present)
+      // TODO(T247435135): Right now the handling of tcvrInfo error cases is
+      // very convoluted, we should simplify this
+      TransceiverInfo tcvrInfo;
+      tcvrInfo.tcvrState()->present() = true;
+      tcvrInfo.tcvrState()->eepromCsumValid() = true;
+      return tcvrInfo;
+    }
   }
   return std::nullopt;
 }
@@ -1436,8 +1448,13 @@ TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) const {
   // TODO(T243916924): This is very hacky, in the future we should probably
   // refactor how we handle !present tcvrs/tcvrs with i2c errors
   auto erroredTransceivers = erroredTransceivers_.rlock();
-  tcvrInfo.tcvrState()->communicationError() =
-      erroredTransceivers->find(id) != erroredTransceivers->end();
+  if (erroredTransceivers->find(id) != erroredTransceivers->end()) {
+    tcvrInfo.tcvrState()->communicationError() = true;
+    // We need to overwrite timeCollected otherwise we'll keep reporting the
+    // timeCollected of the last successful refresh
+    tcvrInfo.tcvrState()->timeCollected() = std::time(nullptr);
+    tcvrInfo.tcvrStats()->timeCollected() = std::time(nullptr);
+  }
 
   return tcvrInfo;
 }
@@ -2285,17 +2302,6 @@ TransceiverManager::findPotentialTcvrsForFirmwareUpgrade(
                    << TransceiverParam(tcvrId) << PortParam(portName);
         potentialTcvrsForFwUpgrade.insert(tcvrId);
       } else if (FLAGS_firmware_upgrade_on_tcvr_insert) {
-        if (FLAGS_port_manager_mode) {
-          // In PortManager mode, a transceiver can be in DISCOVERED state while
-          // its PORT is up - this should only happen when we get i2c connection
-          // errors but transceiver is inserted and data is passing through.
-          auto [allPortsDown, downPorts] = areAllPortsDown(tcvrId);
-          if (!allPortsDown) {
-            // Some ports are still up.
-            continue;
-          }
-        }
-
         auto stateMachine = stateMachineControllers_.find(tcvrId);
         if (stateMachine != stateMachineControllers_.end() &&
             stateMachine->second->getStateMachine().rlock()->get_attribute(
@@ -2581,9 +2587,10 @@ std::pair<bool, std::vector<std::string>> TransceiverManager::areAllPortsDown(
   if (portToPortInfoWithLock->empty()) {
     XLOG(WARN) << "Can't find any programmed port for Transceiver:" << id
                << " in cached tcvrToPortInfo_";
-    //  In PortManager mode, we can interpret an empty map as indicative of no
-    //  ports being up. Otherwise, we should interpret this as ports being up.
-    return {FLAGS_port_manager_mode, {}};
+    //  If no port information for the transceiver is found, we must assume that
+    //  ports are up to ensure we don't accidentally remediate on warmboot. This
+    //  is consistent for Port Manager mode and non-Port Manager mode.
+    return {false, {}};
   }
   bool anyPortUp = false;
   std::vector<std::string> downPorts;
@@ -2753,10 +2760,11 @@ void TransceiverManager::publishLinkSnapshots(PortID portID) {
 
 void TransceiverManager::publishLinkSnapshotsTransceiver(PortID portID) {
   if (auto tcvrIDOpt = getTransceiverID(portID)) {
-    auto lockedTransceivers = transceivers_.rlock();
-    if (auto tcvrIt = lockedTransceivers->find(*tcvrIDOpt);
-        tcvrIt != lockedTransceivers->end()) {
-      tcvrIt->second->publishSnapshots();
+    const auto& snapshotManagersLocked = snapshotManagers_.wlock();
+    if (auto snapshotManagerIt = snapshotManagersLocked->find(*tcvrIDOpt);
+        snapshotManagerIt != snapshotManagersLocked->end()) {
+      snapshotManagerIt->second.publishAllSnapshots();
+      snapshotManagerIt->second.publishFutureSnapshots();
     }
   }
 }
@@ -3291,6 +3299,8 @@ std::vector<TransceiverID> TransceiverManager::refreshTransceivers(
 
   publishTransceiversToFsdb();
 
+  updateSnapshots();
+
   return transceiverIds;
 }
 
@@ -3725,5 +3735,31 @@ bool TransceiverManager::transceiverJustRemediated(
 std::unordered_set<TransceiverID>
 TransceiverManager::getTcvrsReadyForProgramming() const {
   return *tcvrsReadyForProgramming_.rlock();
+}
+
+void TransceiverManager::updateSnapshots() {
+  auto lockedSnapshotManagers = snapshotManagers_.wlock();
+  for (const auto& tcvrID :
+       utility::getTransceiverIds(platformMapping_->getChips())) {
+    auto tcvrInfo = getTransceiverInfo(tcvrID);
+
+    auto it = lockedSnapshotManagers->find(tcvrID);
+    if (it == lockedSnapshotManagers->end()) {
+      auto portNames = getPortNames(tcvrID);
+      it = lockedSnapshotManagers
+               ->emplace(
+                   std::piecewise_construct,
+                   std::forward_as_tuple(tcvrID),
+                   std::forward_as_tuple(
+                       portNames,
+                       SnapshotLogSource::QSFP_SERVICE,
+                       kSnapshotIntervalSeconds))
+               .first;
+    }
+
+    phy::LinkSnapshot snapshot;
+    snapshot.transceiverInfo() = tcvrInfo;
+    it->second.addSnapshot(snapshot);
+  }
 }
 } // namespace facebook::fboss

@@ -14,6 +14,7 @@
 #include "DsfNodeMap.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AclTableGroupMap.h"
@@ -22,6 +23,9 @@
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/BufferPoolConfigMap.h"
 #include "fboss/agent/state/ControlPlane.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
+#include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/IpTunnel.h"
@@ -584,11 +588,11 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   /*
    * FIB Migration: Four-stage transition from fibsMap to fibsInfoMap
    *
-   * Stage 1 (Current): Rollback safety - Clear fibsInfoMap when deserializing
+   * Stage 1 : Rollback safety - Clear fibsInfoMap when deserializing
    * to handle rollback from Stage 2 where both FIBs are
    * populated during warm boot exit.
    *
-   * Stage 2: Migrate clients to new FIB while populating
+   * Stage 2 (Current): Migrate clients to new FIB while populating
    * both structures during warm boot exit. Forward migration (Stage
    * 2→3) clears fibsMap on init; rollback (Stage 2→1) clears fibsInfoMap during
    * init of stage 1.
@@ -599,8 +603,31 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
    *
    * Stage 4: Complete migration - Remove fibsMap entirely from codebase.
    */
-  if (state->getFibsInfoMap() && !state->getFibsInfoMap()->empty()) {
-    state->resetFibsInfoMap(std::make_shared<MultiSwitchFibInfoMap>());
+
+  // Migrate old fibsMap to new fibsInfoMap
+  // We need to populate fibsInfoMap with map<SwitchIdList, FibInfoFields>
+  auto oldFibsMap = state->getFibs();
+  if (oldFibsMap && !oldFibsMap->empty()) {
+    auto fibsInfoMap = state->getFibsInfoMap();
+    // Only convert if new fibsInfoMap doesn't exist or is empty
+    if (!fibsInfoMap || fibsInfoMap->empty()) {
+      auto newFibsInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+      for (const auto& [switchIdListStr, fibMap] : std::as_const(*oldFibsMap)) {
+        auto fibInfo = std::make_shared<FibInfo>();
+
+        // Copy the old fibMap to the new FibInfo
+        fibInfo->resetFibsMap(fibMap);
+
+        newFibsInfoMap->updateFibInfo(
+            fibInfo, HwSwitchMatcher(switchIdListStr));
+      }
+
+      // Update the state with the new fibsInfoMap
+      state->resetFibsInfoMap(newFibsInfoMap);
+    }
+    // Clear the old fibsMap
+    state->resetForwardingInformationBases(
+        std::make_shared<MultiSwitchForwardingInformationBaseMap>());
   }
 
   return state;
@@ -749,10 +776,6 @@ InterfaceID SwitchState::getInterfaceIDForPort(
   switch (port.type()) {
     case PortDescriptor::PortType::PHYSICAL: {
       auto physicalPort = getPorts()->getNode(port.phyPortID());
-      if (physicalPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) {
-        // no L3 interface configured on hyper port members
-        return InterfaceID(0);
-      }
       // On VOQ/Fabric switches, port and interface have 1:1 relation.
       // For non VOQ/Fabric switches, in practice, a port is always part of a
       // single VLAN (and thus single interface).
@@ -821,6 +844,30 @@ state::SwitchState SwitchState::toThrift() const {
     }
     aclTableGroupMaps->clear();
   }
+
+  // Reverse migrate new fibsInfoMap to old fibsMap for rollback compatibility
+  // The new fibsInfoMap contains map<SwitchIdList, FibInfoFields>
+  // We need to populate old fibsMap with map<SwitchIdList, map<vrf,
+  // FibContainerFields>>
+  // Please refer to the comment in uniquePtrFromThrift() for more details -
+  // (FIB Migration: Four-stage transition from fibsMap to fibsInfoMap) We will
+  // remove this code once we fully migrate to new FIB in stage 4.
+
+  auto fibsInfoMapThrift = data.fibsInfoMap();
+  if (fibsInfoMapThrift.has_value()) {
+    std::map<std::string, std::map<int16_t, state::FibContainerFields>> fibsMap;
+    if (!fibsInfoMapThrift.value().empty()) {
+      for (const auto& [switchIdListStr, fibInfoFields] :
+           fibsInfoMapThrift.value()) {
+        if (fibInfoFields.fibsMap().has_value()) {
+          // Copy the ForwardingInformationBaseMap to the old fibsMap structure
+          fibsMap[switchIdListStr] = fibInfoFields.fibsMap().value();
+        }
+      }
+    }
+    data.fibsMap() = fibsMap;
+  }
+
   return data;
 }
 

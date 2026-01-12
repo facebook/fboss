@@ -8,7 +8,7 @@ from fboss.lib.platform_mapping_v2.helpers import (
     get_connection_pairs_for_profile,
     get_mapping_pins,
     get_npu_chip,
-    get_pins_from_connections,
+    get_pin_data_from_connections,
     get_platform_config_entry,
     get_transceiver_chip,
     get_unique_connection_pairs,
@@ -29,13 +29,11 @@ from fboss.lib.platform_mapping_v2.read_files_utils import (
 )
 from fboss.lib.platform_mapping_v2.si_settings import SiSettings
 from fboss.lib.platform_mapping_v2.static_mapping import StaticMapping
-
 from neteng.fboss.phy.ttypes import (
     DataPlanePhyChip,
     DataPlanePhyChipType,
     PortPinConfig,
 )
-
 from neteng.fboss.platform_config.ttypes import (
     PlatformMapping,
     PlatformPortConfig,
@@ -410,17 +408,19 @@ class PlatformMappingV2:
                 )
                 all_connection_pairs = all_connection_pairs + profile_connections
                 # can get the overrides from here per profile
-                [platform_port_config.pins, platform_port_config_override] = (
-                    get_pins_from_connections(
-                        connections=profile_connections,
-                        si_settings=self.pm_parser.get_si_settings(),
-                        profile=profile,
-                        # pyre-fixme[6]: Expected `PortSpeed` for 4th param, but got `float`.
-                        lane_speed=0
-                        if speed_setting.num_lanes == 0
-                        else speed_setting.speed / speed_setting.num_lanes,
-                        port_id=port_detail.global_port_id,
-                    )
+
+                [
+                    platform_port_config.pins,
+                    platform_port_config_override,
+                ] = get_pin_data_from_connections(
+                    connections=profile_connections,
+                    si_settings=self.pm_parser.get_si_settings(),
+                    profile=profile,
+                    # pyre-fixme[6]: Expected `PortSpeed` for 4th param, but got `float`.
+                    lane_speed=0
+                    if speed_setting.num_lanes == 0
+                    else speed_setting.speed / speed_setting.num_lanes,
+                    port_id=port_detail.global_port_id,
                 )
                 if len(platform_port_config_override) > 0:
                     port_config_overrides.extend(platform_port_config_override)
@@ -473,15 +473,24 @@ class PlatformMappingV2:
                         for (
                             other_port_config
                         ) in other_port_entry.supportedProfiles.values():
-                            if all(
-                                needed_iphy_pin in other_port_config.pins.iphy
-                                for needed_iphy_pin in all_iphy_pins_needed
+                            other_port_pin_ids = [
+                                pin_config.id
+                                for pin_config in other_port_config.pins.iphy
+                            ]
+                            needed_pin_ids = [
+                                pin_config.id for pin_config in all_iphy_pins_needed
+                            ]
+
+                            if needed_pin_ids and all(
+                                needed_iphy_pin_id in other_port_pin_ids
+                                for needed_iphy_pin_id in needed_pin_ids
                             ):
                                 if not other_port_config.subsumedPorts:
                                     other_port_config.subsumedPorts = []
                                 if port_id not in other_port_config.subsumedPorts:
                                     other_port_config.subsumedPorts.append(port_id)
                                 port_entry.mapping.controllingPort = other_port_id
+
                 elif port_entry.mapping.portType == PortType.HYPER_PORT:
                     for other_port_id, other_port_entry in ports.items():
                         other_port_detail = (

@@ -3629,12 +3629,6 @@
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
-        },
-        {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
         },
         {
@@ -3971,12 +3965,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -7040,12 +7028,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         }
     ],
     "brcm/13.0_ea_odp/13.0_ea_odp/tomahawk5/multi_switch": [
@@ -7378,12 +7360,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -10456,12 +10432,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5/multi_switch": [
@@ -10794,12 +10764,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -16592,178 +16556,7 @@
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
         }
     ],
-    "leaba/24.8.3001_yuba/24.8.3001_yuba/graphene200/mono": [
-        {
-          "test_name_regex": "AgentCoppTest/1.UnresolvedRoutesToLowPriQueue$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastTxFromCpu$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastToMidPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].NdpSolicitNeighbor$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].NdpSolicitationToHighPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfc.*WithScaleCfg$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfc.*WithScaleCfgInCongestionDrops$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest.verifyPfcWithZeroGlobalHeadRoomCfg$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/IPv[46].*$"
-        },
-        {
-          "test_name_regex": "AgentEgressAclSpanMirroringTest/IPv[46].*$"
-        },
-        {
-          "test_name_regex": "AgentEgressAclErspanMirroringTest/IPv[46].*$"
-        },
-        {
-          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySP$"
-        },
-        {
-          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySPPreemptionCPUTraffic$"
-        },
-        {
-          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRR$"
-        },
-        {
-          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRAndICP$"
-        },
-        {
-          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRAndNC$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentOlympicQosSchedulerTest.VerifyOlympicV2WRRToAllSPTraffic$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentOlympicQosSchedulerTest.VerifyWRRToAllSPTraffic$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIcmp4Qualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIcmp6Qualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIp4TcpQualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIp6TcpQualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclModifyQualifier$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].AddPendingEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].AddPendingRemovedEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].LinkDownAndUpOnResolvedEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].LinkDownOnResolvedEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].RemoveResolvedEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].ResolvePendingEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].ResolveThenUnresolveEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].UnresolveResolvedEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].ResolveLinkLocalEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborMetadataTest/[13].ResolvePendingEntryThenChangeLookupClass$"
-        },
-        {
-          "test_name_regex": "AgentNeighborResolutionTest/[13].*$"
-        },
-        {
-          "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
-        },
-        {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
-        },
-        {
-          "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
-        },
-        {
-          "test_name_regex": "AgentRouteTest/[01].StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyDeviceWatermark$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
-        },
-        {
-          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
-        },
-        {
-          "test_name_regex": "AgentMirroringScaleTest/[15].MaxMirroringTest$"
-        },
-        {
-          "test_name_regex": "AgentNetworkAIQosSchedulerTest.*$"
-        },
-        {
-          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.StressRecreateMirror$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.StressRecreateMirror$"
-        },
+    "leaba/25.11.5210/25.11.5210/graphene202x/mono": [
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
@@ -16846,178 +16639,7 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         }
     ],
-    "leaba/24.8.3001_yuba/24.8.3001_yuba/graphene200/multi_switch": [
-        {
-          "test_name_regex": "AgentCoppTest/1.UnresolvedRoutesToLowPriQueue$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastTxFromCpu$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastToMidPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].NdpSolicitNeighbor$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].NdpSolicitationToHighPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfc.*WithScaleCfg$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfc.*WithScaleCfgInCongestionDrops$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest.verifyPfcWithZeroGlobalHeadRoomCfg$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/IPv[46].*$"
-        },
-        {
-          "test_name_regex": "AgentEgressAclSpanMirroringTest/IPv[46].*$"
-        },
-        {
-          "test_name_regex": "AgentEgressAclErspanMirroringTest/IPv[46].*$"
-        },
-        {
-          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySP$"
-        },
-        {
-          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySPPreemptionCPUTraffic$"
-        },
-        {
-          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRR$"
-        },
-        {
-          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRAndICP$"
-        },
-        {
-          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRAndNC$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentOlympicQosSchedulerTest.VerifyOlympicV2WRRToAllSPTraffic$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentOlympicQosSchedulerTest.VerifyWRRToAllSPTraffic$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIcmp4Qualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIcmp6Qualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIp4TcpQualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIp6TcpQualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclModifyQualifier$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].AddPendingEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].AddPendingRemovedEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].LinkDownAndUpOnResolvedEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].LinkDownOnResolvedEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].RemoveResolvedEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].ResolvePendingEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].ResolveThenUnresolveEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].UnresolveResolvedEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborTest/[13].ResolveLinkLocalEntry$"
-        },
-        {
-          "test_name_regex": "AgentNeighborMetadataTest/[13].ResolvePendingEntryThenChangeLookupClass$"
-        },
-        {
-          "test_name_regex": "AgentNeighborResolutionTest/[13].*$"
-        },
-        {
-          "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
-        },
-        {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
-        },
-        {
-          "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
-        },
-        {
-          "test_name_regex": "AgentRouteTest/[01].StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyDeviceWatermark$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
-        },
-        {
-          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
-        },
-        {
-          "test_name_regex": "AgentMirroringScaleTest/[15].MaxMirroringTest$"
-        },
-        {
-          "test_name_regex": "AgentNetworkAIQosSchedulerTest.*$"
-        },
-        {
-          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.StressRecreateMirror$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.StressRecreateMirror$"
-        },
+    "leaba/25.11.5210/25.11.5210/graphene202x/multi_switch": [
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },

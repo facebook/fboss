@@ -156,6 +156,10 @@ SwSwitch* AgentHwTest::getSw() const {
   return agentEnsemble_->getSw();
 }
 
+SwitchID AgentHwTest::getCurrentSwitchIdForTesting() const {
+  return SwitchID(FLAGS_switch_id_for_testing);
+}
+
 const std::map<SwitchID, const HwAsic*> AgentHwTest::getAsics() const {
   return agentEnsemble_->getSw()->getHwAsicTable()->getHwAsics();
 }

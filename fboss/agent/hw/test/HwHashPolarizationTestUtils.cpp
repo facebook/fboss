@@ -41,6 +41,7 @@ std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
         return getEthFrames(getFullHashedPacketsForTomahawkSai());
 
       case cfg::AsicType::ASIC_TYPE_FAKE:
+      case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
       case cfg::AsicType::ASIC_TYPE_MOCK:
       case cfg::AsicType::ASIC_TYPE_CHENAB:
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
@@ -57,6 +58,7 @@ std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
       case cfg::AsicType::ASIC_TYPE_RAMON:
       case cfg::AsicType::ASIC_TYPE_RAMON3:
+      case cfg::AsicType::ASIC_TYPE_G202X:
         return nullptr;
     }
   } else {
@@ -73,6 +75,7 @@ std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
       case cfg::AsicType::ASIC_TYPE_FAKE:
+      case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
       case cfg::AsicType::ASIC_TYPE_MOCK:
       case cfg::AsicType::ASIC_TYPE_CHENAB:
       case cfg::AsicType::ASIC_TYPE_EBRO:
@@ -85,6 +88,7 @@ std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
       case cfg::AsicType::ASIC_TYPE_RAMON:
       case cfg::AsicType::ASIC_TYPE_RAMON3:
+      case cfg::AsicType::ASIC_TYPE_G202X:
         return nullptr;
     }
   }

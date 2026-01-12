@@ -1071,7 +1071,8 @@ void SaiPortManager::programSerdes(
           saiPort->adapterKey(),
           swPort->getPinConfigs(),
           serdes,
-          swPort->getZeroPreemphasis() && supportsZeroPreemphasis);
+          swPort->getZeroPreemphasis() && supportsZeroPreemphasis,
+          swPort->getSerdesCustomCollection());
   if (serdes &&
       checkPortSerdesAttributes(serdes->attributes(), serdesAttributes)) {
     portHandle->serdes = serdes;
@@ -1138,6 +1139,27 @@ void SaiPortManager::programSerdes(
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
 
+  // Set RX Reach if ASIC supports and platform mapping has a rxReach
+  // setting
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SERDES_RX_REACH)) {
+    std::vector<phy::RxReach> rxReachVals;
+    for (const auto& pinConfig : swPort->getPinConfigs()) {
+      if (auto rx = pinConfig.rx()) {
+        if (auto rxReachOpt = rx->rxReach()) {
+          rxReachVals.push_back(rxReachOpt.value());
+        }
+      }
+    }
+    if (!rxReachVals.empty()) {
+      SaiPortSerdesTraits::Attributes::RxReach rxReach;
+      rxReach = getSaiRxReach(rxReachVals);
+      SaiApiTable::getInstance()->portApi().setAttribute(
+          portHandle->serdes->adapterKey(), rxReach);
+    }
+  }
+#endif
+
   if (platform_->getAsic()->getAsicType() ==
           cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
       platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT &&
@@ -1162,7 +1184,8 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     PortSaiId portSaiId,
     const std::vector<phy::PinConfig>& pinConfigs,
     const std::shared_ptr<SaiPortSerdes>& serdes,
-    bool zeroPreemphasis) {
+    bool zeroPreemphasis,
+    const std::optional<std::string>& customCollection) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
@@ -1239,7 +1262,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
       if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_YUBA) {
+              cfg::AsicType::ASIC_TYPE_YUBA ||
+          platform_->getAsic()->getAsicType() ==
+              cfg::AsicType::ASIC_TYPE_G202X) {
         if (auto firPre1 = tx->firPre1()) {
           txPre1.push_back(zeroPreemphasis ? 0 : *firPre1);
         }
@@ -1548,7 +1573,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         attrs, SaiPortSerdesTraits::Attributes::Preemphasis{}, preempahsis);
   }
 
-  if (numExpectedRxLanes) {
+  if (numExpectedRxLanes &&
+      platform_->getAsic()->getAsicVendor() ==
+          HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
     setTxRxAttr(
         attrs, SaiPortSerdesTraits::Attributes::RxCtleCode{}, rxCtleCode);
 
@@ -1601,6 +1628,14 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         SaiPortSerdesTraits::Attributes::RxAcCouplingByPass{},
         rxAcCouplingByPass);
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+  if (customCollection.has_value()) {
+    std::get<std::optional<SaiPortSerdesTraits::Attributes::CustomCollection>>(
+        attrs) = SaiPortSerdesTraits::Attributes::CustomCollection{
+        customCollection.value()};
+  }
+#endif
   return attrs;
 }
 

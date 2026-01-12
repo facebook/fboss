@@ -44,6 +44,8 @@ void prepareDefaultSwPort(Platform* platform, shared_ptr<Port> port) {
   }
   port->resetPinConfigs(
       platform->getPlatformMapping()->getPortIphyPinConfigs(matcher));
+  port->setSerdesCustomCollection(
+      platform->getPlatformMapping()->getPortSerdesCustomCollection(matcher));
 }
 
 HwSwitchMatcher scope() {
@@ -744,8 +746,9 @@ TEST(Port, portDrainInterfacePort) {
   EXPECT_EQ(port->getPortDrainState(), cfg::PortDrainState::UNDRAINED);
 
   config.ports()[0].drainState() = cfg::PortDrainState::DRAINED;
-  EXPECT_THROW(
-      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  port = stateV2->getPorts()->getNodeIf(PortID(1));
+  EXPECT_EQ(port->getPortDrainState(), cfg::PortDrainState::DRAINED);
 }
 
 TEST(Port, portDrainFabricPort) {
@@ -765,6 +768,24 @@ TEST(Port, portDrainFabricPort) {
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   port = stateV2->getPorts()->getNodeIf(PortID(1));
   EXPECT_EQ(port->getPortDrainState(), cfg::PortDrainState::DRAINED);
+}
+
+TEST(Port, portDrainManagementPort) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  cfg::SwitchConfig config;
+
+  config.ports()->resize(1);
+  preparedMockPortConfig(
+      config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+  config.ports()[0].portType() = cfg::PortType::MANAGEMENT_PORT;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  auto port = stateV1->getPorts()->getNodeIf(PortID(1));
+  EXPECT_EQ(port->getPortDrainState(), cfg::PortDrainState::UNDRAINED);
+
+  config.ports()[0].drainState() = cfg::PortDrainState::DRAINED;
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
 }
 
 TEST(Port, portFabricTypeApplyConfig) {

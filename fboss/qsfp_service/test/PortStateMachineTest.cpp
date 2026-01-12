@@ -27,6 +27,10 @@
 
 namespace facebook::fboss {
 
+ACTION(ThrowFbossError) {
+  throw FbossError("Mock FbossError");
+}
+
 class PortStateMachineTest : public TransceiverManagerTestHelper {
  public:
   struct StateMachineStates {
@@ -277,6 +281,19 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     transceiverManager_->triggerProgrammingEvents();
   }
 
+  // MultiPort optics requires two refresh cycles because leading ports are
+  // responsible for calling programInternalPhyPorts. In the next refresh loop,
+  // depending on the order of async events, the non-leading ports need to check
+  // in with the leading ports status.
+  void triggerOnlyIphyPortProgramming(bool isMultiTcvr, bool isMultiPort) {
+    setupProgramExternalPhyPortsFailMock(isMultiTcvr);
+    portManager_->triggerProgrammingEvents();
+    if (isMultiPort) {
+      portManager_->triggerProgrammingEvents();
+    }
+    removeProgramExternalPhyPortsFailMock(isMultiTcvr);
+  }
+
   void
   setState(const StateMachineStates& states, bool multiPort, bool multiTcvr) {
     // Set tcvr & port overrides - assumes port up is desired, which can be
@@ -323,7 +340,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       transceiverManager_->refreshTransceivers();
       portManager_->updateTransceiverPortStatus();
       portManager_->updatePortActiveStatusInTransceiverManager();
-      portManager_->triggerProgrammingEvents();
+      triggerOnlyIphyPortProgramming(multiTcvr, multiPort);
     } else if (
         tcvrState == TransceiverStateMachineState::NOT_PRESENT &&
         portState == PortStateMachineState::XPHY_PORTS_PROGRAMMED) {
@@ -340,7 +357,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
         tcvrState == TransceiverStateMachineState::DISCOVERED &&
         portState == PortStateMachineState::IPHY_PORTS_PROGRAMMED) {
       initializePortsThroughRefresh();
-      portManager_->triggerProgrammingEvents();
+      triggerOnlyIphyPortProgramming(multiTcvr, multiPort);
     } else if (
         tcvrState == TransceiverStateMachineState::DISCOVERED &&
         portState == PortStateMachineState::XPHY_PORTS_PROGRAMMED) {
@@ -363,21 +380,23 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
         portState == PortStateMachineState::IPHY_PORTS_PROGRAMMED) {
       initializePortsThroughRefresh();
       transceiverManager_->triggerProgrammingEvents();
-      portManager_->triggerProgrammingEvents();
+      triggerOnlyIphyPortProgramming(multiTcvr, multiPort);
     } else if (
         tcvrState == TransceiverStateMachineState::TRANSCEIVER_READY &&
         portState == PortStateMachineState::XPHY_PORTS_PROGRAMMED) {
       initializePortsThroughRefresh();
       transceiverManager_->triggerProgrammingEvents();
-      portManager_->triggerProgrammingEvents();
-      portManager_->triggerProgrammingEvents();
+      for (int i = 0; i < 3; i++) {
+        portManager_->triggerProgrammingEvents();
+      }
     } else if (
         tcvrState == TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED &&
         portState == PortStateMachineState::XPHY_PORTS_PROGRAMMED) {
       initializePortsThroughRefresh();
       transceiverManager_->triggerProgrammingEvents();
-      portManager_->triggerProgrammingEvents();
-      portManager_->triggerProgrammingEvents();
+      for (int i = 0; i < 3; i++) {
+        portManager_->triggerProgrammingEvents();
+      }
       transceiverManager_->triggerProgrammingEvents();
       if (multiTcvr) {
         transceiverManager_->triggerProgrammingEvents();
@@ -797,6 +816,9 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
         actualValue = stateMachine.get_attribute(isTransceiverJustRemediated);
       } else if (attrName == "needToResetToDiscovered") {
         actualValue = stateMachine.get_attribute(needToResetToDiscovered);
+      } else if (attrName == "newTransceiverInsertedAfterInit") {
+        actualValue =
+            stateMachine.get_attribute(newTransceiverInsertedAfterInit);
       } else {
         FAIL() << "Unknown attribute name: " << attrName;
         continue;
@@ -841,6 +863,44 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       bool multiPort) {
     XLOG(INFO) << "Verifying " << testName << " for multiPort = " << multiPort
                << ", multiTcvrPort = " << multiTcvrPort;
+  }
+
+  void setupProgramInternalPhyPortsFailMock(bool isMultiTcvr) {
+    EXPECT_CALL(*portManager_, programInternalPhyPorts(tcvrId1_))
+        .WillRepeatedly(ThrowFbossError());
+    if (isMultiTcvr) {
+      EXPECT_CALL(*portManager_, programInternalPhyPorts(tcvrId2_))
+          .WillRepeatedly(ThrowFbossError());
+    }
+  }
+
+  void removeProgramInternalPhyPortsFailMock(bool isMultiTcvr) {
+    EXPECT_CALL(*portManager_, programInternalPhyPorts(tcvrId1_))
+        .WillRepeatedly(::testing::Return());
+    if (isMultiTcvr) {
+      EXPECT_CALL(*portManager_, programInternalPhyPorts(tcvrId2_))
+          .WillRepeatedly(::testing::Return());
+    }
+  }
+
+  void setupProgramExternalPhyPortsFailMock(bool isMultiTcvr) {
+    EXPECT_CALL(*portManager_, programExternalPhyPorts(tcvrId1_, false))
+        .WillRepeatedly(ThrowFbossError());
+    if (isMultiTcvr) {
+      EXPECT_CALL(*portManager_, programExternalPhyPorts(tcvrId2_, false))
+          .WillRepeatedly(ThrowFbossError());
+    }
+  }
+
+  void removeProgramExternalPhyPortsFailMock(bool isMultiTcvr) {
+    // Add new expectations that override the throwing ones (matched first due
+    // to reverse order)
+    EXPECT_CALL(*portManager_, programExternalPhyPorts(tcvrId1_, false))
+        .WillRepeatedly(::testing::Return());
+    if (isMultiTcvr) {
+      EXPECT_CALL(*portManager_, programExternalPhyPorts(tcvrId2_, false))
+          .WillRepeatedly(::testing::Return());
+    }
   }
 
   // Port Manager
@@ -1262,7 +1322,7 @@ TEST_F(
         isMultiPort));
 
     // First round of programming.
-    portManager_->triggerProgrammingEvents();
+    triggerOnlyIphyPortProgramming(isMultiTcvr, isMultiPort);
     transceiverManager_->triggerProgrammingEvents();
     assertCurrentStateEquals(makeStates(
         TransceiverStateMachineState::TRANSCEIVER_READY,
@@ -1271,8 +1331,9 @@ TEST_F(
         isMultiPort));
 
     // Second round of programming.
-    refreshAndTriggerProgramming();
-    refreshAndTriggerProgramming();
+    for (int i = 0; i < 3; i++) {
+      refreshAndTriggerProgramming();
+    }
 
     assertCurrentStateEquals(makeStates(
         TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
@@ -1810,6 +1871,111 @@ TEST_F(PortStateMachineTest, ensureNoFwUpgradeOnPortUpAndI2cConnectionIssues) {
   }
 }
 
+TEST_F(PortStateMachineTest, ensureFwUpgradeOnTcvrInsertWithPortsDown) {
+  /*
+   * This test verifies that when firmware_upgrade_on_tcvr_insert and
+   * firmware_upgrade_supported flags are enabled, and a transceiver is
+   * newly inserted (after init) with all ports down, it is correctly
+   * selected as a candidate for firmware upgrade.
+   */
+  const std::string kTestName = "ensureFwUpgradeOnTcvrInsertWithPortsDown";
+
+  // We need to capture the firmware upgrade candidates during stateUpdate
+  std::unordered_set<TransceiverID> tcvrsForFwUpgrade;
+
+  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+
+    verifyStateMachine(
+        {makeStates(
+            TransceiverStateMachineState::NOT_PRESENT,
+            PortStateMachineState::UNINITIALIZED,
+            isMultiTcvr,
+            isMultiPort)},
+        makeStates(
+            TransceiverStateMachineState::DISCOVERED /* tcvr1State */,
+            PortStateMachineState::INITIALIZED /* port1State */,
+            isMultiTcvr /* isMultiTcvr */,
+            isMultiPort /* isMultiPort */) /* expected state */,
+        [this, isMultiTcvr, isMultiPort]() {
+          // Enable firmware upgrade flags
+          gflags::SetCommandLineOptionWithMode(
+              "firmware_upgrade_on_tcvr_insert",
+              "t",
+              gflags::SET_FLAGS_DEFAULT);
+          gflags::SetCommandLineOptionWithMode(
+              "firmware_upgrade_supported", "t", gflags::SET_FLAGS_DEFAULT);
+          // To avoid state expectation on i2c failure case.
+          setupProgramInternalPhyPortsFailMock(isMultiTcvr);
+          setupProgramExternalPhyPortsFailMock(isMultiTcvr);
+
+          // Mark transceiver as not present
+          setMockCmisPresence(false, isMultiTcvr);
+          setMockCmisTransceiverReady(false, isMultiTcvr);
+          detectPresence(isMultiTcvr);
+
+          // Refresh state machines a few times to let state settle
+          for (int i = 0; i < 3; i++) {
+            portManager_->refreshStateMachines();
+          }
+          assertCurrentStateEquals(makeStates(
+              TransceiverStateMachineState::TRANSCEIVER_READY /* tcvr1State */,
+              PortStateMachineState::INITIALIZED /* port1State */,
+              isMultiTcvr /* isMultiTcvr */,
+              isMultiPort /* isMultiPort */));
+
+          // Verify TransceiverManager is fully initialized
+          ASSERT_TRUE(transceiverManager_->isFullyInitialized());
+        } /* preUpdate */,
+        [this, &tcvrsForFwUpgrade, isMultiTcvr]() {
+          // Mark transceiver as present (simulating insertion after init)
+          setMockCmisPresence(true, isMultiTcvr);
+          setMockCmisTransceiverReady(true, isMultiTcvr);
+
+          removeProgramInternalPhyPortsFailMock(isMultiTcvr);
+          removeProgramExternalPhyPortsFailMock(isMultiTcvr);
+
+          // Run refreshTransceivers to detect the newly inserted transceiver
+          transceiverManager_->refreshTransceivers();
+
+          // Check newTransceiverInsertedAfterInit attribute is set
+          std::map<std::string, bool> finalAttr = {
+              {"newTransceiverInsertedAfterInit", true}};
+          verifyStateMachineAttributes(isMultiTcvr, finalAttr);
+
+          // Check if transceivers are candidates for firmware upgrade
+          std::vector<TransceiverID> refreshedTcvrs{tcvrId1_};
+          if (isMultiTcvr) {
+            refreshedTcvrs.push_back(tcvrId2_);
+          }
+          tcvrsForFwUpgrade =
+              transceiverManager_->findPotentialTcvrsForFirmwareUpgrade(
+                  refreshedTcvrs);
+          // Verify that the transceivers are selected for firmware upgrade
+          ASSERT_TRUE(tcvrsForFwUpgrade.contains(tcvrId1_))
+              << "Transceiver " << tcvrId1_
+              << " should be selected for fw upgrade on insert with ports down";
+          if (isMultiTcvr) {
+            ASSERT_TRUE(tcvrsForFwUpgrade.contains(tcvrId2_))
+                << "Transceiver " << tcvrId2_
+                << " should be selected for fw upgrade on insert with ports "
+                   "down";
+          }
+        } /* stateUpdate */,
+        [this, isMultiTcvr, &tcvrsForFwUpgrade]() {
+          // Reset flags
+          gflags::SetCommandLineOptionWithMode(
+              "firmware_upgrade_on_tcvr_insert",
+              "f",
+              gflags::SET_FLAGS_DEFAULT);
+          gflags::SetCommandLineOptionWithMode(
+              "firmware_upgrade_supported", "f", gflags::SET_FLAGS_DEFAULT);
+        } /* verify */,
+        kTestName,
+        true /* isMock */);
+  }
+}
+
 // Basic Coverage of TransceiverRemediation logic coordinated by
 // PortStateMachine - per-tcvrType testing is covered in
 // TransceiverStateMachineTest
@@ -1905,9 +2071,6 @@ TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedSuccess) {
   }
 }
 
-ACTION(ThrowFbossError) {
-  throw FbossError("Mock FbossError");
-}
 TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedFailed) {
   const std::string kTestName = "CheckTransceiverRemediatedFailed";
   for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
@@ -2049,23 +2212,23 @@ TEST_F(PortStateMachineTest, programIphyFails) {
             isMultiTcvr,
             isMultiPort)},
         [this, isMultiTcvr]() {
-          EXPECT_CALL(*portManager_, programInternalPhyPorts(tcvrId1_))
-              .Times(2)
-              .WillOnce(ThrowFbossError());
-          if (isMultiTcvr) {
-            // Making sure there should be no program call for tcvr2.
-            EXPECT_CALL(*portManager_, programInternalPhyPorts(tcvrId2_))
-                .Times(0);
-          }
+          setupProgramInternalPhyPortsFailMock(isMultiTcvr);
+          setupProgramExternalPhyPortsFailMock(isMultiTcvr);
         },
-        [this]() { portManager_->triggerProgrammingEvents(); },
+        [this]() {
+          portManager_->triggerProgrammingEvents();
+          portManager_->triggerProgrammingEvents();
+        },
         [this, isMultiTcvr, isMultiPort]() {
+          removeProgramInternalPhyPortsFailMock(isMultiTcvr);
+          portManager_->triggerProgrammingEvents();
           portManager_->triggerProgrammingEvents();
           assertCurrentStateEquals(makeStates(
               TransceiverStateMachineState::TRANSCEIVER_READY,
               PortStateMachineState::IPHY_PORTS_PROGRAMMED,
               isMultiTcvr,
               isMultiPort));
+          removeProgramExternalPhyPortsFailMock(isMultiTcvr);
         },
         kTestName,
         true /* isMock */);
@@ -2083,17 +2246,17 @@ TEST_F(PortStateMachineTest, programXphyFails) {
             isMultiTcvr,
             isMultiPort)},
         [this, isMultiTcvr]() {
-          EXPECT_CALL(*portManager_, programExternalPhyPorts(tcvrId1_, false))
-              .Times(2)
-              .WillOnce(ThrowFbossError());
-          if (isMultiTcvr) {
-            EXPECT_CALL(*portManager_, programExternalPhyPorts(tcvrId2_, false))
-                .Times(0);
-          }
+          setupProgramExternalPhyPortsFailMock(isMultiTcvr);
         },
-        [this]() { portManager_->triggerProgrammingEvents(); },
-        [this, isMultiTcvr, isMultiPort]() {
+        [this]() {
           portManager_->triggerProgrammingEvents();
+          portManager_->triggerProgrammingEvents();
+        },
+        [this, isMultiTcvr, isMultiPort]() {
+          removeProgramExternalPhyPortsFailMock(isMultiTcvr);
+          portManager_->triggerProgrammingEvents();
+          portManager_->triggerProgrammingEvents();
+
           assertCurrentStateEquals(makeStates(
               TransceiverStateMachineState::TRANSCEIVER_READY,
               PortStateMachineState::XPHY_PORTS_PROGRAMMED,
@@ -2329,7 +2492,9 @@ TEST_F(PortStateMachineTest, reseatTransceiver) {
     }
 
     // Step 3: Reinitialize ports which should trigger IPHY programming
+    setupProgramExternalPhyPortsFailMock(isMultiTcvr);
     portManager_->detectTransceiverResetAndReinitializeCorrespondingDownPorts();
+    portManager_->triggerProgrammingEvents();
     portManager_->triggerProgrammingEvents();
     assertCurrentStateEquals(makeStates(
         TransceiverStateMachineState::TRANSCEIVER_READY,
@@ -2343,6 +2508,8 @@ TEST_F(PortStateMachineTest, reseatTransceiver) {
     verifyStateMachineAttributes(isMultiTcvr, afterIphyAttr);
 
     // Step 4: Trigger XPHY programming
+    removeProgramExternalPhyPortsFailMock(isMultiTcvr);
+    portManager_->triggerProgrammingEvents();
     portManager_->triggerProgrammingEvents();
     assertCurrentStateEquals(makeStates(
         TransceiverStateMachineState::TRANSCEIVER_READY,
@@ -2417,6 +2584,96 @@ TEST_F(PortStateMachineTest, reseatTransceiver) {
   }
 }
 
+TEST_F(PortStateMachineTest, verifyOnlyPortDownIsUnsafeForRemediation) {
+  // This test verifies that updatePortActiveStatusInTransceiverManager()
+  // correctly marks ports as inactive (operState = false) ONLY when the port
+  // is in PORT_DOWN state. All other states should be considered as unsafe for
+  // remediation / fw upgrade.
+  const std::string kTestName = "verifyOnlyPortDownIsUnsafeForRemediation";
+
+  // Test port states that should be considered SAFE (operState = true)
+  // using state combinations supported by setState()
+  std::vector<std::pair<TransceiverStateMachineState, PortStateMachineState>>
+      safeStatePairs = {
+          {TransceiverStateMachineState::TRANSCEIVER_READY,
+           PortStateMachineState::UNINITIALIZED},
+          {TransceiverStateMachineState::DISCOVERED,
+           PortStateMachineState::INITIALIZED},
+          {TransceiverStateMachineState::DISCOVERED,
+           PortStateMachineState::IPHY_PORTS_PROGRAMMED},
+          {TransceiverStateMachineState::DISCOVERED,
+           PortStateMachineState::XPHY_PORTS_PROGRAMMED},
+          {TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+           PortStateMachineState::XPHY_PORTS_PROGRAMMED},
+          {TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+           PortStateMachineState::TRANSCEIVERS_PROGRAMMED},
+          {TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+           PortStateMachineState::PORT_UP},
+      };
+
+  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+    verifyStateUnchanged(
+        statePairsToStructs(safeStatePairs, isMultiTcvr, isMultiPort),
+        []() {} /* preUpdate */,
+        [this]() {
+          portManager_->updatePortActiveStatusInTransceiverManager();
+        } /* stateUpdate */,
+        [this, isMultiTcvr]() {
+          auto [allPortsDown, downPorts] =
+              transceiverManager_->areAllPortsDown(tcvrId1_);
+          EXPECT_FALSE(allPortsDown)
+              << "Non-PORT_DOWN states should NOT be considered as port down.";
+          EXPECT_TRUE(downPorts.empty())
+              << "Non-PORT_DOWN states should NOT have any down ports.";
+
+          if (isMultiTcvr) {
+            auto [allPortsDown2, downPorts2] =
+                transceiverManager_->areAllPortsDown(tcvrId2_);
+            EXPECT_FALSE(allPortsDown2)
+                << "Non-PORT_DOWN states should NOT be considered as port down for tcvr2.";
+            EXPECT_TRUE(downPorts2.empty())
+                << "Non-PORT_DOWN states should NOT have any down ports for tcvr2.";
+          }
+        } /* verify */,
+        kTestName + "_safe_states",
+        true /* isMock */);
+  }
+
+  // Test PORT_DOWN which should be the ONLY state considered unsafe
+  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+    verifyStateUnchanged(
+        {makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_DOWN,
+            isMultiTcvr,
+            isMultiPort)},
+        []() {} /* preUpdate */,
+        [this]() {
+          portManager_->updatePortActiveStatusInTransceiverManager();
+        } /* stateUpdate */,
+        [this, isMultiTcvr, isMultiPort]() {
+          auto [allPortsDown, downPorts] =
+              transceiverManager_->areAllPortsDown(tcvrId1_);
+          EXPECT_TRUE(allPortsDown)
+              << "PORT_DOWN should be considered as port down.";
+          int expectedDownPorts = isMultiPort ? 2 : 1;
+          EXPECT_EQ(downPorts.size(), expectedDownPorts)
+              << "PORT_DOWN should report all ports as down.";
+
+          if (isMultiTcvr) {
+            auto [allPortsDown2, downPorts2] =
+                transceiverManager_->areAllPortsDown(tcvrId2_);
+            EXPECT_TRUE(allPortsDown2)
+                << "PORT_DOWN should be considered as port down for tcvr2.";
+            EXPECT_EQ(downPorts2.size(), 1)
+                << "PORT_DOWN should report port as down for tcvr2.";
+          }
+        } /* verify */,
+        kTestName + "_PORT_DOWN_is_unsafe",
+        true /* isMock */);
+  }
+}
+
 TEST_F(PortStateMachineTest, agentDisableEnablePort) {
   std::string kTestName = "agentDisableEnablePort";
   for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
@@ -2463,6 +2720,90 @@ TEST_F(PortStateMachineTest, agentDisableEnablePort) {
         } /* stateUpdate */,
         []() {} /* verify */,
         kTestName + "-phase-enable",
+        true /* isMock */);
+  }
+}
+
+// This test verifies that when remediation is ENABLED, coldboot config changes
+// do NOT trigger remediation on transceivers that are already programmed with
+// ports up. The transceiver should remain in TRANSCEIVER_PROGRAMMED / PORT_UP
+// state after the config change and refresh cycles.
+TEST_F(PortStateMachineTest, agentConfigChangedColdBootNoRemediationOnPortUp) {
+  const std::string kTestName =
+      "agentConfigChangedColdBootNoRemediationOnPortUp";
+  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+
+    verifyStateUnchanged(
+        {makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_UP,
+            isMultiTcvr /* isMultiTcvr */,
+            isMultiPort /* isMultiPort */)},
+        [this]() {
+          // Enable remediation (remove pause) - this is key to the test
+          transceiverManager_->setPauseRemediation(0, nullptr /* evb */);
+          sleep(1);
+        } /* preUpdate */,
+        [this, isMultiTcvr]() {
+          triggerAgentConfigChanged(true /* isAgentColdBoot */);
+          for (int i = 0; i < 5; i++) {
+            portManager_->refreshStateMachines();
+            std::map<std::string, bool> expectedAttrValues = {
+                {"isTransceiverJustRemediated", false}};
+            verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
+          }
+        } /* stateUpdate */,
+        [this, isMultiTcvr]() {
+          // Verify that remediation was NOT triggered even though it's enabled
+          std::map<std::string, bool> expectedAttrValues = {
+              {"isTransceiverProgrammed", true},
+              {"isTransceiverJustRemediated", false}};
+          verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
+        } /* verify */,
+        kTestName,
+        true /* isMock */);
+  }
+}
+
+// This test verifies that when remediation is ENABLED, warmboot config changes
+// do NOT trigger remediation on transceivers that are already programmed with
+// ports up. The transceiver should remain in TRANSCEIVER_PROGRAMMED / PORT_UP
+// state after the config change and refresh cycles.
+TEST_F(PortStateMachineTest, agentConfigChangedWarmBootNoRemediationOnPortUp) {
+  const std::string kTestName =
+      "agentConfigChangedWarmBootNoRemediationOnPortUp";
+  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+
+    verifyStateUnchanged(
+        {makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_UP,
+            isMultiTcvr /* isMultiTcvr */,
+            isMultiPort /* isMultiPort */)},
+        [this]() {
+          // Enable remediation (remove pause) - this is key to the test
+          transceiverManager_->setPauseRemediation(0, nullptr /* evb */);
+          sleep(1);
+        } /* preUpdate */,
+        [this, isMultiTcvr]() {
+          triggerAgentConfigChanged(false /* isAgentColdBoot */);
+          for (int i = 0; i < 5; i++) {
+            portManager_->refreshStateMachines();
+            std::map<std::string, bool> expectedAttrValues = {
+                {"isTransceiverJustRemediated", false}};
+            verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
+          }
+        } /* stateUpdate */,
+        [this, isMultiTcvr]() {
+          // Verify that remediation was NOT triggered even though it's enabled
+          std::map<std::string, bool> expectedAttrValues = {
+              {"isTransceiverProgrammed", true},
+              {"isTransceiverJustRemediated", false}};
+          verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
+        } /* verify */,
+        kTestName,
         true /* isMock */);
   }
 }

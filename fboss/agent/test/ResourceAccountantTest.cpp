@@ -12,6 +12,8 @@
 
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/ResourceAccountant.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -743,10 +745,16 @@ TEST_F(ResourceAccountantTest, resolvedAndUnresolvedRoutes) {
 
         fibContainer->setFib(fibV6.clone());
 
-        auto fibMap =
-            std::make_shared<MultiSwitchForwardingInformationBaseMap>();
-        fibMap->addNode(fibContainer, HwSwitchMatcher());
-        state->resetForwardingInformationBases(fibMap);
+        // Create ForwardingInformationBaseMap and add the container
+        auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
+        fibsMap->updateForwardingInformationBaseContainer(fibContainer);
+
+        auto fibInfo = std::make_shared<FibInfo>();
+        fibInfo->ref<switch_state_tags::fibsMap>() = fibsMap;
+
+        auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+        fibInfoMap->updateFibInfo(fibInfo, HwSwitchMatcher());
+        state->resetFibsInfoMap(fibInfoMap);
         return state;
       };
 

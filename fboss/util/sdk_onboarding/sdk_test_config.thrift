@@ -5,6 +5,10 @@
 namespace py3 neteng.fboss
 
 include "fboss/agent/switch_config.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 enum TestType {
   Hw = 1,

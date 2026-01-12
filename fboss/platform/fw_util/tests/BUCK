@@ -7,6 +7,9 @@ cpp_unittest(
     srcs = [
         "ConfigValidatorTest.cpp",
     ],
+    # Required for parameterized tests (TEST_P) - static listing doesn't support them
+    # See: https://fburl.com/parameterized-test-not-supported
+    supports_static_listing = False,
     deps = [
         "//fboss/platform/fw_util:core",
     ],
@@ -19,6 +22,7 @@ cpp_unittest(
     ],
     deps = [
         "//fboss/platform/fw_util:core",
+        "//fboss/platform/helpers:platform_utils",
     ],
 )
 
@@ -94,6 +98,26 @@ cpp_unittest(
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_flashrom_test",
+    srcs = [
+        "FwUtilFlashromTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_impl_test",
+    srcs = [
+        "FwUtilImplTest.cpp",
+    ],
+    deps = [
         "//fboss/platform/fw_util:core",
     ],
 )

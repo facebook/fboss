@@ -10,7 +10,6 @@
 
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
 
 using namespace ::testing;
 
@@ -56,7 +55,7 @@ TEST_F(CmdShowHwObjectTestFixture, queryClient) {
 
   auto cmd = CmdShowHwObject();
   auto hwObjectInfo = cmd.queryClient(localhost(), mockHwObjectTypes);
-  EXPECT_THRIFT_EQ(hwObjectInfo, expectedHwObjectInfo);
+  EXPECT_EQ(hwObjectInfo, expectedHwObjectInfo);
 }
 
 TEST_F(CmdShowHwObjectTestFixture, printOutput) {

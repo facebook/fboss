@@ -165,7 +165,7 @@ class RibRollbackTest : public ::testing::Test {
   }
   void assertRouteCount(int v4Expected, int v6Expected, int mplsExpected)
       const {
-    auto [numV4, numV6] = switchState_->getFibs()->getRouteCount();
+    auto [numV4, numV6] = switchState_->getFibsInfoMap()->getRouteCount();
     EXPECT_EQ(v6Expected, numV6);
     EXPECT_EQ(v4Expected, numV4);
     EXPECT_EQ(v6Expected + v4Expected, rib_.getRouteTableDetails(kRid).size());

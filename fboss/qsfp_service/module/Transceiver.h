@@ -185,8 +185,6 @@ class Transceiver {
 
   virtual void triggerVdmStatsCapture() = 0;
 
-  virtual void publishSnapshots() = 0;
-
   /*
    * Try to remediate such Transceiver if needed.
    * Return true means remediation is needed.
