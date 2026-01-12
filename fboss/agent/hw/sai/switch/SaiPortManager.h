@@ -279,7 +279,8 @@ class SaiPortManager {
       PortID portID) const;
   std::vector<sai_port_lane_latch_status_t> getRxLockStatus(
       PortSaiId saiPortId,
-      uint8_t numPmdLanes) const;
+      uint8_t numPmdLanes,
+      PortID portID) const;
   std::vector<sai_port_lane_latch_status_t> getFecAlignmentLockStatus(
       PortSaiId saiPortId,
       uint8_t numFecLanes) const;

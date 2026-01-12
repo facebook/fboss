@@ -2248,7 +2248,7 @@ void SaiSwitch::updatePmdInfo(
   }
 
   auto pmdLockStatus = managerTable_->portManager().getRxLockStatus(
-      port->adapterKey(), numPmdLanes);
+      port->adapterKey(), numPmdLanes, portID);
   for (auto pmd : pmdLockStatus) {
     auto laneId = pmd.lane;
     phy::LaneStats laneStat;

@@ -3380,6 +3380,13 @@ std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxSignalDetect(
     return std::vector<sai_port_lane_latch_status_t>();
   }
 
+  if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK6 &&
+      getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
+    // CS00012443184
+    return std::vector<sai_port_lane_latch_status_t>();
+  }
+
   return SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId,
       SaiPortTraits::Attributes::RxSignalDetect{
@@ -3388,8 +3395,16 @@ std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxSignalDetect(
 
 std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxLockStatus(
     PortSaiId saiPortId,
-    uint8_t numPmdLanes) const {
+    uint8_t numPmdLanes,
+    PortID portID) const {
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::PMD_RX_LOCK_STATUS)) {
+    return std::vector<sai_port_lane_latch_status_t>();
+  }
+
+  if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK6 &&
+      getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
+    // CS00012443184
     return std::vector<sai_port_lane_latch_status_t>();
   }
 
