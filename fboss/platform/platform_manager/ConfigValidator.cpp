@@ -507,7 +507,7 @@ bool ConfigValidator::isValidI2cDeviceConfig(
     return false;
   }
   if (*i2cDeviceConfig.isEeprom() &&
-      i2cDeviceConfig.pmUnitScopedName()->find("EEPROM") == std::string::npos) {
+      i2cDeviceConfig.pmUnitScopedName()->endswith("_EEPROM") == std::string::npos) {
     XLOGF(
         ERR,
         "isEeprom is true but pmUnitScopedName '{}' does not contain 'EEPROM'",
