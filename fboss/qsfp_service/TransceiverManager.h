@@ -997,7 +997,6 @@ class TransceiverManager {
       std::unique_ptr<TransceiverStateMachineUpdate> update);
   void executeStateUpdates();
 
-  static void handlePendingUpdatesHelper(TransceiverManager* mgr);
   void handlePendingUpdates();
 
   void triggerAgentConfigChangeEvent();

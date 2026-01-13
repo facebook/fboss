@@ -424,7 +424,6 @@ class PortManager {
     isExiting_ = true;
   }
 
-  static void handlePendingUpdatesHelper(PortManager* mgr);
   void handlePendingUpdates();
 
   PortNameIdMap setupPortNameToPortIDMap();

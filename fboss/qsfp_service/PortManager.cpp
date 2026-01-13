@@ -1555,12 +1555,8 @@ bool PortManager::enqueueStateUpdate(
 }
 void PortManager::executeStateUpdates() {
   updateEventBase_->runInEventBaseThread(
-      std::bind(handlePendingUpdatesHelper, this));
+      [this] { this->handlePendingUpdates(); });
 }
-
-void PortManager::handlePendingUpdatesHelper(PortManager* mgr) {
-  return mgr->handlePendingUpdates();
-};
 
 void PortManager::handlePendingUpdates() {
   // Pending updates are stored within each PortStateMachineController, so this

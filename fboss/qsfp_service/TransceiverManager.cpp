@@ -1098,10 +1098,8 @@ bool TransceiverManager::enqueueStateUpdate(
 
 void TransceiverManager::executeStateUpdates() {
   // Signal the update thread that updates are pending.
-  // We call runInEventBaseThread() with a static function pointer since this
-  // is more efficient than having to allocate a new bound function object.
   updateEventBase_->runInEventBaseThread(
-      std::bind(handlePendingUpdatesHelper, this));
+      [this] { this->handlePendingUpdates(); });
 }
 
 bool TransceiverManager::updateState(
@@ -1115,9 +1113,6 @@ bool TransceiverManager::updateState(
   return true;
 }
 
-void TransceiverManager::handlePendingUpdatesHelper(TransceiverManager* mgr) {
-  return mgr->handlePendingUpdates();
-}
 void TransceiverManager::handlePendingUpdates() {
   // Try to run one state machine updates on each transceiver.
   XLOG(DBG2) << "Trying to update all TransceiverStateMachines";
