@@ -502,7 +502,7 @@ TEST_F(
   };
 
   auto verify = [=, this]() {
-    PortID portId = masterLogicalInterfacePortIds()[0];
+    PortID portId = masterLogicalInterfaceOrHyperPortIds()[0];
     folly::IPAddressV6 kNeighbor6Ip("100::2");
     folly::IPAddressV4 kNeighbor4Ip("100.0.0.2");
     auto portStatsBefore = getLatestPortStats(portId);
