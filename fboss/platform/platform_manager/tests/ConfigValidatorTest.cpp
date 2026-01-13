@@ -1366,14 +1366,14 @@ TEST(ConfigValidatorTest, LogicalEepromRegions) {
 
   // Create two logical eeproms on the same physical device
   I2cDeviceConfig eeprom1, eeprom2;
-  eeprom1.pmUnitScopedName() = "EEPROM_1";
+  eeprom1.pmUnitScopedName() = "CHASSIS_EEPROM";
   eeprom1.busName() = "SMB_BUS";
   eeprom1.address() = "0x51";
   eeprom1.kernelDeviceName() = "24c512";
   eeprom1.isEeprom() = true;
   eeprom1.eepromOffset() = 15360;
 
-  eeprom2.pmUnitScopedName() = "EEPROM_2";
+  eeprom2.pmUnitScopedName() = "LOGICAL_EEPROM";
   eeprom2.busName() = "SMB_BUS";
   eeprom2.address() = "0x51";
   eeprom2.kernelDeviceName() = "24c512";
