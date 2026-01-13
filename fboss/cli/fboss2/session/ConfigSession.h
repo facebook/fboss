@@ -161,6 +161,9 @@ class ConfigSession {
   // The agent parameter specifies which agent to reset the action level for.
   void resetRequiredAction(cli::AgentType agent = cli::AgentType::WEDGE_AGENT);
 
+  // Get the list of commands executed in this session
+  const std::vector<std::string>& getCommands() const;
+
  protected:
   // Constructor for testing with custom paths
   ConfigSession(
@@ -170,6 +173,10 @@ class ConfigSession {
 
   // Set the singleton instance (for testing only)
   static void setInstance(std::unique_ptr<ConfigSession> instance);
+
+  // Add a command to the history (for testing only)
+  // This allows tests to simulate command tracking without /proc/self/cmdline
+  void addCommand(const std::string& command);
 
  private:
   std::string sessionConfigPath_;
@@ -187,12 +194,15 @@ class ConfigSession {
   // session.
   std::map<cli::AgentType, cli::ConfigActionLevel> requiredActions_;
 
+  // List of commands executed in this session, persisted to disk
+  std::vector<std::string> commands_;
+
   // Path to the metadata file (e.g., ~/.fboss2/metadata)
   std::string getMetadataPath() const;
 
-  // Load/save action levels from/to disk
-  void loadActionLevel();
-  void saveActionLevel();
+  // Load/save metadata (action levels and commands) from disk
+  void loadMetadata();
+  void saveMetadata();
 
   // Restart an agent via systemd and wait for it to be active
   void restartAgent(cli::AgentType agent);

@@ -32,4 +32,7 @@ struct ConfigSessionMetadata {
   // Maps each agent to the required action level for pending config changes.
   // Agents not in this map default to HITLESS.
   1: map<AgentType, ConfigActionLevel> action;
+  // List of CLI commands executed in this session, in chronological order.
+  // Each entry is the full command string (e.g., "config interface eth1/1/1 mtu 9000").
+  2: list<string> commands;
 }
