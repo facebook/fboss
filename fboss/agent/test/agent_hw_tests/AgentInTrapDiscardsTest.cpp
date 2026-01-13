@@ -29,13 +29,16 @@ class AgentInTrapDiscardsCounterTest : public AgentHwTest {
     auto pkt = utility::makeUDPTxPacket(
         getSw(), vlanId, intfMac, intfMac, srcIp, dstIp, 10000, 10001);
     getSw()->sendPacketOutOfPortAsync(
-        std::move(pkt), PortID(masterLogicalInterfacePortIds()[0]));
+        std::move(pkt),
+        PortID(masterLogicalPortIds(
+            {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0]));
   }
 };
 
 TEST_F(AgentInTrapDiscardsCounterTest, trapDrops) {
   auto setup = [=]() {};
-  PortID portId = masterLogicalInterfacePortIds()[0];
+  PortID portId = masterLogicalPortIds(
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0];
   auto verify = [=, this]() {
     // Delete null route so that we hit the trap drop instead of null
     // route drop. We do this in verify since we unconditionally install
