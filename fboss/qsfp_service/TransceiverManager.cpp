@@ -1100,7 +1100,8 @@ void TransceiverManager::executeStateUpdates() {
   // Signal the update thread that updates are pending.
   // We call runInEventBaseThread() with a static function pointer since this
   // is more efficient than having to allocate a new bound function object.
-  updateEventBase_->runInEventBaseThread(handlePendingUpdatesHelper, this);
+  updateEventBase_->runInEventBaseThread(
+      std::bind(handlePendingUpdatesHelper, this));
 }
 
 bool TransceiverManager::updateState(

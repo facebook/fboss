@@ -72,7 +72,7 @@ class CowStorageMgr {
     XLOG(DBG2) << "[FSDB] # Pending updates "
                << pendingUpdates_.rlock()->size();
     updateEvbThread_.getEventBase()->runInEventBaseThread(
-        handlePendingUpdatesHelper, this);
+        std::bind(handlePendingUpdatesHelper, this));
   }
   /**
    * Schedule an update to the CowState.

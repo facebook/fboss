@@ -1554,7 +1554,8 @@ bool PortManager::enqueueStateUpdate(
   return true;
 }
 void PortManager::executeStateUpdates() {
-  updateEventBase_->runInEventBaseThread(handlePendingUpdatesHelper, this);
+  updateEventBase_->runInEventBaseThread(
+      std::bind(handlePendingUpdatesHelper, this));
 }
 
 void PortManager::handlePendingUpdatesHelper(PortManager* mgr) {
