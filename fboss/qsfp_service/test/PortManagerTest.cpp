@@ -90,6 +90,71 @@ class PortManagerTest : public ::testing::Test {
         overrideMultiTransceiverTcvrToPortAndProfile_);
   }
 
+  void initManagersWithBackplanePlatformMapping() {
+    const auto platformMapping =
+        makeFakePlatformMapping(1, 1, FakeTestPlatformMappingType::BACKPLANE);
+    const std::shared_ptr<const PlatformMapping> castedPlatformMapping =
+        platformMapping;
+
+    // Create Threads Object
+    const auto qsfpServiceThreads = makeQsfpServiceThreads(platformMapping);
+
+    transceiverManager_ = std::make_shared<MockWedgeManager>(
+        0, 0, platformMapping, qsfpServiceThreads);
+    portManager_ = std::make_unique<MockPortManager>(
+        transceiverManager_.get(),
+        nullptr /* phyManager */,
+        platformMapping,
+        qsfpServiceThreads);
+  }
+
+  void initManagersWithXphyBackplanePlatformMapping() {
+    const auto platformMapping = makeFakePlatformMapping(
+        1, 1, FakeTestPlatformMappingType::XPHY_BACKPLANE);
+    const std::shared_ptr<const PlatformMapping> castedPlatformMapping =
+        platformMapping;
+
+    // Create Threads Object
+    const auto qsfpServiceThreads = makeQsfpServiceThreads(platformMapping);
+
+    std::unique_ptr<MockPhyManager> phyManager =
+        std::make_unique<MockPhyManager>(platformMapping.get());
+    phyManager_ = phyManager.get();
+
+    transceiverManager_ = std::make_shared<MockWedgeManager>(
+        0, 1, platformMapping, qsfpServiceThreads);
+    portManager_ = std::make_unique<MockPortManager>(
+        transceiverManager_.get(),
+        std::move(phyManager),
+        platformMapping,
+        qsfpServiceThreads);
+  }
+
+  void initManagersWithStandardPlatformMapping(bool setPhyManager = false) {
+    const auto platformMapping =
+        makeFakePlatformMapping(1, 8, FakeTestPlatformMappingType::STANDARD);
+    const std::shared_ptr<const PlatformMapping> castedPlatformMapping =
+        platformMapping;
+
+    // Create Threads Object
+    const auto qsfpServiceThreads = makeQsfpServiceThreads(platformMapping);
+
+    std::unique_ptr<MockPhyManager> phyManager =
+        std::make_unique<MockPhyManager>(platformMapping.get());
+    phyManager_ = phyManager.get();
+
+    transceiverManager_ = std::make_shared<MockWedgeManager>(
+        1, 8, platformMapping, qsfpServiceThreads);
+    portManager_ = std::make_unique<MockPortManager>(
+        transceiverManager_.get(),
+        setPhyManager ? std::move(phyManager) : nullptr,
+        platformMapping,
+        qsfpServiceThreads);
+
+    transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+        overrideTcvrToPortAndProfile_);
+  }
+
   void validatePortStatusNotInTestingOverride(PortID portId) {
     const auto& overrideStatusMap =
         portManager_->getOverrideAgentPortStatusForTesting();
@@ -1340,6 +1405,38 @@ TEST_F(PortManagerTest, portHasTransceiver) {
   initManagersWithMultiTcvrPort(false);
   EXPECT_TRUE(portManager_->portHasTransceiver(PortID(1)));
   EXPECT_TRUE(portManager_->portHasTransceiver(PortID(5)));
+}
+
+TEST_F(PortManagerTest, noPortsCreatedForBackplanePlatformMapping) {
+  // When platform mapping is BACKPLANE, no transceiver or XPHY ports should be
+  // created since backplane ports don't have actual transceivers or XPHYs.
+  // This is verified by checking that no port state machines are created.
+  initManagersWithBackplanePlatformMapping();
+  EXPECT_EQ(portManager_->getStateMachineCountForTest(), 0);
+}
+
+TEST_F(PortManagerTest, portsCreatedForXphyBackplanePlatformMapping) {
+  // When platform mapping is XPHY_BACKPLANE, 1 port should be created since
+  // XPHY_BACKPLANE has XPHY (but no transceiver). This port connects through
+  // NPU -> XPHY -> BACKPLANE path.
+  initManagersWithXphyBackplanePlatformMapping();
+  EXPECT_EQ(portManager_->getStateMachineCountForTest(), 1);
+}
+
+TEST_F(PortManagerTest, portsCreatedForStandardPlatformMapping) {
+  // When platform mapping is STANDARD with 1 transceiver and 8 ports per
+  // module, 8 port state machines should be created since each port connects
+  // through NPU -> XPHY -> Transceiver path.
+  initManagersWithStandardPlatformMapping(true /* setPhyManager */);
+  EXPECT_EQ(portManager_->getStateMachineCountForTest(), 8);
+}
+
+TEST_F(PortManagerTest, portsCreatedForDualTransceiverPlatformMapping) {
+  // When platform mapping is DUAL_TRANSCEIVER with 2 transceivers and 4 ports
+  // per module, 8 port state machines should be created (4 ports x 2
+  // transceivers).
+  initManagersWithMultiTcvrPort(true /* setPhyManager */);
+  EXPECT_EQ(portManager_->getStateMachineCountForTest(), 8);
 }
 
 } // namespace facebook::fboss

@@ -337,6 +337,11 @@ class PortManager {
     return cachedXphyPorts_;
   }
 
+  // For testing purposes only.
+  int getStateMachineCountForTest() const {
+    return stateMachineControllers_.size();
+  }
+
   void updateTransceiverPortStatus() noexcept;
 
   // Remediation logic and update on transceiver insert logic in
