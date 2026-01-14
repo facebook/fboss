@@ -1587,25 +1587,17 @@ void PortManager::handlePendingUpdates() {
   for (auto& stateMachinePair : stateMachineControllers_) {
     const auto& portId = stateMachinePair.first;
     const auto& stateMachineControllerPtr = stateMachinePair.second;
-    const auto tcvrIDOpt = getLowestIndexedStaticTransceiverForPort(portId);
-    if (!tcvrIDOpt) {
-      // TODO(smenta) - fix thread allocation mechanism.
-      PORTMGR_SM_LOG(WARN) << "No static transceiver for port " << portId
+    auto* eventBase = getEventBaseForPort(qsfpServiceThreads_, portId);
+    if (!eventBase) {
+      PORTMGR_SM_LOG(WARN) << "Can't find EventBase for port " << portId
                            << ". Skip updating PortStateMachine.";
-      continue;
-    }
-    auto threadsItr = qsfpServiceThreads_->transceiverToThread.find(*tcvrIDOpt);
-    if (threadsItr == qsfpServiceThreads_->transceiverToThread.end()) {
-      PORTMGR_SM_LOG(WARN) << "Can't find ThreadHelper for threadID "
-                           << *tcvrIDOpt << ". Skip updating PortStateMachine.";
       continue;
     }
 
     stateUpdateTasks.push_back(
-        folly::via(threadsItr->second.getEventBase())
-            .thenValue([&stateMachineControllerPtr](auto&&) {
-              stateMachineControllerPtr->executeSingleUpdate();
-            }));
+        folly::via(eventBase).thenValue([&stateMachineControllerPtr](auto&&) {
+          stateMachineControllerPtr->executeSingleUpdate();
+        }));
   }
   folly::collectAll(stateUpdateTasks).wait();
 };
@@ -1641,8 +1633,8 @@ void PortManager::drainAllStateMachineUpdates() {
 
   // Make sure threads are actually active before we start draining.
   bool allStateMachineThreadsActive{true};
-  for (auto& threadHelper : qsfpServiceThreads_->transceiverToThread) {
-    if (!threadHelper.second.isThreadActive()) {
+  for (auto& [threadId, threadHelper] : qsfpServiceThreads_->threadIdToThread) {
+    if (!threadHelper.isThreadActive()) {
       allStateMachineThreadsActive = false;
       break;
     }

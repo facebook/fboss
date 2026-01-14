@@ -34,9 +34,10 @@ class MockWedgeManager : public WedgeManager {
       std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads,
       int numModules,
       int numPortsPerModule) {
-    return qsfpServiceThreads ? qsfpServiceThreads
-                              : makeQsfpServiceThreads(makeFakePlatformMapping(
-                                    numModules, numPortsPerModule));
+    return qsfpServiceThreads
+        ? qsfpServiceThreads
+        : createQsfpServiceThreads(
+              makeFakePlatformMapping(numModules, numPortsPerModule));
   }
 
  public:

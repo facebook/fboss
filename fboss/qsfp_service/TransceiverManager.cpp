@@ -956,9 +956,9 @@ void TransceiverManager::startThreads() {
         "Attempting to initialize TransceiverManager without initializing thread object.");
   }
 
-  for (auto& threadHelper : qsfpServiceThreads_->transceiverToThread) {
-    threadHelper.second.startThread();
-    heartbeats_.push_back(threadHelper.second.getThreadHeartbeat());
+  for (auto& [threadId, threadHelper] : qsfpServiceThreads_->threadIdToThread) {
+    threadHelper.startThread();
+    heartbeats_.push_back(threadHelper.getThreadHeartbeat());
   }
 
   XLOG(DBG2) << "Started TransceiverStateMachineUpdateThread";
@@ -1020,8 +1020,8 @@ void TransceiverManager::stopThreads() {
   }
 
   // And finally stop all TransceiverStateMachineHelper thread
-  for (auto& threadHelper : qsfpServiceThreads_->transceiverToThread) {
-    threadHelper.second.stopThread();
+  for (auto& [threadId, threadHelper] : qsfpServiceThreads_->threadIdToThread) {
+    threadHelper.stopThread();
   }
 }
 
@@ -1118,20 +1118,18 @@ void TransceiverManager::handlePendingUpdates() {
 
   // To expedite all these different transceivers state update, use Future
   std::vector<folly::Future<folly::Unit>> stateUpdateTasks;
-  for (auto& [tcvrID, threadHelper] :
-       qsfpServiceThreads_->transceiverToThread) {
-    auto stateMachineItr = stateMachineControllers_.find(tcvrID);
-    if (stateMachineItr == stateMachineControllers_.end()) {
+  for (auto& [tcvrID, stateMachineController] : stateMachineControllers_) {
+    auto* eventBase = getEventBaseForTcvr(qsfpServiceThreads_, tcvrID);
+    if (!eventBase) {
       XLOG(WARN) << "Unrecognize Transceiver: " << tcvrID
-                 << ", can't find ThreadHelper for it. Skip updating.";
+                 << ", can't find EventBase for it. Skip updating.";
       continue;
     }
 
     stateUpdateTasks.push_back(
-        folly::via(threadHelper.getEventBase())
-            .thenValue([stateMachineItr](auto&&) {
-              stateMachineItr->second->executeSingleUpdate();
-            }));
+        folly::via(eventBase).thenValue([&stateMachineController](auto&&) {
+          stateMachineController->executeSingleUpdate();
+        }));
   }
   folly::collectAll(stateUpdateTasks).wait();
 }
@@ -2004,9 +2002,13 @@ void TransceiverManager::triggerFirmwareUpgradeEvents(
   for (auto tcvrID : tcvrs) {
     TransceiverStateMachineEvent event =
         TransceiverStateMachineEvent::TCVR_EV_UPGRADE_FIRMWARE;
-    heartbeatWatchdog_->pauseMonitoringHeartbeat(
-        qsfpServiceThreads_->transceiverToThread.find(tcvrID)
-            ->second.getThreadHeartbeat());
+    auto tcvrThreadIdIt = qsfpServiceThreads_->tcvrToThreadId.find(tcvrID);
+    if (tcvrThreadIdIt != qsfpServiceThreads_->tcvrToThreadId.end()) {
+      auto& threadHelper =
+          qsfpServiceThreads_->threadIdToThread.at(tcvrThreadIdIt->second);
+      heartbeatWatchdog_->pauseMonitoringHeartbeat(
+          threadHelper.getThreadHeartbeat());
+    }
     // Only enqueue updates for now, we'll execute them at once after this
     // loop
     if (auto result =
@@ -2382,9 +2384,9 @@ void TransceiverManager::refreshStateMachines() {
 void TransceiverManager::completeRefresh() {
   // Resume heartbeats at the end of refresh loop in case they were paused by
   // any of the operations during the refresh cycle
-  for (auto& threadHelper : qsfpServiceThreads_->transceiverToThread) {
+  for (auto& [threadId, threadHelper] : qsfpServiceThreads_->threadIdToThread) {
     heartbeatWatchdog_->resumeMonitoringHeartbeat(
-        threadHelper.second.getThreadHeartbeat());
+        threadHelper.getThreadHeartbeat());
   }
   heartbeatWatchdog_->resumeMonitoringHeartbeat(updateThreadHeartbeat_);
   isUpgradingFirmware_ = false;
@@ -3661,8 +3663,8 @@ void TransceiverManager::drainAllStateMachineUpdates() {
 
   // Make sure threads are actually active before we start draining.
   bool allStateMachineThreadsActive{true};
-  for (auto& threadHelper : qsfpServiceThreads_->transceiverToThread) {
-    if (!threadHelper.second.isThreadActive()) {
+  for (auto& [threadId, threadHelper] : qsfpServiceThreads_->threadIdToThread) {
+    if (!threadHelper.isThreadActive()) {
       allStateMachineThreadsActive = false;
       break;
     }

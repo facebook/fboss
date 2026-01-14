@@ -26,9 +26,15 @@ class PlatformMapping;
  * will be extended in the future to include additional platform-derived data.
  */
 struct QsfpServiceThreads {
-  using ThreadMap = std::unordered_map<TransceiverID, SlotThreadHelper>;
+  using TcvrToThreadIdMap = std::unordered_map<TransceiverID, int>;
+  using XphyToThreadIdMap = std::unordered_map<XphyId, int>;
+  using PortToThreadIdMap = std::unordered_map<PortID, int>;
+  using ThreadIdToThreadMap = std::unordered_map<int, SlotThreadHelper>;
 
-  ThreadMap transceiverToThread;
+  TcvrToThreadIdMap tcvrToThreadId;
+  XphyToThreadIdMap xphyToThreadId;
+  PortToThreadIdMap portToThreadId;
+  ThreadIdToThreadMap threadIdToThread;
 };
 
 /*
@@ -38,5 +44,21 @@ struct QsfpServiceThreads {
  */
 std::shared_ptr<QsfpServiceThreads> createQsfpServiceThreads(
     const std::shared_ptr<const PlatformMapping>& platformMapping);
+
+/*
+ * Get the EventBase pointer for a given TransceiverID.
+ * Returns nullptr if the TransceiverID is not found in the thread map.
+ */
+folly::EventBase* getEventBaseForTcvr(
+    const std::shared_ptr<QsfpServiceThreads>& threads,
+    TransceiverID tcvrId);
+
+/*
+ * Get the EventBase pointer for a given PortID.
+ * Returns nullptr if the PortID is not found in the thread map.
+ */
+folly::EventBase* getEventBaseForPort(
+    const std::shared_ptr<QsfpServiceThreads>& threads,
+    PortID portId);
 
 } // namespace facebook::fboss
