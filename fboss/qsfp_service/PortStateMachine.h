@@ -152,9 +152,11 @@ try {
     // First transceiver will communicate which pins need to be programmed (for
     // both ports) - so only one transceiver needs to request information from
     // agent.
-
-    portMgr->programInternalPhyPorts(
-        portMgr->getLowestIndexedStaticTransceiverForPort(portId));
+    auto tcvrIdOpt = portMgr->getLowestIndexedStaticTransceiverForPort(portId);
+    if (!tcvrIdOpt) {
+      return false;
+    }
+    portMgr->programInternalPhyPorts(*tcvrIdOpt);
   } else {
     // Port shouldn't orchestrate PHY programming. Port needs to check state
     // of orchestrating port to proceed to next stage.
@@ -192,9 +194,12 @@ try {
     // Port should orchestrate PHY programming.
     // TODO(smenta) – When Y-Cable support is needed for XPHY tcvrs, may need to
     // loop through all transceivers for ports.
-    auto tcvrId = portMgr->getLowestIndexedStaticTransceiverForPort(portId);
+    auto tcvrIdOpt = portMgr->getLowestIndexedStaticTransceiverForPort(portId);
+    if (!tcvrIdOpt) {
+      return false;
+    }
     portMgr->programExternalPhyPorts(
-        tcvrId, fsm.get_attribute(xphyNeedResetDataPath));
+        *tcvrIdOpt, fsm.get_attribute(xphyNeedResetDataPath));
   } else {
     // Port shouldn't orchestrate PHY programming. Port needs to check state
     // of orchestrating port to proceed to next stage.

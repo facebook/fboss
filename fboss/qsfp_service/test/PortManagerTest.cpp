@@ -245,7 +245,7 @@ TEST_F(PortManagerTest, getLowestIndexedStaticTransceiverForPort) {
   initManagers(1, 1);
   ASSERT_EQ(
       portManager_->getLowestIndexedStaticTransceiverForPort(PortID(1)),
-      TransceiverID(0));
+      std::optional<TransceiverID>(TransceiverID(0)));
 
   // Single Tcvr – Multi Port
   initManagers(1, 4);
@@ -253,22 +253,22 @@ TEST_F(PortManagerTest, getLowestIndexedStaticTransceiverForPort) {
   portManager_->setPortEnabledStatusInCache(PortID(3), true);
   ASSERT_EQ(
       portManager_->getLowestIndexedStaticTransceiverForPort(PortID(1)),
-      TransceiverID(0));
+      std::optional<TransceiverID>(TransceiverID(0)));
   ASSERT_EQ(
       portManager_->getLowestIndexedStaticTransceiverForPort(PortID(3)),
-      TransceiverID(0));
+      std::optional<TransceiverID>(TransceiverID(0)));
 
   // Multi Tcvr – Single Port
   initManagersWithMultiTcvrPort(false);
   ASSERT_EQ(
       portManager_->getLowestIndexedStaticTransceiverForPort(PortID(1)),
-      TransceiverID(0));
+      std::optional<TransceiverID>(TransceiverID(0)));
   // PortID(5) is the controlling port of second transceiver subsumed by
   // PortID(1), but since this helper function is just checking static port
   // assignment, we can test it here.
   ASSERT_EQ(
       portManager_->getLowestIndexedStaticTransceiverForPort(PortID(5)),
-      TransceiverID(1));
+      std::optional<TransceiverID>(TransceiverID(1)));
 }
 
 TEST_F(PortManagerTest, getStaticTransceiversForPort) {

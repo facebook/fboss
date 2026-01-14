@@ -179,7 +179,8 @@ class PortManager {
    * first transceiver for a port will always be in use. That guarantee doesn't
    * hold for the second transceiver.
    */
-  TransceiverID getLowestIndexedStaticTransceiverForPort(PortID portId) const;
+  std::optional<TransceiverID> getLowestIndexedStaticTransceiverForPort(
+      PortID portId) const;
 
   std::optional<TransceiverID> getNonControllingTransceiverIdForMultiTcvr(
       TransceiverID tcvrId) const;

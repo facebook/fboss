@@ -222,16 +222,22 @@ void PortManager::programXphyPort(
     return;
   }
 
-  // TODO(smenta): If Y-Cable will be supported on XPHY ports, we need to
-  // iterate through all transceivers for the given port.
-  auto tcvrId = getLowestIndexedStaticTransceiverForPort(portId);
-  std::optional<TransceiverInfo> tcvrInfo =
-      transceiverManager_->getTransceiverInfoOptional(tcvrId);
+  auto portNameStr = getPortNameByPortIdOrThrow(portId);
 
-  if (!tcvrInfo) {
-    auto portNameStr = getPortNameByPortIdOrThrow(portId);
-    SW_PORT_LOG(WARNING, "", portNameStr, portId)
-        << "Port doesn't have transceiver info for transceiver id:" << tcvrId;
+  auto tcvrIdOpt = getLowestIndexedStaticTransceiverForPort(portId);
+  std::optional<TransceiverInfo> tcvrInfo = std::nullopt;
+  if (tcvrIdOpt) {
+    TransceiverID tcvrId = *tcvrIdOpt;
+    tcvrInfo = transceiverManager_->getTransceiverInfoOptional(tcvrId);
+
+    if (!tcvrInfo) {
+      SW_PORT_LOG(WARNING, "", portNameStr, portId)
+          << "Port doesn't have transceiver info for transceiver id: " << tcvrId
+          << ". Using empty TransceiverInfo for programOnePort call.";
+    }
+  } else {
+    SW_PORT_LOG(INFO, "", portNameStr, portId)
+        << "Port doesn't have associated transceiver, using empty TransceiverInfo for programOnePort call.";
   }
 
   phyManager_->programOnePort(
@@ -354,9 +360,17 @@ PortStateMachineState PortManager::getPortState(PortID portId) const {
   return stateMachineItr->second->getCurrentState();
 }
 
+// TODO(smenta) - Consider renaming to CoordinatingGroup / ResourceGroup.
 PortID PortManager::getLowestIndexedInitializedPortForTransceiverPortGroup(
     PortID portId) const {
-  TransceiverID tcvrId = getLowestIndexedStaticTransceiverForPort(portId);
+  auto tcvrIdOpt = getLowestIndexedStaticTransceiverForPort(portId);
+  if (!tcvrIdOpt) {
+    SW_PORT_LOG(INFO, "", getPortNameByPortIdOrThrow(portId), portId)
+        << "No static transceiver for port " << portId
+        << ". Assuming port acts as its own coordinator.";
+    return portId;
+  }
+  auto tcvrId = *tcvrIdOpt;
 
   // Find lowest indexed port assigned to the above transceiver.
   auto tcvrToPortMapItr = tcvrToInitializedPorts_.find(tcvrId);
@@ -381,11 +395,11 @@ PortManager::getNonControllingTransceiverIdForMultiTcvr(
   return std::nullopt;
 }
 
-TransceiverID PortManager::getLowestIndexedStaticTransceiverForPort(
-    PortID portId) const {
+std::optional<TransceiverID>
+PortManager::getLowestIndexedStaticTransceiverForPort(PortID portId) const {
   auto staticTcvrs = getStaticTransceiversForPort(portId);
   if (staticTcvrs.empty()) {
-    throw FbossError("No static transceiver for port ", portId);
+    return std::nullopt;
   }
   return staticTcvrs.at(0);
 }
@@ -393,9 +407,12 @@ TransceiverID PortManager::getLowestIndexedStaticTransceiverForPort(
 std::vector<TransceiverID> PortManager::getStaticTransceiversForPort(
     PortID portId) const {
   auto portToTcvrMapItr = portToTcvrMap_.find(portId);
-  if (portToTcvrMapItr == portToTcvrMap_.end() ||
-      portToTcvrMapItr->second.size() == 0) {
-    throw FbossError("No transceiver found for port ", portId);
+  if (portToTcvrMapItr == portToTcvrMap_.end()) {
+    throw FbossError("No port found in portToTcvrMap for port ", portId);
+  }
+  if (portToTcvrMapItr->second.size() == 0) {
+    SW_PORT_LOG(INFO, "", getPortNameByPortIdOrThrow(portId), portId)
+        << "No transceivers for assigned port. Assuming this port has XPHY support.";
   }
 
   return portToTcvrMapItr->second;
@@ -843,9 +860,12 @@ void PortManager::getAllPortSupportedProfiles(
 
       // We should never have a portID in the platform mapping that doesn't have
       // an associated transceiverID.
-      auto tcvrId = getLowestIndexedStaticTransceiverForPort(*portId);
+      auto tcvrIdOpt = getLowestIndexedStaticTransceiverForPort(*portId);
+      if (!tcvrIdOpt) {
+        continue;
+      }
       if (transceiverManager_->isTransceiverPortStateSupported(
-              tcvrId, portState)) {
+              *tcvrIdOpt, portState)) {
         supportedPortProfiles[portNameStr].push_back(profileID);
       }
     }
@@ -1465,11 +1485,7 @@ PortManager::setupPortToStateMachineControllerMap() {
 
   PortManager::PortToStateMachineControllerMap stateMachineMap;
   for (const auto& [portId, tcvrList] : portToTcvrMap_) {
-    if (tcvrList.empty()) {
-      XLOG(INFO) << "No transceivers found for " << portId
-                 << ", skipping creation of PortStateMachineController.";
-      continue;
-    }
+    // TODO(smenta) - we should only create ports with xphy or transceiver.
     auto stateMachineController =
         std::make_unique<PortManager::PortStateMachineController>(portId);
     auto& stateMachine = stateMachineController->getStateMachine();
@@ -1570,11 +1586,17 @@ void PortManager::handlePendingUpdates() {
   for (auto& stateMachinePair : stateMachineControllers_) {
     const auto& portId = stateMachinePair.first;
     const auto& stateMachineControllerPtr = stateMachinePair.second;
-    const auto& tcvrID = getLowestIndexedStaticTransceiverForPort(portId);
-    auto threadsItr = threads_->find(tcvrID);
-    if (threadsItr == threads_->end()) {
-      PORTMGR_SM_LOG(WARN) << "Can't find ThreadHelper for threadID " << tcvrID
+    const auto tcvrIDOpt = getLowestIndexedStaticTransceiverForPort(portId);
+    if (!tcvrIDOpt) {
+      // TODO(smenta) - fix thread allocation mechanism.
+      PORTMGR_SM_LOG(WARN) << "No static transceiver for port " << portId
                            << ". Skip updating PortStateMachine.";
+      continue;
+    }
+    auto threadsItr = threads_->find(*tcvrIDOpt);
+    if (threadsItr == threads_->end()) {
+      PORTMGR_SM_LOG(WARN) << "Can't find ThreadHelper for threadID "
+                           << *tcvrIDOpt << ". Skip updating PortStateMachine.";
       continue;
     }
 
@@ -1741,8 +1763,14 @@ PortManager::setupPortToSynchronizedTcvrVec() {
   return portToTcvrVec;
 }
 
+// TODO(smenta) - to fix, we need to have enabled ports that aren't associated
+// with a transceiver.
 void PortManager::setPortEnabledStatusInCache(PortID portId, bool enabled) {
-  auto tcvrId = getLowestIndexedStaticTransceiverForPort(portId);
+  auto tcvrIdOpt = getLowestIndexedStaticTransceiverForPort(portId);
+  if (!tcvrIdOpt) {
+    throw FbossError("No static transceiver for port ", portId);
+  }
+  auto tcvrId = *tcvrIdOpt;
   auto tcvrToInitializedPortsItr = tcvrToInitializedPorts_.find(tcvrId);
   if (tcvrToInitializedPortsItr == tcvrToInitializedPorts_.end()) {
     throw FbossError(
@@ -1800,8 +1828,9 @@ void PortManager::clearTransceiversReadyForProgramming(PortID portId) {
 
 void PortManager::clearMultiTcvrMappings(PortID portId) {
   multiTcvrQsfpPortToAgentPort_.wlock()->erase(portId);
-  multiTcvrControllingToNonControllingTcvr_.wlock()->erase(
-      getLowestIndexedStaticTransceiverForPort(portId));
+  if (auto tcvrIdOpt = getLowestIndexedStaticTransceiverForPort(portId)) {
+    multiTcvrControllingToNonControllingTcvr_.wlock()->erase(*tcvrIdOpt);
+  }
 }
 
 const std::unordered_set<PortID> PortManager::getXphyPortsCache() {
@@ -1823,10 +1852,7 @@ PortManager::PortNameIdMap PortManager::setupPortNameToPortIDMap() {
        platformMapping_->getPlatformPorts()) {
     PortID portId = PortID(portIDInt);
     if (auto portToTcvrMapItr = portToTcvrMap_.find(portId);
-        portToTcvrMapItr == portToTcvrMap_.end() ||
-
-        portToTcvrMapItr->second.empty()) {
-      // Skip ports that are not associated with any transceivers
+        portToTcvrMapItr == portToTcvrMap_.end()) {
       continue;
     }
 
