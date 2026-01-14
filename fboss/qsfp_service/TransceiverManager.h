@@ -26,6 +26,7 @@
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
+#include "fboss/qsfp_service/QsfpServiceThreads.h"
 #include "fboss/qsfp_service/SlotThreadHelper.h"
 #include "fboss/qsfp_service/StateMachineController.h"
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
@@ -105,8 +106,7 @@ class TransceiverManager {
   explicit TransceiverManager(
       std::unique_ptr<TransceiverPlatformApi> api,
       const std::shared_ptr<const PlatformMapping> platformMapping,
-      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          threads);
+      const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads);
   virtual ~TransceiverManager();
   void gracefulExit();
   void setGracefulExitingFlag() {
@@ -1081,10 +1081,10 @@ class TransceiverManager {
   bool isSystemInitialized_{false};
 
   /*
-   * A map to maintain all threads for all transceivers
+   * QsfpServiceThreads contains the threading infrastructure for the service,
+   * including a map to maintain all threads for all transceivers.
    */
-  const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-      threads_;
+  const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads_;
 
   /*
    * A map to maintain all transceivers(present and absent) programmed SW port

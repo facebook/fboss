@@ -44,18 +44,18 @@ class PortManagerTest : public ::testing::Test {
         platformMapping;
 
     // Create Threads Object
-    const auto threadsMap = makeSlotThreadHelper(platformMapping);
+    const auto qsfpServiceThreads = makeQsfpServiceThreads(platformMapping);
 
     std::unique_ptr<MockPhyManager> phyManager =
         std::make_unique<MockPhyManager>(platformMapping.get());
     phyManager_ = phyManager.get();
     transceiverManager_ = std::make_shared<MockWedgeManager>(
-        numModules, 4, platformMapping, threadsMap);
+        numModules, 4, platformMapping, qsfpServiceThreads);
     portManager_ = std::make_unique<MockPortManager>(
         transceiverManager_.get(),
         setPhyManager ? std::move(phyManager) : nullptr,
         platformMapping,
-        threadsMap);
+        qsfpServiceThreads);
 
     if (numPortsPerModule == 4) {
       transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
@@ -73,18 +73,18 @@ class PortManagerTest : public ::testing::Test {
         platformMapping;
 
     // Create Threads Object
-    const auto threadsMap = makeSlotThreadHelper(platformMapping);
+    const auto qsfpServiceThreads = makeQsfpServiceThreads(platformMapping);
 
     std::unique_ptr<MockPhyManager> phyManager =
         std::make_unique<MockPhyManager>(platformMapping.get());
     phyManager_ = phyManager.get();
-    transceiverManager_ =
-        std::make_shared<MockWedgeManager>(2, 4, platformMapping, threadsMap);
+    transceiverManager_ = std::make_shared<MockWedgeManager>(
+        2, 4, platformMapping, qsfpServiceThreads);
     portManager_ = std::make_unique<MockPortManager>(
         transceiverManager_.get(),
         setPhyManager ? std::move(phyManager) : nullptr,
         platformMapping,
-        threadsMap);
+        qsfpServiceThreads);
 
     transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
         overrideMultiTransceiverTcvrToPortAndProfile_);

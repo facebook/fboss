@@ -5,24 +5,12 @@
 #include <memory>
 #include <vector>
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
-#include "fboss/lib/config/PlatformConfigUtils.h"
-#include "fboss/qsfp_service/SlotThreadHelper.h"
+#include "fboss/qsfp_service/QsfpServiceThreads.h"
 
 namespace facebook::fboss {
-const inline std::shared_ptr<
-    std::unordered_map<TransceiverID, SlotThreadHelper>>
-makeSlotThreadHelper(
+const inline std::shared_ptr<QsfpServiceThreads> makeQsfpServiceThreads(
     const std::shared_ptr<const FakeTestPlatformMapping> platformMapping) {
-  std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-      slotThreadHelper = std::make_shared<
-          std::unordered_map<TransceiverID, SlotThreadHelper>>();
-
-  for (const auto& tcvrID :
-       utility::getTransceiverIds(platformMapping->getChips())) {
-    slotThreadHelper->emplace(tcvrID, SlotThreadHelper(tcvrID));
-  }
-
-  return slotThreadHelper;
+  return createQsfpServiceThreads(platformMapping);
 }
 
 const inline std::shared_ptr<const FakeTestPlatformMapping>

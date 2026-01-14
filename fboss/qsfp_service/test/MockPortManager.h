@@ -24,13 +24,12 @@ class MockPortManager : public PortManager {
       TransceiverManager* transceiverManager,
       std::unique_ptr<PhyManager> phyManager,
       const std::shared_ptr<const PlatformMapping> platformMapping,
-      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          threads)
+      const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads)
       : PortManager(
             transceiverManager,
             std::move(phyManager),
             platformMapping,
-            threads) {
+            qsfpServiceThreads) {
     // By default, delegate to the real implementation
     // Tests can override with EXPECT_CALL if they need custom behavior
     ON_CALL(*this, programInternalPhyPorts(::testing::_))

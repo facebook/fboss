@@ -19,6 +19,7 @@
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/qsfp_service/PortStateMachine.h"
+#include "fboss/qsfp_service/QsfpServiceThreads.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -65,8 +66,7 @@ class PortManager {
       TransceiverManager* transceiverManager,
       std::unique_ptr<PhyManager> phyManager,
       const std::shared_ptr<const PlatformMapping> platformMapping,
-      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          threads,
+      const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads,
       std::shared_ptr<QsfpFsdbSyncManager> fsdbSyncManager = nullptr);
   virtual ~PortManager();
   void gracefulExit();
@@ -479,8 +479,7 @@ class PortManager {
   std::unique_ptr<folly::EventBase> updateEventBase_;
   std::shared_ptr<ThreadHeartbeat> updateThreadHeartbeat_;
 
-  const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-      threads_;
+  const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads_;
 
   const TcvrToPortMap tcvrToPortMap_;
   const PortToTcvrMap portToTcvrMap_;

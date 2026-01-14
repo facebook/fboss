@@ -84,15 +84,14 @@ PortManager::PortManager(
     TransceiverManager* transceiverManager,
     std::unique_ptr<PhyManager> phyManager,
     const std::shared_ptr<const PlatformMapping> platformMapping,
-    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-        threads,
+    const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads,
     std::shared_ptr<QsfpFsdbSyncManager> fsdbSyncManager)
     : platformMapping_(platformMapping),
       transceiverManager_(transceiverManager),
       phyManager_(std::move(phyManager)),
       fsdbSyncManager_(std::move(fsdbSyncManager)),
       cachedXphyPorts_(getXphyPortsCache()),
-      threads_(threads),
+      qsfpServiceThreads_(qsfpServiceThreads),
       tcvrToPortMap_(getTcvrToPortMap(platformMapping_)),
       portToTcvrMap_(getPortToTcvrMap(platformMapping_)),
       portNameToPortID_(setupPortNameToPortIDMap()),
@@ -1595,8 +1594,8 @@ void PortManager::handlePendingUpdates() {
                            << ". Skip updating PortStateMachine.";
       continue;
     }
-    auto threadsItr = threads_->find(*tcvrIDOpt);
-    if (threadsItr == threads_->end()) {
+    auto threadsItr = qsfpServiceThreads_->transceiverToThread.find(*tcvrIDOpt);
+    if (threadsItr == qsfpServiceThreads_->transceiverToThread.end()) {
       PORTMGR_SM_LOG(WARN) << "Can't find ThreadHelper for threadID "
                            << *tcvrIDOpt << ". Skip updating PortStateMachine.";
       continue;
@@ -1629,7 +1628,7 @@ void PortManager::drainAllStateMachineUpdates() {
     return;
   }
 
-  if (!updateEventBase_ || !threads_) {
+  if (!updateEventBase_ || !qsfpServiceThreads_) {
     XLOG(INFO)
         << "updateEventBase_ or threads not initialized - returning early.";
     return;
@@ -1642,7 +1641,7 @@ void PortManager::drainAllStateMachineUpdates() {
 
   // Make sure threads are actually active before we start draining.
   bool allStateMachineThreadsActive{true};
-  for (auto& threadHelper : *threads_) {
+  for (auto& threadHelper : qsfpServiceThreads_->transceiverToThread) {
     if (!threadHelper.second.isThreadActive()) {
       allStateMachineThreadsActive = false;
       break;

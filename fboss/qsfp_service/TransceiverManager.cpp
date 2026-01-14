@@ -148,11 +148,10 @@ namespace facebook::fboss {
 TransceiverManager::TransceiverManager(
     std::unique_ptr<TransceiverPlatformApi> api,
     const std::shared_ptr<const PlatformMapping> platformMapping,
-    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-        threads)
+    const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads)
     : qsfpPlatApi_(std::move(api)),
       platformMapping_(platformMapping),
-      threads_(threads),
+      qsfpServiceThreads_(qsfpServiceThreads),
       tcvrToPortInfo_(setupTransceiverToPortInfo()),
       stateMachineControllers_(setupTransceiverToStateMachineControllerMap()) {
   // Cache the static mapping based on platformMapping_
@@ -952,12 +951,12 @@ TransceiverManager::setupTransceiverToPortInfo() {
 
 void TransceiverManager::startThreads() {
   // Setup all TransceiverStateMachineHelper thread
-  if (!threads_) {
+  if (!qsfpServiceThreads_) {
     throw FbossError(
         "Attempting to initialize TransceiverManager without initializing thread object.");
   }
 
-  for (auto& threadHelper : *threads_) {
+  for (auto& threadHelper : qsfpServiceThreads_->transceiverToThread) {
     threadHelper.second.startThread();
     heartbeats_.push_back(threadHelper.second.getThreadHeartbeat());
   }
@@ -1021,7 +1020,7 @@ void TransceiverManager::stopThreads() {
   }
 
   // And finally stop all TransceiverStateMachineHelper thread
-  for (auto& threadHelper : *threads_) {
+  for (auto& threadHelper : qsfpServiceThreads_->transceiverToThread) {
     threadHelper.second.stopThread();
   }
 }
@@ -1119,7 +1118,8 @@ void TransceiverManager::handlePendingUpdates() {
 
   // To expedite all these different transceivers state update, use Future
   std::vector<folly::Future<folly::Unit>> stateUpdateTasks;
-  for (auto& [tcvrID, threadHelper] : *threads_) {
+  for (auto& [tcvrID, threadHelper] :
+       qsfpServiceThreads_->transceiverToThread) {
     auto stateMachineItr = stateMachineControllers_.find(tcvrID);
     if (stateMachineItr == stateMachineControllers_.end()) {
       XLOG(WARN) << "Unrecognize Transceiver: " << tcvrID
@@ -2005,7 +2005,8 @@ void TransceiverManager::triggerFirmwareUpgradeEvents(
     TransceiverStateMachineEvent event =
         TransceiverStateMachineEvent::TCVR_EV_UPGRADE_FIRMWARE;
     heartbeatWatchdog_->pauseMonitoringHeartbeat(
-        threads_->find(tcvrID)->second.getThreadHeartbeat());
+        qsfpServiceThreads_->transceiverToThread.find(tcvrID)
+            ->second.getThreadHeartbeat());
     // Only enqueue updates for now, we'll execute them at once after this
     // loop
     if (auto result =
@@ -2381,7 +2382,7 @@ void TransceiverManager::refreshStateMachines() {
 void TransceiverManager::completeRefresh() {
   // Resume heartbeats at the end of refresh loop in case they were paused by
   // any of the operations during the refresh cycle
-  for (auto& threadHelper : *threads_) {
+  for (auto& threadHelper : qsfpServiceThreads_->transceiverToThread) {
     heartbeatWatchdog_->resumeMonitoringHeartbeat(
         threadHelper.second.getThreadHeartbeat());
   }
@@ -3647,7 +3648,7 @@ void TransceiverManager::drainAllStateMachineUpdates() {
     return;
   }
 
-  if (!updateEventBase_ || !threads_) {
+  if (!updateEventBase_ || !qsfpServiceThreads_) {
     XLOG(INFO)
         << "updateEventBase_ or threads not initialized - returning early.";
     return;
@@ -3660,7 +3661,7 @@ void TransceiverManager::drainAllStateMachineUpdates() {
 
   // Make sure threads are actually active before we start draining.
   bool allStateMachineThreadsActive{true};
-  for (auto& threadHelper : *threads_) {
+  for (auto& threadHelper : qsfpServiceThreads_->transceiverToThread) {
     if (!threadHelper.second.isThreadActive()) {
       allStateMachineThreadsActive = false;
       break;

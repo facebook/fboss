@@ -206,7 +206,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
               << (multiTcvrPort ? "true" : "false");
 
     // Create Threads Object
-    const auto threadsMap = makeSlotThreadHelper(platformMapping);
+    const auto qsfpServiceThreads = makeQsfpServiceThreads(platformMapping);
 
     // Create PhyManager Object
     std::unique_ptr<MockPhyManager> phyManager =
@@ -215,14 +215,17 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
 
     // Create Transceiver Manager
     transceiverManager_ = std::make_unique<MockWedgeManager>(
-        numTransceivers, numPortsPerModule, platformMapping, threadsMap);
+        numTransceivers,
+        numPortsPerModule,
+        platformMapping,
+        qsfpServiceThreads);
 
     // Create Port Manager
     portManager_ = std::make_unique<MockPortManager>(
         transceiverManager_.get(),
         std::move(phyManager),
         castedPlatformMapping,
-        threadsMap);
+        qsfpServiceThreads);
     transceiverManager_->setPauseRemediation(600, nullptr /* evb */);
 
     // Set appropriate override for multi-tcvr ports

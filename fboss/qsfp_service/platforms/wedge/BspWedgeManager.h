@@ -20,8 +20,7 @@ class BspWedgeManager : public WedgeManager {
       std::unique_ptr<BspTransceiverApi> api,
       const std::shared_ptr<const PlatformMapping> platformMapping,
       PlatformType type,
-      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          threads);
+      const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads);
   ~BspWedgeManager() override {}
 
   const BspSystemContainer* getSystemContainer() const {
