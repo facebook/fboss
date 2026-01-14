@@ -150,9 +150,7 @@ struct TestStructForAnnotation1 {
   1: TestStruct childStruct;
 }
 
-@thrift.DeprecatedUnvalidatedAnnotations{
-  items = {"allow_skip_thrift_cow": "0", "deprecated": "1"},
-}
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"deprecated": "1"}}
 struct TestStruct2 {
   @thrift.DeprecatedUnvalidatedAnnotations{items = {"deprecated": "1"}}
   10: i32 deprecatedField;
