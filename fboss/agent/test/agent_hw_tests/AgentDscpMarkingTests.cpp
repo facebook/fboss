@@ -115,9 +115,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
           getProgrammedState(),
           getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
-          RouterID(0),
-          false,
-          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
+          RouterID(0));
       resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
       // Add the DSCP remarking ACLs
       auto newCfg{initialConfig(*getAgentEnsemble())};
@@ -133,9 +131,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
           getProgrammedState(),
           getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
-          RouterID(0),
-          false,
-          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
+          RouterID(0));
       auto portId = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
       auto portStatsBefore = getLatestPortStats(portId);
 
@@ -274,9 +270,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
           getProgrammedState(),
           getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
-          RouterID(0),
-          false,
-          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
+          RouterID(0));
       auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
     } else {
