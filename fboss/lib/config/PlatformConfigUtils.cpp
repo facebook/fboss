@@ -565,4 +565,26 @@ PortToTcvrMap getPortToTcvrMap(
 
   return portToTcvrMap;
 }
+
+std::vector<PortID> getPortIdsWithTransceiverOrXphy(
+    const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap) {
+  std::vector<PortID> portIds;
+
+  for (const auto& [portId, portEntry] : platformPorts) {
+    auto tcvrs = utility::getDataPlanePhyChips(
+        portEntry, chipsMap, phy::DataPlanePhyChipType::TRANSCEIVER);
+    if (!tcvrs.empty()) {
+      portIds.emplace_back(portId);
+      continue;
+    }
+    auto xphys = utility::getDataPlanePhyChips(
+        portEntry, chipsMap, phy::DataPlanePhyChipType::XPHY);
+    if (!xphys.empty()) {
+      portIds.emplace_back(portId);
+    }
+  }
+
+  return portIds;
+}
 } // namespace facebook::fboss::utility

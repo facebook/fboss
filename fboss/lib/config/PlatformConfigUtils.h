@@ -95,5 +95,9 @@ PortToTcvrMap getPortToTcvrMap(
     const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
     const std::map<std::string, phy::DataPlanePhyChip>& chipsMap);
 
+std::vector<PortID> getPortIdsWithTransceiverOrXphy(
+    const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap);
+
 } // namespace utility
 } // namespace facebook::fboss

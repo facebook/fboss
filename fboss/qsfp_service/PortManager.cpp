@@ -1484,8 +1484,10 @@ PortManager::setupPortToStateMachineControllerMap() {
   }
 
   PortManager::PortToStateMachineControllerMap stateMachineMap;
-  for (const auto& [portId, tcvrList] : portToTcvrMap_) {
-    // TODO(smenta) - we should only create ports with xphy or transceiver.
+
+  for (auto portId : utility::getPortIdsWithTransceiverOrXphy(
+           platformMapping_->getPlatformPorts(),
+           platformMapping_->getChips())) {
     auto stateMachineController =
         std::make_unique<PortManager::PortStateMachineController>(portId);
     auto& stateMachine = stateMachineController->getStateMachine();
