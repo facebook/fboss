@@ -245,6 +245,20 @@ class PortManager {
   void setOverrideAgentConfigAppliedInfoForTesting(
       std::optional<ConfigAppliedInfo> configAppliedInfo);
 
+  // An override of port to profile mapping for xphy non-transceiver ports.
+  // Due to hw_test won't be able to get wedge_agent running, this override
+  // map will mimic the return of programmed xphy ports based on portId.
+  // NOTE: Only use in test
+  using OverrideXphyNoTcvrPortToProfile =
+      std::unordered_map<PortID, cfg::PortProfileID>;
+  void setOverrideXphyNoTcvrPortToProfileForTesting(
+      std::optional<OverrideXphyNoTcvrPortToProfile>
+          overrideXphyNoTcvrPortToProfile = std::nullopt);
+  const OverrideXphyNoTcvrPortToProfile&
+  getOverrideXphyNoTcvrPortToProfileForTesting() const {
+    return overrideXphyNoTcvrPortToProfileForTest_;
+  }
+
   void getAllPortSupportedProfiles(
       std::map<std::string, std::vector<cfg::PortProfileID>>&
           supportedPortProfiles,
@@ -445,6 +459,8 @@ class PortManager {
   std::map<int32_t, NpuPortStatus> overrideAgentPortStatusForTesting_;
   // This ConfigAppliedInfo is an override of agent getConfigAppliedInfo()
   std::optional<ConfigAppliedInfo> overrideAgentConfigAppliedInfoForTesting_;
+  // This map is an override of port to profile for xphy non-transceiver ports.
+  OverrideXphyNoTcvrPortToProfile overrideXphyNoTcvrPortToProfileForTest_;
 
   /*
    * A ConfigAppliedInfo to keep track of the last wedge_agent config applied

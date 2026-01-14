@@ -717,7 +717,18 @@ void PortManager::programExternalPhyPort(
   // so XPHY programming will fail without FSDB active.
   // For testing, use the override map directly if populated.
   std::optional<cfg::PortProfileID> portProfile;
-  if (tcvrIdOpt) {
+
+  // First, check for xphy non-transceiver port override (used for testing).
+  const auto& overrideXphyNoTcvrPortToProfileForTest =
+      getOverrideXphyNoTcvrPortToProfileForTesting();
+  if (auto overrideIt = overrideXphyNoTcvrPortToProfileForTest.find(portId);
+      overrideIt != overrideXphyNoTcvrPortToProfileForTest.end()) {
+    // NOTE: This is only used for testing.
+    portProfile = overrideIt->second;
+  }
+
+  // Then, check for transceiver-based override.
+  if (!portProfile && tcvrIdOpt) {
     const auto& overrideTcvrToPortAndProfileForTest =
         transceiverManager_->getOverrideTcvrToPortAndProfileForTesting();
     if (auto overridePortAndProfileIt =
@@ -857,6 +868,16 @@ void PortManager::setOverrideAllAgentPortStatusForTesting(
 void PortManager::setOverrideAgentConfigAppliedInfoForTesting(
     std::optional<ConfigAppliedInfo> configAppliedInfo) {
   overrideAgentConfigAppliedInfoForTesting_ = configAppliedInfo;
+}
+
+void PortManager::setOverrideXphyNoTcvrPortToProfileForTesting(
+    std::optional<OverrideXphyNoTcvrPortToProfile>
+        overrideXphyNoTcvrPortToProfile) {
+  if (overrideXphyNoTcvrPortToProfile.has_value()) {
+    overrideXphyNoTcvrPortToProfileForTest_ = *overrideXphyNoTcvrPortToProfile;
+  } else {
+    overrideXphyNoTcvrPortToProfileForTest_.clear();
+  }
 }
 
 void PortManager::getAllPortSupportedProfiles(
