@@ -457,7 +457,6 @@ struct PortQueueFields {
 }
 
 @common.AllowSkipThriftCow
-@thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
 struct SystemPortThrift {
   1: i64 portId;
   2: i64 switchId;

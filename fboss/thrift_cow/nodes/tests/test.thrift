@@ -36,7 +36,6 @@ union TestUnion {
 }
 
 @common.AllowSkipThriftCow
-@thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
 struct ChildStruct {
   1: map<i32, bool> childMap;
   2: map<string, i32> strMap;
@@ -56,43 +55,22 @@ struct TestStruct {
   5: optional i32 optionalInt;
   6: optional switch_config.L4PortRange optionalStruct;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   7: list<i32> listOfPrimitives;
   8: list<switch_config.L4PortRange> listOfStructs;
   9: list<list<i32>> listOfListOfPrimitives;
   10: list<list<switch_config.L4PortRange>> listOfListOfStructs;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   11: map<i32, i32> mapOfI32ToI32;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   12: map<TestEnum, i32> mapOfEnumToI32;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   13: map<string, i32> mapOfStringToI32;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   14: map<i32, switch_config.L4PortRange> mapOfI32ToStruct;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   15: map<TestEnum, switch_config.L4PortRange> mapOfEnumToStruct;
   16: map<string, switch_config.L4PortRange> mapOfStringToStruct;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   17: map<i32, list<switch_config.L4PortRange>> mapOfI32ToListOfStructs;
   18: set<i32> setOfI32;
   19: set<TestEnum> setOfEnum;
@@ -105,47 +83,23 @@ struct TestStruct {
   25: map<string, TestStruct> mapB;
   26: map<i32, bool> cowMap;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   27: map<i32, bool> hybridMap;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   28: list<i32> hybridList;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   29: set<i32> hybridSet;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   30: TestUnion hybridUnion;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   31: ChildStruct hybridStruct;
   // hybridMapOfI32ToStruct is crafted to cover deeper accesses inside HybridNode, with
   // paths that terminate at primitive leaves, intermediate containers (list, map, struct)
   // in UTs for various visitors: PathVisitor, RecurseVisitor, DeltaVisitor
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   32: map<i32, ChildStruct> hybridMapOfI32ToStruct;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   33: map<i32, map<i32, i32>> hybridMapOfMap;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   34: map<i32, set<string>> mapOfI32ToSetOfString;
 }
 
@@ -174,7 +128,6 @@ struct TestStruct2 {
 }
 
 @common.AllowSkipThriftCow
-@thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
 struct TestStruct3 {
   1: i32 inlineInt;
 }

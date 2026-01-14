@@ -50,7 +50,6 @@ struct OtherStruct {
 }
 
 @common.AllowSkipThriftCow
-@thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
 struct TestHybridStruct {
   1: optional i32 optionalIntegral;
   2: string str;
@@ -68,9 +67,6 @@ struct TestStruct {
   4: TestStructSimple member;
   @cpp.Type{template = "folly::F14FastMap"}
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   5: map<i32, TestStructSimple> structMap = {};
   6: optional string optionalString;
   7: UnionSimple variantMember;
@@ -80,9 +76,6 @@ struct TestStruct {
   11: set<TestEnum> enumSet = [];
   12: set<i32> integralSet = [];
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   13: map<string, i32> mapOfStringToI32;
   14: list<i32> listOfPrimitives;
   15: set<i32> setOfI32;

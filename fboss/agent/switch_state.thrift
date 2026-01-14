@@ -536,14 +536,8 @@ struct LabelForwardingEntryFields {
 struct FibContainerFields {
   1: i16 vrf;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   2: map<string, RouteFields> fibV4;
   @common.AllowSkipThriftCow
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
   3: map<string, RouteFields> fibV6;
 }
 
@@ -600,7 +594,6 @@ struct SflowCollectorFields {
 }
 
 @common.AllowSkipThriftCow
-@thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
 struct InterfaceFields {
   1: i32 interfaceId;
   2: i32 routerId;
