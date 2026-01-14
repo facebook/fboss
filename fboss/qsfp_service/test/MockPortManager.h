@@ -36,15 +36,21 @@ class MockPortManager : public PortManager {
         .WillByDefault([this](TransceiverID tcvrId) {
           PortManager::programInternalPhyPorts(tcvrId);
         });
-    ON_CALL(*this, programExternalPhyPorts(::testing::_, ::testing::_))
-        .WillByDefault([this](TransceiverID tcvrId, bool resetDataPath) {
-          PortManager::programExternalPhyPorts(tcvrId, resetDataPath);
+    ON_CALL(
+        *this, programExternalPhyPort(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault([this](
+                           PortID portId,
+                           std::optional<TransceiverID> tcvrIdOpt,
+                           bool resetDataPath) {
+          PortManager::programExternalPhyPort(portId, tcvrIdOpt, resetDataPath);
         });
   }
 
   MOCK_METHOD1(getXphyInfo, phy::PhyInfo(PortID));
   MOCK_METHOD1(programInternalPhyPorts, void(TransceiverID));
-  MOCK_METHOD2(programExternalPhyPorts, void(TransceiverID, bool));
+  MOCK_METHOD3(
+      programExternalPhyPort,
+      void(PortID, std::optional<TransceiverID>, bool));
 
   // Wrapper functions for protected methods to enable direct testing
   std::unordered_set<TransceiverID> getTransceiversWithAllPortsInSet(

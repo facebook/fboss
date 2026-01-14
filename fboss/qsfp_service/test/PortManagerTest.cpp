@@ -612,7 +612,7 @@ TEST_F(PortManagerTest, programXphyPortNoPhyManager) {
       FbossError);
 }
 
-TEST_F(PortManagerTest, programExternalPhyPorts) {
+TEST_F(PortManagerTest, programExternalPhyPort) {
   initManagers(1, 4, true /* setPhyManager */);
   programInternalPhyPortsForTest();
 
@@ -621,7 +621,7 @@ TEST_F(PortManagerTest, programExternalPhyPorts) {
   portManager_->setPortEnabledStatusInCache(PortID(1), true);
   portManager_->setPortEnabledStatusInCache(PortID(3), true);
 
-  // programExternalPhyPorts should program all ports for the transceiver
+  // programExternalPhyPort should program a single port at a time
   // Based on overrideMultiPortTcvrToPortAndProfile_, TransceiverID(0) has ports
   // 1 and 3
   EXPECT_CALL(
@@ -632,6 +632,10 @@ TEST_F(PortManagerTest, programExternalPhyPorts) {
           ::testing::_,
           false))
       .Times(1);
+
+  EXPECT_NO_THROW(
+      portManager_->programExternalPhyPort(PortID(1), TransceiverID(0), false));
+
   EXPECT_CALL(
       *phyManager_,
       programOnePort(
@@ -642,19 +646,20 @@ TEST_F(PortManagerTest, programExternalPhyPorts) {
       .Times(1);
 
   EXPECT_NO_THROW(
-      portManager_->programExternalPhyPorts(TransceiverID(0), false));
-  // We don't throw if the transceiver doesn't have XPHY ports.
-  EXPECT_NO_THROW(
-      portManager_->programExternalPhyPorts(TransceiverID(1000), false));
+      portManager_->programExternalPhyPort(PortID(3), TransceiverID(0), false));
+
+  // We don't throw if the port is not an XPHY port.
+  EXPECT_NO_THROW(portManager_->programExternalPhyPort(
+      PortID(1000), TransceiverID(1000), false));
 }
 
-TEST_F(PortManagerTest, programExternalPhyPortsNoPhyManager) {
+TEST_F(PortManagerTest, programExternalPhyPortNoPhyManager) {
   // Test the early return when phyManager_ is null
   initManagers(1, 4, false /* setPhyManager */);
 
   // Should return early without throwing when phyManager_ is null
   EXPECT_NO_THROW(
-      portManager_->programExternalPhyPorts(TransceiverID(0), false));
+      portManager_->programExternalPhyPort(PortID(1), TransceiverID(0), false));
 }
 
 TEST_F(PortManagerTest, initAndExit) {
@@ -1248,7 +1253,9 @@ TEST_F(PortManagerTest, getPerTransceiverProfile) {
 }
 
 TEST_F(PortManagerTest, getMultiTransceiverPortProfileIDs) {
-  // Test Case 1: Single Tcvr – Multi Port
+  initManagers(1, 4);
+
+  // Single Transceiver
   // When multiple ports are provided, should return input as-is
   initManagers(1, 4);
   std::map<int32_t, cfg::PortProfileID> multiPortInput = {
@@ -1314,6 +1321,25 @@ TEST_F(PortManagerTest, getMultiTransceiverPortProfileIDs) {
   EXPECT_EQ(
       result4[tcvrId_][1],
       cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER);
+}
+
+TEST_F(PortManagerTest, portHasTransceiver) {
+  // Test Case 1: Single Tcvr – Single Port
+  // Port should have a transceiver
+  initManagers(1, 1);
+  EXPECT_TRUE(portManager_->portHasTransceiver(PortID(1)));
+
+  // Test Case 2: Single Tcvr – Multi Port
+  // All ports should have a transceiver
+  initManagers(1, 4);
+  EXPECT_TRUE(portManager_->portHasTransceiver(PortID(1)));
+  EXPECT_TRUE(portManager_->portHasTransceiver(PortID(3)));
+
+  // Test Case 3: Multi Tcvr – Single Port
+  // Port should have a transceiver
+  initManagersWithMultiTcvrPort(false);
+  EXPECT_TRUE(portManager_->portHasTransceiver(PortID(1)));
+  EXPECT_TRUE(portManager_->portHasTransceiver(PortID(5)));
 }
 
 } // namespace facebook::fboss

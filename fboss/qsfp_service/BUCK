@@ -286,7 +286,6 @@ cpp_library(
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly:spin_lock",
         "//folly:synchronized",
-        "//folly/io/async:async_base",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",

@@ -417,6 +417,13 @@ std::vector<TransceiverID> PortManager::getStaticTransceiversForPort(
   return portToTcvrMapItr->second;
 }
 
+bool PortManager::portHasTransceiver(PortID portId) const {
+  auto portToTcvrMapItr = portToTcvrMap_.find(portId);
+  CHECK(portToTcvrMapItr != portToTcvrMap_.end())
+      << "Port " << portId << " not found in portToTcvrMap";
+  return !portToTcvrMapItr->second.empty();
+}
+
 bool PortManager::isLowestIndexedInitializedPortForTransceiverPortGroup(
     PortID portId) const {
   return portId ==
@@ -685,50 +692,109 @@ void PortManager::programInternalPhyPorts(TransceiverID id) {
   }
 }
 
-// TODO(smenta) - Fixed in upcoming diff.
-void PortManager::programExternalPhyPorts(
-    TransceiverID tcvrId,
+void PortManager::programExternalPhyPort(
+    PortID portId,
+    std::optional<TransceiverID> tcvrIdOpt,
     bool xPhyNeedResetDataPath) {
   // This is used solely through internal state machine.
-  if (phyManager_) {
-    const auto& tcvrToInitializedPorts_It =
-        tcvrToInitializedPorts_.find(tcvrId);
-    if (tcvrToInitializedPorts_It == tcvrToInitializedPorts_.end()) {
-      return;
+  if (!phyManager_) {
+    XLOG(DBG2)
+        << "phyManager_ not defined. Skip programming xphy port for Port="
+        << portId;
+    return;
+  }
+
+  // Check if port requires XPHY programming.
+  if (cachedXphyPorts_.find(portId) == cachedXphyPorts_.end()) {
+    XLOG(DBG2)
+        << "Port is not an XPHY port. Skip programming xphy port for Port="
+        << portId;
+    return;
+  }
+
+  // Fetch profile from NpuPortStatusCache, fail if not found. Note that this
+  // function now requires FSDB to fetch PortProfileID for NpuPortStatusCache,
+  // so XPHY programming will fail without FSDB active.
+  // For testing, use the override map directly if populated.
+  std::optional<cfg::PortProfileID> portProfile;
+  if (tcvrIdOpt) {
+    const auto& overrideTcvrToPortAndProfileForTest =
+        transceiverManager_->getOverrideTcvrToPortAndProfileForTesting();
+    if (auto overridePortAndProfileIt =
+            overrideTcvrToPortAndProfileForTest.find(*tcvrIdOpt);
+        overridePortAndProfileIt != overrideTcvrToPortAndProfileForTest.end()) {
+      // NOTE: This is only used for testing.
+      if (auto portProfileIt = overridePortAndProfileIt->second.find(portId);
+          portProfileIt != overridePortAndProfileIt->second.end()) {
+        portProfile = portProfileIt->second;
+      }
     }
-
-    const auto initializedPorts = *tcvrToInitializedPorts_It->second->rlock();
-    const auto& programmedPortToPortInfo =
-        transceiverManager_->getProgrammedIphyPortToPortInfo(tcvrId);
-    const auto& transceiverInfo =
-        transceiverManager_->getTransceiverInfo(tcvrId);
-
-    for (const auto& portId : initializedPorts) {
-      if (cachedXphyPorts_.find(portId) == cachedXphyPorts_.end()) {
-        XLOG(DBG2) << "Skip programming xphy port for Port=" << portId;
-        continue;
+  }
+  if (!portProfile) {
+    auto npuPortStatusCache = npuPortStatusCache_.rlock();
+    auto it = npuPortStatusCache->find(static_cast<int>(portId));
+    if (it != npuPortStatusCache->end()) {
+      cfg::PortProfileID parsedProfile{};
+      if (!apache::thrift::TEnumTraits<cfg::PortProfileID>::findValue(
+              it->second.profileID.c_str(), &parsedProfile)) {
+        XLOG(WARN) << "Unrecognized profile: " << it->second.profileID
+                   << " for Port=" << portId << ".";
+      } else {
+        portProfile = parsedProfile;
       }
-
-      auto portToPortInfoItr = programmedPortToPortInfo.find(portId);
-      if (portToPortInfoItr == programmedPortToPortInfo.end()) {
-        continue;
-      }
-
-      auto portProfile = portToPortInfoItr->second.profile;
-      phyManager_->programOnePort(
-          portId, portProfile, transceiverInfo, xPhyNeedResetDataPath);
-      XLOG(INFO) << "Programmed XPHY port for Transceiver=" << tcvrId
-                 << ", Port=" << portId << ", Profile="
-                 << apache::thrift::util::enumNameSafe(portProfile)
-                 << ", needResetDataPath=" << xPhyNeedResetDataPath;
     }
   }
 
-  transceiverManager_->markTransceiverReadyForProgramming(tcvrId, true);
-  if (auto nonControllingTcvrId =
-          getNonControllingTransceiverIdForMultiTcvr(tcvrId)) {
-    transceiverManager_->markTransceiverReadyForProgramming(
-        *nonControllingTcvrId, true);
+  if (!portProfile) {
+    throw FbossError(
+        "No port profile found for PortID(",
+        portId,
+        "). Failing programExternalPhyPort.");
+  }
+
+  // Get TransceiverInfo if required.
+  std::optional<TransceiverInfo> transceiverInfo;
+  if (tcvrIdOpt) {
+    transceiverInfo = transceiverManager_->getTransceiverInfo(*tcvrIdOpt);
+  }
+
+  phyManager_->programOnePort(
+      portId, *portProfile, transceiverInfo, xPhyNeedResetDataPath);
+  XLOG(INFO) << "Programmed XPHY port for Port=" << portId
+             << ", Profile=" << apache::thrift::util::enumNameSafe(*portProfile)
+             << ", needResetDataPath=" << xPhyNeedResetDataPath;
+}
+
+void PortManager::markExternalPhyTransceiversReady() {
+  if (!phyManager_) {
+    XLOG(INFO)
+        << "phyManager_ not defined. markExternalPhyTransceiversReady is only in use for XPHY systems.";
+    return;
+  }
+
+  for (auto& [tcvrId, lockedPortSetPtr] : tcvrToInitializedPorts_) {
+    auto portSet = *lockedPortSetPtr->rlock();
+    if (portSet.empty()) {
+      continue;
+    }
+
+    bool isTcvrReady{true};
+    for (auto& portId : portSet) {
+      // For XPHY-based systems, even if a port is not connected to XPHY, we
+      // still expect its state machine to reach XPHY_PORTS_PROGRAMMED state.
+      isTcvrReady &=
+          (getPortState(portId) ==
+           PortStateMachineState::XPHY_PORTS_PROGRAMMED);
+    }
+
+    if (isTcvrReady) {
+      transceiverManager_->markTransceiverReadyForProgramming(tcvrId, true);
+      if (auto nonControllingTcvrId =
+              getNonControllingTransceiverIdForMultiTcvr(tcvrId)) {
+        transceiverManager_->markTransceiverReadyForProgramming(
+            *nonControllingTcvrId, true);
+      }
+    }
   }
 }
 
@@ -2020,10 +2086,13 @@ void PortManager::refreshStateMachines() {
   // Step 6: Trigger port programming events.
   triggerProgrammingEvents();
 
-  // Step 7: Trigger transceiver programming events.
+  // Step 7: Mark transceivers ready for programming for external phy ports.
+  markExternalPhyTransceiversReady();
+
+  // Step 8: Trigger transceiver programming events.
   const auto& programmedTcvrs = transceiverManager_->triggerProgrammingEvents();
 
-  // Step 8: Trigger remediation.
+  // Step 9: Trigger remediation.
   std::vector<TransceiverID> stableTcvrs;
   for (const auto& tcvrID : presentXcvrIds) {
     if (std::find(programmedTcvrs.begin(), programmedTcvrs.end(), tcvrID) ==
@@ -2033,10 +2102,10 @@ void PortManager::refreshStateMachines() {
   }
   transceiverManager_->triggerRemediateEvents(stableTcvrs);
 
-  // Step 9: Publish PIM states to FSDB
+  // Step 10: Publish PIM states to FSDB
   transceiverManager_->publishPimStatesToFsdb();
 
-  // Step 10: Mark full initialization complete.
+  // Step 11: Mark full initialization complete.
   transceiverManager_->completeRefresh();
   setWarmBootState();
 

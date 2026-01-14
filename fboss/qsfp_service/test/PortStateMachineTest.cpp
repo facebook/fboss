@@ -289,12 +289,12 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
   // depending on the order of async events, the non-leading ports need to check
   // in with the leading ports status.
   void triggerOnlyIphyPortProgramming(bool isMultiTcvr, bool isMultiPort) {
-    setupProgramExternalPhyPortsFailMock(isMultiTcvr);
+    setupProgramExternalPhyPortFailMock(isMultiTcvr);
     portManager_->triggerProgrammingEvents();
     if (isMultiPort) {
       portManager_->triggerProgrammingEvents();
     }
-    removeProgramExternalPhyPortsFailMock(isMultiTcvr);
+    removeProgramExternalPhyPortFailMock(isMultiTcvr);
   }
 
   void
@@ -886,22 +886,34 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     }
   }
 
-  void setupProgramExternalPhyPortsFailMock(bool isMultiTcvr) {
-    EXPECT_CALL(*portManager_, programExternalPhyPorts(tcvrId1_, false))
+  void setupProgramExternalPhyPortFailMock(bool isMultiTcvr) {
+    EXPECT_CALL(
+        *portManager_,
+        programExternalPhyPort(
+            ::testing::_, std::optional<TransceiverID>(tcvrId1_), false))
         .WillRepeatedly(ThrowFbossError());
     if (isMultiTcvr) {
-      EXPECT_CALL(*portManager_, programExternalPhyPorts(tcvrId2_, false))
+      EXPECT_CALL(
+          *portManager_,
+          programExternalPhyPort(
+              ::testing::_, std::optional<TransceiverID>(tcvrId2_), false))
           .WillRepeatedly(ThrowFbossError());
     }
   }
 
-  void removeProgramExternalPhyPortsFailMock(bool isMultiTcvr) {
+  void removeProgramExternalPhyPortFailMock(bool isMultiTcvr) {
     // Add new expectations that override the throwing ones (matched first due
     // to reverse order)
-    EXPECT_CALL(*portManager_, programExternalPhyPorts(tcvrId1_, false))
+    EXPECT_CALL(
+        *portManager_,
+        programExternalPhyPort(
+            ::testing::_, std::optional<TransceiverID>(tcvrId1_), false))
         .WillRepeatedly(::testing::Return());
     if (isMultiTcvr) {
-      EXPECT_CALL(*portManager_, programExternalPhyPorts(tcvrId2_, false))
+      EXPECT_CALL(
+          *portManager_,
+          programExternalPhyPort(
+              ::testing::_, std::optional<TransceiverID>(tcvrId2_), false))
           .WillRepeatedly(::testing::Return());
     }
   }
@@ -1910,7 +1922,7 @@ TEST_F(PortStateMachineTest, ensureFwUpgradeOnTcvrInsertWithPortsDown) {
               "firmware_upgrade_supported", "t", gflags::SET_FLAGS_DEFAULT);
           // To avoid state expectation on i2c failure case.
           setupProgramInternalPhyPortsFailMock(isMultiTcvr);
-          setupProgramExternalPhyPortsFailMock(isMultiTcvr);
+          setupProgramExternalPhyPortFailMock(isMultiTcvr);
 
           // Mark transceiver as not present
           setMockCmisPresence(false, isMultiTcvr);
@@ -1936,7 +1948,7 @@ TEST_F(PortStateMachineTest, ensureFwUpgradeOnTcvrInsertWithPortsDown) {
           setMockCmisTransceiverReady(true, isMultiTcvr);
 
           removeProgramInternalPhyPortsFailMock(isMultiTcvr);
-          removeProgramExternalPhyPortsFailMock(isMultiTcvr);
+          removeProgramExternalPhyPortFailMock(isMultiTcvr);
 
           // Run refreshTransceivers to detect the newly inserted transceiver
           transceiverManager_->refreshTransceivers();
@@ -2216,7 +2228,7 @@ TEST_F(PortStateMachineTest, programIphyFails) {
             isMultiPort)},
         [this, isMultiTcvr]() {
           setupProgramInternalPhyPortsFailMock(isMultiTcvr);
-          setupProgramExternalPhyPortsFailMock(isMultiTcvr);
+          setupProgramExternalPhyPortFailMock(isMultiTcvr);
         },
         [this]() {
           portManager_->triggerProgrammingEvents();
@@ -2231,7 +2243,7 @@ TEST_F(PortStateMachineTest, programIphyFails) {
               PortStateMachineState::IPHY_PORTS_PROGRAMMED,
               isMultiTcvr,
               isMultiPort));
-          removeProgramExternalPhyPortsFailMock(isMultiTcvr);
+          removeProgramExternalPhyPortFailMock(isMultiTcvr);
         },
         kTestName,
         true /* isMock */);
@@ -2249,14 +2261,14 @@ TEST_F(PortStateMachineTest, programXphyFails) {
             isMultiTcvr,
             isMultiPort)},
         [this, isMultiTcvr]() {
-          setupProgramExternalPhyPortsFailMock(isMultiTcvr);
+          setupProgramExternalPhyPortFailMock(isMultiTcvr);
         },
         [this]() {
           portManager_->triggerProgrammingEvents();
           portManager_->triggerProgrammingEvents();
         },
         [this, isMultiTcvr, isMultiPort]() {
-          removeProgramExternalPhyPortsFailMock(isMultiTcvr);
+          removeProgramExternalPhyPortFailMock(isMultiTcvr);
           portManager_->triggerProgrammingEvents();
           portManager_->triggerProgrammingEvents();
 
@@ -2495,7 +2507,7 @@ TEST_F(PortStateMachineTest, reseatTransceiver) {
     }
 
     // Step 3: Reinitialize ports which should trigger IPHY programming
-    setupProgramExternalPhyPortsFailMock(isMultiTcvr);
+    setupProgramExternalPhyPortFailMock(isMultiTcvr);
     portManager_->detectTransceiverResetAndReinitializeCorrespondingDownPorts();
     portManager_->triggerProgrammingEvents();
     portManager_->triggerProgrammingEvents();
@@ -2511,7 +2523,7 @@ TEST_F(PortStateMachineTest, reseatTransceiver) {
     verifyStateMachineAttributes(isMultiTcvr, afterIphyAttr);
 
     // Step 4: Trigger XPHY programming
-    removeProgramExternalPhyPortsFailMock(isMultiTcvr);
+    removeProgramExternalPhyPortFailMock(isMultiTcvr);
     portManager_->triggerProgrammingEvents();
     portManager_->triggerProgrammingEvents();
     assertCurrentStateEquals(makeStates(

@@ -191,6 +191,9 @@ class PortManager {
    * downlink ports. */
   std::vector<TransceiverID> getStaticTransceiversForPort(PortID portId) const;
 
+  // Returns true if the port has a transceiver associated with it
+  bool portHasTransceiver(PortID portId) const;
+
   /* Checks if a port is the lowest indexed, initialized port assigned to a
    * specific transceiver. */
   bool isLowestIndexedInitializedPortForTransceiverPortGroup(
@@ -215,9 +218,12 @@ class PortManager {
   virtual void programInternalPhyPorts(TransceiverID id);
 
   // Marked virtual for MockPortManager testing.
-  virtual void programExternalPhyPorts(
-      TransceiverID tcvrId,
+  virtual void programExternalPhyPort(
+      PortID portId,
+      std::optional<TransceiverID> tcvrIdOpt,
       bool xPhyNeedResetDataPath);
+
+  void markExternalPhyTransceiversReady();
 
   virtual std::map<uint32_t, phy::PhyIDInfo> getAllPortPhyInfo();
 
