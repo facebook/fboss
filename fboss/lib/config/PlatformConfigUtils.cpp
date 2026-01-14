@@ -553,7 +553,6 @@ PortToTcvrMap getPortToTcvrMap(
     if (transceiverIds.empty()) {
       XLOG(INFO) << "Did not find corresponding TransceiverIDs for PortID: "
                  << portIdInt;
-      continue;
     }
 
     // Add all transceivers to the port-indexed transceiver group.

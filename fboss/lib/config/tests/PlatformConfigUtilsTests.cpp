@@ -812,7 +812,8 @@ TEST(PlatformConfigUtilsTests, GetPortToTcvrMapNoTransceiver) {
   platformPorts[1] = createSingleTcvrPortEntry(1, "nonexistent");
   auto chipsMap = createChipsMap();
   auto portToTcvrMap = getPortToTcvrMap(platformPorts, chipsMap);
-  EXPECT_EQ(portToTcvrMap.size(), 0);
+  EXPECT_EQ(portToTcvrMap.size(), 1);
+  EXPECT_EQ(portToTcvrMap[PortID(1)].size(), 0);
 }
 
 TEST(PlatformConfigUtilsTests, GetDataPlanePhyChipsWithTwoTransceivers) {
