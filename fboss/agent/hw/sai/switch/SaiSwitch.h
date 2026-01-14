@@ -674,7 +674,7 @@ class SaiSwitch : public HwSwitch {
       std::optional<cfg::PfcWatchdogRecoveryAction> newRecoveryAction);
   void processPfcDeadlockRecoveryAction(
       std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction);
-  void setFabricPortOwnershipToAdapter();
+  void setPortOwnershipToAdapter();
 
   bool processVlanUntaggedPackets() const;
 

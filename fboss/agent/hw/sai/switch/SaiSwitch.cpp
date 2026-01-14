@@ -3214,7 +3214,7 @@ HwInitResult SaiSwitch::initLocked(
   return ret;
 }
 
-void SaiSwitch::setFabricPortOwnershipToAdapter() {
+void SaiSwitch::setPortOwnershipToAdapter() {
   if ((getSwitchType() == cfg::SwitchType::FABRIC) ||
       (getSwitchType() == cfg::SwitchType::VOQ)) {
     // only do this for fabric or voq switches
@@ -3222,6 +3222,7 @@ void SaiSwitch::setFabricPortOwnershipToAdapter() {
     auto fabricPorts = switchApi.getAttribute(
         saiSwitchId_, SaiSwitchTraits::Attributes::FabricPortList{});
     auto& portStore = saiStore_->get<SaiPortTraits>();
+    std::vector<PortSaiId> portSaiIdsOwnedByAdapter;
     for (auto& fid : fabricPorts) {
       // Fabric ports are explicitly made to own by adapter because NOS
       // can't remove/add fabric ports.
@@ -3236,15 +3237,39 @@ void SaiSwitch::setFabricPortOwnershipToAdapter() {
         // case, sdk will continue to load fabric port and serdes, but not
         // claimed by NOS since its created by adapter. Hence we need to
         // explicitly mark serdes objects as owned by adapter in that case.
-        auto& portSerdesStore = saiStore_->get<SaiPortSerdesTraits>();
-        std::optional<SaiPortTraits::Attributes::SerdesId> serdesAttr{};
-        auto serdesId = SaiApiTable::getInstance()->portApi().getAttribute(
-            PortSaiId(fid), serdesAttr);
-        if (serdesId.has_value()) {
-          portSerdesStore.loadObjectOwnedByAdapter(
-              static_cast<PortSerdesSaiId>(serdesId.value()),
-              true /* add to warm boot handles*/);
+        portSaiIdsOwnedByAdapter.emplace_back(fid);
+      }
+    }
+    if (FLAGS_hide_interface_ports) {
+      for (auto& iter : portStore.objects()) {
+        auto saiPort = iter.second.lock();
+        if (!saiPort) {
+          continue;
         }
+        auto portSaiId = saiPort->adapterKey();
+        auto portType = SaiApiTable::getInstance()->portApi().getAttribute(
+            portSaiId, SaiPortTraits::Attributes::Type{});
+        bool isHyperPortMember = false;
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+        isHyperPortMember = SaiApiTable::getInstance()->portApi().getAttribute(
+            portSaiId, SaiPortTraits::Attributes::IsHyperPortMember{});
+#endif
+        if (portType == SAI_PORT_TYPE_LOGICAL && !isHyperPortMember) {
+          portStore.loadObjectOwnedByAdapter(
+              portSaiId, true /* add to warm boot handles*/);
+          portSaiIdsOwnedByAdapter.emplace_back(portSaiId);
+        }
+      }
+    }
+    auto& portSerdesStore = saiStore_->get<SaiPortSerdesTraits>();
+    std::optional<SaiPortTraits::Attributes::SerdesId> serdesAttr{};
+    for (const auto& portSaiId : portSaiIdsOwnedByAdapter) {
+      auto serdesId = SaiApiTable::getInstance()->portApi().getAttribute(
+          portSaiId, serdesAttr);
+      if (serdesId.has_value()) {
+        portSerdesStore.loadObjectOwnedByAdapter(
+            static_cast<PortSerdesSaiId>(serdesId.value()),
+            true /* add to warm boot handles*/);
       }
     }
   }
@@ -3306,7 +3331,7 @@ void SaiSwitch::initStoreAndManagersLocked(
       managerTable_->switchManager().setupCounterRefreshInterval();
     }
     if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
-      setFabricPortOwnershipToAdapter();
+      setPortOwnershipToAdapter();
     }
 
     // during warm boot, all default system ports created for the platform
