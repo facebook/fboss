@@ -200,7 +200,7 @@ def read_port_profile_mapping(
 def read_profile_settings(directory: Dict[str, str], prefix: str) -> ProfileSettings:
     PROFILE_SETTINGS_SUFFIX = "_profile_settings.csv"
     Column = column_int_enum_generator(
-        "PORT_SPEED_MBPS A_CHIP_TYPE Z_CHIP_TYPE NUM_LANES MODULATION FEC MEDIA_TYPE A_INTERFACE_TYPE Z_INTERFACE_TYPE"
+        "PORT_SPEED_MBPS A_CHIP_TYPE Z_CHIP_TYPE NUM_LANES MODULATION A_FEC Z_FEC MEDIA_TYPE A_INTERFACE_TYPE Z_INTERFACE_TYPE"
     )
     profiles = []
     for index, line in enumerate(
@@ -220,7 +220,11 @@ def read_profile_settings(directory: Dict[str, str], prefix: str) -> ProfileSett
             z_chip_type = None
         num_lanes = int(row[Column.NUM_LANES])
         modulation = IpModulation._NAMES_TO_VALUES[row[Column.MODULATION]]
-        fec = FecMode._NAMES_TO_VALUES[row[Column.FEC]]
+        a_fec = FecMode._NAMES_TO_VALUES[row[Column.A_FEC]]
+        #  if empty, Z_FEC default to None
+        z_fec = (
+            FecMode._NAMES_TO_VALUES[row[Column.Z_FEC]] if row[Column.Z_FEC] else None
+        )
         media_type = TransmitterTechnology._NAMES_TO_VALUES[row[Column.MEDIA_TYPE]]
         a_interface_type = (
             InterfaceType._NAMES_TO_VALUES[row[Column.A_INTERFACE_TYPE]]
@@ -236,15 +240,18 @@ def read_profile_settings(directory: Dict[str, str], prefix: str) -> ProfileSett
             SpeedSetting(
                 speed=speed,
                 a_chip_settings=ChipSetting(
-                    chip_type=a_chip_type, chip_interface_type=a_interface_type
+                    chip_type=a_chip_type,
+                    chip_interface_type=a_interface_type,
+                    chip_fec=a_fec,
                 ),
                 z_chip_settings=ChipSetting(
                     chip_type=z_chip_type,
                     chip_interface_type=z_interface_type,
+                    chip_fec=z_fec,
                 ),
                 num_lanes=num_lanes,
                 modulation=modulation,
-                fec=fec,
+                fec=a_fec,  # Keep backward compatibility - fec field uses A_FEC
                 media_type=media_type,
             )
         )
