@@ -47,6 +47,7 @@ def _get_url(version):
         "1.16.0": "https://github.com/opencomputeproject/SAI/archive/v1.16.0.tar.gz",
         "1.16.1": "https://github.com/opencomputeproject/SAI/archive/v1.16.1.tar.gz",
         "1.16.3": "https://github.com/opencomputeproject/SAI/archive/v1.16.3.tar.gz",
+        "1.17.1": "https://github.com/opencomputeproject/SAI/archive/v1.17.1.tar.gz",
     }[version]
 
 
@@ -59,6 +60,7 @@ def _get_sha256(version):
         "1.16.0": "c7d9e85646b28a4d788448db28da649da37cd3ec7955fbeb8d7d80f76ef1796f",
         "1.16.1": "cf65142d1a1286b5faa24c9ae61b3f955f04724d0bf5ef6e5679298353aa0871",
         "1.16.3": "5c89cdb6b2e4f1b42ced6b78d43d06d22434ddbf423cdc551f7c2001f12e63d9",
+        "1.17.1": "05411b13b32abcc50f2f2b78e491e503b2b05e5a1503699abd4cc1b81f90d1ae",
     }[version]
 
 
@@ -77,7 +79,16 @@ def parse_args():
     parser.add_argument("output_path", help="Output dir")
     parser.add_argument(
         "sai_version",
-        choices=["1.13.2", "1.14.0", "1.15.0", "1.15.3", "1.16.0", "1.16.1", "1.16.3"],
+        choices=[
+            "1.13.2",
+            "1.14.0",
+            "1.15.0",
+            "1.15.3",
+            "1.16.0",
+            "1.16.1",
+            "1.16.3",
+            "1.17.1",
+        ],
         const="1.16.3",
         nargs="?",
         default="1.16.3",
