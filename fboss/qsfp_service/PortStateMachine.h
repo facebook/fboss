@@ -154,7 +154,11 @@ try {
     // agent.
     auto tcvrIdOpt = portMgr->getLowestIndexedStaticTransceiverForPort(portId);
     if (!tcvrIdOpt) {
-      return false;
+      // XPHY-only port without transceiver - skip IPHY programming via
+      // transceiver, just proceed to next state.
+      XLOG(INFO) << "[Port:" << name
+                 << "] No transceiver for port, skipping IPHY programming";
+      return true;
     }
     portMgr->programInternalPhyPorts(*tcvrIdOpt);
   } else {
@@ -196,7 +200,10 @@ try {
     // loop through all transceivers for ports.
     auto tcvrIdOpt = portMgr->getLowestIndexedStaticTransceiverForPort(portId);
     if (!tcvrIdOpt) {
-      return false;
+      // XPHY-only port without transceiver - use default profile for now.
+      // TODO(smenta) - Get profile from proper source for XPHY-only ports.
+      portMgr->programXphyPort(portId, cfg::PortProfileID::PROFILE_DEFAULT);
+      return true;
     }
     portMgr->programExternalPhyPorts(
         *tcvrIdOpt, fsm.get_attribute(xphyNeedResetDataPath));

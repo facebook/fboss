@@ -496,6 +496,10 @@ class PortManager {
   // These data structures help out with iterating through initialized ports /
   // transceivers faster.
 
+  // All initialized ports (both transceiver-backed and XPHY-only).
+  // Populated dynamically via setPortEnabledStatusInCache.
+  folly::Synchronized<std::set<PortID>> initializedPorts_;
+
   const TcvrToSynchronizedPortSet tcvrToInitializedPorts_;
   // Initialized transceivers indicates if a transceiver is in use by a specific
   // initialized port (e.g. for cases in which a port needs to subsume current

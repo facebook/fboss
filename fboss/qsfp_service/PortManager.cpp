@@ -685,6 +685,7 @@ void PortManager::programInternalPhyPorts(TransceiverID id) {
   }
 }
 
+// TODO(smenta) - Fixed in upcoming diff.
 void PortManager::programExternalPhyPorts(
     TransceiverID tcvrId,
     bool xPhyNeedResetDataPath) {
@@ -798,9 +799,9 @@ void PortManager::getAllPortSupportedProfiles(
     bool checkOptics) {
   // Find the list of all available ports from agent config
   std::vector<std::string> availablePorts;
-  for (const auto& [tcvrId, initializedPorts] : tcvrToInitializedPorts_) {
-    auto lockedPorts = initializedPorts->rlock();
-    for (const auto& port : *lockedPorts) {
+  {
+    auto lockedInitializedPorts = initializedPorts_.rlock();
+    for (const auto& port : *lockedInitializedPorts) {
       auto portNameStr = getPortNameByPortIdOrThrow(port);
       availablePorts.push_back(portNameStr);
     }
@@ -1236,9 +1237,9 @@ void PortManager::triggerAgentConfigChangeEvent() {
              << ". Issue all ports reprogramming events. " << resetDataPathLog;
 
   BlockingStateUpdateResultList results;
-  for (const auto& [tcvrId, enabledPorts] : tcvrToInitializedPorts_) {
-    auto lockedEnabledPorts = enabledPorts->rlock();
-    for (auto portId : *lockedEnabledPorts) {
+  {
+    auto lockedInitializedPorts = initializedPorts_.rlock();
+    for (const auto& portId : *lockedInitializedPorts) {
       if (auto result = updateStateBlockingWithoutWait(
               portId, PortStateMachineEvent::PORT_EV_RESET_TO_UNINITIALIZED)) {
         XLOG(ERR) << "Reset port " << portId << " to uninitialized";
@@ -1767,13 +1768,24 @@ PortManager::setupPortToSynchronizedTcvrVec() {
   return portToTcvrVec;
 }
 
-// TODO(smenta) - to fix, we need to have enabled ports that aren't associated
-// with a transceiver.
 void PortManager::setPortEnabledStatusInCache(PortID portId, bool enabled) {
+  // Always update the flat initializedPorts_ set first (lock ordering).
+  {
+    auto lockedInitializedPorts = initializedPorts_.wlock();
+    if (enabled) {
+      lockedInitializedPorts->insert(portId);
+    } else {
+      lockedInitializedPorts->erase(portId);
+    }
+  }
+
+  // Only update tcvrToInitializedPorts_ if port has a transceiver.
   auto tcvrIdOpt = getLowestIndexedStaticTransceiverForPort(portId);
   if (!tcvrIdOpt) {
-    throw FbossError("No static transceiver for port ", portId);
+    // XPHY-only port - no transceiver cache to update.
+    return;
   }
+
   auto tcvrId = *tcvrIdOpt;
   auto tcvrToInitializedPortsItr = tcvrToInitializedPorts_.find(tcvrId);
   if (tcvrToInitializedPortsItr == tcvrToInitializedPorts_.end()) {
@@ -1873,37 +1885,44 @@ void PortManager::triggerProgrammingEvents() {
   BlockingStateUpdateResultList results;
   steady_clock::time_point begin = steady_clock::now();
 
-  for (const auto& [tcvrId, lockedPortSetPtr] : tcvrToInitializedPorts_) {
-    auto portSet = *lockedPortSetPtr->rlock();
-    for (auto portId : portSet) {
-      const auto currentState = getPortState(portId);
-      bool xphyEnabled = phyManager_ != nullptr;
-      bool needProgramIphy = currentState == PortStateMachineState::INITIALIZED;
-      bool needProgramXphy =
-          currentState == PortStateMachineState::IPHY_PORTS_PROGRAMMED &&
-          xphyEnabled;
-      bool needCheckTcvrsProgrammed =
-          currentState == PortStateMachineState::XPHY_PORTS_PROGRAMMED ||
-          (currentState == PortStateMachineState::IPHY_PORTS_PROGRAMMED &&
-           !xphyEnabled);
-      if (needProgramIphy) {
-        if (auto result = updateStateBlockingWithoutWait(
-                portId, PortStateMachineEvent::PORT_EV_PROGRAM_IPHY)) {
-          ++numProgramIphy;
-          results.push_back(result);
-        }
-      } else if (needProgramXphy && xphyEnabled) {
-        if (auto result = updateStateBlockingWithoutWait(
-                portId, PortStateMachineEvent::PORT_EV_PROGRAM_XPHY)) {
-          ++numProgramXphy;
-          results.push_back(result);
-        }
-      } else if (needCheckTcvrsProgrammed) {
-        if (auto result = updateStateBlockingWithoutWait(
-                portId,
-                PortStateMachineEvent::PORT_EV_CHECK_TCVRS_PROGRAMMED)) {
-          results.push_back(result);
-        }
+  // Copy the set of initialized ports to avoid holding the lock while calling
+  // getPortState(), which acquires the state machine lock. This prevents a
+  // lock-order-inversion (potential deadlock) with
+  // setPortEnabledStatusInCache() which acquires locks in the opposite order
+  // (state machine lock first, then initializedPorts_ lock).
+  std::set<PortID> initializedPortsCopy;
+  {
+    auto lockedInitializedPorts = initializedPorts_.rlock();
+    initializedPortsCopy = *lockedInitializedPorts;
+  }
+
+  for (const auto& portId : initializedPortsCopy) {
+    const auto currentState = getPortState(portId);
+    bool xphyEnabled = phyManager_ != nullptr;
+    bool needProgramIphy = currentState == PortStateMachineState::INITIALIZED;
+    bool needProgramXphy =
+        currentState == PortStateMachineState::IPHY_PORTS_PROGRAMMED &&
+        xphyEnabled;
+    bool needCheckTcvrsProgrammed =
+        currentState == PortStateMachineState::XPHY_PORTS_PROGRAMMED ||
+        (currentState == PortStateMachineState::IPHY_PORTS_PROGRAMMED &&
+         !xphyEnabled);
+    if (needProgramIphy) {
+      if (auto result = updateStateBlockingWithoutWait(
+              portId, PortStateMachineEvent::PORT_EV_PROGRAM_IPHY)) {
+        ++numProgramIphy;
+        results.push_back(result);
+      }
+    } else if (needProgramXphy && xphyEnabled) {
+      if (auto result = updateStateBlockingWithoutWait(
+              portId, PortStateMachineEvent::PORT_EV_PROGRAM_XPHY)) {
+        ++numProgramXphy;
+        results.push_back(result);
+      }
+    } else if (needCheckTcvrsProgrammed) {
+      if (auto result = updateStateBlockingWithoutWait(
+              portId, PortStateMachineEvent::PORT_EV_CHECK_TCVRS_PROGRAMMED)) {
+        results.push_back(result);
       }
     }
   }
@@ -1918,13 +1937,21 @@ void PortManager::triggerProgrammingEvents() {
 }
 
 bool PortManager::arePortTcvrsProgrammed(PortID portId) const {
+  auto portNameStr = getPortNameByPortIdOrThrow(portId);
+
+  // For XPHY-only ports without transceivers, there's nothing to wait for.
+  auto tcvrIds = getInitializedTransceiverIdsForPort(portId);
+  if (tcvrIds.empty()) {
+    SW_PORT_LOG(INFO, "[SM]", portNameStr, portId)
+        << "Port has no transceivers to program.";
+    return true;
+  }
+
   // Check to see if all of a port's transceivers are programmed.
   bool arePortTcvrsProgrammed{true};
-  auto tcvrIds = getInitializedTransceiverIdsForPort(portId);
   for (const auto& tcvrId : tcvrIds) {
     if (transceiverManager_->getCurrentState(tcvrId) !=
         TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
-      auto portNameStr = getPortNameByPortIdOrThrow(portId);
       SW_PORT_LOG(INFO, "[SM]", portNameStr, portId)
           << "Assigned Transceiver " << tcvrId
           << " state is not TRANSCEIVER_PROGRAMMED: "
