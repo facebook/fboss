@@ -17,7 +17,8 @@ const inline std::shared_ptr<const FakeTestPlatformMapping>
 makeFakePlatformMapping(
     int numModules,
     int numPortsPerModule,
-    bool multipleTransceiversPerPort = false) {
+    FakeTestPlatformMappingType mappingType =
+        FakeTestPlatformMappingType::STANDARD) {
   std::vector<int> controllingPortIDs(numModules);
   std::generate(
       begin(controllingPortIDs),
@@ -28,6 +29,6 @@ makeFakePlatformMapping(
         return port;
       });
   return std::make_shared<FakeTestPlatformMapping>(
-      controllingPortIDs, numPortsPerModule, multipleTransceiversPerPort);
+      controllingPortIDs, numPortsPerModule, mappingType);
 }
 } // namespace facebook::fboss

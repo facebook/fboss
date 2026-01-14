@@ -67,8 +67,8 @@ class PortManagerTest : public ::testing::Test {
   }
 
   void initManagersWithMultiTcvrPort(bool setPhyManager = false) {
-    const auto platformMapping =
-        makeFakePlatformMapping(2, 4, true /* multiTcvrPort */);
+    const auto platformMapping = makeFakePlatformMapping(
+        2, 4, FakeTestPlatformMappingType::DUAL_TRANSCEIVER);
     const std::shared_ptr<const PlatformMapping> castedPlatformMapping =
         platformMapping;
 

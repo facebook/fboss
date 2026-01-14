@@ -183,16 +183,41 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     return qsfpModuleXcvr;
   }
 
-  void initManagers(bool multiTcvrPort = false) {
+  void initManagers(
+      FakeTestPlatformMappingType mappingType =
+          FakeTestPlatformMappingType::STANDARD) {
     // Clear mock implementations from previous test iterations
     cmisQsfpImpls_.clear();
     qsfpImpls_.clear();
 
+    // Determine numTransceivers and numPortsPerModule based on mapping type
+    int numTransceivers = 1;
+    int numPortsPerModule = 8;
+    bool isMultiTcvr = false;
+
+    switch (mappingType) {
+      case FakeTestPlatformMappingType::STANDARD:
+        numTransceivers = 1;
+        numPortsPerModule = 8;
+        isMultiTcvr = false;
+        break;
+      case FakeTestPlatformMappingType::DUAL_TRANSCEIVER:
+        numTransceivers = 2;
+        numPortsPerModule = 4;
+        isMultiTcvr = true;
+        break;
+      case FakeTestPlatformMappingType::BACKPLANE:
+      case FakeTestPlatformMappingType::XPHY_BACKPLANE:
+        // Backplane mappings create a single port with specific chip configs
+        numTransceivers = 1;
+        numPortsPerModule = 1;
+        isMultiTcvr = false;
+        break;
+    }
+
     // Create Platform Mapping Object
-    auto numTransceivers = multiTcvrPort ? 2 : 1;
-    auto numPortsPerModule = multiTcvrPort ? 4 : 8;
     const auto platformMapping = makeFakePlatformMapping(
-        numTransceivers, numPortsPerModule, multiTcvrPort);
+        numTransceivers, numPortsPerModule, mappingType);
     const std::shared_ptr<const PlatformMapping> castedPlatformMapping =
         platformMapping;
 
@@ -202,8 +227,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     }
 
     XLOG(ERR) << "Platform mapping has " << portIds.size()
-              << " ports and multiTcvrPort is "
-              << (multiTcvrPort ? "true" : "false");
+              << " ports and mappingType is " << static_cast<int>(mappingType);
 
     // Create Threads Object
     const auto qsfpServiceThreads = makeQsfpServiceThreads(platformMapping);
@@ -229,7 +253,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     transceiverManager_->setPauseRemediation(600, nullptr /* evb */);
 
     // Set appropriate override for multi-tcvr ports
-    if (multiTcvrPort) {
+    if (isMultiTcvr) {
       transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
           overrideMultiTransceiverTcvrToPortAndProfile_);
     }
@@ -562,12 +586,18 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       STATE_UPDATE_FN stateUpdate,
       VERIFY_FN verify,
       const std::string& updateStr,
-      bool isMock = false) {
+      bool isMock = false,
+      std::optional<FakeTestPlatformMappingType> mappingTypeOverride =
+          std::nullopt) {
     for (const auto& states : supportedStates) {
       auto multiPort = isMultiPort(states);
       auto multiTcvr = isMultiTcvr(states);
 
-      initManagers(multiTcvr);
+      // Use override if provided, otherwise derive from isMultiTcvr
+      auto mappingType = mappingTypeOverride.value_or(
+          multiTcvr ? FakeTestPlatformMappingType::DUAL_TRANSCEIVER
+                    : FakeTestPlatformMappingType::STANDARD);
+      initManagers(mappingType);
 
       XLOG(INFO) << "Verifying Transceiver=0 state CHANGED by " << updateStr
                  << " from " << logState(states) << " to "
@@ -708,12 +738,13 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       STATE_UPDATE_FN stateUpdate,
       VERIFY_FN verify,
       const std::string& updateStr,
+      FakeTestPlatformMappingType mappingType,
       bool isMock = false) {
     for (const auto& states : supportedStates) {
       auto multiPort = isMultiPort(states);
       auto multiTcvr = isMultiTcvr(states);
 
-      initManagers(multiTcvr);
+      initManagers(mappingType);
 
       XLOG(INFO) << "Verifying Transceiver=0 state UNCHANGED by " << updateStr
                  << " for " << logState(states) << ", multiPort=" << multiPort;
@@ -851,12 +882,21 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     transceiverManager_->triggerRemediateEvents(tcvrIds);
   }
 
-  std::vector<std::pair<bool, bool>> getTestModeCombinations() {
-    // (isMultiTcvr, isMultiPort)
-    return std::vector<std::pair<bool, bool>>{
-        {false, false},
-        {false, true},
-        {true, false},
+  struct TestModeConfig {
+    FakeTestPlatformMappingType mappingType;
+    bool isMultiTcvr;
+    bool isMultiPort;
+  };
+
+  // Test mode combinations for most tests (excludes XPHY_BACKPLANE):
+  // - STANDARD, single port per transceiver
+  // - STANDARD, multi-port per transceiver
+  // - DUAL_TRANSCEIVER, single port per transceiver (multi-tcvr)
+  std::vector<TestModeConfig> getTestModeCombinations() {
+    return {
+        {FakeTestPlatformMappingType::STANDARD, false, false},
+        {FakeTestPlatformMappingType::STANDARD, false, true},
+        {FakeTestPlatformMappingType::DUAL_TRANSCEIVER, true, false},
     };
   }
 
@@ -1008,7 +1048,8 @@ TEST_F(PortStateMachineTest, verifyStateSetupMacro) {
           {TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
            PortStateMachineState::PORT_DOWN},
       };
-  for (auto [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     for (auto [tcvrState, portState] : statePairs) {
       verifyStateUnchanged(
           {makeStates(tcvrState, portState, isMultiTcvr, isMultiPort)},
@@ -1016,6 +1057,7 @@ TEST_F(PortStateMachineTest, verifyStateSetupMacro) {
           []() {} /* stateUpdate */,
           []() {} /* verify */,
           kTestName,
+          mappingType,
           true /* isMock */);
     }
   }
@@ -1023,9 +1065,10 @@ TEST_F(PortStateMachineTest, verifyStateSetupMacro) {
 
 TEST_F(PortStateMachineTest, defaultStateAfterInit) {
   const std::string kTestName = "defaultStateAfterInit";
-  for (auto [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
-    initManagers(isMultiTcvr);
+    initManagers(mappingType);
 
     // At this point, refresh cycle hasn't been run yet, so all ports should
     // be UNINITIALIZED. However, TransceiverManager creation triggers
@@ -1040,7 +1083,8 @@ TEST_F(PortStateMachineTest, defaultStateAfterInit) {
 
 TEST_F(PortStateMachineTest, agentEnablePorts) {
   const std::string kTestName = "agentEnablePorts";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
     verifyStateMachine(
         {makeStates(
@@ -1058,13 +1102,16 @@ TEST_F(PortStateMachineTest, agentEnablePorts) {
         [this, isMultiPort]() {
           verifyXphyNeedResetDataPath(isMultiPort, false /* expected */);
         } /* verify */,
-        kTestName);
+        kTestName,
+        false /* isMock */,
+        mappingType);
   }
 }
 
 TEST_F(PortStateMachineTest, agentDisablePorts) {
   const std::string kTestName = "agentDisablePorts";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
 
     std::vector<std::pair<TransceiverStateMachineState, PortStateMachineState>>
@@ -1109,7 +1156,8 @@ TEST_F(PortStateMachineTest, agentDisablePorts) {
         } /* stateUpdate */,
         []() {} /* verify */,
         kTestName,
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
   }
 }
 
@@ -1129,7 +1177,8 @@ TEST_F(
            PortStateMachineState::INITIALIZED},
       };
 
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
     verifyStateMachine(
         statePairsToStructs(statePairs, isMultiTcvr, isMultiPort),
@@ -1149,7 +1198,8 @@ TEST_F(
         } /* stateUpdate */,
         []() {} /* verify */,
         kTestName,
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
   }
 }
 
@@ -1158,7 +1208,8 @@ TEST_F(PortStateMachineTest, furthestStatesWhenTransceiverNotPresent) {
 
   // Qsfp Service model still allows transceiver to progress to PROGRAMMED if
   // not present, due to i2c errors.
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
     verifyStateMachine(
         {makeStates(
@@ -1182,14 +1233,16 @@ TEST_F(PortStateMachineTest, furthestStatesWhenTransceiverNotPresent) {
         } /* stateUpdate */,
         []() {} /* verify */,
         kTestName,
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
   }
 }
 
 TEST_F(PortStateMachineTest, furthestStatesWhenTransceiverNotReady) {
   const std::string kTestName = "furthestStatesWhenTransceiverNotReady";
 
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
     verifyStateMachine(
         {makeStates(
@@ -1213,13 +1266,15 @@ TEST_F(PortStateMachineTest, furthestStatesWhenTransceiverNotReady) {
         } /* stateUpdate */,
         []() {} /* verify */,
         kTestName,
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
   }
 }
 
 TEST_F(PortStateMachineTest, fullSimpleRefreshCycle) {
   const std::string kTestName = "fullSimpleRefreshCycle";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
     verifyStateMachine(
         {makeStates(
@@ -1242,7 +1297,8 @@ TEST_F(PortStateMachineTest, fullSimpleRefreshCycle) {
           verifyXphyNeedResetDataPath(isMultiPort, false /* expected */);
         } /* verify */,
         kTestName,
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
   }
 }
 
@@ -1252,9 +1308,10 @@ TEST_F(
   const std::string kTestName =
       "transceiverDownReinitializesPortThenTransceiverUp";
 
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
-    initManagers(isMultiTcvr);
+    initManagers(mappingType);
 
     // Set the original state.
     xcvr1_ = overrideTransceiver(isMultiPort, true, tcvrId1_);
@@ -1377,7 +1434,8 @@ TEST_F(
 
 TEST_F(PortStateMachineTest, agentConfigChangedColdBootOnPresentTcvr) {
   const std::string kTestName = "agentConfigChangedColdBootOnPresentTcvr";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
 
     verifyStateMachine(
@@ -1408,13 +1466,15 @@ TEST_F(PortStateMachineTest, agentConfigChangedColdBootOnPresentTcvr) {
           verifyXphyNeedResetDataPath(isMultiPort, false /* expected */);
         } /* verify */,
         kTestName,
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
   }
 }
 
 TEST_F(PortStateMachineTest, agentConfigChangedWarmBootOnPresentTcvr) {
   const std::string kTestName = "agentConfigChangedWarmBootOnPresentTcvr";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
 
     verifyStateMachine(
@@ -1442,13 +1502,15 @@ TEST_F(PortStateMachineTest, agentConfigChangedWarmBootOnPresentTcvr) {
           verifyXphyNeedResetDataPath(isMultiPort, false /* expected */);
         } /* verify */,
         kTestName,
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
   }
 }
 
 TEST_F(PortStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
   const std::string kTestName = "agentConfigChangedColdBootOnAbsentXcvr";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
     verifyStateMachine(
         {makeStates(
@@ -1484,13 +1546,15 @@ TEST_F(PortStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
           verifyXphyNeedResetDataPath(isMultiPort, false /* expected */);
         } /* verify */,
         kTestName,
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
   }
 }
 
 TEST_F(PortStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
   const std::string kTestName = "agentConfigChangedWarmBootOnAbsentXcvr";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
 
     verifyStateMachine(
@@ -1523,13 +1587,15 @@ TEST_F(PortStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
               isMultiPort /* multiPort */, false /* expected */);
         } /* verify */,
         kTestName,
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
   }
 }
 
 TEST_F(PortStateMachineTest, syncPortsOnRemovedTransceiver) {
   const std::string kTestName = "syncPortsOnRemovedTransceiver";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     verifyStateMachine(
         {makeStates(
             TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
@@ -1580,13 +1646,15 @@ TEST_F(PortStateMachineTest, syncPortsOnRemovedTransceiver) {
           verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
         } /* verify */,
         kTestName,
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
   }
 }
 
 TEST_F(PortStateMachineTest, verifyAllDownPortStatusSharedWithTransceiver) {
   std::string kTestName = "verifyAllDownPortStatusSharedWithTransceiver";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
 
     verifyStateMachine(
@@ -1618,7 +1686,8 @@ TEST_F(PortStateMachineTest, verifyAllDownPortStatusSharedWithTransceiver) {
           }
         } /* verify */,
         kTestName,
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
   }
 }
 
@@ -1709,7 +1778,8 @@ TEST_F(PortStateMachineTest, verifyDetectingPortStatusOnResetTransceiver) {
         }
       };
 
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     // Test both PORT_UP and PORT_DOWN scenarios
     for (auto portState :
          {PortStateMachineState::PORT_UP, PortStateMachineState::PORT_DOWN}) {
@@ -1717,7 +1787,7 @@ TEST_F(PortStateMachineTest, verifyDetectingPortStatusOnResetTransceiver) {
           portState == PortStateMachineState::PORT_UP ? "PortUp" : "PortDown";
       logTestExecution(
           kTestName + "_" + portStateName, isMultiTcvr, isMultiPort);
-      initManagers(isMultiTcvr);
+      initManagers(mappingType);
 
       // Set initial states.
       xcvr1_ = overrideTransceiver(isMultiPort, true, tcvrId1_);
@@ -1787,9 +1857,10 @@ TEST_F(PortStateMachineTest, ensureNoFwUpgradeOnPortUpAndI2cConnectionIssues) {
    */
   const std::string kTestName =
       "ensureNoFwUpgradeOnPortUpAndI2cConnectionIssues";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
-    initManagers(isMultiTcvr);
+    initManagers(mappingType);
 
     // Execute refresh loop to get to TRANSCEIVER_PROGRAMMED / PORT_UP.
     xcvr1_ = overrideTransceiver(isMultiPort, true, tcvrId1_);
@@ -1898,7 +1969,8 @@ TEST_F(PortStateMachineTest, ensureFwUpgradeOnTcvrInsertWithPortsDown) {
   // We need to capture the firmware upgrade candidates during stateUpdate
   std::unordered_set<TransceiverID> tcvrsForFwUpgrade;
 
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
 
     verifyStateMachine(
@@ -1987,7 +2059,8 @@ TEST_F(PortStateMachineTest, ensureFwUpgradeOnTcvrInsertWithPortsDown) {
               "firmware_upgrade_supported", "f", gflags::SET_FLAGS_DEFAULT);
         } /* verify */,
         kTestName,
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
   }
 }
 
@@ -1997,7 +2070,8 @@ TEST_F(PortStateMachineTest, ensureFwUpgradeOnTcvrInsertWithPortsDown) {
 // TODO(smenta) – Refactor for multiPort
 TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedSuccess) {
   const std::string kTestName = "CheckTransceiverRemediatedSuccess";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
     verifyStateMachine(
         {makeStates(
@@ -2082,13 +2156,15 @@ TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedSuccess) {
           verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
         } /* verify */,
         kTestName,
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
   }
 }
 
 TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedFailed) {
   const std::string kTestName = "CheckTransceiverRemediatedFailed";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
     verifyStateUnchanged(
         {makeStates(
@@ -2212,13 +2288,15 @@ TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedFailed) {
           }
         } /* verify */,
         kTestName,
+        mappingType,
         true /* isMock */);
   }
 }
 
 TEST_F(PortStateMachineTest, programIphyFails) {
   const std::string kTestName = "programIphyFails";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
     verifyStateUnchanged(
         {makeStates(
@@ -2246,13 +2324,15 @@ TEST_F(PortStateMachineTest, programIphyFails) {
           removeProgramExternalPhyPortFailMock(isMultiTcvr);
         },
         kTestName,
+        mappingType,
         true /* isMock */);
   }
 }
 
 TEST_F(PortStateMachineTest, programXphyFails) {
   const std::string kTestName = "programXphyFails";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
     verifyStateUnchanged(
         {makeStates(
@@ -2277,8 +2357,9 @@ TEST_F(PortStateMachineTest, programXphyFails) {
               PortStateMachineState::XPHY_PORTS_PROGRAMMED,
               isMultiTcvr,
               isMultiPort));
-        },
+        } /* verify */,
         kTestName,
+        mappingType,
         true /* isMock */);
   }
 }
@@ -2372,7 +2453,8 @@ TEST_F(
 
 TEST_F(PortStateMachineTest, upgradeFirmware) {
   const std::string kTestName = "upgradeFirmware";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
     verifyStateMachine(
         {makeStates(
@@ -2409,9 +2491,10 @@ TEST_F(PortStateMachineTest, reseatTransceiver) {
 
   // This test verifies that removing and reinserting a transceiver properly
   // resets the state machine and allows reprogramming
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
-    initManagers(isMultiTcvr);
+    initManagers(mappingType);
 
     // Lambda to handle transceiver removal and insertion
     auto removeCmisTransceiver = [this, isMultiPort](
@@ -2626,7 +2709,8 @@ TEST_F(PortStateMachineTest, verifyOnlyPortDownIsUnsafeForRemediation) {
            PortStateMachineState::PORT_UP},
       };
 
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     verifyStateUnchanged(
         statePairsToStructs(safeStatePairs, isMultiTcvr, isMultiPort),
         []() {} /* preUpdate */,
@@ -2651,11 +2735,14 @@ TEST_F(PortStateMachineTest, verifyOnlyPortDownIsUnsafeForRemediation) {
           }
         } /* verify */,
         kTestName + "_safe_states",
-        true /* isMock */);
+        mappingType,
+        true /* isMock */
+    );
   }
 
   // Test PORT_DOWN which should be the ONLY state considered unsafe
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     verifyStateUnchanged(
         {makeStates(
             TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
@@ -2685,13 +2772,16 @@ TEST_F(PortStateMachineTest, verifyOnlyPortDownIsUnsafeForRemediation) {
           }
         } /* verify */,
         kTestName + "_PORT_DOWN_is_unsafe",
-        true /* isMock */);
+        mappingType,
+        true /* isMock */
+    );
   }
 }
 
 TEST_F(PortStateMachineTest, agentDisableEnablePort) {
   std::string kTestName = "agentDisableEnablePort";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
     verifyStateMachine(
         {makeStates(
@@ -2713,7 +2803,8 @@ TEST_F(PortStateMachineTest, agentDisableEnablePort) {
         } /* stateUpdate */,
         []() {} /* verify */,
         kTestName + "-phase-disable",
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
 
     verifyStateMachine(
         {makeStates(
@@ -2735,7 +2826,8 @@ TEST_F(PortStateMachineTest, agentDisableEnablePort) {
         } /* stateUpdate */,
         []() {} /* verify */,
         kTestName + "-phase-enable",
-        true /* isMock */);
+        true /* isMock */,
+        mappingType);
   }
 }
 
@@ -2746,7 +2838,8 @@ TEST_F(PortStateMachineTest, agentDisableEnablePort) {
 TEST_F(PortStateMachineTest, agentConfigChangedColdBootNoRemediationOnPortUp) {
   const std::string kTestName =
       "agentConfigChangedColdBootNoRemediationOnPortUp";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
 
     verifyStateUnchanged(
@@ -2777,7 +2870,9 @@ TEST_F(PortStateMachineTest, agentConfigChangedColdBootNoRemediationOnPortUp) {
           verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
         } /* verify */,
         kTestName,
-        true /* isMock */);
+        mappingType,
+        true /* isMock */
+    );
   }
 }
 
@@ -2788,7 +2883,8 @@ TEST_F(PortStateMachineTest, agentConfigChangedColdBootNoRemediationOnPortUp) {
 TEST_F(PortStateMachineTest, agentConfigChangedWarmBootNoRemediationOnPortUp) {
   const std::string kTestName =
       "agentConfigChangedWarmBootNoRemediationOnPortUp";
-  for (const auto& [isMultiTcvr, isMultiPort] : getTestModeCombinations()) {
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
     logTestExecution(kTestName, isMultiTcvr, isMultiPort);
 
     verifyStateUnchanged(
@@ -2819,7 +2915,9 @@ TEST_F(PortStateMachineTest, agentConfigChangedWarmBootNoRemediationOnPortUp) {
           verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
         } /* verify */,
         kTestName,
-        true /* isMock */);
+        mappingType,
+        true /* isMock */
+    );
   }
 }
 } // namespace facebook::fboss
