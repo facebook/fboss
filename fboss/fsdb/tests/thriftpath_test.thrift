@@ -6,6 +6,7 @@ namespace cpp2 facebook.fboss.fsdb
 
 cpp_include "folly/container/F14Map.h"
 
+include "fboss/agent/if/common.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
 
@@ -48,6 +49,7 @@ struct OtherStruct {
   5: optional i32 o;
 }
 
+@common.AllowSkipThriftCow
 @thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
 struct TestHybridStruct {
   1: optional i32 optionalIntegral;
@@ -65,6 +67,7 @@ struct TestStruct {
   3: string name;
   4: TestStructSimple member;
   @cpp.Type{template = "folly::F14FastMap"}
+  @common.AllowSkipThriftCow
   @thrift.DeprecatedUnvalidatedAnnotations{
     items = {"allow_skip_thrift_cow": "1"},
   }
@@ -76,6 +79,7 @@ struct TestStruct {
   10: TestEnum enumeration = TestEnum.FIRST;
   11: set<TestEnum> enumSet = [];
   12: set<i32> integralSet = [];
+  @common.AllowSkipThriftCow
   @thrift.DeprecatedUnvalidatedAnnotations{
     items = {"allow_skip_thrift_cow": "1"},
   }

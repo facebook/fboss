@@ -456,6 +456,7 @@ struct PortQueueFields {
   19: optional common.BufferPoolFields bufferPoolConfig;
 }
 
+@common.AllowSkipThriftCow
 @thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
 struct SystemPortThrift {
   1: i64 portId;
