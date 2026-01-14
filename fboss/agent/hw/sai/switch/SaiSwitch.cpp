@@ -2046,7 +2046,8 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     PortID portID = portIdAndHandle.first;
     if (portManager.getPortType(portID) == cfg::PortType::INTERFACE_PORT ||
         portManager.getPortType(portID) == cfg::PortType::FABRIC_PORT ||
-        portManager.getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
+        portManager.getPortType(portID) == cfg::PortType::MANAGEMENT_PORT ||
+        portManager.getPortType(portID) == cfg::PortType::HYPER_PORT_MEMBER) {
       auto portHandle = portIdAndHandle.second.get();
       if (portHandle == nullptr) {
         XLOG(DBG3) << "PortHandle not found for port "

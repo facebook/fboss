@@ -3253,7 +3253,8 @@ std::vector<phy::SerdesParameters> SaiPortManager::getSerdesParameters(
   // FABRIC_PORT
   auto portType = getPortType(swPortID);
   if (portType != cfg::PortType::INTERFACE_PORT &&
-      portType != cfg::PortType::FABRIC_PORT) {
+      portType != cfg::PortType::FABRIC_PORT &&
+      portType != cfg::PortType::HYPER_PORT_MEMBER) {
     return std::vector<phy::SerdesParameters>();
   }
 
@@ -3554,7 +3555,8 @@ void SaiPortManager::changeRxLaneSquelch(
     // the remote side and bring down the local link
     if ((newPort->getPortType() == cfg::PortType::FABRIC_PORT ||
          newPort->getPortType() == cfg::PortType::MANAGEMENT_PORT ||
-         newPort->getPortType() == cfg::PortType::INTERFACE_PORT) &&
+         newPort->getPortType() == cfg::PortType::INTERFACE_PORT ||
+         newPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) &&
         platform_->getAsic()->isSupported(
             HwAsic::Feature::RX_LANE_SQUELCH_ENABLE)) {
       auto portHandle = getPortHandle(newPort->getID());
