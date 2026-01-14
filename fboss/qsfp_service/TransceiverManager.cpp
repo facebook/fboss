@@ -3642,6 +3642,17 @@ void TransceiverManager::ensureTransceiversMapLocked(
 }
 
 void TransceiverManager::drainAllStateMachineUpdates() {
+  if (stateMachineControllers_.empty()) {
+    XLOG(INFO) << "No state machines created - returning early.";
+    return;
+  }
+
+  if (!updateEventBase_ || !threads_) {
+    XLOG(INFO)
+        << "updateEventBase_ or threads not initialized - returning early.";
+    return;
+  }
+
   // Enforce no updates can be added while draining.
   for (auto& [_, stateMachineController] : stateMachineControllers_) {
     stateMachineController->blockNewUpdates();
