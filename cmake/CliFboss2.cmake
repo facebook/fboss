@@ -1,4 +1,4 @@
-  # CMake to build libraries and binaries in fboss/cli/fboss2
+# CMake to build libraries and binaries in fboss/cli/fboss2
 
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
@@ -472,6 +472,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
   fboss/cli/fboss2/CmdSubcommands.cpp
   fboss/cli/fboss2/oss/CmdGlobalOptions.cpp
+  fboss/cli/fboss2/oss/CmdList.cpp
   fboss/cli/fboss2/utils/CmdUtils.cpp
   fboss/cli/fboss2/utils/CLIParserUtils.cpp
   fboss/cli/fboss2/utils/CmdClientUtils.cpp
@@ -559,7 +560,6 @@ target_link_libraries(fboss2_lib
 
 add_executable(fboss2
   fboss/cli/fboss2/Main.cpp
-  fboss/cli/fboss2/oss/CmdList.cpp
 )
 
 target_link_libraries(fboss2

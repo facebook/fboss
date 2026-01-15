@@ -1059,13 +1059,15 @@ add_custom_target(fboss2_targets)
 add_dependencies(fboss2_targets
   fboss2
   fboss2_cmd_test
+  fboss2_framework_test
+  fboss2-dev
 )
 
 add_custom_target(fboss_other_services)
 add_dependencies(fboss_other_services
   qsfp_targets
   led_targets
-  fboss2
+  fboss2_targets
   fsdb_all_services
 )
 

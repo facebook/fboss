@@ -260,6 +260,9 @@ template void CmdHandler<CmdStartPcap, CmdStartPcapTraits>::run();
 template void CmdHandler<CmdStopPcap, CmdStopPcapTraits>::run();
 template void CmdHandler<CmdShowRif, CmdShowRifTraits>::run();
 
+template const ValidAggMapType
+CmdHandler<CmdShowPort, CmdShowPortTraits>::getValidAggs();
+
 template const ValidFilterMapType
 CmdHandler<CmdShowArp, CmdShowArpTraits>::getValidFilters();
 template const ValidFilterMapType
