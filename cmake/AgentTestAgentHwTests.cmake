@@ -141,6 +141,7 @@ target_link_libraries(agent_hw_test_src
   scale_test_utils
   neighbor_test_utils
   system_scale_test_utils
+  hyper_port_test_utils
 )
 
 add_executable(multi_switch_agent_hw_test
