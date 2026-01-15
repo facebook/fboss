@@ -156,6 +156,10 @@ cp /etc/resolv.conf "${DESCRIPTION_DIR}/root/etc/"
 # Add build timestamp to the image
 echo "Built on: $(date -u)" >"$DESCRIPTION_DIR/root/etc/build-info"
 
+# Copy rootfs template files to overlay
+dprint "Copying rootfs files to overlay..."
+cp -R ${DESCRIPTION_DIR}/root_files/* ${DESCRIPTION_DIR}/root/
+
 # Generate the images
 dprint "Generating PXE and USB bootable image, this will take few minutes..."
 kiwi-ng-3 \
