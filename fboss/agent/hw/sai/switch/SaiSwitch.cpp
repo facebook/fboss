@@ -4687,6 +4687,70 @@ void SaiSwitch::processRemovedDelta(
   });
 }
 
+template <typename LockPolicyT, typename AddrT>
+void SaiSwitch::processChangedRoutesDeltaInReverse(
+    const RouterID& routerID,
+    const auto& routesDelta,
+    const LockPolicyT& lockPolicy) {
+  // During rollback, process changed routes in reverse order
+  std::vector<
+      std::pair<std::shared_ptr<Route<AddrT>>, std::shared_ptr<Route<AddrT>>>>
+      changedRoutes;
+
+  DeltaFunctions::forEachChanged(
+      routesDelta,
+      [&changedRoutes](
+          const std::shared_ptr<Route<AddrT>>& oldRoute,
+          const std::shared_ptr<Route<AddrT>>& newRoute) {
+        changedRoutes.push_back({oldRoute, newRoute});
+      });
+
+  for (auto it = changedRoutes.rbegin(); it != changedRoutes.rend(); ++it) {
+    [[maybe_unused]] const auto& lock = lockPolicy.lock();
+    managerTable_->routeManager().changeRoute<AddrT>(
+        it->first, it->second, routerID);
+  }
+}
+
+template <typename LockPolicyT, typename AddrT>
+void SaiSwitch::processAddedRoutesDeltaInReverse(
+    const RouterID& routerID,
+    const auto& routesDelta,
+    const LockPolicyT& lockPolicy) {
+  // During rollback, process added routes in reverse order
+  std::vector<std::shared_ptr<Route<AddrT>>> addedRoutes;
+
+  DeltaFunctions::forEachAdded(
+      routesDelta, [&addedRoutes](const std::shared_ptr<Route<AddrT>>& route) {
+        addedRoutes.push_back(route);
+      });
+
+  for (auto it = addedRoutes.rbegin(); it != addedRoutes.rend(); ++it) {
+    [[maybe_unused]] const auto& lock = lockPolicy.lock();
+    managerTable_->routeManager().addRoute<AddrT>(*it, routerID);
+  }
+}
+
+template <typename LockPolicyT, typename AddrT>
+void SaiSwitch::processRemovedRoutesDeltaInReverse(
+    const RouterID& routerID,
+    const auto& routesDelta,
+    const LockPolicyT& lockPolicy) {
+  // During rollback, process removed routes in reverse order
+  std::vector<std::shared_ptr<Route<AddrT>>> removedRoutes;
+
+  DeltaFunctions::forEachRemoved(
+      routesDelta,
+      [&removedRoutes](const std::shared_ptr<Route<AddrT>>& route) {
+        removedRoutes.push_back(route);
+      });
+
+  for (auto it = removedRoutes.rbegin(); it != removedRoutes.rend(); ++it) {
+    [[maybe_unused]] const auto& lock = lockPolicy.lock();
+    managerTable_->routeManager().removeRoute<AddrT>(*it, routerID);
+  }
+}
+
 void SaiSwitch::dumpDebugState(const std::string& path) const {
   XLOG(INFO) << "generating debug dump at " << path;
   saiCheckError(sai_dbg_generate_dump(path.c_str()));

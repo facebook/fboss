@@ -595,6 +595,24 @@ class SaiSwitch : public HwSwitch {
       RemovedFunc removedFunc,
       Args... args);
 
+  template <typename LockPolicyT, typename AddrT>
+  void processRemovedRoutesDeltaInReverse(
+      const RouterID& routerID,
+      const auto& routesDelta,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT, typename AddrT>
+  void processChangedRoutesDeltaInReverse(
+      const RouterID& routerID,
+      const auto& routesDelta,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT, typename AddrT>
+  void processAddedRoutesDeltaInReverse(
+      const RouterID& routerID,
+      const auto& routesDelta,
+      const LockPolicyT& lockPolicy);
+
   template <typename LockPolicyT>
   void processSwitchSettingsChangeSansDrained(
       const StateDelta& delta,
