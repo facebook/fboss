@@ -100,7 +100,6 @@ struct SpeedSetting {
 
 struct TransceiverOverrideSetting {
   1: transceiver.Vendor vendor;
-  2: transceiver.MediaInterfaceCode media_interface_code;
 }
 
 // Represents all the factors in the SI Settings CSV

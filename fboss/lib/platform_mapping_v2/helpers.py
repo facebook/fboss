@@ -545,7 +545,6 @@ def _create_override_from_si_setting(
         ports=[port_id],
         profiles=[profile],
         transceiverManagementInterface=None,
-        mediaInterfaceCode=si_setting_and_factor.factor.tcvr_override_setting.media_interface_code,
         vendor=vendor,
     )
 

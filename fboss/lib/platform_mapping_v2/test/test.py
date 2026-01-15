@@ -371,7 +371,6 @@ class TestPlatformMappingGeneration(unittest.TestCase):
                 factor=PlatformPortConfigOverrideFactor(
                     ports=[1],
                     profiles=[PortProfileID.PROFILE_100G_4_NRZ_RS528_OPTICAL],
-                    mediaInterfaceCode=MediaInterfaceCode.FR1_100G,
                     vendor=Vendor(
                         name="VENDOR_1",
                         oui=b"",
