@@ -131,8 +131,14 @@ void executeRequestedDetails(
     }
   } else {
     for (const auto& requestedDetail : requestedDetails) {
+      constexpr std::string_view disruptiveSuffix = "(disruptive)";
+      std::string_view detail = requestedDetail;
+      if (detail.ends_with(disruptiveSuffix)) {
+        detail.remove_suffix(disruptiveSuffix.size());
+      }
+
       auto it = std::ranges::find_if(DETAIL_FUNCTIONS, [&](const auto& pair) {
-        return pair.first == requestedDetail;
+        return pair.first == detail;
       });
       if (it != DETAIL_FUNCTIONS.end()) {
         executeSingleDetail(
