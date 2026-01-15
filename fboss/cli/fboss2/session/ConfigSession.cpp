@@ -167,6 +167,25 @@ void ensureDirectoryExists(const std::string& dirPath) {
   }
 }
 
+/*
+ * Get the current revision number by reading the symlink target.
+ * Returns -1 if unable to determine the current revision.
+ */
+int getCurrentRevisionNumber(const std::string& systemConfigPath) {
+  std::error_code ec;
+
+  if (!fs::is_symlink(systemConfigPath, ec)) {
+    return -1;
+  }
+
+  std::string target = fs::read_symlink(systemConfigPath, ec);
+  if (ec) {
+    return -1;
+  }
+
+  return ConfigSession::extractRevisionNumber(target);
+}
+
 } // anonymous namespace
 
 ConfigSession::ConfigSession() {
@@ -454,6 +473,102 @@ int ConfigSession::commit(const HostInfo& hostInfo) {
   }
 
   return revision;
+}
+
+int ConfigSession::rollback(const HostInfo& hostInfo) {
+  // Get the current revision number
+  int currentRevision = getCurrentRevisionNumber(systemConfigPath_);
+  if (currentRevision <= 0) {
+    throw std::runtime_error(
+        "Cannot rollback: cannot determine the current revision from " +
+        systemConfigPath_);
+  } else if (currentRevision == 1) {
+    throw std::runtime_error(
+        "Cannot rollback: already at the first revision (r1)");
+  }
+
+  // Rollback to the previous revision
+  std::string targetRevision = "r" + std::to_string(currentRevision - 1);
+  return rollback(hostInfo, targetRevision);
+}
+
+int ConfigSession::rollback(
+    const HostInfo& hostInfo,
+    const std::string& revision) {
+  ensureDirectoryExists(cliConfigDir_);
+
+  // Build the path to the target revision
+  std::string targetConfigPath = cliConfigDir_ + "/agent-" + revision + ".conf";
+
+  // Check if the target revision exists
+  if (!fs::exists(targetConfigPath)) {
+    throw std::runtime_error(
+        "Revision " + revision + " does not exist at " + targetConfigPath);
+  }
+
+  std::error_code ec;
+
+  // Verify that the system config is a symlink
+  if (!fs::is_symlink(systemConfigPath_)) {
+    throw std::runtime_error(
+        systemConfigPath_ + " is not a symlink. Expected it to be a symlink.");
+  }
+
+  // Read the old symlink target in case we need to undo the rollback
+  std::string oldSymlinkTarget = fs::read_symlink(systemConfigPath_, ec);
+  if (ec) {
+    throw std::runtime_error(
+        "Failed to read symlink " + systemConfigPath_ + ": " + ec.message());
+  }
+
+  // First, create a new revision with the same content as the target revision
+  auto [newRevisionPath, newRevision] =
+      createNextRevisionFile(fmt::format("{}/agent", cliConfigDir_));
+
+  // Copy the target config to the new revision file
+  fs::copy_file(
+      targetConfigPath,
+      newRevisionPath,
+      fs::copy_options::overwrite_existing,
+      ec);
+  if (ec) {
+    // Clean up the revision file we created
+    fs::remove(newRevisionPath);
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to create new revision for rollback: {}", ec.message()));
+  }
+
+  // Atomically update the symlink to point to the new revision
+  atomicSymlinkUpdate(systemConfigPath_, newRevisionPath);
+
+  // Reload the config - if this fails, atomically undo the rollback
+  try {
+    auto client =
+        utils::createClient<apache::thrift::Client<facebook::fboss::FbossCtrl>>(
+            hostInfo);
+    client->sync_reloadConfig();
+  } catch (const std::exception& ex) {
+    // Rollback: atomically restore the old symlink
+    try {
+      atomicSymlinkUpdate(systemConfigPath_, oldSymlinkTarget);
+    } catch (const std::exception& rollbackEx) {
+      // If rollback also fails, include both errors in the message
+      throw std::runtime_error(
+          fmt::format(
+              "Failed to reload config: {}. Additionally, failed to rollback the symlink: {}",
+              ex.what(),
+              rollbackEx.what()));
+    }
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to reload config, symlink was rolled back automatically: {}",
+            ex.what()));
+  }
+
+  // Successfully rolled back
+  LOG(INFO) << "Rollback committed as revision r" << newRevision;
+  return newRevision;
 }
 
 } // namespace facebook::fboss

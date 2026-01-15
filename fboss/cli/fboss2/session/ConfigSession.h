@@ -102,6 +102,11 @@ class ConfigSession {
   // successful.
   int commit(const HostInfo& hostInfo);
 
+  // Rollback to a specific revision or to the previous revision
+  // Returns the revision that was rolled back to
+  int rollback(const HostInfo& hostInfo);
+  int rollback(const HostInfo& hostInfo, const std::string& revision);
+
   // Check if a session exists
   bool sessionExists() const;
 
