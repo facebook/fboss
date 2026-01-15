@@ -342,12 +342,12 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
             static_cast<SwitchID>(
                 numCores * getAgentEnsemble()->getNumL3Asics()));
       });
-      const InterfaceID kIntfId(remotePortId);
+      const InterfaceID kRemoteIntfId(remotePortId);
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return utility::addRemoteInterface(
             in,
             scopeResolver(),
-            kIntfId,
+            kRemoteIntfId,
             // TODO - following assumes we haven't
             // already used up the subnets below for
             // local interfaces. In that sense it
@@ -358,15 +358,15 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
                 {folly::IPAddress("100.0.0.1"), 24},
             });
       });
-      PortDescriptor kPort(kRemoteSysPortId);
+      PortDescriptor kRemotePortDesc(kRemoteSysPortId);
       // Add neighbor
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return utility::addRemoveRemoteNeighbor(
             in,
             scopeResolver(),
             kNeighborIp,
-            kIntfId,
-            kPort,
+            kRemoteIntfId,
+            kRemotePortDesc,
             true,
             utility::getDummyEncapIndex(getAgentEnsemble()));
       });
