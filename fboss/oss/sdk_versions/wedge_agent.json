@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<feb5bd170f4f6f6f9e915999f53425fc>>"
+        "@generated SignedSource<<ebfb9f0844d2a94481417c998767631d>>"
     ],
     "MINIPACK": [
         {
@@ -284,6 +284,14 @@
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
+            "asicSdk": "6.5.32",
+            "saiSdk": "13.3.0.0_odp",
+            "saiVersion": "1.16.1"
+        }
+    ],
+    "TAHANSB800BC": [
+        {
+            "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.32",
             "saiSdk": "13.3.0.0_odp",
             "saiVersion": "1.16.1"
