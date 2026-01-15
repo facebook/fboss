@@ -156,6 +156,14 @@ cp /etc/resolv.conf "${DESCRIPTION_DIR}/root/etc/"
 # Add build timestamp to the image
 echo "Built on: $(date -u)" >"$DESCRIPTION_DIR/root/etc/build-info"
 
+# Copy systemd service files to overlay
+if [ -d "${DESCRIPTION_DIR}/services" ]; then
+  dprint "Copying systemd service files to overlay..."
+  rm -rf ${DESCRIPTION_DIR}/root/usr/lib/systemd/system
+  mkdir -p ${DESCRIPTION_DIR}/root/usr/lib/systemd/system
+  cp ${DESCRIPTION_DIR}/services/*.service ${DESCRIPTION_DIR}/root/usr/lib/systemd/system/
+fi
+
 # Generate the images
 dprint "Generating PXE and USB bootable image, this will take few minutes..."
 kiwi-ng-3 \

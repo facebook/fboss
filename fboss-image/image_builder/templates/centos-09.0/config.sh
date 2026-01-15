@@ -51,6 +51,10 @@ env -i \
     PATH="/usr/bin:/usr/sbin:/bin:/sbin" \
     kernel-install add "${KERNEL_VERSION}" "${VMLINUZ_PATH}" --initrd-file "${INITRD_PATH}"
 
+# 5. Enable systemd services
+echo "Enabling FBOSS systemd services..."
+systemctl enable platform_manager.service
+
 # 6. Done! Cleanup, remember that we are chrooted on the rootfs
 echo "Removing kernel rpms from rootfs..."
 rm -f /repos/*.rpm
