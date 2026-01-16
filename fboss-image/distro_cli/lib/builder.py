@@ -92,7 +92,12 @@ class ImageBuilder:
             sys.exit(1)
 
         if not any(k in dist_formats for k in ["usb", "pxe"]):
-            logger.error("No distribution format specified in manifest")
+            logger.error(
+                "Neither usb nor pxe distribution format specified in manifest."
+            )
+            logger.error(
+                f"Manifest distribution formats: {', '.join(dist_formats.keys())}"
+            )
             sys.exit(1)
 
         # Locate the image builder directory
