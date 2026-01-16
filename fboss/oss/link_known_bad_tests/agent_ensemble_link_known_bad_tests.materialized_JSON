@@ -8873,6 +8873,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -8924,6 +8927,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -8979,6 +8985,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -9030,6 +9039,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -9085,6 +9097,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -9136,6 +9151,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -9191,6 +9209,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -9242,6 +9263,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -9297,6 +9321,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -9348,6 +9375,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -9403,6 +9433,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -9456,6 +9489,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -9498,6 +9534,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -9547,6 +9586,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -9592,6 +9634,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -9641,6 +9686,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -9686,6 +9734,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -9735,6 +9786,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -9780,6 +9834,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -9829,6 +9886,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -9874,6 +9934,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -9923,6 +9986,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -9968,6 +10034,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -10017,6 +10086,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -10062,6 +10134,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -10111,6 +10186,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -10156,6 +10234,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -10205,6 +10286,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -10250,6 +10334,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -10299,6 +10386,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -10344,6 +10434,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
@@ -10393,6 +10486,9 @@
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -10438,6 +10534,9 @@
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
+        },
+        {
+          "test_name_regex": "roundtrip.*asicLinkFlap$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_.*_2_preprod.*.AgentEnsembleSpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
