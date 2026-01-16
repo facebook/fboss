@@ -34,6 +34,7 @@ gtest_discover_tests(fboss2_framework_test)
 add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/TestMain.cpp
   fboss/cli/fboss2/test/CmdConfigAppliedInfoTest.cpp
+  fboss/cli/fboss2/test/CmdConfigHistoryTest.cpp
   fboss/cli/fboss2/test/CmdConfigReloadTest.cpp
   fboss/cli/fboss2/test/CmdConfigSessionDiffTest.cpp
   fboss/cli/fboss2/test/CmdConfigSessionTest.cpp

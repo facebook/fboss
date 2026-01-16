@@ -772,6 +772,7 @@ cpp_library(
         "CmdListConfig.cpp",
         "commands/config/CmdConfigAppliedInfo.cpp",
         "commands/config/CmdConfigReload.cpp",
+        "commands/config/history/CmdConfigHistory.cpp",
         "commands/config/rollback/CmdConfigRollback.cpp",
         "commands/config/session/CmdConfigSessionCommit.cpp",
         "commands/config/session/CmdConfigSessionDiff.cpp",
@@ -780,6 +781,7 @@ cpp_library(
     headers = [
         "commands/config/CmdConfigAppliedInfo.h",
         "commands/config/CmdConfigReload.h",
+        "commands/config/history/CmdConfigHistory.h",
         "commands/config/rollback/CmdConfigRollback.h",
         "commands/config/session/CmdConfigSessionCommit.h",
         "commands/config/session/CmdConfigSessionDiff.h",
@@ -791,6 +793,7 @@ cpp_library(
         ":cmd-common-utils",
         ":cmd-handler",
         ":fboss2-lib",
+        ":table-utils",
         "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent:agent_dir_util",
         "//fboss/agent/if:ctrl-cpp2-types",
