@@ -747,7 +747,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           cfg::AsicType::ASIC_TYPE_CHENAB) {
         arsPortLoadScalingFactor = flowletCfgPtr->getScalingFactor();
         arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
-        arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
+        if (platform_->getAsic()->isSupported(
+                HwAsic::Feature::ARS_FUTURE_PORT_LOAD)) {
+          arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
+        }
       }
       // exclude 14.0 until this attr is ported there by BCM
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS) && \
