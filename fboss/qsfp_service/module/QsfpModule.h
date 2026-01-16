@@ -227,7 +227,7 @@ class QsfpModule : public Transceiver {
       ProgramTransceiverState& programTcvrState,
       bool needResetDataPath) override;
 
-  bool readyTransceiver() override;
+  bool readyTransceiver(bool hasTunableOpticsConfig) override;
 
   portstate::PortState getPortState() override {
     return portState_;
@@ -380,8 +380,11 @@ class QsfpModule : public Transceiver {
   /*
    * If the current power state is not same as desired one then change it and
    * return true when module is in ready state
+   * @param hasTunableOpticsConfig - indicates if tunable optics config is
+   *        present. For tunable optics modules without config, an exception
+   *        is thrown to prevent high power mode transition.
    */
-  virtual bool ensureTransceiverReadyLocked() = 0;
+  virtual bool ensureTransceiverReadyLocked(bool hasTunableOpticsConfig) = 0;
 
   /*
    * This function returns a pointer to the value in the static cached
