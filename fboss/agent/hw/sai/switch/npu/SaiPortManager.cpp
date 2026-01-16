@@ -752,9 +752,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
         }
       }
-      // exclude 14.0 until this attr is ported there by BCM
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS) && \
-    defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0)
+    defined(BRCM_SAI_SDK_GTE_13_0)
       if (swPort->getLoopbackMode() == cfg::PortLoopbackMode::MAC) {
         arsLinkState = SAI_PORT_ARS_LINK_STATE_UP;
       }
