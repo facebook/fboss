@@ -655,6 +655,7 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-visitation",
+        "//fboss/fsdb/oper/instantiations:fsdb_path_converter",
         "//fboss/led_service/if:led_service-cpp2-services",
         "//fboss/lib/inputbalance:input_balance_util",
         "//fboss/lib/phy:phy-cpp2-types",
