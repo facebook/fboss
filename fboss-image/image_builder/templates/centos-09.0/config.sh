@@ -54,6 +54,10 @@ env -i \
 # 5. Enable systemd services
 echo "Enabling FBOSS systemd services..."
 systemctl enable platform_manager.service
+systemctl enable data_corral_service.service
+systemctl enable fan_service.service
+systemctl enable sensor_service.service
+systemctl enable fsdb.service
 
 # 6. Done! Cleanup, remember that we are chrooted on the rootfs
 echo "Removing kernel rpms from rootfs..."
