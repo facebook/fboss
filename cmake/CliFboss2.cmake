@@ -587,6 +587,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.cpp
   fboss/cli/fboss2/session/ConfigSession.h
   fboss/cli/fboss2/session/ConfigSession.cpp
+  fboss/cli/fboss2/utils/InterfaceList.h
+  fboss/cli/fboss2/utils/InterfaceList.cpp
   fboss/cli/fboss2/CmdListConfig.cpp
   fboss/cli/fboss2/CmdHandlerImplConfig.cpp
 )

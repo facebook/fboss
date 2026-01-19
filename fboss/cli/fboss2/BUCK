@@ -777,6 +777,7 @@ cpp_library(
         "commands/config/session/CmdConfigSessionCommit.cpp",
         "commands/config/session/CmdConfigSessionDiff.cpp",
         "session/ConfigSession.cpp",
+        "utils/InterfaceList.cpp",
     ],
     headers = [
         "commands/config/CmdConfigAppliedInfo.h",
@@ -786,6 +787,7 @@ cpp_library(
         "commands/config/session/CmdConfigSessionCommit.h",
         "commands/config/session/CmdConfigSessionDiff.h",
         "session/ConfigSession.h",
+        "utils/InterfaceList.h",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
