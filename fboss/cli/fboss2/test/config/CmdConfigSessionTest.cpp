@@ -1,25 +1,73 @@
-// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
 
-#include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
-
+#include <boost/filesystem/operations.hpp>
+#include <folly/json/dynamic.h>
+#include <folly/json/json.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <system_error>
 
-#include <folly/json.h>
-
+#include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
+#include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/session/Git.h"
+#include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 #include "fboss/cli/fboss2/test/TestableConfigSession.h"
+#include "fboss/cli/fboss2/utils/PortMap.h" // NOLINT(misc-include-cleaner)
 
 namespace fs = std::filesystem;
 
 namespace facebook::fboss {
 
-class ConfigSessionTestFixture : public CmdConfigTestBase {
+class ConfigSessionTestFixture : public CmdHandlerTestBase {
  public:
-  ConfigSessionTestFixture()
-      : CmdConfigTestBase(
-            "fboss_test_%%%%-%%%%-%%%%-%%%%",
-            R"({
+  void SetUp() override {
+    CmdHandlerTestBase::SetUp();
+
+    // Create unique test directories for each test to avoid conflicts when
+    // running tests in parallel
+    auto tempBase = fs::temp_directory_path();
+    auto uniquePath =
+        boost::filesystem::unique_path("fboss_test_%%%%-%%%%-%%%%-%%%%");
+    testHomeDir_ = tempBase / (uniquePath.string() + "_home");
+    testEtcDir_ = tempBase / (uniquePath.string() + "_etc");
+
+    // Clean up any previous test artifacts (shouldn't exist with unique names)
+    std::error_code ec;
+    if (fs::exists(testHomeDir_)) {
+      fs::remove_all(testHomeDir_, ec);
+    }
+    if (fs::exists(testEtcDir_)) {
+      fs::remove_all(testEtcDir_, ec);
+    }
+
+    // Create test directories
+    // Structure: systemConfigDir_ = /etc/coop (git repo root)
+    //   - agent.conf (symlink -> cli/agent.conf)
+    //   - cli/agent.conf (actual config file)
+    fs::create_directories(testHomeDir_);
+    systemConfigDir_ = testEtcDir_ / "coop";
+    fs::create_directories(systemConfigDir_ / "cli");
+
+    // Set environment variables
+    setenv("HOME", testHomeDir_.c_str(), 1);
+    setenv("USER", "testuser", 1);
+
+    // Create the actual config file at cli/agent.conf
+    fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+    createTestConfig(cliConfigPath, R"({
   "sw": {
     "ports": [
       {
@@ -30,48 +78,86 @@ class ConfigSessionTestFixture : public CmdConfigTestBase {
       }
     ]
   }
-})") {}
+})");
+
+    // Create symlink at /etc/coop/agent.conf -> cli/agent.conf
+    fs::create_symlink("cli/agent.conf", systemConfigDir_ / "agent.conf");
+
+    // Initialize Git repository and create initial commit
+    Git git(systemConfigDir_.string());
+    git.init();
+    git.commit({cliConfigPath.string()}, "Initial commit");
+  }
+
+  void TearDown() override {
+    // Clean up test directories
+    // Use error_code to avoid throwing exceptions in TearDown
+    std::error_code ec;
+    if (fs::exists(testHomeDir_)) {
+      fs::remove_all(testHomeDir_, ec);
+      if (ec) {
+        std::cerr << "Warning: Failed to remove " << testHomeDir_ << ": "
+                  << ec.message() << std::endl;
+      }
+    }
+    if (fs::exists(testEtcDir_)) {
+      fs::remove_all(testEtcDir_, ec);
+      if (ec) {
+        std::cerr << "Warning: Failed to remove " << testEtcDir_ << ": "
+                  << ec.message() << std::endl;
+      }
+    }
+
+    CmdHandlerTestBase::TearDown();
+  }
+
+ protected:
+  void createTestConfig(const fs::path& path, const std::string& content) {
+    std::ofstream file(path);
+    file << content;
+    file.close();
+  }
+
+  std::string readFile(const fs::path& path) {
+    std::ifstream file(path);
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+  }
+
+  fs::path testHomeDir_;
+  fs::path testEtcDir_;
+  fs::path systemConfigDir_; // /etc/coop (git repo root)
 };
 
 TEST_F(ConfigSessionTestFixture, sessionInitialization) {
   // Initially, session directory should not exist
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
   EXPECT_FALSE(fs::exists(sessionDir));
 
   // Creating a ConfigSession should create the directory and copy the config
-  // getSystemConfigPath() is already a symlink created in SetUp()
-  TestableConfigSession session(
-      sessionConfig.string(),
-      getSystemConfigPath().string(),
-      (getTestEtcDir() / "coop" / "cli").string());
+  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
 
   // Verify the directory was created
   EXPECT_TRUE(fs::exists(sessionDir));
   EXPECT_TRUE(session.sessionExists());
   EXPECT_TRUE(fs::exists(sessionConfig));
 
-  // Verify content was copied correctly
-  // Read the actual file that getSystemConfigPath() points to
-  // fs::read_symlink returns a relative path, so we need to resolve it
-  fs::path symlinkTarget = fs::read_symlink(getSystemConfigPath());
-  fs::path actualConfigPath =
-      getSystemConfigPath().parent_path() / symlinkTarget;
-  std::string systemContent = readFile(actualConfigPath);
+  // Verify content was copied correctly (reads via symlink)
+  std::string systemContent = readFile(cliConfigPath);
   std::string sessionContent = readFile(sessionConfig);
   EXPECT_EQ(systemContent, sessionContent);
 }
 
 TEST_F(ConfigSessionTestFixture, sessionConfigModified) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
 
   // Create a ConfigSession
-  // getSystemConfigPath() is already a symlink created in SetUp()
-  TestableConfigSession session(
-      sessionConfig.string(),
-      getSystemConfigPath().string(),
-      (getTestEtcDir() / "coop" / "cli").string());
+  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
 
   // Modify the session config through the ConfigSession API
   auto& config = session.getAgentConfig();
@@ -83,45 +169,37 @@ TEST_F(ConfigSessionTestFixture, sessionConfigModified) {
 
   // Verify session config is modified
   std::string sessionContent = readFile(sessionConfig);
-  // fs::read_symlink returns a relative path, so we need to resolve it
-  fs::path symlinkTarget = fs::read_symlink(getSystemConfigPath());
-  fs::path actualConfigPath =
-      getSystemConfigPath().parent_path() / symlinkTarget;
-  std::string systemContent = readFile(actualConfigPath);
+  std::string systemContent = readFile(cliConfigPath);
   EXPECT_NE(sessionContent, systemContent);
   EXPECT_THAT(sessionContent, ::testing::HasSubstr("Modified port"));
 }
 
 TEST_F(ConfigSessionTestFixture, sessionCommit) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
-  fs::path cliConfigDir = getTestEtcDir() / "coop" / "cli";
-
-  // Verify old symlink exists (created in SetUp)
-  EXPECT_TRUE(fs::is_symlink(getSystemConfigPath()));
-  EXPECT_EQ(
-      fs::read_symlink(getSystemConfigPath()), cliConfigDir / "agent-r1.conf");
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
 
   // Setup mock agent server
   setupMockedAgentServer();
   EXPECT_CALL(getMockAgent(), reloadConfig()).Times(2);
 
+  std::string firstCommitSha;
+  std::string secondCommitSha;
+
   // First commit: Create a ConfigSession and commit a change
   {
-    // getSystemConfigPath() is already a symlink to agent-r1.conf created in
-    // SetUp()
     TestableConfigSession session(
-        sessionConfig.string(),
-        getSystemConfigPath().string(),
-        cliConfigDir.string());
+        sessionDir.string(), systemConfigDir_.string());
+
+    // Simulate a CLI command being tracked
+    session.setCommandLine(
+        "config interface eth1/1/1 description First commit");
 
     // Modify the session config
     auto& config = session.getAgentConfig();
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
     ports[0].description() = "First commit";
-    session.setCommandLine(
-        "config interface eth1/1/1 description First commit");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
@@ -131,29 +209,29 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
     // Verify session config no longer exists (removed after commit)
     EXPECT_FALSE(fs::exists(sessionConfig));
 
-    // Verify new revision was created in cli directory
-    EXPECT_EQ(result.revision, 2);
-    fs::path targetConfig = cliConfigDir / "agent-r2.conf";
-    EXPECT_TRUE(fs::exists(targetConfig));
-    EXPECT_THAT(readFile(targetConfig), ::testing::HasSubstr("First commit"));
+    // Verify commit SHA was returned
+    EXPECT_FALSE(result.commitSha.empty());
+    EXPECT_EQ(result.commitSha.length(), 40); // Full SHA1 is 40 chars
+    firstCommitSha = result.commitSha;
 
     // Verify metadata file was created alongside the config revision
-    fs::path targetMetadata = cliConfigDir / "agent-r2.metadata.json";
+    fs::path targetMetadata = systemConfigDir_ / "cli" / "cli_metadata.json";
     EXPECT_TRUE(fs::exists(targetMetadata));
 
-    // Verify symlink was replaced and points to new revision
-    EXPECT_TRUE(fs::is_symlink(getSystemConfigPath()));
-    EXPECT_EQ(fs::read_symlink(getSystemConfigPath()), targetConfig);
+    // Verify system config was updated
+    EXPECT_THAT(readFile(cliConfigPath), ::testing::HasSubstr("First commit"));
   }
 
-  // Second commit: Create a new session and verify it's based on r2, not r1
+  // Second commit: Create a new session and verify it's based on first commit
   {
     TestableConfigSession session(
-        sessionConfig.string(),
-        getSystemConfigPath().string(),
-        cliConfigDir.string());
+        sessionDir.string(), systemConfigDir_.string());
 
-    // Verify the new session is based on r2 (the latest committed revision)
+    // Simulate a CLI command being tracked
+    session.setCommandLine(
+        "config interface eth1/1/1 description Second commit");
+
+    // Verify the new session is based on the latest committed revision
     auto& config = session.getAgentConfig();
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
@@ -161,82 +239,77 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
 
     // Make another change to the same port
     ports[0].description() = "Second commit";
-    session.setCommandLine(
-        "config interface eth1/1/1 description Second commit");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
     // Commit the second change
     auto result = session.commit(localhost());
 
-    // Verify new revision was created
-    EXPECT_EQ(result.revision, 3);
-    fs::path targetConfig = cliConfigDir / "agent-r3.conf";
-    EXPECT_TRUE(fs::exists(targetConfig));
-    EXPECT_THAT(readFile(targetConfig), ::testing::HasSubstr("Second commit"));
+    // Verify new commit SHA was returned
+    EXPECT_FALSE(result.commitSha.empty());
+    EXPECT_NE(result.commitSha, firstCommitSha);
+    secondCommitSha = result.commitSha;
 
     // Verify metadata file was created alongside the config revision
-    fs::path targetMetadata = cliConfigDir / "agent-r3.metadata.json";
+    fs::path targetMetadata = systemConfigDir_ / "cli" / "cli_metadata.json";
     EXPECT_TRUE(fs::exists(targetMetadata));
 
-    // Verify symlink was updated to point to r3
-    EXPECT_TRUE(fs::is_symlink(getSystemConfigPath()));
-    EXPECT_EQ(fs::read_symlink(getSystemConfigPath()), targetConfig);
+    // Verify system config was updated
+    EXPECT_THAT(readFile(cliConfigPath), ::testing::HasSubstr("Second commit"));
 
-    // Verify all revisions and their metadata files exist
-    EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r1.conf"));
-    EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.conf"));
-    EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r3.conf"));
-    EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.metadata.json"));
-    EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r3.metadata.json"));
+    // Verify Git history has all commits
+    auto& git = session.getGit();
+    auto commits = git.log(cliConfigPath.string());
+    EXPECT_EQ(commits.size(), 3); // Initial + 2 commits
+
+    // Verify metadata file was also committed to git
+    auto metadataCommits = git.log(targetMetadata.string());
+    EXPECT_EQ(metadataCommits.size(), 2); // 2 commits
   }
 }
 
 // Ensure commit() works on a newly initialized session
 // This verifies that initializeSession() creates the metadata file
 TEST_F(ConfigSessionTestFixture, commitOnNewlyInitializedSession) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
-  fs::path sessionConfig = sessionDir / "agent.conf";
-  fs::path cliConfigDir = getTestEtcDir() / "coop" / "cli";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path cliConfigDir = systemConfigDir_ / "cli";
 
   // Setup mock agent server
   setupMockedAgentServer();
-  // No config changes were made, so reloadConfig() should not be called
-  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(0);
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(1);
 
-  // Create a new session and immediately commit it
+  // Create a new session
   // This tests that metadata file is created during session initialization
-  TestableConfigSession session(
-      sessionConfig.string(),
-      getSystemConfigPath().string(),
-      cliConfigDir.string());
+  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
 
   // Verify metadata file was created during session initialization
-  fs::path metadataPath = sessionDir / "conf_metadata.json";
+  fs::path metadataPath = sessionDir / "cli_metadata.json";
   EXPECT_TRUE(fs::exists(metadataPath));
 
-  // Make no changes to the session. It's initialized but that's it.
+  // Make a change so commit has something to commit
+  auto& config = session.getAgentConfig();
+  auto& ports = *config.sw()->ports();
+  ASSERT_FALSE(ports.empty());
+  ports[0].description() = "Test change for commit";
+  session.setCommandLine(
+      "config interface eth1/1/1 description Test change for commit");
+  session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
-  // Commit should succeed, right now empty sessions still commmit a new
-  // revision (TODO: fix this so we don't create empty commits).
+  // Commit should succeed
   auto result = session.commit(localhost());
-  EXPECT_EQ(result.revision, 2);
+  EXPECT_FALSE(result.commitSha.empty());
 
-  // Verify metadata file was copied to revision directory
-  fs::path targetMetadata = cliConfigDir / "agent-r2.metadata.json";
+  // Verify metadata file was copied to CLI config directory
+  fs::path targetMetadata = cliConfigDir / "cli_metadata.json";
   EXPECT_TRUE(fs::exists(targetMetadata));
 }
 
 TEST_F(ConfigSessionTestFixture, multipleChangesInOneSession) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
 
   // Create a ConfigSession
-  // getSystemConfigPath() is already a symlink created in SetUp()
-  TestableConfigSession session(
-      sessionConfig.string(),
-      getSystemConfigPath().string(),
-      (getTestEtcDir() / "coop" / "cli").string());
+  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
 
   // Make first change
   auto& config = session.getAgentConfig();
@@ -261,16 +334,13 @@ TEST_F(ConfigSessionTestFixture, multipleChangesInOneSession) {
 }
 
 TEST_F(ConfigSessionTestFixture, sessionPersistsAcrossCommands) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
 
   // Create first ConfigSession and modify config
-  // getSystemConfigPath() is already a symlink created in SetUp()
   {
     TestableConfigSession session1(
-        sessionConfig.string(),
-        getSystemConfigPath().string(),
-        (getTestEtcDir() / "coop" / "cli").string());
+        sessionDir.string(), systemConfigDir_.string());
 
     auto& config = session1.getAgentConfig();
     auto& ports = *config.sw()->ports();
@@ -291,9 +361,7 @@ TEST_F(ConfigSessionTestFixture, sessionPersistsAcrossCommands) {
   // session
   {
     TestableConfigSession session2(
-        sessionConfig.string(),
-        getSystemConfigPath().string(),
-        (getTestEtcDir() / "coop" / "cli").string());
+        sessionDir.string(), systemConfigDir_.string());
 
     auto& config = session2.getAgentConfig();
     auto& ports = *config.sw()->ports();
@@ -303,30 +371,22 @@ TEST_F(ConfigSessionTestFixture, sessionPersistsAcrossCommands) {
   }
 }
 
-TEST_F(ConfigSessionTestFixture, symlinkRollbackOnFailure) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+TEST_F(ConfigSessionTestFixture, configRollbackOnFailure) {
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
-  fs::path cliConfigDir = getTestEtcDir() / "coop" / "cli";
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
 
-  // Verify old symlink exists (created in SetUp)
-  EXPECT_TRUE(fs::is_symlink(getSystemConfigPath()));
-  EXPECT_EQ(
-      fs::read_symlink(getSystemConfigPath()), cliConfigDir / "agent-r1.conf");
+  // Save the original config content
+  std::string originalContent = readFile(cliConfigPath);
 
-  // Setup mock agent server to fail reloadConfig on first call (the commit),
-  // but succeed on second call (the rollback reload)
+  // Setup mock agent server to fail reloadConfig
   setupMockedAgentServer();
   EXPECT_CALL(getMockAgent(), reloadConfig())
       .WillOnce(::testing::Throw(std::runtime_error("Reload failed")))
       .WillOnce(::testing::Return());
 
   // Create a ConfigSession and try to commit
-  // getSystemConfigPath() is already a symlink to agent-r1.conf created in
-  // SetUp()
-  TestableConfigSession session(
-      sessionConfig.string(),
-      getSystemConfigPath().string(),
-      cliConfigDir.string());
+  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
 
   auto& config = session.getAgentConfig();
   auto& ports = *config.sw()->ports();
@@ -335,335 +395,228 @@ TEST_F(ConfigSessionTestFixture, symlinkRollbackOnFailure) {
   session.setCommandLine("config interface eth1/1/1 description Failed change");
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
-  // Commit should fail and rollback the symlink
+  // Commit should fail and rollback the config
   EXPECT_THROW(session.commit(localhost()), std::runtime_error);
 
-  // Verify symlink was rolled back to old target
-  EXPECT_TRUE(fs::is_symlink(getSystemConfigPath()));
-  EXPECT_EQ(
-      fs::read_symlink(getSystemConfigPath()), cliConfigDir / "agent-r1.conf");
+  // Verify config was rolled back to original content
+  std::string currentContent = readFile(cliConfigPath);
+  EXPECT_EQ(currentContent, originalContent);
 
   // Verify session config still exists (not removed on failed commit)
   EXPECT_TRUE(fs::exists(sessionConfig));
 }
 
-TEST_F(ConfigSessionTestFixture, atomicRevisionCreation) {
-  fs::path cliConfigDir = getTestEtcDir() / "coop" / "cli";
+TEST_F(ConfigSessionTestFixture, concurrentCommits) {
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
 
   // Setup mock agent server
   setupMockedAgentServer();
   EXPECT_CALL(getMockAgent(), reloadConfig()).Times(2);
 
-  // Run two concurrent commits to test atomic revision creation
-  // Each thread uses a separate session config path (simulating different
-  // users) Both threads will try to commit at the same time, and the atomic
-  // file creation (O_CREAT | O_EXCL) should ensure they get different revision
-  // numbers without conflicts
-  std::atomic<int> revision1{0};
-  std::atomic<int> revision2{0};
+  // Run two sequential commits to test Git commit functionality
+  // Note: Git doesn't handle truly concurrent commits well due to index.lock,
+  // so we run them sequentially to avoid race conditions.
+  std::string commitSha1;
+  std::string commitSha2;
 
-  auto commitTask = [&](const std::string& sessionName,
-                        const std::string& description,
-                        std::atomic<int>& rev) {
-    fs::path sessionDir = getTestHomeDir() / sessionName;
-    fs::path sessionConfig = sessionDir / "agent.conf";
+  // First commit
+  {
+    fs::path sessionDir = testHomeDir_ / ".fboss2_user1";
 
     TestableConfigSession session(
-        sessionConfig.string(),
-        getSystemConfigPath().string(),
-        cliConfigDir.string());
+        sessionDir.string(), systemConfigDir_.string());
 
     auto& config = session.getAgentConfig();
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
-    ports[0].description() = description;
+    ports[0].description() = "First commit";
     session.setCommandLine(
-        "config interface eth1/1/1 description " + description);
+        "config interface eth1/1/1 description First commit");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
-    rev = session.commit(localhost()).revision;
-  };
+    auto result = session.commit(localhost());
+    commitSha1 = result.commitSha;
+  }
 
-  std::thread thread1(
-      commitTask, ".fboss2_user1", "First commit", std::ref(revision1));
-  std::thread thread2(
-      commitTask, ".fboss2_user2", "Second commit", std::ref(revision2));
-
-  thread1.join();
-  thread2.join();
-
-  // Both commits should succeed with different revision numbers
-  EXPECT_NE(revision1.load(), 0);
-  EXPECT_NE(revision2.load(), 0);
-  EXPECT_NE(revision1.load(), revision2.load());
-
-  // Both should be either r2 or r3 (one gets r2, the other gets r3)
-  EXPECT_TRUE(
-      (revision1.load() == 2 && revision2.load() == 3) ||
-      (revision1.load() == 3 && revision2.load() == 2));
-
-  // Both revision files should exist
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.conf"));
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r3.conf"));
-
-  // Verify the content of each revision matches what was committed
-  std::string r2Content = readFile(cliConfigDir / "agent-r2.conf");
-  std::string r3Content = readFile(cliConfigDir / "agent-r3.conf");
-  EXPECT_TRUE(
-      (r2Content.find("First commit") != std::string::npos &&
-       r3Content.find("Second commit") != std::string::npos) ||
-      (r2Content.find("Second commit") != std::string::npos &&
-       r3Content.find("First commit") != std::string::npos));
-}
-
-TEST_F(ConfigSessionTestFixture, concurrentSessionCreationSameUser) {
-  fs::path cliConfigDir = getTestEtcDir() / "coop" / "cli";
-
-  // Setup mock agent server
-  // Either 1 or 2 commits might succeed depending on the race
-  setupMockedAgentServer();
-  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(testing::Between(1, 2));
-
-  // Test concurrent session creation and commits for the SAME user
-  // This tests the race conditions in:
-  // 1. ensureDirectoryExists() - concurrent directory creation
-  // 2. copySystemConfigToSession() - concurrent session file creation
-  // 3. saveConfig() - concurrent writes to the same session file
-  // 4. atomicSymlinkUpdate() - concurrent symlink updates
-  //
-  // Note: When two threads share the same session file, they race to modify it.
-  // The atomic operations ensure no crashes or corruption. However, if one
-  // thread commits and deletes the session files before the other thread
-  // calls commit(), the second thread will get "No config session exists".
-  // This is a valid race outcome - the important thing is no crashes.
-  std::atomic<int> revision1{0};
-  std::atomic<int> revision2{0};
-  std::atomic<bool> thread1NoSession{false};
-  std::atomic<bool> thread2NoSession{false};
-
-  auto commitTask = [&](const std::string& description,
-                        std::atomic<int>& rev,
-                        std::atomic<bool>& noSession) {
-    // Both threads use the SAME session path
-    fs::path sessionDir = getTestHomeDir() / ".fboss2_shared";
-    fs::path sessionConfig = sessionDir / "agent.conf";
+  // Second commit
+  {
+    fs::path sessionDir = testHomeDir_ / ".fboss2_user2";
 
     TestableConfigSession session(
-        sessionConfig.string(),
-        getSystemConfigPath().string(),
-        cliConfigDir.string());
+        sessionDir.string(), systemConfigDir_.string());
 
     auto& config = session.getAgentConfig();
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
-    ports[0].description() = description;
+    ports[0].description() = "Second commit";
     session.setCommandLine(
-        "config interface eth1/1/1 description " + description);
+        "config interface eth1/1/1 description Second commit");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
-    try {
-      rev = session.commit(localhost()).revision;
-    } catch (const std::runtime_error& e) {
-      // If the other thread already committed and deleted the session files,
-      // we'll get "No config session exists" - this is a valid race outcome
-      if (folly::StringPiece(e.what()).contains("No config session exists")) {
-        noSession = true;
-      } else {
-        throw; // Re-throw unexpected errors
-      }
-    }
-  };
-
-  std::thread thread1(
-      commitTask,
-      "First commit",
-      std::ref(revision1),
-      std::ref(thread1NoSession));
-  std::thread thread2(
-      commitTask,
-      "Second commit",
-      std::ref(revision2),
-      std::ref(thread2NoSession));
-
-  thread1.join();
-  thread2.join();
-
-  // At least one commit should succeed
-  bool commit1Succeeded = revision1.load() != 0;
-  bool commit2Succeeded = revision2.load() != 0;
-  EXPECT_TRUE(commit1Succeeded || commit2Succeeded);
-
-  // If both succeeded, they should have different revision numbers
-  if (commit1Succeeded && commit2Succeeded) {
-    EXPECT_NE(revision1.load(), revision2.load());
-    // Both should be either r2 or r3 (one gets r2, the other gets r3)
-    EXPECT_TRUE(
-        (revision1.load() == 2 && revision2.load() == 3) ||
-        (revision1.load() == 3 && revision2.load() == 2));
-    // Both revision files should exist
-    EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.conf"));
-    EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r3.conf"));
-  } else {
-    // One thread got "No config session exists" because the other committed
-    // first
-    EXPECT_TRUE(thread1NoSession.load() || thread2NoSession.load());
-    // The successful commit should be r2
-    int successfulRevision =
-        commit1Succeeded ? revision1.load() : revision2.load();
-    EXPECT_EQ(successfulRevision, 2);
-    EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.conf"));
+    auto result = session.commit(localhost());
+    commitSha2 = result.commitSha;
   }
 
-  // The history command would list all three revisions with their metadata
+  // Both commits should succeed with different commit SHAs
+  EXPECT_FALSE(commitSha1.empty());
+  EXPECT_FALSE(commitSha2.empty());
+  EXPECT_NE(commitSha1, commitSha2);
+
+  // Verify Git history contains both commits
+  Git git(systemConfigDir_.string());
+  auto commits = git.log(cliConfigPath.string());
+  EXPECT_GE(commits.size(), 3); // Initial + 2 commits
 }
 
-TEST_F(ConfigSessionTestFixture, revisionNumberExtraction) {
-  // Test the revision number extraction logic
-  fs::path cliConfigDir = getTestEtcDir() / "coop" / "cli";
-
-  // Create files with various revision numbers
-  createTestConfig(cliConfigDir / "agent-r1.conf", R"({})");
-  createTestConfig(cliConfigDir / "agent-r42.conf", R"({})");
-  createTestConfig(cliConfigDir / "agent-r999.conf", R"({})");
-
-  // Verify files exist
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r1.conf"));
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r42.conf"));
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r999.conf"));
-
-  // Test extractRevisionNumber() method
-  EXPECT_EQ(
-      ConfigSession::extractRevisionNumber(
-          (cliConfigDir / "agent-r1.conf").string()),
-      1);
-  EXPECT_EQ(
-      ConfigSession::extractRevisionNumber(
-          (cliConfigDir / "agent-r42.conf").string()),
-      42);
-  EXPECT_EQ(
-      ConfigSession::extractRevisionNumber(
-          (cliConfigDir / "agent-r999.conf").string()),
-      999);
-}
-
-TEST_F(ConfigSessionTestFixture, rollbackCreatesNewRevision) {
-  // This test actually calls the rollback() method with a specific revision
-  fs::path cliConfigDir = getTestEtcDir() / "coop" / "cli";
-  fs::path symlinkPath = getTestEtcDir() / "coop" / "agent.conf";
-  fs::path sessionConfigPath = getTestHomeDir() / ".fboss2" / "agent.conf";
-
-  // Remove the regular file created by SetUp
-  if (fs::exists(symlinkPath)) {
-    fs::remove(symlinkPath);
-  }
-
-  // Create revision files (simulating previous commits)
-  createTestConfig(cliConfigDir / "agent-r1.conf", R"({"revision": 1})");
-  createTestConfig(cliConfigDir / "agent-r2.conf", R"({"revision": 2})");
-  createTestConfig(cliConfigDir / "agent-r3.conf", R"({"revision": 3})");
-
-  // Create symlink pointing to r3 (current revision)
-  fs::create_symlink(cliConfigDir / "agent-r3.conf", symlinkPath);
-
-  // Verify initial state
-  EXPECT_TRUE(fs::is_symlink(symlinkPath));
-  EXPECT_EQ(fs::read_symlink(symlinkPath), cliConfigDir / "agent-r3.conf");
+TEST_F(ConfigSessionTestFixture, rollbackToSpecificCommit) {
+  // This test calls the rollback() method with a specific commit SHA
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  fs::path metadataPath = systemConfigDir_ / "cli" / "cli_metadata.json";
 
   // Setup mock agent server
   setupMockedAgentServer();
+  // 2 commits + 1 rollback = 3 reloadConfig calls
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(3);
 
-  // Expect reloadConfig to be called once
-  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(1);
+  // Create a session and make several commits to build history
+  std::string firstCommitSha;
+  std::string secondCommitSha;
+  {
+    TestableConfigSession session(
+        sessionDir.string(), systemConfigDir_.string());
 
-  // Create a testable ConfigSession with test paths
-  TestableConfigSession session(
-      sessionConfigPath.string(), symlinkPath.string(), cliConfigDir.string());
+    // Simulate CLI command for first commit
+    session.setCommandLine(
+        "config interface eth1/1/1 description First version");
 
-  // Call the actual rollback method to rollback to r1
-  int newRevision = session.rollback(localhost(), "r1");
+    // First commit
+    auto& config1 = session.getAgentConfig();
+    (*config1.sw()->ports())[0].description() = "First version";
+    session.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+    auto result1 = session.commit(localhost());
+    firstCommitSha = result1.commitSha;
 
-  // Verify rollback created a new revision (r4)
-  EXPECT_EQ(newRevision, 4);
-  EXPECT_TRUE(fs::is_symlink(symlinkPath));
-  EXPECT_EQ(fs::read_symlink(symlinkPath), cliConfigDir / "agent-r4.conf");
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r4.conf"));
+    // Second commit (need new session after commit)
+  }
+  {
+    TestableConfigSession session(
+        sessionDir.string(), systemConfigDir_.string());
 
-  // Verify r4 has same content as r1 (the target revision)
-  EXPECT_EQ(
-      readFile(cliConfigDir / "agent-r1.conf"),
-      readFile(cliConfigDir / "agent-r4.conf"));
+    // Simulate CLI command for second commit
+    session.setCommandLine(
+        "config interface eth1/1/1 description Second version");
 
-  // Verify old revisions still exist (rollback doesn't delete history)
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r1.conf"));
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.conf"));
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r3.conf"));
-}
-
-TEST_F(ConfigSessionTestFixture, rollbackToPreviousRevision) {
-  // This test actually calls the rollback() method without a revision argument
-  // to rollback to the previous revision
-  fs::path cliConfigDir = getTestEtcDir() / "coop" / "cli";
-  fs::path symlinkPath = getTestEtcDir() / "coop" / "agent.conf";
-  fs::path sessionConfigPath = getTestHomeDir() / ".fboss2" / "agent.conf";
-
-  // Remove the regular file created by SetUp
-  if (fs::exists(symlinkPath)) {
-    fs::remove(symlinkPath);
+    auto& config2 = session.getAgentConfig();
+    (*config2.sw()->ports())[0].description() = "Second version";
+    session.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+    auto result2 = session.commit(localhost());
+    secondCommitSha = result2.commitSha;
   }
 
-  // Create revision files (simulating previous commits)
-  createTestConfig(cliConfigDir / "agent-r1.conf", R"({"revision": 1})");
-  createTestConfig(cliConfigDir / "agent-r2.conf", R"({"revision": 2})");
-  createTestConfig(cliConfigDir / "agent-r3.conf", R"({"revision": 3})");
+  // Verify current content is "Second version"
+  EXPECT_THAT(readFile(cliConfigPath), ::testing::HasSubstr("Second version"));
+  // Verify current metadata contains second command
+  EXPECT_THAT(
+      readFile(metadataPath), ::testing::HasSubstr("description Second"));
 
-  // Create symlink pointing to r3 (current revision)
-  fs::create_symlink(cliConfigDir / "agent-r3.conf", symlinkPath);
+  // Now rollback to first commit
+  {
+    TestableConfigSession session(
+        sessionDir.string(), systemConfigDir_.string());
 
-  // Verify initial state
-  EXPECT_TRUE(fs::is_symlink(symlinkPath));
-  EXPECT_EQ(fs::read_symlink(symlinkPath), cliConfigDir / "agent-r3.conf");
+    std::string rollbackSha = session.rollback(localhost(), firstCommitSha);
+
+    // Verify rollback created a new commit
+    EXPECT_FALSE(rollbackSha.empty());
+    EXPECT_NE(rollbackSha, firstCommitSha);
+    EXPECT_NE(rollbackSha, secondCommitSha);
+
+    // Verify config content is now "First version"
+    EXPECT_THAT(readFile(cliConfigPath), ::testing::HasSubstr("First version"));
+
+    // Verify metadata was also rolled back to first version
+    std::string metadataContent = readFile(metadataPath);
+    EXPECT_THAT(metadataContent, ::testing::HasSubstr("description First"));
+    EXPECT_THAT(
+        metadataContent,
+        ::testing::Not(::testing::HasSubstr("description Second")));
+
+    // Verify Git history has the rollback commit
+    auto& git = session.getGit();
+    auto commits = git.log(cliConfigPath.string());
+    EXPECT_EQ(commits.size(), 4); // Initial + 2 commits + rollback
+
+    // Verify metadata file history
+    auto metadataCommits = git.log(metadataPath.string());
+    EXPECT_EQ(metadataCommits.size(), 3); // 2 commits + rollback
+  }
+}
+
+TEST_F(ConfigSessionTestFixture, rollbackToPreviousCommit) {
+  // This test calls the rollback() method without a commit SHA argument
+  // to rollback to the previous commit
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
 
   // Setup mock agent server
   setupMockedAgentServer();
+  // 2 commits + 1 rollback = 3 reloadConfig calls
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(3);
 
-  // Expect reloadConfig to be called once
-  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(1);
+  // Create commits to build history
+  {
+    TestableConfigSession session(
+        sessionDir.string(), systemConfigDir_.string());
 
-  // Create a testable ConfigSession with test paths
-  TestableConfigSession session(
-      sessionConfigPath.string(), symlinkPath.string(), cliConfigDir.string());
+    auto& config1 = session.getAgentConfig();
+    (*config1.sw()->ports())[0].description() = "First version";
+    session.setCommandLine(
+        "config interface eth1/1/1 description First version");
+    session.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+    session.commit(localhost());
+  }
+  {
+    TestableConfigSession session(
+        sessionDir.string(), systemConfigDir_.string());
 
-  // Call the actual rollback method without a revision (should go to previous)
-  int newRevision = session.rollback(localhost());
+    auto& config2 = session.getAgentConfig();
+    (*config2.sw()->ports())[0].description() = "Second version";
+    session.setCommandLine(
+        "config interface eth1/1/1 description Second version");
+    session.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+    session.commit(localhost());
+  }
 
-  // Verify rollback to previous revision created r4 with content from r2
-  EXPECT_EQ(newRevision, 4);
-  EXPECT_TRUE(fs::is_symlink(symlinkPath));
-  EXPECT_EQ(fs::read_symlink(symlinkPath), cliConfigDir / "agent-r4.conf");
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r4.conf"));
+  // Verify current content is "Second version"
+  EXPECT_THAT(readFile(cliConfigPath), ::testing::HasSubstr("Second version"));
 
-  // Verify r4 has same content as r2 (the previous revision)
-  EXPECT_EQ(
-      readFile(cliConfigDir / "agent-r2.conf"),
-      readFile(cliConfigDir / "agent-r4.conf"));
+  // Rollback to previous commit (no argument)
+  {
+    TestableConfigSession session(
+        sessionDir.string(), systemConfigDir_.string());
 
-  // Verify old revisions still exist (rollback doesn't delete history)
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r1.conf"));
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.conf"));
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r3.conf"));
+    std::string rollbackSha = session.rollback(localhost());
+
+    // Verify rollback succeeded
+    EXPECT_FALSE(rollbackSha.empty());
+
+    // Verify content is now "First version" (from previous commit)
+    EXPECT_THAT(readFile(cliConfigPath), ::testing::HasSubstr("First version"));
+  }
 }
 
 TEST_F(ConfigSessionTestFixture, actionLevelDefaultIsHitless) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
-  fs::path sessionConfig = sessionDir / "agent.conf";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
 
   // Create a ConfigSession
-  TestableConfigSession session(
-      sessionConfig.string(),
-      getSystemConfigPath().string(),
-      (getTestEtcDir() / "coop" / "cli").string());
+  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
 
   // Default action level should be HITLESS
   EXPECT_EQ(
@@ -672,16 +625,12 @@ TEST_F(ConfigSessionTestFixture, actionLevelDefaultIsHitless) {
 }
 
 TEST_F(ConfigSessionTestFixture, actionLevelUpdateAndGet) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
-  fs::path sessionConfig = sessionDir / "agent.conf";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
 
   // Create a ConfigSession
-  TestableConfigSession session(
-      sessionConfig.string(),
-      getSystemConfigPath().string(),
-      (getTestEtcDir() / "coop" / "cli").string());
+  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
 
-  // Update to AGENT_WARMBOOT
+  // Update to AGENT_RESTART
   session.updateRequiredAction(
       cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
 
@@ -692,16 +641,12 @@ TEST_F(ConfigSessionTestFixture, actionLevelUpdateAndGet) {
 }
 
 TEST_F(ConfigSessionTestFixture, actionLevelHigherTakesPrecedence) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
-  fs::path sessionConfig = sessionDir / "agent.conf";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
 
   // Create a ConfigSession
-  TestableConfigSession session(
-      sessionConfig.string(),
-      getSystemConfigPath().string(),
-      (getTestEtcDir() / "coop" / "cli").string());
+  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
 
-  // Update to AGENT_WARMBOOT first
+  // Update to AGENT_RESTART first
   session.updateRequiredAction(
       cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
 
@@ -709,23 +654,19 @@ TEST_F(ConfigSessionTestFixture, actionLevelHigherTakesPrecedence) {
   session.updateRequiredAction(
       cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
-  // Verify action level remains at AGENT_WARMBOOT
+  // Verify action level remains at AGENT_RESTART
   EXPECT_EQ(
       session.getRequiredAction(cli::ServiceType::AGENT),
       cli::ConfigActionLevel::AGENT_WARMBOOT);
 }
 
 TEST_F(ConfigSessionTestFixture, actionLevelReset) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
-  fs::path sessionConfig = sessionDir / "agent.conf";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
 
   // Create a ConfigSession
-  TestableConfigSession session(
-      sessionConfig.string(),
-      getSystemConfigPath().string(),
-      (getTestEtcDir() / "coop" / "cli").string());
+  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
 
-  // Set to AGENT_WARMBOOT
+  // Set to AGENT_RESTART
   session.updateRequiredAction(
       cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
 
@@ -739,16 +680,13 @@ TEST_F(ConfigSessionTestFixture, actionLevelReset) {
 }
 
 TEST_F(ConfigSessionTestFixture, actionLevelPersistsToMetadataFile) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
-  fs::path sessionConfig = sessionDir / "agent.conf";
-  fs::path metadataFile = sessionDir / "conf_metadata.json";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path metadataFile = sessionDir / "cli_metadata.json";
 
   // Create a ConfigSession and set action level via saveConfig
   {
     TestableConfigSession session(
-        sessionConfig.string(),
-        getSystemConfigPath().string(),
-        (getTestEtcDir() / "coop" / "cli").string());
+        sessionDir.string(), systemConfigDir_.string());
 
     // Load the config (required before saveConfig)
     session.getAgentConfig();
@@ -771,9 +709,10 @@ TEST_F(ConfigSessionTestFixture, actionLevelPersistsToMetadataFile) {
 }
 
 TEST_F(ConfigSessionTestFixture, actionLevelLoadsFromMetadataFile) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
-  fs::path metadataFile = sessionDir / "conf_metadata.json";
+  fs::path metadataFile = sessionDir / "cli_metadata.json";
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
 
   // Create session directory and metadata file manually
   fs::create_directories(sessionDir);
@@ -784,13 +723,10 @@ TEST_F(ConfigSessionTestFixture, actionLevelLoadsFromMetadataFile) {
 
   // Also create the session config file (otherwise session will overwrite from
   // system)
-  fs::copy_file(getSystemConfigPath(), sessionConfig);
+  fs::copy_file(cliConfigPath, sessionConfig);
 
   // Create a ConfigSession - should load action level from metadata file
-  TestableConfigSession session(
-      sessionConfig.string(),
-      getSystemConfigPath().string(),
-      (getTestEtcDir() / "coop" / "cli").string());
+  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
 
   // Verify action level was loaded
   EXPECT_EQ(
@@ -799,15 +735,12 @@ TEST_F(ConfigSessionTestFixture, actionLevelLoadsFromMetadataFile) {
 }
 
 TEST_F(ConfigSessionTestFixture, actionLevelPersistsAcrossSessions) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
-  fs::path sessionConfig = sessionDir / "agent.conf";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
 
   // First session: set action level via saveConfig
   {
     TestableConfigSession session1(
-        sessionConfig.string(),
-        getSystemConfigPath().string(),
-        (getTestEtcDir() / "coop" / "cli").string());
+        sessionDir.string(), systemConfigDir_.string());
 
     // Load the config (required before saveConfig)
     session1.getAgentConfig();
@@ -819,9 +752,7 @@ TEST_F(ConfigSessionTestFixture, actionLevelPersistsAcrossSessions) {
   // Second session: verify action level was persisted
   {
     TestableConfigSession session2(
-        sessionConfig.string(),
-        getSystemConfigPath().string(),
-        (getTestEtcDir() / "coop" / "cli").string());
+        sessionDir.string(), systemConfigDir_.string());
 
     EXPECT_EQ(
         session2.getRequiredAction(cli::ServiceType::AGENT),
@@ -830,16 +761,13 @@ TEST_F(ConfigSessionTestFixture, actionLevelPersistsAcrossSessions) {
 }
 
 TEST_F(ConfigSessionTestFixture, commandTrackingBasic) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
-  fs::path sessionConfig = sessionDir / "agent.conf";
-  fs::path metadataFile = sessionDir / "conf_metadata.json";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path metadataFile = sessionDir / "cli_metadata.json";
 
   // Create a ConfigSession, execute command, and verify persistence
   {
     TestableConfigSession session(
-        sessionConfig.string(),
-        getSystemConfigPath().string(),
-        (getTestEtcDir() / "coop" / "cli").string());
+        sessionDir.string(), systemConfigDir_.string());
 
     // Initially, no commands should be recorded
     EXPECT_TRUE(session.getCommands().empty());
@@ -876,14 +804,10 @@ TEST_F(ConfigSessionTestFixture, commandTrackingBasic) {
 }
 
 TEST_F(ConfigSessionTestFixture, commandTrackingMultipleCommands) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
-  fs::path sessionConfig = sessionDir / "agent.conf";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
 
   // Create a ConfigSession
-  TestableConfigSession session(
-      sessionConfig.string(),
-      getSystemConfigPath().string(),
-      (getTestEtcDir() / "coop" / "cli").string());
+  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
 
   // Execute multiple commands
   auto& config = session.getAgentConfig();
@@ -911,15 +835,12 @@ TEST_F(ConfigSessionTestFixture, commandTrackingMultipleCommands) {
 }
 
 TEST_F(ConfigSessionTestFixture, commandTrackingPersistsAcrossSessions) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
-  fs::path sessionConfig = sessionDir / "agent.conf";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
 
   // First session: execute some commands
   {
     TestableConfigSession session1(
-        sessionConfig.string(),
-        getSystemConfigPath().string(),
-        (getTestEtcDir() / "coop" / "cli").string());
+        sessionDir.string(), systemConfigDir_.string());
 
     auto& config = session1.getAgentConfig();
     auto& ports = *config.sw()->ports();
@@ -939,9 +860,7 @@ TEST_F(ConfigSessionTestFixture, commandTrackingPersistsAcrossSessions) {
   // Second session: verify commands were persisted
   {
     TestableConfigSession session2(
-        sessionConfig.string(),
-        getSystemConfigPath().string(),
-        (getTestEtcDir() / "coop" / "cli").string());
+        sessionDir.string(), systemConfigDir_.string());
 
     EXPECT_EQ(2, session2.getCommands().size());
     EXPECT_EQ("config interface eth1/1/1 mtu 9000", session2.getCommands()[0]);
@@ -952,14 +871,10 @@ TEST_F(ConfigSessionTestFixture, commandTrackingPersistsAcrossSessions) {
 }
 
 TEST_F(ConfigSessionTestFixture, commandTrackingClearedOnReset) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
-  fs::path sessionConfig = sessionDir / "agent.conf";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
 
   // Create a ConfigSession and add some commands
-  TestableConfigSession session(
-      sessionConfig.string(),
-      getSystemConfigPath().string(),
-      (getTestEtcDir() / "coop" / "cli").string());
+  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
 
   auto& config = session.getAgentConfig();
   auto& ports = *config.sw()->ports();
@@ -979,9 +894,10 @@ TEST_F(ConfigSessionTestFixture, commandTrackingClearedOnReset) {
 }
 
 TEST_F(ConfigSessionTestFixture, commandTrackingLoadsFromMetadataFile) {
-  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
-  fs::path metadataFile = sessionDir / "conf_metadata.json";
+  fs::path metadataFile = sessionDir / "cli_metadata.json";
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
 
   // Create session directory and metadata file manually
   fs::create_directories(sessionDir);
@@ -993,13 +909,10 @@ TEST_F(ConfigSessionTestFixture, commandTrackingLoadsFromMetadataFile) {
   metaFile.close();
 
   // Also create the session config file
-  fs::copy_file(getSystemConfigPath(), sessionConfig);
+  fs::copy_file(cliConfigPath, sessionConfig);
 
   // Create a ConfigSession - should load commands from metadata file
-  TestableConfigSession session(
-      sessionConfig.string(),
-      getSystemConfigPath().string(),
-      (getTestEtcDir() / "coop" / "cli").string());
+  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
 
   // Verify commands were loaded
   EXPECT_EQ(3, session.getCommands().size());

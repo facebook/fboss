@@ -97,9 +97,10 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffDifferentConfigs) {
 TEST_F(CmdConfigSessionDiffTestFixture, diffSessionVsRevision) {
   setupTestableConfigSession();
 
-  // Create a revision file
+  std::filesystem::path cliConfigPath = getCliConfigDir() / "agent.conf";
+  // Create a commit with state: 1
   createTestConfig(
-      getCliConfigDir() / "agent-r1.conf",
+      cliConfigPath,
       R"({
   "sw": {
     "ports": [
@@ -111,6 +112,8 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffSessionVsRevision) {
     ]
   }
 })");
+
+  std::string commitSha = git().commit({cliConfigPath.string()}, "State 1");
 
   // Create session with different content
   std::filesystem::create_directories(getSessionConfigPath().parent_path());
@@ -129,11 +132,12 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffSessionVsRevision) {
 })");
 
   auto cmd = CmdConfigSessionDiff();
-  utils::RevisionList revisions(std::vector<std::string>{"r1"});
+  utils::RevisionList revisions(std::vector<std::string>{commitSha});
 
   auto result = cmd.queryClient(localhost(), revisions);
 
-  // Should show a diff between r1 and session (state changed from 1 to 2)
+  // Should show a diff between the commit and session (state changed from 1 to
+  // 2)
   EXPECT_NE(result.find("-        \"state\": 1"), std::string::npos);
   EXPECT_NE(result.find("+        \"state\": 2"), std::string::npos);
 }
@@ -141,9 +145,10 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffSessionVsRevision) {
 TEST_F(CmdConfigSessionDiffTestFixture, diffTwoRevisions) {
   setupTestableConfigSession();
 
-  // Create two different revision files
+  std::filesystem::path cliConfigPath = getCliConfigDir() / "agent.conf";
+  // Create first commit with state: 2
   createTestConfig(
-      getCliConfigDir() / "agent-r1.conf",
+      cliConfigPath,
       R"({
   "sw": {
     "ports": [
@@ -155,9 +160,11 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffTwoRevisions) {
     ]
   }
 })");
+  std::string commit1 = git().commit({cliConfigPath.string()}, "Commit 1");
 
+  // Create second commit with description added
   createTestConfig(
-      getCliConfigDir() / "agent-r2.conf",
+      cliConfigPath,
       R"({
   "sw": {
     "ports": [
@@ -170,9 +177,12 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffTwoRevisions) {
     ]
   }
 })");
+  std::string commit2 = git().commit({cliConfigPath.string()}, "Commit 2");
+
+  setupTestableConfigSession();
 
   auto cmd = CmdConfigSessionDiff();
-  utils::RevisionList revisions(std::vector<std::string>{"r1", "r2"});
+  utils::RevisionList revisions(std::vector<std::string>{commit1, commit2});
 
   auto result = cmd.queryClient(localhost(), revisions);
 
@@ -186,9 +196,10 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffWithCurrentKeyword) {
   removeInitialRevisionFile();
   setupTestableConfigSession();
 
-  // Create a revision file
+  std::filesystem::path cliConfigPath = getCliConfigDir() / "agent.conf";
+  // Create a commit with state: 1
   createTestConfig(
-      getCliConfigDir() / "agent-r1.conf",
+      cliConfigPath,
       R"({
   "sw": {
     "ports": [
@@ -200,14 +211,34 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffWithCurrentKeyword) {
     ]
   }
 })");
+  std::string commit1 = git().commit({cliConfigPath.string()}, "State 1");
+
+  // Update system config to state: 2 with speed (this is "current")
+  createTestConfig(
+      cliConfigPath,
+      R"({
+  "sw": {
+    "ports": [
+      {
+        "logicalID": 1,
+        "name": "eth1/1/1",
+        "state": 2,
+        "speed": 100000
+      }
+    ]
+  }
+})");
+  git().commit({cliConfigPath.string()}, "Current state");
+
+  setupTestableConfigSession();
 
   auto cmd = CmdConfigSessionDiff();
-  utils::RevisionList revisions(std::vector<std::string>{"r1", "current"});
+  utils::RevisionList revisions(std::vector<std::string>{commit1, "current"});
 
   auto result = cmd.queryClient(localhost(), revisions);
 
-  // Should show a diff between r1 and current system config (state changed from
-  // 1 to 2, speed added)
+  // Should show a diff between commit1 and current system config (state changed
+  // from 1 to 2, speed added)
   EXPECT_NE(result.find("-        \"state\": 1"), std::string::npos);
   EXPECT_NE(result.find("+        \"state\": 2"), std::string::npos);
   EXPECT_NE(result.find("+        \"speed\": 100000"), std::string::npos);
@@ -217,17 +248,25 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffNonexistentRevision) {
   setupTestableConfigSession();
 
   auto cmd = CmdConfigSessionDiff();
-  utils::RevisionList revisions(std::vector<std::string>{"r999"});
+  // Use a fake SHA that doesn't exist
+  utils::RevisionList revisions(
+      std::vector<std::string>{"0000000000000000000000000000000000000000"});
 
   // Should throw an exception for nonexistent revision
-  EXPECT_THROW(cmd.queryClient(localhost(), revisions), std::invalid_argument);
+  // Git throws runtime_error when the commit doesn't exist
+  EXPECT_THROW(cmd.queryClient(localhost(), revisions), std::runtime_error);
 }
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffTooManyArguments) {
   setupTestableConfigSession();
 
   auto cmd = CmdConfigSessionDiff();
-  utils::RevisionList revisions(std::vector<std::string>{"r1", "r2", "r3"});
+  // Use fake SHAs for the test
+  utils::RevisionList revisions(
+      std::vector<std::string>{
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "cccccccccccccccccccccccccccccccccccccccc"});
 
   // Should throw an exception for too many arguments
   EXPECT_THROW(cmd.queryClient(localhost(), revisions), std::invalid_argument);
