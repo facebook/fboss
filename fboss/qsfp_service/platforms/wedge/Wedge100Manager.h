@@ -21,8 +21,7 @@ class Wedge100Manager : public WedgeManager {
  public:
   explicit Wedge100Manager(
       const std::shared_ptr<const PlatformMapping> platformMapping,
-      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          threads);
+      const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads);
   ~Wedge100Manager() override = default;
   int getNumQsfpModules() const override {
     return 32;

@@ -416,7 +416,7 @@ PlatformMapping::getPortTransceiverPinConfigs(
   auto portID = matcher.getPortIDIf();
   auto profileID = matcher.getProfileID();
   if (!portID.has_value()) {
-    throw FbossError("getPortIphyPinConfigs miss portID match factor");
+    throw FbossError("getPortTransceiverPinConfigs miss portID match factor");
   }
   const auto& platformPortConfig =
       getPlatformPortConfig(portID.value(), profileID);
@@ -424,6 +424,23 @@ PlatformMapping::getPortTransceiverPinConfigs(
   // no transceiver pin overrides
   if (auto transceiverPins = platformPortConfig.pins()->transceiver()) {
     return *transceiverPins;
+  }
+  return std::nullopt;
+}
+
+std::optional<std::string> PlatformMapping::getPortSerdesCustomCollection(
+    PlatformPortProfileConfigMatcher matcher) const {
+  auto portID = matcher.getPortIDIf();
+  auto profileID = matcher.getProfileID();
+  if (!portID.has_value()) {
+    throw FbossError("getPortSerdesCustomCollection miss portID match factor");
+  }
+  const auto& platformPortConfig =
+      getPlatformPortConfig(portID.value(), profileID);
+
+  if (auto serdesCustomCollection =
+          platformPortConfig.pins()->serdesCustomCollection()) {
+    return *serdesCustomCollection;
   }
   return std::nullopt;
 }

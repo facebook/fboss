@@ -107,3 +107,17 @@ target_link_libraries(platform_manager_pci_explorer_test
 )
 
 gtest_discover_tests(platform_manager_pci_explorer_test)
+
+add_executable(platform_manager_handler_test
+  fboss/platform/platform_manager/tests/PlatformManagerHandlerTest.cpp
+)
+
+target_link_libraries(platform_manager_handler_test
+  platform_manager_handler
+  platform_manager_pkg_manager
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_manager_handler_test)

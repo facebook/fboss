@@ -527,6 +527,7 @@ int getWorstCaseAssumedOpticsDelayNS(
     const cfg::PortType& portType) {
   switch (asic.getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
@@ -1814,6 +1815,8 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   port->resetPinConfigs(
       platform_->getPlatformMapping()->getPortIphyPinConfigs(matcher));
   port->setSpeed(speed);
+  port->setSerdesCustomCollection(
+      platform_->getPlatformMapping()->getPortSerdesCustomCollection(matcher));
 
   // admin state
   bool isEnabled = GET_OPT_ATTR(Port, AdminState, attributes);
@@ -1957,11 +1960,14 @@ SaiQueueHandle* SaiPortManager::getQueueHandle(PortID swId, uint8_t queueId)
 }
 
 bool SaiPortManager::fecStatsSupported(PortID portId) const {
-  if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+  if ((platform_->getAsic()->getAsicType() ==
+           cfg::AsicType::ASIC_TYPE_TOMAHAWK5 ||
+       platform_->getAsic()->getAsicType() ==
+           cfg::AsicType::ASIC_TYPE_TOMAHAWK6) &&
       getPortType(portId) == cfg::PortType::MANAGEMENT_PORT) {
     // TODO(daiweix): follow up why not supported on TH5 mgmt port, e.g.
     // SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES
+    // CS00012443185
     return false;
   }
   return platform_->getAsic()->isSupported(HwAsic::Feature::SAI_FEC_COUNTERS) &&
@@ -1969,11 +1975,14 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
 }
 
 bool SaiPortManager::fecCorrectedBitsSupported(PortID portId) const {
-  if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+  if ((platform_->getAsic()->getAsicType() ==
+           cfg::AsicType::ASIC_TYPE_TOMAHAWK5 ||
+       platform_->getAsic()->getAsicType() ==
+           cfg::AsicType::ASIC_TYPE_TOMAHAWK6) &&
       getPortType(portId) == cfg::PortType::MANAGEMENT_PORT) {
     // TODO(daiweix): follow up why not supported on TH5 mgmt port, e.g.
     // SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS
+    // CS00012443185
     return false;
   }
   if (platform_->getAsic()->isSupported(
@@ -2404,8 +2413,9 @@ void SaiPortManager::updateStats(
         curPortStats.cableLengthMeters() =
             std::ceil(cablePropogationDelayNS / 5.0);
       } catch (const SaiApiError& e) {
-        XLOG(ERR) << "Failed to get cable propogation delay for port " << portId
-                  << ": " << e.what();
+        XLOG_EVERY_MS(ERR, 10000)
+            << "Failed to get cable propogation delay for port " << portId
+            << ": " << e.what();
       }
     }
   }
@@ -3243,7 +3253,8 @@ std::vector<phy::SerdesParameters> SaiPortManager::getSerdesParameters(
   // FABRIC_PORT
   auto portType = getPortType(swPortID);
   if (portType != cfg::PortType::INTERFACE_PORT &&
-      portType != cfg::PortType::FABRIC_PORT) {
+      portType != cfg::PortType::FABRIC_PORT &&
+      portType != cfg::PortType::HYPER_PORT_MEMBER) {
     return std::vector<phy::SerdesParameters>();
   }
 
@@ -3376,6 +3387,13 @@ std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxSignalDetect(
     return std::vector<sai_port_lane_latch_status_t>();
   }
 
+  if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK6 &&
+      getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
+    // CS00012443184
+    return std::vector<sai_port_lane_latch_status_t>();
+  }
+
   return SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId,
       SaiPortTraits::Attributes::RxSignalDetect{
@@ -3384,8 +3402,16 @@ std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxSignalDetect(
 
 std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxLockStatus(
     PortSaiId saiPortId,
-    uint8_t numPmdLanes) const {
+    uint8_t numPmdLanes,
+    PortID portID) const {
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::PMD_RX_LOCK_STATUS)) {
+    return std::vector<sai_port_lane_latch_status_t>();
+  }
+
+  if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK6 &&
+      getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
+    // CS00012443184
     return std::vector<sai_port_lane_latch_status_t>();
   }
 
@@ -3529,7 +3555,8 @@ void SaiPortManager::changeRxLaneSquelch(
     // the remote side and bring down the local link
     if ((newPort->getPortType() == cfg::PortType::FABRIC_PORT ||
          newPort->getPortType() == cfg::PortType::MANAGEMENT_PORT ||
-         newPort->getPortType() == cfg::PortType::INTERFACE_PORT) &&
+         newPort->getPortType() == cfg::PortType::INTERFACE_PORT ||
+         newPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) &&
         platform_->getAsic()->isSupported(
             HwAsic::Feature::RX_LANE_SQUELCH_ENABLE)) {
       auto portHandle = getPortHandle(newPort->getID());
@@ -3623,7 +3650,8 @@ void SaiPortManager::changeZeroPreemphasis(
         portHandle->port->adapterKey(),
         newPort->getPinConfigs(),
         portHandle->serdes,
-        newPort->getZeroPreemphasis());
+        newPort->getZeroPreemphasis(),
+        newPort->getSerdesCustomCollection());
     if (platform_->isSerdesApiSupported() &&
         platform_->getAsic()->isSupported(
             HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING)) {

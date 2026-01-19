@@ -345,7 +345,11 @@ TEST_F(FwUtilFlashromTest, AddLayoutFileValid) {
   flashromConfig.spi_layout() =
       "0x00000000:0x000fffff bios\n0x00100000:0x001fffff data";
 
-  std::string fpd = "test_fpd";
+  // Use unique fpd name to avoid race conditions with parallel test execution
+  std::string fpd =
+      "test_fpd_layout_" +
+      std::to_string(
+          std::chrono::system_clock::now().time_since_epoch().count());
   std::vector<std::string> flashromCmd;
 
   fwUtil.addLayoutFile(flashromConfig, flashromCmd, fpd);
@@ -380,7 +384,11 @@ TEST_F(FwUtilFlashromTest, AddCommonFlashromArgsWithLayout) {
   FlashromConfig flashromConfig;
   flashromConfig.spi_layout() = "0x00000000:0x000fffff bios";
 
-  std::string fpd = "test_fpd";
+  // Use unique fpd name to avoid race conditions with parallel test execution
+  std::string fpd =
+      "test_fpd_common_" +
+      std::to_string(
+          std::chrono::system_clock::now().time_since_epoch().count());
   std::vector<std::string> flashromCmd;
 
   // Call addCommonFlashromArgs with "write" operation

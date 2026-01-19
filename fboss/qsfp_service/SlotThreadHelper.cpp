@@ -23,7 +23,7 @@ void SlotThreadHelper::startThread() {
   auto heartbeatStatsFunc = [](int /* delay */, int /* backLog */) {};
   heartbeat_ = std::make_shared<ThreadHeartbeat>(
       updateEventBase_.get(),
-      folly::to<std::string>("thread_", id_, "_"),
+      folly::to<std::string>(strPrefix_, "_thread_", id_, "_"),
       FLAGS_state_machine_update_thread_heartbeat_ms,
       heartbeatStatsFunc);
   isThreadActive_ = true;

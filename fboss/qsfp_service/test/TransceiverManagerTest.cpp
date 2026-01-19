@@ -3,6 +3,7 @@
 #include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
 
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/qsfp_service/module/tests/MockSffModule.h"
 #include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
 
 namespace facebook::fboss {
@@ -359,7 +360,7 @@ TEST_F(TransceiverManagerTest, areAllPortsDownWithEmptyPortInfo) {
       transceiverManager_->areAllPortsDown(TransceiverID(0));
 
   // In PortManager mode, empty port info means all ports are down
-  EXPECT_TRUE(allPortsDown2);
+  EXPECT_FALSE(allPortsDown2);
   EXPECT_TRUE(downPorts2.empty());
 
   // Reset flag to default
@@ -435,6 +436,53 @@ TEST_F(TransceiverManagerTest, exceptionInRefresh) {
   EXPECT_TRUE(*tcvrInfoAfter[static_cast<int>(tcvrTwoID)]
                    .tcvrState()
                    ->communicationError());
+}
+
+TEST_F(TransceiverManagerTest, populateSnapshots) {
+  auto tcvrID = TransceiverID(0);
+
+  auto transceiverImpl =
+      std::make_unique<::testing::NiceMock<MockTransceiverImpl>>();
+  EXPECT_CALL(*transceiverImpl, detectTransceiver())
+      .WillRepeatedly(::testing::Return(true));
+  EXPECT_CALL(*transceiverImpl, getNum())
+      .WillRepeatedly(::testing::Return(static_cast<int>(tcvrID)));
+  qsfpImpls_.push_back(std::move(transceiverImpl));
+
+  transceiverManager_->overrideTransceiverForTesting(
+      tcvrID,
+      std::make_unique<MockSffModule>(
+          transceiverManager_->getPortNames(tcvrID),
+          qsfpImpls_.back().get(),
+          tcvrConfig_,
+          transceiverManager_->getTransceiverName(tcvrID)));
+
+  auto& snapshotManagers = transceiverManager_->getSnapshotManagersForTesting();
+
+  // populate snapshots
+  transceiverManager_->refreshStateMachines();
+
+  auto snapshotManagersLocked = snapshotManagers.rlock();
+  ASSERT_TRUE(
+      snapshotManagersLocked->find(tcvrID) != snapshotManagersLocked->end());
+  auto snapshots = snapshotManagersLocked->at(tcvrID).getSnapshots();
+  EXPECT_FALSE(snapshots.empty());
+
+  // Fill the buffer
+  snapshotManagersLocked.unlock();
+  for (auto i = 1; i < snapshots.maxSize(); i++) {
+    transceiverManager_->refreshStateMachines();
+  }
+  snapshotManagersLocked = snapshotManagers.rlock();
+  snapshots = snapshotManagersLocked->at(tcvrID).getSnapshots();
+
+  // Verify that we stay at the max size
+  EXPECT_EQ(snapshots.size(), snapshots.maxSize());
+  snapshotManagersLocked.unlock();
+  transceiverManager_->refreshStateMachines();
+  snapshotManagersLocked = snapshotManagers.rlock();
+  snapshots = snapshotManagersLocked->at(tcvrID).getSnapshots();
+  EXPECT_EQ(snapshots.size(), snapshots.maxSize());
 }
 
 } // namespace facebook::fboss

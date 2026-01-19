@@ -207,13 +207,17 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   hostifManager_.reset();
   wredManager_.reset();
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   // Must unbind Tam objects before resetting Tam manager.
   // Note that we can't use SaiTamManager::removeMirrorOnDropReport(), because
   // it relies on SaiManagerTable, which is undergoing destruction.
-  switchManager_->resetTamObject();
-  for (auto portId : tamManager_->getAllMirrorOnDropPortIds()) {
-    portManager_->resetTamObject(portId);
+  auto modPortIds = tamManager_->getAllMirrorOnDropPortIds();
+  if (!modPortIds.empty()) {
+    // Only reset TAM objects if MOD was configured
+    switchManager_->resetTamObject();
+    for (auto portId : modPortIds) {
+      portManager_->resetTamObject(portId);
+    }
   }
 #endif
   tamManager_.reset();

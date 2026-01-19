@@ -44,18 +44,18 @@ class PortManagerTest : public ::testing::Test {
         platformMapping;
 
     // Create Threads Object
-    const auto threadsMap = makeSlotThreadHelper(platformMapping);
+    const auto qsfpServiceThreads = makeQsfpServiceThreads(platformMapping);
 
     std::unique_ptr<MockPhyManager> phyManager =
         std::make_unique<MockPhyManager>(platformMapping.get());
     phyManager_ = phyManager.get();
     transceiverManager_ = std::make_shared<MockWedgeManager>(
-        numModules, 4, platformMapping, threadsMap);
+        numModules, 4, platformMapping, qsfpServiceThreads);
     portManager_ = std::make_unique<MockPortManager>(
         transceiverManager_.get(),
         setPhyManager ? std::move(phyManager) : nullptr,
         platformMapping,
-        threadsMap);
+        qsfpServiceThreads);
 
     if (numPortsPerModule == 4) {
       transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
@@ -67,27 +67,92 @@ class PortManagerTest : public ::testing::Test {
   }
 
   void initManagersWithMultiTcvrPort(bool setPhyManager = false) {
-    const auto platformMapping =
-        makeFakePlatformMapping(2, 4, true /* multiTcvrPort */);
+    const auto platformMapping = makeFakePlatformMapping(
+        2, 4, FakeTestPlatformMappingType::DUAL_TRANSCEIVER);
     const std::shared_ptr<const PlatformMapping> castedPlatformMapping =
         platformMapping;
 
     // Create Threads Object
-    const auto threadsMap = makeSlotThreadHelper(platformMapping);
+    const auto qsfpServiceThreads = makeQsfpServiceThreads(platformMapping);
 
     std::unique_ptr<MockPhyManager> phyManager =
         std::make_unique<MockPhyManager>(platformMapping.get());
     phyManager_ = phyManager.get();
-    transceiverManager_ =
-        std::make_shared<MockWedgeManager>(2, 4, platformMapping, threadsMap);
+    transceiverManager_ = std::make_shared<MockWedgeManager>(
+        2, 4, platformMapping, qsfpServiceThreads);
     portManager_ = std::make_unique<MockPortManager>(
         transceiverManager_.get(),
         setPhyManager ? std::move(phyManager) : nullptr,
         platformMapping,
-        threadsMap);
+        qsfpServiceThreads);
 
     transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
         overrideMultiTransceiverTcvrToPortAndProfile_);
+  }
+
+  void initManagersWithBackplanePlatformMapping() {
+    const auto platformMapping =
+        makeFakePlatformMapping(1, 1, FakeTestPlatformMappingType::BACKPLANE);
+    const std::shared_ptr<const PlatformMapping> castedPlatformMapping =
+        platformMapping;
+
+    // Create Threads Object
+    const auto qsfpServiceThreads = makeQsfpServiceThreads(platformMapping);
+
+    transceiverManager_ = std::make_shared<MockWedgeManager>(
+        0, 0, platformMapping, qsfpServiceThreads);
+    portManager_ = std::make_unique<MockPortManager>(
+        transceiverManager_.get(),
+        nullptr /* phyManager */,
+        platformMapping,
+        qsfpServiceThreads);
+  }
+
+  void initManagersWithXphyBackplanePlatformMapping() {
+    const auto platformMapping = makeFakePlatformMapping(
+        1, 1, FakeTestPlatformMappingType::XPHY_BACKPLANE);
+    const std::shared_ptr<const PlatformMapping> castedPlatformMapping =
+        platformMapping;
+
+    // Create Threads Object
+    const auto qsfpServiceThreads = makeQsfpServiceThreads(platformMapping);
+
+    std::unique_ptr<MockPhyManager> phyManager =
+        std::make_unique<MockPhyManager>(platformMapping.get());
+    phyManager_ = phyManager.get();
+
+    transceiverManager_ = std::make_shared<MockWedgeManager>(
+        0, 1, platformMapping, qsfpServiceThreads);
+    portManager_ = std::make_unique<MockPortManager>(
+        transceiverManager_.get(),
+        std::move(phyManager),
+        platformMapping,
+        qsfpServiceThreads);
+  }
+
+  void initManagersWithStandardPlatformMapping(bool setPhyManager = false) {
+    const auto platformMapping =
+        makeFakePlatformMapping(1, 8, FakeTestPlatformMappingType::STANDARD);
+    const std::shared_ptr<const PlatformMapping> castedPlatformMapping =
+        platformMapping;
+
+    // Create Threads Object
+    const auto qsfpServiceThreads = makeQsfpServiceThreads(platformMapping);
+
+    std::unique_ptr<MockPhyManager> phyManager =
+        std::make_unique<MockPhyManager>(platformMapping.get());
+    phyManager_ = phyManager.get();
+
+    transceiverManager_ = std::make_shared<MockWedgeManager>(
+        1, 8, platformMapping, qsfpServiceThreads);
+    portManager_ = std::make_unique<MockPortManager>(
+        transceiverManager_.get(),
+        setPhyManager ? std::move(phyManager) : nullptr,
+        platformMapping,
+        qsfpServiceThreads);
+
+    transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+        overrideTcvrToPortAndProfile_);
   }
 
   void validatePortStatusNotInTestingOverride(PortID portId) {
@@ -245,7 +310,7 @@ TEST_F(PortManagerTest, getLowestIndexedStaticTransceiverForPort) {
   initManagers(1, 1);
   ASSERT_EQ(
       portManager_->getLowestIndexedStaticTransceiverForPort(PortID(1)),
-      TransceiverID(0));
+      std::optional<TransceiverID>(TransceiverID(0)));
 
   // Single Tcvr – Multi Port
   initManagers(1, 4);
@@ -253,22 +318,22 @@ TEST_F(PortManagerTest, getLowestIndexedStaticTransceiverForPort) {
   portManager_->setPortEnabledStatusInCache(PortID(3), true);
   ASSERT_EQ(
       portManager_->getLowestIndexedStaticTransceiverForPort(PortID(1)),
-      TransceiverID(0));
+      std::optional<TransceiverID>(TransceiverID(0)));
   ASSERT_EQ(
       portManager_->getLowestIndexedStaticTransceiverForPort(PortID(3)),
-      TransceiverID(0));
+      std::optional<TransceiverID>(TransceiverID(0)));
 
   // Multi Tcvr – Single Port
   initManagersWithMultiTcvrPort(false);
   ASSERT_EQ(
       portManager_->getLowestIndexedStaticTransceiverForPort(PortID(1)),
-      TransceiverID(0));
+      std::optional<TransceiverID>(TransceiverID(0)));
   // PortID(5) is the controlling port of second transceiver subsumed by
   // PortID(1), but since this helper function is just checking static port
   // assignment, we can test it here.
   ASSERT_EQ(
       portManager_->getLowestIndexedStaticTransceiverForPort(PortID(5)),
-      TransceiverID(1));
+      std::optional<TransceiverID>(TransceiverID(1)));
 }
 
 TEST_F(PortManagerTest, getStaticTransceiversForPort) {
@@ -612,7 +677,7 @@ TEST_F(PortManagerTest, programXphyPortNoPhyManager) {
       FbossError);
 }
 
-TEST_F(PortManagerTest, programExternalPhyPorts) {
+TEST_F(PortManagerTest, programExternalPhyPort) {
   initManagers(1, 4, true /* setPhyManager */);
   programInternalPhyPortsForTest();
 
@@ -621,7 +686,7 @@ TEST_F(PortManagerTest, programExternalPhyPorts) {
   portManager_->setPortEnabledStatusInCache(PortID(1), true);
   portManager_->setPortEnabledStatusInCache(PortID(3), true);
 
-  // programExternalPhyPorts should program all ports for the transceiver
+  // programExternalPhyPort should program a single port at a time
   // Based on overrideMultiPortTcvrToPortAndProfile_, TransceiverID(0) has ports
   // 1 and 3
   EXPECT_CALL(
@@ -632,6 +697,10 @@ TEST_F(PortManagerTest, programExternalPhyPorts) {
           ::testing::_,
           false))
       .Times(1);
+
+  EXPECT_NO_THROW(
+      portManager_->programExternalPhyPort(PortID(1), TransceiverID(0), false));
+
   EXPECT_CALL(
       *phyManager_,
       programOnePort(
@@ -642,19 +711,20 @@ TEST_F(PortManagerTest, programExternalPhyPorts) {
       .Times(1);
 
   EXPECT_NO_THROW(
-      portManager_->programExternalPhyPorts(TransceiverID(0), false));
-  // We don't throw if the transceiver doesn't have XPHY ports.
-  EXPECT_NO_THROW(
-      portManager_->programExternalPhyPorts(TransceiverID(1000), false));
+      portManager_->programExternalPhyPort(PortID(3), TransceiverID(0), false));
+
+  // We don't throw if the port is not an XPHY port.
+  EXPECT_NO_THROW(portManager_->programExternalPhyPort(
+      PortID(1000), TransceiverID(1000), false));
 }
 
-TEST_F(PortManagerTest, programExternalPhyPortsNoPhyManager) {
+TEST_F(PortManagerTest, programExternalPhyPortNoPhyManager) {
   // Test the early return when phyManager_ is null
   initManagers(1, 4, false /* setPhyManager */);
 
   // Should return early without throwing when phyManager_ is null
   EXPECT_NO_THROW(
-      portManager_->programExternalPhyPorts(TransceiverID(0), false));
+      portManager_->programExternalPhyPort(PortID(1), TransceiverID(0), false));
 }
 
 TEST_F(PortManagerTest, initAndExit) {
@@ -1248,7 +1318,9 @@ TEST_F(PortManagerTest, getPerTransceiverProfile) {
 }
 
 TEST_F(PortManagerTest, getMultiTransceiverPortProfileIDs) {
-  // Test Case 1: Single Tcvr – Multi Port
+  initManagers(1, 4);
+
+  // Single Transceiver
   // When multiple ports are provided, should return input as-is
   initManagers(1, 4);
   std::map<int32_t, cfg::PortProfileID> multiPortInput = {
@@ -1314,6 +1386,57 @@ TEST_F(PortManagerTest, getMultiTransceiverPortProfileIDs) {
   EXPECT_EQ(
       result4[tcvrId_][1],
       cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER);
+}
+
+TEST_F(PortManagerTest, portHasTransceiver) {
+  // Test Case 1: Single Tcvr – Single Port
+  // Port should have a transceiver
+  initManagers(1, 1);
+  EXPECT_TRUE(portManager_->portHasTransceiver(PortID(1)));
+
+  // Test Case 2: Single Tcvr – Multi Port
+  // All ports should have a transceiver
+  initManagers(1, 4);
+  EXPECT_TRUE(portManager_->portHasTransceiver(PortID(1)));
+  EXPECT_TRUE(portManager_->portHasTransceiver(PortID(3)));
+
+  // Test Case 3: Multi Tcvr – Single Port
+  // Port should have a transceiver
+  initManagersWithMultiTcvrPort(false);
+  EXPECT_TRUE(portManager_->portHasTransceiver(PortID(1)));
+  EXPECT_TRUE(portManager_->portHasTransceiver(PortID(5)));
+}
+
+TEST_F(PortManagerTest, noPortsCreatedForBackplanePlatformMapping) {
+  // When platform mapping is BACKPLANE, no transceiver or XPHY ports should be
+  // created since backplane ports don't have actual transceivers or XPHYs.
+  // This is verified by checking that no port state machines are created.
+  initManagersWithBackplanePlatformMapping();
+  EXPECT_EQ(portManager_->getStateMachineCountForTest(), 0);
+}
+
+TEST_F(PortManagerTest, portsCreatedForXphyBackplanePlatformMapping) {
+  // When platform mapping is XPHY_BACKPLANE, 1 port should be created since
+  // XPHY_BACKPLANE has XPHY (but no transceiver). This port connects through
+  // NPU -> XPHY -> BACKPLANE path.
+  initManagersWithXphyBackplanePlatformMapping();
+  EXPECT_EQ(portManager_->getStateMachineCountForTest(), 1);
+}
+
+TEST_F(PortManagerTest, portsCreatedForStandardPlatformMapping) {
+  // When platform mapping is STANDARD with 1 transceiver and 8 ports per
+  // module, 8 port state machines should be created since each port connects
+  // through NPU -> XPHY -> Transceiver path.
+  initManagersWithStandardPlatformMapping(true /* setPhyManager */);
+  EXPECT_EQ(portManager_->getStateMachineCountForTest(), 8);
+}
+
+TEST_F(PortManagerTest, portsCreatedForDualTransceiverPlatformMapping) {
+  // When platform mapping is DUAL_TRANSCEIVER with 2 transceivers and 4 ports
+  // per module, 8 port state machines should be created (4 ports x 2
+  // transceivers).
+  initManagersWithMultiTcvrPort(true /* setPhyManager */);
+  EXPECT_EQ(portManager_->getStateMachineCountForTest(), 8);
 }
 
 } // namespace facebook::fboss

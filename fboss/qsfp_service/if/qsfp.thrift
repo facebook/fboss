@@ -26,7 +26,7 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
   ) throws (1: fboss.FbossBaseError error);
 
   /*
-   * Get state information about a port
+   * Get state information about a port from ids.
    */
   map<i32, transceiver.PortStateMachineState> getPortStateMachineState(
     1: list<i32> idx,

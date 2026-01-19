@@ -33,8 +33,6 @@ DEFINE_int32(
     4,
     "Number of mirrors to create in ModWithMultipleMirrors");
 DEFINE_int32(mod_num_sflow, 1, "Number of sFlow traffic sources");
-DEFINE_int32(mod_from_port_id, 5, "MOD port ID to reconfigure from");
-DEFINE_int32(mod_to_port_id, 2, "MOD port ID to reconfigure to");
 
 const std::string kSflowMirror = "sflow_mirror";
 const std::string kModPacketAcl = "mod_packet_acl";
@@ -1464,7 +1462,18 @@ class AgentMirrorOnDropReconfigTest : public AgentMirrorOnDropTest {
  public:
   void setCmdLineFlagOverrides() const override {
     AgentMirrorOnDropTest::setCmdLineFlagOverrides();
-    FLAGS_sflow_egress_port_id = FLAGS_mod_to_port_id;
+    FLAGS_sflow_egress_port_id = modToPortId();
+  }
+
+ protected:
+  static int32_t modFromPortId() {
+    // port id of rcy1/1/445
+    return FLAGS_hyper_port ? 32861 : 5;
+  }
+
+  static int32_t modToPortId() {
+    // port id of rcy1/1/442
+    return FLAGS_hyper_port ? 32858 : 2;
   }
 };
 
@@ -1485,17 +1494,17 @@ class AgentMirrorOnDropReconfigTest : public AgentMirrorOnDropTest {
 // - NIF port B == masterLogicalInterfacePortIds[2]
 // - NIF port C == masterLogicalInterfacePortIds[3]
 // - MOD collector port == masterLogicalInterfacePortIds[0]
-// - RCY port 1 / 2 == FLAGS_mod_from_port_id / FLAGS_mod_to_port_id
+// - RCY port 1 / 2 == modFromPortId() / modToPortId()
 //
 // Moving MOD to RCY port 2 while it's congested causes some MOD packets to go
 // to DRAM. Before CS00012418671 is fixed, this triggers some DRAM related bugs
 // with high probability, which results in an ASIC hard reset.
 TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
-  auto modFromPortId = PortID(FLAGS_mod_from_port_id);
-  auto modToPortId = PortID(FLAGS_mod_to_port_id);
+  PortID modFromPort{static_cast<uint16_t>(modFromPortId())};
+  PortID modToPort{static_cast<uint16_t>(modToPortId())};
   auto collectorPortId = portIdsToTest()[0];
-  XLOG(DBG3) << "MoD port (from): " << portDesc(modFromPortId);
-  XLOG(DBG3) << "MoD port (to): " << portDesc(modToPortId);
+  XLOG(DBG3) << "MoD port (from): " << portDesc(modFromPort);
+  XLOG(DBG3) << "MoD port (to): " << portDesc(modToPort);
   XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
 
   auto loopIp = [&](int i) {
@@ -1606,9 +1615,9 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
   auto verify = [&]() {
     auto config = getAgentEnsemble()->getCurrentConfig();
 
-    XLOG(INFO) << "Configuring MOD on port " << modFromPortId;
+    XLOG(INFO) << "Configuring MOD on port " << modFromPort;
     config.mirrorOnDropReports()->clear();
-    setupMirrorOnDrop(&config, modFromPortId, kCollectorIp_, prodModConfig());
+    setupMirrorOnDrop(&config, modFromPort, kCollectorIp_, prodModConfig());
     applyNewConfig(config);
 
     WITH_RETRIES_N(10, {
@@ -1617,9 +1626,9 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
       EXPECT_EVENTUALLY_GE(rate, 10000000);
     });
 
-    XLOG(INFO) << "Configuring MOD on port " << modToPortId;
+    XLOG(INFO) << "Configuring MOD on port " << modToPort;
     config.mirrorOnDropReports()->clear();
-    setupMirrorOnDrop(&config, modToPortId, kCollectorIp_, prodModConfig());
+    setupMirrorOnDrop(&config, modToPort, kCollectorIp_, prodModConfig());
     applyNewConfig(config);
 
     WITH_RETRIES_N(10, {

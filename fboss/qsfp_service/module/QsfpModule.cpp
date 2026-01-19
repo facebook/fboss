@@ -15,6 +15,7 @@
 
 #include <boost/assign.hpp>
 
+#include <folly/Format.h>
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
@@ -105,10 +106,6 @@ QsfpModule::QsfpModule(
     std::string tcvrName)
     : Transceiver(),
       qsfpImpl_(qsfpImpl),
-      snapshots_(SnapshotManager(
-          portNames,
-          SnapshotLogSource::QSFP_SERVICE,
-          kSnapshotIntervalSeconds)),
       portNames_(portNames),
       tcvrName_(std::move(tcvrName)) {
   CHECK(!portNames.empty())
@@ -601,9 +598,6 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   tcvrState.interfaces() = getInterfaces();
   tcvrStats.interfaces() = getInterfaces();
 
-  phy::LinkSnapshot snapshot;
-  snapshot.transceiverInfo() = info;
-  snapshots_.wlock()->addSnapshot(snapshot);
   *info_.wlock() = info;
 }
 
@@ -1530,10 +1524,14 @@ void QsfpModule::updateLaneToPortNameMapping(
  * same then return true or false based on whether module is in ready state or
  * not. If the power controll config value is not same as desired one then
  * configure it correctly and return false
+ *
+ * @param hasTunableOpticsConfig - indicates if tunable optics config is
+ *        present in qsfp_service_config. For tunable optics modules without
+ *        config, high power mode transition is skipped.
  */
-bool QsfpModule::readyTransceiver() {
+bool QsfpModule::readyTransceiver(bool hasTunableOpticsConfig) {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
-  auto powerStateCheckFn = [this]() -> bool {
+  auto powerStateCheckFn = [this, hasTunableOpticsConfig]() -> bool {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
     if (present_) {
       if (!cacheIsValid()) {
@@ -1545,7 +1543,7 @@ bool QsfpModule::readyTransceiver() {
       // Check the transceiver power configuration state and then return
       // accordingly. This function's implementation is dependent on optics
       // type (Cmis, Sff etc)
-      if (ensureTransceiverReadyLocked()) {
+      if (ensureTransceiverReadyLocked(hasTunableOpticsConfig)) {
         // After the transceiver is ready, update the cache with the latest
         // data. Some modules report inconsistent data while the module is not
         // ready, which fails the subsequent calls to program transceiver. Thus
@@ -1589,12 +1587,6 @@ void QsfpModule::setPortStateLocked(bool programEnd) {
   } else {
     portState_.tcvrProgrammingStartTs() = static_cast<int64_t>(ns);
   }
-}
-
-void QsfpModule::publishSnapshots() {
-  auto snapshotsLocked = snapshots_.wlock();
-  snapshotsLocked->publishAllSnapshots();
-  snapshotsLocked->publishFutureSnapshots();
 }
 
 bool QsfpModule::tryRemediate(

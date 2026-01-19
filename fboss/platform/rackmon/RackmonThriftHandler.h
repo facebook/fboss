@@ -85,5 +85,9 @@ class ThriftHandler : virtual public RackmonCtrlSvIf {
       rackmonsvc::RackmonControlRequest request) override;
 
   void getPowerLossSiren(rackmonsvc::PowerLossSiren& plsState) override;
+
+  void sendRawCommand(
+      rackmonsvc::RawCommandResponse& response,
+      std::unique_ptr<rackmonsvc::RawCommandRequest> request) override;
 };
 } // namespace rackmonsvc

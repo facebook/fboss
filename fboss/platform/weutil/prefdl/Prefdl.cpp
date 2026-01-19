@@ -23,7 +23,7 @@ void PrefdlBase::parseData() {
 
   strStream_.read(strBuf_.data(), 4);
 
-  fields_.push_back("Prefdl Version");
+  fields_.emplace_back("Prefdl Version");
   dict_["Prefdl Version"] = strBuf_;
 
   if (!strStream_) {

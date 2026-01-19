@@ -96,6 +96,7 @@ cpp_library(
         ":fpga_device",
         "//fboss/agent:fboss-error",
         "//fboss/lib/if:pim_state-cpp2-types",
+        "//fboss/qsfp_service:stats",
     ],
 )
 

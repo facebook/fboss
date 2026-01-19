@@ -5,7 +5,6 @@ import filecmp
 import os
 import sys
 import unittest
-
 from typing import Dict, List
 
 from fboss.lib.platform_mapping_v2.gen import (
@@ -46,6 +45,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "icetea800bc",
             "tahansb800bc",
             "wedge800bact",
+            "wedge800cact",
         ],
         True: [
             "meru800bfa",

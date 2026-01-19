@@ -57,9 +57,9 @@ development.
 |                    | fbobmc.kernel.version                        | Boot up OpenBMC and make sure kernel version is Meta accepted                                                                                                                                                                                                                                                 |
 |                    | fbobmc.yocto.version                         | Boot up OpenBMC and make sure yocto version is lf-master by verifying ID=openbmc-fb-master in /etc/os-release                                                                                                                                                                                                 |
 |                    | fbobmc.system.initializer                    | Boot up OpenBMC and make sure systemd is the system initializer (rather than sysV)                                                                                                                                                                                                                            |
-|                    | fbobmc.reboot.bmc.wont.affect.userver.oob    | Reboot OpenBMC (by running "reboot") and make sure uServer is still reachable (pingable & sshable) while OpenBMC is booting.                                                                                                                                                                                  |
+|                    | fbobmc.reboot.bmc.wont.affect.userver.oob    | Reboot OpenBMC (by running "reboot") and make sure uServer is still reachable (pingable & SSHable) while OpenBMC is booting.                                                                                                                                                                                  |
 |                    | fbobmc.reboot.bmc.wont.affect.userver.inband | Reboot OpenBMC (by running "reboot") and make sure uServer inband traffic is not affected while OpenBMC is booting.                                                                                                                                                                                           |
-|                    | fbobmc.reboot.userver.wont.affect.openbmc    | Reboot uServer (by running "reboot" from uServer) and make sure OpenBMC is reachable (pingable & sshable) when and after uServer is booting up.                                                                                                                                                               |
+|                    | fbobmc.reboot.userver.wont.affect.openbmc    | Reboot uServer (by running "reboot" from uServer) and make sure OpenBMC is reachable (pingable & SSHable) when and after uServer is booting up.                                                                                                                                                               |
 |                    | fbobmc.reboot.userver.bmc.in.parallel        | Reboot uServer and OpenBMC at the same time (by running "reboot" command) for at least 10 times: make sure OpenBMC and uServer OS can always boot up independently.                                                                                                                                           |
 |                    | fbobmc.no.kernel.panic                       | Boot up OpenBMC and do not reboot OpenBMC for at least 7 days: make sure there is no kernel panic during the period.                                                                                                                                                                                          |
 |                    | fbobmc.upgrade.primary.flash                 | Make sure "flash0" mtd partition is pointed to the primary flash, and OpenBMC's primary flash can be upgraded using "flashcp -v \<openbmc-image\> /dev/mtd\#" command successfully.                                                                                                                           |
@@ -124,20 +124,19 @@ delivering firmware binaries.
 
 ####
 
-| Basic Tests                  | Details                                                                                                   |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Firmware Upgrade             | Upgrade to the new binary                                                                                 |
-| Firmware Downgrade           | Revert back to previous Binary                                                                            |
-| Power Cycle                  | Power cycle in between test to make sure the Box comes back after upgrade & Downgrade                     |
-| BMC OOB Reachability         | Verify that the OOB is ssh’able after upgrade                                                             |
-| x86 Reachability             | Verify X86 is ssh’able after upgrade                                                                      |
-| ASIC Detection               | Verify that ASIC can be detected on the PCI bus after upgrade                                             |
-| Memory & CPU Consumption     | Verify the Memory & CPU consumption is within acceptable threshold after FW Upgrade                       |
-| LED & Display Testing        | Check all LEDs, display, or indicators functions as expected (Blinking patterns, color changes)           |
-| Buttons                      | Test all buttons (push button, switch buttons), if any, to ensure they respond correctly and consistently |
-| FW version Readout           | Verify that version can be read after upgrade & downgrade and it meets the expected version               |
-| BIOS & CPU_CPLD Back up path | Test BIOS & CPU_CPLD OpenBMC Back-up path FW upgrade works as expected                                    |
-|                              |                                                                                                           |
+| Basic Tests                  | Details                                                                                                                                                |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Firmware Upgrade             | Upgrade to the new binary                                                                                                                              |
+| Firmware Downgrade           | Revert back to previous Binary                                                                                                                         |
+| Power Cycle                  | Power cycle in between test to make sure the Box comes back after upgrade & Downgrade                                                                  |
+| BMC OOB Reachability         | Verify that the OOB is ssh’able after upgrade                                                                                                          |
+| x86 Reachability             | Verify X86 is ssh’able after upgrade                                                                                                                   |
+| ASIC Detection               | Verify that ASIC can be detected on the PCI bus after upgrade                                                                                          |
+| Memory & CPU Consumption     | Verify the Memory & CPU consumption is within acceptable threshold after FW Upgrade                                                                    |
+| LED & Display Testing        | Check all LEDs, display, or indicators functions as expected (Blinking patterns, color changes)                                                        |
+| Buttons                      | Test all buttons (push/switch) for correct and consistent response. Applicable for HW platforms with programmable (e.g. CPLD, FPGA) controlled buttons |
+| FW version Readout           | Verify that version can be read after upgrade & downgrade and it meets the expected version                                                            |
+| BIOS & CPU_CPLD Back up path | Test BIOS & CPU_CPLD OpenBMC Back-up path FW upgrade works as expected                                                                                 |
 
 ---
 

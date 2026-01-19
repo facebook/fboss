@@ -543,24 +543,37 @@ bool verifyPortCableLength(const std::string& switchName) {
   //    FDSW Fabric ports towards SDSW
 
   // Verify if all connected fabric ports have valid cable length
-  XLOG(DBG2) << "Verifying Fabric Port Cable Length: " << switchName;
-  for (const auto& [_, portInfo] :
-       getActiveFabricPortNameToPortInfo(switchName)) {
-    if (portInfo.cableLengthMeters().has_value() &&
-        portInfo.cableLengthMeters().value() >= 0) {
-      // Cable length may vary on different test setups. Thus, verify
-      // if the Cable length query returns a valid non-0 cable length.
-      continue;
+  auto verifyCableLengthHelper = [switchName]() {
+    XLOG(DBG2) << "Verifying Fabric Port Cable Length: " << switchName;
+    for (const auto& [_, portInfo] :
+         getActiveFabricPortNameToPortInfo(switchName)) {
+      if (portInfo.cableLengthMeters().has_value() &&
+          portInfo.cableLengthMeters().value() >= 0) {
+        // Cable length may vary on different test setups. Thus, verify
+        // if the Cable length query returns a valid non-0 cable length.
+        continue;
+      }
+
+      XLOG(DBG2) << "From " << switchName
+                 << " Port: " << portInfo.name().value()
+                 << " has invalid cable length: "
+                 << portInfo.cableLengthMeters().value_or(-1);
+
+      return false;
     }
 
-    XLOG(DBG2) << "From " << switchName << " Port: " << portInfo.name().value()
-               << " has invalid cable length: "
-               << portInfo.cableLengthMeters().value_or(-1);
+    return true;
+  };
 
-    return false;
-  }
-
-  return true;
+  // Cable length is collected during periodic stats collection, not immediately
+  // when port comes up. For Netcastle runs, it requires additional time to
+  // retrieve cable length stats after the agent is up. Thus, retry with a
+  // dedicated loop to allow stats collection to complete.
+  return checkWithRetryErrorReturn(
+      verifyCableLengthHelper,
+      30 /* num retries */,
+      std::chrono::milliseconds(2000) /* sleep between retries */,
+      true /* retry on exception */);
 }
 
 bool verifyFabricPorts(const std::string& switchName) {

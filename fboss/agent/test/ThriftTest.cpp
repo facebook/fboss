@@ -1766,6 +1766,19 @@ TEST_F(ThriftTest, getRouteDetails) {
   EXPECT_EQ(10, routeDetails.size());
 }
 
+TEST_F(ThriftTest, getRouteTableSize) {
+  ThriftHandler handler(sw_);
+  auto [expectedV4, expectedV6] = getRouteCount(sw_->getState());
+
+  RouteCount routeCount;
+  handler.getRouteTableSize(routeCount);
+
+  EXPECT_EQ(*routeCount.v4Count(), expectedV4);
+  EXPECT_EQ(*routeCount.v6Count(), expectedV6);
+  // 7 intf routes + 2 default routes + 1 link local route
+  EXPECT_EQ(10, *routeCount.v4Count() + *routeCount.v6Count());
+}
+
 TEST_F(ThriftTest, getRouteTableByClient) {
   ThriftHandler handler(sw_);
   std::vector<UnicastRoute> routeTable;

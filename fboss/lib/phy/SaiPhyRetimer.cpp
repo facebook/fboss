@@ -130,9 +130,7 @@ PhyFwVersion SaiPhyRetimer::fwVersionImpl() const {
   phy::PhyFwVersion fw;
   fw.version() = SaiApiTable::getInstance()->switchApi().getAttribute(
       switchId, SaiSwitchTraits::Attributes::FirmwareMajorVersion{});
-  fw.minorVersion() = SaiApiTable::getInstance()->switchApi().getAttribute(
-      switchId, SaiSwitchTraits::Attributes::FirmwareMinorVersion{});
-  fw.versionStr() = fmt::format("{}.{}", *fw.version(), *fw.minorVersion());
+  fw.versionStr() = fmt::format("{}", *fw.version());
   if (auto versionStr = fw.versionStr()) {
     XLOG(DBG5) << "fwVersionImpl switchId=" << switchId
                << ", version=" << *versionStr;

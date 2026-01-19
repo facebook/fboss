@@ -209,3 +209,52 @@ TEST_F(FwUtilHelpersTest, VerifySha1sumMatching) {
   // Cleanup
   std::filesystem::remove(testFile);
 }
+
+// ============================================================================
+// verifySha1sum() Additional Tests
+// ============================================================================
+
+TEST_F(FwUtilHelpersTest, VerifySha1sumMismatch) {
+  // Create a test binary file
+  std::string testFile =
+      "/tmp/test_binary_mismatch_" + std::to_string(time(nullptr)) + ".bin";
+  std::ofstream binFile(testFile);
+  binFile << "test content for sha1sum mismatch\n";
+  binFile.close();
+
+  // Use a wrong SHA1 sum
+  std::string wrongSha1 = "0000000000000000000000000000000000000000";
+
+  // Should throw when SHA1 doesn't match
+  EXPECT_THROW(
+      verifySha1sum("test_fpd", wrongSha1, testFile), std::runtime_error);
+
+  // Cleanup
+  std::filesystem::remove(testFile);
+}
+
+// ============================================================================
+// getUpgradeToolBinaryPath() Additional Tests
+// ============================================================================
+
+TEST_F(FwUtilHelpersTest, GetUpgradeToolBinaryPathNotFoundNoEnv) {
+  // Unset script_dir to test the error path
+  unsetenv("script_dir");
+
+  // Tool doesn't exist in /usr/local/bin and no script_dir set
+  EXPECT_THROW(
+      getUpgradeToolBinaryPath("nonexistent_tool_xyz"), std::runtime_error);
+}
+
+TEST_F(FwUtilHelpersTest, GetUpgradeToolBinaryPathNotFoundWithEnv) {
+  // Set script_dir but tool doesn't exist there either
+  std::string testDir = "/tmp/test_script_dir_notfound";
+  std::filesystem::create_directories(testDir);
+  setenv("script_dir", testDir.c_str(), 1);
+
+  EXPECT_THROW(
+      getUpgradeToolBinaryPath("nonexistent_tool_abc"), std::runtime_error);
+
+  unsetenv("script_dir");
+  std::filesystem::remove_all(testDir);
+}
