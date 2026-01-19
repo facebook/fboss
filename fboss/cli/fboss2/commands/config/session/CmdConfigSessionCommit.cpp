@@ -26,14 +26,15 @@ CmdConfigSessionCommitTraits::RetType CmdConfigSessionCommit::queryClient(
   auto result = session.commit(hostInfo);
 
   std::string message;
+  std::string shortSha = result.commitSha.substr(0, 7);
   if (result.actionLevel == cli::ConfigActionLevel::AGENT_RESTART) {
     message = fmt::format(
-        "Config session committed successfully as r{} and wedge_agent restarted.",
-        result.revision);
+        "Config session committed successfully as {} and wedge_agent restarted.",
+        shortSha);
   } else {
     message = fmt::format(
-        "Config session committed successfully as r{} and config reloaded.",
-        result.revision);
+        "Config session committed successfully as {} and config reloaded.",
+        shortSha);
   }
 
   return message;

@@ -807,6 +807,7 @@ cpp_library(
         "commands/config/session/CmdConfigSessionCommit.cpp",
         "commands/config/session/CmdConfigSessionDiff.cpp",
         "session/ConfigSession.cpp",
+        "session/Git.cpp",
         "utils/InterfaceList.cpp",
     ],
     headers = [
@@ -825,6 +826,7 @@ cpp_library(
         "commands/config/session/CmdConfigSessionCommit.h",
         "commands/config/session/CmdConfigSessionDiff.h",
         "session/ConfigSession.h",
+        "session/Git.h",
         "utils/InterfaceList.h",
     ],
     exported_deps = [

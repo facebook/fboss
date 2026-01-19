@@ -10,6 +10,9 @@
 
 #pragma once
 
+#include <string>
+#include <utility>
+
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
 namespace facebook::fboss {
@@ -19,10 +22,10 @@ namespace facebook::fboss {
 class TestableConfigSession : public ConfigSession {
  public:
   TestableConfigSession(
-      const std::string& sessionConfigPath,
-      const std::string& systemConfigPath,
-      const std::string& cliConfigDir)
-      : ConfigSession(sessionConfigPath, systemConfigPath, cliConfigDir) {}
+      std::string sessionConfigDir,
+      std::string systemConfigDir)
+      : ConfigSession(std::move(sessionConfigDir), std::move(systemConfigDir)) {
+  }
 
   // Expose protected setInstance() for testing
   using ConfigSession::setInstance;

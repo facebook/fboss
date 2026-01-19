@@ -8,17 +8,18 @@
  *
  */
 
-#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <filesystem>
 #include <fstream>
-#include <sstream>
 
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
+#include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/session/Git.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 #include "fboss/cli/fboss2/test/TestableConfigSession.h"
-#include "fboss/cli/fboss2/utils/PortMap.h"
+#include "fboss/cli/fboss2/utils/PortMap.h" // NOLINT(misc-include-cleaner)
 
 namespace fs = std::filesystem;
 
@@ -49,16 +50,22 @@ class CmdConfigInterfaceSwitchportAccessVlanTestFixture
 
     // Create test directories
     fs::create_directories(testHomeDir_);
-    fs::create_directories(testEtcDir_ / "coop");
-    fs::create_directories(testEtcDir_ / "coop" / "cli");
+    // System config dir is the Git repository root
+    systemConfigDir_ = testEtcDir_ / "coop";
+    sessionConfigDir_ = testHomeDir_ / ".fboss2";
+    fs::create_directories(systemConfigDir_ / "cli");
 
     // Set environment variables
     setenv("HOME", testHomeDir_.c_str(), 1);
     setenv("USER", "testuser", 1);
 
-    // Create a test system config file with ports
-    fs::path initialRevision = testEtcDir_ / "coop" / "cli" / "agent-r1.conf";
-    createTestConfig(initialRevision, R"({
+    // Initialize Git repository
+    Git git(systemConfigDir_.string());
+    git.init();
+
+    // Create a test system config file at cli/agent.conf
+    fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+    createTestConfig(cliConfigPath, R"({
   "sw": {
     "ports": [
       {
@@ -79,16 +86,16 @@ class CmdConfigInterfaceSwitchportAccessVlanTestFixture
   }
 })");
 
-    // Create symlink
-    systemConfigPath_ = testEtcDir_ / "coop" / "agent.conf";
-    fs::create_symlink(initialRevision, systemConfigPath_);
+    // Create symlink at agent.conf -> cli/agent.conf
+    fs::create_symlink("cli/agent.conf", systemConfigDir_ / "agent.conf");
 
-    // Create session config path
-    sessionConfigPath_ = testHomeDir_ / ".fboss2" / "agent.conf";
-    cliConfigDir_ = testEtcDir_ / "coop" / "cli";
+    // Create initial commit
+    git.commit({"cli/agent.conf"}, "Initial commit");
   }
 
   void TearDown() override {
+    // Reset the singleton to ensure tests don't interfere with each other
+    TestableConfigSession::setInstance(nullptr);
     std::error_code ec;
     if (fs::exists(testHomeDir_)) {
       fs::remove_all(testHomeDir_, ec);
@@ -108,9 +115,8 @@ class CmdConfigInterfaceSwitchportAccessVlanTestFixture
 
   fs::path testHomeDir_;
   fs::path testEtcDir_;
-  fs::path systemConfigPath_;
-  fs::path sessionConfigPath_;
-  fs::path cliConfigDir_;
+  fs::path systemConfigDir_;
+  fs::path sessionConfigDir_;
 };
 
 // Tests for VlanIdValue validation
@@ -194,15 +200,15 @@ TEST_F(
 TEST_F(
     CmdConfigInterfaceSwitchportAccessVlanTestFixture,
     queryClientSetsIngressVlanMultiplePorts) {
-  TestableConfigSession session(
-      sessionConfigPath_.string(),
-      systemConfigPath_.string(),
-      cliConfigDir_.string());
+  fs::create_directories(sessionConfigDir_);
+
+  TestableConfigSession::setInstance(
+      std::make_unique<TestableConfigSession>(
+          sessionConfigDir_.string(), systemConfigDir_.string()));
 
   auto cmd = CmdConfigInterfaceSwitchportAccessVlan();
   VlanIdValue vlanId({"2001"});
 
-  // Create InterfaceList from port names
   utils::InterfaceList interfaces({"eth1/1/1", "eth1/2/1"});
 
   auto result = cmd.queryClient(localhost(), interfaces, vlanId);
@@ -213,6 +219,7 @@ TEST_F(
   EXPECT_THAT(result, HasSubstr("2001"));
 
   // Verify the ingressVlan was updated for both ports
+  auto& session = ConfigSession::getInstance();
   auto& config = session.getAgentConfig();
   auto& switchConfig = *config.sw();
   auto& ports = *switchConfig.ports();
@@ -226,15 +233,15 @@ TEST_F(
 TEST_F(
     CmdConfigInterfaceSwitchportAccessVlanTestFixture,
     queryClientThrowsOnEmptyInterfaceList) {
-  TestableConfigSession session(
-      sessionConfigPath_.string(),
-      systemConfigPath_.string(),
-      cliConfigDir_.string());
+  fs::create_directories(sessionConfigDir_);
+
+  TestableConfigSession::setInstance(
+      std::make_unique<TestableConfigSession>(
+          sessionConfigDir_.string(), systemConfigDir_.string()));
 
   auto cmd = CmdConfigInterfaceSwitchportAccessVlan();
   VlanIdValue vlanId({"100"});
 
-  // Empty InterfaceList is valid to construct but queryClient should throw
   utils::InterfaceList emptyInterfaces({});
   EXPECT_THROW(
       cmd.queryClient(localhost(), emptyInterfaces, vlanId),
