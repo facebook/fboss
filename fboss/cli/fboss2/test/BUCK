@@ -105,6 +105,7 @@ cpp_unittest(
         "CmdShowTransceiverTest.cpp",
         "CmdStartPcapTest.cpp",
         "CmdStopPcapTest.cpp",
+        "GitTest.cpp",
         "PortMapTest.cpp",
     ],
     # Config files for PortMapTest parameterized tests

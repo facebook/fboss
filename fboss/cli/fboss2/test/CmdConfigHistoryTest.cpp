@@ -1,18 +1,17 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include <boost/filesystem.hpp>
-#include <gmock/gmock.h>
+#include <boost/filesystem/operations.hpp>
+#include <fmt/format.h>
 #include <gtest/gtest.h>
+#include <filesystem>
+#include <fstream>
 #include <sstream>
 
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
-#include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/session/Git.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 #include "fboss/cli/fboss2/test/TestableConfigSession.h"
-#include "fboss/cli/fboss2/utils/PortMap.h"
-
-#include <filesystem>
-#include <fstream>
+#include "fboss/cli/fboss2/utils/PortMap.h" // NOLINT(misc-include-cleaner)
 
 namespace fs = std::filesystem;
 
@@ -24,9 +23,8 @@ class CmdConfigHistoryTestFixture : public CmdHandlerTestBase {
  public:
   fs::path testHomeDir_;
   fs::path testEtcDir_;
-  fs::path systemConfigPath_;
-  fs::path sessionConfigPath_;
-  fs::path cliConfigDir_;
+  fs::path systemConfigDir_; // /etc/coop (git repo root)
+  fs::path sessionConfigDir_; // ~/.fboss2
 
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
@@ -49,16 +47,23 @@ class CmdConfigHistoryTestFixture : public CmdHandlerTestBase {
     fs::create_directories(testEtcDir_);
 
     // Set up paths
-    systemConfigPath_ = testEtcDir_ / "agent.conf";
-    sessionConfigPath_ = testHomeDir_ / ".fboss2" / "agent.conf";
-    cliConfigDir_ = testEtcDir_ / "coop" / "cli";
+    // Structure: systemConfigDir_ = /etc/coop (git repo root)
+    //   - agent.conf (symlink -> cli/agent.conf)
+    //   - cli/agent.conf (actual config file)
+    systemConfigDir_ = testEtcDir_ / "coop";
+    sessionConfigDir_ = testHomeDir_ / ".fboss2";
+    fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
 
     // Create CLI config directory
-    fs::create_directories(cliConfigDir_);
+    fs::create_directories(systemConfigDir_ / "cli");
 
-    // Create a default system config
+    // Initialize Git repository
+    Git git(systemConfigDir_.string());
+    git.init();
+
+    // Create the actual config file at cli/agent.conf
     createTestConfig(
-        systemConfigPath_,
+        cliConfigPath,
         R"({
   "sw": {
     "ports": [
@@ -71,6 +76,12 @@ class CmdConfigHistoryTestFixture : public CmdHandlerTestBase {
     ]
   }
 })");
+
+    // Create symlink at /etc/coop/agent.conf -> cli/agent.conf
+    fs::create_symlink("cli/agent.conf", systemConfigDir_ / "agent.conf");
+
+    // Create initial commit
+    git.commit({"cli/agent.conf"}, "Initial commit");
   }
 
   void TearDown() override {
@@ -98,10 +109,10 @@ class CmdConfigHistoryTestFixture : public CmdHandlerTestBase {
   }
 
   void initializeTestSession() {
-    // Ensure system config exists before initializing session
-    if (!fs::exists(systemConfigPath_)) {
+    fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+    if (!fs::exists(cliConfigPath)) {
       createTestConfig(
-          systemConfigPath_,
+          cliConfigPath,
           R"({
   "sw": {
     "ports": [
@@ -115,64 +126,85 @@ class CmdConfigHistoryTestFixture : public CmdHandlerTestBase {
   }
 })");
     }
-
-    // Ensure the parent directory of session config exists
-    fs::create_directories(sessionConfigPath_.parent_path());
-
-    // Initialize ConfigSession singleton with test paths
+    fs::create_directories(sessionConfigDir_);
     TestableConfigSession::setInstance(
         std::make_unique<TestableConfigSession>(
-            sessionConfigPath_.string(),
-            systemConfigPath_.string(),
-            cliConfigDir_.string()));
+            sessionConfigDir_.string(), systemConfigDir_.string()));
   }
 };
 
 TEST_F(CmdConfigHistoryTestFixture, historyListsRevisions) {
-  // Create revision files with valid config content
-  createTestConfig(
-      cliConfigDir_ / "agent-r1.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
-  createTestConfig(
-      cliConfigDir_ / "agent-r2.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
-  createTestConfig(
-      cliConfigDir_ / "agent-r3.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  Git git(systemConfigDir_.string());
 
-  // Initialize ConfigSession singleton with test paths
+  // Second commit
+  createTestConfig(
+      cliConfigPath,
+      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 200000}]}})");
+  git.commit({"cli/agent.conf"}, "Second commit");
+
+  // Third commit
+  createTestConfig(
+      cliConfigPath,
+      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 300000}]}})");
+  git.commit({"cli/agent.conf"}, "Third commit");
+
   initializeTestSession();
 
-  // Create and execute the command
   auto cmd = CmdConfigHistory();
   auto result = cmd.queryClient(localhost());
 
-  // Verify the output contains all three revisions
-  EXPECT_NE(result.find("r1"), std::string::npos);
-  EXPECT_NE(result.find("r2"), std::string::npos);
-  EXPECT_NE(result.find("r3"), std::string::npos);
-
-  // Verify table headers are present
-  EXPECT_NE(result.find("Revision"), std::string::npos);
-  EXPECT_NE(result.find("Owner"), std::string::npos);
+  EXPECT_NE(result.find("Initial commit"), std::string::npos);
+  EXPECT_NE(result.find("Second commit"), std::string::npos);
+  EXPECT_NE(result.find("Third commit"), std::string::npos);
+  EXPECT_NE(result.find("Commit"), std::string::npos);
+  EXPECT_NE(result.find("Author"), std::string::npos);
   EXPECT_NE(result.find("Commit Time"), std::string::npos);
+  EXPECT_NE(result.find("Message"), std::string::npos);
+
+  // Verify the timestamp is formatted correctly (not epoch).
+  // Git returns Unix timestamps in seconds, so if the code incorrectly
+  // treats them as nanoseconds, we'd see dates near the Unix epoch.
+  // Depending on timezone, epoch could show as 1970-01-01 or 1969-12-31.
+  EXPECT_EQ(result.find("1970-"), std::string::npos)
+      << "Timestamp appears to be incorrectly parsed (showing 1970 epoch)";
+  EXPECT_EQ(result.find("1969-"), std::string::npos)
+      << "Timestamp appears to be incorrectly parsed (showing 1969 epoch)";
+  // Check that the current year appears in the output
+  std::time_t now = std::time(nullptr);
+  std::tm tm{};
+  localtime_r(&now, &tm);
+  std::string currentYear = std::to_string(1900 + tm.tm_year);
+  EXPECT_NE(result.find(currentYear + "-"), std::string::npos)
+      << "Expected timestamp with year " << currentYear << ", got: " << result;
 }
 
-TEST_F(CmdConfigHistoryTestFixture, historyIgnoresNonMatchingFiles) {
-  // Create valid revision files
-  createTestConfig(
-      cliConfigDir_ / "agent-r1.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
-  createTestConfig(
-      cliConfigDir_ / "agent-r2.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
+TEST_F(CmdConfigHistoryTestFixture, historyShowsOnlyConfigFileCommits) {
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  Git git(systemConfigDir_.string());
 
-  // Create files that should be ignored
-  createTestConfig(cliConfigDir_ / "agent.conf.bak", R"({"backup": true})");
-  createTestConfig(cliConfigDir_ / "other-r1.conf", R"({"other": true})");
-  createTestConfig(cliConfigDir_ / "agent-r1.txt", R"({"wrong_ext": true})");
-  createTestConfig(cliConfigDir_ / "agent-rX.conf", R"({"invalid": true})");
+  // Second commit for cli/agent.conf
+  createTestConfig(
+      cliConfigPath,
+      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 200000}]}})");
+  git.commit({"cli/agent.conf"}, "Config update");
 
+  // Create and commit a different file (should not appear in history)
+  createTestConfig(systemConfigDir_ / "other.txt", "other content");
+  git.commit({"other.txt"}, "Other file commit");
+
+  initializeTestSession();
+
+  auto cmd = CmdConfigHistory();
+  auto result = cmd.queryClient(localhost());
+
+  EXPECT_NE(result.find("Initial commit"), std::string::npos);
+  EXPECT_NE(result.find("Config update"), std::string::npos);
+  // The "Other file commit" should not appear since it doesn't touch agent.conf
+  EXPECT_EQ(result.find("Other file commit"), std::string::npos);
+}
+
+TEST_F(CmdConfigHistoryTestFixture, historyShowsCommitShas) {
   // Initialize ConfigSession singleton with test paths
   initializeTestSession();
 
@@ -180,69 +212,63 @@ TEST_F(CmdConfigHistoryTestFixture, historyIgnoresNonMatchingFiles) {
   auto cmd = CmdConfigHistory();
   auto result = cmd.queryClient(localhost());
 
-  // Verify only valid revisions are listed
-  EXPECT_NE(result.find("r1"), std::string::npos);
-  EXPECT_NE(result.find("r2"), std::string::npos);
-
-  // Verify invalid files are not listed
-  EXPECT_EQ(result.find("agent.conf.bak"), std::string::npos);
-  EXPECT_EQ(result.find("other-r1.conf"), std::string::npos);
-  EXPECT_EQ(result.find("agent-r1.txt"), std::string::npos);
-  EXPECT_EQ(result.find("rX"), std::string::npos);
+  // Verify the output contains a commit SHA (8 hex characters)
+  // The SHA should be in the first column
+  bool foundSha = false;
+  for (size_t i = 0; i + 7 < result.size(); ++i) {
+    bool isHex = true;
+    for (size_t j = 0; j < 8 && isHex; ++j) {
+      char c = result[i + j];
+      if (!std::isxdigit(c)) {
+        isHex = false;
+      }
+    }
+    if (isHex) {
+      foundSha = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(foundSha) << "Expected to find a commit SHA in the output";
 }
 
-TEST_F(CmdConfigHistoryTestFixture, historyEmptyDirectory) {
-  // Directory exists but has no revision files
-  EXPECT_TRUE(fs::exists(cliConfigDir_));
+TEST_F(CmdConfigHistoryTestFixture, historyMultipleCommits) {
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  Git git(systemConfigDir_.string());
 
-  // Initialize ConfigSession singleton with test paths
+  // Create 5 more commits
+  for (int i = 2; i <= 6; ++i) {
+    createTestConfig(
+        cliConfigPath,
+        fmt::format(
+            R"({{"sw": {{"ports": [{{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": {}}}]}}}})",
+            i * 100000));
+    git.commit({"cli/agent.conf"}, fmt::format("Commit {}", i));
+  }
+
   initializeTestSession();
 
-  // Create and execute the command
   auto cmd = CmdConfigHistory();
   auto result = cmd.queryClient(localhost());
 
-  // Verify the output indicates no revisions found
-  EXPECT_NE(result.find("No config revisions found"), std::string::npos);
-  EXPECT_NE(result.find(cliConfigDir_.string()), std::string::npos);
-}
+  EXPECT_NE(result.find("Commit 6"), std::string::npos);
+  EXPECT_NE(result.find("Commit 5"), std::string::npos);
+  EXPECT_NE(result.find("Commit 4"), std::string::npos);
+  EXPECT_NE(result.find("Commit 3"), std::string::npos);
+  EXPECT_NE(result.find("Commit 2"), std::string::npos);
+  EXPECT_NE(result.find("Initial commit"), std::string::npos);
 
-TEST_F(CmdConfigHistoryTestFixture, historyNonSequentialRevisions) {
-  // Create non-sequential revision files (e.g., after deletions)
-  createTestConfig(
-      cliConfigDir_ / "agent-r1.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
-  createTestConfig(
-      cliConfigDir_ / "agent-r5.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
-  createTestConfig(
-      cliConfigDir_ / "agent-r10.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
-
-  // Initialize ConfigSession singleton with test paths
-  initializeTestSession();
-
-  // Create and execute the command
-  auto cmd = CmdConfigHistory();
-  auto result = cmd.queryClient(localhost());
-
-  // Verify all revisions are listed in order
-  EXPECT_NE(result.find("r1"), std::string::npos);
-  EXPECT_NE(result.find("r5"), std::string::npos);
-  EXPECT_NE(result.find("r10"), std::string::npos);
-
-  // Verify they appear in ascending order (r1 before r5 before r10)
-  auto pos_r1 = result.find("r1");
-  auto pos_r5 = result.find("r5");
-  auto pos_r10 = result.find("r10");
-  EXPECT_LT(pos_r1, pos_r5);
-  EXPECT_LT(pos_r5, pos_r10);
+  // Verify they appear in reverse chronological order (most recent first)
+  auto pos_6 = result.find("Commit 6");
+  auto pos_5 = result.find("Commit 5");
+  auto pos_initial = result.find("Initial commit");
+  EXPECT_LT(pos_6, pos_5);
+  EXPECT_LT(pos_5, pos_initial);
 }
 
 TEST_F(CmdConfigHistoryTestFixture, printOutput) {
   auto cmd = CmdConfigHistory();
   std::string tableOutput =
-      "Revision  Owner  Commit Time\nr1        user1  2024-01-01 12:00:00.000";
+      "Commit    Author  Commit Time          Message\nabcd1234  user1   2024-01-01 12:00:00  Initial commit";
 
   // Redirect cout to capture output
   std::stringstream buffer;
@@ -255,8 +281,8 @@ TEST_F(CmdConfigHistoryTestFixture, printOutput) {
 
   std::string output = buffer.str();
 
-  EXPECT_NE(output.find("Revision"), std::string::npos);
-  EXPECT_NE(output.find("r1"), std::string::npos);
+  EXPECT_NE(output.find("Commit"), std::string::npos);
+  EXPECT_NE(output.find("abcd1234"), std::string::npos);
   EXPECT_NE(output.find("user1"), std::string::npos);
 }
 

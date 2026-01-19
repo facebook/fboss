@@ -10,32 +10,24 @@
 
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
-#include <boost/filesystem.hpp>
-#include <fcntl.h>
 #include <fmt/format.h>
 #include <folly/FileUtil.h>
-#include <folly/Likely.h>
-#include <folly/String.h>
 #include <folly/Subprocess.h>
 #include <folly/json/json.h>
 #include <glog/logging.h>
 #include <pwd.h>
-#include <re2/re2.h>
 #include <sys/types.h>
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <unistd.h>
-#include <cerrno>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
-#include <sstream>
 #include <stdexcept>
 #include <thread>
-#include <utility>
 #include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h" // NOLINT(misc-include-cleaner)
 #include "fboss/cli/fboss2/utils/PortMap.h"
 
 namespace fs = std::filesystem;
@@ -61,8 +53,9 @@ void atomicSymlinkUpdate(
 
   // Generate a unique temporary path in the same directory as the target
   // symlink, we'll then atomically rename it to the final symlink name.
-  std::string tmpLinkName =
-      fmt::format("fboss2_tmp_{}", boost::filesystem::unique_path().string());
+  auto now = std::chrono::system_clock::now().time_since_epoch();
+  auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
+  std::string tmpLinkName = fmt::format("fboss2_tmp_{}_{}", getpid(), ns);
   fs::path tempSymlinkPath = symlinkFsPath.parent_path() / tmpLinkName;
 
   // Create new symlink with temporary name
@@ -87,53 +80,6 @@ void atomicSymlinkUpdate(
             symlinkPath,
             ec.message()));
   }
-}
-
-/*
- * Atomically create the next revision file for a given prefix.
- * This function finds the next available revision number (starting from 1)
- * and atomically creates a file with that revision number using O_CREAT|O_EXCL.
- * This ensures that concurrent commits will get different revision numbers.
- *
- * @param pathPrefix The path prefix (e.g., "/etc/coop/cli/agent")
- * @return A pair containing the path to the newly created revision file
- *         (e.g., "/etc/coop/cli/agent-r1.conf") and the revision number
- * @throws std::runtime_error if unable to create a revision file after many
- * attempts
- */
-std::pair<std::string, int> createNextRevisionFile(
-    const std::string& pathPrefix) {
-  // Try up to 100000 revision numbers to handle concurrent commits
-  // In practice, we should find one quickly
-  for (int revision = 1; revision <= 100000; ++revision) {
-    std::string revisionPath = fmt::format("{}-r{}.conf", pathPrefix, revision);
-
-    // Try to atomically create the file with O_CREAT | O_EXCL
-    // This will fail if the file already exists, ensuring atomicity
-    int fd = open(revisionPath.c_str(), O_CREAT | O_EXCL | O_WRONLY, 0644);
-
-    if (fd >= 0) {
-      // Successfully created the file - close it and return the path
-      close(fd);
-      return {revisionPath, revision};
-    }
-
-    // If errno is EEXIST, the file already exists - try the next revision
-    if (errno != EEXIST) {
-      // Some other error occurred
-      throw std::runtime_error(
-          fmt::format(
-              "Failed to create revision file {}: {}",
-              revisionPath,
-              folly::errnoStr(errno)));
-    }
-
-    // File exists, try next revision number
-  }
-
-  throw std::runtime_error(
-      "Failed to create revision file after 100000 attempts. "
-      "This likely indicates a problem with the filesystem or too many revisions.");
 }
 
 std::string getUsername() {
@@ -174,25 +120,6 @@ void ensureDirectoryExists(const std::string& dirPath) {
 }
 
 /*
- * Get the current revision number by reading the symlink target.
- * Returns -1 if unable to determine the current revision.
- */
-int getCurrentRevisionNumber(const std::string& systemConfigPath) {
-  std::error_code ec;
-
-  if (!fs::is_symlink(systemConfigPath, ec)) {
-    return -1;
-  }
-
-  std::string target = fs::read_symlink(systemConfigPath, ec);
-  if (ec) {
-    return -1;
-  }
-
-  return ConfigSession::extractRevisionNumber(target);
-}
-
-/*
  * Read the command line from /proc/self/cmdline, skipping argv[0].
  * Returns the command arguments as a space-separated string,
  * e.g., "config interface eth1/1/1 mtu 9000"
@@ -223,31 +150,28 @@ std::string readCommandLineFromProc() {
 
 } // anonymous namespace
 
-ConfigSession::ConfigSession() {
-  username_ = getUsername();
-  std::string homeDir = getHomeDirectory();
-
+ConfigSession::ConfigSession()
+    : sessionConfigDir_(getHomeDirectory() + "/.fboss2"),
+      username_(getUsername()) {
   // Use AgentDirectoryUtil to get the config directory path
   // getConfigDirectory() returns /etc/coop/agent, so we get the parent to get
   // /etc/coop
   AgentDirectoryUtil dirUtil;
-  fs::path configDir = fs::path(dirUtil.getConfigDirectory()).parent_path();
+  std::string coopDir =
+      fs::path(dirUtil.getConfigDirectory()).parent_path().string();
 
-  sessionConfigPath_ = homeDir + "/.fboss2/agent.conf";
-  systemConfigPath_ = (configDir / "agent.conf").string();
-  cliConfigDir_ = (configDir / "cli").string();
-
+  systemConfigDir_ = coopDir;
+  git_ = std::make_unique<Git>(coopDir);
   initializeSession();
 }
 
 ConfigSession::ConfigSession(
-    const std::string& sessionConfigPath,
-    const std::string& systemConfigPath,
-    const std::string& cliConfigDir)
-    : sessionConfigPath_(sessionConfigPath),
-      systemConfigPath_(systemConfigPath),
-      cliConfigDir_(cliConfigDir) {
-  username_ = getUsername();
+    std::string sessionConfigDir,
+    std::string systemConfigDir)
+    : sessionConfigDir_(std::move(sessionConfigDir)),
+      systemConfigDir_(std::move(systemConfigDir)),
+      username_(getUsername()),
+      git_(std::make_unique<Git>(systemConfigDir_)) {
   initializeSession();
 }
 
@@ -271,19 +195,23 @@ void ConfigSession::setInstance(std::unique_ptr<ConfigSession> newInstance) {
 }
 
 std::string ConfigSession::getSessionConfigPath() const {
-  return sessionConfigPath_;
+  return sessionConfigDir_ + "/agent.conf";
 }
 
 std::string ConfigSession::getSystemConfigPath() const {
-  return systemConfigPath_;
+  return systemConfigDir_ + "/agent.conf";
 }
 
 std::string ConfigSession::getCliConfigDir() const {
-  return cliConfigDir_;
+  return systemConfigDir_ + "/cli";
+}
+
+std::string ConfigSession::getCliConfigPath() const {
+  return systemConfigDir_ + "/cli/agent.conf";
 }
 
 bool ConfigSession::sessionExists() const {
-  return fs::exists(sessionConfigPath_);
+  return fs::exists(getSessionConfigPath());
 }
 
 cfg::AgentConfig& ConfigSession::getAgentConfig() {
@@ -339,35 +267,28 @@ void ConfigSession::saveConfig(
   // is flushed to disk before the atomic rename, preventing readers from
   // seeing partial/corrupted data.
   folly::writeFileAtomic(
-      sessionConfigPath_, prettyJson, 0644, folly::SyncType::WITH_SYNC);
+      getSessionConfigPath(), prettyJson, 0644, folly::SyncType::WITH_SYNC);
 
   // Update the required action metadata for this service
   updateRequiredAction(service, actionLevel);
 }
 
-int ConfigSession::extractRevisionNumber(const std::string& filenameOrPath) {
-  // Extract just the filename if a full path was provided
-  std::string filename = filenameOrPath;
-  size_t lastSlash = filenameOrPath.rfind('/');
-  if (lastSlash != std::string::npos) {
-    filename = filenameOrPath.substr(lastSlash + 1);
-  }
+Git& ConfigSession::getGit() {
+  return *git_;
+}
 
-  // Pattern: agent-rN.conf where N is a positive integer
-  // Using RE2 instead of std::regex to avoid stack overflow issues (GCC bug)
-  static const re2::RE2 pattern(R"(^agent-r(\d+)\.conf$)");
-  int revision = -1;
-
-  if (re2::RE2::FullMatch(filename, pattern, &revision)) {
-    return revision;
-  }
-  return -1;
+const Git& ConfigSession::getGit() const {
+  return *git_;
 }
 
 std::string ConfigSession::getMetadataPath() const {
   // Store metadata in the same directory as session config
-  fs::path sessionPath(sessionConfigPath_);
-  return (sessionPath.parent_path() / "conf_metadata.json").string();
+  return sessionConfigDir_ + "/cli_metadata.json";
+}
+
+std::string ConfigSession::getSystemMetadataPath() const {
+  // Store system metadata in the CLI config directory (Git-versioned)
+  return getCliConfigDir() + "/cli_metadata.json";
 }
 
 std::string ConfigSession::getServiceName(cli::ServiceType service) {
@@ -598,9 +519,10 @@ void ConfigSession::applyServiceActions(
 
 void ConfigSession::loadConfig() {
   std::string configJson;
-  if (!folly::readFile(sessionConfigPath_.c_str(), configJson)) {
+  std::string sessionConfigPath = getSessionConfigPath();
+  if (!folly::readFile(sessionConfigPath.c_str(), configJson)) {
     throw std::runtime_error(
-        fmt::format("Failed to read config file: {}", sessionConfigPath_));
+        fmt::format("Failed to read config file: {}", sessionConfigPath));
   }
 
   apache::thrift::SimpleJSONSerializer::deserialize<cfg::AgentConfig>(
@@ -616,10 +538,10 @@ void ConfigSession::loadConfig() {
 }
 
 void ConfigSession::initializeSession() {
+  initializeGit();
   if (!sessionExists()) {
-    // Ensure the parent directory of the session config exists
-    fs::path sessionPath(sessionConfigPath_);
-    ensureDirectoryExists(sessionPath.parent_path().string());
+    // Ensure the session config directory exists
+    ensureDirectoryExists(sessionConfigDir_);
     copySystemConfigToSession();
     // Create initial empty metadata file for new sessions
     saveMetadata();
@@ -629,40 +551,37 @@ void ConfigSession::initializeSession() {
   }
 }
 
-void ConfigSession::copySystemConfigToSession() {
-  // Resolve symlink if system config is a symlink
-  std::string sourceConfig = systemConfigPath_;
-  std::error_code ec;
-
-  if (LIKELY(fs::is_symlink(systemConfigPath_, ec))) {
-    sourceConfig = fs::read_symlink(systemConfigPath_, ec).string();
-    if (ec) {
-      throw std::runtime_error(
-          fmt::format(
-              "Failed to read symlink {}: {}",
-              systemConfigPath_,
-              ec.message()));
-    }
-    // If the symlink is relative, make it absolute relative to the system
-    // config directory
-    if (!fs::path(sourceConfig).is_absolute()) {
-      fs::path systemConfigDir = fs::path(systemConfigPath_).parent_path();
-      sourceConfig = (systemConfigDir / sourceConfig).string();
-    }
+void ConfigSession::initializeGit() {
+  // Initialize Git repository if it doesn't exist
+  if (!git_->isRepository()) {
+    ensureDirectoryExists(getCliConfigDir());
+    git_->init();
   }
 
-  // Read source config and write atomically to session config
+  // If the repository has no commits but the config file exists,
+  // create an initial commit to track the existing configuration
+  std::string cliConfigPath = getCliConfigPath();
+  if (!git_->hasCommits() && fs::exists(cliConfigPath)) {
+    std::string systemConfigPath = getSystemConfigPath();
+    git_->commit(
+        {cliConfigPath, systemConfigPath}, "Initial commit", username_, "");
+  }
+}
+
+void ConfigSession::copySystemConfigToSession() {
+  // Read system config and write atomically to session config
   // This ensures that readers never see a partially written file - they either
   // see the old file or the new file, never a mix.
   // WITH_SYNC ensures data is flushed to disk before the atomic rename.
   std::string configData;
-  if (!folly::readFile(sourceConfig.c_str(), configData)) {
+  std::string systemConfigPath = getSystemConfigPath();
+  if (!folly::readFile(systemConfigPath.c_str(), configData)) {
     throw std::runtime_error(
-        fmt::format("Failed to read config from {}", sourceConfig));
+        fmt::format("Failed to read config from {}", systemConfigPath));
   }
 
   folly::writeFileAtomic(
-      sessionConfigPath_, configData, 0644, folly::SyncType::WITH_SYNC);
+      getSessionConfigPath(), configData, 0644, folly::SyncType::WITH_SYNC);
 }
 
 ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
@@ -671,56 +590,46 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
         "No config session exists. Make a config change first.");
   }
 
-  ensureDirectoryExists(cliConfigDir_);
+  std::string cliConfigDir = getCliConfigDir();
+  std::string cliConfigPath = getCliConfigPath();
+  std::string sessionConfigPath = getSessionConfigPath();
+  std::string systemConfigPath = getSystemConfigPath();
 
-  // Atomically create the next revision file
-  // This ensures concurrent commits get different revision numbers
-  auto [targetConfigPath, revision] =
-      createNextRevisionFile(fmt::format("{}/agent", cliConfigDir_));
-  std::error_code ec;
+  ensureDirectoryExists(cliConfigDir);
 
-  // Read the old symlink target for rollback if needed
-  std::string oldSymlinkTarget;
-  if (!fs::is_symlink(systemConfigPath_)) {
+  // Read the session config content
+  std::string sessionConfigData;
+  if (!folly::readFile(sessionConfigPath.c_str(), sessionConfigData)) {
     throw std::runtime_error(
         fmt::format(
-            "{} is not a symlink. Expected it to be a symlink.",
-            systemConfigPath_));
-  }
-  oldSymlinkTarget = fs::read_symlink(systemConfigPath_, ec);
-  if (ec) {
-    throw std::runtime_error(
-        fmt::format(
-            "Failed to read symlink {}: {}", systemConfigPath_, ec.message()));
+            "Failed to read session config from {}", sessionConfigPath));
   }
 
-  // Copy session config to the atomically-created revision file
-  // Overwrite the empty file that was created by createNextRevisionFile
-  fs::copy_file(
-      sessionConfigPath_,
-      targetConfigPath,
-      fs::copy_options::overwrite_existing,
-      ec);
-  if (ec) {
-    // Clean up the revision file we created
-    fs::remove(targetConfigPath);
-    throw std::runtime_error(
-        fmt::format(
-            "Failed to copy session config to {}: {}",
-            targetConfigPath,
-            ec.message()));
+  // Read the old config for rollback if needed
+  std::string oldConfigData;
+  if (fs::exists(cliConfigPath)) {
+    if (!folly::readFile(cliConfigPath.c_str(), oldConfigData)) {
+      throw std::runtime_error(
+          fmt::format("Failed to read CLI config from {}", cliConfigPath));
+    }
   }
 
   // Copy the metadata file alongside the config revision
-  // e.g., agent-r123.conf -> agent-r123.metadata.json
   // This is required for rollback functionality
   std::string metadataPath = getMetadataPath();
   std::string targetMetadataPath =
-      fmt::format("{}/agent-r{}.metadata.json", cliConfigDir_, revision);
-  fs::copy_file(metadataPath, targetMetadataPath, ec);
+      fmt::format("{}/cli_metadata.json", cliConfigDir);
+  std::error_code ec;
+  fs::copy_file(
+      metadataPath,
+      targetMetadataPath,
+      fs::copy_options::overwrite_existing,
+      ec);
   if (ec) {
-    // Clean up the revision file we created
-    fs::remove(targetConfigPath);
+    if (!oldConfigData.empty()) {
+      folly::writeFileAtomic(
+          cliConfigPath, oldConfigData, 0644, folly::SyncType::WITH_SYNC);
+    }
     throw std::runtime_error(
         fmt::format(
             "Failed to copy metadata to {}: {}",
@@ -728,8 +637,12 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
             ec.message()));
   }
 
-  // Atomically update the symlink to point to the new config
-  atomicSymlinkUpdate(systemConfigPath_, targetConfigPath);
+  // Atomically write the session config to the CLI config path
+  folly::writeFileAtomic(
+      cliConfigPath, sessionConfigData, 0644, folly::SyncType::WITH_SYNC);
+
+  // Ensure the system config symlink points to the CLI config
+  atomicSymlinkUpdate(systemConfigPath, "cli/agent.conf");
 
   // Apply the config based on the required action levels for each service
   // Copy requiredActions_ before we reset it - this will be returned in
@@ -760,12 +673,13 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   }
 
   // Only remove the session config after everything succeeded
-  fs::remove(sessionConfigPath_, ec);
+  ec = std::error_code{};
+  fs::remove(sessionConfigPath, ec);
   if (ec) {
     // Log warning but don't fail - the commit succeeded
     LOG(WARNING) << fmt::format(
         "Failed to remove session config {}: {}",
-        sessionConfigPath_,
+        sessionConfigPath,
         ec.message());
   }
 
@@ -777,108 +691,109 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   return CommitResult{revision, actions};
 }
 
-int ConfigSession::rollback(const HostInfo& hostInfo) {
-  // Get the current revision number
-  int currentRevision = getCurrentRevisionNumber(systemConfigPath_);
-  if (currentRevision <= 0) {
+std::string ConfigSession::rollback(const HostInfo& hostInfo) {
+  // Get the commit history to find the previous commit
+  auto commits = git_->log(getCliConfigPath(), 2);
+  if (commits.size() < 2) {
     throw std::runtime_error(
-        "Cannot rollback: cannot determine the current revision from " +
-        systemConfigPath_);
-  } else if (currentRevision == 1) {
-    throw std::runtime_error(
-        "Cannot rollback: already at the first revision (r1)");
+        "Cannot rollback: no previous revision available in Git history");
   }
 
-  // Rollback to the previous revision
-  std::string targetRevision = "r" + std::to_string(currentRevision - 1);
-  return rollback(hostInfo, targetRevision);
+  // Rollback to the previous commit (second in the list)
+  return rollback(hostInfo, commits[1].sha1);
 }
 
-int ConfigSession::rollback(
+std::string ConfigSession::rollback(
     const HostInfo& hostInfo,
-    const std::string& revision) {
-  ensureDirectoryExists(cliConfigDir_);
+    const std::string& commitSha) {
+  std::string cliConfigDir = getCliConfigDir();
+  std::string cliConfigPath = getCliConfigPath();
+  std::string systemConfigPath = getSystemConfigPath();
 
-  // Build the path to the target revision
-  std::string targetConfigPath =
-      fmt::format("{}/agent-{}.conf", cliConfigDir_, revision);
+  ensureDirectoryExists(cliConfigDir);
 
-  // Check if the target revision exists
-  if (!fs::exists(targetConfigPath)) {
-    throw std::runtime_error(
-        fmt::format(
-            "Revision {} does not exist at {}", revision, targetConfigPath));
+  // Resolve the commit SHA (in case it's a short SHA or ref)
+  std::string resolvedSha = git_->resolveRef(commitSha);
+
+  // Get the config and metadata content from the target commit
+  // The paths in git are relative to the repo root
+  std::string targetConfigData =
+      git_->fileAtRevision(resolvedSha, "cli/agent.conf");
+  std::string targetMetadataData =
+      git_->fileAtRevision(resolvedSha, "cli/cli_metadata.json");
+  std::string metadataPath = fmt::format("{}/cli_metadata.json", cliConfigDir);
+
+  // Read the current config for rollback if needed
+  std::string oldConfigData;
+  if (fs::exists(cliConfigPath)) {
+    if (!folly::readFile(cliConfigPath.c_str(), oldConfigData)) {
+      throw std::runtime_error(
+          fmt::format("Failed to read current config from {}", cliConfigPath));
+    }
+  }
+  std::string oldMetadataData;
+  if (fs::exists(metadataPath)) {
+    if (!folly::readFile(metadataPath.c_str(), oldMetadataData)) {
+      throw std::runtime_error(
+          fmt::format("Failed to read current metadata from {}", metadataPath));
+    }
   }
 
-  std::error_code ec;
+  // Atomically write the target config and metadata to the CLI directory
+  folly::writeFileAtomic(
+      cliConfigPath, targetConfigData, 0644, folly::SyncType::WITH_SYNC);
+  folly::writeFileAtomic(
+      metadataPath, targetMetadataData, 0644, folly::SyncType::WITH_SYNC);
 
-  // Verify that the system config is a symlink
-  if (!fs::is_symlink(systemConfigPath_)) {
-    throw std::runtime_error(
-        fmt::format(
-            "{} is not a symlink. Expected it to be a symlink.",
-            systemConfigPath_));
-  }
+  // Ensure the system config symlink points to the CLI config
+  atomicSymlinkUpdate(systemConfigPath, "cli/agent.conf");
 
-  // Read the old symlink target in case we need to undo the rollback
-  std::string oldSymlinkTarget = fs::read_symlink(systemConfigPath_, ec);
-  if (ec) {
-    throw std::runtime_error(
-        fmt::format(
-            "Failed to read symlink {}: {}", systemConfigPath_, ec.message()));
-  }
-
-  // First, create a new revision with the same content as the target revision
-  auto [newRevisionPath, newRevision] =
-      createNextRevisionFile(fmt::format("{}/agent", cliConfigDir_));
-
-  // Copy the target config to the new revision file
-  fs::copy_file(
-      targetConfigPath,
-      newRevisionPath,
-      fs::copy_options::overwrite_existing,
-      ec);
-  if (ec) {
-    // Clean up the revision file we created
-    fs::remove(newRevisionPath);
-    throw std::runtime_error(
-        fmt::format(
-            "Failed to create new revision for rollback: {}", ec.message()));
-  }
-
-  // Atomically update the symlink to point to the new revision
-  atomicSymlinkUpdate(systemConfigPath_, newRevisionPath);
-
-  // Reload the config - if this fails, atomically undo the rollback
+  // Reload the config - if this fails, restore the old config and metadata
   // TODO: look at all the metadata files in the revision range and
   // decide whether or not we need to restart the agent based on the highest
   // action level in that range.
+  std::string newCommitSha;
   try {
     auto client =
         utils::createClient<apache::thrift::Client<facebook::fboss::FbossCtrl>>(
             hostInfo);
     client->sync_reloadConfig();
+
+    // Create a Git commit for the rollback with all relevant files
+    std::string commitMessage = fmt::format(
+        "Rollback to {} by {}", resolvedSha.substr(0, 8), username_);
+    newCommitSha = git_->commit(
+        {cliConfigPath, metadataPath, systemConfigPath},
+        commitMessage,
+        username_,
+        "");
+    LOG(INFO) << "Rollback committed as " << newCommitSha.substr(0, 8);
   } catch (const std::exception& ex) {
-    // Rollback: atomically restore the old symlink
+    // Rollback: restore the old config and metadata
     try {
-      atomicSymlinkUpdate(systemConfigPath_, oldSymlinkTarget);
+      if (!oldConfigData.empty()) {
+        folly::writeFileAtomic(
+            cliConfigPath, oldConfigData, 0644, folly::SyncType::WITH_SYNC);
+      }
+      if (!oldMetadataData.empty()) {
+        folly::writeFileAtomic(
+            metadataPath, oldMetadataData, 0644, folly::SyncType::WITH_SYNC);
+      }
     } catch (const std::exception& rollbackEx) {
       // If rollback also fails, include both errors in the message
       throw std::runtime_error(
           fmt::format(
-              "Failed to reload config: {}. Additionally, failed to rollback the symlink: {}",
+              "Failed to reload config: {}. Additionally, failed to restore the old config: {}",
               ex.what(),
               rollbackEx.what()));
     }
     throw std::runtime_error(
         fmt::format(
-            "Failed to reload config, symlink was rolled back automatically: {}",
+            "Failed to reload config, config was restored automatically: {}",
             ex.what()));
   }
 
-  // Successfully rolled back
-  LOG(INFO) << "Rollback committed as revision r" << newRevision;
-  return newRevision;
+  return newCommitSha;
 }
 
 } // namespace facebook::fboss

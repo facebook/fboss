@@ -14,8 +14,8 @@
 #include <optional>
 #include <string>
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
-#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
+#include "fboss/cli/fboss2/session/Git.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace facebook::fboss::utils {
@@ -29,8 +29,8 @@ namespace facebook::fboss {
  *
  * OVERVIEW:
  * ConfigSession provides a session-based workflow for editing FBOSS agent
- * configuration. It maintains one or more session files that can be edited
- * and then atomically committed to the system configuration.
+ * configuration. It maintains a session file that can be edited and then
+ * atomically committed to the system configuration with Git version control.
  *
  * SINGLETON PATTERN:
  * ConfigSession is typically accessed via getInstance(), which currently
@@ -51,35 +51,38 @@ namespace facebook::fboss {
  * To apply session changes to the system:
  *   1. User runs: fboss2 config session commit
  *   2. ConfigSession::commit() is called, which:
- *      a. Determines the next revision number (e.g., r5)
- *      b. Atomically writes session config to /etc/coop/cli/agent-r5.conf
- *      c. Atomically updates the /etc/coop/agent.conf symlink to point to
- *         agent-r5.conf and calls reloadConfig() on the wedge_agent to
- *         reload its configuration
+ *      a. Atomically writes the session config to /etc/coop/cli/agent.conf
+ *      b. Ensure /etc/coop/agent.conf is a symlink to /etc/coop/cli/agent.conf
+ *      c. Creates a Git commit with the updated agent.conf and metadata
+ *      d. Calls reloadConfig() on wedge_agent (or restarts it for
+ *         AGENT_RESTART changes)
  *   3. The session file is cleared (ready for next edit session)
  *
  * ROLLBACK FLOW:
  * To revert to a previous configuration:
- *   1. User runs: fboss2 config rollback [rN]
+ *   1. User runs: fboss2-dev config rollback [<revision>]
  *   2. ConfigSession::rollback() is called, which:
- *      a. Identifies the target revision (previous or specified)
- *      b. Atomically updates /etc/coop/agent.conf symlink to point to
- * agent-rN.conf c. Calls wedge_agent to reload the configuration
+ *      a. Reads the target revision's agent.conf from Git history
+ *      b. Atomically writes it to /etc/coop/cli/agent.conf
+ *      c. Creates a new Git commit indicating the rollback
+ *      d. Calls wedge_agent to reload the configuration (or restarts
+ *         it if necessary)
  *
  * CONFIGURATION FILES:
  * - Session file: ~/.fboss2/agent.conf (per-user, temporary edits)
- * - System config: <config_dir>/agent.conf (symlink to current revision)
- * - Revision files: <config_dir>/cli/agent-rN.conf (committed configs)
+ * - System config: /etc/coop/agent.conf (symlink to real config, Git-versioned)
+ * - CLI config: /etc/coop/cli/agent.conf (actual config file, Git-versioned)
+ * - Metadata: /etc/coop/cli/cli_metadata.json (commit metadata, Git-versioned)
  *
- * Where <config_dir> is determined by AgentDirectoryUtil::getConfigDirectory()
- * (typically /etc/coop, derived from the parent of the config directory path).
+ * VERSION CONTROL:
+ * The /etc/coop directory is a local Git repository. Each commit() creates
+ * a Git commit with the updated config. History is retrieved via git log,
+ * and rollback reads from Git history rather than using git revert.
  *
  * THREAD SAFETY:
  * ConfigSession is NOT thread-safe. It is designed for single-threaded CLI
  * command execution. The code is safe in face of concurrent usage from
- * multiple processes, e.g. two users trying to commit a config at the same
- * time should not lead to a partially committed config or any process being
- * able to read a partially written file.
+ * multiple processes.
  */
 class ConfigSession {
  public:
@@ -93,11 +96,14 @@ class ConfigSession {
   // Get the path to the session config file (~/.fboss2/agent.conf)
   std::string getSessionConfigPath() const;
 
-  // Get the path to the system config file (/etc/coop/agent.conf)
+  // Get the path to the system config file (/etc/coop/agent.conf symlink)
   std::string getSystemConfigPath() const;
 
   // Get the path to the CLI config directory (/etc/coop/cli)
   std::string getCliConfigDir() const;
+
+  // Get the path to the actual CLI config file (/etc/coop/cli/agent.conf)
+  std::string getCliConfigPath() const;
 
   // Result of a commit operation
   struct CommitResult {
@@ -107,17 +113,17 @@ class ConfigSession {
     std::map<cli::ServiceType, cli::ConfigActionLevel> actions;
   };
 
-  // Atomically commit the session to /etc/coop/cli/agent-rN.conf,
-  // update the symlink /etc/coop/agent.conf to point to it.
-  // For HITLESS changes, also calls reloadConfig() on the agent.
-  // For AGENT_RESTART changes, does NOT call reloadConfig() - user must restart
-  // agent. Returns CommitResult with revision number and action level.
+  // Atomically commit the session to /etc/coop/cli/agent.conf and create a git
+  // commit. For HITLESS changes, also calls reloadConfig() on the agent.
+  // For AGENT_RESTART changes, restarts the agent via systemd.
+  // Returns CommitResult with git commit SHA and action level.
   CommitResult commit(const HostInfo& hostInfo);
 
-  // Rollback to a specific revision or to the previous revision
-  // Returns the revision that was rolled back to
-  int rollback(const HostInfo& hostInfo);
-  int rollback(const HostInfo& hostInfo, const std::string& revision);
+  // Rollback to a specific revision (git commit SHA) or to the previous
+  // revision Returns the git commit SHA of the new commit created for the
+  // rollback
+  std::string rollback(const HostInfo& hostInfo);
+  std::string rollback(const HostInfo& hostInfo, const std::string& commitSha);
 
   // Check if a session exists
   bool sessionExists() const;
@@ -136,9 +142,10 @@ class ConfigSession {
   // This combines saving the config and updating its associated metadata.
   void saveConfig(cli::ServiceType service, cli::ConfigActionLevel actionLevel);
 
-  // Extract revision number from a filename or path like "agent-r42.conf"
-  // Returns -1 if the filename doesn't match the expected pattern
-  static int extractRevisionNumber(const std::string& filenameOrPath);
+  // Get the Git instance for this config session
+  // Used to access the Git repository for history, rollback, etc.
+  Git& getGit();
+  const Git& getGit() const;
 
   // Update the required action level for the current session.
   // Tracks the highest action level across all config commands.
@@ -162,10 +169,7 @@ class ConfigSession {
 
  protected:
   // Constructor for testing with custom paths
-  ConfigSession(
-      const std::string& sessionConfigPath,
-      const std::string& systemConfigPath,
-      const std::string& cliConfigDir);
+  ConfigSession(std::string sessionConfigDir, std::string systemConfigDir);
 
   // Set the singleton instance (for testing only)
   static void setInstance(std::unique_ptr<ConfigSession> instance);
@@ -175,10 +179,12 @@ class ConfigSession {
   void addCommand(const std::string& command);
 
  private:
-  std::string sessionConfigPath_;
-  std::string systemConfigPath_;
-  std::string cliConfigDir_;
+  std::string sessionConfigDir_; // Typically ~/.fboss2
+  std::string systemConfigDir_; // Typically /etc/coop
   std::string username_;
+
+  // Git instance for version control operations
+  std::unique_ptr<Git> git_;
 
   // Lazy-initialized configuration and port map
   cfg::AgentConfig agentConfig_;
@@ -193,7 +199,10 @@ class ConfigSession {
   // List of commands executed in this session, persisted to disk
   std::vector<std::string> commands_;
 
-  // Path to the metadata file (e.g., ~/.fboss2/metadata)
+  // Path to the system metadata file (in the Git repo)
+  std::string getSystemMetadataPath() const;
+
+  // Path to the session metadata file (in the user's home directory)
   std::string getMetadataPath() const;
 
   // Load/save metadata (action levels and commands) from disk
@@ -220,6 +229,9 @@ class ConfigSession {
   void initializeSession();
   void copySystemConfigToSession();
   void loadConfig();
+
+  // Initialize the Git repository if needed
+  void initializeGit();
 };
 
 } // namespace facebook::fboss
