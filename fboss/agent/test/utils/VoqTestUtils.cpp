@@ -175,8 +175,13 @@ std::shared_ptr<SystemPort> makeRemoteSysPort(
   }
   auto remoteSysPort = std::make_shared<SystemPort>(portId);
   auto voqConfig = getDefaultVoqConfig(portType);
-  remoteSysPort->setName(
-      folly::to<std::string>(remoteSwitchName, ":eth1/", portId, "/1"));
+  if (portType == cfg::PortType::HYPER_PORT) {
+    remoteSysPort->setName(
+        folly::to<std::string>(remoteSwitchName, ":hyp1/1/", coreIndex + 1));
+  } else {
+    remoteSysPort->setName(
+        folly::to<std::string>(remoteSwitchName, ":eth1/", portId, "/1"));
+  }
   remoteSysPort->setSwitchId(remoteSwitchId);
   remoteSysPort->setNumVoqs(getRemotePortNumVoqs(intfRole, portType));
   remoteSysPort->setCoreIndex(coreIndex);
@@ -299,7 +304,8 @@ void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Rifs,
     const cfg::SwitchConfig& config,
     bool useEncapIndex,
-    bool addNeighborToIntf) {
+    bool addNeighborToIntf,
+    bool useHyperPort) {
   for (const auto& [remoteSwitchId, remoteDsfNode] : *config.dsfNodes()) {
     if ((*config.switchSettings())
             .switchIdToSwitchInfo()
@@ -478,8 +484,110 @@ void populateRemoteIntfAndSysPorts(
       }
     };
 
+    auto addHyperPortSysPort = [&remoteSysPorts,
+                                &remoteRifs,
+                                useEncapIndex,
+                                addNeighborToIntf](
+                                   const auto& dsfNode, const auto& switchId) {
+      const auto globalOffset = dsfNode.systemPortRanges()
+                                    ->systemPortRanges()
+                                    ->at(0)
+                                    .minimum()
+                                    .value() -
+          1;
+      const auto minEdswSwitchId = 512;
+      static const auto rdswPlatformMapping =
+          Meru800biaPlatformMapping(HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE);
+      static const auto edswPlatformMapping = Meru800biaPlatformMapping(
+          HwAsic::InterfaceNodeRole::HYPER_PORT_EDGE_NODE);
+      const auto& platformMapping = switchId >= minEdswSwitchId
+          ? edswPlatformMapping
+          : rdswPlatformMapping;
+
+      for (const auto& [portID, platformPort] :
+           platformMapping.getPlatformPorts()) {
+        auto mapping = *platformPort.mapping();
+        if (*mapping.scope() == cfg::Scope::GLOBAL &&
+            (*mapping.portType() == cfg::PortType::INTERFACE_PORT ||
+             *mapping.portType() == cfg::PortType::MANAGEMENT_PORT ||
+             *mapping.portType() == cfg::PortType::RECYCLE_PORT ||
+             *mapping.portType() == cfg::PortType::HYPER_PORT)) {
+          const auto remoteSysPortId =
+              static_cast<SystemPortID>(portID + globalOffset);
+          const auto remoteIntfId = static_cast<InterfaceID>(remoteSysPortId);
+          const PortDescriptor portDesc(remoteSysPortId);
+          const std::optional<uint64_t> encapEndx = useEncapIndex
+              ? std::optional<uint64_t>(0x200001 + portID)
+              : std::nullopt;
+
+          // Use subnet
+          // 100+(dsfNodeId/256):(dsfNodeId%256):(localIntfId%256)::1/64 and
+          // 100+(dsfNodeId/256).(dsfNodeId%256).(localIntfId%256).1/24
+          auto firstOctet = 100 + switchId / 256;
+          auto secondOctet = switchId % 256;
+          // For >16K ports, use the second half of 128 range in the octet.
+          auto thirdOctet = portID < 256 ? portID : (portID + 128) % 256;
+          folly::IPAddressV6 neighborIp(
+              folly::to<std::string>(
+                  firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
+          cfg::PortSpeed portSpeed;
+          if (*mapping.portType() == cfg::PortType::MANAGEMENT_PORT ||
+              *mapping.portType() == cfg::PortType::RECYCLE_PORT) {
+            portSpeed = cfg::PortSpeed::HUNDREDG;
+          } else if (*mapping.portType() == cfg::PortType::HYPER_PORT) {
+            portSpeed = cfg::PortSpeed::THREEPOINTTWOT;
+          } else if (switchId >= minEdswSwitchId) {
+            portSpeed = cfg::PortSpeed::EIGHTHUNDREDG;
+          } else {
+            portSpeed = cfg::PortSpeed::FOURHUNDREDG;
+          }
+          auto remoteSysPort = makeRemoteSysPort(
+              remoteSysPortId,
+              SwitchID(switchId),
+              *mapping.attachedCoreId(),
+              *mapping.attachedCorePortIndex(),
+              static_cast<int64_t>(portSpeed),
+              HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE,
+              *mapping.portType(),
+              *dsfNode.name());
+          remoteSysPorts->addSystemPort(remoteSysPort);
+          XLOG(DBG2) << "add remote system port " << (int)(remoteSysPortId)
+                     << " from switch Id " << (int)(switchId);
+          auto remoteRif = makeRemoteInterface(
+              remoteIntfId,
+              {
+                  {folly::IPAddress(
+                       folly::to<std::string>(
+                           firstOctet,
+                           ":",
+                           secondOctet,
+                           ":",
+                           thirdOctet,
+                           "::1")),
+                   64},
+                  {folly::IPAddress(
+                       folly::to<std::string>(
+                           firstOctet,
+                           ".",
+                           secondOctet,
+                           ".",
+                           thirdOctet,
+                           ".1")),
+                   24},
+              });
+
+          if (addNeighborToIntf) {
+            updateRemoteIntfWithNeighbor(
+                remoteRif, remoteIntfId, portDesc, neighborIp, encapEndx);
+          }
+          remoteRifs->addNode(remoteRif);
+        }
+      }
+    };
     if (isDualStage3Q2QMode()) {
       addDualStageSysPort(remoteDsfNode, remoteSwitchId);
+    } else if (useHyperPort) {
+      addHyperPortSysPort(remoteDsfNode, remoteSwitchId);
     } else {
       addSingleStageSysPort(remoteDsfNode, remoteSwitchId);
     }
@@ -551,23 +659,28 @@ boost::container::flat_set<PortDescriptor> unresolveRemoteNhops(
   return sysPortDescs;
 }
 
-void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex) {
-  auto updateDsfStateFn =
-      [swSwitch, useEncapIndex](const std::shared_ptr<SwitchState>& in) {
-        std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
-        std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
-        utility::populateRemoteIntfAndSysPorts(
-            switchId2SystemPorts,
-            switchId2Rifs,
-            swSwitch->getConfig(),
-            useEncapIndex);
-        return DsfStateUpdaterUtil::getUpdatedState(
-            in,
-            swSwitch->getScopeResolver(),
-            swSwitch->getRib(),
-            switchId2SystemPorts,
-            switchId2Rifs);
-      };
+void setupRemoteIntfAndSysPorts(
+    SwSwitch* swSwitch,
+    bool useEncapIndex,
+    bool useHyperPort) {
+  auto updateDsfStateFn = [swSwitch, useEncapIndex, useHyperPort](
+                              const std::shared_ptr<SwitchState>& in) {
+    std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+    std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
+    utility::populateRemoteIntfAndSysPorts(
+        switchId2SystemPorts,
+        switchId2Rifs,
+        swSwitch->getConfig(),
+        useEncapIndex,
+        true, /* addNeighborToIntf */
+        useHyperPort);
+    return DsfStateUpdaterUtil::getUpdatedState(
+        in,
+        swSwitch->getScopeResolver(),
+        swSwitch->getRib(),
+        switchId2SystemPorts,
+        switchId2Rifs);
+  };
   swSwitch->getRib()->updateStateInRibThread([swSwitch, updateDsfStateFn]() {
     swSwitch->updateStateWithHwFailureProtection(
         folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
@@ -578,6 +691,7 @@ std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
     cfg::PortType portType) {
   switch (portType) {
     case cfg::PortType::INTERFACE_PORT:
+    case cfg::PortType::HYPER_PORT:
     case cfg::PortType::HYPER_PORT_MEMBER:
       return QueueConfigAndName{"defaultVoqCofig", getDefaultNifVoqCfg()};
     case cfg::PortType::CPU_PORT:
@@ -588,11 +702,10 @@ std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
     case cfg::PortType::MANAGEMENT_PORT:
     case cfg::PortType::RECYCLE_PORT:
     case cfg::PortType::EVENTOR_PORT:
-    case cfg::PortType::HYPER_PORT:
       if (isDualStage3Q2QMode()) {
         return QueueConfigAndName{"2VoqConfig", get2VoqCfg()};
       }
-      break;
+      return QueueConfigAndName{"defaultVoqCofig", getDefaultNifVoqCfg()};
     case cfg::PortType::FABRIC_PORT:
       XLOG(FATAL) << " No VOQ configs for fabric ports";
       break;

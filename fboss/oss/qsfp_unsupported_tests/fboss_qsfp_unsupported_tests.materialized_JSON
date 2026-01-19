@@ -6751,6 +6751,9 @@
           "test_name_regex": "HwMacsecTest.*$"
         },
         {
+          "test_name_regex": "HwPortPrbsTestAll.*$"
+        },
+        {
           "test_name_regex": "HwPortPrbsTest_LINE_PAM4.*$"
         },
         {
@@ -8220,6 +8223,9 @@
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_COPPER.TestProfile$"
         },
         {
+          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
           "test_name_regex": "HwTest_PROFILE_106POINT25G_1_PAM4_RS544_COPPER.TestProfile$"
         },
         {
@@ -8283,9 +8289,6 @@
           "test_name_regex": "HwTest_PROFILE_400G_2_PAM4_RS544X2N_COPPER.TestProfile$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_400G_2_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_COPPER.TestProfile$"
         },
         {
@@ -8341,6 +8344,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_4_PAM4_RS544X2N_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_COPPER.TestProfile$"
@@ -8429,6 +8435,9 @@
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_COPPER.TestProfile$"
         },
         {
+          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
           "test_name_regex": "HwTest_PROFILE_106POINT25G_1_PAM4_RS544_COPPER.TestProfile$"
         },
         {
@@ -8492,9 +8501,6 @@
           "test_name_regex": "HwTest_PROFILE_400G_2_PAM4_RS544X2N_COPPER.TestProfile$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_400G_2_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_COPPER.TestProfile$"
         },
         {
@@ -8550,6 +8556,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_4_PAM4_RS544X2N_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_COPPER.TestProfile$"
@@ -11375,6 +11384,9 @@
           "test_name_regex": "HwMacsecTest.*$"
         },
         {
+          "test_name_regex": "HwPortPrbsTestAll.*$"
+        },
+        {
           "test_name_regex": "HwPortPrbsTest_SYSTEM_NRZ.*$"
         },
         {
@@ -11558,6 +11570,9 @@
     "yamp_8x16Q/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "HwMacsecTest.*$"
+        },
+        {
+          "test_name_regex": "HwPortPrbsTestAll.*$"
         },
         {
           "test_name_regex": "HwPortPrbsTest_SYSTEM_NRZ.*$"

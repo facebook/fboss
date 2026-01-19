@@ -19,6 +19,7 @@
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/qsfp_service/PortStateMachine.h"
+#include "fboss/qsfp_service/QsfpServiceThreads.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -65,8 +66,7 @@ class PortManager {
       TransceiverManager* transceiverManager,
       std::unique_ptr<PhyManager> phyManager,
       const std::shared_ptr<const PlatformMapping> platformMapping,
-      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          threads,
+      const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads,
       std::shared_ptr<QsfpFsdbSyncManager> fsdbSyncManager = nullptr);
   virtual ~PortManager();
   void gracefulExit();
@@ -179,7 +179,8 @@ class PortManager {
    * first transceiver for a port will always be in use. That guarantee doesn't
    * hold for the second transceiver.
    */
-  TransceiverID getLowestIndexedStaticTransceiverForPort(PortID portId) const;
+  std::optional<TransceiverID> getLowestIndexedStaticTransceiverForPort(
+      PortID portId) const;
 
   std::optional<TransceiverID> getNonControllingTransceiverIdForMultiTcvr(
       TransceiverID tcvrId) const;
@@ -189,6 +190,9 @@ class PortManager {
    * that supports reverse Y-Cable downlinks, this will be two transceiver for
    * downlink ports. */
   std::vector<TransceiverID> getStaticTransceiversForPort(PortID portId) const;
+
+  // Returns true if the port has a transceiver associated with it
+  bool portHasTransceiver(PortID portId) const;
 
   /* Checks if a port is the lowest indexed, initialized port assigned to a
    * specific transceiver. */
@@ -214,9 +218,12 @@ class PortManager {
   virtual void programInternalPhyPorts(TransceiverID id);
 
   // Marked virtual for MockPortManager testing.
-  virtual void programExternalPhyPorts(
-      TransceiverID tcvrId,
+  virtual void programExternalPhyPort(
+      PortID portId,
+      std::optional<TransceiverID> tcvrIdOpt,
       bool xPhyNeedResetDataPath);
+
+  void markExternalPhyTransceiversReady();
 
   virtual std::map<uint32_t, phy::PhyIDInfo> getAllPortPhyInfo();
 
@@ -237,6 +244,20 @@ class PortManager {
 
   void setOverrideAgentConfigAppliedInfoForTesting(
       std::optional<ConfigAppliedInfo> configAppliedInfo);
+
+  // An override of port to profile mapping for xphy non-transceiver ports.
+  // Due to hw_test won't be able to get wedge_agent running, this override
+  // map will mimic the return of programmed xphy ports based on portId.
+  // NOTE: Only use in test
+  using OverrideXphyNoTcvrPortToProfile =
+      std::unordered_map<PortID, cfg::PortProfileID>;
+  void setOverrideXphyNoTcvrPortToProfileForTesting(
+      std::optional<OverrideXphyNoTcvrPortToProfile>
+          overrideXphyNoTcvrPortToProfile = std::nullopt);
+  const OverrideXphyNoTcvrPortToProfile&
+  getOverrideXphyNoTcvrPortToProfileForTesting() const {
+    return overrideXphyNoTcvrPortToProfileForTest_;
+  }
 
   void getAllPortSupportedProfiles(
       std::map<std::string, std::vector<cfg::PortProfileID>>&
@@ -314,6 +335,11 @@ class PortManager {
   // For testing purposes only.
   const std::unordered_set<PortID>& getCachedXphyPortsForTest() const {
     return cachedXphyPorts_;
+  }
+
+  // For testing purposes only.
+  int getStateMachineCountForTest() const {
+    return stateMachineControllers_.size();
   }
 
   void updateTransceiverPortStatus() noexcept;
@@ -424,7 +450,6 @@ class PortManager {
     isExiting_ = true;
   }
 
-  static void handlePendingUpdatesHelper(PortManager* mgr);
   void handlePendingUpdates();
 
   PortNameIdMap setupPortNameToPortIDMap();
@@ -439,6 +464,8 @@ class PortManager {
   std::map<int32_t, NpuPortStatus> overrideAgentPortStatusForTesting_;
   // This ConfigAppliedInfo is an override of agent getConfigAppliedInfo()
   std::optional<ConfigAppliedInfo> overrideAgentConfigAppliedInfoForTesting_;
+  // This map is an override of port to profile for xphy non-transceiver ports.
+  OverrideXphyNoTcvrPortToProfile overrideXphyNoTcvrPortToProfileForTest_;
 
   /*
    * A ConfigAppliedInfo to keep track of the last wedge_agent config applied
@@ -479,8 +506,7 @@ class PortManager {
   std::unique_ptr<folly::EventBase> updateEventBase_;
   std::shared_ptr<ThreadHeartbeat> updateThreadHeartbeat_;
 
-  const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-      threads_;
+  const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads_;
 
   const TcvrToPortMap tcvrToPortMap_;
   const PortToTcvrMap portToTcvrMap_;
@@ -496,6 +522,10 @@ class PortManager {
 
   // These data structures help out with iterating through initialized ports /
   // transceivers faster.
+
+  // All initialized ports (both transceiver-backed and XPHY-only).
+  // Populated dynamically via setPortEnabledStatusInCache.
+  folly::Synchronized<std::set<PortID>> initializedPorts_;
 
   const TcvrToSynchronizedPortSet tcvrToInitializedPorts_;
   // Initialized transceivers indicates if a transceiver is in use by a specific

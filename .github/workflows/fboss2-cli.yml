@@ -1,0 +1,95 @@
+name: Build & Test fboss2 CLI
+run-name: Build & Test fboss2 CLI
+on:
+  # Allow on pull request
+  pull_request:
+    paths:
+      - 'fboss/cli/**'
+      - 'cmake/CliFboss2.cmake'
+      - 'cmake/CliFboss2Test.cmake'
+      - '.github/workflows/fboss2-cli.yml'
+  # Allow manually triggering the workflow
+  workflow_dispatch:
+  # Also schedule the workflow to run every 3 hours during day only
+  # ShipIt job will sync hourly around HH:21, so schedule the run with 15 minute offset
+  schedule:
+    # Run daily at 1:36AM UTC = 6:36PM PDT
+    # Run daily at 1:36PM UTC = 6:36AM PDT
+    # Run daily at 7:36PM UTC = 12:36PM PDT
+    - cron: '36 1,13,19 * * *'
+jobs:
+  fboss2-CLI-Build:
+    if: github.repository_owner == 'facebook'
+    runs-on: 32-core-ubuntu
+    steps:
+      - run: echo "Confirming hardware specications:"; sudo lscpu
+      - name: Clean workspace
+        run: sudo rm -rf ${{ github.workspace }}/*
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Run Docker-based build for fboss2 CLI
+        run: >
+          sudo
+          ./fboss/oss/scripts/docker-build.py
+          --scratch-path
+          ${{ github.workspace }}/build-output
+          --target
+          fboss2_targets
+          --no-docker-output
+          --env-var
+          GITHUB_ACTIONS_BUILD
+          --local
+          &&
+          sudo
+          chown
+          -R
+          runner:runner
+          ${{ github.workspace }}
+      - name: Package fboss2 CLI binaries and library dependencies
+        run: >
+          sudo
+          docker
+          run
+          -v
+          ${{ github.workspace }}:/var/FBOSS/fboss:z
+          -v
+          ${{ github.workspace }}/build-output:/var/FBOSS/tmp_bld_dir:z
+          --cap-add=CAP_AUDIT_WRITE
+          --name
+          FBOSS2_CLI_PACKAGE_CONTAINER
+          fboss_image:latest
+          python3
+          /var/FBOSS/fboss/fboss/oss/scripts/package-fboss.py
+          --copy-root-libs
+          --scratch-path=/var/FBOSS/tmp_bld_dir
+          --compress
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fboss2-cli
+          path: ${{ github.workspace }}/build-output/fboss_bins.tar.zst
+          # Explicitly set the retention at the object level
+          retention-days: 14
+  fboss2-CLI-Test:
+    if: github.repository_owner == 'facebook'
+    runs-on: ubuntu-latest
+    needs: fboss2-CLI-Build
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Download artifact with test binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: fboss2-cli
+      - run: ls ${{ github.workspace }}
+      - name: Run unit tests
+        run: >
+          sudo
+          ./fboss/oss/scripts/github_actions/docker-unittest.py
+          ${{ github.workspace }}/fboss_bins.tar.zst
+          &&
+          sudo
+          chown
+          -R
+          runner:runner
+          ${{ github.workspace }}

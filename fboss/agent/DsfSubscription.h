@@ -10,6 +10,8 @@
 #include "fboss/fsdb/client/FsdbSubManager.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 
+#include <deque>
+#include <mutex>
 #include <string>
 
 namespace facebook::fboss {
@@ -84,6 +86,7 @@ class DsfSubscription {
       const MultiSwitchSystemPortMap& newPortMap,
       const MultiSwitchInterfaceMap& newInterfaceMap);
   void queueDsfUpdate(DsfUpdate&& dsfUpdate);
+  void clearDsfUpdateQueueAndGRFlag();
 
   fsdb::FsdbStreamClient::State getStreamState() const;
 
@@ -99,7 +102,27 @@ class DsfSubscription {
   folly::IPAddress remoteIp_;
   SwSwitch* sw_;
   DsfSession session_;
-  folly::Synchronized<std::unique_ptr<DsfUpdate>> nextDsfUpdate_;
+  // Use a queue of DsfUpdates to store updates across GR expiry events. Updates
+  // are only coalesced if they are not between GR expiry events. For example,
+  // if the following events happen chronologically
+  //
+  // [Update1, Update2, GR, Update 3, Update4]
+  //
+  // The queue should be like
+  // 1. [Update 1]
+  // 2. [Update 2] (overwriting update 1)
+  // 3. [Update 2, GR]
+  // 4. [Update 2, GR, Update 3]
+  // 5. [Update 2, GR, Update 4] (overwriting update 3)
+  // In this case, we should still schedule 3 events for above 2 updates and 1
+  // GR.
+  //
+  // Since the opreation of scheduling and euqueueing are inexpensive, use the
+  // update mutex to guard the critical sections conservatively. The boolean
+  // flag of lastEventGR_ will also be used to enqueue new updates after GR.
+  std::mutex dsfUpdateMutex_;
+  std::deque<DsfUpdate> dsfUpdateQueue_;
+  bool lastEventGR_{false};
   // Cache current state of sysports and intfs received from remote
   // node. Since after the initial update we are not guaranteed to
   // receive the entire set of sysports and rifs in any update. For
@@ -124,6 +147,18 @@ class DsfSubscription {
   FRIEND_TEST(DsfSubscriptionTest, RemoteEndpointString);
   template <typename T>
   FRIEND_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, MultipleQueuedDsfUpdatesCoalesce);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, GREventSeparatesUpdates);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, MultipleGREventsSeparateUpdates);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, ConcurrentQueueDsfUpdates);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, ConcurrentQueueDsfUpdateAndGRExpiry);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued);
 };
 
 } // namespace facebook::fboss

@@ -34,8 +34,7 @@ class WedgeManager : public TransceiverManager {
       std::unique_ptr<TransceiverPlatformApi> api,
       const std::shared_ptr<const PlatformMapping> platformMapping,
       PlatformType type,
-      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          threads);
+      const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads);
   ~WedgeManager() override;
 
   void getTransceiversInfo(
@@ -157,7 +156,10 @@ class WedgeManager : public TransceiverManager {
   size_t getI2cLogBufferCapacity(int32_t portId);
   std::pair<size_t, size_t> dumpTransceiverI2cLog(
       const std::string& portName) override;
-  std::pair<size_t, size_t> dumpTransceiverI2cLog(int32_t portId) {
+  std::pair<size_t, size_t> dumpTransceiverI2cLog(int32_t portId) override {
+    if (qsfpImpls_.size() <= portId) {
+      return {0, 0};
+    }
     return qsfpImpls_[portId]->dumpTransceiverI2cLog();
   }
   std::string getI2cLogName(int32_t portId) const {

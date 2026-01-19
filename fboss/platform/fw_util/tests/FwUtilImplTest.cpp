@@ -210,11 +210,54 @@ TEST_F(FwUtilImplTest, DoFirmwareActionInvalidAction) {
   FwUtilImpl fwUtil(binaryFilePath_.string(), configFilePath_, false, false);
 
   // Invalid action should log error and exit(1)
-  // Using EXPECT_EXIT to verify the exit behavior
   EXPECT_EXIT(
       fwUtil.doFirmwareAction("BIOS", "invalid_action"),
       ::testing::ExitedWithCode(1),
       "Invalid action");
+}
+
+// ============================================================================
+// printVersion() Tests
+// ============================================================================
+
+TEST_F(FwUtilImplTest, PrintVersionInvalidFpd) {
+  if (!createdPlatformFile_) {
+    GTEST_SKIP() << "Skipping test: unable to create platform name file";
+  }
+
+  FwUtilImpl fwUtil(binaryFilePath_.string(), configFilePath_, false, false);
+
+  // printVersion for invalid FPD should throw
+  EXPECT_THROW(fwUtil.printVersion("INVALID_FPD"), std::runtime_error);
+}
+
+// ============================================================================
+// Priority Sorting Tests
+// ============================================================================
+
+TEST_F(FwUtilImplTest, FpdListSortedByPriority) {
+  if (!createdPlatformFile_) {
+    GTEST_SKIP() << "Skipping test: unable to create platform name file";
+  }
+
+  // Create a config with known priorities to test sorting behavior
+  std::string sortTestConfig = tempDir_.string() + "/sort_test.json";
+  std::ofstream configFile(sortTestConfig);
+  configFile << R"({
+  "fwConfigs": {
+    "DeviceC": { "version": { "versionType": "Not Applicable" }, "priority": 3 },
+    "DeviceA": { "version": { "versionType": "Not Applicable" }, "priority": 1 },
+    "DeviceB": { "version": { "versionType": "Not Applicable" }, "priority": 2 }
+  }
+})";
+  configFile.close();
+
+  FwUtilImpl fwUtil(binaryFilePath_.string(), sortTestConfig, false, false);
+  std::vector<std::string> fpdList = fwUtil.getFpdNameList();
+
+  // Verify sorting behavior: list should be ordered by ascending priority
+  const std::vector<std::string> expected{"DeviceA", "DeviceB", "DeviceC"};
+  EXPECT_EQ(fpdList, expected);
 }
 
 } // namespace facebook::fboss::platform::fw_util

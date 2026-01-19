@@ -10,59 +10,28 @@
 
 #pragma once
 
+#include <fboss/agent/if/gen-cpp2/common_types.h>
 #include <fboss/thrift_cow/nodes/Types.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
+#include <thrift/lib/cpp2/gen/module_types_h.h>
 #include <type_traits>
 
 namespace facebook::fboss::thrift_cow {
 
-// helper struct to read Thrift annotation allow_skip_thrift_cow
-template <typename T, typename T2 = void>
-struct read_annotation_allow_skip_thrift_cow {
-  static constexpr bool value = false;
-};
+// Concept to check if a Thrift field is annotated with AllowSkipThriftCow at
+// compile time
+template <typename TStruct, typename FieldId>
+concept field_allow_skip_thrift_cow = apache::thrift::is_thrift_class_v<
+                                          TStruct> &&
+    apache::thrift::has_field_annotation<facebook::fboss::AllowSkipThriftCow,
+                                         TStruct,
+                                         FieldId>();
 
-// fatal respsents true and false as
-// "constexpr" char sequence of "1" and "0", respectively
-using fatal_true = fatal::sequence<char, '1'>;
-
-// need a little template specialization magic since annotation values are void
-// when nothing is set. without this we can't try to pull out
-// annotation allow_skip_thrift_cow on structs that don't have annotatiosn
-template <>
-struct read_annotation_allow_skip_thrift_cow<void> {
-  static constexpr bool value = false;
-};
-
-FATAL_S(allow_skip_thrift_cow_annotation, "allow_skip_thrift_cow");
-
-template <typename Annotations>
-struct read_annotation_allow_skip_thrift_cow<
-    Annotations,
-    typename std::enable_if_t<std::is_same_v<
-        typename Annotations::keys::allow_skip_thrift_cow,
-        allow_skip_thrift_cow_annotation>>> {
-  static constexpr bool value = std::is_same<
-      typename Annotations::values::allow_skip_thrift_cow,
-      fatal_true>::value;
-};
-
-template <typename TC, typename TType, typename = void>
-struct read_type_annotation_allow_skip_thrift_cow {
-  static constexpr bool value = false;
-};
-
-template <typename TC, typename TType>
-struct read_type_annotation_allow_skip_thrift_cow<
-    TC,
-    TType,
-    typename std::enable_if_t<
-        std::is_same_v<TC, apache::thrift::type_class::structure>>> {
-  using annotations =
-      typename apache::thrift::reflect_struct<TType>::annotations;
-  static constexpr bool value =
-      read_annotation_allow_skip_thrift_cow<annotations>::value;
-};
+// Concept to check if a Thrift type is annotated with AllowSkipThriftCow at
+// compile time
+template <typename TType>
+concept type_allow_skip_thrift_cow = apache::thrift::is_thrift_class_v<TType> &&
+    apache::thrift::
+        has_struct_annotation<facebook::fboss::AllowSkipThriftCow, TType>();
 
 template <typename TType, bool EnableHybridStorage = false>
 struct ThriftStructResolver {
@@ -125,10 +94,7 @@ struct ConvertToNodeTraits<
     apache::thrift::type_class::structure,
     TType> {
   static constexpr bool skipThriftCow =
-      EnableHybridStorage &&
-      read_type_annotation_allow_skip_thrift_cow<
-          apache::thrift::type_class::structure,
-          TType>::value;
+      EnableHybridStorage && type_allow_skip_thrift_cow<TType>;
   using default_type = std::conditional_t<
       skipThriftCow,
       ThriftHybridNode<apache::thrift::type_class::structure, TType>,
@@ -232,19 +198,25 @@ struct ConvertToImmutableNodeTraits {
 template <typename Derived, typename Name>
 struct ResolveMemberType : std::false_type {};
 
-template <typename Derived, typename Member, bool EnableHybridStorage>
+template <
+    typename Struct,
+    typename Derived,
+    typename Member,
+    bool EnableHybridStorage>
 struct StructMemberTraits {
   using member = Member;
-  using traits = StructMemberTraits<Derived, Member, EnableHybridStorage>;
+  using traits =
+      StructMemberTraits<Struct, Derived, Member, EnableHybridStorage>;
   using name = typename Member::name;
   using ttype = typename Member::type;
   using tc = typename Member::type_class;
 
   // read member annotations
-  using member_annotations = typename Member::annotations;
   static constexpr bool allowSkipThriftCow = EnableHybridStorage &&
-      (read_annotation_allow_skip_thrift_cow<member_annotations>::value ||
-       read_type_annotation_allow_skip_thrift_cow<tc, ttype>::value);
+      (field_allow_skip_thrift_cow<
+           Struct,
+           apache::thrift::field_id<Member::id::value>> ||
+       type_allow_skip_thrift_cow<ttype>);
 
   // need to resolve here
   using default_type = std::conditional_t<
@@ -263,10 +235,10 @@ struct StructMemberTraits {
       default_type>;
 };
 
-template <typename Derived, bool EnableHybridStorage>
+template <typename Struct, typename Derived, bool EnableHybridStorage>
 struct ExtractStructFields {
   template <typename T>
-  using apply = StructMemberTraits<Derived, T, EnableHybridStorage>;
+  using apply = StructMemberTraits<Struct, Derived, T, EnableHybridStorage>;
 };
 
 template <typename Member, bool EnableHybridStorage = false>

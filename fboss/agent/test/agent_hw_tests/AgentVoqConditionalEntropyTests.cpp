@@ -10,9 +10,6 @@
 namespace facebook::fboss {
 
 namespace {
-constexpr auto kEcmpWidth = 4;
-// Send traffic through the 5th interface port and verify load balancing
-const auto kIngressPort = kEcmpWidth + 1;
 constexpr auto kRehashPeriodUs = 100;
 constexpr auto kReservedBytesWithRehashEnabled = 0x40;
 } // namespace
@@ -35,13 +32,19 @@ class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
   }
   std::vector<PortDescriptor> getEcmpSysPorts() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
-        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+        getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
+        std::nullopt,
+        RouterID(0),
+        false,
+        {cfg::PortType::INTERFACE_PORT});
     std::vector<PortDescriptor> sysPortDescs;
-    auto localSysPortDescs = resolveLocalNhops(ecmpHelper);
+    auto localSysPortDescs =
+        resolveLocalNhops(ecmpHelper, {cfg::PortType::INTERFACE_PORT});
     sysPortDescs.insert(
         sysPortDescs.end(),
         localSysPortDescs.begin(),
-        localSysPortDescs.begin() + kEcmpWidth);
+        localSysPortDescs.begin() + this->getEcmpWidth());
     return sysPortDescs;
   }
   std::vector<SystemPortID> getEcmpSysPortIDs() {
@@ -56,7 +59,12 @@ class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
   void setupEcmpGroup() {
     auto sysPortDescs = getEcmpSysPorts();
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
-        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+        getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
+        std::nullopt,
+        RouterID(0),
+        false,
+        {cfg::PortType::INTERFACE_PORT});
     auto prefix = RoutePrefixV6{folly::IPAddressV6("0::0"), 0};
     auto routeUpdater = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(
@@ -73,6 +81,30 @@ class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
     }
     getSw()->clearPortStats(ports);
   }
+  int getEcmpWidth() {
+    if (FLAGS_hyper_port) {
+      // only two regular eth ports left on J3 if hyper port feature is enabled
+      return 2;
+    }
+    return 4;
+  }
+  std::vector<int> getIngressPortIndexes() {
+    if (FLAGS_hyper_port) {
+      // only two regular eth ports left on J3 if hyper port feature is enabled
+      // So, there is no third eth port with conditionalEntropyRehash=true to
+      // inject packets. Instead, ject same amount of packets from each regular
+      // eth port in this case, and then verify traffic balanced or not.
+      return {0, 1};
+    }
+    return {getEcmpWidth() + 1};
+  }
+
+ protected:
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    // conditional entropy is only applicable to regular eth interface ports
+    FLAGS_hide_interface_ports = false;
+  }
 };
 
 TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
@@ -82,8 +114,9 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
 
   auto verify = [this]() {
     // Send traffic through the 5th interface port and verify load balancing
-    const auto kIngressPortIndex = 5;
-    CHECK(masterLogicalInterfacePortIds().size() > kIngressPortIndex + 1);
+    CHECK(
+        masterLogicalInterfacePortIds().size() >
+        getIngressPortIndexes().back());
 
     auto sysPortDescs = getEcmpSysPorts();
     std::function<std::map<SystemPortID, HwSysPortStats>(
@@ -95,21 +128,23 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
 
     utility::pumpTrafficAndVerifyLoadBalanced(
         [&]() {
-          utility::pumpRoCETraffic(
-              true /* isV6 */,
-              utility::getAllocatePktFn(getAgentEnsemble()),
-              utility::getSendPktFunc(getAgentEnsemble()),
-              utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
-              std::nullopt /* vlan */,
-              masterLogicalInterfacePortIds()[kIngressPortIndex],
-              utility::kUdfL4DstPort,
-              255 /* hopLimit */,
-              std::nullopt /* srcMacAddr */,
-              1000000, /* packetCount */
-              utility::kUdfRoceOpcodeAck,
-              kReservedBytesWithRehashEnabled, /* reserved */
-              std::nullopt, /* nextHdr */
-              true /* sameDstQueue */);
+          for (const int i : getIngressPortIndexes()) {
+            utility::pumpRoCETraffic(
+                true /* isV6 */,
+                utility::getAllocatePktFn(getAgentEnsemble()),
+                utility::getSendPktFunc(getAgentEnsemble()),
+                utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+                std::nullopt /* vlan */,
+                masterLogicalInterfacePortIds()[i],
+                utility::kUdfL4DstPort,
+                255 /* hopLimit */,
+                std::nullopt /* srcMacAddr */,
+                1000000, /* packetCount */
+                utility::kUdfRoceOpcodeAck,
+                kReservedBytesWithRehashEnabled, /* reserved */
+                std::nullopt, /* nextHdr */
+                true /* sameDstQueue */);
+          }
         },
         [&]() { clearSysPortStats(sysPortDescs); },
         [&]() {
@@ -126,26 +161,30 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyNonRoceTrafficUnbalanced) {
   auto setup = [this]() { setupEcmpGroup(); };
 
   auto verify = [this]() {
-    CHECK(masterLogicalInterfacePortIds().size() > kIngressPort + 1);
+    CHECK(
+        masterLogicalInterfacePortIds().size() >
+        getIngressPortIndexes().back());
 
     auto srcIp = folly::IPAddress("1001::1");
     auto dstIp = folly::IPAddress("2001::1");
     auto bytesSent = 0;
     for (auto i = 0; i < 10000; ++i) {
-      auto pkt = utility::makeUDPTxPacket(
-          utility::getAllocatePktFn(getAgentEnsemble()),
-          std::nullopt,
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
-          srcIp, /* fixed */
-          dstIp, /* fixed */
-          42, /* arbit src port, fixed */
-          24);
-      bytesSent += pkt->buf()->computeChainDataLength();
-      getAgentEnsemble()->sendPacketAsync(
-          std::move(pkt),
-          PortDescriptor(masterLogicalInterfacePortIds()[kIngressPort]),
-          std::nullopt);
+      for (const int j : getIngressPortIndexes()) {
+        auto pkt = utility::makeUDPTxPacket(
+            utility::getAllocatePktFn(getAgentEnsemble()),
+            std::nullopt,
+            utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+            utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+            srcIp, /* fixed */
+            dstIp, /* fixed */
+            42, /* arbit src port, fixed */
+            24);
+        bytesSent += pkt->buf()->computeChainDataLength();
+        getAgentEnsemble()->sendPacketAsync(
+            std::move(pkt),
+            PortDescriptor(masterLogicalInterfacePortIds()[j]),
+            std::nullopt);
+      }
     }
 
     WITH_RETRIES({
@@ -170,7 +209,9 @@ TEST_F(
   auto setup = [this]() { setupEcmpGroup(); };
 
   auto verify = [this]() {
-    CHECK(masterLogicalInterfacePortIds().size() > kIngressPort + 1);
+    CHECK(
+        masterLogicalInterfacePortIds().size() >
+        getIngressPortIndexes().back());
 
     const auto ecmpSystemPorts = getEcmpSysPortIDs();
     const auto kBitsPerByte = 8;
@@ -180,24 +221,26 @@ TEST_F(
       if (reservedBytes == kReservedBytesWithRehashEnabled) {
         continue;
       }
-
       const auto beforeStats = getLatestSysPortStats(ecmpSystemPorts);
-      auto packetSize = utility::pumpRoCETraffic(
-          true /* isV6 */,
-          utility::getAllocatePktFn(getAgentEnsemble()),
-          utility::getSendPktFunc(getAgentEnsemble()),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
-          std::nullopt /* vlan */,
-          masterLogicalInterfacePortIds()[kIngressPort],
-          utility::kUdfL4DstPort,
-          255 /* hopLimit */,
-          std::nullopt /* srcMacAddr */,
-          kPacketsToSend, /* packetCount */
-          utility::kUdfRoceOpcodeAck,
-          reservedBytes,
-          std::nullopt, /* nextHdr */
-          true /* sameDstQueue */);
-      const auto totalBytesSent = packetSize * kPacketsToSend;
+      int totalBytesSent = 0;
+      for (const int j : getIngressPortIndexes()) {
+        auto packetSize = utility::pumpRoCETraffic(
+            true /* isV6 */,
+            utility::getAllocatePktFn(getAgentEnsemble()),
+            utility::getSendPktFunc(getAgentEnsemble()),
+            utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+            std::nullopt /* vlan */,
+            masterLogicalInterfacePortIds()[j],
+            utility::kUdfL4DstPort,
+            255 /* hopLimit */,
+            std::nullopt /* srcMacAddr */,
+            kPacketsToSend, /* packetCount */
+            utility::kUdfRoceOpcodeAck,
+            reservedBytes,
+            std::nullopt, /* nextHdr */
+            true /* sameDstQueue */);
+        totalBytesSent += packetSize * kPacketsToSend;
+      }
 
       WITH_RETRIES({
         getSw()->updateStats();

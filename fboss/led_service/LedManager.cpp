@@ -28,13 +28,15 @@ LedManager::LedManager() {
     XLOG(ERR) << "LED config file not present: " << e.what();
   }
 
+  XLOG(INFO) << "Created base LED Manager";
+}
+
+void LedManager::subscribeToFsdb() {
   // Subscribe to Fsdb
   fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>("led_service");
   fsdbSwitchStateSubscriber_ =
       std::make_unique<FsdbSwitchStateSubscriber>(fsdbPubSubMgr_.get());
   fsdbSwitchStateSubscriber_->subscribeToSwitchState(this);
-
-  XLOG(INFO) << "Created base LED Manager and subscribed to FSDB";
 }
 
 /*
@@ -43,8 +45,10 @@ LedManager::LedManager() {
  * Stop event base thread for Led Manager
  */
 LedManager::~LedManager() {
-  fsdbSwitchStateSubscriber_->removeSwitchStateSubscription();
-  XLOG(INFO) << "Removed LED manager subscription from FSDB";
+  if (fsdbSwitchStateSubscriber_) {
+    fsdbSwitchStateSubscriber_->removeSwitchStateSubscription();
+    XLOG(INFO) << "Removed LED manager subscription from FSDB";
+  }
 
   if (eventBase_) {
     eventBase_->terminateLoopSoon();

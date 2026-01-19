@@ -84,6 +84,7 @@ struct Port {
 struct ChipSetting {
   1: ChipType chip_type;
   2: phy.InterfaceType chip_interface_type;
+  3: optional phy.FecMode chip_fec;
 }
 
 // Stores the information parsed from Profile Settings CSV
@@ -99,7 +100,6 @@ struct SpeedSetting {
 
 struct TransceiverOverrideSetting {
   1: transceiver.Vendor vendor;
-  2: transceiver.MediaInterfaceCode media_interface_code;
 }
 
 // Represents all the factors in the SI Settings CSV
@@ -121,6 +121,8 @@ struct SiSettingRow {
   2: SiSettingFactor factor;
   3: phy.TxSettings tx_setting;
   4: phy.RxSettings rx_setting;
+  5: optional map<string, i32> custom_tx_collection;
+  6: optional map<string, i32> custom_rx_collection;
 }
 
 struct ConnectionEnd {
@@ -138,6 +140,8 @@ struct SiFactorAndSetting {
   1: phy.TxSettings tx_setting;
   2: phy.RxSettings rx_setting;
   3: optional SiSettingFactor factor;
+  4: optional map<string, i32> custom_tx_collection;
+  5: optional map<string, i32> custom_rx_collection;
 }
 
 struct TxRxLaneInfo {

@@ -65,11 +65,11 @@ const {
         logo: {
           alt: 'FBOSS Agent',
           src: 'img/FBOSS_Agent.png',
-          href: 'https://www.internalfb.com/intern/wiki/FBOSS_Agent/',
+          href: 'docs/',
         },
         items: fbInternalOnly([
         {
-          href: 'https://www.internalfb.com/intern/wiki/FBOSS_Agent/',
+          to: 'docs/',
           label: 'Home',
           position: 'left',
         },

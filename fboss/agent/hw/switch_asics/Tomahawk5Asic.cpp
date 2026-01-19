@@ -121,6 +121,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
+    case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -226,6 +227,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
     case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
+    case HwAsic::Feature::SAI_SERDES_RX_REACH:
       return false;
   }
   return false;

@@ -1,12 +1,11 @@
 # pyre-strict
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from neteng.fboss.platform_mapping_config.ttypes import (
     SiFactorAndSetting,
     SiSettingPinConnection,
     SiSettingRow,
 )
-
 from neteng.fboss.switch_config.ttypes import PortSpeed
 from neteng.fboss.transceiver.ttypes import TransmitterTechnology
 
@@ -21,7 +20,7 @@ class SiSettings:
                 self._si_settings[pin_connection_str] = []
             self._si_settings[pin_connection_str].append(setting)
 
-    # Here is where we can return miultiple pairs, since there could be
+    # Here is where we can return multiple pairs, since there could be
     # connections sharing same pin connections but with different SI settings.
     # Given some factors, return the matching setting from the SI Settings CSV
     def get_factor_and_setting(
@@ -46,6 +45,8 @@ class SiSettings:
                             factor=setting.factor,
                             tx_setting=setting.tx_setting,
                             rx_setting=setting.rx_setting,
+                            custom_tx_collection=setting.custom_tx_collection,
+                            custom_rx_collection=setting.custom_rx_collection,
                         )
                     )
                 else:
@@ -54,6 +55,8 @@ class SiSettings:
                             factor=None,
                             tx_setting=setting.tx_setting,
                             rx_setting=setting.rx_setting,
+                            custom_tx_collection=setting.custom_tx_collection,
+                            custom_rx_collection=setting.custom_rx_collection,
                         )
                     )
         return si_factor_and_settings

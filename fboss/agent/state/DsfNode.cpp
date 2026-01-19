@@ -11,8 +11,6 @@
 
 #include <folly/MacAddress.h>
 
-#include "fboss/agent/gen-cpp2/switch_config_fatal.h"
-
 namespace facebook::fboss {
 
 DsfNode::DsfNode(SwitchID switchId)

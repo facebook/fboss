@@ -257,7 +257,8 @@ void cmisMediaInputLoopbackDirect(
 bool setTransceiverLoopback(
     DirectI2cInfo i2cInfo,
     std::vector<std::string> portList,
-    LoopbackMode mode);
+    LoopbackMode mode,
+    folly::EventBase& evb);
 
 std::map<std::string, std::vector<int32_t>> getPortTransceiverIDs(
     folly::EventBase& evb);

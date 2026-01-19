@@ -104,6 +104,12 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
+    case HwAsic::Feature::PMD_RX_LOCK_STATUS:
+    case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
+    case HwAsic::Feature::RX_SNR:
+    case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
+    case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
+    case HwAsic::Feature::ARS:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -114,10 +120,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::MEDIA_TYPE:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
-    case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
-    case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
-    case HwAsic::Feature::ARS:
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
@@ -185,7 +188,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
     case HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK:
     case HwAsic::Feature::DELETED_CREDITS_STAT:
-    case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS:
     case HwAsic::Feature::NO_RX_REASON_TRAP:
     case HwAsic::Feature::EGRESS_GVOQ_WATERMARK_BYTES:
@@ -221,10 +223,10 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
-    case HwAsic::Feature::PMD_RX_LOCK_STATUS: // CS00012426349
-    case HwAsic::Feature::PMD_RX_SIGNAL_DETECT: // CS00012426349
     case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
+    case HwAsic::Feature::SAI_SERDES_RX_REACH:
+    case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
       return false;
   }
   return false;

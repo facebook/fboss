@@ -84,9 +84,13 @@ void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Rifs,
     const cfg::SwitchConfig& config,
     bool useEncapIndex,
-    bool addNeighborToIntf = true);
+    bool addNeighborToIntf = true,
+    bool useHyperPort = false);
 
-void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex);
+void setupRemoteIntfAndSysPorts(
+    SwSwitch* swSwitch,
+    bool useEncapIndex,
+    bool useHyperPort = false);
 
 struct QueueConfigAndName {
   std::string name;

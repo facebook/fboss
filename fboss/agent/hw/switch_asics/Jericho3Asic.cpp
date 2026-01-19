@@ -233,16 +233,18 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
-      /*
-       * J3 does not support NEXTHOP_TTL_DECREMENT_DISABLE. Similar effect is
-       * achieved by configuring to forward TTL0 packets by enabling
-       * SAI_TTL0_PACKET_FORWARD_ENABLE.
-       */
+    /*
+     * J3 does not support NEXTHOP_TTL_DECREMENT_DISABLE. Similar effect is
+     * achieved by configuring to forward TTL0 packets by enabling
+     * SAI_TTL0_PACKET_FORWARD_ENABLE.
+     */
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
     case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
+    case HwAsic::Feature::SAI_SERDES_RX_REACH:
+    case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
       return false;
   }
   return false;

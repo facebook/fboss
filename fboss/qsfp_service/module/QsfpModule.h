@@ -20,7 +20,6 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/firmware_storage/FbossFirmware.h"
-#include "fboss/lib/link_snapshots/SnapshotManager.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
@@ -77,7 +76,6 @@ struct TransceiverConfig {
  */
 class QsfpModule : public Transceiver {
  public:
-  static constexpr auto kSnapshotIntervalSeconds = 10;
   // Miniphoton module part number
   static constexpr auto kMiniphotonPartNumber = "LUX1626C4AD";
   using LengthAndGauge = std::pair<double, uint8_t>;
@@ -225,24 +223,17 @@ class QsfpModule : public Transceiver {
   void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)
       override;
 
-  SnapshotManager getTransceiverSnapshots() const {
-    // return a copy to avoid needing a lock in the caller
-    return snapshots_.copy();
-  }
-
   void programTransceiver(
       ProgramTransceiverState& programTcvrState,
       bool needResetDataPath) override;
 
-  bool readyTransceiver() override;
+  bool readyTransceiver(bool hasTunableOpticsConfig) override;
 
   portstate::PortState getPortState() override {
     return portState_;
   }
 
   virtual void triggerVdmStatsCapture() override {}
-
-  void publishSnapshots() override;
 
   /*
    * Try to remediate such Transceiver if needed.
@@ -351,7 +342,6 @@ class QsfpModule : public Transceiver {
    */
   uint64_t numRemediation_{0};
 
-  folly::Synchronized<SnapshotManager> snapshots_;
   folly::Synchronized<std::optional<TransceiverInfo>> info_;
   /*
    * qsfpModuleMutex_ is held around all the read and writes to the qsfpModule
@@ -390,8 +380,11 @@ class QsfpModule : public Transceiver {
   /*
    * If the current power state is not same as desired one then change it and
    * return true when module is in ready state
+   * @param hasTunableOpticsConfig - indicates if tunable optics config is
+   *        present. For tunable optics modules without config, an exception
+   *        is thrown to prevent high power mode transition.
    */
-  virtual bool ensureTransceiverReadyLocked() = 0;
+  virtual bool ensureTransceiverReadyLocked(bool hasTunableOpticsConfig) = 0;
 
   /*
    * This function returns a pointer to the value in the static cached

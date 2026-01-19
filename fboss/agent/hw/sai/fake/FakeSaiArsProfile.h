@@ -11,6 +11,8 @@
 
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
+#include <optional>
+
 extern "C" {
 #include <sai.h>
 }
@@ -29,8 +31,8 @@ struct FakeArsProfile {
       sai_uint8_t port_load_past_weight,
       sai_uint32_t load_past_min_val,
       sai_uint32_t load_past_max_val,
-      bool port_load_future,
-      sai_uint8_t port_load_future_weight,
+      std::optional<bool> port_load_future,
+      std::optional<sai_uint8_t> port_load_future_weight,
       sai_uint32_t load_future_min_val,
       sai_uint32_t load_future_max_val,
       bool port_load_current,
@@ -81,8 +83,8 @@ struct FakeArsProfile {
   sai_uint8_t port_load_past_weight;
   sai_uint32_t load_past_min_val;
   sai_uint32_t load_past_max_val;
-  bool port_load_future;
-  sai_uint8_t port_load_future_weight;
+  std::optional<bool> port_load_future;
+  std::optional<sai_uint8_t> port_load_future_weight;
   sai_uint32_t load_future_min_val;
   sai_uint32_t load_future_max_val;
   bool port_load_current;

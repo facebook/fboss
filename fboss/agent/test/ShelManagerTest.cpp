@@ -3,6 +3,8 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/ShelManager.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -87,9 +89,16 @@ class ShelManagerTest : public ::testing::Test {
     fibV4.addNode(v4Route);
     fibContainer->setFib(fibV4.clone());
 
-    auto fibMap = std::make_shared<MultiSwitchForwardingInformationBaseMap>();
-    fibMap->addNode(fibContainer, HwSwitchMatcher());
-    newState->resetForwardingInformationBases(fibMap);
+    // Create ForwardingInformationBaseMap and add the container
+    auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
+    fibsMap->updateForwardingInformationBaseContainer(fibContainer);
+
+    auto fibInfo = std::make_shared<FibInfo>();
+    fibInfo->resetFibsMap(fibsMap);
+
+    auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+    fibInfoMap->updateFibInfo(fibInfo, HwSwitchMatcher());
+    newState->resetFibsInfoMap(fibInfoMap);
 
     auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
     auto addSwitchSettings = [&multiSwitchSwitchSettings,

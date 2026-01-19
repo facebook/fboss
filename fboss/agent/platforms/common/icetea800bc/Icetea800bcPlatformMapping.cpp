@@ -54239,7 +54239,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
       }
     }
   ]
-})";
+}
+)";
 } // namespace
 
 namespace facebook::fboss {
