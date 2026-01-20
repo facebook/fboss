@@ -297,6 +297,7 @@ cpp_library(
         "commands/show/facebook/CmdShowVersionLed.cpp",
         "commands/show/facebook/CmdShowVersionMka.cpp",
         "commands/show/facebook/CmdShowVersionQsfp.cpp",
+        "commands/show/facebook/CmdShowVersionRackmon.cpp",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyUtils.cpp",
         "commands/show/facebook/config/CmdShowConfigUtils.cpp",
         "commands/show/facebook/environment/env_keys.cpp",
