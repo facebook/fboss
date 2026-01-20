@@ -294,6 +294,7 @@ cpp_library(
         "commands/show/facebook/CmdShowVersionCoop.cpp",
         "commands/show/facebook/CmdShowVersionDataCorralService.cpp",
         "commands/show/facebook/CmdShowVersionFsdb.cpp",
+        "commands/show/facebook/CmdShowVersionLed.cpp",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyUtils.cpp",
         "commands/show/facebook/config/CmdShowConfigUtils.cpp",
         "commands/show/facebook/environment/env_keys.cpp",
