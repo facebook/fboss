@@ -148,11 +148,10 @@ namespace facebook::fboss {
 TransceiverManager::TransceiverManager(
     std::unique_ptr<TransceiverPlatformApi> api,
     const std::shared_ptr<const PlatformMapping> platformMapping,
-    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-        threads)
+    const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads)
     : qsfpPlatApi_(std::move(api)),
       platformMapping_(platformMapping),
-      threads_(threads),
+      qsfpServiceThreads_(qsfpServiceThreads),
       tcvrToPortInfo_(setupTransceiverToPortInfo()),
       stateMachineControllers_(setupTransceiverToStateMachineControllerMap()) {
   // Cache the static mapping based on platformMapping_
@@ -952,14 +951,14 @@ TransceiverManager::setupTransceiverToPortInfo() {
 
 void TransceiverManager::startThreads() {
   // Setup all TransceiverStateMachineHelper thread
-  if (!threads_) {
+  if (!qsfpServiceThreads_) {
     throw FbossError(
         "Attempting to initialize TransceiverManager without initializing thread object.");
   }
 
-  for (auto& threadHelper : *threads_) {
-    threadHelper.second.startThread();
-    heartbeats_.push_back(threadHelper.second.getThreadHeartbeat());
+  for (auto& [threadId, threadHelper] : qsfpServiceThreads_->threadIdToThread) {
+    threadHelper.startThread();
+    heartbeats_.push_back(threadHelper.getThreadHeartbeat());
   }
 
   XLOG(DBG2) << "Started TransceiverStateMachineUpdateThread";
@@ -1021,8 +1020,8 @@ void TransceiverManager::stopThreads() {
   }
 
   // And finally stop all TransceiverStateMachineHelper thread
-  for (auto& threadHelper : *threads_) {
-    threadHelper.second.stopThread();
+  for (auto& [threadId, threadHelper] : qsfpServiceThreads_->threadIdToThread) {
+    threadHelper.stopThread();
   }
 }
 
@@ -1098,9 +1097,8 @@ bool TransceiverManager::enqueueStateUpdate(
 
 void TransceiverManager::executeStateUpdates() {
   // Signal the update thread that updates are pending.
-  // We call runInEventBaseThread() with a static function pointer since this
-  // is more efficient than having to allocate a new bound function object.
-  updateEventBase_->runInEventBaseThread(handlePendingUpdatesHelper, this);
+  updateEventBase_->runInEventBaseThread(
+      [this] { this->handlePendingUpdates(); });
 }
 
 bool TransceiverManager::updateState(
@@ -1114,28 +1112,24 @@ bool TransceiverManager::updateState(
   return true;
 }
 
-void TransceiverManager::handlePendingUpdatesHelper(TransceiverManager* mgr) {
-  return mgr->handlePendingUpdates();
-}
 void TransceiverManager::handlePendingUpdates() {
   // Try to run one state machine updates on each transceiver.
   XLOG(DBG2) << "Trying to update all TransceiverStateMachines";
 
   // To expedite all these different transceivers state update, use Future
   std::vector<folly::Future<folly::Unit>> stateUpdateTasks;
-  for (auto& [tcvrID, threadHelper] : *threads_) {
-    auto stateMachineItr = stateMachineControllers_.find(tcvrID);
-    if (stateMachineItr == stateMachineControllers_.end()) {
+  for (auto& [tcvrID, stateMachineController] : stateMachineControllers_) {
+    auto* eventBase = getEventBaseForTcvr(qsfpServiceThreads_, tcvrID);
+    if (!eventBase) {
       XLOG(WARN) << "Unrecognize Transceiver: " << tcvrID
-                 << ", can't find ThreadHelper for it. Skip updating.";
+                 << ", can't find EventBase for it. Skip updating.";
       continue;
     }
 
     stateUpdateTasks.push_back(
-        folly::via(threadHelper.getEventBase())
-            .thenValue([stateMachineItr](auto&&) {
-              stateMachineItr->second->executeSingleUpdate();
-            }));
+        folly::via(eventBase).thenValue([&stateMachineController](auto&&) {
+          stateMachineController->executeSingleUpdate();
+        }));
   }
   folly::collectAll(stateUpdateTasks).wait();
 }
@@ -1706,6 +1700,11 @@ void TransceiverManager::programTransceiver(
  * Calls the module type specific function to check their power control
  * configuration and if needed, corrects it. Returns if the module is in ready
  * state to proceed further with programming.
+ *
+ * For ZR module, this function checks if tunable optics config
+ * is present in qsfp_service_config and passes this information to the
+ * transceiver. If the config is not present for a ZR optic,
+ * the module will not be moved to high power mode.
  */
 bool TransceiverManager::readyTransceiver(TransceiverID id) {
   auto lockedTransceivers = transceivers_.rlock();
@@ -1716,7 +1715,11 @@ bool TransceiverManager::readyTransceiver(TransceiverID id) {
     return true;
   }
 
-  return tcvrIt->second->readyTransceiver();
+  // Check if tunable optics config is present for this transceiver
+  const auto opticalChannelConfig = getOpticalChannelConfig(id);
+  bool hasTunableOpticsConfig = opticalChannelConfig.has_value();
+
+  return tcvrIt->second->readyTransceiver(hasTunableOpticsConfig);
 }
 
 void TransceiverManager::resetPortState(const TransceiverID& id) {
@@ -2008,8 +2011,13 @@ void TransceiverManager::triggerFirmwareUpgradeEvents(
   for (auto tcvrID : tcvrs) {
     TransceiverStateMachineEvent event =
         TransceiverStateMachineEvent::TCVR_EV_UPGRADE_FIRMWARE;
-    heartbeatWatchdog_->pauseMonitoringHeartbeat(
-        threads_->find(tcvrID)->second.getThreadHeartbeat());
+    auto tcvrThreadIdIt = qsfpServiceThreads_->tcvrToThreadId.find(tcvrID);
+    if (tcvrThreadIdIt != qsfpServiceThreads_->tcvrToThreadId.end()) {
+      auto& threadHelper =
+          qsfpServiceThreads_->threadIdToThread.at(tcvrThreadIdIt->second);
+      heartbeatWatchdog_->pauseMonitoringHeartbeat(
+          threadHelper.getThreadHeartbeat());
+    }
     // Only enqueue updates for now, we'll execute them at once after this
     // loop
     if (auto result =
@@ -2385,9 +2393,9 @@ void TransceiverManager::refreshStateMachines() {
 void TransceiverManager::completeRefresh() {
   // Resume heartbeats at the end of refresh loop in case they were paused by
   // any of the operations during the refresh cycle
-  for (auto& threadHelper : *threads_) {
+  for (auto& [threadId, threadHelper] : qsfpServiceThreads_->threadIdToThread) {
     heartbeatWatchdog_->resumeMonitoringHeartbeat(
-        threadHelper.second.getThreadHeartbeat());
+        threadHelper.getThreadHeartbeat());
   }
   heartbeatWatchdog_->resumeMonitoringHeartbeat(updateThreadHeartbeat_);
   isUpgradingFirmware_ = false;
@@ -3646,6 +3654,17 @@ void TransceiverManager::ensureTransceiversMapLocked(
 }
 
 void TransceiverManager::drainAllStateMachineUpdates() {
+  if (stateMachineControllers_.empty()) {
+    XLOG(INFO) << "No state machines created - returning early.";
+    return;
+  }
+
+  if (!updateEventBase_ || !qsfpServiceThreads_) {
+    XLOG(INFO)
+        << "updateEventBase_ or threads not initialized - returning early.";
+    return;
+  }
+
   // Enforce no updates can be added while draining.
   for (auto& [_, stateMachineController] : stateMachineControllers_) {
     stateMachineController->blockNewUpdates();
@@ -3653,8 +3672,8 @@ void TransceiverManager::drainAllStateMachineUpdates() {
 
   // Make sure threads are actually active before we start draining.
   bool allStateMachineThreadsActive{true};
-  for (auto& threadHelper : *threads_) {
-    if (!threadHelper.second.isThreadActive()) {
+  for (auto& [threadId, threadHelper] : qsfpServiceThreads_->threadIdToThread) {
+    if (!threadHelper.isThreadActive()) {
       allStateMachineThreadsActive = false;
       break;
     }

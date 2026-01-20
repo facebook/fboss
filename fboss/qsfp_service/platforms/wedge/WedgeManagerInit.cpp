@@ -29,6 +29,7 @@
 #include "fboss/lib/bsp/wedge800cact/Wedge800CACTBspPlatformMapping.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/qsfp_service/PortManager.h"
+#include "fboss/qsfp_service/QsfpServiceThreads.h"
 #include "fboss/qsfp_service/platforms/wedge/BspWedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/GalaxyManager.h"
 #include "fboss/qsfp_service/platforms/wedge/Wedge100Manager.h"
@@ -44,8 +45,7 @@ namespace {
 struct ManagerInitComponents {
   std::unique_ptr<PlatformProductInfo> productInfo;
   std::shared_ptr<const PlatformMapping> platformMapping;
-  const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-      threads;
+  std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads;
 };
 
 ManagerInitComponents initializeManagerComponents() {
@@ -68,14 +68,9 @@ ManagerInitComponents initializeManagerComponents() {
   std::shared_ptr<const PlatformMapping> platformMapping =
       utility::initPlatformMapping(mode);
 
-  const auto threads =
-      std::make_shared<std::unordered_map<TransceiverID, SlotThreadHelper>>();
-  for (const auto& tcvrID :
-       utility::getTransceiverIds(platformMapping->getChips())) {
-    threads->emplace(tcvrID, SlotThreadHelper(tcvrID));
-  }
+  auto qsfpServiceThreads = createQsfpServiceThreads(platformMapping);
 
-  return {std::move(productInfo), platformMapping, threads};
+  return {std::move(productInfo), platformMapping, qsfpServiceThreads};
 }
 
 } // namespace
@@ -83,110 +78,129 @@ ManagerInitComponents initializeManagerComponents() {
 std::unique_ptr<WedgeManager> createWedgeManager(
     std::unique_ptr<PlatformProductInfo> productInfo,
     const std::shared_ptr<const PlatformMapping> platformMapping,
-    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-        threads) {
+    std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads) {
   auto mode = productInfo->getType();
 
   createDir(FLAGS_qsfp_service_volatile_dir);
 
   switch (mode) {
     case PlatformType::PLATFORM_WEDGE100:
-      return std::make_unique<Wedge100Manager>(platformMapping, threads);
+      return std::make_unique<Wedge100Manager>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_GALAXY_LC:
     case PlatformType::PLATFORM_GALAXY_FC:
-      return std::make_unique<GalaxyManager>(mode, platformMapping, threads);
+      return std::make_unique<GalaxyManager>(
+          mode, platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_YAMP:
-      return createYampWedgeManager(platformMapping, threads);
+      return createYampWedgeManager(platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_DARWIN:
     case PlatformType::PLATFORM_DARWIN48V:
-      return createDarwinWedgeManager(platformMapping, threads);
+      return createDarwinWedgeManager(platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_ELBERT:
-      return createElbertWedgeManager(platformMapping, threads);
+      return createElbertWedgeManager(platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_MERU400BFU:
       return createBspWedgeManager<
           Meru400bfuBspPlatformMapping,
-          PlatformType::PLATFORM_MERU400BFU>(platformMapping, threads);
+          PlatformType::PLATFORM_MERU400BFU>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_MERU400BIA:
       return createBspWedgeManager<
           Meru400biaBspPlatformMapping,
-          PlatformType::PLATFORM_MERU400BIA>(platformMapping, threads);
+          PlatformType::PLATFORM_MERU400BIA>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_MERU400BIU:
       return createBspWedgeManager<
           Meru400biuBspPlatformMapping,
-          PlatformType::PLATFORM_MERU400BIU>(platformMapping, threads);
+          PlatformType::PLATFORM_MERU400BIU>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_MERU800BIA:
     case PlatformType::PLATFORM_MERU800BIAB:
     case PlatformType::PLATFORM_MERU800BIAC:
       return createBspWedgeManager<
           Meru800biaBspPlatformMapping,
-          PlatformType::PLATFORM_MERU800BIA>(platformMapping, threads);
+          PlatformType::PLATFORM_MERU800BIA>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_MERU800BFA:
     case PlatformType::PLATFORM_MERU800BFA_P1:
       return createBspWedgeManager<
           Meru800bfaBspPlatformMapping,
-          PlatformType::PLATFORM_MERU800BFA>(platformMapping, threads);
+          PlatformType::PLATFORM_MERU800BFA>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_MONTBLANC:
       return createBspWedgeManager<
           MontblancBspPlatformMapping,
-          PlatformType::PLATFORM_MONTBLANC>(platformMapping, threads);
+          PlatformType::PLATFORM_MONTBLANC>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_ICECUBE800BC:
       return createBspWedgeManager<
           Icecube800bcBspPlatformMapping,
-          PlatformType::PLATFORM_ICECUBE800BC>(platformMapping, threads);
+          PlatformType::PLATFORM_ICECUBE800BC>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_ICETEA800BC:
       return createBspWedgeManager<
           Icetea800bcBspPlatformMapping,
-          PlatformType::PLATFORM_ICETEA800BC>(platformMapping, threads);
+          PlatformType::PLATFORM_ICETEA800BC>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_MINIPACK3N:
       return createBspWedgeManager<
           Minipack3NBspPlatformMapping,
-          PlatformType::PLATFORM_MINIPACK3N>(platformMapping, threads);
+          PlatformType::PLATFORM_MINIPACK3N>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_MORGAN800CC:
       return createBspWedgeManager<
           Morgan800ccBspPlatformMapping,
-          PlatformType::PLATFORM_MORGAN800CC>(platformMapping, threads);
+          PlatformType::PLATFORM_MORGAN800CC>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_WEDGE400C:
-      return std::make_unique<Wedge400CManager>(platformMapping, threads);
+      return std::make_unique<Wedge400CManager>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_JANGA800BIC:
       return createBspWedgeManager<
           Janga800bicBspPlatformMapping,
-          PlatformType::PLATFORM_JANGA800BIC>(platformMapping, threads);
+          PlatformType::PLATFORM_JANGA800BIC>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_TAHAN800BC:
       return createBspWedgeManager<
           Tahan800bcBspPlatformMapping,
-          PlatformType::PLATFORM_TAHAN800BC>(platformMapping, threads);
+          PlatformType::PLATFORM_TAHAN800BC>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_FUJI:
     case PlatformType::PLATFORM_MINIPACK:
       return createFBWedgeManager(
-          std::move(productInfo), platformMapping, threads);
+          std::move(productInfo), platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_WEDGE400:
-      return std::make_unique<Wedge400Manager>(platformMapping, threads);
+      return std::make_unique<Wedge400Manager>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_TAHANSB800BC:
       return createBspWedgeManager<
           Tahansb800bcBspPlatformMapping,
-          PlatformType::PLATFORM_TAHANSB800BC>(platformMapping, threads);
+          PlatformType::PLATFORM_TAHANSB800BC>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_WEDGE800BACT:
       return createBspWedgeManager<
           Wedge800BACTBspPlatformMapping,
-          PlatformType::PLATFORM_WEDGE800BACT>(platformMapping, threads);
+          PlatformType::PLATFORM_WEDGE800BACT>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_WEDGE800CACT:
       return createBspWedgeManager<
           Wedge800CACTBspPlatformMapping,
-          PlatformType::PLATFORM_WEDGE800CACT>(platformMapping, threads);
+          PlatformType::PLATFORM_WEDGE800CACT>(
+          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_LADAKH800BCLS:
       return createBspWedgeManager<
           Ladakh800bclsBspPlatformMapping,
-          PlatformType::PLATFORM_LADAKH800BCLS>(platformMapping, threads);
+          PlatformType::PLATFORM_LADAKH800BCLS>(
+          platformMapping, qsfpServiceThreads);
     default:
-      return std::make_unique<Wedge40Manager>(platformMapping, threads);
+      return std::make_unique<Wedge40Manager>(
+          platformMapping, qsfpServiceThreads);
   }
 }
 
 template <typename BspPlatformMapping, PlatformType platformType>
 std::unique_ptr<WedgeManager> createBspWedgeManager(
     const std::shared_ptr<const PlatformMapping> platformMapping,
-    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-        threads) {
+    std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads) {
   auto systemContainer =
       BspGenericSystemContainer<BspPlatformMapping>::getInstance().get();
   return std::make_unique<BspWedgeManager>(
@@ -194,29 +208,28 @@ std::unique_ptr<WedgeManager> createBspWedgeManager(
       std::make_unique<BspTransceiverApi>(systemContainer),
       platformMapping,
       platformType,
-      threads);
+      qsfpServiceThreads);
 }
 
 std::pair<std::unique_ptr<WedgeManager>, std::unique_ptr<PortManager>>
 createQsfpManagers() {
-  auto [productInfo, platformMapping, threads] = initializeManagerComponents();
+  auto [productInfo, platformMapping, qsfpServiceThreads] =
+      initializeManagerComponents();
 
   const auto platformType = productInfo->getType();
-  auto wedgeManager =
-      createWedgeManager(std::move(productInfo), platformMapping, threads);
+  auto wedgeManager = createWedgeManager(
+      std::move(productInfo), platformMapping, qsfpServiceThreads);
   auto phyManager =
       createPhyManager(platformType, platformMapping.get(), wedgeManager.get());
 
   std::unique_ptr<PortManager> portManager{nullptr};
   if (FLAGS_port_manager_mode) {
-    // When port_manager_mode is enabled, we want Port Manager to own the
-    // PhyManager.
     portManager = createPortManager(
         platformType,
         wedgeManager.get(),
         std::move(phyManager),
         platformMapping,
-        threads);
+        qsfpServiceThreads);
   } else {
     if (phyManager) {
       wedgeManager->setPhyManager(std::move(phyManager));

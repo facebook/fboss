@@ -235,12 +235,41 @@ def get_xphy_chip(chip: Chip) -> DataPlanePhyChip:
     )
 
 
+def _create_xphy_profile_side_config(
+    speed_setting: SpeedSetting,
+    use_a_chip_settings: bool,
+) -> ProfileSideConfig:
+    """Create a ProfileSideConfig for XPHY line or system side.
+
+    Args:
+        speed_setting: The speed setting containing lane/modulation/media info
+        use_a_chip_settings: If True, use a_chip_settings; else use z_chip_settings
+
+    Returns:
+        Configured ProfileSideConfig object
+    """
+    chip_settings = (
+        speed_setting.a_chip_settings
+        if use_a_chip_settings
+        else speed_setting.z_chip_settings
+    )
+
+    config = ProfileSideConfig()
+    config.numLanes = speed_setting.num_lanes
+    config.modulation = speed_setting.modulation
+    config.fec = chip_settings.chip_fec
+    config.interfaceType = chip_settings.chip_interface_type
+    config.medium = speed_setting.media_type
+    return config
+
+
 # Creates a PlatformPortProfileConfigEntry for a given profileID, numlanes,
 # modulation, fec mode and interface type
 def get_platform_config_entry(
     profile: PortProfileID,
     npu_speed_setting: SpeedSetting,
-    xphy_speed_setting: Optional[SpeedSetting] = None,
+    xphy_line_speed_setting: Optional[SpeedSetting] = None,
+    xphy_system_speed_setting: Optional[SpeedSetting] = None,
 ) -> Optional[PlatformPortProfileConfigEntry]:
     factor = PlatformPortConfigFactor()
     profile_config = PortProfileConfig()
@@ -255,7 +284,7 @@ def get_platform_config_entry(
     ):
         npu_profile_side_config.numLanes = npu_speed_setting.num_lanes
         npu_profile_side_config.modulation = npu_speed_setting.modulation
-        npu_profile_side_config.fec = npu_speed_setting.fec
+        npu_profile_side_config.fec = npu_speed_setting.a_chip_settings.chip_fec
         if is_npu(npu_speed_setting.a_chip_settings.chip_type):
             npu_profile_side_config.interfaceType = (
                 npu_speed_setting.a_chip_settings.chip_interface_type
@@ -267,29 +296,18 @@ def get_platform_config_entry(
         npu_profile_side_config.medium = npu_speed_setting.media_type
         profile_config.iphy = npu_profile_side_config
 
-        # Configure XPHY side if available
-        if xphy_speed_setting is not None:
-            xphy_profile_side_config = ProfileSideConfig()
-            if is_xphy(xphy_speed_setting.a_chip_settings.chip_type) or is_xphy(
-                xphy_speed_setting.z_chip_settings.chip_type
-            ):
-                xphy_profile_side_config.numLanes = xphy_speed_setting.num_lanes
-                xphy_profile_side_config.modulation = xphy_speed_setting.modulation
-                # Set FEC to NONE for XPHY (retimer PHYs like Agera3 don't do FEC encoding/decoding)
-                xphy_profile_side_config.fec = FecMode.NONE
-                if is_xphy(xphy_speed_setting.a_chip_settings.chip_type):
-                    xphy_profile_side_config.interfaceType = (
-                        xphy_speed_setting.a_chip_settings.chip_interface_type
-                    )
-                else:
-                    xphy_profile_side_config.interfaceType = (
-                        xphy_speed_setting.z_chip_settings.chip_interface_type
-                    )
-                xphy_profile_side_config.medium = xphy_speed_setting.media_type
+        if xphy_line_speed_setting is not None:
+            # XPHY Line side config (from XPHY→BACKPLANE row, XPHY is A-end)
+            profile_config.xphyLine = _create_xphy_profile_side_config(
+                xphy_line_speed_setting, use_a_chip_settings=True
+            )
 
-                # Set both xphyLine and xphySystem to the same config
-                profile_config.xphyLine = xphy_profile_side_config
-                profile_config.xphySystem = xphy_profile_side_config
+        if xphy_system_speed_setting is not None:
+            # XPHY System side config (from NPU→XPHY row, XPHY is Z-end)
+            profile_config.xphySystem = _create_xphy_profile_side_config(
+                xphy_system_speed_setting,
+                use_a_chip_settings=False,
+            )
 
         return PlatformPortProfileConfigEntry(factor=factor, profile=profile_config)
     return None
@@ -527,7 +545,6 @@ def _create_override_from_si_setting(
         ports=[port_id],
         profiles=[profile],
         transceiverManagementInterface=None,
-        mediaInterfaceCode=si_setting_and_factor.factor.tcvr_override_setting.media_interface_code,
         vendor=vendor,
     )
 

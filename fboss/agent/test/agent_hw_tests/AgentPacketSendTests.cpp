@@ -528,8 +528,8 @@ class AgentPacketFloodTest : public AgentHwTest {
 TEST_F(AgentPacketFloodTest, ArpRequestFloodTest) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
-    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}));
+    auto portStatsBefore =
+        getLatestPortStats(masterLogicalInterfaceOrHyperPortIds());
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
@@ -545,9 +545,7 @@ TEST_F(AgentPacketFloodTest, ArpRequestFloodTest) {
         ARP_OPER::ARP_OPER_REQUEST,
         std::nullopt);
     getAgentEnsemble()->ensureSendPacketOutOfPort(
-        std::move(txPacket),
-        masterLogicalPortIds(
-            {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0]);
+        std::move(txPacket), masterLogicalInterfaceOrHyperPortIds()[0]);
     EXPECT_TRUE(checkPacketFlooding(portStatsBefore, false));
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -562,8 +560,8 @@ TEST_F(AgentPacketFloodTest, NdpFloodTest) {
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto success = false;
     while (retries--) {
-      auto portStatsBefore = getLatestPortStats(masterLogicalPortIds(
-          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}));
+      auto portStatsBefore =
+          getLatestPortStats(masterLogicalInterfaceOrHyperPortIds());
       auto txPacket = utility::makeNeighborSolicitation(
           getSw(),
           vlanId,
@@ -571,9 +569,7 @@ TEST_F(AgentPacketFloodTest, NdpFloodTest) {
           folly::IPAddressV6(folly::IPAddressV6::LINK_LOCAL, intfMac),
           folly::IPAddressV6("1::2"));
       getAgentEnsemble()->ensureSendPacketOutOfPort(
-          std::move(txPacket),
-          masterLogicalPortIds(
-              {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0]);
+          std::move(txPacket), masterLogicalInterfaceOrHyperPortIds()[0]);
       if (checkPacketFlooding(portStatsBefore, true)) {
         success = true;
         break;
@@ -589,8 +585,8 @@ TEST_F(AgentPacketFloodTest, NdpFloodTest) {
 TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
-    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0]);
+    auto portStatsBefore =
+        getLatestPortStats(masterLogicalInterfaceOrHyperPortIds()[0]);
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
@@ -607,8 +603,8 @@ TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
         std::nullopt);
     getSw()->sendPacketSwitchedAsync(std::move(txPacket));
     WITH_RETRIES({
-      auto portStatsAfter = getLatestPortStats(masterLogicalPortIds(
-          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0]);
+      auto portStatsAfter =
+          getLatestPortStats(masterLogicalInterfaceOrHyperPortIds()[0]);
       XLOG(DBG2) << "ARP Packet:" << " before pkts:"
                  << *portStatsBefore.outBroadcastPkts_()
                  << ", after pkts:" << *portStatsAfter.outBroadcastPkts_()

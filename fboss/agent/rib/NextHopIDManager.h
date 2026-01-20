@@ -96,13 +96,16 @@ class NextHopIDManager {
         : id(id_), count(count_) {}
   };
 
+  static constexpr uint64_t kNextHopIDStart = 1;
+  static constexpr uint64_t kNextHopSetIDStart = 1ULL << 63;
+
   // Counter for generating NextHop IDs, starting from 1
   // allocate 0 - (2^63 -1) IDs for NextHops.
-  NextHopID nextAvailableNextHopID_{1};
+  NextHopID nextAvailableNextHopID_{kNextHopIDStart};
 
   // Counter for generating NextHopSet IDs, starting from 2^63
   // Allocate 2^63 - (2^64 - 1) IDs for NextHopIDSets.
-  NextHopSetID nextAvailableNextHopSetID_{1ULL << 63};
+  NextHopSetID nextAvailableNextHopSetID_{kNextHopSetIDStart};
 
   // Mapping from NextHop to its ID and reference count
   std::unordered_map<NextHop, NextHopIDInfo> nextHopToIDInfo_;

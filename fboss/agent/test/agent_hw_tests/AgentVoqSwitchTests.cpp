@@ -332,9 +332,15 @@ TEST_F(AgentVoqSwitchTest, fdrRciAndCoreRciWatermarks) {
 
 TEST_F(AgentVoqSwitchTest, addRemoveNeighbor) {
   auto setup = [this]() {
-    const PortDescriptor kPortDesc(
-        getAgentEnsemble()->masterLogicalPortIds(
-            {cfg::PortType::INTERFACE_PORT})[0]);
+    PortID portID;
+    if (FLAGS_hyper_port) {
+      portID = getAgentEnsemble()->masterLogicalPortIds(
+          {cfg::PortType::HYPER_PORT})[0];
+    } else {
+      portID = getAgentEnsemble()->masterLogicalPortIds(
+          {cfg::PortType::INTERFACE_PORT})[0];
+    }
+    const PortDescriptor kPortDesc(portID);
     // Add neighbor
     addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
     // Remove neighbor

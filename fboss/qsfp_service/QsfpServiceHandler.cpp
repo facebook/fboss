@@ -101,7 +101,10 @@ void QsfpServiceHandler::getPortStateMachineState(
     std::map<int32_t, PortStateMachineState>& info,
     std::unique_ptr<std::vector<int32_t>> ids) {
   auto log = LOG_THRIFT_CALL(INFO);
-  portManager_->getPortStates(info, std::move(ids));
+  if (FLAGS_port_manager_mode) {
+    // Only populate if port manager mode is enabled.
+    portManager_->getPortStates(info, std::move(ids));
+  }
 }
 
 void QsfpServiceHandler::getPortMediaInterface(

@@ -38,6 +38,7 @@ cpp_unittest(
         "AggregationValidationTest.cpp",
         "CmdArgsTest.cpp",
         "CmdHelpTest.cpp",
+        "CmdSubCommandsTest.cpp",
         "FilterTest.cpp",
         "FilterValidationTest.cpp",
     ],
@@ -45,10 +46,15 @@ cpp_unittest(
         "fbsource//third-party/googletest:gmock",
         ":cmd_test_utils",
         "//fboss/cli/fboss2:cli-cpp2-types",
+        "//fboss/cli/fboss2:cli-parser-utils",
         "//fboss/cli/fboss2:cmd-global-options",
+        "//fboss/cli/fboss2:cmd-subcommands",
         "//fboss/cli/fboss2:fboss2-lib",
         "//fboss/cli/fboss2:ops-utils",
         "//thrift/lib/cpp2/reflection:testing",
+    ],
+    external_deps = [
+        "CLI11",
     ],
 )
 
@@ -56,6 +62,7 @@ cpp_unittest(
     name = "cmd_test",
     srcs = [
         "CmdConfigAppliedInfoTest.cpp",
+        "CmdConfigHistoryTest.cpp",
         "CmdConfigReloadTest.cpp",
         "CmdConfigSessionDiffTest.cpp",
         "CmdConfigSessionTest.cpp",

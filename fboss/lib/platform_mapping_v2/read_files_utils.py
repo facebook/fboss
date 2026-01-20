@@ -200,7 +200,7 @@ def read_port_profile_mapping(
 def read_profile_settings(directory: Dict[str, str], prefix: str) -> ProfileSettings:
     PROFILE_SETTINGS_SUFFIX = "_profile_settings.csv"
     Column = column_int_enum_generator(
-        "PORT_SPEED_MBPS A_CHIP_TYPE Z_CHIP_TYPE NUM_LANES MODULATION FEC MEDIA_TYPE A_INTERFACE_TYPE Z_INTERFACE_TYPE"
+        "PORT_SPEED_MBPS A_CHIP_TYPE Z_CHIP_TYPE NUM_LANES MODULATION A_FEC Z_FEC MEDIA_TYPE A_INTERFACE_TYPE Z_INTERFACE_TYPE"
     )
     profiles = []
     for index, line in enumerate(
@@ -220,7 +220,11 @@ def read_profile_settings(directory: Dict[str, str], prefix: str) -> ProfileSett
             z_chip_type = None
         num_lanes = int(row[Column.NUM_LANES])
         modulation = IpModulation._NAMES_TO_VALUES[row[Column.MODULATION]]
-        fec = FecMode._NAMES_TO_VALUES[row[Column.FEC]]
+        a_fec = FecMode._NAMES_TO_VALUES[row[Column.A_FEC]]
+        #  if empty, Z_FEC default to None
+        z_fec = (
+            FecMode._NAMES_TO_VALUES[row[Column.Z_FEC]] if row[Column.Z_FEC] else None
+        )
         media_type = TransmitterTechnology._NAMES_TO_VALUES[row[Column.MEDIA_TYPE]]
         a_interface_type = (
             InterfaceType._NAMES_TO_VALUES[row[Column.A_INTERFACE_TYPE]]
@@ -236,15 +240,18 @@ def read_profile_settings(directory: Dict[str, str], prefix: str) -> ProfileSett
             SpeedSetting(
                 speed=speed,
                 a_chip_settings=ChipSetting(
-                    chip_type=a_chip_type, chip_interface_type=a_interface_type
+                    chip_type=a_chip_type,
+                    chip_interface_type=a_interface_type,
+                    chip_fec=a_fec,
                 ),
                 z_chip_settings=ChipSetting(
                     chip_type=z_chip_type,
                     chip_interface_type=z_interface_type,
+                    chip_fec=z_fec,
                 ),
                 num_lanes=num_lanes,
                 modulation=modulation,
-                fec=fec,
+                fec=a_fec,  # Keep backward compatibility - fec field uses A_FEC
                 media_type=media_type,
             )
         )
@@ -304,27 +311,16 @@ def read_si_settings(
         tcvr_setting = None
         tcvr_vendor = row[Column.TCVR_VENDOR]
         if tcvr_vendor:
-            tcvr_media = row[Column.TCVR_MEDIA]
-            if not tcvr_media:
-                raise Exception(
-                    "Invalid media media type not populated ", row[Column.TCVR_VENDOR]
-                )
-            if tcvr_media not in MediaInterfaceCode._NAMES_TO_VALUES:
-                raise Exception("Invalid module media type ", tcvr_media)
-
             tcvr_part_num = row[Column.TCVR_PART_NUM]
-            if not tcvr_media:
+            if not tcvr_part_num:
                 raise Exception(
                     "Invalid transceiver part number type not populated ",
                     row[Column.TCVR_PART_NUM],
                 )
-            tcvr_media_type = MediaInterfaceCode._NAMES_TO_VALUES[tcvr_media]
             vendor = Vendor(
                 name=str(row[Column.TCVR_VENDOR]), partNumber=str(tcvr_part_num)
             )
-            tcvr_setting = TransceiverOverrideSetting(
-                vendor=vendor, media_interface_code=tcvr_media_type
-            )
+            tcvr_setting = TransceiverOverrideSetting(vendor=vendor)
         si_setting_factor = SiSettingFactor(
             # pyre-fixme[6]: Expected `Optional[PortSpeed]` for 1st param but got `Optional[int]`.
             lane_speed=lane_speed,

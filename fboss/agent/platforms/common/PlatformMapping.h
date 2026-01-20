@@ -219,5 +219,7 @@ class PlatformMapping {
   // Forbidden copy constructor and assignment operator
   PlatformMapping(PlatformMapping const&) = delete;
   PlatformMapping& operator=(PlatformMapping const&) = delete;
+  PlatformMapping(PlatformMapping&&) = delete;
+  PlatformMapping& operator=(PlatformMapping&&) = delete;
 };
 } // namespace facebook::fboss

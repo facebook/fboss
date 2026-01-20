@@ -18,30 +18,27 @@ namespace facebook::fboss {
 std::unique_ptr<WedgeManager> createFBWedgeManager(
     std::unique_ptr<PlatformProductInfo> /*productInfo*/,
     const std::shared_ptr<const PlatformMapping> /* platformMapping */,
-    const std::shared_ptr<
-        std::unordered_map<TransceiverID, SlotThreadHelper>> /* threads */
+    std::shared_ptr<QsfpServiceThreads> /* qsfpServiceThreads */
 ) {
   return nullptr;
 }
 std::unique_ptr<WedgeManager> createYampWedgeManager(
     const std::shared_ptr<const PlatformMapping> /* platformMapping */
     ,
-    const std::shared_ptr<
-        std::unordered_map<TransceiverID, SlotThreadHelper>> /* threads */) {
+    std::shared_ptr<QsfpServiceThreads> /* qsfpServiceThreads */) {
   return nullptr;
 }
 
 std::unique_ptr<WedgeManager> createDarwinWedgeManager(
     const std::shared_ptr<const PlatformMapping> /* platformMapping */,
-    const std::shared_ptr<
-        std::unordered_map<TransceiverID, SlotThreadHelper>> /* threads */) {
+    std::shared_ptr<QsfpServiceThreads> /* qsfpServiceThreads */) {
   return nullptr;
 }
 
 std::unique_ptr<WedgeManager> createElbertWedgeManager(
     const std::shared_ptr<const PlatformMapping> /* platformMapping */,
-    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-    /* threads */) {
+    std::shared_ptr<QsfpServiceThreads>
+    /* qsfpServiceThreads */) {
   // brcm_pai build should not be used for Elbert
   return nullptr;
 }
@@ -63,14 +60,13 @@ std::unique_ptr<PortManager> createPortManager(
     WedgeManager* wedgeManager,
     std::unique_ptr<PhyManager> phyManager,
     const std::shared_ptr<const PlatformMapping> platformMapping,
-    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-        threads) {
+    std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads) {
   // brcm_pai should not be used for Elbert, so can default to base PortManager
   return std::make_unique<PortManager>(
       wedgeManager,
       std::move(phyManager),
       platformMapping,
-      threads,
+      qsfpServiceThreads,
       wedgeManager->getFsdbSyncManager());
 }
 

@@ -42,6 +42,10 @@ struct SaiCounterHandle {
       statsMap->removeStat(counterName);
     }
   }
+  SaiCounterHandle(const SaiCounterHandle&) = delete;
+  SaiCounterHandle& operator=(const SaiCounterHandle&) = delete;
+  SaiCounterHandle(SaiCounterHandle&&) = delete;
+  SaiCounterHandle& operator=(SaiCounterHandle&&) = delete;
   CounterSaiId adapterKey() {
     return counter->adapterKey();
   }

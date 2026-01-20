@@ -37,12 +37,12 @@ class MockCmisModule : public CmisModule {
       // on read register
       return (++moduleStateChangedReadTimes_) == 1;
     });
-    ON_CALL(*this, ensureTransceiverReadyLocked())
+    ON_CALL(*this, ensureTransceiverReadyLocked(testing::_))
         .WillByDefault(testing::Return(true));
   }
 
   MOCK_METHOD0(getModuleStateChanged, bool());
-  MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
+  MOCK_METHOD1(ensureTransceiverReadyLocked, bool(bool));
 
   using CmisModule::frequencyGridToGridSelection;
   using CmisModule::getApplicationField;

@@ -51,7 +51,8 @@ class Sff8472Module : public QsfpModule {
 
   bool tcvrPortStateSupported(TransceiverPortState& portState) const override;
 
-  virtual bool ensureTransceiverReadyLocked() override {
+  virtual bool ensureTransceiverReadyLocked(
+      bool /* hasTunableOpticsConfig */) override {
     return true;
   }
 

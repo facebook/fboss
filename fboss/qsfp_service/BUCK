@@ -124,6 +124,7 @@ cpp_library(
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/re2:re2",
         ":qsfp-config",
+        ":qsfp-service-threads",
         ":slot-thread-helper",
         ":transceiver-validator",
         "//fb303:thread_cached_service_data",
@@ -240,6 +241,23 @@ cpp_library(
 )
 
 cpp_library(
+    name = "qsfp-service-threads",
+    srcs = [
+        "QsfpServiceThreads.cpp",
+    ],
+    headers = [
+        "QsfpServiceThreads.h",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    exported_deps = [
+        ":slot-thread-helper",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/lib/config:fboss_config_utils",
+    ],
+)
+
+cpp_library(
     name = "port-manager",
     srcs = [
         "PortManager.cpp",
@@ -255,6 +273,7 @@ cpp_library(
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        ":qsfp-service-threads",
         ":transceiver-manager",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",

@@ -3400,14 +3400,30 @@ int16_t CmisModule::getChannelNumFromFrequency(
  * If the current power configuration state is not same as desired one then
  * change it to that (by setting and resetting LP mode) otherwise return true
  * when module is in ready state otherwise return false.
+ *
+ * @param hasTunableOpticsConfig - indicates if tunable optics config is
+ *        present in qsfp_service_config. For tunable optics modules without
+ *        config, an exception is thrown to prevent high power mode transition.
  */
-bool CmisModule::ensureTransceiverReadyLocked() {
+bool CmisModule::ensureTransceiverReadyLocked(bool hasTunableOpticsConfig) {
   // If customization is not supported then the Power control bit can't be
   // touched. Return true as nothing needs to be done here
   if (!customizationSupported()) {
     QSFP_LOG(DBG1, this)
         << "ensureTransceiverReadyLocked: Customization not supported";
     return true;
+  }
+
+  // For tunable optics modules, if tunable optics config is not present in
+  // qsfp_service_config, throw an exception. This requires operators to
+  // explicitly provide the necessary config before tunable optics can be
+  // brought up to high power mode.
+  if (isTunableOptics() && !hasTunableOpticsConfig) {
+    throw FbossError(
+        "ensureTransceiverReadyLocked: Tunable optics module ",
+        qsfpImpl_->getName(),
+        " detected but no tunable optics config present in qsfp_service_config. "
+        "Cannot move to high power mode without optical channel configuration.");
   }
 
   // Read the current power configuration values. Don't depend on refresh

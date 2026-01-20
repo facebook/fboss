@@ -84,6 +84,7 @@ struct Port {
 struct ChipSetting {
   1: ChipType chip_type;
   2: phy.InterfaceType chip_interface_type;
+  3: optional phy.FecMode chip_fec;
 }
 
 // Stores the information parsed from Profile Settings CSV
@@ -99,7 +100,6 @@ struct SpeedSetting {
 
 struct TransceiverOverrideSetting {
   1: transceiver.Vendor vendor;
-  2: transceiver.MediaInterfaceCode media_interface_code;
 }
 
 // Represents all the factors in the SI Settings CSV

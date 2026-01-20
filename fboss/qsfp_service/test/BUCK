@@ -157,8 +157,7 @@ cpp_library(
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",
-        "//fboss/lib/config:fboss_config_utils",
-        "//fboss/qsfp_service:slot-thread-helper",
+        "//fboss/qsfp_service:qsfp-service-threads",
     ],
 )
 
@@ -229,8 +228,7 @@ cpp_unittest(
         ":mock_port_manager",
         ":transceiver_manager_test_helper",
         "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",
-        "//fboss/lib/config:fboss_config_utils",
-        "//fboss/qsfp_service:slot-thread-helper",
+        "//fboss/qsfp_service:qsfp-service-threads",
         "//fboss/qsfp_service/module:qsfp-module",
         "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
         "//fboss/qsfp_service/module/tests:mock-headers",
