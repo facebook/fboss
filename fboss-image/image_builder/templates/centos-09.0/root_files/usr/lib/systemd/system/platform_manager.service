@@ -8,6 +8,8 @@ Before=led_service.service
 Before=qsfp_service.service
 Before=fruid.service
 After=rc-local.service
+Wants=local_rpm_repo.service
+
 StartLimitIntervalSec=600
 StartLimitBurst=5
 

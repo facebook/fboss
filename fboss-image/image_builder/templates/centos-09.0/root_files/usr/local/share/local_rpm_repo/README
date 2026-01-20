@@ -1,0 +1,3 @@
+This directory contains RPMs which need to be installed at run-time, mostly by
+platform_manager. Common contents include BSP kmods RPMs, SAI kmods RPMs, and
+dependencies of those types of RPMs.
