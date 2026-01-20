@@ -82,13 +82,6 @@ namespace {
 auto constexpr kEcmpObjects = "ecmpObjects";
 auto constexpr kTrunks = "trunks";
 
-struct AddrTables {
-  AddrTables()
-      : arpTable(make_shared<ArpTable>()), ndpTable(make_shared<NdpTable>()) {}
-  shared_ptr<facebook::fboss::ArpTable> arpTable;
-  shared_ptr<facebook::fboss::NdpTable> ndpTable;
-};
-
 folly::IPAddress getFullMaskIPv4Address() {
   return folly::IPAddress(
       folly::IPAddressV4(
