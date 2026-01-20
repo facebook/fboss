@@ -290,6 +290,7 @@ cpp_library(
         "commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.cpp",
         "commands/show/facebook/CmdShowUtils.cpp",
         "commands/show/facebook/CmdShowVersionAgent.cpp",
+        "commands/show/facebook/CmdShowVersionCoop.cpp",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyUtils.cpp",
         "commands/show/facebook/config/CmdShowConfigUtils.cpp",
         "commands/show/facebook/environment/env_keys.cpp",
