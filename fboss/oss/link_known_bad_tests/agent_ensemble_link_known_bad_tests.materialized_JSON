@@ -23,9 +23,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -80,9 +77,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -141,9 +135,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -198,9 +189,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -259,9 +247,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -316,9 +301,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -377,9 +359,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -434,9 +413,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -495,9 +471,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -552,9 +525,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -613,9 +583,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -670,9 +637,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -734,9 +698,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -788,9 +749,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -846,9 +804,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -900,9 +855,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -958,9 +910,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -1012,9 +961,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -1070,9 +1016,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -1124,9 +1067,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -1182,9 +1122,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -1236,9 +1173,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -1294,9 +1228,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -1348,9 +1279,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -1406,9 +1334,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -1460,9 +1385,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -1518,9 +1440,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -1572,9 +1491,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -1630,9 +1546,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -1684,9 +1597,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -1742,9 +1652,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -1796,9 +1703,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -1854,9 +1758,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -1902,9 +1803,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -1957,9 +1855,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -2008,9 +1903,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -2063,9 +1955,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -2114,9 +2003,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -2169,9 +2055,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -2220,9 +2103,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -2275,9 +2155,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -2326,9 +2203,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -2381,9 +2255,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -2434,9 +2305,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -2485,9 +2353,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -2543,9 +2408,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -2591,9 +2453,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -2643,9 +2502,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -2691,9 +2547,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -2743,9 +2596,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -2791,9 +2641,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -2843,9 +2690,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -2891,9 +2735,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -2943,9 +2784,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -2991,9 +2829,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -3043,9 +2878,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -3091,9 +2923,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -3143,9 +2972,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -3191,9 +3017,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -3243,9 +3066,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -3291,9 +3111,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -3343,9 +3160,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -3391,9 +3205,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -3443,9 +3254,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -3491,9 +3299,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -3543,9 +3348,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -3585,9 +3387,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -3637,9 +3436,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -3685,9 +3481,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -3737,9 +3530,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -3785,9 +3575,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -3837,9 +3624,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -3885,9 +3669,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -3937,9 +3718,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -3985,9 +3763,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -4037,9 +3812,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -4087,9 +3859,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -4135,9 +3904,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -4190,9 +3956,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -4235,9 +3998,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -4284,9 +4044,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -4329,9 +4086,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -4378,9 +4132,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -4423,9 +4174,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -4472,9 +4220,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -4517,9 +4262,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -4566,9 +4308,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -4611,9 +4350,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -4660,9 +4396,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -4705,9 +4438,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -4754,9 +4484,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -4799,9 +4526,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -4848,9 +4572,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -4893,9 +4614,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -4942,9 +4660,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -4987,9 +4702,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -5036,9 +4748,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -5083,9 +4792,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -5128,9 +4834,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -8846,9 +8549,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -8900,9 +8600,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -8958,9 +8655,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -9012,9 +8706,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -9070,9 +8761,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -9124,9 +8812,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -9182,9 +8867,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -9236,9 +8918,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -9294,9 +8973,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -9348,9 +9024,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -9406,9 +9079,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -9460,9 +9130,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -9518,9 +9185,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -9566,9 +9230,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -9618,9 +9279,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -9666,9 +9324,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -9718,9 +9373,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -9766,9 +9418,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -9818,9 +9467,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -9866,9 +9512,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -9918,9 +9561,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -9966,9 +9606,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -10018,9 +9655,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -10066,9 +9700,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -10118,9 +9749,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -10166,9 +9794,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -10218,9 +9843,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -10266,9 +9888,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -10318,9 +9937,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -10366,9 +9982,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -10418,9 +10031,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -10468,9 +10078,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -10516,9 +10123,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -14135,12 +13739,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -14222,12 +13820,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -14313,12 +13905,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -14400,12 +13986,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -14491,12 +14071,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -14578,12 +14152,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -14669,12 +14237,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -14756,12 +14318,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -14847,12 +14403,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -14934,12 +14484,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -15025,12 +14569,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -15112,12 +14650,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -15206,12 +14738,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -15290,12 +14816,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -15378,12 +14898,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -15462,12 +14976,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -15550,12 +15058,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -15634,12 +15136,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -15722,12 +15218,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -15806,12 +15296,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -15894,12 +15378,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -15978,12 +15456,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -16066,12 +15538,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -16150,12 +15616,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -16238,12 +15698,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -16322,12 +15776,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -16410,12 +15858,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -16494,12 +15936,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -16582,12 +16018,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -16666,12 +16096,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -16754,12 +16178,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -16838,12 +16256,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -16926,12 +16338,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -17007,12 +16413,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -17098,12 +16498,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -17185,12 +16579,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -17276,12 +16664,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -17363,12 +16745,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -17454,12 +16830,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -17541,12 +16911,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -17632,12 +16996,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -17719,12 +17077,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -17810,12 +17162,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -17899,12 +17245,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -17986,12 +17326,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -18080,12 +17414,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -18164,12 +17492,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -18252,12 +17574,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -18336,12 +17652,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -18424,12 +17734,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -18508,12 +17812,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -18596,12 +17894,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -18680,12 +17972,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -18768,12 +18054,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -18852,12 +18132,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -18940,12 +18214,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -19024,12 +18292,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -19112,12 +18374,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -19196,12 +18452,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -19284,12 +18534,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -19368,12 +18612,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -19456,12 +18694,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -19540,12 +18772,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -19628,12 +18854,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -19714,12 +18934,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -19798,12 +19012,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -19887,9 +19095,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -19990,9 +19195,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -20089,9 +19291,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -20192,9 +19391,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -20291,9 +19487,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -20394,9 +19587,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -20493,9 +19683,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -20596,9 +19783,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -20695,9 +19879,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -20810,9 +19991,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -20876,9 +20054,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -20946,9 +20121,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -21012,9 +20184,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -21082,9 +20251,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -21148,9 +20314,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -21218,9 +20381,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -21284,9 +20444,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -21354,9 +20511,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -21417,9 +20571,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -21484,9 +20635,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -21547,9 +20695,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -21614,9 +20759,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -21677,9 +20819,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -21744,9 +20883,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -21807,9 +20943,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -21874,9 +21007,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -21937,9 +21067,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -22011,9 +21138,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -22141,9 +21265,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -22267,9 +21388,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -22397,9 +21515,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -22523,9 +21638,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -22653,9 +21765,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -22779,9 +21888,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -22909,9 +22015,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -23037,9 +22140,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -23144,9 +22244,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -23231,9 +22328,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -23322,9 +22416,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -23409,9 +22500,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -23503,9 +22591,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -23593,9 +22678,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -23687,9 +22769,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -23776,9 +22855,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
         },
         {
@@ -23863,9 +22939,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
@@ -23960,9 +23033,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -24035,9 +23105,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -24114,9 +23181,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -24189,9 +23253,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -24268,9 +23329,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -24343,9 +23401,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -24422,9 +23477,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -24497,9 +23549,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -24576,9 +23625,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -24651,9 +23697,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -24730,9 +23773,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -24805,9 +23845,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -24887,9 +23924,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -24961,9 +23995,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -25033,9 +24064,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -25112,9 +24140,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -25187,9 +24212,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -25266,9 +24288,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -25338,9 +24357,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -25414,9 +24430,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -25486,9 +24499,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -25562,9 +24572,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -25634,9 +24641,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -25710,9 +24714,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -25782,9 +24783,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -25858,9 +24856,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -25930,9 +24925,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -26006,9 +24998,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -26078,9 +25067,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -26154,9 +25140,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -26226,9 +25209,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -26302,9 +25282,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -26376,9 +25353,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -26438,9 +25412,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -26479,9 +25450,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -26518,9 +25486,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -27826,9 +26791,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -27907,9 +26869,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -27992,9 +26951,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -28073,9 +27029,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -28158,9 +27111,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -28239,9 +27189,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -28324,9 +27271,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -28405,9 +27349,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -28490,9 +27431,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -28571,9 +27509,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -28656,9 +27591,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -28737,9 +27669,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -28825,9 +27754,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -28905,9 +27831,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -28983,9 +27906,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -29068,9 +27988,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -29149,9 +28066,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -29234,9 +28148,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -29312,9 +28223,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -29394,9 +28302,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -29472,9 +28377,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -29554,9 +28456,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -29632,9 +28531,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -29714,9 +28610,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -29792,9 +28685,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -29874,9 +28764,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -29952,9 +28839,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -30034,9 +28918,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -30112,9 +28993,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -30194,9 +29072,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -30272,9 +29147,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
@@ -30354,9 +29226,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -30434,9 +29303,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap$"
         },
         {
@@ -30500,9 +29366,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -30609,9 +29472,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -30714,9 +29574,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -30823,9 +29680,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -30928,9 +29782,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -31037,9 +29888,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -31142,9 +29990,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -31251,9 +30096,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -31356,9 +30198,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -31465,9 +30304,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -31570,9 +30406,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -31679,9 +30512,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -31784,9 +30614,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -31893,9 +30720,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -31998,9 +30822,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -32107,9 +30928,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -32212,9 +31030,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -32321,9 +31136,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -32426,9 +31238,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -32535,9 +31344,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -32640,9 +31446,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -32761,9 +31564,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -32863,9 +31663,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -32969,9 +31766,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -33071,9 +31865,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -33177,9 +31968,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -33279,9 +32067,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -33385,9 +32170,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -33487,9 +32269,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -33593,9 +32372,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -33695,9 +32471,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -33801,9 +32574,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -33903,9 +32673,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -34012,9 +32779,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -34113,9 +32877,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -34212,9 +32973,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -34318,9 +33076,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -34420,9 +33175,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -34526,9 +33278,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -34625,9 +33374,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -34728,9 +33474,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -34827,9 +33570,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -34930,9 +33670,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -35029,9 +33766,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -35132,9 +33866,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -35231,9 +33962,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -35334,9 +34062,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -35433,9 +34158,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -35536,9 +34258,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -35635,9 +34354,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -35738,9 +34454,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -35837,9 +34550,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -35940,9 +34650,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -36041,9 +34748,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -36125,12 +34829,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -36222,12 +34920,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -36315,12 +35007,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -36412,12 +35098,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -36505,12 +35185,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -36602,12 +35276,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -36695,12 +35363,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -36792,12 +35454,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -36885,12 +35541,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -36982,12 +35632,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -37077,12 +35721,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -37170,12 +35808,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -37270,12 +35902,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -37360,12 +35986,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -37454,12 +36074,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -37544,12 +36158,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -37638,12 +36246,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -37728,12 +36330,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -37822,12 +36418,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -37912,12 +36502,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -38006,12 +36590,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -38096,12 +36674,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -38190,12 +36762,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -38280,12 +36846,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -38374,12 +36934,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -38464,12 +37018,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -38558,12 +37106,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -38648,12 +37190,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -38742,12 +37278,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -38832,12 +37362,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -38926,12 +37450,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -39018,12 +37536,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -39108,12 +37620,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -39211,9 +37717,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -39268,9 +37771,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -39329,9 +37829,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -39386,9 +37883,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -39447,9 +37941,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -39504,9 +37995,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -39565,9 +38053,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -39622,9 +38107,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -39683,9 +38165,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -39740,9 +38219,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -39801,9 +38277,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -39858,9 +38331,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -39922,9 +38392,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -39976,9 +38443,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -40034,9 +38498,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -40088,9 +38549,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -40146,9 +38604,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -40200,9 +38655,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -40258,9 +38710,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -40312,9 +38761,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -40370,9 +38816,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -40424,9 +38867,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -40482,9 +38922,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -40536,9 +38973,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -40594,9 +39028,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -40648,9 +39079,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -40706,9 +39134,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -40760,9 +39185,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -40818,9 +39240,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -40872,9 +39291,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -40930,9 +39346,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -40984,9 +39397,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -41042,9 +39452,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -41087,9 +39494,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -41142,9 +39546,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -41193,9 +39594,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -41248,9 +39646,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -41299,9 +39694,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -41354,9 +39746,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -41405,9 +39794,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -41460,9 +39846,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -41511,9 +39894,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -41566,9 +39946,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -41619,9 +39996,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -41670,9 +40044,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -41728,9 +40099,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -41776,9 +40144,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -41828,9 +40193,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -41876,9 +40238,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -41928,9 +40287,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -41976,9 +40332,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -42028,9 +40381,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -42076,9 +40426,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -42128,9 +40475,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -42176,9 +40520,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -42228,9 +40569,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -42276,9 +40614,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -42328,9 +40663,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -42376,9 +40708,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -42428,9 +40757,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -42476,9 +40802,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -42528,9 +40851,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -42576,9 +40896,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -42628,9 +40945,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -42676,9 +40990,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -42728,9 +41039,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -42764,9 +41072,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -42810,9 +41115,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -42852,9 +41154,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -42898,9 +41197,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -42940,9 +41236,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -42986,9 +41279,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -43028,9 +41318,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -43074,9 +41361,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -43116,9 +41400,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -43162,9 +41443,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -43204,9 +41482,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -43250,9 +41525,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -43292,9 +41564,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -43338,9 +41607,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -43380,9 +41646,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -43426,9 +41689,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -43468,9 +41728,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -43514,9 +41771,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -43556,9 +41810,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -43602,9 +41853,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -43646,9 +41894,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -43688,9 +41933,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -43758,9 +42000,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -43824,9 +42063,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -43894,9 +42130,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -43960,9 +42193,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -44030,9 +42260,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -44096,9 +42323,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -44166,9 +42390,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -44232,9 +42453,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -44302,9 +42520,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -44370,9 +42585,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -44436,9 +42648,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -44509,9 +42718,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -44572,9 +42778,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -44639,9 +42842,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -44702,9 +42902,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -44769,9 +42966,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -44832,9 +43026,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -44899,9 +43090,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -44962,9 +43150,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -45029,9 +43214,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -45092,9 +43274,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -45159,9 +43338,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -45222,9 +43398,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -45289,9 +43462,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -45352,9 +43522,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -45419,9 +43586,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -45482,9 +43646,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -45549,9 +43710,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -45612,9 +43770,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -45679,9 +43834,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -45742,9 +43894,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -45809,9 +43958,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -45869,9 +44015,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -45939,9 +44082,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -46005,9 +44145,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -46075,9 +44212,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -46141,9 +44275,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -46211,9 +44342,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -46277,9 +44405,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -46347,9 +44472,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -46413,9 +44535,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -46483,9 +44602,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -46551,9 +44667,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -46617,9 +44730,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -46690,9 +44800,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -46753,9 +44860,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -46820,9 +44924,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -46883,9 +44984,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -46950,9 +45048,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -47013,9 +45108,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -47080,9 +45172,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -47143,9 +45232,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -47210,9 +45296,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -47273,9 +45356,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -47340,9 +45420,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -47403,9 +45480,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -47470,9 +45544,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -47533,9 +45604,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -47600,9 +45668,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -47663,9 +45728,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -47730,9 +45792,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -47793,9 +45852,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -47860,9 +45916,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -47923,9 +45976,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -47990,9 +46040,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -48050,9 +46097,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -48114,9 +46158,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -48174,9 +46215,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -48238,9 +46276,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -48298,9 +46333,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -48362,9 +46394,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -48422,9 +46451,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -48486,9 +46512,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -48546,9 +46569,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -48610,9 +46630,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -48670,9 +46687,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -48734,9 +46748,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -48794,9 +46805,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -48858,9 +46866,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -48918,9 +46923,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -48982,9 +46984,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -49042,9 +47041,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -49106,9 +47102,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -49166,9 +47159,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -49230,9 +47220,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -49292,9 +47279,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -49352,9 +47336,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -49422,9 +47403,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -49488,9 +47466,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -49558,9 +47533,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -49624,9 +47596,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -49694,9 +47663,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -49760,9 +47726,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -49830,9 +47793,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -49896,9 +47856,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -49966,9 +47923,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -50034,9 +47988,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
         },
         {
@@ -50100,9 +48051,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
@@ -50173,9 +48121,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -50236,9 +48181,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -50303,9 +48245,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -50366,9 +48305,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -50433,9 +48369,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -50496,9 +48429,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -50563,9 +48493,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -50626,9 +48553,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -50693,9 +48617,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -50756,9 +48677,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -50823,9 +48741,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -50886,9 +48801,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -50953,9 +48865,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -51016,9 +48925,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -51083,9 +48989,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -51146,9 +49049,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -51213,9 +49113,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -51276,9 +49173,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
@@ -51343,9 +49237,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -51408,9 +49299,6 @@
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
         },
         {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
-        },
-        {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
@@ -51471,9 +49359,6 @@
         },
         {
           "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleLinkTest.xPhyInfoTest"
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
