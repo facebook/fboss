@@ -124,6 +124,12 @@ class PlatformManagerHwTest : public ::testing::Test {
               platformExplorer_,
               ds.value(),
               platformConfig_))};
+
+  bool isAbsentDevicePath(std::string devicePath) {
+    return platformExplorer_.getExplorationSummary()
+        .getExpectedFailedDevices()
+        .contains(devicePath);
+  }
 };
 
 TEST_F(PlatformManagerHwTest, ExploreAsDeployed) {
@@ -179,6 +185,9 @@ TEST_F(PlatformManagerHwTest, Symlinks) {
   explorationOk();
   for (const auto& [symlink, devicePath] :
        *platformConfig_.symbolicLinkToDevicePath()) {
+    if (isAbsentDevicePath(devicePath)) {
+      continue;
+    }
     EXPECT_TRUE(fs::exists(symlink))
         << fmt::format("{} doesn't exist", symlink);
     EXPECT_TRUE(fs::is_symlink(symlink))
