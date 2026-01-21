@@ -830,17 +830,24 @@ void PortManager::setOverrideAgentPortStatusForTesting(
   if (clearOnly) {
     return;
   }
+
+  auto addPortStatus = [&](PortID portId, cfg::PortProfileID profileID) {
+    NpuPortStatus status;
+    status.portEnabled = enabledPortIds.find(portId) != enabledPortIds.end();
+    status.operState = upPortIds.find(portId) != upPortIds.end();
+    status.profileID = apache::thrift::util::enumNameSafe(profileID);
+    overrideAgentPortStatusForTesting_.emplace(portId, status);
+  };
+
   for (const auto& it :
        transceiverManager_->getOverrideTcvrToPortAndProfileForTesting()) {
     for (const auto& [portId, profileID] : it.second) {
-      // If portIds is provided, only enable those ports; otherwise, use
-      // 'enabled'
-      NpuPortStatus status;
-      status.portEnabled = enabledPortIds.find(portId) != enabledPortIds.end();
-      status.operState = upPortIds.find(portId) != upPortIds.end();
-      status.profileID = apache::thrift::util::enumNameSafe(profileID);
-      overrideAgentPortStatusForTesting_.emplace(portId, status);
+      addPortStatus(portId, profileID);
     }
+  }
+  for (const auto& [portId, profileID] :
+       getOverrideXphyNoTcvrPortToProfileForTesting()) {
+    addPortStatus(portId, profileID);
   }
 }
 
@@ -853,15 +860,23 @@ void PortManager::setOverrideAllAgentPortStatusForTesting(
     return;
   }
 
+  auto addPortStatus = [&](PortID portId, cfg::PortProfileID profileID) {
+    NpuPortStatus status;
+    status.portEnabled = enabled;
+    status.operState = up;
+    status.profileID = apache::thrift::util::enumNameSafe(profileID);
+    overrideAgentPortStatusForTesting_.emplace(portId, status);
+  };
+
   for (const auto& it :
        transceiverManager_->getOverrideTcvrToPortAndProfileForTesting()) {
     for (const auto& [portId, profileID] : it.second) {
-      NpuPortStatus status;
-      status.portEnabled = enabled;
-      status.operState = up;
-      status.profileID = apache::thrift::util::enumNameSafe(profileID);
-      overrideAgentPortStatusForTesting_.emplace(portId, status);
+      addPortStatus(portId, profileID);
     }
+  }
+  for (const auto& [portId, profileID] :
+       getOverrideXphyNoTcvrPortToProfileForTesting()) {
+    addPortStatus(portId, profileID);
   }
 }
 
