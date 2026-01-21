@@ -207,9 +207,9 @@ void unbindTamObjectFromSwitchAndPort(
 
 SaiTamManager::SaiTamManager(
     SaiStore* saiStore,
-    SaiManagerTable* managerTable,
-    SaiPlatform* platform)
-    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
+    SaiManagerTable* /*managerTable*/,
+    SaiPlatform* /*platform*/)
+    : saiStore_(saiStore) {}
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 void SaiTamManager::addDnxMirrorOnDropReport(

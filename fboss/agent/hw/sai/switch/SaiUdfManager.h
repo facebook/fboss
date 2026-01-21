@@ -54,9 +54,9 @@ class SaiUdfManager {
 
   SaiUdfManager(
       SaiStore* saiStore,
-      SaiManagerTable* managerTable,
-      const SaiPlatform* platform)
-      : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
+      SaiManagerTable* /*managerTable*/,
+      const SaiPlatform* /*platform*/)
+      : saiStore_(saiStore) {}
 
   static auto constexpr kMaskDontCare = 0;
   static auto constexpr kMaskAny = 0xFFFF;
@@ -103,8 +103,6 @@ class SaiUdfManager {
   UdfMatchHandles udfMatchHandles_;
   UdfGroupHandles udfGroupHandles_;
   SaiStore* saiStore_;
-  SaiManagerTable* managerTable_;
-  const SaiPlatform* platform_;
 };
 
 } // namespace facebook::fboss

@@ -18,8 +18,5 @@ class AgentEnsembleIntegrationTestBase : public AgentEnsembleTest {
  public:
   void SetUp() override;
   void TearDown() override;
-
- private:
-  const AgentEnsemble* ensemble_;
 };
 } // namespace facebook::fboss

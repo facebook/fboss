@@ -12,8 +12,7 @@
 
 namespace facebook::fboss {
 
-BspPhyIO::BspPhyIO(int pimID, BspPhyIOControllerInfo& controllerInfo)
-    : pimID_(pimID) {
+BspPhyIO::BspPhyIO(int pimID, BspPhyIOControllerInfo& controllerInfo) {
   auto mdioDevName = *controllerInfo.devicePath();
   auto controllerId = *controllerInfo.controllerId();
   XLOG(DBG5) << __func__ << ": mdioDevName=" << mdioDevName
