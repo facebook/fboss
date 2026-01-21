@@ -2199,12 +2199,37 @@ phy::PortPrbsState PortManager::getXphyPortPrbs(
 void PortManager::getPortStates(
     std::map<int32_t, PortStateMachineState>& states,
     std::unique_ptr<std::vector<int32_t>> ids) {
+  if (ids->empty()) {
+    for (const auto& [_, portId] : portNameToPortID_) {
+      ids->push_back(portId);
+    }
+  }
+
   for (const auto& id : *ids) {
     auto portId = PortID(id);
     try {
       states.emplace(id, getPortState(portId));
     } catch (const FbossError& /* e */) {
-      XLOG(WARN) << "Unrecognized Port:" << portId;
+      XLOG(WARN) << "Unrecognized Port: " << portId;
+    }
+  }
+}
+
+void PortManager::getPortStates(
+    std::map<std::string, PortStateMachineState>& states,
+    std::unique_ptr<std::vector<std::string>> portNames) {
+  if (portNames->empty()) {
+    for (const auto& [portNameStr, _] : portNameToPortID_) {
+      portNames->push_back(portNameStr);
+    }
+  }
+
+  for (const auto& portNameStr : *portNames) {
+    try {
+      auto portId = getPortIDByPortNameOrThrow(portNameStr);
+      states.emplace(portNameStr, getPortState(portId));
+    } catch (const FbossError& /* e */) {
+      XLOG(WARN) << "Unrecognized Port:" << portNameStr;
     }
   }
 }

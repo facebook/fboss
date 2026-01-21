@@ -393,6 +393,10 @@ class PortManager {
       std::map<int32_t, PortStateMachineState>& states,
       std::unique_ptr<std::vector<int32_t>> ids);
 
+  void getPortStates(
+      std::map<std::string, PortStateMachineState>& states,
+      std::unique_ptr<std::vector<std::string>> portNames);
+
   virtual void initExternalPhyMap(bool forceWarmboot = false);
 
  protected:
