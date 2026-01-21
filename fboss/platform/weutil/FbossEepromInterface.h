@@ -31,8 +31,6 @@ class FbossEepromInterface {
 
   FbossEepromInterface(const std::string& eepromPath, const uint16_t offset);
 
-  explicit FbossEepromInterface(const std::vector<uint8_t>& eepromBuffer);
-
   // TODO: Get rid of getContents() in the future.
   std::vector<std::pair<std::string, std::string>> getContents() const;
 
@@ -48,7 +46,6 @@ class FbossEepromInterface {
 
  private:
   FbossEepromInterface() = default;
-  void initFromBuffer(const std::vector<uint8_t>& buffer);
   void parseEepromBlobTLV(const std::vector<uint8_t>& buffer);
 
   std::map<int, EepromFieldEntry> fieldMap_{};
