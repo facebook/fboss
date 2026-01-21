@@ -58,6 +58,8 @@ systemctl enable data_corral_service.service
 systemctl enable fan_service.service
 systemctl enable sensor_service.service
 systemctl enable fsdb.service
+systemctl enable qsfp_service.service
+systemctl enable wedge_agent.service
 
 # 6. Done! Cleanup, remember that we are chrooted on the rootfs
 echo "Removing kernel rpms from rootfs..."
