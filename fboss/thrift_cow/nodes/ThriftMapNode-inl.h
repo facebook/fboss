@@ -10,11 +10,9 @@
 
 #pragma once
 
-#include <fatal/container/tuple.h>
 #include <folly/json/dynamic.h>
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/detail/protocol_methods.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/thrift_cow/nodes/NodeUtils.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
