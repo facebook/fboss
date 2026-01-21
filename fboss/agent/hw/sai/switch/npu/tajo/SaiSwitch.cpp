@@ -101,7 +101,7 @@ void SaiSwitch::tamEventCallback(
   auto eventDesc = static_cast<const sai_tam_event_desc_t*>(buffer);
 
 #if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_8_3001)
-  if (eventDesc->type != (sai_tam_event_type_t)SAI_TAM_EVENT_TYPE_SWITCH) {
+  if (eventDesc->type != SAI_TAM_EVENT_TYPE_SWITCH) {
     // not a switch type event
     return;
   }
