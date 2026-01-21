@@ -244,7 +244,10 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
                 // RX_LOL is not reliable right now on certain 100G
                 // CWDM4 optics like AOI and Miniphoton. So skip checking it
                 // on these optics for now
-                if (mediaInterface != MediaInterfaceCode::CWDM4_100G) {
+                // RX_LOL is not raised for 800G ZR optics as squelching is
+                // disable by default
+                if (mediaInterface != MediaInterfaceCode::CWDM4_100G &&
+                    mediaInterface != MediaInterfaceCode::ZR_800G) {
                   EXPECT_EVENTUALLY_EQ(signal.rxLol().value(), rxLatch)
                       << portName << ", lane: " << signal.get_lane();
                 }
