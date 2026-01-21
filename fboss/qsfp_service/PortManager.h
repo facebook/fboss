@@ -23,6 +23,8 @@
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
+DECLARE_bool(override_program_iphy_ports_for_test);
+
 #define TYPED_LOG(level, logType) XLOG(level) << logType << " "
 
 #define PORTMGR_SM_LOG(level) TYPED_LOG(level, "[SM]")

@@ -5,6 +5,7 @@
 #include <folly/json/DynamicConverter.h>
 #include "fboss/agent/Utils.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
+#include "fboss/qsfp_service/QsfpConfig.h"
 
 namespace facebook::fboss {
 namespace {
@@ -178,6 +179,11 @@ void PortManager::init() {
   if (transceiverManager_->canWarmBoot()) {
     restoreAgentConfigAppliedInfo();
   }
+  // Set overrideXphyNoTcvrPortToProfileForTest_ if
+  // FLAGS_override_program_iphy_ports_for_test is true.
+  // This mirrors what WedgeManager::initTransceiverMap() does for
+  // overrideTcvrToPortAndProfileForTest_.
+  setOverrideXphyNoTcvrPortToProfileForTesting();
 
   initExternalPhyMap();
 }
@@ -890,8 +896,23 @@ void PortManager::setOverrideXphyNoTcvrPortToProfileForTesting(
         overrideXphyNoTcvrPortToProfile) {
   if (overrideXphyNoTcvrPortToProfile.has_value()) {
     overrideXphyNoTcvrPortToProfileForTest_ = *overrideXphyNoTcvrPortToProfile;
-  } else {
-    overrideXphyNoTcvrPortToProfileForTest_.clear();
+  } else if (FLAGS_override_program_iphy_ports_for_test) {
+    auto qsfpTestConfig =
+        transceiverManager_->getQsfpConfig()->thrift.qsfpTestConfig();
+    CHECK(qsfpTestConfig.has_value());
+    for (const auto& portPairs : *qsfpTestConfig->cabledPortPairs()) {
+      auto aPortID = getPortIDByPortName(*portPairs.aPortName());
+      auto zPortID = getPortIDByPortName(*portPairs.zPortName());
+      // If the SW port does NOT have a transceiver but HAS XPHY, add it to
+      // overrideXphyNoTcvrPortToProfileForTest_ (XPHY backplane port)
+      for (const auto& portID : {aPortID, zPortID}) {
+        if (portID.has_value() && !portHasTransceiver(*portID) &&
+            cachedXphyPorts_.find(*portID) != cachedXphyPorts_.end()) {
+          overrideXphyNoTcvrPortToProfileForTest_.emplace(
+              *portID, *portPairs.profileID());
+        }
+      }
+    }
   }
 }
 
