@@ -171,6 +171,7 @@ TEST_F(SffTest, cwdm4TransceiverInfoTest) {
   for (auto portState : {badPortState1, badPortState2, badPortState3}) {
     EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
   }
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 // Tests that a SFF DAC module can properly refresh
@@ -207,6 +208,7 @@ TEST_F(SffTest, dacTransceiverInfoTest) {
 
   // This test will write registers, save it to the last
   testCachedMediaSignals(xcvr);
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 // Tests that a SFF Fr1 module can properly refresh
@@ -259,6 +261,7 @@ TEST_F(SffTest, fr1TransceiverInfoTest) {
 
   // This test will write registers, save it to the last
   testCachedMediaSignals(xcvr);
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 // Tests that a miniphoton module can properly refresh
@@ -292,6 +295,7 @@ TEST_F(SffTest, miniphotonTransceiverInfoTest) {
   // Using TransceiverTestsHelper to verify TransceiverInfo
   TransceiverTestsHelper tests(info);
   tests.verifyVendorName("FACETEST");
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 TEST_F(SffTest, unknownTransceiverInfoTest) {
@@ -489,6 +493,7 @@ TEST_F(SfpTest, sfp10GTransceiverInfoTest) {
   tests.verifyMediaLaneSettings(
       expectedMediaLaneSettings, xcvr->numMediaLanes());
   tests.verifyVendorName("FACETEST");
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 TEST_F(SfpTest, sfp10GBaseTTransceiverInfoTest) {
@@ -537,6 +542,7 @@ TEST_F(SfpTest, sfp10GBaseTTransceiverInfoTest) {
   for (auto portState : {badPortState1, badPortState2, badPortState3}) {
     EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
   }
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 TEST_F(SffTest, 200GCr4TransceiverInfoTest) {
@@ -595,6 +601,7 @@ TEST_F(SffTest, 200GCr4TransceiverInfoTest) {
   for (auto portState : {badPortState1, badPortState2}) {
     EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
   }
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 } // namespace facebook::fboss
