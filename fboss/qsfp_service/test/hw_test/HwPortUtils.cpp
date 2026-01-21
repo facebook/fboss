@@ -249,7 +249,11 @@ std::vector<TransceiverID> getCabledPortTranceivers(
   // There could be multiple ports in a single transceiver. Therefore use a set
   // to get unique cabled transceivers
   for (auto port : getCabledPorts(ensemble)) {
-    transceivers.insert(*getTranscieverIdx(port, ensemble));
+    auto tid = getTranscieverIdx(port, ensemble);
+    CHECK(tid.has_value());
+    if (tid) {
+      transceivers.insert(*tid);
+    }
   }
   return std::vector<TransceiverID>(transceivers.begin(), transceivers.end());
 }
