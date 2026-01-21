@@ -321,6 +321,10 @@ TEST_F(SffTest, unknownTransceiverInfoTest) {
 
   TransceiverTestsHelper tests(info);
   tests.verifyVendorName("FACETEST");
+
+  std::set<TransceiverErrorState> expectedErrorStates = {
+      TransceiverErrorState::INVALID_IDENTIFIER};
+  EXPECT_EQ(info.tcvrState()->errorStates(), expectedErrorStates);
 }
 
 // Tests that a badly programmed module throws an exception
