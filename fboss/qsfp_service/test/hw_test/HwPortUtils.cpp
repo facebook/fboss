@@ -247,9 +247,14 @@ std::vector<TransceiverID> getCabledPortTranceivers(
     const HwQsfpEnsemble* ensemble) {
   std::unordered_set<TransceiverID> transceivers;
   // There could be multiple ports in a single transceiver. Therefore use a set
-  // to get unique cabled transceivers
+  // to get unique cabled transceivers.
+  // Note: Some ports (e.g., backplane ports with XPHY) don't have transceivers,
+  // so we skip them.
   for (auto port : getCabledPorts(ensemble)) {
-    transceivers.insert(*getTranscieverIdx(port, ensemble));
+    auto tcvrId = getTranscieverIdx(port, ensemble);
+    if (tcvrId.has_value()) {
+      transceivers.insert(*tcvrId);
+    }
   }
   return std::vector<TransceiverID>(transceivers.begin(), transceivers.end());
 }
