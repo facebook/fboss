@@ -17,6 +17,10 @@
 
 namespace facebook::fboss::utils {
 
+// MTU bounds constants
+constexpr int kMtuMin = 68;
+constexpr int kMtuMax = 9216;
+
 struct LocalOption {
   std::string name;
   std::string helpMsg;
@@ -59,6 +63,7 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_MIRROR_LIST,
   OBJECT_ARG_TYPE_LINK_DIRECTION,
   OBJECT_ARG_TYPE_FAN_PWM,
+  OBJECT_ARG_TYPE_MTU,
   OBJECT_ARG_TYPE_ID_INTERFACE_LIST,
   OBJECT_ARG_TYPE_ID_REVISION_LIST,
 };
