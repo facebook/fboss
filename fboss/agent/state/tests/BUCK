@@ -41,6 +41,7 @@ cpp_unittest(
         "RouteNextHopTests.cpp",
         "RouteTests.cpp",
         "SflowCollectorTests.cpp",
+        "StateUtilsTests.cpp",
         "SwitchSettingsTests.cpp",
         "SwitchStatePruningTests.cpp",
         "SystemPortTests.cpp",
