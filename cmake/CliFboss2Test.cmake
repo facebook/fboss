@@ -19,6 +19,7 @@ add_executable(fboss2_framework_test
 
 target_link_libraries(fboss2_framework_test
   fboss2_lib
+  thrift_service_utils
   CLI11::CLI11
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
@@ -78,6 +79,7 @@ add_executable(fboss2_cmd_test
 target_link_libraries(fboss2_cmd_test
   fboss2_lib
   fboss2_config_lib
+  thrift_service_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
   Folly::folly
@@ -99,6 +101,7 @@ add_executable(thrift_latency_test
 
 target_link_libraries(thrift_latency_test
   ctrl_cpp2
+  thrift_service_utils
   Folly::folly
   FBThrift::thriftcpp2
 )

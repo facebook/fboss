@@ -19,50 +19,23 @@
 #include <iostream>
 #include <memory>
 #include <numeric>
-#include <thread>
 #include <vector>
 
-#include <folly/executors/IOThreadPoolExecutor.h>
 #include <folly/init/Init.h>
-#include <folly/io/async/AsyncSocket.h>
+#include <folly/io/async/Epoll.h>
 #include <folly/io/async/EventBase.h>
-#include <folly/io/async/EventBaseManager.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
-// Conditionally include EpollBackend if available
-#if __has_include(<folly/io/async/EpollBackend.h>)
-#include <folly/io/async/EpollBackend.h>
-#define HAS_EPOLL_BACKEND 1
-#else
-#define HAS_EPOLL_BACKEND 0
-#endif
-
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/lib/ThriftServiceUtils.h"
 
 using namespace facebook::fboss;
 using namespace apache::thrift;
 
 constexpr int kNumIterations = 10;
 constexpr int64_t kLatencyThresholdMs = 100;
-
-#if HAS_EPOLL_BACKEND
-// Get EventBase::Options configured to use EpollBackend
-folly::EventBase::Options getEpollEventBaseOptions() {
-  return folly::EventBase::Options{}.setBackendFactory(
-      []() -> std::unique_ptr<folly::EventBaseBackendBase> {
-        return std::make_unique<folly::EpollBackend>(
-            folly::EpollBackend::Options{});
-      });
-}
-
-// EventBaseManager that creates EventBases with EpollBackend
-folly::EventBaseManager& getEpollEventBaseManager() {
-  static folly::EventBaseManager manager(getEpollEventBaseOptions());
-  return manager;
-}
-#endif
 
 // Simple handler that returns a fixed timestamp
 class SimpleHandler : public apache::thrift::ServiceHandler<FbossCtrl> {
@@ -184,7 +157,7 @@ int main(int argc, char** argv) {
   std::cout << "========================================" << std::endl;
   std::cout << std::endl;
 
-#if HAS_EPOLL_BACKEND
+#if FOLLY_HAS_EPOLL
   std::cout << "EpollBackend: available" << std::endl;
 #else
   std::cout << "EpollBackend: NOT available" << std::endl;
@@ -206,16 +179,9 @@ int main(int argc, char** argv) {
   // Test 2: Epoll backend
   printSeparator();
   std::cout << "[2/3] Testing Epoll backend..." << std::endl;
-#if HAS_EPOLL_BACKEND
+#if FOLLY_HAS_EPOLL
   auto epollResult = runBackendTest("Epoll", [](ThriftServer& server) {
-    auto& epollManager = getEpollEventBaseManager();
-    auto executor = std::make_shared<folly::IOThreadPoolExecutor>(
-        std::thread::hardware_concurrency(),
-        std::make_shared<folly::NamedThreadFactory>("ThriftIO"),
-        &epollManager,
-        folly::IOThreadPoolExecutor::Options().setEnableThreadIdCollection(
-            true));
-    server.setIOThreadPool(executor);
+    ThriftServiceUtils::setPreferEpoll(server);
   });
   printResult(epollResult);
   results.push_back(epollResult);
