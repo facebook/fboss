@@ -40,6 +40,18 @@ void HwTransceiverUtils::verifyTempAndVccFlags(
   }
 }
 
+void HwTransceiverUtils::verifyTcvrErrorStates(
+    std::map<std::string, TransceiverInfo>& portToTransceiverInfoMap) {
+  for (auto& [_, transceiverInfo] : portToTransceiverInfoMap) {
+    auto& tcvrState = *transceiverInfo.tcvrState();
+    auto tcvrID = *tcvrState.port();
+    EXPECT_TRUE(tcvrState.errorStates()->empty()) << folly::sformat(
+        "{:d} has error states {:s}",
+        tcvrID,
+        folly::join(",", *tcvrState.errorStates()));
+  }
+}
+
 void HwTransceiverUtils::verifyPortNameToLaneMap(
     const std::vector<PortID>& portIDs,
     cfg::PortProfileID profile,
