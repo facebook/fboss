@@ -88008,7 +88008,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "numLanes": 4,
           "modulation": 2,
           "fec": 11,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 4
         }
       }
