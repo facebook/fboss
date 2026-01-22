@@ -14,15 +14,15 @@ sed -i 's/^NAME=.*/NAME="FBOSS Distro Image"/' /usr/lib/os-release
 # kernel rpm present in /repos directory. This will either
 # be the LTS 6.12 or whatever the user specified.
 echo "Installing kernel rpms..."
-dnf install --disablerepo=* -y  /repos/*.rpm
+dnf install --disablerepo=* -y /repos/*.rpm
 
 # 2. Define paths
 # Detect the installed kernel version from the boot directory
 # shellcheck disable=SC2012
 VMLINUZ_PATH=$(ls /boot/vmlinuz-* 2>/dev/null | head -n 1)
 if [ -z "$VMLINUZ_PATH" ]; then
-    echo "Error: No vmlinuz found in /boot"
-    exit 1
+  echo "Error: No vmlinuz found in /boot"
+  exit 1
 fi
 
 KERNEL_VERSION=$(basename "$VMLINUZ_PATH" | sed 's/^vmlinuz-//')
@@ -30,8 +30,8 @@ KERNEL_VERSION=$(basename "$VMLINUZ_PATH" | sed 's/^vmlinuz-//')
 # shellcheck disable=SC2012
 INITRD_PATH=$(ls /boot/initramfs-* 2>/dev/null | head -n 1)
 if [ -z "$INITRD_PATH" ]; then
-    echo "Error: No initramfs found in /boot"
-    exit 1
+  echo "Error: No initramfs found in /boot"
+  exit 1
 fi
 
 echo "Detected kernel version: ${KERNEL_VERSION}"
@@ -48,8 +48,8 @@ dracut --force --kver "${KERNEL_VERSION}" "${INITRD_PATH}"
 # This wipes ALL interfering variables set by kiwi-ng
 # and runs kernel-install in a "sterile" environment.
 env -i \
-    PATH="/usr/bin:/usr/sbin:/bin:/sbin" \
-    kernel-install add "${KERNEL_VERSION}" "${VMLINUZ_PATH}" --initrd-file "${INITRD_PATH}"
+  PATH="/usr/bin:/usr/sbin:/bin:/sbin" \
+  kernel-install add "${KERNEL_VERSION}" "${VMLINUZ_PATH}" --initrd-file "${INITRD_PATH}"
 
 # 5. Enable systemd services
 echo "Enabling FBOSS systemd services..."
