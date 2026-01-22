@@ -416,6 +416,7 @@ cpp_library(
         "commands/show/facebook/config/CmdShowConfigPatchersBgp.h",
         "commands/show/facebook/config/CmdShowConfigRunningAgent.h",
         "commands/show/facebook/config/CmdShowConfigRunningBgp.h",
+        "commands/show/facebook/config/CmdShowConfigTraits.h",
         "commands/show/facebook/config/CmdShowConfigUtils.h",
         "commands/show/facebook/config/CmdShowConfigVersionAgent.h",
         "commands/show/facebook/config/CmdShowConfigVersionBgp.h",
