@@ -15,7 +15,7 @@
 
 namespace facebook::fboss {
 
-constexpr uint64_t kSetIdOffset = 1ULL << 63;
+constexpr int64_t kSetIdOffset = 1LL << 62;
 
 class NextHopIDManagerTest : public ::testing::Test {
  public:

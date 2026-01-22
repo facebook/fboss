@@ -32,10 +32,10 @@ std::pair<NextHopID, bool> NextHopIDManager::getOrAllocateNextHopID(
   auto newID = nextAvailableNextHopID_;
   nextAvailableNextHopID_ = NextHopID(nextAvailableNextHopID_ + 1);
 
-  // Check if the NextHopID is within the range [0, 2^63-1]
+  // Check if the NextHopID is within the range [0, 2^62-1]
   // This is the range assigned to NextHopID
-  CHECK(static_cast<uint64_t>(newID) < (1ULL << 63))
-      << "Next Hop ID is in the range of [0, 2^63 - 1], the id space has been exhausted! It does not support wrap around!";
+  CHECK(static_cast<int64_t>(newID) < (1ULL << 62))
+      << "Next Hop ID is in the range of [0, 2^62 - 1], the id space has been exhausted! It does not support wrap around!";
 
   auto [idInfoitr, idInfoinserted] =
       nextHopToIDInfo_.emplace(nextHop, NextHopIDInfo(newID, 1));
@@ -59,10 +59,10 @@ std::pair<NextHopSetID, bool> NextHopIDManager::getOrAllocateNextHopSetID(
   auto newID = nextAvailableNextHopSetID_;
   nextAvailableNextHopSetID_ = NextHopSetID(nextAvailableNextHopSetID_ + 1);
 
-  // Check if the NextHopSetID is within the range [2^63, 2^64-1]
+  // Check if the NextHopSetID is within the range [2^62, 2^63-1]
   // This is the range assigned to NextHopSetID
-  CHECK(static_cast<uint64_t>(newID) >= (1ULL << 63))
-      << "Next Hop Set ID is in the range of [2^63, 2^64-1], the id space has been exhausted! It does not support wrap around!";
+  CHECK(static_cast<int64_t>(newID) >= (1ULL << 62))
+      << "Next Hop Set ID is in the range of [2^62, 2^63-1], the id space has been exhausted! It does not support wrap around!";
   auto [idSetInfoItr, idSetInfoInserted] =
       nextHopIdSetToIDInfo_.emplace(nextHopIDSet, NextHopSetIDInfo(newID, 1));
   CHECK(idSetInfoInserted);
