@@ -2176,4 +2176,15 @@ TEST_F(CmisTest, cmis2x800GDr4TransceiverInfoTest) {
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::SYSTEM));
   EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
+
+TEST_F(CmisTest, cmisInvalidDatapathTransceiverInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<InvalidDatapathLaneStateTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_TRUE(info.tcvrState()->transceiverManagementInterface());
+  std::set<TransceiverErrorState> expectedErrorStates = {
+      TransceiverErrorState::INVALID_DATA_PATH_LANE_STATE};
+  EXPECT_EQ(info.tcvrState()->errorStates(), expectedErrorStates);
+}
 } // namespace facebook::fboss
