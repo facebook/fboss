@@ -3,7 +3,6 @@ from typing import List, Optional
 
 import neteng.fboss.asic_config_v2.ttypes as asic_config_thrift
 import neteng.fboss.platform_mapping_config.ttypes as pm_types
-
 from fboss.lib.asic_config_v2.bcm import BcmAsicConfig
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
 

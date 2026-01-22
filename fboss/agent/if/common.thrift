@@ -9,6 +9,7 @@ include "fboss/agent/if/mpls.thrift"
 include "common/network/if/Address.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/scope.thrift"
 
 @thrift.AllowLegacyMissingUris
 package;
@@ -17,6 +18,15 @@ package;
 typedef binary fbbinary
 @cpp.Type{name = "::folly::fbstring"}
 typedef string fbstring
+
+/**
+ * Annotation to enable skipping thrift cow for a struct or field.
+ * Replaces legacy `allow_skip_thrift_cow` unstructured annotation.
+ */
+@scope.Field
+@scope.Struct
+@thrift.RuntimeAnnotation
+struct AllowSkipThriftCow {}
 
 struct ClientInformation {
   1: optional fbstring username;

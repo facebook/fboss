@@ -1,0 +1,136 @@
+---
+id: route-updates
+title: Route Updates in FBOSS
+---
+
+# Route Updates in FBOSS
+
+This document describes how route updates are processed in FBOSS, from external routing clients like BGP and OpenR through to the ASIC programming.
+
+## Overview
+
+Route updates in FBOSS follow a well-defined pipeline:
+
+1. **External Clients** (BGP, OpenR) call Thrift APIs to add/modify/delete routes
+2. **RIB (Routing Information Base)** receives and resolves the routes
+3. **FIB (Forwarding Information Base)** is updated through a callback mechanism
+4. **SwitchState** is updated with the new FIB
+5. **ASIC** is programmed with the forwarding entries
+
+## Route Update Pipeline
+
+![Route Update Pipeline](/img/route_update_pipeline.png)
+
+## 1. External Clients and Thrift APIs
+
+External routing protocols like BGP (via BGP++) and OpenR communicate with FBOSS through Thrift APIs. The primary Thrift APIs for route management are exposed via `ThriftHandler`:
+
+- **`addUnicastRoutes()`** - Add new unicast routes
+- **`addUnicastRoutesInVrf()`** - Add routes to a specific VRF
+- **`deleteUnicastRoutes()`** - Remove existing routes
+- **`syncFib()`** - Synchronize the entire FIB for a client
+
+Each route update includes:
+- **Client ID**: Identifies the source (BGP, OpenR, Static, etc.)
+- **Route Prefix**: The destination network (IPv4 or IPv6)
+- **Next Hops**: Where to forward packets matching this prefix
+- **Admin Distance**: Priority for route selection when multiple clients advertise the same prefix
+
+## 2. RIB Processing
+
+The **Routing Information Base (RIB)** is the central component for route management, implemented in `RoutingInformationBase`. The RIB performs several critical functions:
+
+### Route Storage
+
+Routes are stored in the RIB organized by:
+- **VRF (Virtual Routing and Forwarding)**: Supports multiple routing tables
+- **Address Family**: Separate tables for IPv4 and IPv6
+- **Client**: Tracks which client programmed each route
+
+### Route Resolution
+
+The RIB resolves routes by:
+1. Looking up next-hops to ensure they are reachable
+2. Resolving recursive next-hops to physical interfaces
+3. Marking routes as **resolved** or **unresolved**
+
+A route is considered resolved when:
+- All next-hops can be reached via a directly connected interface, OR
+- The next-hop action is `TO_CPU` or `DROP`
+
+Only **resolved routes** are programmed into the FIB.
+
+### Best Path Selection
+
+When multiple clients advertise routes for the same prefix, the RIB selects the best path based on:
+1. **Admin Distance**: Lower is preferred (e.g., Static < EBGP < IBGP < OpenR)
+2. **Metric**: Used as a tiebreaker when admin distances are equal
+
+## 3. FIB Update via Callback
+
+Once routes are resolved in the RIB, the FIB is updated through the `ForwardingInformationBaseUpdater` callback mechanism. This is the bridge between the RIB and SwitchState.
+
+The `ForwardingInformationBaseUpdater`:
+1. Iterates through all routes in the RIB for a given VRF
+2. Filters to only include **resolved** routes
+3. Creates or updates the corresponding FIB entries
+4. Detects route additions, modifications, and deletions
+
+The updater produces a new `SwitchState` with the updated FIB, following FBOSS's copy-on-write design pattern.
+
+## 4. SwitchState Update
+
+The **SwitchState** contains the complete state of the switch, including the FIB. The FIB is organized as:
+
+- **FibInfoMap**: Top-level container for all FIBs
+- **FibInfo**: Per-switch FIB container
+- **ForwardingInformationBaseContainer**: Per-VRF container
+  - **ForwardingInformationBaseV4**: IPv4 FIB entries
+  - **ForwardingInformationBaseV6**: IPv6 FIB entries
+
+When the FIB is updated, a new `SwitchState` is created (copy-on-write), and the `SwSwitch` is notified of the state change through a `StateDelta`.
+
+## 5. ASIC Programming
+
+The final step is programming the routes into the hardware ASIC. This happens through the `HwSwitch` abstraction:
+
+1. **StateDelta**: The `SwSwitch` computes a delta between the old and new states
+2. **stateChanged()**: The `HwSwitch::stateChanged()` method is called with the delta
+3. **Route Processing**: The HwSwitch iterates through route changes in the delta
+4. **ASIC API Calls**: Routes are programmed via the SAI (Switch Abstraction Interface) or vendor SDK
+
+The `HwSwitch` implementation (e.g., `SaiSwitch`) translates the FIB changes to hardware-specific operations:
+- Adding entries to the L3 routing table
+- Configuring ECMP groups for multi-path routes
+- Setting up next-hop entries
+
+## 6. Packet Forwarding
+
+Once routes are programmed in the ASIC:
+
+1. **Packet Ingress**: Packet arrives at a switch port
+2. **L2 Processing**: MAC address lookup (if applicable)
+3. **L3 Lookup**: Destination IP is looked up in the hardware routing table (LPM - Longest Prefix Match)
+4. **Next-Hop Resolution**: The matching route's next-hop is identified
+5. **ECMP Selection**: If multiple next-hops exist, one is selected (hash-based)
+6. **Packet Egress**: Packet is forwarded to the appropriate egress port
+
+All of this happens at line rate in the ASIC hardware, enabling high-performance packet forwarding.
+
+## Key Components Reference
+
+| Component | File | Description |
+|-----------|------|-------------|
+| ThriftHandler | `agent/ThriftHandler.cpp` | Thrift API implementation |
+| RoutingInformationBase | `agent/rib/RoutingInformationBase.cpp` | RIB management |
+| ForwardingInformationBaseUpdater | `agent/rib/ForwardingInformationBaseUpdater.cpp` | RIB to FIB callback |
+| SwitchState | `agent/state/SwitchState.cpp` | State management |
+| ForwardingInformationBase | `agent/state/ForwardingInformationBase.h` | FIB data structure |
+| HwSwitch | `agent/HwSwitch.h` | Hardware abstraction |
+| SaiSwitch | `agent/hw/sai/switch/SaiSwitch.cpp` | SAI-based implementation |
+
+## Related Topics
+
+- [SwitchState](SwitchState.mdx) - Understanding the copy-on-write state model
+- [Overview](Overview.mdx) - FBOSS Controller Design overview
+- [Routing Dataplane Requirements](routing-dataplane-requirement.mdx) - Routing feature requirements

@@ -19,12 +19,14 @@
 #include "fboss/lib/ThreadHeartbeat.h"
 #include "fboss/lib/firmware_storage/FbossFwStorage.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
+#include "fboss/lib/link_snapshots/SnapshotManager.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
+#include "fboss/qsfp_service/QsfpServiceThreads.h"
 #include "fboss/qsfp_service/SlotThreadHelper.h"
 #include "fboss/qsfp_service/StateMachineController.h"
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
@@ -97,13 +99,14 @@ class TransceiverManager {
       "agentConfigLastAppliedInMs";
   static constexpr const char* kAgentConfigLastColdbootAppliedInMsKey =
       "agentConfigLastColdbootAppliedInMs";
+  static constexpr auto kSnapshotIntervalSeconds = 10;
+
   using TcvrInfoMap = std::map<int32_t, TransceiverInfo>;
 
   explicit TransceiverManager(
       std::unique_ptr<TransceiverPlatformApi> api,
       const std::shared_ptr<const PlatformMapping> platformMapping,
-      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          threads);
+      const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads);
   virtual ~TransceiverManager();
   void gracefulExit();
   void setGracefulExitingFlag() {
@@ -508,6 +511,11 @@ class TransceiverManager {
       TransceiverID id,
       std::unique_ptr<Transceiver> overrideTcvr);
 
+  folly::Synchronized<std::unordered_map<TransceiverID, SnapshotManager>>&
+  getSnapshotManagersForTesting() {
+    return snapshotManagers_;
+  }
+
   // If the transceiver doesn't exist, this will return std::nullopt.
   std::optional<TransceiverInfo> getTransceiverInfoOptional(
       TransceiverID id) const;
@@ -654,6 +662,10 @@ class TransceiverManager {
   // Returns the number of lines in log header and number of log entries.
   // To be implemented by derived class.
   virtual std::pair<size_t, size_t> dumpTransceiverI2cLog(const std::string&) {
+    return {0, 0};
+  }
+
+  virtual std::pair<size_t, size_t> dumpTransceiverI2cLog(int32_t) {
     return {0, 0};
   }
 
@@ -989,7 +1001,6 @@ class TransceiverManager {
       std::unique_ptr<TransceiverStateMachineUpdate> update);
   void executeStateUpdates();
 
-  static void handlePendingUpdatesHelper(TransceiverManager* mgr);
   void handlePendingUpdates();
 
   void triggerAgentConfigChangeEvent();
@@ -1074,10 +1085,10 @@ class TransceiverManager {
   bool isSystemInitialized_{false};
 
   /*
-   * A map to maintain all threads for all transceivers
+   * QsfpServiceThreads contains the threading infrastructure for the service,
+   * including a map to maintain all threads for all transceivers.
    */
-  const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-      threads_;
+  const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads_;
 
   /*
    * A map to maintain all transceivers(present and absent) programmed SW port
@@ -1172,6 +1183,11 @@ class TransceiverManager {
 
   folly::Synchronized<std::unordered_set<TransceiverID>>
       tcvrsReadyForProgramming_;
+
+  folly::Synchronized<std::unordered_map<TransceiverID, SnapshotManager>>
+      snapshotManagers_;
+
+  void updateSnapshots();
 
   friend class TransceiverStateMachineTest;
 };

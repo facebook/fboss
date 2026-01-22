@@ -2,6 +2,7 @@
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
+    "ecmp_width": "256",
     "enable_acl_table_group": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",

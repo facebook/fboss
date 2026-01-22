@@ -171,6 +171,7 @@ cpp_library(
         "//fboss/agent/test/utils:ecmp_dataplane_test_util",
         "//fboss/agent/test/utils:ecmp_test_utils",
         "//fboss/agent/test/utils:fabric_test_utils",
+        "//fboss/agent/test/utils:hyper_port_test_utils",
         "//fboss/agent/test/utils:invariant_test_utils",
         "//fboss/agent/test/utils:l2learn_observer_util",
         "//fboss/agent/test/utils:load_balancer_test_runner_h",
@@ -362,16 +363,20 @@ _sai_agent_hw_test_prefix = "sai_agent_hw_test"
     for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
 ]
 
-_sai_agent_scale_test_prefix = "sai_agent_scale_test"
+# (prefix, agent_ensemble) pairs for scale test binaries
+_sai_scale_test_configs = [
+    ("multi_switch_agent_scale_test", "multi_switch_agent_ensemble"),
+    ("sai_agent_scale_test", "mono_agent_ensemble"),
+]
 
 [
     cpp_binary(
-        name = to_impl_bin_name(sai_impl, _sai_agent_scale_test_prefix),
+        name = to_impl_bin_name(sai_impl, prefix),
         srcs = [
             "SaiAgentHwTest.cpp",
         ],
         link_group_map = get_link_group_map(
-            to_impl_bin_name(sai_impl, _sai_agent_scale_test_prefix),
+            to_impl_bin_name(sai_impl, prefix),
             sai_impl,
         ),
         linker_flags = [
@@ -390,11 +395,12 @@ _sai_agent_scale_test_prefix = "sai_agent_scale_test"
             "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
             "//fboss/agent/hw/sai/hw_test:sai_acl_utils{}".format(to_impl_suffix(sai_impl)),
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
-            "//fboss/agent/test:mono_agent_ensemble",
+            "//fboss/agent/test:{}".format(agent_ensemble),
             "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
             "//fboss/agent:setup_thrift_prod",
         ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
+    for (prefix, agent_ensemble) in _sai_scale_test_configs
     for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
 ]
 

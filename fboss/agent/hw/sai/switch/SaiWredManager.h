@@ -28,9 +28,9 @@ class SaiWredManager {
  public:
   SaiWredManager(
       SaiStore* saiStore,
-      SaiManagerTable* managerTable,
-      const SaiPlatform* platform)
-      : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
+      SaiManagerTable* /*managerTable*/,
+      const SaiPlatform* /*platform*/)
+      : saiStore_(saiStore) {}
 
   std::shared_ptr<SaiWred> getOrCreateProfile(const PortQueue& queue);
 
@@ -41,8 +41,6 @@ class SaiWredManager {
       const PortQueue& queue) const;
 
   SaiStore* saiStore_;
-  SaiManagerTable* managerTable_;
-  const SaiPlatform* platform_;
 };
 
 } // namespace facebook::fboss

@@ -321,7 +321,11 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
   using Base::Base;
   using NodeContainer = typename Base::Fields::StorageType;
 
-  virtual ~ThriftMapNode() {}
+  virtual ~ThriftMapNode() = default;
+  ThriftMapNode(const ThriftMapNode&) = delete;
+  ThriftMapNode& operator=(const ThriftMapNode&) = delete;
+  ThriftMapNode(ThriftMapNode&&) = delete;
+  ThriftMapNode& operator=(ThriftMapNode&&) = delete;
 
   void addNode(std::shared_ptr<Node> node) {
     auto key = node->getID();

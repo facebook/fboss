@@ -15,7 +15,7 @@ using EepromData = std::vector<uint8_t>;
 
 // Based on the Spec for V5 EEPROM:
 // https://github.com/facebook/fboss/blob/main/fboss/docs/meta_eeprom_format_v5.md
-EepromData kEepromV5 = {
+const EepromData kEepromV5 = {
     0xfb, 0xfb, 0x05, 0xff, 0x01, 0x0d, 0x46, 0x49, 0x52, 0x53, 0x54, 0x5f,
     0x53, 0x51, 0x55, 0x45, 0x45, 0x5a, 0x45, 0x02, 0x08, 0x32, 0x30, 0x31,
     0x32, 0x33, 0x34, 0x35, 0x36, 0x03, 0x08, 0x53, 0x59, 0x53, 0x41, 0x31,
@@ -38,7 +38,7 @@ EepromData kEepromV5 = {
 
 // EEPROM V5 with wrong CRC Programmed (same as the one above, but last 2
 // bytes have wrong CRC value programmed.)
-EepromData kEepromV5WrongCrc = {
+const EepromData kEepromV5WrongCrc = {
     0xfb, 0xfb, 0x05, 0xff, 0x01, 0x0d, 0x46, 0x49, 0x52, 0x53, 0x54, 0x5f,
     0x53, 0x51, 0x55, 0x45, 0x45, 0x5a, 0x45, 0x02, 0x08, 0x32, 0x30, 0x31,
     0x32, 0x33, 0x34, 0x35, 0x36, 0x03, 0x08, 0x53, 0x59, 0x53, 0x41, 0x31,
@@ -61,7 +61,7 @@ EepromData kEepromV5WrongCrc = {
 
 // Based on the Spec for V6 EEPROM:
 // https://github.com/facebook/fboss/blob/main/fboss/docs/meta_eeprom_format_v6.md
-EepromData kEepromV6 = {
+const EepromData kEepromV6 = {
     0xfb, 0xfb, 0x06, 0xff, 0x01, 0x0d, 0x46, 0x49, 0x52, 0x53, 0x54, 0x5f,
     0x53, 0x51, 0x55, 0x45, 0x45, 0x5a, 0x45, 0x02, 0x08, 0x32, 0x30, 0x31,
     0x32, 0x33, 0x34, 0x35, 0x36, 0x03, 0x08, 0x53, 0x59, 0x53, 0x41, 0x31,
@@ -116,10 +116,9 @@ constexpr auto kRma = "1";
 constexpr auto kVendorDefinedField1 = "0x0101010101";
 constexpr auto kVendorDefinedField2 = "0x48656c6c6f";
 constexpr auto kVendorDefinedField3 = "";
-constexpr auto kCrc16V5 = "0xd5c6";
-constexpr auto kCrc16V6 = "0x4a05";
-constexpr auto kCrcCorrectTemplate = "{} (CRC Matched)";
-constexpr auto kCrc16WrongTemplate = "0xa6b7 (CRC Mismatch. Expected {})";
+constexpr auto kCrc16V5 = "0xd5c6 (CRC Matched)";
+constexpr auto kCrc16V6 = "0x4a05 (CRC Matched)";
+constexpr auto kCrc16V5Wrong = "0xa6b7 (CRC Mismatch. Expected 0xd5c6)";
 
 EepromContents createEepromContents(int version, bool crcMatched = true) {
   EepromContents result;
@@ -144,15 +143,13 @@ EepromContents createEepromContents(int version, bool crcMatched = true) {
   result.bmcMac() = kBmcMac;
   result.switchAsicMac() = kSwitchAsicMac;
   result.metaReservedMac() = kMetaReservedMac;
-  const std::string crc16 = version == 5 ? kCrc16V5 : kCrc16V6;
 
-  if (crcMatched) {
-    result.crc16() = fmt::format(kCrcCorrectTemplate, crc16);
-  } else {
-    result.crc16() = fmt::format(kCrc16WrongTemplate, crc16);
+  if (version == 5) {
+    result.crc16() = crcMatched ? kCrc16V5 : kCrc16V5Wrong;
+  } else if (version == 6) {
+    result.crc16() = kCrc16V6;
   }
 
-  // V6 unique fields
   if (version == 6) {
     result.rma() = kRma;
     result.vendorDefinedField1() = kVendorDefinedField1;

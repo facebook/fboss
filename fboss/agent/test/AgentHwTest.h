@@ -108,8 +108,8 @@ class AgentHwTest : public ::testing::Test {
       const std::string& name = "agent-test-transaction") {
     applyNewStateImpl(std::move(fn), name, true);
   }
-
   SwSwitch* getSw() const;
+  SwitchID getCurrentSwitchIdForTesting() const;
   const std::map<SwitchID, const HwAsic*> getAsics() const;
   std::vector<const HwAsic*> getL3Asics() const {
     return getAgentEnsemble()->getL3Asics();
@@ -142,11 +142,20 @@ class AgentHwTest : public ::testing::Test {
   std::vector<PortID> masterLogicalHyperPortIds() const {
     return masterLogicalPortIds({cfg::PortType::HYPER_PORT});
   }
+  std::vector<PortID> masterLogicalInterfaceOrHyperPortIds() const {
+    return masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
+  }
   std::vector<PortID> masterLogicalInterfacePortIds(SwitchID switchId) const {
     return masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}, switchId);
   }
   std::vector<PortID> masterLogicalHyperPortIds(SwitchID switchId) const {
     return masterLogicalPortIds({cfg::PortType::HYPER_PORT}, switchId);
+  }
+  std::vector<PortID> masterLogicalInterfaceOrHyperPortIds(
+      SwitchID switchId) const {
+    return masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}, switchId);
   }
   void setSwitchDrainState(
       const cfg::SwitchConfig& curConfig,

@@ -18,20 +18,19 @@
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/EcmpResourceManager.h"
 #include "fboss/agent/FabricLinkMonitoringManager.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
-#include "fboss/agent/LinkConnectivityProcessor.h"
-#include "fboss/agent/Utils.h"
-
-#include "fboss/agent/EcmpResourceManager.h"
+#include "fboss/agent/FileBasedWarmbootUtils.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LinkAggregationManager.h"
+#include "fboss/agent/LinkConnectivityProcessor.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
@@ -39,6 +38,7 @@
 #include "fboss/agent/ShelManager.h"
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/TxPacketUtils.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #if FOLLY_HAS_COROUTINES
@@ -385,16 +385,6 @@ void updatePhyFb303Stats(
       }
     }
   }
-}
-
-bool isPortDrained(
-    const std::shared_ptr<SwitchState>& state,
-    const Port* port,
-    SwitchID portSwitchId) {
-  HwSwitchMatcher matcher(std::unordered_set<SwitchID>({portSwitchId}));
-  const auto& switchSettings = state->getSwitchSettings()->getSwitchSettings(
-      HwSwitchMatcher(std::unordered_set<SwitchID>({portSwitchId})));
-  return switchSettings->isSwitchDrained() || port->isDrained();
 }
 
 std::string getVirtualDeviceIdToEligibleNumActivePortsStr(
@@ -801,19 +791,23 @@ state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
   };
   auto& data = *(warmbootState->swSwitchState());
   const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-  auto fibsMap = data.fibsMap();
-  if (fibsMap->find(matcher) != fibsMap->end()) {
-    auto& fibs = fibsMap->find(matcher)->second;
-    for (auto& [_, fib] : fibs) {
-      auto fibV4 = fib.fibV4();
-      for (auto& [name, thriftRoute] : *fibV4) {
-        auto route = RouteFields<folly::IPAddressV4>::fromThrift(thriftRoute);
-        updateThriftRoute(route, fibV4, name);
-      }
-      auto fibV6 = fib.fibV6();
-      for (auto& [name, thriftRoute] : *fibV6) {
-        auto route = RouteFields<folly::IPAddressV6>::fromThrift(thriftRoute);
-        updateThriftRoute(route, fibV6, name);
+  auto fibsInfoMap = data.fibsInfoMap();
+  auto it = fibsInfoMap->find(matcher);
+  if (it != fibsInfoMap->end()) {
+    auto& fibInfoFields = it->second;
+    auto fibs = fibInfoFields.fibsMap();
+    if (fibs.has_value()) {
+      for (auto& [_, fib] : *fibs) {
+        auto fibV4 = fib.fibV4();
+        for (auto& [name, thriftRoute] : *fibV4) {
+          auto route = RouteFields<folly::IPAddressV4>::fromThrift(thriftRoute);
+          updateThriftRoute(route, fibV4, name);
+        }
+        auto fibV6 = fib.fibV6();
+        for (auto& [name, thriftRoute] : *fibV6) {
+          auto route = RouteFields<folly::IPAddressV6>::fromThrift(thriftRoute);
+          updateThriftRoute(route, fibV6, name);
+        }
       }
     }
   }
@@ -1326,8 +1320,10 @@ void SwSwitch::exitFatal() const noexcept {
 std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
-  bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
-                                                     : BootType::COLD_BOOT;
+  bootType_ = swSwitchWarmbootHelper_->canWarmBoot(
+                  isRunModeMultiSwitch(), getHwSwitchThriftClientTable())
+      ? BootType::WARM_BOOT
+      : BootType::COLD_BOOT;
   XLOG(INFO) << kNetworkEventLogPrefix
              << " Boot Type: " << apache::thrift::util::enumNameSafe(bootType_)
              << " | SDK version: " << getAsicSdkVersion(sdkVersion_)
@@ -1346,8 +1342,7 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   restart_time::init(
       agentDirUtil_->getWarmBootDir(), bootType_ == BootType::WARM_BOOT);
 
-  auto [state, rib] = SwSwitchWarmBootHelper::reconstructStateAndRib(
-      wbState, scopeResolver_->hasL3());
+  auto [state, rib] = reconstructStateAndRib(wbState, scopeResolver_->hasL3());
   rib_ = std::move(rib);
 
   if (bootType_ != BootType::WARM_BOOT) {
@@ -1355,7 +1350,7 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
     // rib should also have minimum alpm state
     rib_ = RoutingInformationBase::fromThrift(
         rib_->toThrift(),
-        state->getFibs(),
+        state->getFibsInfoMap(),
         state->getLabelForwardingInformationBase());
   }
 
@@ -3147,15 +3142,12 @@ bool SwSwitch::sendPacketAsync(
       case PortDescriptor::PortType::PHYSICAL:
         return sendPacketOutOfPortAsync(
             std::move(pkt), portDescriptor.value().phyPortID(), queueId);
-        break;
       case PortDescriptor::PortType::AGGREGATE:
         return sendPacketOutOfPortAsync(
             std::move(pkt), portDescriptor.value().aggPortID(), queueId);
-        break;
       case PortDescriptor::PortType::SYSTEM_PORT:
         XLOG(FATAL) << " Packet send over system ports not handled yet";
         return false;
-        break;
     };
   } else {
     CHECK(!queueId.has_value());

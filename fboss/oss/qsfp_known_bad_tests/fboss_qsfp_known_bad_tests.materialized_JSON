@@ -197,6 +197,9 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
+          "test_name_regex": "HwPortPrbsTestAll.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -206,6 +209,9 @@
     "fuji_5x16Q/physdk-barchetta2-7.4/barchetta2-7.4": [
         {
           "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwPortPrbsTestAll.*$"
         },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"

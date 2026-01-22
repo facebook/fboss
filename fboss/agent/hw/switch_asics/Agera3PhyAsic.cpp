@@ -6,6 +6,8 @@
 namespace facebook::fboss {
 bool Agera3PhyAsic::isSupported(Feature feature) const {
   switch (feature) {
+    case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
+      return true;
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
@@ -19,6 +21,7 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
+    case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
       return false;
     default:
       return false;

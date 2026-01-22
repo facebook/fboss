@@ -103,3 +103,16 @@ cpp_unittest(
         "//folly:file_util",
     ],
 )
+
+cpp_unittest(
+    name = "pmunit_info_fetcher_test",
+    srcs = [
+        "PmUnitInfoFetcherTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/platform_manager:platform_manager_service-cpp2-services",
+        "//fboss/platform/platform_manager:platform_manager_service-cpp2-types",
+        "//fboss/platform/sensor_service:pmunit_info_fetcher",
+    ],
+)

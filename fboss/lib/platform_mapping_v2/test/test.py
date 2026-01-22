@@ -7,7 +7,6 @@ from typing import Dict, List, Optional
 
 from fboss.lib.platform_mapping_v2.gen import read_vendor_data
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
-
 from neteng.fboss.phy.ttypes import (
     DataPlanePhyChip,
     DataPlanePhyChipType,
@@ -32,7 +31,6 @@ from neteng.fboss.platform_config.ttypes import (
     PlatformPortMapping,
     PlatformPortProfileConfigEntry,
 )
-
 from neteng.fboss.switch_config.ttypes import PortProfileID, PortSpeed, PortType, Scope
 from neteng.fboss.transceiver.ttypes import (
     MediaInterfaceCode,
@@ -373,7 +371,6 @@ class TestPlatformMappingGeneration(unittest.TestCase):
                 factor=PlatformPortConfigOverrideFactor(
                     ports=[1],
                     profiles=[PortProfileID.PROFILE_100G_4_NRZ_RS528_OPTICAL],
-                    mediaInterfaceCode=MediaInterfaceCode.FR1_100G,
                     vendor=Vendor(
                         name="VENDOR_1",
                         oui=b"",

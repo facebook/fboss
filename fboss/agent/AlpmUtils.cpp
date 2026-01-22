@@ -19,6 +19,8 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
@@ -68,14 +70,19 @@ std::shared_ptr<SwitchState> setupMinAlpmRouteState(
   RoutePrefixV4 defaultPrefix4{folly::IPAddressV4("0.0.0.0"), 0};
   RoutePrefixV6 defaultPrefix6{folly::IPAddressV6("::"), 0};
 
-  auto newFibs = newState->getFibs()->modify(&newState);
   auto defaultVrf = std::make_shared<ForwardingInformationBaseContainer>(rid);
-  if (newFibs->getNodeIf(rid)) {
-    newFibs->updateForwardingInformationBaseContainer(
-        defaultVrf, resolver.scope(defaultVrf));
-  } else {
-    newFibs->addNode(defaultVrf, resolver.scope(defaultVrf));
+  auto scope = resolver.scope(defaultVrf);
+
+  auto fibInfoMap = newState->getFibsInfoMap()->modify(&newState);
+
+  auto fibInfo = fibInfoMap->getFibInfo(scope);
+  if (!fibInfo) {
+    fibInfo = std::make_shared<FibInfo>();
+    fibInfoMap->addNode(scope.matcherString(), fibInfo);
   }
+
+  // Update the container through FibInfo
+  fibInfo->updateFibContainer(defaultVrf, &newState);
   auto setupRoute = [](auto& route) {
     RouteNextHopEntry entry(
         RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE);

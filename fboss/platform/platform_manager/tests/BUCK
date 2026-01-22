@@ -122,3 +122,16 @@ cpp_unittest(
         "//fboss/platform/platform_manager:pci_explorer",
     ],
 )
+
+cpp_unittest(
+    name = "platform_manager_handler_test",
+    srcs = [
+        "PlatformManagerHandlerTest.cpp",
+    ],
+    supports_static_listing = False,
+    deps = [
+        "//fboss/platform/platform_manager:platform_manager_handler",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)

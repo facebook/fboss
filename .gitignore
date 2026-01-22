@@ -4,3 +4,10 @@
 /external
 /external.install
 .*.swp
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python

@@ -12,6 +12,7 @@
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/api/SaiApiLock.h"
 #include "fboss/agent/platforms/sai/SaiPhyPlatform.h"
 #include "fboss/lib/bsp/BspPimContainer.h"
 #include "fboss/lib/phy/SaiPhyRetimer.h"
@@ -130,6 +131,12 @@ bool BspSaiPhyManager::initExternalPhyMap(bool warmboot) {
                << ": Calling preHwInitialized for firstXphy=" << *firstXphy;
     // Initialize SAI APIs once
     getSaiPlatform(*firstXphy)->preHwInitialized(warmboot);
+
+    // Mark the SAI adaptor as thread-safe to enable parallel XPHY
+    // initialization.
+    SaiApiLock::getInstance()->setAdaptorIsThreadSafe(true);
+    XLOG(INFO) << "Enabled parallel XPHY initialization by marking SAI adaptor "
+               << "as thread-safe";
   }
 
   return true;

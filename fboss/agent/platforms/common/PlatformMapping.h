@@ -108,6 +108,10 @@ class PlatformMapping {
   std::optional<std::vector<phy::PinConfig>> getPortTransceiverPinConfigs(
       PlatformPortProfileConfigMatcher matcher) const;
 
+  // Get the serdesCustomCollection from PortPinConfig for a port
+  std::optional<std::string> getPortSerdesCustomCollection(
+      PlatformPortProfileConfigMatcher matcher) const;
+
   std::set<uint8_t> getTransceiverHostLanes(
       PlatformPortProfileConfigMatcher matcher) const;
 
@@ -215,5 +219,7 @@ class PlatformMapping {
   // Forbidden copy constructor and assignment operator
   PlatformMapping(PlatformMapping const&) = delete;
   PlatformMapping& operator=(PlatformMapping const&) = delete;
+  PlatformMapping(PlatformMapping&&) = delete;
+  PlatformMapping& operator=(PlatformMapping&&) = delete;
 };
 } // namespace facebook::fboss

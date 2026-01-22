@@ -452,11 +452,13 @@ class AgentQueuePerHostTest : public AgentHwTest {
 
           // counts ttl >= 128 packet only
           EXPECT_EVENTUALLY_EQ(packetsAfter - packetsBefore, 1);
-          if (frontPanel) {
-            EXPECT_EVENTUALLY_EQ(bytesAfter - bytesBefore, packetSize);
+          if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
+            if (frontPanel) {
+              EXPECT_EVENTUALLY_EQ(bytesAfter - bytesBefore, packetSize);
+            }
+            // TODO: Still need to debug why we get extra 4 bytes for CPU port
+            EXPECT_EVENTUALLY_TRUE(bytesAfter - bytesBefore >= packetSize);
           }
-          // TODO: Still need to debug why we get extra 4 bytes for CPU port
-          EXPECT_EVENTUALLY_TRUE(bytesAfter - bytesBefore >= packetSize);
         });
       }
     };

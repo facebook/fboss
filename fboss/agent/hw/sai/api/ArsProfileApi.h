@@ -62,12 +62,16 @@ struct SaiArsProfileTraits {
         SAI_ARS_PROFILE_ATTR_LOAD_PAST_MAX_VAL,
         sai_uint32_t>;
     // Future load
-    using PortLoadFuture =
-        SaiAttribute<EnumType, SAI_ARS_PROFILE_ATTR_PORT_LOAD_FUTURE, bool>;
+    using PortLoadFuture = SaiAttribute<
+        EnumType,
+        SAI_ARS_PROFILE_ATTR_PORT_LOAD_FUTURE,
+        bool,
+        StdNullOptDefault<bool>>;
     using PortLoadFutureWeight = SaiAttribute<
         EnumType,
         SAI_ARS_PROFILE_ATTR_PORT_LOAD_FUTURE_WEIGHT,
-        sai_uint8_t>;
+        sai_uint8_t,
+        StdNullOptDefault<uint8_t>>;
     using LoadFutureMinVal = SaiAttribute<
         EnumType,
         SAI_ARS_PROFILE_ATTR_LOAD_FUTURE_MIN_VAL,
@@ -182,8 +186,8 @@ struct SaiArsProfileTraits {
       Attributes::PortLoadPastWeight,
       Attributes::LoadPastMinVal,
       Attributes::LoadPastMaxVal,
-      Attributes::PortLoadFuture,
-      Attributes::PortLoadFutureWeight,
+      std::optional<Attributes::PortLoadFuture>,
+      std::optional<Attributes::PortLoadFutureWeight>,
       Attributes::LoadFutureMinVal,
       Attributes::LoadFutureMaxVal,
       Attributes::PortLoadCurrent,

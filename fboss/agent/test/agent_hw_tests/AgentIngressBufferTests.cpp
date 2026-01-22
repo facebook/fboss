@@ -116,6 +116,13 @@ class AgentIngressBufferTest : public AgentHwTest {
     return {ProductionFeature::PFC};
   }
 
+  std::vector<PortID> portIdsForTest() const {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds();
+    }
+    return masterLogicalInterfacePortIds();
+  }
+
   void setupGlobalBuffer(
       cfg::SwitchConfig& cfg,
       bool useLargeHwValues,
@@ -166,7 +173,7 @@ class AgentIngressBufferTest : public AgentHwTest {
       bool enableHighBufferValues = false) {
     auto cfg = initialConfig(*getAgentEnsemble());
 
-    auto portId = masterLogicalInterfacePortIds()[0];
+    auto portId = portIdsForTest()[0];
     // setup PFC
     setupPfc(cfg, portId, pfcEnable);
     // setup pgConfig
@@ -198,8 +205,8 @@ TEST_F(AgentIngressBufferTest, validateConfig) {
 
   auto verify = [&]() {
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
-          masterLogicalInterfacePortIds()[0], true /*pfcEnable*/));
+      EXPECT_EVENTUALLY_TRUE(
+          checkSwHwPgCfgMatch(portIdsForTest()[0], true /*pfcEnable*/));
     });
   };
 
@@ -213,7 +220,7 @@ TEST_F(AgentIngressBufferTest, validatePGParamChange) {
     setupHelper();
     // update one PG, and see ifs reflected in the HW
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-    auto portId = masterLogicalInterfacePortIds()[0];
+    auto portId = portIdsForTest()[0];
     auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
     portPgConfigMap["foo"] = getPortPgConfig(asic, {0, 1}, 1);
@@ -223,8 +230,8 @@ TEST_F(AgentIngressBufferTest, validatePGParamChange) {
 
   auto verify = [&]() {
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
-          masterLogicalInterfacePortIds()[0], true /*pfcEnable*/));
+      EXPECT_EVENTUALLY_TRUE(
+          checkSwHwPgCfgMatch(portIdsForTest()[0], true /*pfcEnable*/));
     });
   };
 
@@ -241,7 +248,7 @@ TEST_F(AgentIngressBufferTest, validatePGHeadroomLimitChange) {
     // This ensure the new value is getting programmed after config update
     // For both PGs, they will be created in lossless mode
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-    auto portId = masterLogicalInterfacePortIds()[0];
+    auto portId = portIdsForTest()[0];
     auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto portPgConfigs = getPortPgConfig(asic, {0}, 0);
@@ -249,7 +256,7 @@ TEST_F(AgentIngressBufferTest, validatePGHeadroomLimitChange) {
     portPgConfigMap["foo"] = portPgConfigs;
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
-    checkSwHwPgCfgMatch(masterLogicalInterfacePortIds()[0], true /*pfcEnable*/);
+    checkSwHwPgCfgMatch(portIdsForTest()[0], true /*pfcEnable*/);
 
     // Remove PG1 headroom field and add a new PG2 with no headroom field
     // both cases, PG1 and PG2 should be created in lossy mode
@@ -259,7 +266,7 @@ TEST_F(AgentIngressBufferTest, validatePGHeadroomLimitChange) {
     portPgConfigMap["foo"] = portPgConfigs;
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
-    checkSwHwPgCfgMatch(masterLogicalInterfacePortIds()[0], true /*pfcEnable*/);
+    checkSwHwPgCfgMatch(portIdsForTest()[0], true /*pfcEnable*/);
 
     // Remove PG1 and update PG2 headroom to non-zero
     // This ensure counters are accurately updated per PG. PFC counters are
@@ -270,7 +277,7 @@ TEST_F(AgentIngressBufferTest, validatePGHeadroomLimitChange) {
     portPgConfigMap["foo"] = portPgConfigs;
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
-    checkSwHwPgCfgMatch(masterLogicalInterfacePortIds()[0], true /*pfcEnable*/);
+    checkSwHwPgCfgMatch(portIdsForTest()[0], true /*pfcEnable*/);
 
     // Make PG2 headroom value 0. This also make PG2 lossy
     portPgConfigs = getPortPgConfig(asic, {0}, 0);
@@ -287,8 +294,8 @@ TEST_F(AgentIngressBufferTest, validatePGHeadroomLimitChange) {
 
   auto verify = [&]() {
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
-          masterLogicalInterfacePortIds()[0], true /*pfcEnable*/));
+      EXPECT_EVENTUALLY_TRUE(
+          checkSwHwPgCfgMatch(portIdsForTest()[0], true /*pfcEnable*/));
     });
   };
 
@@ -304,8 +311,8 @@ TEST_F(AgentIngressBufferTest, validatePgNoPfc) {
   };
   auto verify = [&]() {
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
-          masterLogicalInterfacePortIds()[0], false /*pfcEnable*/));
+      EXPECT_EVENTUALLY_TRUE(
+          checkSwHwPgCfgMatch(portIdsForTest()[0], false /*pfcEnable*/));
     });
   };
 
@@ -321,8 +328,8 @@ TEST_F(AgentIngressBufferTest, validateHighBufferValues) {
   auto setup = [&]() { setupHelperWithHighBufferValues(); };
   auto verify = [&]() {
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
-          masterLogicalInterfacePortIds()[0], true /*pfcEnable*/));
+      EXPECT_EVENTUALLY_TRUE(
+          checkSwHwPgCfgMatch(portIdsForTest()[0], true /*pfcEnable*/));
     });
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -338,8 +345,8 @@ TEST_F(AgentIngressBufferTest, validateLossyMode) {
 
   auto verify = [&]() {
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
-          masterLogicalInterfacePortIds()[0], false /* pfcEnable */));
+      EXPECT_EVENTUALLY_TRUE(
+          checkSwHwPgCfgMatch(portIdsForTest()[0], false /* pfcEnable */));
     });
   };
 
@@ -353,7 +360,7 @@ TEST_F(AgentIngressBufferTest, validatePGQueueChanges) {
     setupHelper();
     // update one PG, and see ifs reflected in the HW
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-    auto portId = masterLogicalInterfacePortIds()[0];
+    auto portId = portIdsForTest()[0];
     auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
     portPgConfigMap["foo"] =
@@ -364,8 +371,8 @@ TEST_F(AgentIngressBufferTest, validatePGQueueChanges) {
 
   auto verify = [&]() {
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
-          masterLogicalInterfacePortIds()[0], true /*pfcEnable*/));
+      EXPECT_EVENTUALLY_TRUE(
+          checkSwHwPgCfgMatch(portIdsForTest()[0], true /*pfcEnable*/));
     });
   };
 
@@ -387,7 +394,7 @@ class AgentIngressBufferPoolTest : public AgentIngressBufferTest {
 TEST_F(AgentIngressBufferPoolTest, validateIngressPoolParamChange) {
   auto setup = [&]() {
     setupHelper();
-    auto portId = masterLogicalInterfacePortIds()[0];
+    auto portId = portIdsForTest()[0];
     auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
     // setup bufferPool
@@ -402,8 +409,8 @@ TEST_F(AgentIngressBufferPoolTest, validateIngressPoolParamChange) {
 
   auto verify = [&]() {
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
-          masterLogicalInterfacePortIds()[0], true /*pfcEnable*/));
+      EXPECT_EVENTUALLY_TRUE(
+          checkSwHwPgCfgMatch(portIdsForTest()[0], true /*pfcEnable*/));
     });
   };
 

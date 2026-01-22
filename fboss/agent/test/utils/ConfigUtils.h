@@ -29,6 +29,7 @@
 #include <vector>
 
 DECLARE_bool(nodeZ);
+DECLARE_bool(hyper_port);
 
 namespace facebook::fboss {
 class PortMap;
@@ -241,7 +242,8 @@ void populateSwitchInfo(
     const std::optional<PlatformType> platformType = std::nullopt);
 
 void populateSwitchInfoForLadakh(
-    std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo);
+    SwitchID switchId,
+    cfg::SwitchInfo& switchInfo);
 
 cfg::SwitchConfig twoL3IntfConfig(
     SwSwitch* swSwitch,

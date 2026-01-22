@@ -39,6 +39,9 @@ class BspLedManager : public LedManager {
         BspGenericSystemContainer<ContainerType>::getInstance().get();
     bspSystemContainer_->createBspLedContainers();
     platformMapping_ = std::make_unique<MappingType>();
+
+    // Subscribe to FSDB after initializing the platform mapping.
+    subscribeToFsdb();
   }
 
   bool blinkingSupported() const override {

@@ -29,7 +29,9 @@ void addAggPort(
     const std::vector<int32_t>& ports,
     cfg::SwitchConfig* config,
     cfg::LacpPortRate rate = cfg::LacpPortRate::FAST,
-    double minLinkPercentage = 1.0);
+    double minLinkPercentage = 1.0,
+    cfg::AggregatePortType aggregatePortType = cfg::AggregatePortType::LAG_PORT,
+    std::optional<std::string> aggPortName = std::nullopt);
 std::shared_ptr<SwitchState> enableTrunkPorts(
     std::shared_ptr<SwitchState> curState);
 std::shared_ptr<SwitchState> setTrunkMinLinkCount(

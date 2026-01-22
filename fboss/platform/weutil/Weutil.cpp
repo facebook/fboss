@@ -37,7 +37,7 @@ std::unique_ptr<WeutilInterface> createWeUtilIntf(
       upperEepromName.begin(),
       upperEepromName.end(),
       upperEepromName.begin(),
-      ::toupper);
+      [](unsigned char c) { return std::toupper(c); });
   if (upperEepromName == "CHASSIS" || upperEepromName.empty()) {
     fruEeprom = configUtils.getFruEeprom(configUtils.getChassisEepromName());
   } else {

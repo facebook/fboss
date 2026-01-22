@@ -149,16 +149,16 @@ class CmdShowInterfaceCountersFecTail
     std::vector<facebook::fboss::utils::Table::RowData> header = {
         "Interface Name"};
     if (model.direction() == phy::Direction::RECEIVE) {
-      header.push_back("ASIC");
+      header.emplace_back("ASIC");
       if (hasXphy) {
-        header.push_back("XPHY_LINE");
+        header.emplace_back("XPHY_LINE");
       }
-      header.push_back("TRANSCEIVER_LINE");
+      header.emplace_back("TRANSCEIVER_LINE");
     } else {
       if (hasXphy) {
-        header.push_back("XPHY_SYSTEM");
+        header.emplace_back("XPHY_SYSTEM");
       }
-      header.push_back("TRANSCEIVER_SYSTEM");
+      header.emplace_back("TRANSCEIVER_SYSTEM");
     }
     table.setHeader(header);
     for (const auto& [interfaceName, fecTail] : *model.fecTail()) {
@@ -183,29 +183,28 @@ class CmdShowInterfaceCountersFecTail
       std::vector<facebook::fboss::utils::Table::RowData> rowData = {
           interfaceName};
       if (model.direction() == phy::Direction::RECEIVE) {
-        rowData.push_back({
+        rowData.emplace_back(
             iphyFecTail.has_value()
                 ? utils::styledFecTail(*iphyFecTail)
-                : Table::StyledCell("-", Table::Style::NONE),
-        });
+                : Table::StyledCell("-", Table::Style::NONE));
         if (hasXphy) {
-          rowData.push_back(
+          rowData.emplace_back(
               xphyLineFecTail.has_value()
                   ? utils::styledFecTail(*xphyLineFecTail)
                   : Table::StyledCell("-", Table::Style::NONE));
         }
-        rowData.push_back(
+        rowData.emplace_back(
             tcvrLineFecTail.has_value()
                 ? utils::styledFecTail(*tcvrLineFecTail)
                 : Table::StyledCell("-", Table::Style::NONE));
       } else {
         if (hasXphy) {
-          rowData.push_back(
+          rowData.emplace_back(
               xphySystemFecTail.has_value()
                   ? utils::styledFecTail(*xphySystemFecTail)
                   : Table::StyledCell("-", Table::Style::NONE));
         }
-        rowData.push_back(
+        rowData.emplace_back(
             tcvrSystemFecTail.has_value()
                 ? utils::styledFecTail(*tcvrSystemFecTail)
                 : Table::StyledCell("-", Table::Style::NONE));

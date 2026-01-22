@@ -15,6 +15,9 @@ thrift_library(
     thrift_srcs = {
         "fbiob_device_config.thrift": [],
     },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -26,6 +29,9 @@ thrift_library(
     thrift_srcs = {
         "bsp_tests_config.thrift": [],
     },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -94,9 +100,7 @@ cpp_binary(
         ":bsp_test_environment",
         ":bsp_tests_config-cpp2-types",
         ":utils",
-        "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/helpers:init",
-        "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/platform_manager:fbiob_ioctl_h",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
         "//folly:format",
@@ -132,9 +136,11 @@ cpp_library(
         ":bsp_tests_runtime_config-cpp2-types",
         ":fbiob_device_config-cpp2-types",
         "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/platform_manager:pkg_manager",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
         "//fboss/platform/platform_manager:utils",
+        "//folly:file_util",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",

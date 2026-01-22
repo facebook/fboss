@@ -81,6 +81,8 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   FLAGS_enable_snapshot_debugs = false;
   FLAGS_verify_apply_oper_delta = true;
   FLAGS_hide_fabric_ports = true;
+  // hide all interface ports to ensure hyper port is used in test run
+  FLAGS_hide_interface_ports = FLAGS_hyper_port;
   // Don't send/receive periodic lldp packets. They will
   // interfere with tests.
   FLAGS_enable_lldp = false;
@@ -154,6 +156,10 @@ std::shared_ptr<SwitchState> AgentHwTest::applyNewConfig(
 
 SwSwitch* AgentHwTest::getSw() const {
   return agentEnsemble_->getSw();
+}
+
+SwitchID AgentHwTest::getCurrentSwitchIdForTesting() const {
+  return SwitchID(FLAGS_switch_id_for_testing);
 }
 
 const std::map<SwitchID, const HwAsic*> AgentHwTest::getAsics() const {

@@ -5,6 +5,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
+#include "fboss/qsfp_service/QsfpServiceThreads.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/I2cLogBuffer.h"
@@ -22,11 +23,6 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <chrono>
-
-DEFINE_bool(
-    override_program_iphy_ports_for_test,
-    false,
-    "Override wedge_agent programInternalPhyPorts(). For test only");
 
 DEFINE_bool(
     optics_data_post_to_rest,
@@ -59,9 +55,8 @@ WedgeManager::WedgeManager(
     std::unique_ptr<TransceiverPlatformApi> api,
     const std::shared_ptr<const PlatformMapping> platformMapping,
     PlatformType type,
-    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-        threads)
-    : TransceiverManager(std::move(api), platformMapping, threads),
+    const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads)
+    : TransceiverManager(std::move(api), platformMapping, qsfpServiceThreads),
       platformType_(type) {
   /* Constructor for WedgeManager class:
    * Get the TransceiverPlatformApi object from the creator of this object,
@@ -1053,7 +1048,7 @@ bool WedgeManager::initExternalPhyMap(
         auto* xphyEventBase = phyManager->getXphyEventBase(xphyID);
         initPimTasks.push_back(
             folly::via(xphyEventBase)
-                .thenValue([&, xphyID, warmboot](auto&&) {
+                .thenValue([phyManager, xphyID, warmboot](auto&&) {
                   phyManager->initializeXphy(xphyID, warmboot);
                 })
                 .thenError(
@@ -1071,7 +1066,7 @@ bool WedgeManager::initExternalPhyMap(
       auto* pimEventBase = phyManager->getPimEventBase(pimID);
       initPimTasks.push_back(
           folly::via(pimEventBase)
-              .thenValue([&, pimID, warmboot](auto&&) {
+              .thenValue([phyManager, pimID, warmboot](auto&&) {
                 phyManager->initializeSlotPhys(pimID, warmboot);
               })
               .thenError(
