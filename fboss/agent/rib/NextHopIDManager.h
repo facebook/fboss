@@ -96,15 +96,15 @@ class NextHopIDManager {
         : id(id_), count(count_) {}
   };
 
-  static constexpr uint64_t kNextHopIDStart = 1;
-  static constexpr uint64_t kNextHopSetIDStart = 1LL << 62;
+  static constexpr int64_t kNextHopIDStart = 1;
+  static constexpr int64_t kNextHopSetIDStart = 1LL << 62;
 
   // Counter for generating NextHop IDs, starting from 1
   // allocate 0 - (2^62 -1) IDs for NextHops.
   NextHopID nextAvailableNextHopID_{kNextHopIDStart};
 
   // Counter for generating NextHopSet IDs, starting from 2^62
-  // Allocate 2^62 - (2^63 - 1) IDs for NextHopIDSets.
+  // Allocate 2^62 - INT64_MAX IDs for NextHopIDSets.
   NextHopSetID nextAvailableNextHopSetID_{kNextHopSetIDStart};
 
   // Mapping from NextHop to its ID and reference count

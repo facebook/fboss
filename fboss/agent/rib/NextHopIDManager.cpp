@@ -6,6 +6,8 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <limits>
+
 namespace std {
 size_t hash<facebook::fboss::NextHopIDSet>::operator()(
     const facebook::fboss::NextHopIDSet& idSet) const {
@@ -29,12 +31,12 @@ std::pair<NextHopID, bool> NextHopIDManager::getOrAllocateNextHopID(
   }
 
   // New NextHop, allocate a new ID
-  auto newID = nextAvailableNextHopID_;
+  NextHopID newID = nextAvailableNextHopID_;
   nextAvailableNextHopID_ = NextHopID(nextAvailableNextHopID_ + 1);
 
   // Check if the NextHopID is within the range [0, 2^62-1]
   // This is the range assigned to NextHopID
-  CHECK(static_cast<int64_t>(newID) < (1ULL << 62))
+  CHECK(static_cast<int64_t>(newID) > 0 && newID < kNextHopSetIDStart)
       << "Next Hop ID is in the range of [0, 2^62 - 1], the id space has been exhausted! It does not support wrap around!";
 
   auto [idInfoitr, idInfoinserted] =
@@ -56,13 +58,15 @@ std::pair<NextHopSetID, bool> NextHopIDManager::getOrAllocateNextHopSetID(
   }
 
   // New NextHopIDSet, allocate a new ID
-  auto newID = nextAvailableNextHopSetID_;
+  NextHopSetID newID = nextAvailableNextHopSetID_;
   nextAvailableNextHopSetID_ = NextHopSetID(nextAvailableNextHopSetID_ + 1);
 
-  // Check if the NextHopSetID is within the range [2^62, 2^63-1]
+  // Check if the NextHopSetID is within the range [2^62, INT64_MAX]
   // This is the range assigned to NextHopSetID
-  CHECK(static_cast<int64_t>(newID) >= (1ULL << 62))
-      << "Next Hop Set ID is in the range of [2^62, 2^63-1], the id space has been exhausted! It does not support wrap around!";
+  CHECK(
+      static_cast<int64_t>(newID) >= kNextHopSetIDStart &&
+      static_cast<int64_t>(newID) < std::numeric_limits<int64_t>::max())
+      << "Next Hop Set ID is in the range of [2^62, 2^64-1], the id space has been exhausted! It does not support wrap around!";
   auto [idSetInfoItr, idSetInfoInserted] =
       nextHopIdSetToIDInfo_.emplace(nextHopIDSet, NextHopSetIDInfo(newID, 1));
   CHECK(idSetInfoInserted);
