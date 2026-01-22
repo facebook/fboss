@@ -864,6 +864,8 @@ cpp_binary(
     ],
     headers = [
         "commands/show/facebook/CmdShowVersionBgp.h",
+        "commands/show/facebook/config/CmdShowConfigRunningBgp.h",
+        "commands/show/facebook/config/CmdShowConfigTraits.h",
     ],
     deps = [
         ":cmd-common-utils",
@@ -905,7 +907,10 @@ cpp_binary(
         "//openr/if:network-cpp2-types",
         "//openr/if:types-cpp2-types",
         "//servicerouter/client/cpp2:cpp2",
+        "//thrift/lib/cpp/transport:transport-core",
         "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+        "//thrift/lib/cpp2/protocol:protocol",
     ],
     external_deps = [
         "CLI11",
