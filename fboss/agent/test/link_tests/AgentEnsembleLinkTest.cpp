@@ -106,6 +106,9 @@ void AgentEnsembleLinkTest::TearDown() {
           qsfpServiceClient.get()->sync_getQsfpServiceRunState())
           << "QSFP Service run state no longer active after the test";
 
+      // Dump the I2C Logs at the end of the test.
+      dumpTransceiverI2cLogs(*qsfpServiceClient);
+
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Failed to call qsfp_service getStatus(). " << ex.what();
     }
@@ -124,6 +127,47 @@ void AgentEnsembleLinkTest::TearDown() {
 #endif
   }
   AgentEnsembleTest::TearDown();
+}
+
+std::vector<std::string>
+AgentEnsembleLinkTest::getPrimaryPortNamesCabledPorts() {
+  const auto& ports = getCabledPorts();
+  std::unordered_set<std::string> uniqueSet;
+  std::vector<std::string> result_list;
+  for (const auto& port : ports) {
+    auto portName =
+        getSw()->getPlatformMapping()->getPortNameByPortId(port).value_or("");
+    if (portName.empty()) {
+      continue;
+    }
+    size_t firstSlash = portName.find('/');
+    size_t secondSlash = portName.find('/', firstSlash + 1);
+    if (firstSlash == std::string::npos || secondSlash == std::string::npos) {
+      // Skip wrong input
+      continue;
+    }
+    std::string firstTwoParams = portName.substr(0, secondSlash);
+    if (uniqueSet.find(firstTwoParams) == uniqueSet.end()) {
+      uniqueSet.insert(firstTwoParams);
+      result_list.push_back(portName);
+    }
+  }
+  return result_list;
+}
+
+void AgentEnsembleLinkTest::dumpTransceiverI2cLogs(
+    apache::thrift::Client<facebook::fboss::QsfpService>& qsfpServiceClient) {
+  auto ports = getPrimaryPortNamesCabledPorts();
+  for (auto& port : ports) {
+    try {
+      qsfpServiceClient.sync_dumpTransceiverI2cLog(port);
+    } catch (const std::exception& ex) {
+      // Passive cables may not have EEPROM, ignore the error if the i2c log
+      // does not exist.
+      XLOG(ERR) << "Failed to dump i2c log for port " << port << " Exception "
+                << ex.what();
+    }
+  }
 }
 
 void AgentEnsembleLinkTest::checkAgentMemoryInBounds() const {
