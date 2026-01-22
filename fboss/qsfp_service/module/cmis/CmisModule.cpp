@@ -2809,11 +2809,11 @@ void CmisModule::setApplicationCodeLocked(
     // Check if current AppSel matches the desired one
     uint8_t currentAppSelCode = getCurrentAppSelCode(startHostLane);
     auto& dpState = portDatapathStates_[portName];
-    if (currentAppSelCode == newAppSelCode && dpState.dpInitDone) {
-      QSFP_LOG(INFO, this) << folly::sformat(
-          "AppSel code matches: current {:#x} new {:#x}, skipping programming",
-          currentAppSelCode,
-          newAppSelCode);
+    auto& initTimers = dpState.initTimers;
+    if (currentAppSelCode == newAppSelCode &&
+        (initTimers.progStartTimer.time_since_epoch().count() == 0)) {
+      QSFP_LOG(INFO, this)
+          << "AppSel codes for tunable optics are matching, skipping programming";
       return;
     }
 
@@ -3435,12 +3435,7 @@ bool CmisModule::ensureTransceiverReadyLocked(bool hasTunableOpticsConfig) {
   // return true else return false as the optics state machine might be in
   // transition and need more time to be ready
   if (powerState == PowerControlState::HIGH_POWER_OVERRIDE) {
-    if (isTunableOptics()) {
-      return (isModuleInReadyState()) &&
-          (dataPathProgram(getNameString(), kFullDataPathDeInitMask, false));
-    } else {
-      return isModuleInReadyState();
-    }
+    return isModuleInReadyState();
   }
 
   // If the optics current power configuration is Low Power then set the LP
