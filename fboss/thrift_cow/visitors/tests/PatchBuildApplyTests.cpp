@@ -1,9 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/agent/gen-cpp2/switch_config_fatal_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/thrift_cow/nodes/Types.h"
-#include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
 #include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_types.h"
 #include "fboss/thrift_cow/visitors/PatchApplier.h"
 #include "fboss/thrift_cow/visitors/PatchBuilder.h"

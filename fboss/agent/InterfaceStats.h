@@ -27,7 +27,6 @@ class InterfaceStats {
 
   InterfaceID intfID_;
   std::string intfName_;
-  SwitchStats* switchStats_;
 };
 
 } // namespace facebook::fboss

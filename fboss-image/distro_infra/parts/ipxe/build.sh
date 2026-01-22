@@ -1,4 +1,5 @@
 #!/bin/bash
+
 set -e
 
 # We need to build a custom iPXE executable for IPv6 so we can include the autoexecipv6.ipxe script which works around

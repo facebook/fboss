@@ -137,3 +137,4 @@ DECLARE_bool(recover_from_hw_switch);
 DECLARE_bool(montblanc_odd_ports_8x100G);
 DECLARE_bool(can_warm_boot);
 DECLARE_string(thrift_switch_state_file);
+DECLARE_bool(qsfp_port_manager_mode);

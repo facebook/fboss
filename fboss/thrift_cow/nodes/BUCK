@@ -13,9 +13,9 @@ cpp_library(
         "//folly:dynamic",
         "//folly/io:iobuf",
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+        "//thrift/lib/cpp2/op:get",
         "//thrift/lib/cpp2/protocol:protocol",
         "//thrift/lib/cpp2/protocol/detail:protocol_methods",
-        "//thrift/lib/cpp2/reflection:reflection",
     ],
 )
 
@@ -26,10 +26,8 @@ cpp_library(
     ],
     exported_deps = [
         ":serializer",
-        "//fatal:fatal",
         "//folly:conv",
         "//thrift/lib/cpp/util:enum_utils",
-        "//thrift/lib/cpp2/reflection:reflection",
     ],
 )
 

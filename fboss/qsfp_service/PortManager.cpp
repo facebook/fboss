@@ -5,6 +5,7 @@
 #include <folly/json/DynamicConverter.h>
 #include "fboss/agent/Utils.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
+#include "fboss/qsfp_service/QsfpConfig.h"
 
 namespace facebook::fboss {
 namespace {
@@ -178,6 +179,11 @@ void PortManager::init() {
   if (transceiverManager_->canWarmBoot()) {
     restoreAgentConfigAppliedInfo();
   }
+  // Set overrideXphyNoTcvrPortToProfileForTest_ if
+  // FLAGS_override_program_iphy_ports_for_test is true.
+  // This mirrors what WedgeManager::initTransceiverMap() does for
+  // overrideTcvrToPortAndProfileForTest_.
+  setOverrideXphyNoTcvrPortToProfileForTesting();
 
   initExternalPhyMap();
 }
@@ -830,17 +836,24 @@ void PortManager::setOverrideAgentPortStatusForTesting(
   if (clearOnly) {
     return;
   }
+
+  auto addPortStatus = [&](PortID portId, cfg::PortProfileID profileID) {
+    NpuPortStatus status;
+    status.portEnabled = enabledPortIds.find(portId) != enabledPortIds.end();
+    status.operState = upPortIds.find(portId) != upPortIds.end();
+    status.profileID = apache::thrift::util::enumNameSafe(profileID);
+    overrideAgentPortStatusForTesting_.emplace(portId, status);
+  };
+
   for (const auto& it :
        transceiverManager_->getOverrideTcvrToPortAndProfileForTesting()) {
     for (const auto& [portId, profileID] : it.second) {
-      // If portIds is provided, only enable those ports; otherwise, use
-      // 'enabled'
-      NpuPortStatus status;
-      status.portEnabled = enabledPortIds.find(portId) != enabledPortIds.end();
-      status.operState = upPortIds.find(portId) != upPortIds.end();
-      status.profileID = apache::thrift::util::enumNameSafe(profileID);
-      overrideAgentPortStatusForTesting_.emplace(portId, status);
+      addPortStatus(portId, profileID);
     }
+  }
+  for (const auto& [portId, profileID] :
+       getOverrideXphyNoTcvrPortToProfileForTesting()) {
+    addPortStatus(portId, profileID);
   }
 }
 
@@ -853,15 +866,23 @@ void PortManager::setOverrideAllAgentPortStatusForTesting(
     return;
   }
 
+  auto addPortStatus = [&](PortID portId, cfg::PortProfileID profileID) {
+    NpuPortStatus status;
+    status.portEnabled = enabled;
+    status.operState = up;
+    status.profileID = apache::thrift::util::enumNameSafe(profileID);
+    overrideAgentPortStatusForTesting_.emplace(portId, status);
+  };
+
   for (const auto& it :
        transceiverManager_->getOverrideTcvrToPortAndProfileForTesting()) {
     for (const auto& [portId, profileID] : it.second) {
-      NpuPortStatus status;
-      status.portEnabled = enabled;
-      status.operState = up;
-      status.profileID = apache::thrift::util::enumNameSafe(profileID);
-      overrideAgentPortStatusForTesting_.emplace(portId, status);
+      addPortStatus(portId, profileID);
     }
+  }
+  for (const auto& [portId, profileID] :
+       getOverrideXphyNoTcvrPortToProfileForTesting()) {
+    addPortStatus(portId, profileID);
   }
 }
 
@@ -875,8 +896,23 @@ void PortManager::setOverrideXphyNoTcvrPortToProfileForTesting(
         overrideXphyNoTcvrPortToProfile) {
   if (overrideXphyNoTcvrPortToProfile.has_value()) {
     overrideXphyNoTcvrPortToProfileForTest_ = *overrideXphyNoTcvrPortToProfile;
-  } else {
-    overrideXphyNoTcvrPortToProfileForTest_.clear();
+  } else if (FLAGS_override_program_iphy_ports_for_test) {
+    auto qsfpTestConfig =
+        transceiverManager_->getQsfpConfig()->thrift.qsfpTestConfig();
+    CHECK(qsfpTestConfig.has_value());
+    for (const auto& portPairs : *qsfpTestConfig->cabledPortPairs()) {
+      auto aPortID = getPortIDByPortName(*portPairs.aPortName());
+      auto zPortID = getPortIDByPortName(*portPairs.zPortName());
+      // If the SW port does NOT have a transceiver but HAS XPHY, add it to
+      // overrideXphyNoTcvrPortToProfileForTest_ (XPHY backplane port)
+      for (const auto& portID : {aPortID, zPortID}) {
+        if (portID.has_value() && !portHasTransceiver(*portID) &&
+            cachedXphyPorts_.find(*portID) != cachedXphyPorts_.end()) {
+          overrideXphyNoTcvrPortToProfileForTest_.emplace(
+              *portID, *portPairs.profileID());
+        }
+      }
+    }
   }
 }
 
@@ -2163,12 +2199,37 @@ phy::PortPrbsState PortManager::getXphyPortPrbs(
 void PortManager::getPortStates(
     std::map<int32_t, PortStateMachineState>& states,
     std::unique_ptr<std::vector<int32_t>> ids) {
+  if (ids->empty()) {
+    for (const auto& [_, portId] : portNameToPortID_) {
+      ids->push_back(portId);
+    }
+  }
+
   for (const auto& id : *ids) {
     auto portId = PortID(id);
     try {
       states.emplace(id, getPortState(portId));
     } catch (const FbossError& /* e */) {
-      XLOG(WARN) << "Unrecognized Port:" << portId;
+      XLOG(WARN) << "Unrecognized Port: " << portId;
+    }
+  }
+}
+
+void PortManager::getPortStates(
+    std::map<std::string, PortStateMachineState>& states,
+    std::unique_ptr<std::vector<std::string>> portNames) {
+  if (portNames->empty()) {
+    for (const auto& [portNameStr, _] : portNameToPortID_) {
+      portNames->push_back(portNameStr);
+    }
+  }
+
+  for (const auto& portNameStr : *portNames) {
+    try {
+      auto portId = getPortIDByPortNameOrThrow(portNameStr);
+      states.emplace(portNameStr, getPortState(portId));
+    } catch (const FbossError& /* e */) {
+      XLOG(WARN) << "Unrecognized Port:" << portNameStr;
     }
   }
 }

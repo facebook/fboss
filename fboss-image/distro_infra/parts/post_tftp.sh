@@ -17,10 +17,10 @@ filesize=$2
 address=$3
 filepath=$4
 
-case $filepath in
+case "$filepath" in
 /distro_infra/persistent/*/pxeboot_complete)
-  mac=$(echo $filepath | cut -d/ -f4)
-  rm -rf /distro_infra/dnsmasq_conf.d/$mac
+  mac=$(echo "$filepath" | cut -d/ -f4)
+  rm -rf "/distro_infra/dnsmasq_conf.d/$mac"
   killall -HUP dnsmasq
   echo "$mac PXE booted, disabling future PXE boot provisioning"
   ;;

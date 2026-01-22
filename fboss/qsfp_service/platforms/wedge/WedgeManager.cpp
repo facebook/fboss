@@ -25,11 +25,6 @@
 #include <chrono>
 
 DEFINE_bool(
-    override_program_iphy_ports_for_test,
-    false,
-    "Override wedge_agent programInternalPhyPorts(). For test only");
-
-DEFINE_bool(
     optics_data_post_to_rest,
     false,
     "Enable qsfp_service to post optics thermal data to BMC");

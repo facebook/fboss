@@ -74,8 +74,7 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
     return 64;
   }
   uint32_t getPacketBufferUnitSize() const override {
-    // TODO: update numbers if necessary
-    return 254;
+    return 420;
   }
   uint32_t getPacketBufferDescriptorSize() const override {
     // TODO: update numbers if necessary

@@ -296,6 +296,7 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   for (auto portState : {badPortState1, badPortState2, badPortState3}) {
     EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
   }
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
@@ -489,6 +490,7 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
   for (auto portState : {badPortState1, badPortState2, badPortState3}) {
     EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
   }
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 TEST_F(CmisTest, flatMemTransceiverInfoTest) {
@@ -503,6 +505,7 @@ TEST_F(CmisTest, flatMemTransceiverInfoTest) {
 
   TransceiverTestsHelper tests(info);
   tests.verifyVendorName("FACETEST");
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 TEST_F(CmisTest, moduleEepromChecksumTest) {
@@ -593,6 +596,7 @@ TEST_F(CmisTest, cmis400GCr8TransceiverInfoTest) {
           std::nullopt);
     }
   }
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 TEST_F(CmisTest, cmis2x400GFr4TransceiverInfoTest) {
@@ -751,6 +755,7 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverInfoTest) {
   for (auto portState : {badPortState1, badPortState2, badPortState3}) {
     EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
   }
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 TEST_F(CmisTest, cmis2x400GFr4LiteTransceiverInfoTest) {
@@ -912,6 +917,7 @@ TEST_F(CmisTest, cmis2x400GFr4LiteTransceiverInfoTest) {
   for (auto portState : {badPortState1, badPortState2, badPortState3}) {
     EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
   }
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 TEST_F(CmisTest, cmis2x400GFr4LpoTransceiverInfoTest) {
@@ -1075,6 +1081,7 @@ TEST_F(CmisTest, cmis2x400GFr4LpoTransceiverInfoTest) {
   for (auto portState : {badPortState1, badPortState2, badPortState3}) {
     EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
   }
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 // TODO: T232388340 Further enhancement for full EEPROM support.
@@ -1252,6 +1259,7 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
       xcvr->getInterfaceCodeForAppSel(1, 1),
       static_cast<uint8_t>(SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G));
   EXPECT_EQ(xcvr->getCurrentAppSelCode(1), 0x1);
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 TEST_F(CmisTest, cmisCredo800AecInfoTest) {
@@ -1399,6 +1407,7 @@ TEST_F(CmisTest, cmisCredo800AecInfoTest) {
   for (auto portState : {badPortState1, badPortState2, badPortState3}) {
     EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
   }
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 TEST_F(CmisTest, cmis2x400GFr4TransceiverVdmTest) {
@@ -1751,6 +1760,7 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
   for (auto& speed : speedCfgCombo) {
     EXPECT_EQ(speed, (uint8_t)SMFMediaInterfaceCode::FR1_100G);
   }
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 TEST_F(CmisTest, cmis2x400GDr4TransceiverInfoTest) {
@@ -1856,6 +1866,7 @@ TEST_F(CmisTest, cmis2x400GDr4TransceiverInfoTest) {
   EXPECT_TRUE(xcvr->isPrbsSupported(phy::Side::SYSTEM));
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::LINE));
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::SYSTEM));
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 TEST_F(CmisTest, vdmPam4MpiAlarmsTest) {
@@ -2072,6 +2083,7 @@ TEST_F(CmisTest, cmis400GDr4TransceiverInfoTest) {
           std::nullopt);
     }
   }
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
 TEST_F(CmisTest, cmis2x800GDr4TransceiverInfoTest) {
@@ -2162,5 +2174,17 @@ TEST_F(CmisTest, cmis2x800GDr4TransceiverInfoTest) {
   EXPECT_TRUE(xcvr->isPrbsSupported(phy::Side::SYSTEM));
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::LINE));
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::SYSTEM));
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
+}
+
+TEST_F(CmisTest, cmisInvalidDatapathTransceiverInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<InvalidDatapathLaneStateTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_TRUE(info.tcvrState()->transceiverManagementInterface());
+  std::set<TransceiverErrorState> expectedErrorStates = {
+      TransceiverErrorState::INVALID_DATA_PATH_LANE_STATE};
+  EXPECT_EQ(info.tcvrState()->errorStates(), expectedErrorStates);
 }
 } // namespace facebook::fboss

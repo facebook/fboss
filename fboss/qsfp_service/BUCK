@@ -273,6 +273,7 @@ cpp_library(
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        ":qsfp-config",
         ":qsfp-service-threads",
         ":transceiver-manager",
         "//fboss/agent:fboss-error",

@@ -41,7 +41,7 @@ class StateUpdate {
       static_cast<int>(BehaviorFlags::NONE);
   explicit StateUpdate(folly::StringPiece name, int behaviorFlags)
       : name_(name.str()), behaviorFlags_(behaviorFlags) {}
-  virtual ~StateUpdate() {}
+  virtual ~StateUpdate() = default;
 
   const std::string& getName() const {
     return name_;
@@ -95,6 +95,8 @@ class StateUpdate {
   // Forbidden copy constructor and assignment operator
   StateUpdate(StateUpdate const&) = delete;
   StateUpdate& operator=(StateUpdate const&) = delete;
+  StateUpdate(StateUpdate&&) = delete;
+  StateUpdate& operator=(StateUpdate&&) = delete;
 
   std::string name_;
   int behaviorFlags_{static_cast<int>(BehaviorFlags::NONE)};
