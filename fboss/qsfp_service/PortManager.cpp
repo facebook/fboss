@@ -905,11 +905,11 @@ void PortManager::setOverrideXphyNoTcvrPortToProfileForTesting(
       auto zPortID = getPortIDByPortName(*portPairs.zPortName());
       // If the SW port does NOT have a transceiver but HAS XPHY, add it to
       // overrideXphyNoTcvrPortToProfileForTest_ (XPHY backplane port)
-      for (const auto& portID : {aPortID, zPortID}) {
-        if (portID.has_value() && !portHasTransceiver(*portID) &&
-            cachedXphyPorts_.find(*portID) != cachedXphyPorts_.end()) {
+      for (const auto& pID : {aPortID, zPortID}) {
+        if (pID.has_value() && !portHasTransceiver(*pID) &&
+            cachedXphyPorts_.find(*pID) != cachedXphyPorts_.end()) {
           overrideXphyNoTcvrPortToProfileForTest_.emplace(
-              *portID, *portPairs.profileID());
+              *pID, *portPairs.profileID());
         }
       }
     }
