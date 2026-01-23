@@ -117,6 +117,7 @@ add_library(state
 )
 
 target_link_libraries(state
+  address_utils
   error
   platform_config_cpp2
   switch_config_cpp2
@@ -144,6 +145,8 @@ add_library(state_utils
 target_link_libraries(state_utils
   error
   fboss_types
+  hwswitch_matcher
+  state
   switch_state_cpp2
   thrift_cow_serializer
 )

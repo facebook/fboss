@@ -51,6 +51,7 @@ target_link_libraries(agent_test_utils
   hw_mock
   monolithic_switch_handler
   multi_switch_hw_switch_handler
+  route_distribution_gen
 )
 
 add_library(ecmp_helper
@@ -168,6 +169,10 @@ add_library(multinode_tests
 
 target_link_libraries(multinode_tests
   agent_test_lib
+  agent_test_utils
+  hw_copp_utils
+  hw_packet_utils
+  load_balancer_utils
   main
   config_factory
   trunk_utils
@@ -196,6 +201,7 @@ target_link_libraries(agent_ensemble
   main
   config_factory
   fboss_config_utils
+  sw_agent_initializer
   test_ensemble_if
   pkt_test_utils
   agent_hw_test_ctrl_cpp2
@@ -232,6 +238,7 @@ add_library(linkstate_toggler
 target_link_libraries(linkstate_toggler
   state
   core
+  test_ensemble_if
 )
 
 add_library(system_scale_test_utils
@@ -253,6 +260,7 @@ target_link_libraries(system_scale_test_utils
   scale_test_utils
   route_scale_gen
   qos_test_utils
+  trap_packet_utils
   Folly::folly
   Folly::follybenchmark
 )

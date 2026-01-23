@@ -191,6 +191,7 @@ add_library(agent_hw_test_thrift_handler
 )
 
 target_link_libraries(agent_hw_test_thrift_handler
+  hw_switch
   sai_switch # //fboss/agent/hw/sai/switch:sai_switch
   acl_test_utils
   agent_hw_test_ctrl_cpp2

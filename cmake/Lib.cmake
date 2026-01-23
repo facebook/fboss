@@ -80,6 +80,7 @@ add_library(common_utils
 )
 
 target_link_libraries(common_utils
+  common_file_utils
   fboss_error
   fb303::fb303
 )
@@ -138,6 +139,7 @@ add_library(common_thrift_utils
 target_link_libraries(common_thrift_utils
   Folly::folly
   fb303::fb303
+  thrift_service_client
 )
 
 add_library(gpiod_line

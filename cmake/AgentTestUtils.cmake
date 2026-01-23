@@ -67,6 +67,7 @@ add_library(traffic_policy_utils
 )
 
 target_link_libraries(traffic_policy_utils
+  copp_test_utils
   switch_config_cpp2
   config_factory
   switch_asics
@@ -175,9 +176,12 @@ target_link_libraries(qos_test_utils
   asic_test_utils
   ecmp_helper
   fboss_types
+  pkt_test_utils
+  resourcelibutil
   switch_asics
   state
   test_ensemble_if
+  voq_test_utils
   Folly::folly
 )
 
@@ -186,6 +190,7 @@ add_library(l2learn_observer_util
 )
 
 target_link_libraries(l2learn_observer_util
+  agent_ensemble
   core
   l2learn_event_observer
   Folly::folly
@@ -321,6 +326,7 @@ add_library(mac_test_utils
 )
 
 target_link_libraries(mac_test_utils
+  core
   state
   test_ensemble_if
   network_address_cpp2
@@ -412,8 +418,11 @@ add_library(pfc_test_utils
 
 target_link_libraries(pfc_test_utils
   acl_test_utils
+  agent_ensemble
   hardware_stats_cpp2
+  resourcelibutil
   switch_config_cpp2
+  test_ensemble_if
 )
 
 add_library(queue_test_utils
