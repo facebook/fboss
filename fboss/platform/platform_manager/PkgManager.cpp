@@ -208,7 +208,14 @@ void PkgManager::processAll() const {
       processRpms();
       // In cases where kmods.json from previous BSP installation is absent
       // (like provisioning, where this is the first run of PM), the kmods might
-      // be present in the initramfs OR ramdisk image
+      // be present in the initramfs OR ramdisk image.
+      // This also helps in catching early the cases where a new BSP upgrade is
+      // attempted with an ill-formatted kmods.json. TODO: figure out better
+      // gate-keepers for this.
+      XLOG(INFO)
+          << "Re-attempting unloading of BSP kmods. This is to handle the cases "
+          << "where this is the first run of PM, and the kmods are present in "
+          << "the initramfs OR ramdisk image";
       unloadBspKmods();
       // Load required kmods from PM config.
       loadRequiredKmods();
@@ -329,7 +336,7 @@ void PkgManager::closeWatchdogs() const {
   if (!fs::exists(watchdogsDir)) {
     return;
   }
-  XLOG(INFO) << "Closing Watchdogs";
+  XLOG(INFO) << "Closing Watchdogs to prevent watchdogs holding kmods";
   try {
     for (const auto& entry : fs::directory_iterator(watchdogsDir)) {
       const std::string filePath = entry.path().string();
@@ -389,14 +396,15 @@ void PkgManager::unloadBspKmods() const {
             bspKmodsFilePath,
             fmt::format("dnf install {} --assumeyes", getKmodsRpmName())));
   }
+  BspKmodsFile bspKmodsFile;
+  apache::thrift::SimpleJSONSerializer::deserialize<BspKmodsFile>(
+      *jsonBspKmodsFile, bspKmodsFile);
+  XLOG(INFO)
+      << "kmods.json file found. Unloading kernel modules based on kmods.json";
   // Watchdogs would prevent module unloading if they are not stopped correctly.
   // Try to close all of them before proceeding. This will help in cases where
   // the watchdog managing service crashed.
   closeWatchdogs();
-  BspKmodsFile bspKmodsFile;
-  apache::thrift::SimpleJSONSerializer::deserialize<BspKmodsFile>(
-      *jsonBspKmodsFile, bspKmodsFile);
-  XLOG(INFO) << "Unloading kernel modules based on kmods.json";
   const auto loadedKmods = systemInterface_->lsmod();
   for (const auto& kmod : *bspKmodsFile.bspKmods()) {
     if (loadedKmods.contains(kmod)) {
