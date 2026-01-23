@@ -429,6 +429,7 @@ void PkgManager::unloadBspKmods() const {
           "Skipping to unload {}. Reason: Already unloaded", kmod);
     }
   }
+  kmodsUnloaded_ = true;
 }
 
 void PkgManager::loadRequiredKmods() const {
@@ -501,5 +502,9 @@ std::string PkgManager::getKmodsRpmBaseWithKernelName() const {
       "{}-{}",
       *platformConfig_.bspKmodsRpmName(),
       systemInterface_->getHostKernelVersion());
+}
+
+bool PkgManager::wereKmodsUnloaded() const {
+  return kmodsUnloaded_;
 }
 } // namespace facebook::fboss::platform::platform_manager
