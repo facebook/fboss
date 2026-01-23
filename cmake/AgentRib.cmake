@@ -14,11 +14,13 @@ target_link_libraries(standalone_rib
   network_to_route_map
   address_utils
   error
+  fboss_event_base
   fboss_types
   switch_config_cpp2
   ctrl_cpp2
   label_forwarding_action
   state_utils
+  utils
   Folly::folly
   switch_state_cpp2
   thrift_cow_nodes
@@ -30,6 +32,7 @@ add_library(network_to_route_map
 
 target_link_libraries(network_to_route_map
   radix_tree
+  state
 )
 
 add_library(fib_updater

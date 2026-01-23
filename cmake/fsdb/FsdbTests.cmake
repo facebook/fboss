@@ -30,7 +30,7 @@ add_library(fsdb_test_subscriber
 
 target_link_libraries(fsdb_test_subscriber
   fsdb_pub_sub
-  fsdb_model_cpp2
+  fsdb_model
   Folly::folly
 )
 
@@ -59,7 +59,7 @@ add_library(fsdb_test_clients
 target_link_libraries(fsdb_test_clients
   fsdb_pub_sub
   fsdb_stream_client
-  fsdb_model_cpp2
+  fsdb_model
   common_utils
   Folly::folly
   FBThrift::thriftcpp2

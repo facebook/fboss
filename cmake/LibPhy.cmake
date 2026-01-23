@@ -9,7 +9,10 @@ add_library(external_phy
 )
 
 target_link_libraries(external_phy
+  alert_logger
   ctrl_cpp2
+  fboss_types
+  mdio
   platform_config_cpp2
   phy_cpp2
 )

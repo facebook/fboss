@@ -19,6 +19,7 @@ target_link_libraries(wedge_led_utils
   transceiver_cpp2
   facebook_fpga
   wedge_i2c
+  wedge_transceiver
   transceiver_cpp2
   Folly::folly
 )
