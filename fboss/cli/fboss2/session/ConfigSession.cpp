@@ -12,7 +12,9 @@
 
 #include <fmt/format.h>
 #include <folly/FileUtil.h>
+#include <folly/String.h>
 #include <folly/Subprocess.h>
+#include <folly/json/dynamic.h>
 #include <folly/json/json.h>
 #include <glog/logging.h>
 #include <pwd.h>
@@ -20,14 +22,31 @@
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <unistd.h>
+#include <cerrno>
 #include <chrono>
+#include <cstddef>
+#include <cstdlib>
+#include <exception>
 #include <filesystem>
 #include <fstream>
+#include <memory>
+#include <optional>
+#include <set>
 #include <stdexcept>
+#include <string>
+#include <system_error>
 #include <thread>
+#include <utility>
+#include <vector>
 #include "fboss/agent/AgentDirectoryUtil.h"
+#include "fboss/agent/gen-cpp2/agent_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h" // NOLINT(misc-include-cleaner)
+#include "fboss/cli/fboss2/session/Git.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
 
 namespace fs = std::filesystem;
@@ -146,6 +165,117 @@ std::string readCommandLineFromProc() {
     }
   }
   return folly::join(" ", args);
+}
+
+// Maximum number of conflicts to report before truncating with "and more"
+constexpr size_t kMaxConflicts = 10;
+
+// Add a conflict to the list, appending "and more" when we hit the limit.
+void addConflict(std::vector<std::string>& conflicts, std::string conflict) {
+  conflicts.push_back(std::move(conflict));
+  if (conflicts.size() == kMaxConflicts - 1) {
+    conflicts.emplace_back("and more");
+  }
+}
+
+/*
+ * Perform a recursive 3-way merge of JSON objects.
+ *
+ * @param base The original/base version
+ * @param head The version that was changed by someone else (current HEAD)
+ * @param session The version with the user's changes
+ * @param path Current path in the JSON tree (for conflict reporting)
+ * @param conflicts Vector to collect conflict paths (capped at kMaxConflicts)
+ * @return The merged JSON, preferring session changes over head when safe
+ *         (the return value must be ignored when "conflicts" is not empty)
+ */
+folly::dynamic threeWayMerge(
+    const folly::dynamic& base,
+    const folly::dynamic& head,
+    const folly::dynamic& session,
+    const std::string& path,
+    std::vector<std::string>& conflicts) {
+  // If we've already hit max conflicts, stop recursing
+  if (conflicts.size() >= kMaxConflicts) {
+    return session;
+  }
+
+  // Note: folly::dynamic::operator== does deep comparison which is O(n) for the
+  // entire subtree. We compare subtrees O(n) times leading to O(n²) complexity.
+  // While suboptimal, benchmarking showed ~11ms for a 41k line config file,
+  // which is acceptable for CLI usage, given how simple the implementation is.
+
+  // If session equals base, user didn't change this - use head's version
+  if (session == base) {
+    return head;
+  }
+
+  // If head equals base, other user didn't change this - use session's version
+  if (head == base) {
+    return session;
+  }
+
+  // Both changed - if they made the same change, that's fine
+  if (head == session) {
+    return session;
+  }
+
+  // Both changed differently - need to handle based on type
+  if (base.isObject() && head.isObject() && session.isObject()) {
+    // Recursively merge objects
+    folly::dynamic result = folly::dynamic::object;
+
+    // Collect all keys from all three versions
+    std::set<std::string> allKeys;
+    for (const auto& kv : base.items()) {
+      allKeys.insert(kv.first.asString());
+    }
+    for (const auto& kv : head.items()) {
+      allKeys.insert(kv.first.asString());
+    }
+    for (const auto& kv : session.items()) {
+      allKeys.insert(kv.first.asString());
+    }
+
+    for (const auto& key : allKeys) {
+      std::string childPath =
+          path.empty() ? key : fmt::format("{}.{}", path, key);
+
+      // Get values from each version (null if not present)
+      folly::dynamic baseVal = base.getDefault(key, nullptr);
+      folly::dynamic headVal = head.getDefault(key, nullptr);
+      folly::dynamic sessionVal = session.getDefault(key, nullptr);
+
+      folly::dynamic mergedVal =
+          threeWayMerge(baseVal, headVal, sessionVal, childPath, conflicts);
+
+      // Don't include null values (represents deletion)
+      if (!mergedVal.isNull()) {
+        result[key] = std::move(mergedVal);
+      }
+    }
+    return result;
+  }
+
+  if (base.isArray() && head.isArray() && session.isArray()) {
+    // For arrays, we can try element-by-element merge if sizes match
+    if (base.size() == head.size() && base.size() == session.size()) {
+      folly::dynamic result = folly::dynamic::array;
+      for (size_t i = 0; i < base.size(); ++i) {
+        std::string childPath = fmt::format("{}[{}]", path, i);
+        result.push_back(
+            threeWayMerge(base[i], head[i], session[i], childPath, conflicts));
+      }
+      return result;
+    }
+    // Array sizes differ - this is a conflict
+    addConflict(conflicts, path + " (array size mismatch)");
+    return session; // Return session's version, but report conflict
+  }
+
+  // Scalar values that both changed differently - conflict
+  addConflict(conflicts, path);
+  return session; // Return session's version, but report conflict
 }
 
 } // anonymous namespace
@@ -328,6 +458,7 @@ void ConfigSession::loadMetadata() {
         facebook::thrift::format_adherence::LENIENT);
     requiredActions_ = *metadata.action();
     commands_ = *metadata.commands();
+    base_ = *metadata.base();
   } catch (const std::exception& ex) {
     // If JSON parsing fails, keep defaults
     LOG(WARNING) << "Failed to parse metadata file: " << ex.what();
@@ -342,6 +473,7 @@ void ConfigSession::saveMetadata() {
   cli::ConfigSessionMetadata metadata;
   metadata.action() = requiredActions_;
   metadata.commands() = commands_;
+  metadata.base() = base_;
 
   folly::dynamic json = facebook::thrift::to_dynamic(
       metadata, facebook::thrift::dynamic_format::PORTABLE);
@@ -543,7 +675,11 @@ void ConfigSession::initializeSession() {
     // Ensure the session config directory exists
     ensureDirectoryExists(sessionConfigDir_);
     copySystemConfigToSession();
-    // Create initial empty metadata file for new sessions
+    // Capture the current git HEAD as the base for this session.
+    // This is used to detect if someone else committed changes while this
+    // session was in progress.
+    base_ = git_->getHead();
+    // Create initial metadata file for new sessions
     saveMetadata();
   } else {
     // Load metadata from disk (survives across CLI invocations)
@@ -568,7 +704,7 @@ void ConfigSession::initializeGit() {
   }
 }
 
-void ConfigSession::copySystemConfigToSession() {
+void ConfigSession::copySystemConfigToSession() const {
   // Read system config and write atomically to session config
   // This ensures that readers never see a partially written file - they either
   // see the old file or the new file, never a mix.
@@ -588,6 +724,20 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   if (!sessionExists()) {
     throw std::runtime_error(
         "No config session exists. Make a config change first.");
+  }
+
+  // Check if someone else committed changes while this session was in progress
+  std::string currentHead = git_->getHead();
+  if (!base_.empty() && currentHead != base_) {
+    throw std::runtime_error(
+        fmt::format(
+            "Cannot commit: the system configuration has changed since this "
+            "session was started. Your session was based on commit {}, but the "
+            "current HEAD is {}. Run 'config session rebase' to rebase your "
+            "changes onto the current configuration, or discard your session "
+            "and start over.",
+            base_.substr(0, 7),
+            currentHead.substr(0, 7)));
   }
 
   std::string cliConfigDir = getCliConfigDir();
@@ -689,6 +839,72 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   }
 
   return CommitResult{revision, actions};
+}
+
+void ConfigSession::rebase() {
+  if (!sessionExists()) {
+    throw std::runtime_error(
+        "No config session exists. Make a config change first.");
+  }
+
+  std::string currentHead = git_->getHead();
+
+  // If base is empty or already matches HEAD, nothing to rebase
+  if (base_.empty() || base_ == currentHead) {
+    throw std::runtime_error(
+        "No rebase needed: session is already based on the current HEAD.");
+  }
+
+  // Get the three versions of the config:
+  // 1. Base config (what the session was originally based on)
+  // 2. Current HEAD config (what someone else committed)
+  // 3. Session config (user's changes)
+  std::string cliConfigRelPath = "cli/agent.conf";
+  std::string baseConfig = git_->fileAtRevision(base_, cliConfigRelPath);
+  std::string headConfig = git_->fileAtRevision(currentHead, cliConfigRelPath);
+
+  std::string sessionConfigPath = getSessionConfigPath();
+  std::string sessionConfig;
+  if (!folly::readFile(sessionConfigPath.c_str(), sessionConfig)) {
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to read session config from {}", sessionConfigPath));
+  }
+
+  // Parse all three as JSON
+  folly::dynamic baseJson = folly::parseJson(baseConfig);
+  folly::dynamic headJson = folly::parseJson(headConfig);
+  folly::dynamic sessionJson = folly::parseJson(sessionConfig);
+
+  // Perform a 3-way merge
+  // For each key in session that differs from base, apply to head
+  // If head also changed the same key differently, that's a conflict
+  std::vector<std::string> conflicts;
+  folly::dynamic mergedJson =
+      threeWayMerge(baseJson, headJson, sessionJson, "", conflicts);
+
+  if (!conflicts.empty()) {
+    std::string conflictList;
+    for (const auto& conflict : conflicts) {
+      conflictList += "\n  - " + conflict;
+    }
+    throw std::runtime_error(
+        fmt::format(
+            "Rebase failed due to conflicts at the following paths:{}",
+            conflictList));
+  }
+
+  // Write the merged config to the session file
+  std::string mergedConfigStr = folly::toPrettyJson(mergedJson);
+  folly::writeFileAtomic(
+      sessionConfigPath, mergedConfigStr, 0644, folly::SyncType::WITH_SYNC);
+
+  // Update the base to current HEAD
+  base_ = currentHead;
+  saveMetadata();
+
+  // Reload the config into memory
+  loadConfig();
 }
 
 std::string ConfigSession::rollback(const HostInfo& hostInfo) {

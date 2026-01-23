@@ -12,6 +12,7 @@
 
 // Current linter doesn't properly handle the template functions which need the
 // following headers
+// NOLINTBEGIN(misc-include-cleaner)
 // @lint-ignore-every CLANGTIDY facebook-unused-include-check
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
@@ -27,6 +28,8 @@
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
+#include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
+// NOLINTEND(misc-include-cleaner)
 
 namespace facebook::fboss {
 
@@ -54,6 +57,8 @@ template void
 CmdHandler<CmdConfigSessionCommit, CmdConfigSessionCommitTraits>::run();
 template void
 CmdHandler<CmdConfigSessionDiff, CmdConfigSessionDiffTraits>::run();
+template void
+CmdHandler<CmdConfigSessionRebase, CmdConfigSessionRebaseTraits>::run();
 template void CmdHandler<CmdConfigQos, CmdConfigQosTraits>::run();
 template void
 CmdHandler<CmdConfigQosBufferPool, CmdConfigQosBufferPoolTraits>::run();

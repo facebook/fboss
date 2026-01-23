@@ -13,6 +13,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
 #include "fboss/cli/fboss2/session/Git.h"
@@ -119,6 +120,13 @@ class ConfigSession {
   // Returns CommitResult with git commit SHA and action level.
   CommitResult commit(const HostInfo& hostInfo);
 
+  // Rebase the session onto the current HEAD.
+  // This is needed when someone else has committed changes while this session
+  // was in progress. It computes the diff between the base config and the
+  // session config, then applies that diff on top of the current HEAD.
+  // Throws std::runtime_error if there are conflicts that cannot be resolved.
+  void rebase();
+
   // Rollback to a specific revision (git commit SHA) or to the previous
   // revision Returns the git commit SHA of the new commit created for the
   // rollback
@@ -199,6 +207,11 @@ class ConfigSession {
   // List of commands executed in this session, persisted to disk
   std::vector<std::string> commands_;
 
+  // Git commit SHA that this session is based on (captured when session is
+  // created). Used to detect if someone else committed changes while this
+  // session was in progress.
+  std::string base_;
+
   // Path to the system metadata file (in the Git repo)
   std::string getSystemMetadataPath() const;
 
@@ -227,7 +240,7 @@ class ConfigSession {
 
   // Initialize the session (creates session config file if it doesn't exist)
   void initializeSession();
-  void copySystemConfigToSession();
+  void copySystemConfigToSession() const;
   void loadConfig();
 
   // Initialize the Git repository if needed
