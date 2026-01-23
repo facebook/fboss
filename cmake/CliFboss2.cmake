@@ -610,6 +610,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.cpp
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.cpp
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.cpp
   fboss/cli/fboss2/session/ConfigSession.h
   fboss/cli/fboss2/session/ConfigSession.cpp
   fboss/cli/fboss2/session/Git.h

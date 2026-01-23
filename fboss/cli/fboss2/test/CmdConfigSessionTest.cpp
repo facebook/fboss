@@ -75,6 +75,12 @@ class ConfigSessionTestFixture : public CmdHandlerTestBase {
         "name": "eth1/1/1",
         "state": 2,
         "speed": 100000
+      },
+      {
+        "logicalID": 2,
+        "name": "eth1/1/2",
+        "state": 2,
+        "speed": 100000
       }
     ]
   }
@@ -881,6 +887,262 @@ TEST_F(ConfigSessionTestFixture, commandTrackingLoadsFromMetadataFile) {
   EXPECT_EQ("cmd1", session.getCommands()[0]);
   EXPECT_EQ("cmd2", session.getCommands()[1]);
   EXPECT_EQ("cmd3", session.getCommands()[2]);
+}
+
+// Test that concurrent sessions are detected and rejected
+// Scenario: user1 and user2 both start sessions based on the same commit,
+// user1 commits first, then user2 tries to commit and should fail.
+TEST_F(ConfigSessionTestFixture, concurrentSessionConflict) {
+  fs::path sessionDir1 = testHomeDir_ / ".fboss2_user1";
+  fs::path sessionDir2 = testHomeDir_ / ".fboss2_user2";
+
+  // Setup mock agent server
+  setupMockedAgentServer();
+  // Only user1's commit should succeed, so only 1 reloadConfig call
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(1);
+
+  // User1 creates a session (captures current HEAD as base)
+  TestableConfigSession session1(
+      sessionDir1.string(), systemConfigDir_.string());
+
+  // User2 also creates a session at the same time (same base)
+  TestableConfigSession session2(
+      sessionDir2.string(), systemConfigDir_.string());
+
+  // User1 makes a change and commits
+  auto& config1 = session1.getAgentConfig();
+  (*config1.sw()->ports())[0].description() = "User1 change";
+  session1.saveConfig();
+  auto result1 = session1.commit(localhost());
+  EXPECT_FALSE(result1.commitSha.empty());
+
+  // User2 makes a different change
+  auto& config2 = session2.getAgentConfig();
+  (*config2.sw()->ports())[0].description() = "User2 change";
+  session2.saveConfig();
+
+  // User2 tries to commit but should fail because user1 already committed
+  EXPECT_THROW(
+      {
+        try {
+          session2.commit(localhost());
+        } catch (const std::runtime_error& e) {
+          // Verify the error message mentions the conflict
+          EXPECT_THAT(
+              e.what(),
+              ::testing::HasSubstr("system configuration has changed"));
+          throw;
+        }
+      },
+      std::runtime_error);
+
+  // Verify that only user1's change is in the system config
+  Git git(systemConfigDir_.string());
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  std::string content;
+  EXPECT_TRUE(folly::readFile(cliConfigPath.c_str(), content));
+  EXPECT_THAT(content, ::testing::HasSubstr("User1 change"));
+  EXPECT_THAT(content, ::testing::Not(::testing::HasSubstr("User2 change")));
+}
+
+TEST_F(ConfigSessionTestFixture, rebaseSuccessNoConflict) {
+  // Test successful rebase when user2's changes don't conflict with user1's
+  fs::path sessionDir1 = testHomeDir_ / ".fboss2_user1";
+  fs::path sessionDir2 = testHomeDir_ / ".fboss2_user2";
+
+  setupMockedAgentServer();
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(2);
+
+  // User1 creates a session
+  TestableConfigSession session1(
+      sessionDir1.string(), systemConfigDir_.string());
+
+  // User2 also creates a session at the same time (same base)
+  TestableConfigSession session2(
+      sessionDir2.string(), systemConfigDir_.string());
+
+  // User1 changes port[0] description and commits
+  auto& config1 = session1.getAgentConfig();
+  (*config1.sw()->ports())[0].description() = "User1 change";
+  session1.saveConfig();
+  auto result1 = session1.commit(localhost());
+  EXPECT_FALSE(result1.commitSha.empty());
+
+  // User2 changes port[1] description (non-conflicting - different port)
+  auto& config2 = session2.getAgentConfig();
+  ASSERT_GE(config2.sw()->ports()->size(), 2) << "Need at least 2 ports";
+  (*config2.sw()->ports())[1].description() = "User2 change";
+  session2.saveConfig();
+
+  // User2 tries to commit but fails due to stale base
+  EXPECT_THROW(session2.commit(localhost()), std::runtime_error);
+
+  // User2 rebases - should succeed since changes don't conflict
+  EXPECT_NO_THROW(session2.rebase());
+
+  // Now user2 can commit
+  auto result2 = session2.commit(localhost());
+  EXPECT_FALSE(result2.commitSha.empty());
+
+  // Verify both changes are in the final config
+  Git git(systemConfigDir_.string());
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  std::string content;
+  EXPECT_TRUE(folly::readFile(cliConfigPath.c_str(), content));
+  EXPECT_THAT(content, ::testing::HasSubstr("User1 change"));
+  EXPECT_THAT(content, ::testing::HasSubstr("User2 change"));
+}
+
+TEST_F(ConfigSessionTestFixture, rebaseFailsOnConflict) {
+  // Test that rebase fails when user2's changes conflict with user1's
+  fs::path sessionDir1 = testHomeDir_ / ".fboss2_user1";
+  fs::path sessionDir2 = testHomeDir_ / ".fboss2_user2";
+
+  setupMockedAgentServer();
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(1);
+
+  // User1 creates a session
+  TestableConfigSession session1(
+      sessionDir1.string(), systemConfigDir_.string());
+
+  // User2 also creates a session at the same time (same base)
+  TestableConfigSession session2(
+      sessionDir2.string(), systemConfigDir_.string());
+
+  // User1 changes port[0] description to "User1 change"
+  auto& config1 = session1.getAgentConfig();
+  (*config1.sw()->ports())[0].description() = "User1 change";
+  session1.saveConfig();
+  auto result1 = session1.commit(localhost());
+  EXPECT_FALSE(result1.commitSha.empty());
+
+  // User2 changes the SAME port[0] description to "User2 change" (conflict!)
+  auto& config2 = session2.getAgentConfig();
+  (*config2.sw()->ports())[0].description() = "User2 change";
+  session2.saveConfig();
+
+  // User2 tries to rebase but should fail due to conflict
+  EXPECT_THROW(
+      {
+        try {
+          session2.rebase();
+        } catch (const std::runtime_error& e) {
+          EXPECT_THAT(e.what(), ::testing::HasSubstr("conflict"));
+          throw;
+        }
+      },
+      std::runtime_error);
+}
+
+TEST_F(ConfigSessionTestFixture, rebaseNotNeeded) {
+  // Test that rebase throws when session is already up-to-date
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
+
+  setupMockedAgentServer();
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(0);
+
+  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
+
+  // Make a change but don't commit yet
+  auto& config = session.getAgentConfig();
+  (*config.sw()->ports())[0].description() = "My change";
+  session.saveConfig();
+
+  // Try to rebase - should fail because we're already on HEAD
+  EXPECT_THROW(
+      {
+        try {
+          session.rebase();
+        } catch (const std::runtime_error& e) {
+          EXPECT_THAT(e.what(), ::testing::HasSubstr("No rebase needed"));
+          throw;
+        }
+      },
+      std::runtime_error);
+}
+
+// Tests 3-way merge algorithm through rebase() covering:
+// - Only session changed (head == base)
+// - Only head changed (session == base)
+// - Both changed to same value (no conflict)
+// - Both changed to different values (conflict)
+TEST_F(ConfigSessionTestFixture, threeWayMergeScenarios) {
+  fs::path sessionDir1 = testHomeDir_ / ".fboss2_user1";
+  fs::path sessionDir2 = testHomeDir_ / ".fboss2_user2";
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+
+  setupMockedAgentServer();
+  // 5 commits: 2 in scenario 1, 2 in scenario 2, 1 in scenario 3 (rebase fails)
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(5);
+
+  // Scenario 1: Only session changed, head unchanged
+  // User1 commits, User2 changes different field - should merge cleanly
+  {
+    TestableConfigSession session1(
+        sessionDir1.string(), systemConfigDir_.string());
+    TestableConfigSession session2(
+        sessionDir2.string(), systemConfigDir_.string());
+
+    (*session1.getAgentConfig().sw()->ports())[0].name() = "port0_renamed";
+    session1.saveConfig();
+    session1.commit(localhost());
+
+    (*session2.getAgentConfig().sw()->ports())[1].description() = "port1_desc";
+    session2.saveConfig();
+    EXPECT_NO_THROW(session2.rebase());
+    session2.commit(localhost());
+
+    std::string content;
+    EXPECT_TRUE(folly::readFile(cliConfigPath.c_str(), content));
+    EXPECT_THAT(content, ::testing::HasSubstr("port0_renamed"));
+    EXPECT_THAT(content, ::testing::HasSubstr("port1_desc"));
+  }
+
+  // Scenario 2: Both changed same field to identical value - no conflict
+  {
+    TestableConfigSession session1(
+        sessionDir1.string(), systemConfigDir_.string());
+    TestableConfigSession session2(
+        sessionDir2.string(), systemConfigDir_.string());
+
+    (*session1.getAgentConfig().sw()->ports())[0].description() = "same_value";
+    session1.saveConfig();
+    session1.commit(localhost());
+
+    (*session2.getAgentConfig().sw()->ports())[0].description() = "same_value";
+    session2.saveConfig();
+    EXPECT_NO_THROW(session2.rebase());
+    session2.commit(localhost());
+
+    std::string content;
+    EXPECT_TRUE(folly::readFile(cliConfigPath.c_str(), content));
+    EXPECT_THAT(content, ::testing::HasSubstr("same_value"));
+  }
+
+  // Scenario 3: Both changed same field to different values - conflict
+  {
+    TestableConfigSession session1(
+        sessionDir1.string(), systemConfigDir_.string());
+    TestableConfigSession session2(
+        sessionDir2.string(), systemConfigDir_.string());
+
+    (*session1.getAgentConfig().sw()->ports())[0].description() = "user1_value";
+    session1.saveConfig();
+    session1.commit(localhost());
+
+    (*session2.getAgentConfig().sw()->ports())[0].description() = "user2_value";
+    session2.saveConfig();
+    EXPECT_THROW(
+        {
+          try {
+            session2.rebase();
+          } catch (const std::runtime_error& e) {
+            EXPECT_THAT(e.what(), ::testing::HasSubstr("conflict"));
+            throw;
+          }
+        },
+        std::runtime_error);
+  }
 }
 
 } // namespace facebook::fboss

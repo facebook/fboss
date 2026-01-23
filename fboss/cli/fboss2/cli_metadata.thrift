@@ -35,4 +35,7 @@ struct ConfigSessionMetadata {
   // List of CLI commands executed in this session, in chronological order.
   // Each entry is the full command string (e.g., "config interface eth1/1/1 mtu 9000").
   2: list<string> commands;
+  // Git commit SHA that this session is based on. Used to detect if someone
+  // else committed changes while this session was in progress.
+  3: string base;
 }
