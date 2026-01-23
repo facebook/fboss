@@ -148,7 +148,7 @@ add_library(utils
 target_link_libraries(utils
   agent_dir_util
   asic_utils
-  error
+  fboss_error
   ctrl_cpp2
   hw_switch_fb303_stats
   load_agent_config
@@ -260,7 +260,7 @@ add_library(hw_switch_thrift_client_table
 )
 
 target_link_libraries(hw_switch_thrift_client_table
-  error
+  fboss_error
   fboss_types
   hw_ctrl_cpp2
   Folly::folly
@@ -432,15 +432,6 @@ set(core_libs
 
 target_link_libraries(core ${core_libs})
 
-add_library(error
-  fboss/agent/FbossError.h
-)
-
-target_link_libraries(error
-  ctrl_cpp2
-  Folly::folly
-)
-
 add_library(thrifthandler_utils
   fboss/agent/ThriftHandlerUtils.cpp
 )
@@ -491,12 +482,12 @@ target_link_libraries(fboss_event_base
 
 add_library(fboss_error
   fboss/agent/FbossError.h
+  fboss/agent/FbossHwUpdateError.h
   fboss/agent/SysError.h
 )
 
 target_link_libraries(fboss_error
   fboss_cpp2
-  fboss_types
   Folly::folly
 )
 
@@ -514,7 +505,7 @@ target_link_libraries(platform_base
   agent_config_cpp2
   agent_dir_util
   ctrl_cpp2
-  error
+  fboss_error
   fboss_event_base
   fboss_types
   Folly::folly
