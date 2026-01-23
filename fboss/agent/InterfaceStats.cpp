@@ -17,8 +17,8 @@ namespace facebook::fboss {
 InterfaceStats::InterfaceStats(
     InterfaceID intfID,
     std::string intfName,
-    SwitchStats* /*switchStats*/)
-    : intfID_(intfID), intfName_(intfName) {
+    SwitchStats* switchStats)
+    : intfID_(intfID), intfName_(intfName), switchStats_(switchStats) {
   if (!intfName_.empty()) {
     tcData().addStatValue(getCounterKey(kRouterAdvertisement), 0, SUM);
   }

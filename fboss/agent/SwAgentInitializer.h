@@ -56,11 +56,14 @@ class SwAgentSignalHandler : public SignalHandler {
  public:
   SwAgentSignalHandler(
       folly::EventBase* eventBase,
-      SwSwitch* /*sw*/,
+      SwSwitch* sw,
       SignalHandler::StopServices stopServices)
-      : SignalHandler(eventBase, std::move(stopServices)) {}
+      : SignalHandler(eventBase, std::move(stopServices)), sw_(sw) {}
 
   void signalReceived(int /*signum*/) noexcept override;
+
+ private:
+  SwSwitch* sw_;
 };
 
 class SwAgentInitializer : public AgentInitializer {

@@ -44,6 +44,8 @@ class BspPhyIO {
  private:
   std::unique_ptr<BspDeviceMdioController> mdioController_;
   BspPhyIOControllerInfo controllerInfo_;
+  int phyID_;
+  int pimID_;
 };
 
 } // namespace fboss

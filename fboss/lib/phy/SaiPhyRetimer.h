@@ -42,11 +42,13 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
       const GlobalXphyID& xphyID,
       phy::PhyAddress phyAddr,
       BspPhyIO* xphyIO,
-      const PlatformMapping* /*platformMapping*/,
-      SaiPlatform* /*platform*/)
+      const PlatformMapping* platformMapping,
+      SaiPlatform* platform)
       : xphyID_(xphyID),
         phyAddr_(phyAddr),
         name_(folly::to<std::string>("SaiPhyRetimer[", xphyID, "]")),
+        platformMapping_(platformMapping),
+        platform_(platform),
         xphyIO_(xphyIO) {}
 
   ~SaiPhyRetimer() override = default;
@@ -180,6 +182,8 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
   const GlobalXphyID xphyID_;
   const phy::PhyAddress phyAddr_;
   const std::string name_;
+  const PlatformMapping* platformMapping_;
+  SaiPlatform* platform_;
   BspPhyIO* xphyIO_;
   std::optional<SwitchSaiId> switchId_;
 };

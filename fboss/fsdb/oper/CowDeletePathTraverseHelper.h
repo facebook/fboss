@@ -23,7 +23,7 @@ struct CowDeletePathTraverseHelper
   using Base::path;
   using Base::shouldShortCircuit;
 
-  CowDeletePathTraverseHelper(SubscriptionPathStore* root) {
+  CowDeletePathTraverseHelper(SubscriptionPathStore* root) : root_(root) {
     pathStores_.emplace_back(root);
   }
 
@@ -68,6 +68,7 @@ struct CowDeletePathTraverseHelper
 
  private:
   std::vector<SubscriptionPathStore*> pathStores_;
+  SubscriptionPathStore* root_{nullptr};
 };
 
 } // namespace facebook::fboss::fsdb

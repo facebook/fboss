@@ -76,6 +76,7 @@ class FsdbTestServer {
   void startTestServer(uint16_t port);
   void stopTestServer();
   std::string getPublisherId(int publisherIdx) const;
+  const int kMaxPublishers_{3};
   std::shared_ptr<FsdbConfig> config_;
   std::shared_ptr<ServiceHandler> handler_;
   uint16_t fsdbPort_{};
