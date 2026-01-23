@@ -1,72 +1,33 @@
-/*
- *  Copyright (c) 2004-present, Facebook, Inc.
- *  All rights reserved.
- *
- *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant
- *  of patent rights can be found in the PATENTS file in the same directory.
- *
- */
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <boost/filesystem/operations.hpp>
+#include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
+#include "fboss/cli/fboss2/session/Git.h"
+#include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
+
+#include <folly/FileUtil.h>
 #include <folly/json/dynamic.h>
 #include <folly/json/json.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
-#include <sstream>
 #include <stdexcept>
-#include <system_error>
+#include <string>
 
-#include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
-#include "fboss/cli/fboss2/session/ConfigSession.h"
-#include "fboss/cli/fboss2/session/Git.h"
-#include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
+#include <folly/json.h>
+
 #include "fboss/cli/fboss2/test/TestableConfigSession.h"
 
 namespace fs = std::filesystem;
 
 namespace facebook::fboss {
 
-class ConfigSessionTestFixture : public CmdHandlerTestBase {
+class ConfigSessionTestFixture : public CmdConfigTestBase {
  public:
-  void SetUp() override {
-    CmdHandlerTestBase::SetUp();
-
-    // Create unique test directories for each test to avoid conflicts when
-    // running tests in parallel
-    auto tempBase = fs::temp_directory_path();
-    auto uniquePath =
-        boost::filesystem::unique_path("fboss_test_%%%%-%%%%-%%%%-%%%%");
-    testHomeDir_ = tempBase / (uniquePath.string() + "_home");
-    testEtcDir_ = tempBase / (uniquePath.string() + "_etc");
-
-    // Clean up any previous test artifacts (shouldn't exist with unique names)
-    std::error_code ec;
-    if (fs::exists(testHomeDir_)) {
-      fs::remove_all(testHomeDir_, ec);
-    }
-    if (fs::exists(testEtcDir_)) {
-      fs::remove_all(testEtcDir_, ec);
-    }
-
-    // Create test directories
-    // Structure: systemConfigDir_ = /etc/coop (git repo root)
-    //   - agent.conf (symlink -> cli/agent.conf)
-    //   - cli/agent.conf (actual config file)
-    fs::create_directories(testHomeDir_);
-    systemConfigDir_ = testEtcDir_ / "coop";
-    fs::create_directories(systemConfigDir_ / "cli");
-
-    // Set environment variables
-    setenv("HOME", testHomeDir_.c_str(), 1);
-    setenv("USER", "testuser", 1);
-
-    // Create the actual config file at cli/agent.conf
-    fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
-    createTestConfig(cliConfigPath, R"({
+  ConfigSessionTestFixture()
+      : CmdConfigTestBase(
+            "fboss_test_%%%%-%%%%-%%%%-%%%%",
+            R"({
   "sw": {
     "ports": [
       {
@@ -74,70 +35,28 @@ class ConfigSessionTestFixture : public CmdHandlerTestBase {
         "name": "eth1/1/1",
         "state": 2,
         "speed": 100000
+      },
+      {
+        "logicalID": 2,
+        "name": "eth1/1/2",
+        "state": 2,
+        "speed": 100000
       }
     ]
   }
-})");
-
-    // Create symlink at /etc/coop/agent.conf -> cli/agent.conf
-    fs::create_symlink("cli/agent.conf", systemConfigDir_ / "agent.conf");
-
-    // Initialize Git repository and create initial commit
-    Git git(systemConfigDir_.string());
-    git.init();
-    git.commit({cliConfigPath.string()}, "Initial commit");
-  }
-
-  void TearDown() override {
-    // Clean up test directories
-    // Use error_code to avoid throwing exceptions in TearDown
-    std::error_code ec;
-    if (fs::exists(testHomeDir_)) {
-      fs::remove_all(testHomeDir_, ec);
-      if (ec) {
-        std::cerr << "Warning: Failed to remove " << testHomeDir_ << ": "
-                  << ec.message() << std::endl;
-      }
-    }
-    if (fs::exists(testEtcDir_)) {
-      fs::remove_all(testEtcDir_, ec);
-      if (ec) {
-        std::cerr << "Warning: Failed to remove " << testEtcDir_ << ": "
-                  << ec.message() << std::endl;
-      }
-    }
-
-    CmdHandlerTestBase::TearDown();
-  }
-
- protected:
-  void createTestConfig(const fs::path& path, const std::string& content) {
-    std::ofstream file(path);
-    file << content;
-    file.close();
-  }
-
-  std::string readFile(const fs::path& path) {
-    std::ifstream file(path);
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-  }
-
-  fs::path testHomeDir_;
-  fs::path testEtcDir_;
-  fs::path systemConfigDir_; // /etc/coop (git repo root)
+})") {}
 };
 
 TEST_F(ConfigSessionTestFixture, sessionInitialization) {
   // Initially, session directory should not exist
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
-  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
   EXPECT_FALSE(fs::exists(sessionDir));
 
   // Creating a ConfigSession should create the directory and copy the config
-  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
 
   // Verify the directory was created
   EXPECT_TRUE(fs::exists(sessionDir));
@@ -151,12 +70,13 @@ TEST_F(ConfigSessionTestFixture, sessionInitialization) {
 }
 
 TEST_F(ConfigSessionTestFixture, sessionConfigModified) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
-  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
 
   // Create a ConfigSession
-  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
 
   // Modify the session config through the ConfigSession API
   auto& config = session.getAgentConfig();
@@ -174,9 +94,9 @@ TEST_F(ConfigSessionTestFixture, sessionConfigModified) {
 }
 
 TEST_F(ConfigSessionTestFixture, sessionCommit) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
-  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
 
   // Setup mock agent server
   setupMockedAgentServer();
@@ -188,7 +108,7 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
   // First commit: Create a ConfigSession and commit a change
   {
     TestableConfigSession session(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     // Simulate a CLI command being tracked
     session.setCommandLine(
@@ -199,6 +119,8 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
     ports[0].description() = "First commit";
+    session.setCommandLine(
+        "config interface eth1/1/1 description First commit");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
@@ -214,7 +136,8 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
     firstCommitSha = result.commitSha;
 
     // Verify metadata file was created alongside the config revision
-    fs::path targetMetadata = systemConfigDir_ / "cli" / "cli_metadata.json";
+    fs::path targetMetadata =
+        getTestEtcDir() / "coop" / "cli" / "cli_metadata.json";
     EXPECT_TRUE(fs::exists(targetMetadata));
 
     // Verify system config was updated
@@ -224,7 +147,7 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
   // Second commit: Create a new session and verify it's based on first commit
   {
     TestableConfigSession session(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     // Simulate a CLI command being tracked
     session.setCommandLine(
@@ -238,6 +161,8 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
 
     // Make another change to the same port
     ports[0].description() = "Second commit";
+    session.setCommandLine(
+        "config interface eth1/1/1 description Second commit");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
@@ -250,7 +175,8 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
     secondCommitSha = result.commitSha;
 
     // Verify metadata file was created alongside the config revision
-    fs::path targetMetadata = systemConfigDir_ / "cli" / "cli_metadata.json";
+    fs::path targetMetadata =
+        getTestEtcDir() / "coop" / "cli" / "cli_metadata.json";
     EXPECT_TRUE(fs::exists(targetMetadata));
 
     // Verify system config was updated
@@ -270,8 +196,8 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
 // Ensure commit() works on a newly initialized session
 // This verifies that initializeSession() creates the metadata file
 TEST_F(ConfigSessionTestFixture, commitOnNewlyInitializedSession) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
-  fs::path cliConfigDir = systemConfigDir_ / "cli";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  fs::path cliConfigDir = getTestEtcDir() / "coop" / "cli";
 
   // Setup mock agent server
   setupMockedAgentServer();
@@ -279,7 +205,8 @@ TEST_F(ConfigSessionTestFixture, commitOnNewlyInitializedSession) {
 
   // Create a new session
   // This tests that metadata file is created during session initialization
-  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
 
   // Verify metadata file was created during session initialization
   fs::path metadataPath = sessionDir / "cli_metadata.json";
@@ -290,8 +217,6 @@ TEST_F(ConfigSessionTestFixture, commitOnNewlyInitializedSession) {
   auto& ports = *config.sw()->ports();
   ASSERT_FALSE(ports.empty());
   ports[0].description() = "Test change for commit";
-  session.setCommandLine(
-      "config interface eth1/1/1 description Test change for commit");
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
   // Commit should succeed
@@ -304,11 +229,12 @@ TEST_F(ConfigSessionTestFixture, commitOnNewlyInitializedSession) {
 }
 
 TEST_F(ConfigSessionTestFixture, multipleChangesInOneSession) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
 
   // Create a ConfigSession
-  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
 
   // Make first change
   auto& config = session.getAgentConfig();
@@ -333,13 +259,13 @@ TEST_F(ConfigSessionTestFixture, multipleChangesInOneSession) {
 }
 
 TEST_F(ConfigSessionTestFixture, sessionPersistsAcrossCommands) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
 
   // Create first ConfigSession and modify config
   {
     TestableConfigSession session1(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     auto& config = session1.getAgentConfig();
     auto& ports = *config.sw()->ports();
@@ -360,7 +286,7 @@ TEST_F(ConfigSessionTestFixture, sessionPersistsAcrossCommands) {
   // session
   {
     TestableConfigSession session2(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     auto& config = session2.getAgentConfig();
     auto& ports = *config.sw()->ports();
@@ -371,21 +297,23 @@ TEST_F(ConfigSessionTestFixture, sessionPersistsAcrossCommands) {
 }
 
 TEST_F(ConfigSessionTestFixture, configRollbackOnFailure) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
-  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
 
   // Save the original config content
   std::string originalContent = readFile(cliConfigPath);
 
-  // Setup mock agent server to fail reloadConfig
+  // Setup mock agent server to fail reloadConfig on first call (the commit),
+  // but succeed on second call (the rollback reload)
   setupMockedAgentServer();
   EXPECT_CALL(getMockAgent(), reloadConfig())
       .WillOnce(::testing::Throw(std::runtime_error("Reload failed")))
       .WillOnce(::testing::Return());
 
   // Create a ConfigSession and try to commit
-  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
 
   auto& config = session.getAgentConfig();
   auto& ports = *config.sw()->ports();
@@ -406,7 +334,7 @@ TEST_F(ConfigSessionTestFixture, configRollbackOnFailure) {
 }
 
 TEST_F(ConfigSessionTestFixture, concurrentCommits) {
-  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
 
   // Setup mock agent server
   setupMockedAgentServer();
@@ -420,17 +348,15 @@ TEST_F(ConfigSessionTestFixture, concurrentCommits) {
 
   // First commit
   {
-    fs::path sessionDir = testHomeDir_ / ".fboss2_user1";
+    fs::path sessionDir = getTestHomeDir() / ".fboss2_user1";
 
     TestableConfigSession session(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     auto& config = session.getAgentConfig();
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
     ports[0].description() = "First commit";
-    session.setCommandLine(
-        "config interface eth1/1/1 description First commit");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
@@ -440,17 +366,15 @@ TEST_F(ConfigSessionTestFixture, concurrentCommits) {
 
   // Second commit
   {
-    fs::path sessionDir = testHomeDir_ / ".fboss2_user2";
+    fs::path sessionDir = getTestHomeDir() / ".fboss2_user2";
 
     TestableConfigSession session(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     auto& config = session.getAgentConfig();
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
     ports[0].description() = "Second commit";
-    session.setCommandLine(
-        "config interface eth1/1/1 description Second commit");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
@@ -464,16 +388,17 @@ TEST_F(ConfigSessionTestFixture, concurrentCommits) {
   EXPECT_NE(commitSha1, commitSha2);
 
   // Verify Git history contains both commits
-  Git git(systemConfigDir_.string());
+  Git git((getTestEtcDir() / "coop").string());
   auto commits = git.log(cliConfigPath.string());
   EXPECT_GE(commits.size(), 3); // Initial + 2 commits
 }
 
 TEST_F(ConfigSessionTestFixture, rollbackToSpecificCommit) {
   // This test calls the rollback() method with a specific commit SHA
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
-  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
-  fs::path metadataPath = systemConfigDir_ / "cli" / "cli_metadata.json";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
+  fs::path metadataPath =
+      getTestEtcDir() / "coop" / "cli" / "cli_metadata.json";
 
   // Setup mock agent server
   setupMockedAgentServer();
@@ -485,7 +410,7 @@ TEST_F(ConfigSessionTestFixture, rollbackToSpecificCommit) {
   std::string secondCommitSha;
   {
     TestableConfigSession session(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     // Simulate CLI command for first commit
     session.setCommandLine(
@@ -503,7 +428,7 @@ TEST_F(ConfigSessionTestFixture, rollbackToSpecificCommit) {
   }
   {
     TestableConfigSession session(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     // Simulate CLI command for second commit
     session.setCommandLine(
@@ -526,7 +451,7 @@ TEST_F(ConfigSessionTestFixture, rollbackToSpecificCommit) {
   // Now rollback to first commit
   {
     TestableConfigSession session(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     std::string rollbackSha = session.rollback(localhost(), firstCommitSha);
 
@@ -559,8 +484,8 @@ TEST_F(ConfigSessionTestFixture, rollbackToSpecificCommit) {
 TEST_F(ConfigSessionTestFixture, rollbackToPreviousCommit) {
   // This test calls the rollback() method without a commit SHA argument
   // to rollback to the previous commit
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
-  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
 
   // Setup mock agent server
   setupMockedAgentServer();
@@ -570,24 +495,20 @@ TEST_F(ConfigSessionTestFixture, rollbackToPreviousCommit) {
   // Create commits to build history
   {
     TestableConfigSession session(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     auto& config1 = session.getAgentConfig();
     (*config1.sw()->ports())[0].description() = "First version";
-    session.setCommandLine(
-        "config interface eth1/1/1 description First version");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
     session.commit(localhost());
   }
   {
     TestableConfigSession session(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     auto& config2 = session.getAgentConfig();
     (*config2.sw()->ports())[0].description() = "Second version";
-    session.setCommandLine(
-        "config interface eth1/1/1 description Second version");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
     session.commit(localhost());
@@ -599,7 +520,7 @@ TEST_F(ConfigSessionTestFixture, rollbackToPreviousCommit) {
   // Rollback to previous commit (no argument)
   {
     TestableConfigSession session(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     std::string rollbackSha = session.rollback(localhost());
 
@@ -612,10 +533,11 @@ TEST_F(ConfigSessionTestFixture, rollbackToPreviousCommit) {
 }
 
 TEST_F(ConfigSessionTestFixture, actionLevelDefaultIsHitless) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
 
   // Create a ConfigSession
-  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
 
   // Default action level should be HITLESS
   EXPECT_EQ(
@@ -624,12 +546,13 @@ TEST_F(ConfigSessionTestFixture, actionLevelDefaultIsHitless) {
 }
 
 TEST_F(ConfigSessionTestFixture, actionLevelUpdateAndGet) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
 
   // Create a ConfigSession
-  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
 
-  // Update to AGENT_RESTART
+  // Update to AGENT_WARMBOOT
   session.updateRequiredAction(
       cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
 
@@ -640,12 +563,13 @@ TEST_F(ConfigSessionTestFixture, actionLevelUpdateAndGet) {
 }
 
 TEST_F(ConfigSessionTestFixture, actionLevelHigherTakesPrecedence) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
 
   // Create a ConfigSession
-  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
 
-  // Update to AGENT_RESTART first
+  // Update to AGENT_WARMBOOT first
   session.updateRequiredAction(
       cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
 
@@ -653,19 +577,20 @@ TEST_F(ConfigSessionTestFixture, actionLevelHigherTakesPrecedence) {
   session.updateRequiredAction(
       cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
-  // Verify action level remains at AGENT_RESTART
+  // Verify action level remains at AGENT_WARMBOOT
   EXPECT_EQ(
       session.getRequiredAction(cli::ServiceType::AGENT),
       cli::ConfigActionLevel::AGENT_WARMBOOT);
 }
 
 TEST_F(ConfigSessionTestFixture, actionLevelReset) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
 
   // Create a ConfigSession
-  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
 
-  // Set to AGENT_RESTART
+  // Set to AGENT_WARMBOOT
   session.updateRequiredAction(
       cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
 
@@ -679,17 +604,16 @@ TEST_F(ConfigSessionTestFixture, actionLevelReset) {
 }
 
 TEST_F(ConfigSessionTestFixture, actionLevelPersistsToMetadataFile) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
   fs::path metadataFile = sessionDir / "cli_metadata.json";
 
   // Create a ConfigSession and set action level via saveConfig
   {
     TestableConfigSession session(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     // Load the config (required before saveConfig)
     session.getAgentConfig();
-    session.setCommandLine("config interface eth1/1/1 description Test");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
   }
@@ -708,10 +632,10 @@ TEST_F(ConfigSessionTestFixture, actionLevelPersistsToMetadataFile) {
 }
 
 TEST_F(ConfigSessionTestFixture, actionLevelLoadsFromMetadataFile) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
   fs::path metadataFile = sessionDir / "cli_metadata.json";
-  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
 
   // Create session directory and metadata file manually
   fs::create_directories(sessionDir);
@@ -725,7 +649,8 @@ TEST_F(ConfigSessionTestFixture, actionLevelLoadsFromMetadataFile) {
   fs::copy_file(cliConfigPath, sessionConfig);
 
   // Create a ConfigSession - should load action level from metadata file
-  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
 
   // Verify action level was loaded
   EXPECT_EQ(
@@ -734,16 +659,15 @@ TEST_F(ConfigSessionTestFixture, actionLevelLoadsFromMetadataFile) {
 }
 
 TEST_F(ConfigSessionTestFixture, actionLevelPersistsAcrossSessions) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
 
   // First session: set action level via saveConfig
   {
     TestableConfigSession session1(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     // Load the config (required before saveConfig)
     session1.getAgentConfig();
-    session1.setCommandLine("config interface eth1/1/1 description Test");
     session1.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
   }
@@ -751,7 +675,7 @@ TEST_F(ConfigSessionTestFixture, actionLevelPersistsAcrossSessions) {
   // Second session: verify action level was persisted
   {
     TestableConfigSession session2(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     EXPECT_EQ(
         session2.getRequiredAction(cli::ServiceType::AGENT),
@@ -760,13 +684,13 @@ TEST_F(ConfigSessionTestFixture, actionLevelPersistsAcrossSessions) {
 }
 
 TEST_F(ConfigSessionTestFixture, commandTrackingBasic) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
   fs::path metadataFile = sessionDir / "cli_metadata.json";
 
   // Create a ConfigSession, execute command, and verify persistence
   {
     TestableConfigSession session(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     // Initially, no commands should be recorded
     EXPECT_TRUE(session.getCommands().empty());
@@ -803,10 +727,11 @@ TEST_F(ConfigSessionTestFixture, commandTrackingBasic) {
 }
 
 TEST_F(ConfigSessionTestFixture, commandTrackingMultipleCommands) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
 
   // Create a ConfigSession
-  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
 
   // Execute multiple commands
   auto& config = session.getAgentConfig();
@@ -834,12 +759,12 @@ TEST_F(ConfigSessionTestFixture, commandTrackingMultipleCommands) {
 }
 
 TEST_F(ConfigSessionTestFixture, commandTrackingPersistsAcrossSessions) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
 
   // First session: execute some commands
   {
     TestableConfigSession session1(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     auto& config = session1.getAgentConfig();
     auto& ports = *config.sw()->ports();
@@ -859,7 +784,7 @@ TEST_F(ConfigSessionTestFixture, commandTrackingPersistsAcrossSessions) {
   // Second session: verify commands were persisted
   {
     TestableConfigSession session2(
-        sessionDir.string(), systemConfigDir_.string());
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
 
     EXPECT_EQ(2, session2.getCommands().size());
     EXPECT_EQ("config interface eth1/1/1 mtu 9000", session2.getCommands()[0]);
@@ -870,10 +795,11 @@ TEST_F(ConfigSessionTestFixture, commandTrackingPersistsAcrossSessions) {
 }
 
 TEST_F(ConfigSessionTestFixture, commandTrackingClearedOnReset) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
 
   // Create a ConfigSession and add some commands
-  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
 
   auto& config = session.getAgentConfig();
   auto& ports = *config.sw()->ports();
@@ -893,10 +819,10 @@ TEST_F(ConfigSessionTestFixture, commandTrackingClearedOnReset) {
 }
 
 TEST_F(ConfigSessionTestFixture, commandTrackingLoadsFromMetadataFile) {
-  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
   fs::path metadataFile = sessionDir / "cli_metadata.json";
-  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
 
   // Create session directory and metadata file manually
   fs::create_directories(sessionDir);
@@ -911,13 +837,277 @@ TEST_F(ConfigSessionTestFixture, commandTrackingLoadsFromMetadataFile) {
   fs::copy_file(cliConfigPath, sessionConfig);
 
   // Create a ConfigSession - should load commands from metadata file
-  TestableConfigSession session(sessionDir.string(), systemConfigDir_.string());
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
 
   // Verify commands were loaded
   EXPECT_EQ(3, session.getCommands().size());
   EXPECT_EQ("cmd1", session.getCommands()[0]);
   EXPECT_EQ("cmd2", session.getCommands()[1]);
   EXPECT_EQ("cmd3", session.getCommands()[2]);
+}
+
+// Test that concurrent sessions are detected and rejected
+// Scenario: user1 and user2 both start sessions based on the same commit,
+// user1 commits first, then user2 tries to commit and should fail.
+TEST_F(ConfigSessionTestFixture, concurrentSessionConflict) {
+  fs::path sessionDir1 = getTestHomeDir() / ".fboss2_user1";
+  fs::path sessionDir2 = getTestHomeDir() / ".fboss2_user2";
+
+  // Setup mock agent server
+  setupMockedAgentServer();
+  // Only user1's commit should succeed, so only 1 reloadConfig call
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(1);
+
+  // User1 creates a session (captures current HEAD as base)
+  TestableConfigSession session1(
+      sessionDir1.string(), (getTestEtcDir() / "coop").string());
+
+  // User2 also creates a session at the same time (same base)
+  TestableConfigSession session2(
+      sessionDir2.string(), (getTestEtcDir() / "coop").string());
+
+  // User1 makes a change and commits
+  auto& config1 = session1.getAgentConfig();
+  (*config1.sw()->ports())[0].description() = "User1 change";
+  session1.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+  auto result1 = session1.commit(localhost());
+  EXPECT_FALSE(result1.commitSha.empty());
+
+  // User2 makes a different change
+  auto& config2 = session2.getAgentConfig();
+  (*config2.sw()->ports())[0].description() = "User2 change";
+  session2.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+
+  // User2 tries to commit but should fail because user1 already committed
+  EXPECT_THROW(
+      {
+        try {
+          session2.commit(localhost());
+        } catch (const std::runtime_error& e) {
+          // Verify the error message mentions the conflict
+          EXPECT_THAT(
+              e.what(),
+              ::testing::HasSubstr("system configuration has changed"));
+          throw;
+        }
+      },
+      std::runtime_error);
+
+  // Verify that only user1's change is in the system config
+  Git git((getTestEtcDir() / "coop").string());
+  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
+  std::string content;
+  EXPECT_TRUE(folly::readFile(cliConfigPath.c_str(), content));
+  EXPECT_THAT(content, ::testing::HasSubstr("User1 change"));
+  EXPECT_THAT(content, ::testing::Not(::testing::HasSubstr("User2 change")));
+}
+
+TEST_F(ConfigSessionTestFixture, rebaseSuccessNoConflict) {
+  // Test successful rebase when user2's changes don't conflict with user1's
+  fs::path sessionDir1 = getTestHomeDir() / ".fboss2_user1";
+  fs::path sessionDir2 = getTestHomeDir() / ".fboss2_user2";
+
+  setupMockedAgentServer();
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(2);
+
+  // User1 creates a session
+  TestableConfigSession session1(
+      sessionDir1.string(), (getTestEtcDir() / "coop").string());
+
+  // User2 also creates a session at the same time (same base)
+  TestableConfigSession session2(
+      sessionDir2.string(), (getTestEtcDir() / "coop").string());
+
+  // User1 changes port[0] description and commits
+  auto& config1 = session1.getAgentConfig();
+  (*config1.sw()->ports())[0].description() = "User1 change";
+  session1.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+  auto result1 = session1.commit(localhost());
+  EXPECT_FALSE(result1.commitSha.empty());
+
+  // User2 changes port[1] description (non-conflicting - different port)
+  auto& config2 = session2.getAgentConfig();
+  ASSERT_GE(config2.sw()->ports()->size(), 2) << "Need at least 2 ports";
+  (*config2.sw()->ports())[1].description() = "User2 change";
+  session2.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+
+  // User2 tries to commit but fails due to stale base
+  EXPECT_THROW(session2.commit(localhost()), std::runtime_error);
+
+  // User2 rebases - should succeed since changes don't conflict
+  EXPECT_NO_THROW(session2.rebase());
+
+  // Now user2 can commit
+  auto result2 = session2.commit(localhost());
+  EXPECT_FALSE(result2.commitSha.empty());
+
+  // Verify both changes are in the final config
+  Git git((getTestEtcDir() / "coop").string());
+  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
+  std::string content;
+  EXPECT_TRUE(folly::readFile(cliConfigPath.c_str(), content));
+  EXPECT_THAT(content, ::testing::HasSubstr("User1 change"));
+  EXPECT_THAT(content, ::testing::HasSubstr("User2 change"));
+}
+
+TEST_F(ConfigSessionTestFixture, rebaseFailsOnConflict) {
+  // Test that rebase fails when user2's changes conflict with user1's
+  fs::path sessionDir1 = getTestHomeDir() / ".fboss2_user1";
+  fs::path sessionDir2 = getTestHomeDir() / ".fboss2_user2";
+
+  setupMockedAgentServer();
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(1);
+
+  // User1 creates a session
+  TestableConfigSession session1(
+      sessionDir1.string(), (getTestEtcDir() / "coop").string());
+
+  // User2 also creates a session at the same time (same base)
+  TestableConfigSession session2(
+      sessionDir2.string(), (getTestEtcDir() / "coop").string());
+
+  // User1 changes port[0] description to "User1 change"
+  auto& config1 = session1.getAgentConfig();
+  (*config1.sw()->ports())[0].description() = "User1 change";
+  session1.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+  auto result1 = session1.commit(localhost());
+  EXPECT_FALSE(result1.commitSha.empty());
+
+  // User2 changes the SAME port[0] description to "User2 change" (conflict!)
+  auto& config2 = session2.getAgentConfig();
+  (*config2.sw()->ports())[0].description() = "User2 change";
+  session2.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+
+  // User2 tries to rebase but should fail due to conflict
+  EXPECT_THROW(
+      {
+        try {
+          session2.rebase();
+        } catch (const std::runtime_error& e) {
+          EXPECT_THAT(e.what(), ::testing::HasSubstr("conflict"));
+          throw;
+        }
+      },
+      std::runtime_error);
+}
+
+TEST_F(ConfigSessionTestFixture, rebaseNotNeeded) {
+  // Test that rebase throws when session is already up-to-date
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+
+  setupMockedAgentServer();
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(0);
+
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
+
+  // Make a change but don't commit yet
+  auto& config = session.getAgentConfig();
+  (*config.sw()->ports())[0].description() = "My change";
+  session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+
+  // Try to rebase - should fail because we're already on HEAD
+  EXPECT_THROW(
+      {
+        try {
+          session.rebase();
+        } catch (const std::runtime_error& e) {
+          EXPECT_THAT(e.what(), ::testing::HasSubstr("No rebase needed"));
+          throw;
+        }
+      },
+      std::runtime_error);
+}
+
+// Tests 3-way merge algorithm through rebase() covering:
+// - Only session changed (head == base)
+// - Only head changed (session == base)
+// - Both changed to same value (no conflict)
+// - Both changed to different values (conflict)
+TEST_F(ConfigSessionTestFixture, threeWayMergeScenarios) {
+  fs::path sessionDir1 = getTestHomeDir() / ".fboss2_user1";
+  fs::path sessionDir2 = getTestHomeDir() / ".fboss2_user2";
+  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
+
+  setupMockedAgentServer();
+  // 5 commits: 2 in scenario 1, 2 in scenario 2, 1 in scenario 3 (rebase fails)
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(5);
+
+  // Scenario 1: Only session changed, head unchanged
+  // User1 commits, User2 changes different field - should merge cleanly
+  {
+    TestableConfigSession session1(
+        sessionDir1.string(), (getTestEtcDir() / "coop").string());
+    TestableConfigSession session2(
+        sessionDir2.string(), (getTestEtcDir() / "coop").string());
+
+    (*session1.getAgentConfig().sw()->ports())[0].name() = "port0_renamed";
+    session1.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+    session1.commit(localhost());
+
+    (*session2.getAgentConfig().sw()->ports())[1].description() = "port1_desc";
+    session2.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+    EXPECT_NO_THROW(session2.rebase());
+    session2.commit(localhost());
+
+    std::string content;
+    EXPECT_TRUE(folly::readFile(cliConfigPath.c_str(), content));
+    EXPECT_THAT(content, ::testing::HasSubstr("port0_renamed"));
+    EXPECT_THAT(content, ::testing::HasSubstr("port1_desc"));
+  }
+
+  // Scenario 2: Both changed same field to identical value - no conflict
+  {
+    TestableConfigSession session1(
+        sessionDir1.string(), (getTestEtcDir() / "coop").string());
+    TestableConfigSession session2(
+        sessionDir2.string(), (getTestEtcDir() / "coop").string());
+
+    (*session1.getAgentConfig().sw()->ports())[0].description() = "same_value";
+    session1.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+    session1.commit(localhost());
+
+    (*session2.getAgentConfig().sw()->ports())[0].description() = "same_value";
+    session2.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+    EXPECT_NO_THROW(session2.rebase());
+    session2.commit(localhost());
+
+    std::string content;
+    EXPECT_TRUE(folly::readFile(cliConfigPath.c_str(), content));
+    EXPECT_THAT(content, ::testing::HasSubstr("same_value"));
+  }
+
+  // Scenario 3: Both changed same field to different values - conflict
+  {
+    TestableConfigSession session1(
+        sessionDir1.string(), (getTestEtcDir() / "coop").string());
+    TestableConfigSession session2(
+        sessionDir2.string(), (getTestEtcDir() / "coop").string());
+
+    (*session1.getAgentConfig().sw()->ports())[0].description() = "user1_value";
+    session1.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+    session1.commit(localhost());
+
+    (*session2.getAgentConfig().sw()->ports())[0].description() = "user2_value";
+    session2.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+    EXPECT_THROW(
+        {
+          try {
+            session2.rebase();
+          } catch (const std::runtime_error& e) {
+            EXPECT_THAT(e.what(), ::testing::HasSubstr("conflict"));
+            throw;
+          }
+        },
+        std::runtime_error);
+  }
 }
 
 } // namespace facebook::fboss
