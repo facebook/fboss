@@ -12,6 +12,7 @@
 
 // Current linter doesn't properly handle the template functions which need the
 // following headers
+// IWYU pragma: begin_keep
 // NOLINTBEGIN(misc-include-cleaner)
 // @lint-ignore-every CLANGTIDY facebook-unused-include-check
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
@@ -25,6 +26,8 @@
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
 #include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
+#include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h"
+#include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
@@ -34,6 +37,7 @@
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
 // NOLINTEND(misc-include-cleaner)
+// IWYU pragma: end_keep
 
 namespace facebook::fboss {
 
@@ -74,5 +78,11 @@ CmdHandler<CmdConfigVlanStaticMacAdd, CmdConfigVlanStaticMacAddTraits>::run();
 template void CmdHandler<
     CmdConfigVlanStaticMacDelete,
     CmdConfigVlanStaticMacDeleteTraits>::run();
+template void CmdHandler<
+    CmdConfigQosPriorityGroupPolicy,
+    CmdConfigQosPriorityGroupPolicyTraits>::run();
+template void CmdHandler<
+    CmdConfigQosPriorityGroupPolicyGroupId,
+    CmdConfigQosPriorityGroupPolicyGroupIdTraits>::run();
 
 } // namespace facebook::fboss
