@@ -304,7 +304,6 @@ class SaiSwitch : public HwSwitch {
       const StateDelta& delta,
       const LockPolicyT& lk);
   void preRollback(const StateDelta& delta) noexcept override;
-  void rollbackPartialRoutes(const StateDelta& delta) noexcept override;
   void rollback(const std::vector<StateDelta>& deltas) noexcept override;
   std::string listObjectsLocked(
       const std::vector<sai_object_type_t>& objects,
