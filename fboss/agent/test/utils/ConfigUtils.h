@@ -241,11 +241,9 @@ void populateSwitchInfo(
     const std::map<SwitchID, const HwAsic*>& hwAsicTable,
     const std::optional<PlatformType> platformType = std::nullopt);
 
-cfg::SwitchInfo generateSwitchInfo(
+void populateSwitchInfoForLadakh(
     SwitchID switchId,
-    const cfg::Range64 portIdRange,
-    std::string connectionHandle,
-    const HwAsic* asic);
+    cfg::SwitchInfo& switchInfo);
 
 cfg::SwitchConfig twoL3IntfConfig(
     SwSwitch* swSwitch,
