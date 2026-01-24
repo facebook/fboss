@@ -8,9 +8,9 @@
  *
  */
 
+#include <algorithm>
 #include "fboss/cli/fboss2/CmdList.h"
 
-#include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
@@ -22,6 +22,8 @@
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
 #include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
+#include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h"
+#include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
@@ -93,11 +95,19 @@ const CommandTree& kConfigCommandTree() {
           commandHandler<CmdConfigQos>,
           argTypeHandler<CmdConfigQosTraits>,
           {{
-              "buffer-pool",
-              "Configure buffer pool settings",
-              commandHandler<CmdConfigQosBufferPool>,
-              argTypeHandler<CmdConfigQosBufferPoolTraits>,
-          }},
+               "buffer-pool",
+               "Configure buffer pool settings",
+               commandHandler<CmdConfigQosBufferPool>,
+               argTypeHandler<CmdConfigQosBufferPoolTraits>,
+           },
+           {"priority-group-policy",
+            "Configure priority group policy settings",
+            commandHandler<CmdConfigQosPriorityGroupPolicy>,
+            argTypeHandler<CmdConfigQosPriorityGroupPolicyTraits>,
+            {{"group-id",
+              "Specify priority group ID (0-7)",
+              commandHandler<CmdConfigQosPriorityGroupPolicyGroupId>,
+              argTypeHandler<CmdConfigQosPriorityGroupPolicyGroupIdTraits>}}}},
       },
 
       {

@@ -564,11 +564,12 @@ void ConfigSession::restartAgent(cli::AgentType agent) {
 
   LOG(INFO) << "Restarting " << serviceName << " via systemd...";
 
-  // Use systemctl to restart the service
+  // Use sudo systemctl to restart the service
+  // The CLI may be run by non-root users who have sudo access
   // Using folly::Subprocess with explicit args avoids shell injection
   try {
     folly::Subprocess restartProc(
-        {"/usr/bin/systemctl", "restart", serviceName});
+        {"/usr/bin/sudo", "/usr/bin/systemctl", "restart", serviceName});
     restartProc.waitChecked();
   } catch (const std::exception& ex) {
     throw std::runtime_error(
