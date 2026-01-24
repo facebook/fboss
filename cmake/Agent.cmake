@@ -11,6 +11,7 @@ add_library(setup_thrift
 target_link_libraries(setup_thrift
   load_agent_config
   thrift_method_rate_limit
+  thrift_service_utils
   Folly::folly
   FBThrift::thriftcpp2
 )

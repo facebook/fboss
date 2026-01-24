@@ -181,7 +181,7 @@ int main(int argc, char** argv) {
   std::cout << "[2/3] Testing Epoll backend..." << std::endl;
 #if FOLLY_HAS_EPOLL
   auto epollResult = runBackendTest("Epoll", [](ThriftServer& server) {
-    ThriftServiceUtils::setPreferEpoll(server);
+    ThriftServiceUtils::setPreferredEventBaseBackendToEpoll(server);
   });
   printResult(epollResult);
   results.push_back(epollResult);

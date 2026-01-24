@@ -40,7 +40,15 @@ folly::EventBaseManager& getEpollEventBaseManager() {
 #endif
 } // namespace
 
-void ThriftServiceUtils::setPreferEpoll(apache::thrift::ThriftServer& server) {
+void ThriftServiceUtils::setPreferredEventBaseBackend(
+    apache::thrift::ThriftServer& server) {
+  // T243914889: Set the preferred event base backend to epoll for OSS to avoid
+  // the default libevent2 performance issue
+  setPreferredEventBaseBackendToEpoll(server);
+}
+
+void ThriftServiceUtils::setPreferredEventBaseBackendToEpoll(
+    apache::thrift::ThriftServer& server) {
 #if FOLLY_HAS_EPOLL
   auto& epollManager = getEpollEventBaseManager();
   auto executor = std::make_shared<folly::IOThreadPoolExecutor>(

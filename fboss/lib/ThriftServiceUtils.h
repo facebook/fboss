@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include <folly/io/async/EventBase.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
 namespace facebook::fboss {
@@ -20,12 +19,12 @@ namespace facebook::fboss {
 class ThriftServiceUtils {
  public:
   /**
-   * Set ThriftServer to use EpollBackend for event loop backend
-   * Current ThriftServer doesn't have `setPreferEpoll()` like existing
-   * `setPreferIoUring()`. This helper function can help FBOSS services to
-   * switch to use EpollBackend to achieve a higher performance.
-   * @param server ThriftServer to set EpollBackend for event loop backend
+   * Set preferred EventBase Backend for ThriftServer
    */
-  static void setPreferEpoll(apache::thrift::ThriftServer& server);
+  static void setPreferredEventBaseBackend(
+      apache::thrift::ThriftServer& server);
+
+  static void setPreferredEventBaseBackendToEpoll(
+      apache::thrift::ThriftServer& server);
 };
 } // namespace facebook::fboss

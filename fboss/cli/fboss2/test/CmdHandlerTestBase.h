@@ -10,9 +10,7 @@
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/test/MockClients.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
-#ifdef IS_OSS
 #include "fboss/lib/ThriftServiceUtils.h"
-#endif
 
 #pragma once
 
@@ -34,11 +32,7 @@ class CmdHandlerTestBase : public ::testing::Test {
   static auto createFastMockServerConfig() {
     return [](apache::thrift::ThriftServer& server) {
       server.setIdleTimeout(std::chrono::milliseconds(50));
-      // TODO(T243914889): Switch to use EpollBackend for folly event base to
-      // avoid the default libevent2 performance issue
-#ifdef IS_OSS
-      ThriftServiceUtils::setPreferEpoll(server);
-#endif
+      ThriftServiceUtils::setPreferredEventBaseBackend(server);
     };
   }
 

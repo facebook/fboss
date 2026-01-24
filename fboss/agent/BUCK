@@ -289,6 +289,7 @@ cpp_library(
         "//fb303:export_type",
         "//fb303:service_data",
         "//fboss/lib:thrift_method_rate_limit",
+        "//fboss/lib:thrift_service_utils",
         "//folly:network_address",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
