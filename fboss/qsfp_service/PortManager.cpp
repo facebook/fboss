@@ -10,6 +10,10 @@
 namespace facebook::fboss {
 namespace {
 
+constexpr auto xphyLogCategory = "[XPHY]";
+constexpr auto prbsLogCategory = "[PRBS]";
+constexpr auto stateMachineLogCategory = "[SM]";
+
 bool isTransceiverComponent(
     const facebook::fboss::phy::PortComponent& component) {
   return component == facebook::fboss::phy::PortComponent::TRANSCEIVER_SYSTEM ||
@@ -221,13 +225,14 @@ void PortManager::programXphyPort(
     throw FbossError("Unable to program xphy port when PhyManager is not set");
   }
 
+  auto portNameStr = getPortNameByPortIdOrThrow(portId);
+
   // Check if port requires XPHY programming.
   if (cachedXphyPorts_.find(portId) == cachedXphyPorts_.end()) {
-    XLOG(DBG2) << "Skip programming xphy port for Port=" << portId;
+    SW_PORT_LOG(INFO, xphyLogCategory, portNameStr, portId)
+        << "Port does not require XPHY programming.";
     return;
   }
-
-  auto portNameStr = getPortNameByPortIdOrThrow(portId);
 
   auto tcvrIdOpt = getLowestIndexedStaticTransceiverForPort(portId);
   std::optional<TransceiverInfo> tcvrInfo = std::nullopt;
@@ -236,13 +241,13 @@ void PortManager::programXphyPort(
     tcvrInfo = transceiverManager_->getTransceiverInfoOptional(tcvrId);
 
     if (!tcvrInfo) {
-      SW_PORT_LOG(WARNING, "", portNameStr, portId)
+      SW_PORT_LOG(WARN, xphyLogCategory, portNameStr, portId)
           << "Port doesn't have transceiver info for transceiver id: " << tcvrId
-          << ". Using empty TransceiverInfo for programOnePort call.";
+          << ". Using empty TransceiverInfo for xphy->programOnePort call.";
     }
   } else {
-    SW_PORT_LOG(INFO, "", portNameStr, portId)
-        << "Port doesn't have associated transceiver, using empty TransceiverInfo for programOnePort call.";
+    SW_PORT_LOG(INFO, xphyLogCategory, portNameStr, portId)
+        << "Port has no transceiver, using empty TransceiverInfo for xphy->programOnePort call.";
   }
 
   phyManager_->programOnePort(
@@ -308,14 +313,14 @@ void PortManager::setPortLoopbackState(
     bool setLoopback) {
   auto portId = getPortIDByPortNameOrThrow(portNameStr);
   if (!isXphyComponent(component) && !isTransceiverComponent(component)) {
-    XLOG(INFO)
-        << " TransceiverManager::setPortLoopbackState - component not supported "
+    SW_PORT_LOG(WARN, "", portNameStr, portId)
+        << "setPortLoopbackState - component not supported: "
         << apache::thrift::util::enumNameSafe(component);
     return;
   }
 
-  XLOG(INFO) << " TransceiverManager::setPortLoopbackState Port "
-             << static_cast<int>(portId);
+  SW_PORT_LOG(INFO, "", portNameStr, portId)
+      << "setPortLoopbackState() called.";
 
   if (isXphyComponent(component)) {
     phyManager_->setPortLoopbackState(PortID(portId), component, setLoopback);
@@ -331,14 +336,13 @@ void PortManager::setPortAdminState(
     bool setAdminUp) {
   auto portId = getPortIDByPortNameOrThrow(portNameStr);
   if (!isXphyComponent(component)) {
-    XLOG(INFO)
-        << " TransceiverManager::setPortAdminState - component not supported "
+    SW_PORT_LOG(WARN, "", portNameStr, portId)
+        << "setPortAdminState - component not supported: "
         << apache::thrift::util::enumNameSafe(component);
     return;
   }
 
-  XLOG(INFO) << " TransceiverManager::setPortAdminState Port "
-             << static_cast<int>(portId);
+  SW_PORT_LOG(INFO, "", portNameStr, portId) << "setPortAdminState() called.";
   phyManager_->setPortAdminState(PortID(portId), component, setAdminUp);
 }
 
@@ -371,8 +375,7 @@ PortID PortManager::getLowestIndexedInitializedPortForTransceiverPortGroup(
   auto tcvrIdOpt = getLowestIndexedStaticTransceiverForPort(portId);
   if (!tcvrIdOpt) {
     SW_PORT_LOG(INFO, "", getPortNameByPortIdOrThrow(portId), portId)
-        << "No static transceiver for port " << portId
-        << ". Assuming port acts as its own coordinator.";
+        << "No static transceiver for port. Assuming port acts as its own coordinator.";
     return portId;
   }
   auto tcvrId = *tcvrIdOpt;
@@ -417,7 +420,7 @@ std::vector<TransceiverID> PortManager::getStaticTransceiversForPort(
   }
   if (portToTcvrMapItr->second.size() == 0) {
     SW_PORT_LOG(INFO, "", getPortNameByPortIdOrThrow(portId), portId)
-        << "No transceivers for assigned port. Assuming this port has XPHY support.";
+        << "No transceivers for assigned port. Assuming port has XPHY.";
   }
 
   return portToTcvrMapItr->second;
@@ -519,9 +522,10 @@ PortManager::getMultiTransceiverPortProfileIDs(
     throw FbossError("Unexpected number of chips for port ", portId);
   }
 
-  XLOG(DBG2)
+  auto portNameStr = getPortNameByPortId(PortID(portId)).value_or("");
+  SW_PORT_LOG(INFO, "", portNameStr, portId)
       << "Changing programInternalPhyPorts output received for TransceiverID("
-      << initTcvrId << " to dual transceiver config.";
+      << initTcvrId << ") to dual transceiver config.";
 
   // Determine the per-tcvr profileId.
   cfg::PortProfileID perTcvrProfileId =
@@ -702,19 +706,18 @@ void PortManager::programExternalPhyPort(
     PortID portId,
     std::optional<TransceiverID> tcvrIdOpt,
     bool xPhyNeedResetDataPath) {
+  auto portNameStr = getPortNameByPortId(portId).value_or("");
   // This is used solely through internal state machine.
   if (!phyManager_) {
-    XLOG(DBG2)
-        << "phyManager_ not defined. Skip programming xphy port for Port="
-        << portId;
+    SW_PORT_LOG(INFO, xphyLogCategory, portNameStr, portId)
+        << "phyManager_ not set. Skipping programming xphy port.";
     return;
   }
 
   // Check if port requires XPHY programming.
   if (cachedXphyPorts_.find(portId) == cachedXphyPorts_.end()) {
-    XLOG(DBG2)
-        << "Port is not an XPHY port. Skip programming xphy port for Port="
-        << portId;
+    SW_PORT_LOG(INFO, xphyLogCategory, portNameStr, portId)
+        << "Port is not an XPHY port. Skip programming xphy port.";
     return;
   }
 
@@ -754,8 +757,8 @@ void PortManager::programExternalPhyPort(
       cfg::PortProfileID parsedProfile{};
       if (!apache::thrift::TEnumTraits<cfg::PortProfileID>::findValue(
               it->second.profileID.c_str(), &parsedProfile)) {
-        XLOG(WARN) << "Unrecognized profile: " << it->second.profileID
-                   << " for Port=" << portId << ".";
+        SW_PORT_LOG(WARN, xphyLogCategory, portNameStr, portId)
+            << "Unrecognized profile: " << it->second.profileID;
       } else {
         portProfile = parsedProfile;
       }
@@ -777,9 +780,11 @@ void PortManager::programExternalPhyPort(
 
   phyManager_->programOnePort(
       portId, *portProfile, transceiverInfo, xPhyNeedResetDataPath);
-  XLOG(INFO) << "Programmed XPHY port for Port=" << portId
-             << ", Profile=" << apache::thrift::util::enumNameSafe(*portProfile)
-             << ", needResetDataPath=" << xPhyNeedResetDataPath;
+  SW_PORT_LOG(INFO, xphyLogCategory, portNameStr, portId)
+      << "Programmed XPHY port for Profile="
+      << apache::thrift::util::enumNameSafe(*portProfile)
+      << ", needResetDataPath=" << xPhyNeedResetDataPath
+      << (tcvrIdOpt ? ", TransceiverID=" + std::to_string(*tcvrIdOpt) : "");
 }
 
 void PortManager::markExternalPhyTransceiversReady() {
@@ -1047,16 +1052,12 @@ void PortManager::publishLinkSnapshots(const std::string& portNameStr) {
 void PortManager::getInterfacePhyInfo(
     std::map<std::string, phy::PhyInfo>& phyInfos,
     const std::string& portNameStr) {
-  auto portIDOpt = getPortIDByPortName(portNameStr);
-  if (!portIDOpt) {
-    throw FbossError(
-        "Unrecoginized portName:", portNameStr, ", can't find port id");
-  }
+  auto portId = getPortIDByPortNameOrThrow(portNameStr);
   try {
-    phyInfos[portNameStr] = getXphyInfo(*portIDOpt);
+    phyInfos[portNameStr] = getXphyInfo(portId);
   } catch (const std::exception& ex) {
-    XLOG(ERR) << "Fetching PhyInfo for " << portNameStr << " failed with "
-              << ex.what();
+    SW_PORT_LOG(ERR, xphyLogCategory, portNameStr, portId)
+        << "Fetching PhyInfo failed with " << ex.what();
   }
 }
 
@@ -1170,8 +1171,10 @@ void PortManager::getAllInterfacePrbsStats(
     } catch (const std::exception& ex) {
       // If PRBS is not enabled on this port, return
       // a default stats / State.
-      XLOG(DBG2) << "Failed to get prbs stats for port " << *portNameStr
-                 << " with error: " << ex.what();
+      auto portIdOpt = getPortIDByPortName(*portNameStr);
+      auto portIdStr = portIdOpt ? folly::to<std::string>(*portIdOpt) : "";
+      SW_PORT_LOG(ERR, prbsLogCategory, *portNameStr, portIdStr)
+          << "Failed to get prbs stats with error: " << ex.what();
       prbsStats[*portNameStr] = phy::PrbsStats();
     }
   }
@@ -1365,7 +1368,9 @@ void PortManager::triggerAgentConfigChangeEvent() {
     for (const auto& portId : *lockedInitializedPorts) {
       if (auto result = updateStateBlockingWithoutWait(
               portId, PortStateMachineEvent::PORT_EV_RESET_TO_UNINITIALIZED)) {
-        XLOG(ERR) << "Reset port " << portId << " to uninitialized";
+        auto portNameStr = getPortNameByPortId(portId).value_or("");
+        SW_PORT_LOG(ERR, stateMachineLogCategory, portNameStr, portId)
+            << "Reset port to uninitialized";
         results.push_back(result);
       }
     }
@@ -1494,8 +1499,9 @@ void PortManager::updateTransceiverPortStatus() noexcept {
     try {
       publishLinkSnapshots(portId);
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Port " << portId
-                << " failed publishLinkSnapshpts(): " << ex.what();
+      auto portNameStr = getPortNameByPortId(portId).value_or("");
+      SW_PORT_LOG(ERR, "", portNameStr, portId)
+          << "Failed publishLinkSnapshots(): " << ex.what();
     }
   }
 
@@ -1795,15 +1801,16 @@ void PortManager::updatePortActiveState(
   for (const auto& [portIdInt, portStatus] : npuPortStatus) {
     PortStateMachineState portState;
     auto portId = PortID(portIdInt);
+    auto portNameStr = getPortNameByPortId(portId).value_or("");
     try {
       portState = getPortState(portId);
     } catch (const FbossError& /* e */) {
-      XLOG(WARN) << "Unrecoginized Port:" << portId
-                 << ", skip updatePortActiveState()";
+      SW_PORT_LOG(WARN, stateMachineLogCategory, portNameStr, portId)
+          << "Unrecognized port, skip updatePortActiveState()";
       continue;
     }
-
-    XLOG(INFO) << "Syncing port status for port " << portId;
+    SW_PORT_LOG(INFO, stateMachineLogCategory, portNameStr, portId)
+        << "Syncing port status";
     bool arePortTcvrsJustProgrammed =
         portState == PortStateMachineState::TRANSCEIVERS_PROGRAMMED;
     bool isPortUpOrDown = portState == PortStateMachineState::PORT_UP ||
@@ -1825,8 +1832,9 @@ void PortManager::updatePortActiveState(
     try {
       publishLinkSnapshots(portId);
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Port " << portId
-                << " failed publishLinkSnapshpts(): " << ex.what();
+      auto portNameStr = getPortNameByPortId(portId).value_or("");
+      SW_PORT_LOG(ERR, stateMachineLogCategory, portNameStr, portId)
+          << "Failed publishLinkSnapshots(): " << ex.what();
     }
   }
 
@@ -2065,7 +2073,7 @@ bool PortManager::arePortTcvrsProgrammed(PortID portId) const {
   // For XPHY-only ports without transceivers, there's nothing to wait for.
   auto tcvrIds = getInitializedTransceiverIdsForPort(portId);
   if (tcvrIds.empty()) {
-    SW_PORT_LOG(INFO, "[SM]", portNameStr, portId)
+    SW_PORT_LOG(INFO, stateMachineLogCategory, portNameStr, portId)
         << "Port has no transceivers to program.";
     return true;
   }
@@ -2075,7 +2083,7 @@ bool PortManager::arePortTcvrsProgrammed(PortID portId) const {
   for (const auto& tcvrId : tcvrIds) {
     if (transceiverManager_->getCurrentState(tcvrId) !=
         TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
-      SW_PORT_LOG(INFO, "[SM]", portNameStr, portId)
+      SW_PORT_LOG(INFO, stateMachineLogCategory, portNameStr, portId)
           << "Assigned Transceiver " << tcvrId
           << " state is not TRANSCEIVER_PROGRAMMED: "
           << apache::thrift::util::enumNameSafe(getTransceiverState(tcvrId))
@@ -2210,7 +2218,8 @@ void PortManager::getPortStates(
     try {
       states.emplace(id, getPortState(portId));
     } catch (const FbossError& /* e */) {
-      XLOG(WARN) << "Unrecognized Port: " << portId;
+      auto portNameStr = getPortNameByPortId(portId).value_or("");
+      SW_PORT_LOG(WARN, "", portNameStr, portId) << "Unrecognized port";
     }
   }
 }
@@ -2229,7 +2238,7 @@ void PortManager::getPortStates(
       auto portId = getPortIDByPortNameOrThrow(portNameStr);
       states.emplace(portNameStr, getPortState(portId));
     } catch (const FbossError& /* e */) {
-      XLOG(WARN) << "Unrecognized Port:" << portNameStr;
+      SW_PORT_LOG(WARN, "", portNameStr, "") << "Unrecognized port";
     }
   }
 }

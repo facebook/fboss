@@ -29,9 +29,9 @@ DECLARE_bool(override_program_iphy_ports_for_test);
 
 #define PORTMGR_SM_LOG(level) TYPED_LOG(level, "[SM]")
 
-#define SW_PORT_LOG(level, logType, portName, portId)  \
-  XLOG(level) << logType << " [portName: " << portName \
-              << ", portId: " << portId << "]: "
+#define SW_PORT_LOG(level, logType, portName, portId)                 \
+  XLOG(level) << logType << " [portName: " << portName << ", PortID(" \
+              << portId << ")]: "
 
 #define PORT_SM_LOG(level, portName, portId) \
   SW_PORT_LOG(level, "[SM]", portName, portId)
