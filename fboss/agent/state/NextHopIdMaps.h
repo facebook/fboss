@@ -82,4 +82,78 @@ class IdToNextHopMap
   friend class CloneAllocator;
 };
 
+/*
+ * IdToNextHopIdSetMap
+ *
+ * A map from NextHopSetId to a set of NextHopIds.
+ * Since the value type is std::set<NextHopId> (not a struct),
+ * we use thrift_cow::ThriftMapTraits directly as ThriftMapNodeTraits
+ * is designed for struct values.
+ */
+
+using IdToNextHopIdSetMapTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::integral,
+    apache::thrift::type_class::set<apache::thrift::type_class::integral>>;
+using IdToNextHopIdSetMapThriftType =
+    std::map<NextHopSetId, std::set<NextHopId>>;
+
+class IdToNextHopIdSetMap;
+
+using IdToNextHopIdSetMapTraits = thrift_cow::ThriftMapTraits<
+    false,
+    IdToNextHopIdSetMapTypeClass,
+    IdToNextHopIdSetMapThriftType>;
+
+class IdToNextHopIdSetMap : public thrift_cow::ThriftMapNode<
+                                IdToNextHopIdSetMapTraits,
+                                thrift_cow::TypeIdentity<IdToNextHopIdSetMap>> {
+ public:
+  using BaseT = thrift_cow::ThriftMapNode<
+      IdToNextHopIdSetMapTraits,
+      thrift_cow::TypeIdentity<IdToNextHopIdSetMap>>;
+  using BaseT::BaseT;
+  using Traits = IdToNextHopIdSetMapTraits;
+  // Node is the ThriftSetNode type returned by the map iterator
+  using Node = typename BaseT::Fields::value_type::element_type;
+
+  IdToNextHopIdSetMap() = default;
+  ~IdToNextHopIdSetMap() override = default;
+
+  // Returns shared_ptr to the ThriftSetNode for the given NextHopSetId
+  // Throws FbossError if not found
+  const std::shared_ptr<Node>& getNextHopIdSet(NextHopSetId id) const {
+    auto iter = this->find(id);
+    if (iter == this->end()) {
+      throw FbossError("NextHopIdSet with ID ", id, " not found");
+    }
+    return iter->second;
+  }
+
+  // Returns shared_ptr to the ThriftSetNode if found, nullptr otherwise
+  const std::shared_ptr<Node> getNextHopIdSetIf(NextHopSetId id) const {
+    auto iter = this->find(id);
+    if (iter == this->end()) {
+      return nullptr;
+    }
+    return iter->second;
+  }
+
+  void addNextHopIdSet(NextHopSetId id, const std::set<NextHopId>& nextHopIds) {
+    this->emplace(id, nextHopIds);
+  }
+
+  void removeNextHopIdSet(NextHopSetId id) {
+    if (!this->remove(id)) {
+      throw FbossError("NextHopIdSet with ID ", id, " does not exist");
+    }
+  }
+
+  bool removeNextHopIdSetIf(NextHopSetId id) {
+    return this->remove(id);
+  }
+
+ private:
+  friend class CloneAllocator;
+};
+
 } // namespace facebook::fboss
