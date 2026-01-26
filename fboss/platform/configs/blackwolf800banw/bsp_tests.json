@@ -1,0 +1,339 @@
+{
+  "testData": {
+    "SMB.SMB_HBM1_PHY_VDD": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "iin1",
+          "iout1",
+          "pin1",
+          "pout1"
+        ]
+      }
+    },
+    "SMB.SMB_HBM2_PHY_VDD": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "iin1",
+          "iout1",
+          "pin1",
+          "pout1"
+        ]
+      }
+    },
+    "SMB.SMB_HBM1_VDDQL": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "iin1",
+          "iout1",
+          "pin1",
+          "pout1"
+        ]
+      }
+    },
+    "SMB.SMB_HBM2_VDDQL": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "iin1",
+          "iout1",
+          "pin1",
+          "pout1"
+        ]
+      }
+    },
+    "SMB.SMB_HBM12_VDDQC": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_HBM0_PHY_VDD": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "iin1",
+          "iout1",
+          "pin1",
+          "pout1"
+        ]
+      }
+    },
+    "SMB.SMB_HBM3_PHY_VDD": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "iin1",
+          "iout1",
+          "pin1",
+          "pout1"
+        ]
+      }
+    },
+    "SMB.SMB_HBM0_VDDQL": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "iin1",
+          "iout1",
+          "pin1",
+          "pout1"
+        ]
+      }
+    },
+    "SMB.SMB_HBM3_VDDQL": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "iin1",
+          "iout1",
+          "pin1",
+          "pout1"
+        ]
+      }
+    },
+    "SMB.SMB_HBM03_VDDQC": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_Q4D_D0_CORE": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_Q4D_NIF12_CORE": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_Q4D_NIF12_VDDA": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_Q4D_NIF12_PB": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_Q4D_C2C_PB01": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_Q4D_D1_CORE": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_Q4D_NIF03_CORE": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_Q4D_NIF03_VDDA": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_Q4D_NIF03_PB": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    }
+  }
+}
