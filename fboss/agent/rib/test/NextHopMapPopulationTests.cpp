@@ -559,4 +559,38 @@ TEST_F(NextHopMapPopulationTest, RouteUpdateTestsThroughFIBUpdater) {
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 }
+
+TEST_F(NextHopMapPopulationTest, SerializationTests) {
+  addStandardTestRoutes();
+  runFibUpdater();
+
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Get original maps for comparison
+  auto originalIdToNextHopMap = getIdToNextHopMap();
+  auto originalIdToNextHopIdSetMap = getIdToNextHopIdSetMap();
+
+  // Serialize the FibInfo
+  auto fibInfo = getFibInfo(state_);
+  ASSERT_NE(fibInfo, nullptr);
+  auto serialized = fibInfo->toThrift();
+
+  // Deserialize into a new FibInfo
+  auto deserialized = std::make_shared<FibInfo>(serialized);
+
+  // Verify IdToNextHopMap is preserved
+  auto deserializedNextHopMap = deserialized->getIdToNextHopMap();
+  ASSERT_NE(deserializedNextHopMap, nullptr);
+  EXPECT_EQ(deserializedNextHopMap->size(), originalIdToNextHopMap->size())
+      << "IdToNextHopMap size should be preserved after deserialization";
+
+  // Verify IdToNextHopIdSetMap is preserved
+  auto deserializedNextHopIdSetMap = deserialized->getIdToNextHopIdSetMap();
+  ASSERT_NE(deserializedNextHopIdSetMap, nullptr);
+  EXPECT_EQ(
+      deserializedNextHopIdSetMap->size(), originalIdToNextHopIdSetMap->size())
+      << "IdToNextHopIdSetMap size should be preserved after deserialization";
+}
+
 } // namespace facebook::fboss
