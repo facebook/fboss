@@ -110,20 +110,56 @@ Components are built in the following order:
 
 ### Running Tests
 
+#### With Bazel (Recommended)
+
 ```bash
 # Run all tests
-cd fboss-image/distro_cli
-python3 -m unittest discover -s tests -p '*_test.py'
+bazel test //fboss/fboss-image/distro_cli:all
 
 # Run specific test
-python3 -m unittest tests.cli_test
+bazel test //fboss/fboss-image/distro_cli:cli_test
+
+# Run with detailed output
+bazel test //fboss/fboss-image/distro_cli:all --test_output=all
+```
+
+#### With pytest
+
+```bash
+# Run all tests (from fboss-image directory)
+cd fboss-image
+PYTHONPATH=. python3 -m pytest distro_cli/tests/ -v
+
+# Run specific test file
+PYTHONPATH=. python3 -m pytest distro_cli/tests/cli_test.py -v
+
+# Run specific test class or method
+PYTHONPATH=. python3 -m pytest distro_cli/tests/cli_test.py::CLITest::test_cli_creation -v
+```
+
+#### With unittest
+
+```bash
+# Run all tests (from fboss-image directory)
+cd fboss-image
+PYTHONPATH=. python3 -m unittest discover -s distro_cli/tests -p '*_test.py'
+
+# Run specific test module
+PYTHONPATH=. python3 -m unittest distro_cli.tests.cli_test
+
+# Run specific test class
+PYTHONPATH=. python3 -m unittest distro_cli.tests.cli_test.CLITest
 ```
 
 ### Linting
 
 ```bash
+# With ruff (from distro_cli directory)
 cd fboss-image/distro_cli
 python3 -m ruff check .
+
+# With bazel (from repository root)
+bazel test //private-fboss/fboss-image/distro_cli:lint_check
 ```
 
 ### Project Structure
@@ -152,7 +188,7 @@ fboss-image/distro_cli/
 The CLI uses a custom OOP wrapper around argparse (stdlib only, no external dependencies):
 
 ```python
-from lib.cli import CLI
+from distro_cli.lib.cli import CLI
 
 # Create CLI
 cli = CLI(description='My CLI')
@@ -171,3 +207,27 @@ device.add_command('ssh', ssh_func, help_text='SSH to device')
 # Run
 cli.run(setup_logging_func=setup_logging)
 ```
+
+## Running Tests
+
+### Quick Tests (Default)
+Run all fast unit tests (excludes long-running E2E tests):
+```bash
+python3 -m pytest distro_cli/tests/ -v
+# or explicitly exclude e2e tests:
+python3 -m pytest distro_cli/tests/ -m "not e2e" -v
+```
+
+### E2E Tests Only
+Run only the end-to-end tests (kernel build, SAI build):
+```bash
+python3 -m pytest distro_cli/tests/ -m e2e -v -s
+```
+
+### All Tests (Including E2E)
+Run everything:
+```bash
+python3 -m pytest distro_cli/tests/ -v -s
+```
+
+**Note:** E2E tests can take 10-60 minutes and require actual source files (kernel sources, SAI SDK, etc.).
