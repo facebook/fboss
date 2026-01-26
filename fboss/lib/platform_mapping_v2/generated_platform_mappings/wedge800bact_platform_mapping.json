@@ -384,9 +384,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                2
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -1285,9 +1282,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                4
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -1910,9 +1904,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                6
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -1963,9 +1954,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                6
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -2016,11 +2004,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                6,
-                7,
-                8
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -2113,11 +2096,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                6,
-                7,
-                8
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -2210,11 +2188,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                6,
-                7,
-                8
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -2307,11 +2280,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                6,
-                7,
-                8
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -2404,15 +2372,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                6,
-                7,
-                8,
-                9,
-                10,
-                11,
-                12
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -2618,11 +2577,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                6,
-                7,
-                8
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -2715,15 +2669,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                6,
-                7,
-                8,
-                9,
-                10,
-                11,
-                12
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -2900,9 +2845,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                6
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -2953,9 +2895,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                6
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -3155,9 +3094,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                8
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -3208,9 +3144,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                8
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -3290,9 +3223,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                8
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -3343,9 +3273,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                8
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -3430,7 +3357,7 @@
         "mapping": {
           "id": 8,
           "name": "eth1/20/4",
-          "controllingPort": 7,
+          "controllingPort": 5,
           "pins": [
             {
               "a": {
@@ -3569,9 +3496,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                10
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -3622,9 +3546,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                10
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -3675,11 +3596,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                10,
-                11,
-                12
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -3772,11 +3688,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                10,
-                11,
-                12
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -3869,11 +3780,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                10,
-                11,
-                12
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -3966,11 +3872,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                10,
-                11,
-                12
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -4092,11 +3993,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                10,
-                11,
-                12
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -4189,9 +4085,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                10
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -4242,9 +4135,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                10
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -4329,7 +4219,7 @@
         "mapping": {
           "id": 10,
           "name": "eth1/20/6",
-          "controllingPort": 9,
+          "controllingPort": 5,
           "pins": [
             {
               "a": {
@@ -4412,7 +4302,7 @@
         "mapping": {
           "id": 11,
           "name": "eth1/20/7",
-          "controllingPort": 9,
+          "controllingPort": 5,
           "pins": [
             {
               "a": {
@@ -4444,9 +4334,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                12
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -4497,9 +4384,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                12
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -4579,9 +4463,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                12
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -4632,9 +4513,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                12
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -4719,7 +4597,7 @@
         "mapping": {
           "id": 12,
           "name": "eth1/20/8",
-          "controllingPort": 11,
+          "controllingPort": 5,
           "pins": [
             {
               "a": {
@@ -4906,9 +4784,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                14
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -4959,9 +4834,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                14
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -5012,11 +4884,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                14,
-                15,
-                16
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -5109,11 +4976,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                14,
-                15,
-                16
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -5206,11 +5068,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                14,
-                15,
-                16
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -5303,11 +5160,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                14,
-                15,
-                16
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -5400,15 +5252,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                14,
-                15,
-                16,
-                17,
-                18,
-                19,
-                20
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -5614,11 +5457,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                14,
-                15,
-                16
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -5711,15 +5549,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                14,
-                15,
-                16,
-                17,
-                18,
-                19,
-                20
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -5896,9 +5725,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                14
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -5949,9 +5775,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                14
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -6151,9 +5974,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                16
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -6204,9 +6024,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                16
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -6286,9 +6103,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                16
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -6339,9 +6153,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                16
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -6426,7 +6237,7 @@
         "mapping": {
           "id": 16,
           "name": "eth1/19/4",
-          "controllingPort": 15,
+          "controllingPort": 13,
           "pins": [
             {
               "a": {
@@ -6565,9 +6376,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                18
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -6618,9 +6426,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                18
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -6671,11 +6476,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                18,
-                19,
-                20
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -6768,11 +6568,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                18,
-                19,
-                20
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -6865,11 +6660,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                18,
-                19,
-                20
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -6962,11 +6752,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                18,
-                19,
-                20
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -7088,11 +6873,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                18,
-                19,
-                20
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -7185,9 +6965,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                18
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -7238,9 +7015,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                18
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -7325,7 +7099,7 @@
         "mapping": {
           "id": 18,
           "name": "eth1/19/6",
-          "controllingPort": 17,
+          "controllingPort": 13,
           "pins": [
             {
               "a": {
@@ -7408,7 +7182,7 @@
         "mapping": {
           "id": 19,
           "name": "eth1/19/7",
-          "controllingPort": 17,
+          "controllingPort": 13,
           "pins": [
             {
               "a": {
@@ -7440,9 +7214,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                20
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -7493,9 +7264,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                20
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -7575,9 +7343,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                20
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -7628,9 +7393,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                20
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -7715,7 +7477,7 @@
         "mapping": {
           "id": 20,
           "name": "eth1/19/8",
-          "controllingPort": 19,
+          "controllingPort": 13,
           "pins": [
             {
               "a": {
@@ -8178,9 +7940,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                23
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -9079,9 +8838,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                25
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -9704,9 +9460,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                27
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -9757,9 +9510,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                27
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -9810,11 +9560,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                27,
-                28,
-                29
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -9907,11 +9652,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                27,
-                28,
-                29
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -10004,11 +9744,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                27,
-                28,
-                29
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -10101,11 +9836,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                27,
-                28,
-                29
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -10198,15 +9928,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                27,
-                28,
-                29,
-                30,
-                31,
-                33,
-                34
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -10412,11 +10133,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                27,
-                28,
-                29
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -10509,15 +10225,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                27,
-                28,
-                29,
-                30,
-                31,
-                33,
-                34
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -10694,9 +10401,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                27
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -10747,9 +10451,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                27
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -10949,9 +10650,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                29
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -11002,9 +10700,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                29
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -11084,9 +10779,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                29
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -11137,9 +10829,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                29
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -11224,7 +10913,7 @@
         "mapping": {
           "id": 29,
           "name": "eth1/24/4",
-          "controllingPort": 28,
+          "controllingPort": 26,
           "pins": [
             {
               "a": {
@@ -11363,9 +11052,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                31
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -11416,9 +11102,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                31
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -11469,11 +11152,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                31,
-                33,
-                34
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -11566,11 +11244,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                31,
-                33,
-                34
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -11663,11 +11336,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                31,
-                33,
-                34
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -11760,11 +11428,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                31,
-                33,
-                34
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -11886,11 +11549,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                31,
-                33,
-                34
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -11983,9 +11641,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                31
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -12036,9 +11691,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                31
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -12123,7 +11775,7 @@
         "mapping": {
           "id": 31,
           "name": "eth1/24/6",
-          "controllingPort": 30,
+          "controllingPort": 26,
           "pins": [
             {
               "a": {
@@ -12206,7 +11858,7 @@
         "mapping": {
           "id": 33,
           "name": "eth1/24/7",
-          "controllingPort": 30,
+          "controllingPort": 26,
           "pins": [
             {
               "a": {
@@ -12238,9 +11890,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                34
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -12291,9 +11940,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                34
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -12373,9 +12019,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                34
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -12426,9 +12069,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                34
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -12513,7 +12153,7 @@
         "mapping": {
           "id": 34,
           "name": "eth1/24/8",
-          "controllingPort": 33,
+          "controllingPort": 26,
           "pins": [
             {
               "a": {
@@ -12700,9 +12340,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                36
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -12753,9 +12390,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                36
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -12806,11 +12440,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                36,
-                37,
-                38
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -12903,11 +12532,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                36,
-                37,
-                38
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -13000,11 +12624,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                36,
-                37,
-                38
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -13097,11 +12716,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                36,
-                37,
-                38
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -13194,15 +12808,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                36,
-                37,
-                38,
-                39,
-                40,
-                41,
-                42
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -13408,11 +13013,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                36,
-                37,
-                38
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -13505,15 +13105,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                36,
-                37,
-                38,
-                39,
-                40,
-                41,
-                42
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -13690,9 +13281,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                36
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -13743,9 +13331,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                36
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -13945,9 +13530,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                38
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -13998,9 +13580,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                38
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -14080,9 +13659,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                38
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -14133,9 +13709,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                38
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -14220,7 +13793,7 @@
         "mapping": {
           "id": 38,
           "name": "eth1/23/4",
-          "controllingPort": 37,
+          "controllingPort": 35,
           "pins": [
             {
               "a": {
@@ -14359,9 +13932,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                40
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -14412,9 +13982,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                40
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -14465,11 +14032,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                40,
-                41,
-                42
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -14562,11 +14124,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                40,
-                41,
-                42
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -14659,11 +14216,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                40,
-                41,
-                42
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -14756,11 +14308,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                40,
-                41,
-                42
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -14882,11 +14429,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                40,
-                41,
-                42
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -14979,9 +14521,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                40
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -15032,9 +14571,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                40
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -15119,7 +14655,7 @@
         "mapping": {
           "id": 40,
           "name": "eth1/23/6",
-          "controllingPort": 39,
+          "controllingPort": 35,
           "pins": [
             {
               "a": {
@@ -15202,7 +14738,7 @@
         "mapping": {
           "id": 41,
           "name": "eth1/23/7",
-          "controllingPort": 39,
+          "controllingPort": 35,
           "pins": [
             {
               "a": {
@@ -15234,9 +14770,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                42
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -15287,9 +14820,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                42
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -15369,9 +14899,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                42
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -15422,9 +14949,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                42
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -15509,7 +15033,7 @@
         "mapping": {
           "id": 42,
           "name": "eth1/23/8",
-          "controllingPort": 41,
+          "controllingPort": 35,
           "pins": [
             {
               "a": {
@@ -15972,9 +15496,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                45
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -16873,9 +16394,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                47
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -17498,9 +17016,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                49
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -17551,9 +17066,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                49
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -17604,11 +17116,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                49,
-                50,
-                51
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -17701,11 +17208,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                49,
-                50,
-                51
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -17798,11 +17300,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                49,
-                50,
-                51
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -17895,11 +17392,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                49,
-                50,
-                51
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -17992,15 +17484,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                49,
-                50,
-                51,
-                52,
-                53,
-                55,
-                56
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -18206,11 +17689,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                49,
-                50,
-                51
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -18303,15 +17781,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                49,
-                50,
-                51,
-                52,
-                53,
-                55,
-                56
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -18488,9 +17957,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                49
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -18541,9 +18007,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                49
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -18743,9 +18206,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                51
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -18796,9 +18256,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                51
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -18878,9 +18335,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                51
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -18931,9 +18385,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                51
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -19018,7 +18469,7 @@
         "mapping": {
           "id": 51,
           "name": "eth1/28/4",
-          "controllingPort": 50,
+          "controllingPort": 48,
           "pins": [
             {
               "a": {
@@ -19157,9 +18608,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                53
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -19210,9 +18658,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                53
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -19263,11 +18708,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                53,
-                55,
-                56
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -19360,11 +18800,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                53,
-                55,
-                56
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -19457,11 +18892,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                53,
-                55,
-                56
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -19554,11 +18984,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                53,
-                55,
-                56
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -19680,11 +19105,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                53,
-                55,
-                56
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -19777,9 +19197,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                53
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -19830,9 +19247,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                53
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -19917,7 +19331,7 @@
         "mapping": {
           "id": 53,
           "name": "eth1/28/6",
-          "controllingPort": 52,
+          "controllingPort": 48,
           "pins": [
             {
               "a": {
@@ -20000,7 +19414,7 @@
         "mapping": {
           "id": 55,
           "name": "eth1/28/7",
-          "controllingPort": 52,
+          "controllingPort": 48,
           "pins": [
             {
               "a": {
@@ -20032,9 +19446,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                56
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -20085,9 +19496,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                56
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -20167,9 +19575,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                56
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -20220,9 +19625,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                56
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -20307,7 +19709,7 @@
         "mapping": {
           "id": 56,
           "name": "eth1/28/8",
-          "controllingPort": 55,
+          "controllingPort": 48,
           "pins": [
             {
               "a": {
@@ -20494,9 +19896,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                58
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -20547,9 +19946,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                58
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -20600,11 +19996,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                58,
-                59,
-                60
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -20697,11 +20088,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                58,
-                59,
-                60
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -20794,11 +20180,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                58,
-                59,
-                60
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -20891,11 +20272,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                58,
-                59,
-                60
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -20988,15 +20364,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                58,
-                59,
-                60,
-                61,
-                62,
-                63,
-                64
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -21202,11 +20569,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                58,
-                59,
-                60
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -21299,15 +20661,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                58,
-                59,
-                60,
-                61,
-                62,
-                63,
-                64
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -21484,9 +20837,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                58
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -21537,9 +20887,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                58
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -21739,9 +21086,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                60
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -21792,9 +21136,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                60
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -21874,9 +21215,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                60
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -21927,9 +21265,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                60
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -22014,7 +21349,7 @@
         "mapping": {
           "id": 60,
           "name": "eth1/27/4",
-          "controllingPort": 59,
+          "controllingPort": 57,
           "pins": [
             {
               "a": {
@@ -22153,9 +21488,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                62
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -22206,9 +21538,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                62
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -22259,11 +21588,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                62,
-                63,
-                64
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -22356,11 +21680,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                62,
-                63,
-                64
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -22453,11 +21772,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                62,
-                63,
-                64
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -22550,11 +21864,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                62,
-                63,
-                64
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -22676,11 +21985,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                62,
-                63,
-                64
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -22773,9 +22077,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                62
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -22826,9 +22127,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                62
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -22913,7 +22211,7 @@
         "mapping": {
           "id": 62,
           "name": "eth1/27/6",
-          "controllingPort": 61,
+          "controllingPort": 57,
           "pins": [
             {
               "a": {
@@ -22996,7 +22294,7 @@
         "mapping": {
           "id": 63,
           "name": "eth1/27/7",
-          "controllingPort": 61,
+          "controllingPort": 57,
           "pins": [
             {
               "a": {
@@ -23028,9 +22326,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                64
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -23081,9 +22376,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                64
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -23163,9 +22455,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                64
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -23216,9 +22505,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                64
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -23303,7 +22589,7 @@
         "mapping": {
           "id": 64,
           "name": "eth1/27/8",
-          "controllingPort": 63,
+          "controllingPort": 57,
           "pins": [
             {
               "a": {
@@ -23766,9 +23052,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                67
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -24667,9 +23950,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                69
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -25292,9 +24572,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                71
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -25345,9 +24622,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                71
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -25398,11 +24672,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                71,
-                72,
-                73
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -25495,11 +24764,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                71,
-                72,
-                73
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -25592,11 +24856,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                71,
-                72,
-                73
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -25689,11 +24948,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                71,
-                72,
-                73
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -25786,15 +25040,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                71,
-                72,
-                73,
-                74,
-                75,
-                77,
-                78
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -26000,11 +25245,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                71,
-                72,
-                73
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -26097,15 +25337,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                71,
-                72,
-                73,
-                74,
-                75,
-                77,
-                78
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -26282,9 +25513,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                71
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -26335,9 +25563,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                71
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -26537,9 +25762,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                73
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -26590,9 +25812,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                73
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -26672,9 +25891,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                73
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -26725,9 +25941,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                73
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -26812,7 +26025,7 @@
         "mapping": {
           "id": 73,
           "name": "eth1/32/4",
-          "controllingPort": 72,
+          "controllingPort": 70,
           "pins": [
             {
               "a": {
@@ -26951,9 +26164,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                75
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -27004,9 +26214,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                75
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -27057,11 +26264,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                75,
-                77,
-                78
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -27154,11 +26356,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                75,
-                77,
-                78
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -27251,11 +26448,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                75,
-                77,
-                78
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -27348,11 +26540,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                75,
-                77,
-                78
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -27474,11 +26661,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                75,
-                77,
-                78
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -27571,9 +26753,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                75
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -27624,9 +26803,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                75
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -27711,7 +26887,7 @@
         "mapping": {
           "id": 75,
           "name": "eth1/32/6",
-          "controllingPort": 74,
+          "controllingPort": 70,
           "pins": [
             {
               "a": {
@@ -27794,7 +26970,7 @@
         "mapping": {
           "id": 77,
           "name": "eth1/32/7",
-          "controllingPort": 74,
+          "controllingPort": 70,
           "pins": [
             {
               "a": {
@@ -27826,9 +27002,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                78
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -27879,9 +27052,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                78
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -27961,9 +27131,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                78
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -28014,9 +27181,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                78
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -28101,7 +27265,7 @@
         "mapping": {
           "id": 78,
           "name": "eth1/32/8",
-          "controllingPort": 77,
+          "controllingPort": 70,
           "pins": [
             {
               "a": {
@@ -28288,9 +27452,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                80
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -28341,9 +27502,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                80
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -28394,11 +27552,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                80,
-                81,
-                82
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -28491,11 +27644,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                80,
-                81,
-                82
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -28588,11 +27736,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                80,
-                81,
-                82
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -28685,11 +27828,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                80,
-                81,
-                82
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -28782,15 +27920,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                80,
-                81,
-                82,
-                83,
-                84,
-                85,
-                86
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -28996,11 +28125,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                80,
-                81,
-                82
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -29093,15 +28217,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                80,
-                81,
-                82,
-                83,
-                84,
-                85,
-                86
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -29278,9 +28393,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                80
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -29331,9 +28443,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                80
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -29533,9 +28642,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                82
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -29586,9 +28692,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                82
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -29668,9 +28771,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                82
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -29721,9 +28821,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                82
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -29808,7 +28905,7 @@
         "mapping": {
           "id": 82,
           "name": "eth1/31/4",
-          "controllingPort": 81,
+          "controllingPort": 79,
           "pins": [
             {
               "a": {
@@ -29947,9 +29044,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                84
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -30000,9 +29094,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                84
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -30053,11 +29144,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                84,
-                85,
-                86
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -30150,11 +29236,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                84,
-                85,
-                86
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -30247,11 +29328,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                84,
-                85,
-                86
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -30344,11 +29420,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                84,
-                85,
-                86
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -30470,11 +29541,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                84,
-                85,
-                86
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -30567,9 +29633,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                84
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -30620,9 +29683,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                84
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -30707,7 +29767,7 @@
         "mapping": {
           "id": 84,
           "name": "eth1/31/6",
-          "controllingPort": 83,
+          "controllingPort": 79,
           "pins": [
             {
               "a": {
@@ -30790,7 +29850,7 @@
         "mapping": {
           "id": 85,
           "name": "eth1/31/7",
-          "controllingPort": 83,
+          "controllingPort": 79,
           "pins": [
             {
               "a": {
@@ -30822,9 +29882,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                86
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -30875,9 +29932,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                86
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -30957,9 +30011,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                86
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -31010,9 +30061,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                86
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -31097,7 +30145,7 @@
         "mapping": {
           "id": 86,
           "name": "eth1/31/8",
-          "controllingPort": 85,
+          "controllingPort": 79,
           "pins": [
             {
               "a": {
@@ -31560,9 +30608,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                265
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -32461,9 +31506,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                267
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -33086,9 +32128,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                269
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -33139,9 +32178,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                269
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -33192,11 +32228,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                269,
-                270,
-                271
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -33289,11 +32320,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                269,
-                270,
-                271
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -33386,11 +32412,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                269,
-                270,
-                271
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -33483,11 +32504,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                269,
-                270,
-                271
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -33580,15 +32596,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                269,
-                270,
-                271,
-                272,
-                273,
-                275,
-                276
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -33794,11 +32801,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                269,
-                270,
-                271
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -33891,15 +32893,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                269,
-                270,
-                271,
-                272,
-                273,
-                275,
-                276
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -34076,9 +33069,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                269
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -34129,9 +33119,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                269
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -34331,9 +33318,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                271
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -34384,9 +33368,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                271
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -34466,9 +33447,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                271
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -34519,9 +33497,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                271
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -34606,7 +33581,7 @@
         "mapping": {
           "id": 271,
           "name": "eth1/4/4",
-          "controllingPort": 270,
+          "controllingPort": 268,
           "pins": [
             {
               "a": {
@@ -34745,9 +33720,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                273
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -34798,9 +33770,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                273
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -34851,11 +33820,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                273,
-                275,
-                276
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -34948,11 +33912,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                273,
-                275,
-                276
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -35045,11 +34004,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                273,
-                275,
-                276
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -35142,11 +34096,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                273,
-                275,
-                276
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -35268,11 +34217,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                273,
-                275,
-                276
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -35365,9 +34309,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                273
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -35418,9 +34359,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                273
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -35505,7 +34443,7 @@
         "mapping": {
           "id": 273,
           "name": "eth1/4/6",
-          "controllingPort": 272,
+          "controllingPort": 268,
           "pins": [
             {
               "a": {
@@ -35588,7 +34526,7 @@
         "mapping": {
           "id": 275,
           "name": "eth1/4/7",
-          "controllingPort": 272,
+          "controllingPort": 268,
           "pins": [
             {
               "a": {
@@ -35620,9 +34558,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                276
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -35673,9 +34608,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                276
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -35755,9 +34687,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                276
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -35808,9 +34737,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                276
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -35895,7 +34821,7 @@
         "mapping": {
           "id": 276,
           "name": "eth1/4/8",
-          "controllingPort": 275,
+          "controllingPort": 268,
           "pins": [
             {
               "a": {
@@ -36082,9 +35008,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                278
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -36135,9 +35058,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                278
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -36188,11 +35108,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                278,
-                279,
-                280
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -36285,11 +35200,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                278,
-                279,
-                280
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -36382,11 +35292,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                278,
-                279,
-                280
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -36479,11 +35384,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                278,
-                279,
-                280
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -36576,15 +35476,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                278,
-                279,
-                280,
-                281,
-                282,
-                283,
-                284
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -36790,11 +35681,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                278,
-                279,
-                280
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -36887,15 +35773,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                278,
-                279,
-                280,
-                281,
-                282,
-                283,
-                284
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -37072,9 +35949,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                278
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -37125,9 +35999,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                278
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -37327,9 +36198,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                280
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -37380,9 +36248,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                280
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -37462,9 +36327,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                280
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -37515,9 +36377,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                280
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -37602,7 +36461,7 @@
         "mapping": {
           "id": 280,
           "name": "eth1/3/4",
-          "controllingPort": 279,
+          "controllingPort": 277,
           "pins": [
             {
               "a": {
@@ -37741,9 +36600,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                282
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -37794,9 +36650,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                282
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -37847,11 +36700,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                282,
-                283,
-                284
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -37944,11 +36792,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                282,
-                283,
-                284
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -38041,11 +36884,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                282,
-                283,
-                284
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -38138,11 +36976,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                282,
-                283,
-                284
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -38264,11 +37097,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                282,
-                283,
-                284
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -38361,9 +37189,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                282
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -38414,9 +37239,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                282
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -38501,7 +37323,7 @@
         "mapping": {
           "id": 282,
           "name": "eth1/3/6",
-          "controllingPort": 281,
+          "controllingPort": 277,
           "pins": [
             {
               "a": {
@@ -38584,7 +37406,7 @@
         "mapping": {
           "id": 283,
           "name": "eth1/3/7",
-          "controllingPort": 281,
+          "controllingPort": 277,
           "pins": [
             {
               "a": {
@@ -38616,9 +37438,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                284
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -38669,9 +37488,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                284
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -38751,9 +37567,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                284
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -38804,9 +37617,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                284
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -38891,7 +37701,7 @@
         "mapping": {
           "id": 284,
           "name": "eth1/3/8",
-          "controllingPort": 283,
+          "controllingPort": 277,
           "pins": [
             {
               "a": {
@@ -39354,9 +38164,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                287
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -40255,9 +39062,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                289
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -40880,9 +39684,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                291
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -40933,9 +39734,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                291
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -40986,11 +39784,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                291,
-                292,
-                293
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -41083,11 +39876,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                291,
-                292,
-                293
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -41180,11 +39968,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                291,
-                292,
-                293
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -41277,11 +40060,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                291,
-                292,
-                293
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -41374,15 +40152,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                291,
-                292,
-                293,
-                294,
-                295,
-                297,
-                298
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -41588,11 +40357,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                291,
-                292,
-                293
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -41685,15 +40449,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                291,
-                292,
-                293,
-                294,
-                295,
-                297,
-                298
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -41870,9 +40625,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                291
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -41923,9 +40675,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                291
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -42125,9 +40874,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                293
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -42178,9 +40924,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                293
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -42260,9 +41003,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                293
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -42313,9 +41053,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                293
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -42400,7 +41137,7 @@
         "mapping": {
           "id": 293,
           "name": "eth1/8/4",
-          "controllingPort": 292,
+          "controllingPort": 290,
           "pins": [
             {
               "a": {
@@ -42539,9 +41276,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                295
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -42592,9 +41326,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                295
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -42645,11 +41376,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                295,
-                297,
-                298
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -42742,11 +41468,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                295,
-                297,
-                298
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -42839,11 +41560,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                295,
-                297,
-                298
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -42936,11 +41652,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                295,
-                297,
-                298
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -43062,11 +41773,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                295,
-                297,
-                298
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -43159,9 +41865,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                295
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -43212,9 +41915,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                295
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -43299,7 +41999,7 @@
         "mapping": {
           "id": 295,
           "name": "eth1/8/6",
-          "controllingPort": 294,
+          "controllingPort": 290,
           "pins": [
             {
               "a": {
@@ -43382,7 +42082,7 @@
         "mapping": {
           "id": 297,
           "name": "eth1/8/7",
-          "controllingPort": 294,
+          "controllingPort": 290,
           "pins": [
             {
               "a": {
@@ -43414,9 +42114,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                298
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -43467,9 +42164,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                298
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -43549,9 +42243,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                298
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -43602,9 +42293,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                298
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -43689,7 +42377,7 @@
         "mapping": {
           "id": 298,
           "name": "eth1/8/8",
-          "controllingPort": 297,
+          "controllingPort": 290,
           "pins": [
             {
               "a": {
@@ -43876,9 +42564,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                300
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -43929,9 +42614,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                300
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -43982,11 +42664,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                300,
-                301,
-                302
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -44079,11 +42756,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                300,
-                301,
-                302
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -44176,11 +42848,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                300,
-                301,
-                302
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -44273,11 +42940,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                300,
-                301,
-                302
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -44370,15 +43032,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                300,
-                301,
-                302,
-                303,
-                304,
-                305,
-                306
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -44584,11 +43237,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                300,
-                301,
-                302
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -44681,15 +43329,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                300,
-                301,
-                302,
-                303,
-                304,
-                305,
-                306
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -44866,9 +43505,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                300
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -44919,9 +43555,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                300
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -45121,9 +43754,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                302
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -45174,9 +43804,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                302
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -45256,9 +43883,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                302
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -45309,9 +43933,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                302
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -45396,7 +44017,7 @@
         "mapping": {
           "id": 302,
           "name": "eth1/7/4",
-          "controllingPort": 301,
+          "controllingPort": 299,
           "pins": [
             {
               "a": {
@@ -45535,9 +44156,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                304
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -45588,9 +44206,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                304
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -45641,11 +44256,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                304,
-                305,
-                306
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -45738,11 +44348,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                304,
-                305,
-                306
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -45835,11 +44440,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                304,
-                305,
-                306
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -45932,11 +44532,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                304,
-                305,
-                306
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -46058,11 +44653,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                304,
-                305,
-                306
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -46155,9 +44745,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                304
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -46208,9 +44795,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                304
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -46295,7 +44879,7 @@
         "mapping": {
           "id": 304,
           "name": "eth1/7/6",
-          "controllingPort": 303,
+          "controllingPort": 299,
           "pins": [
             {
               "a": {
@@ -46378,7 +44962,7 @@
         "mapping": {
           "id": 305,
           "name": "eth1/7/7",
-          "controllingPort": 303,
+          "controllingPort": 299,
           "pins": [
             {
               "a": {
@@ -46410,9 +44994,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                306
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -46463,9 +45044,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                306
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -46545,9 +45123,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                306
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -46598,9 +45173,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                306
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -46685,7 +45257,7 @@
         "mapping": {
           "id": 306,
           "name": "eth1/7/8",
-          "controllingPort": 305,
+          "controllingPort": 299,
           "pins": [
             {
               "a": {
@@ -47148,9 +45720,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                309
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -48049,9 +46618,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                311
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -48674,9 +47240,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                313
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -48727,9 +47290,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                313
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -48780,11 +47340,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                313,
-                314,
-                315
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -48877,11 +47432,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                313,
-                314,
-                315
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -48974,11 +47524,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                313,
-                314,
-                315
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -49071,11 +47616,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                313,
-                314,
-                315
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -49168,15 +47708,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                313,
-                314,
-                315,
-                316,
-                317,
-                319,
-                320
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -49382,11 +47913,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                313,
-                314,
-                315
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -49479,15 +48005,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                313,
-                314,
-                315,
-                316,
-                317,
-                319,
-                320
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -49664,9 +48181,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                313
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -49717,9 +48231,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                313
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -49919,9 +48430,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                315
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -49972,9 +48480,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                315
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -50054,9 +48559,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                315
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -50107,9 +48609,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                315
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -50194,7 +48693,7 @@
         "mapping": {
           "id": 315,
           "name": "eth1/12/4",
-          "controllingPort": 314,
+          "controllingPort": 312,
           "pins": [
             {
               "a": {
@@ -50333,9 +48832,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                317
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -50386,9 +48882,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                317
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -50439,11 +48932,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                317,
-                319,
-                320
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -50536,11 +49024,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                317,
-                319,
-                320
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -50633,11 +49116,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                317,
-                319,
-                320
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -50730,11 +49208,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                317,
-                319,
-                320
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -50856,11 +49329,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                317,
-                319,
-                320
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -50953,9 +49421,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                317
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -51006,9 +49471,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                317
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -51093,7 +49555,7 @@
         "mapping": {
           "id": 317,
           "name": "eth1/12/6",
-          "controllingPort": 316,
+          "controllingPort": 312,
           "pins": [
             {
               "a": {
@@ -51176,7 +49638,7 @@
         "mapping": {
           "id": 319,
           "name": "eth1/12/7",
-          "controllingPort": 316,
+          "controllingPort": 312,
           "pins": [
             {
               "a": {
@@ -51208,9 +49670,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                320
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -51261,9 +49720,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                320
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -51343,9 +49799,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                320
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -51396,9 +49849,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                320
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -51483,7 +49933,7 @@
         "mapping": {
           "id": 320,
           "name": "eth1/12/8",
-          "controllingPort": 319,
+          "controllingPort": 312,
           "pins": [
             {
               "a": {
@@ -51670,9 +50120,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                322
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -51723,9 +50170,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                322
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -51776,11 +50220,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                322,
-                323,
-                324
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -51873,11 +50312,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                322,
-                323,
-                324
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -51970,11 +50404,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                322,
-                323,
-                324
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -52067,11 +50496,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                322,
-                323,
-                324
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -52164,15 +50588,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                322,
-                323,
-                324,
-                325,
-                326,
-                327,
-                328
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -52378,11 +50793,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                322,
-                323,
-                324
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -52475,15 +50885,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                322,
-                323,
-                324,
-                325,
-                326,
-                327,
-                328
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -52660,9 +51061,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                322
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -52713,9 +51111,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                322
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -52915,9 +51310,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                324
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -52968,9 +51360,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                324
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -53050,9 +51439,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                324
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -53103,9 +51489,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                324
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -53190,7 +51573,7 @@
         "mapping": {
           "id": 324,
           "name": "eth1/11/4",
-          "controllingPort": 323,
+          "controllingPort": 321,
           "pins": [
             {
               "a": {
@@ -53329,9 +51712,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                326
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -53382,9 +51762,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                326
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -53435,11 +51812,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                326,
-                327,
-                328
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -53532,11 +51904,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                326,
-                327,
-                328
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -53629,11 +51996,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                326,
-                327,
-                328
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -53726,11 +52088,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                326,
-                327,
-                328
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -53852,11 +52209,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                326,
-                327,
-                328
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -53949,9 +52301,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                326
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -54002,9 +52351,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                326
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -54089,7 +52435,7 @@
         "mapping": {
           "id": 326,
           "name": "eth1/11/6",
-          "controllingPort": 325,
+          "controllingPort": 321,
           "pins": [
             {
               "a": {
@@ -54172,7 +52518,7 @@
         "mapping": {
           "id": 327,
           "name": "eth1/11/7",
-          "controllingPort": 325,
+          "controllingPort": 321,
           "pins": [
             {
               "a": {
@@ -54204,9 +52550,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                328
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -54257,9 +52600,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                328
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -54339,9 +52679,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                328
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -54392,9 +52729,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                328
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -54479,7 +52813,7 @@
         "mapping": {
           "id": 328,
           "name": "eth1/11/8",
-          "controllingPort": 327,
+          "controllingPort": 321,
           "pins": [
             {
               "a": {
@@ -54942,9 +53276,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                331
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -55843,9 +54174,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                333
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -56468,9 +54796,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                335
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -56521,9 +54846,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                335
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -56574,11 +54896,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                335,
-                336,
-                337
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -56671,11 +54988,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                335,
-                336,
-                337
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -56768,11 +55080,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                335,
-                336,
-                337
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -56865,11 +55172,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                335,
-                336,
-                337
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -56962,15 +55264,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                335,
-                336,
-                337,
-                338,
-                339,
-                341,
-                342
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -57176,11 +55469,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                335,
-                336,
-                337
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -57273,15 +55561,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                335,
-                336,
-                337,
-                338,
-                339,
-                341,
-                342
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -57458,9 +55737,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                335
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -57511,9 +55787,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                335
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -57713,9 +55986,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                337
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -57766,9 +56036,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                337
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -57848,9 +56115,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                337
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -57901,9 +56165,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                337
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -57988,7 +56249,7 @@
         "mapping": {
           "id": 337,
           "name": "eth1/15/4",
-          "controllingPort": 336,
+          "controllingPort": 334,
           "pins": [
             {
               "a": {
@@ -58127,9 +56388,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                339
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -58180,9 +56438,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                339
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -58233,11 +56488,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                339,
-                341,
-                342
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -58330,11 +56580,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                339,
-                341,
-                342
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -58427,11 +56672,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                339,
-                341,
-                342
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -58524,11 +56764,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                339,
-                341,
-                342
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -58650,11 +56885,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                339,
-                341,
-                342
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -58747,9 +56977,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                339
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -58800,9 +57027,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                339
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -58887,7 +57111,7 @@
         "mapping": {
           "id": 339,
           "name": "eth1/15/6",
-          "controllingPort": 338,
+          "controllingPort": 334,
           "pins": [
             {
               "a": {
@@ -58970,7 +57194,7 @@
         "mapping": {
           "id": 341,
           "name": "eth1/15/7",
-          "controllingPort": 338,
+          "controllingPort": 334,
           "pins": [
             {
               "a": {
@@ -59002,9 +57226,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                342
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -59055,9 +57276,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                342
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -59137,9 +57355,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                342
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -59190,9 +57405,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                342
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -59277,7 +57489,7 @@
         "mapping": {
           "id": 342,
           "name": "eth1/15/8",
-          "controllingPort": 341,
+          "controllingPort": 334,
           "pins": [
             {
               "a": {
@@ -59464,9 +57676,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                344
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -59517,9 +57726,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                344
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -59570,11 +57776,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                344,
-                345,
-                346
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -59667,11 +57868,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                344,
-                345,
-                346
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -59764,11 +57960,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                344,
-                345,
-                346
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -59861,11 +58052,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                344,
-                345,
-                346
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -59958,15 +58144,6 @@
               }
           },
           "39": {
-              "subsumedPorts": [
-                344,
-                345,
-                346,
-                347,
-                348,
-                349,
-                350
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -60172,11 +58349,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                344,
-                345,
-                346
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -60269,15 +58441,6 @@
               }
           },
           "50": {
-              "subsumedPorts": [
-                344,
-                345,
-                346,
-                347,
-                348,
-                349,
-                350
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -60454,9 +58617,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                344
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -60507,9 +58667,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                344
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -60709,9 +58866,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                346
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -60762,9 +58916,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                346
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -60844,9 +58995,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                346
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -60897,9 +59045,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                346
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -60984,7 +59129,7 @@
         "mapping": {
           "id": 346,
           "name": "eth1/16/4",
-          "controllingPort": 345,
+          "controllingPort": 343,
           "pins": [
             {
               "a": {
@@ -61123,9 +59268,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                348
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -61176,9 +59318,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                348
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -61229,11 +59368,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                348,
-                349,
-                350
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -61326,11 +59460,6 @@
               }
           },
           "24": {
-              "subsumedPorts": [
-                348,
-                349,
-                350
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -61423,11 +59552,6 @@
               }
           },
           "32": {
-              "subsumedPorts": [
-                348,
-                349,
-                350
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -61520,11 +59644,6 @@
               }
           },
           "38": {
-              "subsumedPorts": [
-                348,
-                349,
-                350
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -61646,11 +59765,6 @@
               }
           },
           "45": {
-              "subsumedPorts": [
-                348,
-                349,
-                350
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -61743,9 +59857,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                348
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -61796,9 +59907,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                348
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -61883,7 +59991,7 @@
         "mapping": {
           "id": 348,
           "name": "eth1/16/6",
-          "controllingPort": 347,
+          "controllingPort": 343,
           "pins": [
             {
               "a": {
@@ -61966,7 +60074,7 @@
         "mapping": {
           "id": 349,
           "name": "eth1/16/7",
-          "controllingPort": 347,
+          "controllingPort": 343,
           "pins": [
             {
               "a": {
@@ -61998,9 +60106,6 @@
         },
         "supportedProfiles": {
           "19": {
-              "subsumedPorts": [
-                350
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -62051,9 +60156,6 @@
               }
           },
           "21": {
-              "subsumedPorts": [
-                350
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -62133,9 +60235,6 @@
               }
           },
           "54": {
-              "subsumedPorts": [
-                350
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -62186,9 +60285,6 @@
               }
           },
           "55": {
-              "subsumedPorts": [
-                350
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -62273,7 +60369,7 @@
         "mapping": {
           "id": 350,
           "name": "eth1/16/8",
-          "controllingPort": 349,
+          "controllingPort": 343,
           "pins": [
             {
               "a": {
@@ -62441,9 +60537,6 @@
               }
           },
           "22": {
-              "subsumedPorts": [
-                352
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -62536,9 +60629,6 @@
               }
           },
           "23": {
-              "subsumedPorts": [
-                352
-              ],
               "pins": {
                 "iphy": [
                   {
