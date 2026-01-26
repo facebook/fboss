@@ -21,13 +21,13 @@ size_t hash<facebook::fboss::NextHopIDSet>::operator()(
 
 namespace facebook::fboss {
 
-std::pair<NextHopID, bool> NextHopIDManager::getOrAllocateNextHopID(
+NextHopIDManager::NextHopInfoIter NextHopIDManager::getOrAllocateNextHopID(
     const NextHop& nextHop) {
   auto it = nextHopToIDInfo_.find(nextHop);
   if (it != nextHopToIDInfo_.end()) {
-    // Existing NextHop found, increment reference count and return existing ID
+    // Existing NextHop found, increment reference count and return iterator
     it->second.count++;
-    return {it->second.id, false};
+    return it;
   }
 
   // New NextHop, allocate a new ID
@@ -39,22 +39,22 @@ std::pair<NextHopID, bool> NextHopIDManager::getOrAllocateNextHopID(
   CHECK(static_cast<int64_t>(newID) > 0 && newID < kNextHopSetIDStart)
       << "Next Hop ID is in the range of [0, 2^62 - 1], the id space has been exhausted! It does not support wrap around!";
 
-  auto [idInfoitr, idInfoinserted] =
+  auto [idInfoItr, idInfoInserted] =
       nextHopToIDInfo_.emplace(nextHop, NextHopIDInfo(newID, 1));
-  CHECK(idInfoinserted);
+  CHECK(idInfoInserted);
   auto [idMapItr, idMapInserted] = idToNextHop_.insert({newID, nextHop});
   CHECK(idMapInserted);
-  return {newID, true};
+  return idInfoItr;
 }
 
-std::pair<NextHopSetID, bool> NextHopIDManager::getOrAllocateNextHopSetID(
+NextHopIDManager::NextHopIdSetIter NextHopIDManager::getOrAllocateNextHopSetID(
     const NextHopIDSet& nextHopIDSet) {
   auto it = nextHopIdSetToIDInfo_.find(nextHopIDSet);
   if (it != nextHopIdSetToIDInfo_.end()) {
     // Existing NextHopIDSet found, increment reference count and return
-    // existing ID
+    // iterator
     it->second.count++;
-    return {it->second.id, false};
+    return it;
   }
 
   // New NextHopIDSet, allocate a new ID
@@ -73,7 +73,7 @@ std::pair<NextHopSetID, bool> NextHopIDManager::getOrAllocateNextHopSetID(
   auto [idSetMapItr, idSetMapInserted] =
       idToNextHopIdSet_.insert({newID, nextHopIDSet});
   CHECK(idSetMapInserted);
-  return {newID, true};
+  return idSetInfoItr;
 }
 
 uint32_t NextHopIDManager::getNextHopRefCount(const NextHop& nextHop) {
@@ -150,22 +150,33 @@ std::optional<NextHopID> NextHopIDManager::getNextHopID(
   return std::nullopt;
 }
 
-NextHopSetID NextHopIDManager::getOrAllocRouteNextHopSetID(
+NextHopIDManager::NextHopAllocationResult
+NextHopIDManager::getOrAllocRouteNextHopSetID(
     const RouteNextHopSet& nextHopSet) {
+  NextHopAllocationResult result;
+
   // Get the NextHopIDs first for each NextHop in the RouteNextHopSet
   NextHopIDSet nextHopIDSet;
   for (const auto& nextHop : nextHopSet) {
-    auto [nextHopID, nhopIDAllocated] = getOrAllocateNextHopID(nextHop);
-    nextHopIDSet.insert(nextHopID);
+    auto nhIter = getOrAllocateNextHopID(nextHop);
+    nextHopIDSet.insert(nhIter->second.id);
+    // Check if this was a new allocation (count == 1 means newly allocated)
+    if (nhIter->second.count == 1) {
+      // Track newly allocated NextHopID for the caller to update FibInfo
+      // Caller can retrieve NextHop from idToNextHop_ map using this ID
+      result.addedNextHopIds.push_back(nhIter->second.id);
+    }
   }
 
-  // Get the NextHopSetID for the NextHopIDSet
-  auto [nextHopSetID, setIdAllocated] = getOrAllocateNextHopSetID(nextHopIDSet);
-  return nextHopSetID;
+  // Get the const iterator for the NextHopIDSet
+  result.nextHopIdSetIter = getOrAllocateNextHopSetID(nextHopIDSet);
+  return result;
 }
 
-bool NextHopIDManager::decrOrDeallocRouteNextHopSetID(
-    NextHopSetID nextHopSetID) {
+NextHopIDManager::NextHopDeallocationResult
+NextHopIDManager::decrOrDeallocRouteNextHopSetID(NextHopSetID nextHopSetID) {
+  NextHopDeallocationResult result;
+
   // Lookup the NextHopIDSet from the given NextHopSetID
   auto it = idToNextHopIdSet_.find(nextHopSetID);
   if (it == idToNextHopIdSet_.end()) {
@@ -180,29 +191,37 @@ bool NextHopIDManager::decrOrDeallocRouteNextHopSetID(
     CHECK(nextHopIt != idToNextHop_.end())
         << "NextHopID " << nextHopID << " in NextHopIDSet doesn't exist!!";
 
-    auto nhopDeallocated = decrOrDeallocateNextHop(nextHopIt->second);
-    if (nhopDeallocated) {
+    auto derefNextHop = decrOrDeallocateNextHop(nextHopIt->second);
+    if (derefNextHop) {
       XLOG(DBG3) << "NextHop " << nextHopIt->second << " deallocated";
+      // Track deallocated NextHops for the caller to update FibInfo
+      result.removedNextHopIds.push_back(nextHopID);
     }
   }
   // Decrement the reference count for the NextHopSetID
-  bool nhopSetIDDeallocated = decrOrDeallocateNextHopIDSet(nextHopIDSet);
-  if (nhopSetIDDeallocated) {
+  bool derefNextHopIDSet = decrOrDeallocateNextHopIDSet(nextHopIDSet);
+  if (derefNextHopIDSet) {
     XLOG(DBG3) << "NextHopSetID " << nextHopSetID << " deallocated";
+    // Track deallocated set for the caller to update FibInfo
+    result.removedSetId = nextHopSetID;
   }
 
-  return nhopSetIDDeallocated;
+  return result;
 }
 
-NextHopSetID NextHopIDManager::updateRouteNextHopSetID(
+NextHopIDManager::NextHopUpdateResult NextHopIDManager::updateRouteNextHopSetID(
     NextHopSetID nextHopSetID,
     const RouteNextHopSet& newNextHopSet) {
+  NextHopUpdateResult result;
+
   // Call delete route to decrement the reference count for the old
-  decrOrDeallocRouteNextHopSetID(nextHopSetID);
+  result.deallocation = decrOrDeallocRouteNextHopSetID(nextHopSetID);
 
   // Call getRouteNextHopSetID to get the NextHopSetID for the new
   // NextHopSet
-  return getOrAllocRouteNextHopSetID(newNextHopSet);
+  result.allocation = getOrAllocRouteNextHopSetID(newNextHopSet);
+
+  return result;
 }
 
 } // namespace facebook::fboss

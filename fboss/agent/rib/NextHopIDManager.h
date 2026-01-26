@@ -4,7 +4,9 @@
 
 #include <gtest/gtest.h>
 #include <cstdint>
+#include <optional>
 #include <unordered_map>
+#include <vector>
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
@@ -33,18 +35,69 @@ namespace facebook::fboss {
  */
 class NextHopIDManager {
  public:
+  // Structure to hold ID and reference count for NextHops
+  struct NextHopIDInfo {
+    NextHopID id;
+    uint32_t count = 0;
+
+    NextHopIDInfo(NextHopID id_, uint32_t count_) : id(id_), count(count_) {}
+  };
+
+  // Structure to hold ID and reference count for NextHopSets
+  // Must be public as it's exposed through NextHopIdSetIter
+  struct NextHopSetIDInfo {
+    NextHopSetID id;
+    uint32_t count;
+
+    NextHopSetIDInfo(NextHopSetID id_, uint32_t count_)
+        : id(id_), count(count_) {}
+  };
+
+  // Type alias for the NextHop to NextHopIDInfo map iterator
+  using NextHopInfoIter =
+      std::unordered_map<NextHop, NextHopIDInfo>::const_iterator;
+
+  // Type alias for the NextHopIDSet to NextHopSetIDInfo map iterator
+  using NextHopIdSetIter =
+      std::unordered_map<NextHopIDSet, NextHopSetIDInfo>::const_iterator;
+
+  // Result struct for NextHop allocation operations
+  // Contains information about what was allocated so callers can update FibInfo
+  // incrementally
+  struct NextHopAllocationResult {
+    // Const iterator to the NextHopIDSet -> NextHopSetIDInfo entry
+    NextHopIdSetIter nextHopIdSetIter;
+    // List of newly allocated NextHopIDs (caller can retrieve NextHop from
+    // idToNextHop map using these IDs)
+    std::vector<NextHopID> addedNextHopIds;
+  };
+
+  // Result struct for NextHop deallocation operations
+  // Contains information about what was deallocated so callers can update
+  // FibInfo incrementally
+  struct NextHopDeallocationResult {
+    // List of NextHopIDs that were deallocated (refcount reached 0)
+    std::vector<NextHopID> removedNextHopIds;
+    // Only populated if the set was deallocated (refcount reached 0)
+    std::optional<NextHopSetID> removedSetId;
+  };
+
+  // Result struct for NextHop update operations
+  // Contains both allocation and deallocation information
+  struct NextHopUpdateResult {
+    NextHopAllocationResult allocation;
+    NextHopDeallocationResult deallocation;
+  };
+
   NextHopIDManager() = default;
 
   // Get or allocate a NextHopID for the given NextHop
-  // Returns pair of (NextHopID, bool) where bool is true if new ID was
-  // allocated
-  std::pair<NextHopID, bool> getOrAllocateNextHopID(const NextHop& nextHop);
+  // Returns const iterator to the NextHop -> NextHopIDInfo entry
+  NextHopInfoIter getOrAllocateNextHopID(const NextHop& nextHop);
 
   // Get or allocate a NextHopSetID for the given set of NextHopIDs
-  // Returns pair of (NextHopSetID, bool) where bool is true if new ID was
-  // allocated
-  std::pair<NextHopSetID, bool> getOrAllocateNextHopSetID(
-      const NextHopIDSet& nextHopIDSet);
+  // Returns const iterator to the NextHopIDSet -> NextHopSetIDInfo entry
+  NextHopIdSetIter getOrAllocateNextHopSetID(const NextHopIDSet& nextHopIDSet);
 
   // Decrement reference count for a NextHop and deallocate if count reaches 0
   // Returns true if deallocated, false otherwise
@@ -66,36 +119,26 @@ class NextHopIDManager {
   }
 
   // Retrieves or allocate NextHopSetID for a RouteNextHopSet
-  NextHopSetID getOrAllocRouteNextHopSetID(const RouteNextHopSet& nextHopSet);
+  // Returns NextHopAllocationResult containing the const iterator to the
+  // NextHopIDSet entry and any newly allocated NextHopIDs
+  NextHopAllocationResult getOrAllocRouteNextHopSetID(
+      const RouteNextHopSet& nextHopSet);
 
-  // Decrements or deallcoates NextHopSetID for a RouteNextHopSet
-  bool decrOrDeallocRouteNextHopSetID(NextHopSetID nextHopSetID);
+  // Decrements or deallocates NextHopSetID for a RouteNextHopSet
+  // Returns NextHopDeallocationResult containing any deallocated NextHops
+  // and optionally the removed setId (if refcount reached 0)
+  NextHopDeallocationResult decrOrDeallocRouteNextHopSetID(
+      NextHopSetID nextHopSetID);
 
   // Update from old RouteNextHopSet to new RouteNextHopSet
   // Decrements old, allocates/increments new
-  NextHopSetID updateRouteNextHopSetID(
+  // Returns NextHopUpdateResult containing both allocation and deallocation
+  // info
+  NextHopUpdateResult updateRouteNextHopSetID(
       NextHopSetID oldNextHopSetID,
       const RouteNextHopSet& newNextHopSet);
 
  private:
-  // Structure to hold ID and reference count for NextHops
-  // Count will be 0 when initialised
-  struct NextHopIDInfo {
-    NextHopID id;
-    uint32_t count = 0;
-
-    NextHopIDInfo(NextHopID id_, uint32_t count_) : id(id_), count(count_) {}
-  };
-
-  // Structure to hold ID and reference count for NextHopSets
-  struct NextHopSetIDInfo {
-    NextHopSetID id;
-    uint32_t count;
-
-    NextHopSetIDInfo(NextHopSetID id_, uint32_t count_)
-        : id(id_), count(count_) {}
-  };
-
   static constexpr int64_t kNextHopIDStart = 1;
   static constexpr int64_t kNextHopSetIDStart = 1LL << 62;
 
