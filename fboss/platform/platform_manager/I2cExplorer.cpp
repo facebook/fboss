@@ -141,13 +141,25 @@ void I2cExplorer::createI2cDevice(
   if (isI2cDevicePresent(busNum, addr)) {
     auto existingDeviceName = getI2cDeviceName(busNum, addr);
     if (existingDeviceName && existingDeviceName.value() == deviceName) {
-      XLOG(INFO) << fmt::format(
-          "Device {} ({}) already exists at bus: {}, addr: {}. "
-          "Skipping creation.",
-          pmUnitScopedName,
-          deviceName,
-          busNum,
-          addr.hex2Str());
+      bool isEeprom = pmUnitScopedName.find("EEPROM") != std::string::npos;
+      if (isEeprom) {
+        XLOG(INFO) << fmt::format(
+            "Device {} ({}) already exists at bus: {}, addr: {}. "
+            "Skipping creation. This is expected for logical eeproms sharing "
+            "the same physical device.",
+            pmUnitScopedName,
+            deviceName,
+            busNum,
+            addr.hex2Str());
+      } else {
+        XLOG(INFO) << fmt::format(
+            "Device {} ({}) already exists at bus: {}, addr: {}. "
+            "Skipping creation.",
+            pmUnitScopedName,
+            deviceName,
+            busNum,
+            addr.hex2Str());
+      }
       return;
     }
     throw std::runtime_error(
