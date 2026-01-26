@@ -2625,6 +2625,11 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
   }
 }
 
+void SwSwitch::linkAdminStateChangedByFw(
+    const std::vector<int32_t>& /*fwDisabledPortIds*/) {
+  // TODO
+}
+
 void SwSwitch::validateSwitchReachabilityInformation(
     const SwitchID& switchId,
     const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo) {
