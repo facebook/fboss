@@ -456,4 +456,107 @@ TEST_F(NextHopMapPopulationTest, RouteAdditionTestsThroughFIBUpdater) {
   verifyIDMapsConsistency();
 }
 
+TEST_F(NextHopMapPopulationTest, RouteDeletionTestsThroughFIBUpdater) {
+  addStandardTestRoutes();
+  runFibUpdater();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Delete one route with same nexthop (shared ECMP) and check consistency
+  // Deleting 10.0.0.0/24 - shares nexthops with 10.0.1.0/24
+  // Nexthops should remain (still used by 10.0.1.0/24), set should remain
+  removeV4Route("10.0.0.0/24");
+  runFibUpdater();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Delete the other shared route
+  removeV4Route("10.0.1.0/24");
+  runFibUpdater();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Delete multiple routes in a single FIB update:
+  // - 10.3.0.0/24: partial overlap route (4.4.4.1 removed, 4.4.4.2-3 still
+  // used)
+  // - 10.1.0.0/24: single nexthop route (2.2.2.1 removed)
+  // - 10.2.0.0/24: 5 nexthop route (3.3.3.1-5 removed)
+  removeV4Route("10.3.0.0/24");
+  removeV4Route("10.1.0.0/24");
+  removeV4Route("10.2.0.0/24");
+  runFibUpdater();
+
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Delete DROP route (route with empty nexthop set)
+  // DROP routes don't have NextHopSetIDs since they have empty nexthop sets
+  // This tests that deleting such routes doesn't affect the ID maps
+  removeV4Route("10.4.0.0/24");
+  removeV4Route("10.5.0.0/24");
+  runFibUpdater();
+
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Delete all remaining routes
+  removeV4Route("10.3.1.0/24");
+  removeV4Route("10.3.2.0/24");
+  removeV6Route("2001:db8:1::/64");
+  removeV6Route("2001:db8:2::/64");
+  removeV6Route("2001:db8:10::/64");
+  removeV6Route("2001:db8:20::/64");
+  removeV6Route("2001:db8:30::/64");
+  removeV6Route("2001:db8:31::/64");
+  removeV6Route("2001:db8:32::/64");
+  removeV6Route("2001:db8:40::/64");
+  removeV6Route("2001:db8:50::/64");
+  runFibUpdater();
+
+  // Verify everything is empty
+  verifyIdMapsMatchIdManager();
+}
+
+TEST_F(NextHopMapPopulationTest, RouteUpdateTestsThroughFIBUpdater) {
+  addStandardTestRoutes();
+  runFibUpdater();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Update route from having 3 nexthops to 5(ecmpexpand)
+  removeV4Route("10.0.0.0/24");
+  addV4Route(
+      "10.0.0.0/24", {"1.1.1.1", "1.1.1.2", "1.1.1.3", "1.1.1.4", "1.1.1.5"});
+  runFibUpdater();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Update route with 5 nexthops (10.2.0.0/24) to have 3 nexthops (ECMP shrink)
+  removeV4Route("10.2.0.0/24");
+  addV4Route("10.2.0.0/24", {"1.1.1.1", "1.1.1.2", "1.1.1.3"});
+  runFibUpdater();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Update route to a completely new set of nexthops
+  removeV4Route("10.0.0.0/24");
+  addV4Route("10.0.0.0/24", {"5.5.5.1", "5.5.5.2", "5.5.5.3"});
+  runFibUpdater();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Update route from having nexthops to TO_CPU action
+  removeV4Route("10.0.0.0/24");
+  addV4ToCpuRoute("10.0.0.0/24");
+  runFibUpdater();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Update route from TO_CPU action to having nexthops
+  removeV4Route("10.0.0.0/24");
+  addV4Route("10.0.0.0/24", {"6.6.6.1", "6.6.6.2"});
+  runFibUpdater();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+}
 } // namespace facebook::fboss
