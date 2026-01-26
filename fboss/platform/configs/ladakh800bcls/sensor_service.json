@@ -333,8 +333,8 @@
           "sysfsPath": "/run/devmap/sensors/MCB_COME_INLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 60,
-            "upperCriticalVal": 65
+            "maxAlarmVal": 75,
+            "upperCriticalVal": 80
           },
           "compute": "@/1000.0"
         },
@@ -343,8 +343,8 @@
           "sysfsPath": "/run/devmap/sensors/MCB_COME_OUTLET_L_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 60,
-            "upperCriticalVal": 65
+            "maxAlarmVal": 75,
+            "upperCriticalVal": 80
           },
           "compute": "@/1000.0"
         },
@@ -353,8 +353,8 @@
           "sysfsPath": "/run/devmap/sensors/MCB_COME_OUTLET_R_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 60,
-            "upperCriticalVal": 65
+            "maxAlarmVal": 75,
+            "upperCriticalVal": 80
           },
           "compute": "@/1000.0"
         },
@@ -363,8 +363,8 @@
           "sysfsPath": "/run/devmap/sensors/PWR_BRICK_INLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 55,
-            "upperCriticalVal": 60
+            "maxAlarmVal": 75,
+            "upperCriticalVal": 80
           },
           "compute": "@/1000.0"
         },
@@ -689,9 +689,9 @@
           "sysfsPath": "/run/devmap/sensors/PMBUS_1/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 85,
+            "maxAlarmVal": 115,
             "minAlarmVal": -25,
-            "upperCriticalVal": 85,
+            "upperCriticalVal": 120,
             "lowerCriticalVal": -25
           },
           "compute": "@/1000.0"
@@ -735,9 +735,9 @@
           "sysfsPath": "/run/devmap/sensors/PMBUS_2/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 85,
+            "maxAlarmVal": 115,
             "minAlarmVal": -25,
-            "upperCriticalVal": 85,
+            "upperCriticalVal": 120,
             "lowerCriticalVal": -25
           },
           "compute": "@/1000.0"
@@ -781,9 +781,9 @@
           "sysfsPath": "/run/devmap/sensors/PMBUS_3/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 85,
+            "maxAlarmVal": 115,
             "minAlarmVal": -40,
-            "upperCriticalVal": 85,
+            "upperCriticalVal": 120,
             "lowerCriticalVal": -40
           },
           "compute": "@/1000.0"
@@ -889,8 +889,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -899,8 +899,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp2_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -909,8 +909,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp3_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -919,8 +919,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp4_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -929,8 +929,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp5_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -939,8 +939,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp6_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -949,8 +949,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp7_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -959,8 +959,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp8_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -969,8 +969,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp9_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         }
@@ -997,8 +997,8 @@
           "sysfsPath": "/run/devmap/sensors/COME_INLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 60,
-            "upperCriticalVal": 65
+            "maxAlarmVal": 80,
+            "upperCriticalVal": 85
           },
           "compute": "@/1000.0"
         },
@@ -1007,8 +1007,8 @@
           "sysfsPath": "/run/devmap/sensors/COME_OUTLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 60,
-            "upperCriticalVal": 65
+            "maxAlarmVal": 90,
+            "upperCriticalVal": 95
           },
           "compute": "@/1000.0"
         }
@@ -1630,8 +1630,8 @@
               "sysfsPath": "/run/devmap/sensors/COME_HWMON4/temp1_input",
               "type": 3,
               "thresholds": {
-                "maxAlarmVal": 125,
-                "upperCriticalVal": 135
+                "maxAlarmVal": 110,
+                "upperCriticalVal": 125
               },
               "compute": "@/1000.0"
             },
@@ -1686,8 +1686,8 @@
               "sysfsPath": "/run/devmap/sensors/COME_HWMON2/temp1_input",
               "type": 3,
               "thresholds": {
-                "maxAlarmVal": 125,
-                "upperCriticalVal": 135
+                "maxAlarmVal": 110,
+                "upperCriticalVal": 125
               },
               "compute": "@/1000.0"
             },
@@ -4672,7 +4672,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_3/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
