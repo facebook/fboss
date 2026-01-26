@@ -289,6 +289,57 @@ struct I2cAdapterConfig {
   2: i32 numberOfAdapters;
 }
 
+// Defines generic I2C Adapter block in FPGAs.
+//
+// `pmUnitScopedNamePrefix`: The prefix used to refer to this device
+//  Example: pmUnitScopedNamePrefix: SMB_I2C_ADAPTER, the expanded form would be
+//  SMB_I2C_ADAPTER_1, SMB_I2C_ADAPTER_2, etc.
+//
+// `deviceName`: It is the name used in the ioctl system call to create the
+// corresponding device. It should be one of the compatible strings specified in
+// the kernel driver.
+//
+// `csrOffsetCalc`: Calculation to get the csr offset for fpga block
+//  This expression includes a base start address and an adapter index.
+//  Final offset result is in hex format.
+//  Example:
+//  csrOffsetCalc: "0x1000 + {({adapterIndex} - {startAdapterIndex})}*0x100"
+//  adapterIndex=1, startAdapterIndex=1:
+//    csrOffsetCalc: "0x1000 + 0*0x100"
+//    csrOffsetCalc: "0x1000"
+//  adapterIndex=2, startAdapterIndex=1:
+//    csrOffsetCalc: "0x1000 + 1*0x100"
+//    csrOffsetCalc: "0x1100"
+//
+// `startAdapterIndex`: Starting adapter index for calculation for each block config
+//
+// `numAdapters`: Number of I2C adapters for this block
+//
+// `numBusesPerAdapter`: Number of I2C buses created per adapter for this block
+//  This is equivalent to `numberOfAdapters` in I2cAdapterConfig.
+//  The default value is 1 bus per adapter.
+//
+// `iobufOffsetCalc`: Calculation to get the iobuf offset for fpga block
+//  This expression includes a base start address and an adapter index.
+//  Final offset result is in hex format.
+//  Example:
+//  iobufOffsetCalc: "0x2000 + {({adapterIndex} - {startAdapterIndex})}*0x100"
+//  adapterIndex=1, startAdapterIndex=1:
+//    iobufOffsetCalc: "0x2000 + 0*0x100"
+//    iobufOffsetCalc: "0x2000"
+//  adapterIndex=2, startAdapterIndex=1:
+//    iobufOffsetCalc: "0x2000 + 1*0x100"
+//    iobufOffsetCalc: "0x2100"
+struct I2cAdapterBlockConfig {
+  1: string pmUnitScopedNamePrefix;
+  2: string deviceName;
+  3: string csrOffsetCalc;
+  4: i32 startAdapterIndex;
+  5: i32 numAdapters;
+  6: i32 numBusesPerAdapter = 1;
+  7: string iobufOffsetCalc;
+}
+
 // Defines a Spi Device in FPGAs.
 //
 // `pmUnitScopedName`: The name used to refer to this device. It should be be
@@ -547,7 +598,7 @@ struct PciDeviceConfig {
   3: string deviceId;
   4: string subSystemVendorId;
   5: string subSystemDeviceId;
-  6: list<I2cAdapterConfig> i2cAdapterConfigs;
+  6: list<I2cAdapterConfig> i2cAdapterConfigs; // Deprecated: do not use
   7: list<SpiMasterConfig> spiMasterConfigs;
   8: list<FpgaIpBlockConfig> gpioChipConfigs;
   9: list<FpgaIpBlockConfig> watchdogConfigs;
@@ -562,6 +613,7 @@ struct PciDeviceConfig {
   18: list<FpgaIpBlockConfig> mdioBusConfigs; // Deprecated: do not use
   19: list<FpgaIpBlockConfig> sysLedCtrlConfigs;
   20: list<MdioBusBlockConfig> mdioBusBlockConfigs;
+  21: list<I2cAdapterBlockConfig> i2cAdapterBlockConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and
