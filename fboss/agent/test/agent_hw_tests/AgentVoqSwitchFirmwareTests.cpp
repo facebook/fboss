@@ -442,15 +442,23 @@ TYPED_TEST(AgentVoqSwitchIsolationFirmwareTest, forceLinkAdminDisable) {
     // However, since the config is not modified, the link is Admin
     // re-enabled post-warmboot.
     // Thus, verify() DISABLED for coldboot runs, but ENABLED for warmboot runs.
+    auto portId = this->masterLogicalFabricPortIds()[0];
     auto expectedAdminState =
         this->getSw()->getBootType() == BootType::COLD_BOOT
         ? cfg::PortState::DISABLED
         : cfg::PortState::ENABLED;
 
     utility::checkPortsAdminState(
-        this->getAgentEnsemble(),
-        {this->masterLogicalFabricPortIds()[0]},
-        expectedAdminState);
+        this->getAgentEnsemble(), {portId}, expectedAdminState);
+
+    WITH_RETRIES({
+      if (this->getSw()->getBootType() == BootType::COLD_BOOT) {
+        auto port = this->getProgrammedState()->getPorts()->getNode(portId);
+        std::vector<PortError> expectedErrors = {
+            PortError::LINK_DISABLED_BY_FIRMWARE};
+        EXPECT_EVENTUALLY_EQ(port->getActiveErrors(), expectedErrors);
+      }
+    });
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
