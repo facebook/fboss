@@ -22,7 +22,8 @@ template <bool enableLinkDisableFirmware>
 struct EnableLinkDisableFirmware {
   static constexpr auto linkDisableFirmware = enableLinkDisableFirmware;
 };
-using FirmwareTypes = ::testing::Types<EnableLinkDisableFirmware<false>>;
+using FirmwareTypes = ::testing::
+    Types<EnableLinkDisableFirmware<false>, EnableLinkDisableFirmware<true>>;
 
 template <typename EnableLinkDisableFirmwareT>
 class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
@@ -237,6 +238,12 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
       FLAGS_janga_single_npu_for_testing = true;
     }
     FLAGS_sdk_reg_dump_path_prefix = sdkRegDumpPathPrefix_;
+
+    if (isLinkDisableFirmware()) {
+      FLAGS_isolation_firmware_path = "/tmp/db/jericho3ai_a0/fi-2.4.11-GA.elf";
+    } else {
+      FLAGS_isolation_firmware_path = "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf";
+    }
   }
 
  private:
