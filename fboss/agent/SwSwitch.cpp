@@ -2645,6 +2645,7 @@ void SwSwitch::linkAdminStateChangedByFw(
           auto* port = newState->getPorts()->getNodeIf(portId).get();
           auto newPort = port->modify(&newState);
           newPort->setAdminState(cfg::PortState::DISABLED);
+          newPort->addError(PortError::LINK_DISABLED_BY_FIRMWARE);
         }
 
         return newState;
