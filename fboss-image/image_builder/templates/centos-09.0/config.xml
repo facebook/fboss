@@ -30,7 +30,7 @@
             installiso="true"
             bootpartition="true"
             bootfilesystem="ext4"
-            kernelcmdline="nomodeset console=ttyS4,57600n8 quiet rootfstype=btrfs">
+            kernelcmdline="nomodeset console=ttyS4,57600n8 biosdevname=0 net.ifnames=0 quiet rootfstype=btrfs">
 
             <bootloader name="grub2" console="serial" serial_line="ttyS4,57600n8"/>
             <size unit="G">16</size>
