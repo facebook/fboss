@@ -71,10 +71,12 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     }
     return config;
   }
-  cfg::SwitchConfig addFwConfig(cfg::SwitchConfig config) const {
+  cfg::SwitchConfig addFwConfig(
+      cfg::SwitchConfig config,
+      const std::string firmwarePath = FLAGS_isolation_firmware_path) const {
     cfg::FirmwareInfo j3FwInfo;
     j3FwInfo.coreToUse() = 5;
-    j3FwInfo.path() = FLAGS_isolation_firmware_path;
+    j3FwInfo.path() = firmwarePath;
     j3FwInfo.logPath() = "/tmp/edk.log";
     j3FwInfo.firmwareLoadType() =
         cfg::FirmwareLoadType::FIRMWARE_LOAD_TYPE_START;
