@@ -21,6 +21,7 @@ DESCRIPTION_DIR="${WSROOT}/templates/centos-09.0"
 TARGET_DIR="${WSROOT}/output"
 BUILD_PXE=""
 BUILD_ONIE=""
+KIWI_DEBUG=""
 
 # User configurable variables (fboss tarfile and kernel rpm directory)
 FBOSS_TARFILE=""
@@ -39,6 +40,7 @@ help() {
   echo "  -p|--build-pxe-usb          Build PXE and USB installers image (default: no)"
   echo "  -o|--build-onie             Build ONIE installer image (default: no)"
   echo ""
+  echo "  -d|--debug                  Enable kiwi-ng debug"
   echo "  -h|--help                   Print this help message"
   echo ""
 }
@@ -153,6 +155,11 @@ while [[ $# -gt 0 ]]; do
     shift 1
     ;;
 
+  -d | --debug)
+    KIWI_DEBUG=" --debug "
+    shift 1
+    ;;
+
   -h | --help)
     help
     exit 0
@@ -238,6 +245,7 @@ cp /etc/resolv.conf "${DESCRIPTION_DIR}/root/etc/"
 echo "Built on: $(date -u)" >"$DESCRIPTION_DIR/root/etc/build-info"
 
 # Generate the images
+<<<<<<< HEAD
 PXE_RC=0
 ONIE_RC=0
 
@@ -249,7 +257,7 @@ if [ -n "${BUILD_PXE}" ]; then
     kiwi-ng-3 \
       --profile FBOSS \
       --type oem \
-      system build \
+      ${KIWI_DEBUG} system build \
       --description ${DESCRIPTION_DIR} \
       --target-dir ${TARGET_DIR}/btrfs |&
       tee -a ${LOG_FILE} | awk '{print "PXE/USB Installer| " $0}'
@@ -266,7 +274,7 @@ if [ -n "${BUILD_ONIE}" ]; then
     kiwi-ng-3 \
       --profile FBOSS \
       --type tbz \
-      system build \
+      ${KIWI_DEBUG} system build \
       --description ${DESCRIPTION_DIR} \
       --target-dir ${TARGET_DIR}/onie |&
       tee -a ${LOG_FILE} | awk '{print "ONIE installer| " $0}'
