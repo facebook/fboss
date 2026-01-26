@@ -4,8 +4,6 @@ Description=FBOSS Wedge Agent
 After=platform_manager.service
 After=qsfp_service.service
 After=rc-local.service
-StartLimitIntervalSec=600
-StartLimitBurst=5
 
 [Service]
 Type=simple

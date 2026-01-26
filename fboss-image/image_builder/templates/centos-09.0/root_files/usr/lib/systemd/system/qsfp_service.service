@@ -3,8 +3,6 @@
 Description=FBOSS QSFP Service
 After=platform_manager.service
 After=rc-local.service
-StartLimitIntervalSec=600
-StartLimitBurst=5
 
 [Service]
 Type=simple
