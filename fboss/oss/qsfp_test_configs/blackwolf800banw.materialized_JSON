@@ -1,0 +1,12 @@
+{
+  "defaultCommandLineArgs": {
+    "mode": "blackwolf800banw"
+  },
+  "transceiverConfigOverrides": [
+
+  ],
+  "qsfpTestConfig": {
+    "cabledPortPairs": [
+    ]
+  }
+}
