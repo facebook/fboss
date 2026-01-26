@@ -131,6 +131,7 @@
         <package name="libnl3"/>
         <package name="python3.12"/>
         <package name="nvme-cli"/>
+        <package name="createrepo"/>
     </packages>
 
     <packages type="bootstrap">

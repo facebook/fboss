@@ -6,6 +6,10 @@ echo "--- Executing $0 ---"
 sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="FBOSS Distro Image"/' /usr/lib/os-release
 sed -i 's/^NAME=.*/NAME="FBOSS Distro Image"/' /usr/lib/os-release
 
+# All dnf invocations with an invalid RPM repo configured will fail. Create the
+# metadata for the local_rpm_repo now to prevent that.
+createrepo /usr/local/share/local_rpm_repo
+
 # 1. Install our custom kernel RPMs
 #
 # On purpose we don't install any kernel rpms as part of
@@ -51,11 +55,22 @@ env -i \
   PATH="/usr/bin:/usr/sbin:/bin:/sbin" \
   kernel-install add "${KERNEL_VERSION}" "${VMLINUZ_PATH}" --initrd-file "${INITRD_PATH}"
 
-# 5. Generate a fix-nvme script that "may" need to be run
+# 5. Enable systemd services
+echo "Enabling FBOSS systemd services..."
+systemctl enable local_rpm_repo.service
+systemctl enable platform_manager.service
+systemctl enable data_corral_service.service
+systemctl enable fan_service.service
+systemctl enable sensor_service.service
+systemctl enable fsdb.service
+systemctl enable qsfp_service.service
+systemctl enable wedge_agent.service
+
+# 6. Generate a fix-nvme script that "may" need to be run
 MODULE_DIR="/usr/lib/dracut/modules.d/99nvme-fix"
 mkdir -p "$MODULE_DIR"
 
-# 5a. Generate the script directly in the target directory
+# 6a. Generate the script directly in the target directory
 cat >"$MODULE_DIR/fix-nvme.sh" <<'EOF'
 #!/bin/bash
 # Force all NVMe drives to 512e mode for KIWI compatibility if they are
@@ -101,10 +116,10 @@ if [ -b "$DEV" ]; then
 fi
 EOF
 
-# 5b. Make the hook executable
+# 6b. Make the hook executable
 chmod +x "$MODULE_DIR/fix-nvme.sh"
 
-# 5c. Generate the module-setup.sh
+# 6c. Generate the module-setup.sh
 cat >"$MODULE_DIR/module-setup.sh" <<'EOF'
 #!/bin/bash
 
@@ -128,10 +143,10 @@ install() {
 }
 EOF
 
-# 5d. Make the setup script executable
+# 6d. Make the setup script executable
 chmod +x "$MODULE_DIR/module-setup.sh"
 
-# 6. Use system GRUB 2.06 from packages
+# 7. Use system GRUB 2.06 from packages
 # The grub2-efi-x64 package already provides grubx64.efi with all necessary modules
 # We just need to make sure the btrfs module is accessible on the EFI partition
 echo "Using system GRUB 2.06 from grub2-efi-x64 package..."
@@ -169,7 +184,7 @@ mkdir -p /boot/grub2/x86_64-efi
 cp -r /usr/lib/grub/x86_64-efi/* /boot/grub2/x86_64-efi/
 echo "Copied all GRUB modules to /boot/grub2/x86_64-efi/ (root partition)"
 
-# 7. Done! Cleanup, remember that we are chrooted on the rootfs
+# 8. Done! Cleanup, remember that we are chrooted on the rootfs
 echo "Removing kernel rpms from rootfs..."
 rm -f /repos/*.rpm
 rmdir /repos
