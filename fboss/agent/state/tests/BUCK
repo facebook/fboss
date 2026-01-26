@@ -29,6 +29,7 @@ cpp_unittest(
         "MirrorTests.cpp",
         "MultiSwitchMapDeltaTests.cpp",
         "NeighborTests.cpp",
+        "NextHopMapsTests.cpp",
         "OperDeltaTests.cpp",
         "PortDescriptorTests.cpp",
         "PortFlowletConfigTests.cpp",
