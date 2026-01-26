@@ -63,6 +63,7 @@ cpp_unittest(
     srcs = [
         "test/FibInteractionTests.cpp",
         "test/NextHopIDManagerTests.cpp",
+        "test/NextHopMapPopulationTests.cpp",
         "test/RibLpmTests.cpp",
         "test/RibRollbackTests.cpp",
         "test/RibRouteNormalizerTests.cpp",
