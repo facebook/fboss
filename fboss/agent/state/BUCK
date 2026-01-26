@@ -125,6 +125,7 @@ cpp_library(
         "NeighborResponseTable.h",
         "NeighborTable.h",
         "NeighborTable-defs.h",
+        "NextHopIdMaps.h",
         "PortDescriptor.h",
         "Thrifty.h",
     ],
