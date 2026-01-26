@@ -128,6 +128,7 @@
         <package name="zstd"/>
         <package name="libusbx"/>
         <package name="dmidecode"/>
+        <package name="nvme-cli"/>
     </packages>
 
     <packages type="bootstrap">
