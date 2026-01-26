@@ -29,12 +29,14 @@ ForwardingInformationBaseUpdater::ForwardingInformationBaseUpdater(
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
-    const LabelToRouteMap& labelToRoute)
+    const LabelToRouteMap& labelToRoute,
+    const NextHopIDManager* nextHopIDManager)
     : resolver_(resolver),
       vrf_(vrf),
       v4NetworkToRoute_(v4NetworkToRoute),
       v6NetworkToRoute_(v6NetworkToRoute),
-      labelToRoute_(labelToRoute) {}
+      labelToRoute_(labelToRoute),
+      nextHopIDManager_(nextHopIDManager) {}
 
 std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
     const std::shared_ptr<SwitchState>& state) {

@@ -362,6 +362,7 @@ void RibRouteTables::updateFib(
         routeTable.v4NetworkToRoute,
         routeTable.v6NetworkToRoute,
         routeTable.labelToRoute,
+        nextHopIDManager_,
         cookie);
     std::optional<StateDelta> tmp(
         StateDelta(gotDelta.oldState(), gotDelta.newState()));
@@ -660,7 +661,8 @@ RibRouteTables::RouterIDToRouteTable RibRouteTables::constructRouteTables(
   return newRouteTables;
 }
 
-RoutingInformationBase::RoutingInformationBase() {
+RoutingInformationBase::RoutingInformationBase()
+    : ribTables_(&nextHopIDManager_) {
   ribUpdateThread_ = std::make_unique<std::thread>([this] {
     initThread("ribUpdateThread");
     ribUpdateEventBase_.loopForever();
