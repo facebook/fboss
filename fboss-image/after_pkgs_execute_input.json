@@ -1,0 +1,16 @@
+{
+  "_comment" : [
+               "This file is used to execute post package install script(s) which may need to",
+               "be run after the base image is created. The execution happens in a chrooted",
+               "rootfs environment.",
+               "",
+               "The 'execute' array contains a list of scripts to be executed. Each command is",
+               "specified as an array with the first element being the path to the script and",
+               "subsequent elements being arguments to that script."
+               ],
+
+  "execute": [
+    [ "date"],
+    [ "uname", "-a"]
+  ]
+}

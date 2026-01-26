@@ -110,19 +110,6 @@ Components are built in the following order:
 
 ### Running Tests
 
-#### With Bazel (Recommended)
-
-```bash
-# Run all tests
-bazel test //fboss/fboss-image/distro_cli:all
-
-# Run specific test
-bazel test //fboss/fboss-image/distro_cli:cli_test
-
-# Run with detailed output
-bazel test //fboss/fboss-image/distro_cli:all --test_output=all
-```
-
 #### With pytest
 
 ```bash
@@ -149,6 +136,28 @@ PYTHONPATH=. python3 -m unittest distro_cli.tests.cli_test
 
 # Run specific test class
 PYTHONPATH=. python3 -m unittest distro_cli.tests.cli_test.CLITest
+```
+
+#### With CMake
+
+```bash
+# Build and run all tests
+cmake --build . --target distro_cli_tests
+
+# Run via CTest
+ctest -R distro_cli -V
+
+### Running manual tests
+A few tests are deliberately skipped while unit testing due to longer execution times. They can however be run manually as needed. The following are some of the examples.
+
+# Testing kernel build with compressed artifacts
+```bash
+python -m pytest distro_cli/tests/kernel_build_test.py::TestKernelBuildE2E::test_real_kernel_build_compressed -v -s -m e2e
+```
+
+# Testing kernel build with uncompressed artifacts
+```bash
+python -m pytest distro_cli/tests/kernel_build_test.py::TestKernelBuildE2E::test_real_kernel_build_uncompressed -v -s -m e2e
 ```
 
 ### Linting

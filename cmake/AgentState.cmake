@@ -118,6 +118,7 @@ add_library(state
 
 target_link_libraries(state
   address_utils
+  agent_features
   error
   platform_config_cpp2
   switch_config_cpp2

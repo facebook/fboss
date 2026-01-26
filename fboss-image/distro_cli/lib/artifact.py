@@ -224,6 +224,7 @@ class ArtifactStore:
             Path to the created temporary directory
         """
         # Get artifact store directory
+
         store_dir = (
             get_artifact_store_dir()
             if cls.ARTIFACT_STORE_DIR is None

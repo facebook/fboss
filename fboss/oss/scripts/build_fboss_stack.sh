@@ -36,17 +36,27 @@ forwarding)
   stack_label="forwarding"
   cmake_target="fboss_forwarding_stack"
   package_target="forwarding-stack"
+  mem_per_core=16 # GB
   ;;
 platform)
   stack_label="platform"
   cmake_target="fboss_platform_services"
   package_target="platform-stack"
+  mem_per_core=7 # GB
   ;;
 *)
   echo "Unsupported stack type: $stack_type (only 'forwarding' and 'platform' are supported)" >&2
   exit 1
   ;;
 esac
+
+gb_per_core=$(free -g | awk '/^Mem:/{print int($2 / '$mem_per_core')}')
+num_cores=$(nproc)
+if [ "$num_cores" -gt "$gb_per_core" ]; then
+  num_jobs="$gb_per_core"
+else
+  num_jobs="$num_cores"
+fi
 
 OUT_DIR=/output
 
@@ -138,19 +148,11 @@ echo "Output directory: $OUT_DIR"
 # Navigate to FBOSS source root
 cd /var/FBOSS/fboss
 
-if [ "$stack_type" = "forwarding" ]; then
-  # Snapshot manifests (will be modified during build)
-  if [ -f "build/fbcode_builder/manifests/fboss" ] &&
-    [ -f "build/fbcode_builder/manifests/libsai" ] &&
-    [ -f "build/fbcode_builder/manifests/sai_impl" ]; then
-    tar -cf manifests_snapshot.tar \
-      build/fbcode_builder/manifests/fboss \
-      build/fbcode_builder/manifests/libsai \
-      build/fbcode_builder/manifests/sai_impl
-  else
-    echo "Skipping manifest snapshot (one or more manifests not found"
-  fi
+# Save the manifests because we must modify them, at a minimum to use the stable dependency hashes.
+tar -cf manifests_snapshot.tar build
+tar -xf fboss/oss/stable_commits/latest_stable_hashes.tar.gz
 
+if [ "$stack_type" = "forwarding" ]; then
   # Setup SAI implementation
   SAI_INCLUDE_PATH="$SAI_DIR/include"
   echo "Using SAI include path for build-helper: $SAI_INCLUDE_PATH"
@@ -177,14 +179,6 @@ if [ "$stack_type" = "forwarding" ]; then
     echo "BUILD_SAI_FAKE is set; skipping build-helper.py (no vendor SAI manifests)"
   fi
 elif [ "$stack_type" = "platform" ]; then
-  # Snapshot manifest (will be modified during build)
-  if [ -f "build/fbcode_builder/manifests/fboss" ]; then
-    tar -cf manifests_snapshot.tar \
-      build/fbcode_builder/manifests/fboss
-  else
-    echo "Skipping manifest snapshot (fboss manifest not found)"
-  fi
-
   # For a platform-only build we do not need the vendor SAI implementation.
   # Temporarily drop sai_impl from the fboss manifest so getdeps will not try
   # to fetch it. The open-source SAI headers (libsai) remain in the manifest.
@@ -199,13 +193,13 @@ fi
 
 # Install system dependencies
 echo "Installing system dependencies..."
-time nice -n 10 ./fboss/oss/scripts/run-getdeps.py install-system-deps \
+time nice -n 10 ./build/fbcode_builder/getdeps.py install-system-deps \
   --recursive \
   ${common_options}
 
 # Build dependencies
 echo "Building FBOSS dependencies..."
-time nice -n 10 ./fboss/oss/scripts/run-getdeps.py build \
+time nice -n 10 ./build/fbcode_builder/getdeps.py build \
   --only-deps \
   ${common_options}
 
@@ -214,10 +208,11 @@ echo "Get deps SUCCESS"
 # Build FBOSS stack
 echo "Building FBOSS ${stack_label} stack..."
 
-time nice -n 10 ./fboss/oss/scripts/run-getdeps.py build \
+time nice -n 10 ./build/fbcode_builder/getdeps.py build \
   --no-deps \
   --build-type "${BUILD_TYPE:-MinSizeRel}" \
   --cmake-target "$cmake_target" \
+  --num-jobs "${num_jobs}" \
   ${common_options}
 
 echo "${cmake_target} Build SUCCESS"

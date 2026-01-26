@@ -253,7 +253,9 @@ class ImageBuilder:
         # Helper function to process hook files
         def process_hook_file(hook_key: str, target_file: Path, cmd_flag: str):
             if hook_key in image_build_hooks:
-                user_input_file = Path(image_build_hooks[hook_key])
+                user_input_file = self.manifest.manifest_dir / Path(
+                    image_build_hooks[hook_key]
+                )
 
                 if user_input_file.is_file():
                     # Copy to fixed name in template/centos-09.0 directory

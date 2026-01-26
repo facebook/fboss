@@ -10,17 +10,11 @@ Tests for CLI utilities
 """
 
 import argparse
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-# Add parent directory to path for imports
-test_dir = Path(__file__).parent
-cli_dir = test_dir.parent
-sys.path.insert(0, str(cli_dir))
-
-from lib.cli import CLI, CommandGroup, validate_path
+from distro_cli.lib.cli import CLI, CommandGroup, validate_path
 
 
 class ValidatePathTest(unittest.TestCase):

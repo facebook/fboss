@@ -5,17 +5,26 @@
     "onie": "fboss-distro-image_onie.bin"
   },
   "kernel": {
+    "execute": ["kernel/scripts/build_kernel.sh", "6.11.1", "/output"],
+    "artifact": "kernel-6.11.1.rpms.tar"
   },
   "other_dependencies": [
   ],
   "fboss-platform-stack": {
+      "execute": ["../fboss/oss/scripts/build_fboss_stack.sh", "platform"],
+      "artifact": "platform-stack.tar"
   },
   "bsps": [
   ],
   "sai": {
+      "download": "file:../fboss/oss/scripts/fake-sai-devel.tar.zst"
   },
   "fboss-forwarding-stack": {
+    "execute": ["../fboss/oss/scripts/build_fboss_stack.sh", "forwarding"],
+    "artifact": "forwarding-stack.tar"
   },
   "image_build_hooks": {
+     "after_pkgs_install": "fboss-image/after_pkgs_install_input.json",
+     "after_pkgs_execute": "fboss-image/after_pkgs_execute_input.json"
   }
 }

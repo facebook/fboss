@@ -14,7 +14,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-def run_container(  # noqa: PLR0913
+def run_container(
     image: str,
     command: list[str],
     volumes: dict[Path, Path] | None = None,

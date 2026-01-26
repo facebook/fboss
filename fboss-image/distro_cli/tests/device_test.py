@@ -20,17 +20,12 @@ These tests verify that:
 3. Context passing works correctly
 """
 
-import sys
+import argparse
 import tempfile
 import unittest
 from pathlib import Path
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-import argparse
-
-from cmds.device import (
+from distro_cli.cmds.device import (
     getip_command,
     image_command,
     image_upstream_command,

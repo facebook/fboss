@@ -55,7 +55,7 @@ echo -n "Preparing image archive ..."
 sed -e '1,/^exit_marker$/d' $archive_path | head -c $payload_image_size | tar xf - || exit 1
 
 echo " OK."
-cd $cur_wd || exit 1
+cd "$cur_wd" || exit 1
 if [ -n "$extract" ]; then
   # stop here
   echo "Image extracted to: $tmp_dir"

@@ -16,7 +16,6 @@ Example:
 """
 
 import logging
-import os
 import shutil
 import subprocess
 import sys
@@ -185,20 +184,8 @@ def main():
     logger.info(f"Executing build: {' '.join(build_command)}")
     logger.info("=" * 60)
 
-    # Set SKIP_KERNEL_INSTALL environment variable if kernel dependency was installed
-    # This should be eventually replaced with sanity checks for installed dependencies
-    # as the manifest builder is expected to support this.
-    env = os.environ.copy()
-    if dependencies:
-        # Check if any dependency is named 'kernel'
-        kernel_deps = [d for d in dependencies if "kernel" in d.name.lower()]
-        if kernel_deps:
-            env["SKIP_KERNEL_INSTALL"] = "1"
-            logger.info(
-                "Setting SKIP_KERNEL_INSTALL=1 (kernel dependency was installed)"
-            )
     try:
-        result = subprocess.run(build_command, check=False, env=env)
+        result = subprocess.run(build_command, check=False)
         returncode = result.returncode
     except Exception as e:
         logger.error(f"Failed to execute build command: {e}")

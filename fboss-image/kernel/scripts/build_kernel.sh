@@ -27,14 +27,6 @@ CONTAINER_SPECS_DIR="$KERNEL_ROOT/specs"
 CONTAINER_CONFIGS_DIR="$KERNEL_ROOT/configs"
 CONTAINER_SCRIPTS_DIR="$KERNEL_ROOT/scripts"
 
-# Source common configuration for sccache distributed build and caching
-# The component builder mounts fboss/oss/scripts at /fboss/oss/scripts
-# shellcheck source=fboss/oss/scripts/nhfboss-common.sh
-source "/fboss/oss/scripts/nhfboss-common.sh"
-# Set CC to use sccache for kernel compilation
-export CC="sccache gcc"
-echo "Using sccache for kernel build with $COMPILE_JOBS compile jobs"
-
 # Debug: verify sccache config before build
 sccache --stop-server 2>/dev/null || true
 sccache --start-server

@@ -3,11 +3,9 @@
 Description=FBOSS QSFP Service
 After=platform_manager.service
 After=rc-local.service
-StartLimitIntervalSec=600
-StartLimitBurst=5
 
 [Service]
-Type=notify
+Type=simple
 LimitNOFILE=10000000
 LimitCORE=32G
 MemoryMax=3.75G

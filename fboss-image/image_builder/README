@@ -19,7 +19,6 @@ The directories here are:
     output      - all build output goes here
 
 image_builder/bin:
-    build_image.sh                  - Build docker (if needed) and launch build_image_in_container.sh
     build_image_in_container.sh     - Script that builds the image inside docker container
 
 image_builder/templates:

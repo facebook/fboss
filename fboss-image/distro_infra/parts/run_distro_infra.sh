@@ -1,15 +1,17 @@
 #!/bin/bash
 
 INTERFACE=""
+NODHCPV6=""
 
 help() {
-  echo "Usage: $0 --intf <interface>"
+  echo "Usage: $0 [--nodhcpv6] --intf <interface>"
   echo ""
   echo "Run FBOSS Distro Infrastructure PXE boot services"
   echo ""
   echo "Options:"
   echo ""
   echo "  -i|--intf <interface>       Network interface to attach to (must have L2 adjacency with FBOSS duts)"
+  echo "  -n|--nodhcpv6               Do not provide DHCPv6, rely on external DHCPv6 server"
   echo ""
   echo "  -h|--help                   Print this help message"
   echo ""
@@ -30,14 +32,21 @@ else
       INTERFACE="$2"
       shift 2
       ;;
+    -n | --nodhcpv6)
+      NODHCPV6=true
+      shift 1
+      ;;
     -h | --help)
       help
       exit 0
       ;;
     *)
-      echo "Error: Unrecognized command option: '${1}'"
-      help
-      exit 1
+      if [[ $1 != "" ]]; then
+        echo "Error: Unrecognized command option: '${1}'"
+        help
+        exit 1
+      fi
+      shift 1
       ;;
     esac
   done
@@ -65,7 +74,16 @@ nginx -c /distro_infra/nginx.conf -p /distro_infra/persistent
 # Minimize responding to other devices
 echo 'tag:!fbossdut,ignore' >/distro_infra/dnsmasq_conf.d/default_ignore
 
+if [ -n "$NODHCPV6" ]; then
+  dhcpv6_conf=""
+else
+  dhcpv6_conf=" --enable-ra \
+  --dhcp-range=tag:fbossdut,::fb05:5000:0001,::fb05:50ff:ffff,constructor:$INTERFACE,5m \
+  --dhcp-option=tag:fbossdut,option6:bootfile-url,tftp://[${v6_ip}]/ipxev6.efi"
+fi
+
 dnsmasq --interface="${INTERFACE}" --no-daemon \
+  --log-debug --log-dhcp \
   --port=0 \
   --enable-tftp \
   --tftp-root=/distro_infra/persistent \
@@ -75,9 +93,7 @@ dnsmasq --interface="${INTERFACE}" --no-daemon \
   --dhcp-hostsdir=/distro_infra/dnsmasq_conf.d \
   --dhcp-range=tag:fbossdut,"${v4_ip}",proxy \
   --pxe-service=tag:fbossdut,x86-64_EFI,ipxe,ipxev4.efi \
-  --enable-ra \
-  --dhcp-range=tag:fbossdut,::fb05:5000:0001,::fb05:50ff:ffff,constructor:"$INTERFACE",5m \
-  --dhcp-option=tag:fbossdut,option6:bootfile-url,tftp://["${v6_ip}"]/ipxev6.efi &
+  ${dhcpv6_conf} &
 
 sleep 2 # Wait for dnsmasq log spew
 
