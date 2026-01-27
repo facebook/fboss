@@ -16,6 +16,7 @@ extern "C" {
 }
 
 #include <boost/container/flat_map.hpp>
+#include <folly/Utility.h>
 #include <folly/concurrency/ConcurrentHashMap.h>
 #include <folly/json/dynamic.h>
 
@@ -29,7 +30,7 @@ class AggregatePort;
 class BcmSwitch;
 class BcmTrunk;
 
-class BcmTrunkTable {
+class BcmTrunkTable : public folly::NonCopyableNonMovable {
  public:
   explicit BcmTrunkTable(const BcmSwitch* hw);
   virtual ~BcmTrunkTable();
@@ -65,10 +66,6 @@ class BcmTrunkTable {
       AggregatePortID aggregatePortID) const;
 
  private:
-  // Forbidden copy constructor and assignment operator
-  BcmTrunkTable(const BcmTrunkTable&) = delete;
-  BcmTrunkTable& operator=(const BcmTrunkTable&) = delete;
-
   void portToAggPortAdd(PortID portId, AggregatePortID aggPortId);
   void portToAggPortRemove(PortID);
   boost::container::flat_map<AggregatePortID, std::unique_ptr<BcmTrunk>>
