@@ -101,6 +101,9 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
   uint32_t getNumMemoryBuffers() const override {
     return 1;
   }
+  std::optional<uint32_t> getMaxNdpTableSize() const override {
+    return 8192;
+  }
   std::optional<uint32_t> getMaxArsGroups() const override;
   std::optional<uint32_t> getArsBaseIndex() const override;
 };
