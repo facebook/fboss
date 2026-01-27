@@ -31,7 +31,6 @@ class BcmPortGroup;
 class BcmPortTable {
  public:
   explicit BcmPortTable(BcmSwitch* hw);
-  ~BcmPortTable();
 
   using FbossPortMap = folly::ConcurrentHashMap<PortID, BcmPort*>;
 
