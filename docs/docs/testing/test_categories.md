@@ -212,11 +212,7 @@ T1 Link tests scope is controlled by the known-bad and unsupported test files, s
 - `sai_rx_slow_path_rate-sai_impl` binary
 - `sai_ecmp_shrink_speed-sai_impl` binary
 - `sai_rib_resolution_speed-sai_impl` binary
-- `sai_ecmp_shrink_with_competing_route_updates_speed-sai_impl` binary
-- `sai_fsw_scale_route_add_speed-sai_impl` binary
 - `sai_stats_collection_speed-sai_impl` binary
-- `sai_init_and_exit_100Gx100G-sai_impl` binary
-- `sai_switch_reachability_change_speed-sai_impl` binary
 
 ### SAI Tests
 
