@@ -313,6 +313,7 @@ cpp_library(
         "commands/show/hwobject/CmdShowHwObject.cpp",
         "commands/show/l2/CmdShowL2.cpp",
         "commands/show/lldp/CmdShowLldp.cpp",
+        "commands/show/mac/CmdShowMacAddrToBlock.cpp",
         "commands/show/mac/CmdShowMacDetails.cpp",
         "commands/show/ndp/CmdShowNdp.cpp",
         "commands/show/port/CmdShowPort.cpp",
