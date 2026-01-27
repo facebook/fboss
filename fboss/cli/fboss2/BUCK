@@ -322,6 +322,7 @@ cpp_library(
         "commands/show/rif/CmdShowRif.cpp",
         "commands/show/route/utils.cpp",
         "commands/show/systemport/CmdShowSystemPort.cpp",
+        "commands/show/transceiver/CmdShowTransceiver.cpp",
         "facebook/CmdHandlerImpl.cpp",
         "facebook/CmdList.cpp",
         "facebook/CmdStreamHandler.cpp",
