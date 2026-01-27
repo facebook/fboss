@@ -310,9 +310,9 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
 
     /*
     Because of upstream kernel issues, we have to manually read the
-    SCM EEPROM for the Meru800BFA/BIA & Icecube800banw platforms. It is read directly
-    with ioctl and written to the /run/devmap file.
-    See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
+    SCM EEPROM for the Meru800BFA/BIA & Icecube800banw platforms. It is read
+    directly with ioctl and written to the /run/devmap file. See:
+    https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
     */
     if ((platformConfig_.platformName().value() == "MERU800BFA" ||
          platformConfig_.platformName().value() == "MERU800BIA" ||
