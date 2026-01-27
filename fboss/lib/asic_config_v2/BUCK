@@ -18,6 +18,20 @@ python_library(
 )
 
 python_library(
+    name = "icecube800banw",
+    srcs = ["icecube800banw.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":tomahawk6",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
+        "//fboss/lib/platform_mapping_v2:asic_vendor_config",
+        "//fboss/lib/platform_mapping_v2:gen-library",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_config-py-deprecated",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
+    ],
+)
+
+python_library(
     name = "asic_config",
     srcs = ["asic_config.py"],
     labels = ["autodeps2_generated"],
@@ -65,6 +79,7 @@ python_binary(
     deps = [
         ":all_asic_config_params",
         ":icecube800bc",
+        ":icecube800banw",
         ":montblanc",
         ":wedge800bact",
         "//fboss/agent/hw/config:asic_config_v2-py-deprecated",

@@ -53,7 +53,8 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiMinipack3NPlatform.cpp
   fboss/agent/platforms/sai/SaiYangraPlatformPort.cpp
   fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.cpp
-# platform oss srcs (== fake_srcs)
+  fboss/agent/platforms/sai/SaiBcmIcecube800banwPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmIcecube800banwPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiBcmPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatformPort.cpp
@@ -124,6 +125,7 @@ target_link_libraries(sai_platform
   ladakh800bcls_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
+  icecube800banw_platform_mapping
   led_structs_types_cpp2
   led_mapping_cpp2
   wedge800bact_platform_mapping

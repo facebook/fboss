@@ -92,6 +92,7 @@ cpp_library(
         "//fboss/lib/bsp/tahansb800bc:tahansb800bc_bsp",
         "//fboss/lib/bsp/wedge800bact:wedge800bact_bsp",
         "//fboss/lib/bsp/wedge800cact:wedge800cact_bsp",
+        "//fboss/lib/bsp/icecube800banw:icecube800banw_bsp",
         "//fboss/lib/firmware_storage:firmware_storage",
         "//fboss/lib/fpga:wedge400_i2c",
         "//fboss/lib/fpga/facebook/darwin:darwin_i2c",
