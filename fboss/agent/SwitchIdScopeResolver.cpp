@@ -176,7 +176,13 @@ const HwSwitchMatcher SwitchIdScopeResolver::scope(
     // VLANs corresponding to loopback intfs have no ports
     // associated with them. Also Psuedo vlans created
     // on fabric switches don't have ports associated with them.
-    return *allSwitchMatcher_;
+
+    // Return the first switchId.
+    // TODO: Remove this after scope resolution is updated to return single
+    // switchId based on virtual interface and switchId configuration.
+    return HwSwitchMatcher(
+        std::unordered_set<SwitchID>(
+            {*allSwitchMatcher().switchIds().begin()}));
   }
   std::unordered_set<SwitchID> switchIds;
   for (const auto& port : vlan->getPorts()) {
