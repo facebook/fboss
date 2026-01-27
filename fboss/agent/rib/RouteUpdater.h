@@ -18,7 +18,9 @@
 #include <folly/IPAddress.h>
 
 DECLARE_bool(enable_capacity_pruning);
-
+namespace facebook::fboss {
+class NextHopIDManager;
+}
 namespace facebook::fboss {
 
 /**
@@ -49,12 +51,13 @@ class RibRouteUpdater {
  public:
   RibRouteUpdater(
       IPv4NetworkToRouteMap* v4Routes,
-      IPv6NetworkToRouteMap* v6Routes);
-
+      IPv6NetworkToRouteMap* v6Routes,
+      NextHopIDManager* nextHopIDManager = nullptr);
   RibRouteUpdater(
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes,
-      LabelToRouteMap* mplsRoutes);
+      LabelToRouteMap* mplsRoutes,
+      NextHopIDManager* nextHopIDManager = nullptr);
 
   struct RouteEntry {
     folly::CIDRNetwork prefix;
