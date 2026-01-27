@@ -340,13 +340,13 @@ static_assert(
     "VecAttr should be a SAI Attribute");
 
 // Test verifying SaiPortErrStatusDefault returns correct type
-// Not returning sai_port_err_status_t caused a heap-buffer-overflow bug
 TEST(Attribute, PortErrStatusDefaultType) {
   SaiPortErrStatusDefault defaultGetter;
   auto defaultValue = defaultGetter();
   // Must return sai_port_err_status_list_t to avoid heap-buffer-overflow
   static_assert(
-      std::is_same<decltype(defaultValue), sai_port_err_status_t>::value,
+      std::is_same<decltype(defaultValue), sai_port_err_status_list_t>::value,
       "SaiPortErrStatusDefault type check");
-  EXPECT_EQ(static_cast<int>(defaultValue), 0);
+  EXPECT_EQ(defaultValue.count, 0);
+  EXPECT_EQ(defaultValue.list, nullptr);
 }
