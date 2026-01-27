@@ -33,6 +33,7 @@ class BcmPlatformPort : public PlatformPort {
   BcmPlatformPort(PortID id, BcmPlatform* platform);
   BcmPlatformPort(BcmPlatformPort&&) = default;
   BcmPlatformPort& operator=(BcmPlatformPort&&) = default;
+  ~BcmPlatformPort() override = default;
 
   /*
    * setBcmPort() will be called exactly once by the BCM code, during port
