@@ -10,7 +10,7 @@ on:
 
 jobs:
   Distro-Image-Build:
-    runs-on: ubuntu-latest
+    runs-on: 32-core-ubuntu
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
