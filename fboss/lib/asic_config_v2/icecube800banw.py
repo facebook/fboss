@@ -7,6 +7,7 @@ from fboss.lib.platform_mapping_v2.gen import read_all_vendor_data
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
 from typing import List
 
+
 class Icecube800banwConfig(Tomahawk6AsicConfig):
     MGMT_PORT_LOGICAL_ID = 520
     MGMT_PORT_PHYSICAL_ID = 513
@@ -110,6 +111,7 @@ class Icecube800banwConfig(Tomahawk6AsicConfig):
                 logical_to_physical_port_mapping.append([lp_id, pp_id])
 
         return logical_to_physical_port_mapping
+
 
 def gen_icecube800banw_asic_config(
     asic_config_params: asic_config_thrift.AsicConfigParameters,
