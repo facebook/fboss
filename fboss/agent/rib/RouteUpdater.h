@@ -53,6 +53,7 @@ class RibRouteUpdater {
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes,
       NextHopIDManager* nextHopIDManager = nullptr);
+
   RibRouteUpdater(
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes,
@@ -193,6 +194,7 @@ class RibRouteUpdater {
   IPv4NetworkToRouteMap* v4Routes_{nullptr};
   IPv6NetworkToRouteMap* v6Routes_{nullptr};
   LabelToRouteMap* mplsRoutes_{nullptr};
+  NextHopIDManager* nextHopIDManager_{nullptr};
   std::unordered_set<void*> needsResolution_;
   /*
    * Cache for next hop to FWD information. For our use case
