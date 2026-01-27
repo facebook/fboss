@@ -23,6 +23,8 @@ class ConfigValidator {
   bool isValidLedCtrlBlockConfig(const LedCtrlBlockConfig& ledCtrlBlockConfig);
   bool isValidXcvrCtrlBlockConfig(
       const XcvrCtrlBlockConfig& xcvrCtrlBlockConfig);
+  bool isValidI2cAdapterBlockConfig(
+      const I2cAdapterBlockConfig& i2cAdapterBlockConfig);
   bool isValidPciDeviceConfig(const PciDeviceConfig& pciDeviceConfig);
   bool isValidI2cDeviceConfig(const I2cDeviceConfig& i2cDeviceConfig);
   bool isValidDevicePath(

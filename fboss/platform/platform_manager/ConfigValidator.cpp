@@ -141,6 +141,10 @@ bool ConfigValidator::isValidFpgaIpBlockConfig(
         *fpgaIpBlockConfig.pmUnitScopedName());
     return false;
   }
+  if (fpgaIpBlockConfig.pmUnitScopedName()->ends_with('_')) {
+    XLOG(ERR) << "PmUnitScopedName must not end with an underscore";
+    return false;
+  }
   if (!fpgaIpBlockConfig.csrOffset()->empty() &&
       !re2::RE2::FullMatch(
           *fpgaIpBlockConfig.csrOffset(), kPciDevOffsetRegex)) {
@@ -302,6 +306,79 @@ bool ConfigValidator::isValidXcvrCtrlBlockConfig(
   return true;
 }
 
+bool ConfigValidator::isValidI2cAdapterBlockConfig(
+    const I2cAdapterBlockConfig& i2cAdapterBlockConfig) {
+  if (i2cAdapterBlockConfig.pmUnitScopedNamePrefix()->empty()) {
+    XLOG(ERR) << "PmUnitScopedNamePrefix must be a non-empty string";
+    return false;
+  }
+  if (i2cAdapterBlockConfig.pmUnitScopedNamePrefix()->ends_with('_')) {
+    XLOG(ERR) << "PmUnitScopedNamePrefix must not end with '_'";
+    return false;
+  }
+  if (i2cAdapterBlockConfig.deviceName()->empty()) {
+    XLOG(ERR) << "deviceName must be a non-empty string";
+    return false;
+  }
+  if (i2cAdapterBlockConfig.csrOffsetCalc()->empty()) {
+    XLOG(ERR) << "csrOffsetCalc must be a non-empty string";
+    return false;
+  }
+  if (*i2cAdapterBlockConfig.startAdapterIndex() < 0) {
+    XLOG(ERR) << "startAdapterIndex must be a value greater than or equal to 0";
+    return false;
+  }
+  if (*i2cAdapterBlockConfig.numAdapters() <= 0) {
+    XLOG(ERR) << "numAdapters must be a value greater than 0";
+    return false;
+  }
+  if (*i2cAdapterBlockConfig.numBusesPerAdapter() <= 0) {
+    XLOG(ERR) << "numBusesPerAdapter must be a value greater than 0";
+    return false;
+  }
+
+  for (int32_t adapterIndex = *i2cAdapterBlockConfig.startAdapterIndex();
+       adapterIndex < *i2cAdapterBlockConfig.startAdapterIndex() +
+           *i2cAdapterBlockConfig.numAdapters();
+       adapterIndex++) {
+    std::string csrExpression = fmt::format(
+        fmt::runtime(*i2cAdapterBlockConfig.csrOffsetCalc()),
+        fmt::arg("adapterIndex", adapterIndex),
+        fmt::arg(
+            "startAdapterIndex", *i2cAdapterBlockConfig.startAdapterIndex()));
+    try {
+      Utils().evaluateExpression(csrExpression);
+    } catch (const std::exception& e) {
+      XLOG(ERR) << fmt::format(
+          "Invalid csrOffsetCalc expression: {} with adapterIndex={}: {}",
+          *i2cAdapterBlockConfig.csrOffsetCalc(),
+          adapterIndex,
+          e.what());
+      return false;
+    }
+
+    if (!i2cAdapterBlockConfig.iobufOffsetCalc()->empty()) {
+      std::string iobufExpression = fmt::format(
+          fmt::runtime(*i2cAdapterBlockConfig.iobufOffsetCalc()),
+          fmt::arg("adapterIndex", adapterIndex),
+          fmt::arg(
+              "startAdapterIndex", *i2cAdapterBlockConfig.startAdapterIndex()));
+      try {
+        Utils().evaluateExpression(iobufExpression);
+      } catch (const std::exception& e) {
+        XLOG(ERR) << fmt::format(
+            "Invalid iobufOffsetCalc expression: {} with adapterIndex={}: {}",
+            *i2cAdapterBlockConfig.iobufOffsetCalc(),
+            adapterIndex,
+            e.what());
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 bool ConfigValidator::isValidPciDeviceConfig(
     const PciDeviceConfig& pciDeviceConfig) {
   if (pciDeviceConfig.pmUnitScopedName()->empty()) {
@@ -313,6 +390,10 @@ bool ConfigValidator::isValidPciDeviceConfig(
         ERR,
         "PmUnitScopedName must be in uppercase; {} contains lowercase characters",
         *pciDeviceConfig.pmUnitScopedName());
+    return false;
+  }
+  if (pciDeviceConfig.pmUnitScopedName()->ends_with('_')) {
+    XLOG(ERR) << "PmUnitScopedName must not end with an underscore";
     return false;
   }
   if (!re2::RE2::FullMatch(*pciDeviceConfig.vendorId(), kPciIdRegex)) {
@@ -427,6 +508,12 @@ bool ConfigValidator::isValidPciDeviceConfig(
     return false;
   }
 
+  for (const auto& config : *pciDeviceConfig.i2cAdapterBlockConfigs()) {
+    if (!isValidI2cAdapterBlockConfig(config)) {
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -447,6 +534,10 @@ bool ConfigValidator::isValidI2cDeviceConfig(
         ERR,
         "PmUnitScopedName must be in uppercase; {} contains lowercase characters",
         *i2cDeviceConfig.pmUnitScopedName());
+    return false;
+  }
+  if (i2cDeviceConfig.pmUnitScopedName()->ends_with('_')) {
+    XLOG(ERR) << "PmUnitScopedName must not end with an underscore";
     return false;
   }
   return true;
@@ -814,6 +905,10 @@ bool ConfigValidator::isValidSpiDeviceConfigs(
           ERR,
           "PmUnitScopedName must be in uppercase; {} contains lowercase characters",
           *spiDeviceConfig.pmUnitScopedName());
+      return false;
+    }
+    if (spiDeviceConfig.pmUnitScopedName()->ends_with('_')) {
+      XLOG(ERR) << "PmUnitScopedName must not end with an underscore";
       return false;
     }
     if (spiDeviceConfig.modalias()->length() >= NAME_MAX) {
@@ -1258,6 +1353,11 @@ void ConfigValidator::buildDeviceNameCache(
       for (const auto& xcvrCtrlConfig :
            Utils::createXcvrCtrlConfigs(pciConfig)) {
         addFromFpgaIpBlock(slotType, *xcvrCtrlConfig.fpgaIpBlockConfig());
+      }
+
+      for (const auto& i2cAdapterConfig :
+           Utils::createI2cAdapterConfigs(pciConfig)) {
+        addFromFpgaIpBlock(slotType, *i2cAdapterConfig.fpgaIpBlockConfig());
       }
 
       for (const auto& mdioBusConfig : Utils::createMdioBusConfigs(pciConfig)) {
