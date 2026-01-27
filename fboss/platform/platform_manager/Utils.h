@@ -66,6 +66,11 @@ class Utils {
   // Replace hex literals with decimal values in expression string
   std::string convertHexLiteralsToDecimal(const std::string& expression);
 
+  // Create the I2C Adapter Config block based on the given I2cAdapterConfig
+  // residing at the given PciDevice. Throw std::runtime_error on failure.
+  static std::vector<I2cAdapterConfig> createI2cAdapterConfigs(
+      const PciDeviceConfig& pciDeviceConfig);
+
   // Create the XCVR Controller Config block based on the given xcvrCtrlConfig
   // residing at the given PciDevice. Throw std::runtime_error on failure.
   static std::vector<XcvrCtrlConfig> createXcvrCtrlConfigs(
