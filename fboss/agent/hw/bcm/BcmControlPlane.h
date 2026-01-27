@@ -31,7 +31,11 @@ class BcmControlPlane {
  public:
   BcmControlPlane(BcmSwitch* hw);
 
-  ~BcmControlPlane() {}
+  ~BcmControlPlane() = default;
+  BcmControlPlane(BcmControlPlane const&) = delete;
+  BcmControlPlane& operator=(BcmControlPlane const&) = delete;
+  BcmControlPlane(BcmControlPlane&&) = delete;
+  BcmControlPlane& operator=(BcmControlPlane&&) = delete;
 
   /*
    * Getters.
@@ -101,10 +105,6 @@ class BcmControlPlane {
   int getCPUQueues();
 
  private:
-  // no copy or assignment
-  BcmControlPlane(BcmControlPlane const&) = delete;
-  BcmControlPlane& operator=(BcmControlPlane const&) = delete;
-
   BcmSwitch* hw_{nullptr};
   // Broadcom global port number
   const bcm_gport_t gport_;
