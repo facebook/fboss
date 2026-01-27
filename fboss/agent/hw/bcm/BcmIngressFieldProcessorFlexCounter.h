@@ -67,6 +67,10 @@ class BcmIngressFieldProcessorFlexCounter : public BcmFlexCounter {
       BcmIngressFieldProcessorFlexCounter const&) = delete;
   BcmIngressFieldProcessorFlexCounter& operator=(
       BcmIngressFieldProcessorFlexCounter const&) = delete;
+  BcmIngressFieldProcessorFlexCounter(BcmIngressFieldProcessorFlexCounter&&) =
+      delete;
+  BcmIngressFieldProcessorFlexCounter& operator=(
+      BcmIngressFieldProcessorFlexCounter&&) = delete;
   BcmAclStatType statType_;
 };
 } // namespace facebook::fboss
