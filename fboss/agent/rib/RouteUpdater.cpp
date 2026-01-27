@@ -62,7 +62,8 @@ static const auto kRemoteInterfaceRouteClientId =
 
 RibRouteUpdater::RibRouteUpdater(
     IPv4NetworkToRouteMap* v4Routes,
-    IPv6NetworkToRouteMap* v6Routes)
+    IPv6NetworkToRouteMap* v6Routes,
+    NextHopIDManager* nextHopIdManager)
     : v4Routes_(v4Routes),
       v6Routes_(v6Routes),
       weightNormalizer_(
@@ -75,7 +76,8 @@ RibRouteUpdater::RibRouteUpdater(
 RibRouteUpdater::RibRouteUpdater(
     IPv4NetworkToRouteMap* v4Routes,
     IPv6NetworkToRouteMap* v6Routes,
-    LabelToRouteMap* mplsRoutes)
+    LabelToRouteMap* mplsRoutes,
+    NextHopIDManager* nextHopIdManager)
     : v4Routes_(v4Routes),
       v6Routes_(v6Routes),
       mplsRoutes_(mplsRoutes),
