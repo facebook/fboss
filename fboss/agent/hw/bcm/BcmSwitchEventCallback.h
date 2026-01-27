@@ -25,7 +25,7 @@ namespace facebook::fboss {
 class BcmSwitchEventCallback {
  public:
   BcmSwitchEventCallback() {}
-  virtual ~BcmSwitchEventCallback() {}
+  virtual ~BcmSwitchEventCallback() = default;
 
   // override this function in derived classes to specify error handling
   // behavior (eg. logging a fatal error and terminating the program).
@@ -41,6 +41,8 @@ class BcmSwitchEventCallback {
   // disable copy constructor and assignment operator
   BcmSwitchEventCallback(const BcmSwitchEventCallback&) = delete;
   BcmSwitchEventCallback& operator=(const BcmSwitchEventCallback&) = delete;
+  BcmSwitchEventCallback(BcmSwitchEventCallback&&) = delete;
+  BcmSwitchEventCallback& operator=(BcmSwitchEventCallback&&) = delete;
 };
 
 /**
@@ -48,9 +50,6 @@ class BcmSwitchEventCallback {
  */
 class BcmSwitchEventUnitFatalErrorCallback : public BcmSwitchEventCallback {
  public:
-  BcmSwitchEventUnitFatalErrorCallback() {}
-  ~BcmSwitchEventUnitFatalErrorCallback() override {}
-
   void callback(
       const int unit,
       const bcm_switch_event_t eventID,
@@ -66,9 +65,6 @@ class BcmSwitchEventUnitFatalErrorCallback : public BcmSwitchEventCallback {
  */
 class BcmSwitchEventUnitNonFatalErrorCallback : public BcmSwitchEventCallback {
  public:
-  BcmSwitchEventUnitNonFatalErrorCallback() {}
-  ~BcmSwitchEventUnitNonFatalErrorCallback() override {}
-
   void callback(
       const int unit,
       const bcm_switch_event_t eventID,
