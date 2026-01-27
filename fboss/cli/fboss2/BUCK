@@ -311,6 +311,7 @@ cpp_library(
         "commands/show/fsdb/CmdShowFsdbUtils.cpp",
         "commands/show/hwagent/CmdShowHwAgentStatus.cpp",
         "commands/show/hwobject/CmdShowHwObject.cpp",
+        "commands/show/l2/CmdShowL2.cpp",
         "commands/show/lldp/CmdShowLldp.cpp",
         "commands/show/mac/CmdShowMacDetails.cpp",
         "commands/show/ndp/CmdShowNdp.cpp",
