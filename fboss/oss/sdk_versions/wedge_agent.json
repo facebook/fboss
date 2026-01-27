@@ -3,17 +3,11 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<ebfb9f0844d2a94481417c998767631d>>"
+        "@generated SignedSource<<cef0ee217331d2047454e236b3fc913f>>"
     ],
     "MINIPACK": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp",
-            "saiVersion": "1.11.0"
-        },
-        {
-            "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
             "saiSdk": "10.2.0.0_odp",
             "saiVersion": "1.13.2"
@@ -26,12 +20,6 @@
     "FUJI": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp",
-            "saiVersion": "1.11.0"
-        },
-        {
-            "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
             "saiSdk": "10.2.0.0_odp",
             "saiVersion": "1.13.2"
@@ -50,12 +38,6 @@
     "ELBERT": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp",
-            "saiVersion": "1.11.0"
-        },
-        {
-            "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
             "saiSdk": "10.2.0.0_odp",
             "saiVersion": "1.13.2"
@@ -68,12 +50,6 @@
     "YAMP": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp",
-            "saiVersion": "1.11.0"
-        },
-        {
-            "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
             "saiSdk": "10.2.0.0_odp",
             "saiVersion": "1.13.2"
@@ -108,12 +84,6 @@
     "WEDGE100": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp",
-            "saiVersion": "1.11.0"
-        },
-        {
-            "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
             "saiSdk": "10.2.0.0_odp",
             "saiVersion": "1.13.2"
@@ -126,12 +96,6 @@
     "WEDGE": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp",
-            "saiVersion": "1.11.0"
-        },
-        {
-            "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
             "saiSdk": "10.2.0.0_odp",
             "saiVersion": "1.13.2"
@@ -144,12 +108,6 @@
     "WEDGE400": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp",
-            "saiVersion": "1.11.0"
-        },
-        {
-            "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
             "saiSdk": "10.2.0.0_odp",
             "saiVersion": "1.13.2"
@@ -168,12 +126,6 @@
     "DARWIN": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp",
-            "saiVersion": "1.11.0"
-        },
-        {
-            "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
             "saiSdk": "10.2.0.0_odp",
             "saiVersion": "1.13.2"
