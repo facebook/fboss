@@ -44,6 +44,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdConfigReloadTest.cpp
   fboss/cli/fboss2/test/CmdConfigSessionDiffTest.cpp
   fboss/cli/fboss2/test/CmdConfigSessionTest.cpp
+  fboss/cli/fboss2/test/CmdConfigVlanStaticMacTest.cpp
   fboss/cli/fboss2/test/CmdGetPcapTest.cpp
   fboss/cli/fboss2/test/CmdListConfigTest.cpp
   fboss/cli/fboss2/test/CmdSetPortStateTest.cpp

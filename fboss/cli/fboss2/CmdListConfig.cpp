@@ -26,6 +26,10 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
+#include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h"
+#include "fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h"
+#include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
+#include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
 
 namespace facebook::fboss {
 
@@ -131,6 +135,32 @@ const CommandTree& kConfigCommandTree() {
        "Rollback to a previous config revision",
        commandHandler<CmdConfigRollback>,
        argTypeHandler<CmdConfigRollbackTraits>},
+
+      {
+          "config",
+          "vlan",
+          "Configure VLAN settings",
+          commandHandler<CmdConfigVlan>,
+          argTypeHandler<CmdConfigVlanTraits>,
+          {{
+              "static-mac",
+              "Manage static MAC entries for VLANs",
+              commandHandler<CmdConfigVlanStaticMac>,
+              argTypeHandler<CmdConfigVlanStaticMacTraits>,
+              {{
+                   "add",
+                   "Add a static MAC entry to a VLAN",
+                   commandHandler<CmdConfigVlanStaticMacAdd>,
+                   argTypeHandler<CmdConfigVlanStaticMacAddTraits>,
+               },
+               {
+                   "delete",
+                   "Delete a static MAC entry from a VLAN",
+                   commandHandler<CmdConfigVlanStaticMacDelete>,
+                   argTypeHandler<CmdConfigVlanStaticMacDeleteTraits>,
+               }},
+          }},
+      },
   };
   sort(root.begin(), root.end());
   return root;
