@@ -423,6 +423,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.cpp
   fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h
+  fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.cpp
   fboss/cli/fboss2/commands/show/l2/CmdShowL2.h
   fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h
   fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.cpp
