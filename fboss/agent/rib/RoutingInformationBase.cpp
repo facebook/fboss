@@ -314,7 +314,8 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
         RibRouteUpdater updater(
             &(routeTable.v4NetworkToRoute),
             &(routeTable.v6NetworkToRoute),
-            &(routeTable.labelToRoute));
+            &(routeTable.labelToRoute),
+            nextHopIDManager_);
         updater.update(
             {{ClientID::REMOTE_INTERFACE_ROUTE, toAddRoutes}},
             {{ClientID::REMOTE_INTERFACE_ROUTE, toDelRoutes}},
@@ -341,7 +342,8 @@ void RibRouteTables::update(
     RibRouteUpdater updater(
         &(routeTable.v4NetworkToRoute),
         &(routeTable.v6NetworkToRoute),
-        &(routeTable.labelToRoute));
+        &(routeTable.labelToRoute),
+        nextHopIDManager_);
     updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
   });
   updateFib(resolver, routerID, fibUpdateCallback, cookie);
