@@ -1,7 +1,10 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
 #include <boost/functional/hash.hpp>
@@ -222,6 +225,112 @@ NextHopIDManager::NextHopUpdateResult NextHopIDManager::updateRouteNextHopSetID(
   result.allocation = getOrAllocRouteNextHopSetID(newNextHopSet);
 
   return result;
+}
+
+void NextHopIDManager::clearNhopIdManagerState() {
+  nextHopToIDInfo_.clear();
+  idToNextHop_.clear();
+  nextHopIdSetToIDInfo_.clear();
+  idToNextHopIdSet_.clear();
+}
+
+void NextHopIDManager::reconstructFromFib(
+    const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap) {
+  clearNhopIdManagerState();
+
+  if (!fibsInfoMap || fibsInfoMap->empty()) {
+    return;
+  }
+
+  NextHopID maxNextHopId = NextHopID(kNextHopIDStart - 1);
+  NextHopSetID maxNextHopSetId = NextHopSetID(kNextHopSetIDStart - 1);
+
+  // Iterate through each FIBInfo on all switches
+  for (const auto& [switchId, fibInfo] : std::as_const(*fibsInfoMap)) {
+    auto id2NhopMapInFib = fibInfo->getIdToNextHopMap();
+    auto id2NhopIdSetMapInFib = fibInfo->getIdToNextHopIdSetMap();
+    auto fibsMap = fibInfo->getfibsMap();
+
+    if (!fibsMap || !id2NhopMapInFib || !id2NhopIdSetMapInFib) {
+      continue;
+    }
+
+    // function to process a single SetID - This setId can be
+    // resolvedNextHopSetID, normalizedResolvedNextHopID, and any future ID
+    // types
+    auto processNhopSetId = [&](NextHopSetID setId) {
+      // Lookup NextHopIDSet from FibInfo's idToNextHopIdSetMap
+      auto nextHopIdSetNode = id2NhopIdSetMapInFib->getNextHopIdSet(
+          static_cast<state::NextHopSetIdType>(setId));
+      CHECK(nextHopIdSetNode);
+      // Build NextHopIDSet and process each NextHop
+      // Iterate directly over the node; elements are wrapped, so unwrap with
+      // .toThrift()
+      NextHopIDSet nextHopIDSet;
+      for (const auto& elem : *nextHopIdSetNode) {
+        NextHopID nextHopID((*elem).toThrift());
+        nextHopIDSet.insert(nextHopID);
+
+        // Lookup NextHop from FibInfo's idToNextHopMap
+        auto nhNode = id2NhopMapInFib->getNextHopIf(
+            static_cast<state::NextHopIdType>(nextHopID));
+        if (!nhNode) {
+          throw FbossError(
+              "Inconsistent state: NextHopID ",
+              nextHopID,
+              " not found in FibInfo's idToNextHopMap for SetID ",
+              setId);
+        }
+
+        auto nextHop = util::fromThrift(
+            nhNode->toThrift(), true /* allowV6NonLinkLocal */);
+
+        // Update NextHop maps and refcounts
+        auto nhInfoIt = nextHopToIDInfo_.find(nextHop);
+        if (nhInfoIt == nextHopToIDInfo_.end()) {
+          nextHopToIDInfo_.emplace(nextHop, NextHopIDInfo(nextHopID, 1));
+          idToNextHop_[nextHopID] = nextHop;
+        } else {
+          nhInfoIt->second.count++;
+        }
+        maxNextHopId = std::max(maxNextHopId, nextHopID);
+      }
+
+      // Update NextHopIDSet maps and refcounts
+      auto setInfoIt = nextHopIdSetToIDInfo_.find(nextHopIDSet);
+      if (setInfoIt == nextHopIdSetToIDInfo_.end()) {
+        nextHopIdSetToIDInfo_.emplace(nextHopIDSet, NextHopSetIDInfo(setId, 1));
+        idToNextHopIdSet_[setId] = nextHopIDSet;
+      } else {
+        setInfoIt->second.count++;
+      }
+      maxNextHopSetId = std::max(maxNextHopSetId, setId);
+    };
+
+    // process routes from a FIB
+    auto processRoutes = [&](const auto& fib) {
+      for (const auto& [prefix, route] : std::as_const(*fib)) {
+        const auto& fwdInfo = route->getForwardInfo();
+
+        // Process resolvedNextHopSetID
+        if (auto setIdOpt = fwdInfo.getResolvedNextHopSetID()) {
+          processNhopSetId(NextHopSetID(*setIdOpt));
+        }
+
+        // TODO: Process normalizedResolvedNextHopID
+      }
+    };
+
+    // Iterate over all VRFs in this FibInfo
+    for (const auto& [routerId, fibContainer] : std::as_const(*fibsMap)) {
+      processRoutes(fibContainer->getFibV4());
+      processRoutes(fibContainer->getFibV6());
+    }
+  }
+
+  // Set next available IDs
+  nextAvailableNextHopID_ = NextHopID(maxNextHopId + 1);
+  nextAvailableNextHopSetID_ = NextHopSetID(maxNextHopSetId + 1);
 }
 
 } // namespace facebook::fboss
