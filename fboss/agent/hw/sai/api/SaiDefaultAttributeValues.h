@@ -158,8 +158,8 @@ struct SaiPortEyeValuesDefault {
 };
 
 struct SaiPortErrStatusDefault {
-  sai_port_err_status_t operator()() const {
-    return sai_port_err_status_t();
+  sai_port_err_status_list_t operator()() const {
+    return sai_port_err_status_list_t{0, nullptr};
   }
 };
 
