@@ -1016,25 +1016,12 @@ void SaiSwitch::switchEventCallback(
 #endif
 #if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
     case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_LINK_DISABLE:
-      auto fwDisabledPortId = eventInfo->index;
       XLOG(ERR) << "Firmware Auto Admin Link Disable callback received: "
                 << " error type: " << errorType(eventInfo->error_type)
                 << " Auto Admin disabled link: "
-                << static_cast<int>(fwDisabledPortId);
-
-      // Link active/inactive callback and Firmware device isolate is processed
-      // by txReadyStatusChangeOrFwIsolateCallbackBottomHalf. Schedule Firmware
-      // link disable callback Bottom half in the same event base.
-      // Serializing this processing in a single thread keeps the logic simple /
-      // less prone to races. Firmware device isolate and Firmware link disable
-      // will be serialized in the Firmware anyway.
-      // We always want to process Firmare link disable, thus unconditionally
-      // queue for processing regardless of txReadyStatusCHangePending_.
-      txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
-          [this, fwDisabledPortId]() mutable {
-            fwDisabledLinksCallbackBottomHalf({fwDisabledPortId});
-          });
-
+                << static_cast<int>(eventInfo->index);
+      // TODO: propagate to SwSwitch.
+      // SwSwitch will Admin Disable such links and set PortError.
       break;
 #endif
   }
