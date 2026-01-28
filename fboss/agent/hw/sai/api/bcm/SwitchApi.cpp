@@ -307,27 +307,7 @@ void SwitchApi::registerSwitchEventCallback(
     //   callback.
 
     // Register switch events
-    // TODO:
-    //   SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_LINK_DISABLE is available for 12.2
-    //   only. Once it is available for 14.4, adjust this condition to GET_12_2.
-    //   We don't plan to roll out this feature for 11.7.
-#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
-    std::array<uint32_t, 13> events = {
-        SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
-        SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
-        SAI_SWITCH_EVENT_TYPE_STABLE_ERROR,
-        SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN,
-        SAI_SWITCH_EVENT_TYPE_WARM_BOOT_DOWNGRADE,
-        SAI_SWITCH_EVENT_TYPE_INTERRUPT,
-        SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE,
-        SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED,
-        SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE,
-        SAI_SWITCH_EVENT_TYPE_RX_FIFO_STUCK_DETECTED,
-        SAI_SWITCH_EVENT_TYPE_DEVICE_SOFT_RESET,
-        SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED,
-        SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_LINK_DISABLE,
-    };
-#elif defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     std::array<uint32_t, 12> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
         SAI_SWITCH_EVENT_TYPE_STABLE_FULL,

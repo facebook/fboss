@@ -324,10 +324,6 @@ std::string errorType(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH:
       return "SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH";
 #endif
-#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
-    case SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_LINK_DISABLE:
-      return "SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_LINK_DISABLE";
-#endif
 #if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
     // DDP Errors
     case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_ECC_2B_ERR_INT:
@@ -1012,16 +1008,6 @@ void SaiSwitch::switchEventCallback(
       XLOG(ERR) << " Got soft reset event";
       logEventDetails();
       getSwitchStats()->asicSoftResetError();
-      break;
-#endif
-#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
-    case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_LINK_DISABLE:
-      XLOG(ERR) << "Firmware Auto Admin Link Disable callback received: "
-                << " error type: " << errorType(eventInfo->error_type)
-                << " Auto Admin disabled link: "
-                << static_cast<int>(eventInfo->index);
-      // TODO: propagate to SwSwitch.
-      // SwSwitch will Admin Disable such links and set PortError.
       break;
 #endif
   }
