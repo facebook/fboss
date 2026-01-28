@@ -7203,7 +7203,7 @@
           "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf$"
         }
     ],
-    "leaba/25.5.5210/25.5.5210/gibraltar": [
+    "leaba/25.5.4210/25.5.4210/gibraltar": [
         {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
@@ -7568,7 +7568,7 @@
           "test_name_regex": "SaiAclTableRecreateTests.AclEntryCount$"
         }
     ],
-    "leaba/25.5.5210/25.5.5210/graphene200": [
+    "leaba/25.5.4210/25.5.4210/graphene200": [
         {
           "test_name_regex": "HwFlexPortTest.FlexPortFOURX10G"
         },
@@ -7789,7 +7789,7 @@
           "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf$"
         }
     ],
-    "leaba/25.5.5210/25.5.5210/graphene202x": [
+    "leaba/25.5.4210/25.5.4210/graphene202x": [
         {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
