@@ -88,7 +88,7 @@ class Bsp {
 
   // Low level access function for setting PWM and LED value
   virtual bool writeSysfs(const std::string& path, int value);
-  std::vector<std::pair<std::string, float>> processOpticEntries(
+  std::map<std::string, std::vector<OpticData>> processOpticEntries(
       const Optic& opticsGroup,
       uint64_t& currentQsfpSvcTimestamp,
       const std::map<int32_t, TransceiverInfo>& transceiverInfoMap);
