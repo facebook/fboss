@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 
 #include "fboss/agent/AgentDirectoryUtil.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsyncLogger.h"
 #include "fboss/agent/SwSwitchWarmBootHelper.h"
 #include "fboss/agent/SysError.h"

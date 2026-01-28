@@ -132,8 +132,11 @@ class Transceiver {
 
   /*
    * Check if the Transceiver is in ready state for further programming
+   * @param hasTunableOpticsConfig - indicates if tunable optics config is
+   *        present in qsfp_service_config. For tunable optics modules without
+   *        config, high power mode transition is skipped.
    */
-  virtual bool readyTransceiver() = 0;
+  virtual bool readyTransceiver(bool hasTunableOpticsConfig) = 0;
 
   /*
    * Set speed specific settings for the transceiver
@@ -184,8 +187,6 @@ class Transceiver {
   readAndClearCachedMediaLaneSignals() = 0;
 
   virtual void triggerVdmStatsCapture() = 0;
-
-  virtual void publishSnapshots() = 0;
 
   /*
    * Try to remediate such Transceiver if needed.

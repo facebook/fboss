@@ -142,11 +142,20 @@ class AgentHwTest : public ::testing::Test {
   std::vector<PortID> masterLogicalHyperPortIds() const {
     return masterLogicalPortIds({cfg::PortType::HYPER_PORT});
   }
+  std::vector<PortID> masterLogicalInterfaceOrHyperPortIds() const {
+    return masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
+  }
   std::vector<PortID> masterLogicalInterfacePortIds(SwitchID switchId) const {
     return masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}, switchId);
   }
   std::vector<PortID> masterLogicalHyperPortIds(SwitchID switchId) const {
     return masterLogicalPortIds({cfg::PortType::HYPER_PORT}, switchId);
+  }
+  std::vector<PortID> masterLogicalInterfaceOrHyperPortIds(
+      SwitchID switchId) const {
+    return masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}, switchId);
   }
   void setSwitchDrainState(
       const cfg::SwitchConfig& curConfig,

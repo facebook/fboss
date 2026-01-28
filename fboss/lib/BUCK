@@ -369,3 +369,33 @@ cpp_library(
         "//folly/logging:logging",
     ],
 )
+
+cpp_library(
+    name = "thrift_service_utils",
+    srcs = [
+        "facebook/ThriftServiceUtils.cpp",
+    ],
+    headers = [
+        "ThriftServiceUtils.h",
+    ],
+    exported_deps = [
+        "//thrift/lib/cpp2:server",
+    ],
+)
+
+cpp_library(
+    name = "thrift_service_utils_oss",
+    srcs = [
+        "oss/ThriftServiceUtils.cpp",
+    ],
+    headers = [
+        "ThriftServiceUtils.h",
+    ],
+    exported_deps = [
+        "//folly/executors:io_thread_pool_executor",
+        "//folly/io/async:epoll",
+        "//folly/io/async:epoll_backend",
+        "//folly/system:hardware_concurrency",
+        "//thrift/lib/cpp2:server",
+    ],
+)

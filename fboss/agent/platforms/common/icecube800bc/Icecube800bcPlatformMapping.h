@@ -17,11 +17,15 @@ class Icecube800bcPlatformMapping : public PlatformMapping {
  public:
   Icecube800bcPlatformMapping();
   explicit Icecube800bcPlatformMapping(const std::string& platformMappingStr);
+  ~Icecube800bcPlatformMapping() = default;
 
  private:
   // Forbidden copy constructor and assignment operator
   Icecube800bcPlatformMapping(Icecube800bcPlatformMapping const&) = delete;
   Icecube800bcPlatformMapping& operator=(Icecube800bcPlatformMapping const&) =
+      delete;
+  Icecube800bcPlatformMapping(Icecube800bcPlatformMapping&&) = delete;
+  Icecube800bcPlatformMapping& operator=(Icecube800bcPlatformMapping&&) =
       delete;
 };
 } // namespace facebook::fboss

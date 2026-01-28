@@ -58,6 +58,7 @@ thrift_library(
     thrift_srcs = {"link_parameter_thresholds.thrift": []},
     deps = [
         "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -86,6 +87,7 @@ thrift_library(
     ],
     thrift_srcs = {"qsfp_production_features.thrift": []},
     deps = [
+        "//thrift/annotation:thrift",
     ],
 )
 

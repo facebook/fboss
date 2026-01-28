@@ -40,6 +40,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
@@ -124,9 +125,15 @@ StateDelta updateFibFromConfig(
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
+    facebook::fboss::NextHopIDManager const* nextHopIDManager,
     void* cookie) {
   facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
-      resolver, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
+      resolver,
+      vrf,
+      v4NetworkToRoute,
+      v6NetworkToRoute,
+      labelToRoute,
+      nextHopIDManager);
 
   auto nextStatePtr =
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
@@ -1163,6 +1170,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         switch (node->getAsicType()) {
           case cfg::AsicType::ASIC_TYPE_MOCK:
           case cfg::AsicType::ASIC_TYPE_FAKE:
+          case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
           case cfg::AsicType::ASIC_TYPE_JERICHO2:
             asicCore = 1;
             break;
@@ -2842,19 +2850,30 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   const auto& newPinConfigs = platformMapping_->getPortIphyPinConfigs(matcher);
   auto pinConfigsUnchanged = (newPinConfigs == orig->getPinConfigs());
 
-  XLOG_IF(DBG2, !profileConfigUnchanged || !pinConfigsUnchanged)
+  const auto& newSerdesCustomCollection =
+      platformMapping_->getPortSerdesCustomCollection(matcher);
+  auto serdesCustomCollectionUnchanged =
+      (newSerdesCustomCollection == orig->getSerdesCustomCollection());
+
+  XLOG_IF(
+      DBG2,
+      !profileConfigUnchanged || !pinConfigsUnchanged ||
+          !serdesCustomCollectionUnchanged)
       << orig->getName() << " has profileConfig: "
       << (profileConfigUnchanged ? "UNCHANGED" : "CHANGED")
       << ", pinConfigs: " << (pinConfigsUnchanged ? "UNCHANGED" : "CHANGED")
+      << ", serdesCustomCollection: "
+      << (serdesCustomCollectionUnchanged ? "UNCHANGED" : "CHANGED")
       << ", with matcher:" << matcher.toString();
 
-  // Port drain is applicable to only fabric ports.
+  // Port drain is applicable to fabric ports and interface ports.
   if (*portConf->drainState() == cfg::PortDrainState::DRAINED &&
-      *portConf->portType() != cfg::PortType::FABRIC_PORT) {
+      *portConf->portType() != cfg::PortType::FABRIC_PORT &&
+      *portConf->portType() != cfg::PortType::INTERFACE_PORT) {
     throw FbossError(
         "Port ",
         orig->getID(),
-        " cannot be drained as it's NOT a DSF fabric port");
+        " cannot be drained as it's neither a DSF fabric port nor an interface port");
   }
 
   bool portFlowletConfigUnchanged = true;
@@ -2909,6 +2928,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           orig->getExpectedNeighborValues()->toThrift() &&
       *portConf->maxFrameSize() == orig->getMaxFrameSize() &&
       lookupClassesUnchanged && profileConfigUnchanged && pinConfigsUnchanged &&
+      serdesCustomCollectionUnchanged &&
       *portConf->portType() == orig->getPortType() &&
       *portConf->drainState() == orig->getPortDrainState() &&
       portFlowletConfigUnchanged &&
@@ -2934,8 +2954,16 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   for (const auto& tag : *portConf->expectedLLDPValues()) {
     lldpmap[tag.first] = tag.second;
   }
-
-  newPort->setAdminState(*portConf->state());
+  if (*portConf->portType() != cfg::PortType::HYPER_PORT) {
+    newPort->setAdminState(*portConf->state());
+  } else {
+    // hyper port admin state should be controlled by LACP protocol.
+    // So, hyper port is always disabled (default state) in prod config
+    // hyper port could be force enabled through config only in testing
+    if (*portConf->state() == cfg::PortState::ENABLED) {
+      newPort->setAdminState(*portConf->state());
+    }
+  }
   newPort->setIngressVlan(VlanID(*portConf->ingressVlan()));
   newPort->setVlans(vlans);
   if (portConf->portType() == cfg::PortType::HYPER_PORT &&
@@ -2964,6 +2992,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->resetPgConfigs(portPgCfgs);
   newPort->setProfileConfig(*newProfileConfigRef);
   newPort->resetPinConfigs(newPinConfigs);
+  newPort->setSerdesCustomCollection(newSerdesCustomCollection);
   newPort->setPortType(*portConf->portType());
   newPort->setInterfaceIDs(port2InterfaceId_[orig->getID()]);
   newPort->setExpectedNeighborReachability(
@@ -5266,14 +5295,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
 
   if (origSwitchSettings->getSwitchDrainState() !=
       *cfg_->switchSettings()->switchDrainState()) {
-    auto numVoqSwtitches =
-        newSwitchSettings->getSwitchIdsOfType(cfg::SwitchType::VOQ).size();
-    auto numFabSwtitches =
-        newSwitchSettings->getSwitchIdsOfType(cfg::SwitchType::FABRIC).size();
-    if (numFabSwtitches == 0 && numVoqSwtitches == 0) {
-      throw FbossError(
-          "Switch drain/isolate is supported only on VOQ, Fabric switches");
-    }
     newSwitchSettings->setSwitchDrainState(
         *cfg_->switchSettings()->switchDrainState());
     switchSettingsChange = true;

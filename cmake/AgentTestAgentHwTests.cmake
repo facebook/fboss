@@ -80,6 +80,8 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentHwUdfTests.cpp
   fboss/agent/test/agent_hw_tests/AgentArsFlowletTest.cpp
   fboss/agent/test/agent_hw_tests/AgentRouterInterfaceCounterTest.cpp
+  fboss/agent/test/agent_hw_tests/AgentHwPtpTcProvisionTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentRouteOverflowTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src
@@ -123,6 +125,7 @@ target_link_libraries(agent_hw_test_src
   switch_asics
   trunk_test_utils
   resourcelibutil
+  load_balancer_test_runner_h
   load_balancer_test_utils
   l2learn_observer_util
   mac_test_utils
@@ -139,6 +142,7 @@ target_link_libraries(agent_hw_test_src
   scale_test_utils
   neighbor_test_utils
   system_scale_test_utils
+  hyper_port_test_utils
 )
 
 add_executable(multi_switch_agent_hw_test

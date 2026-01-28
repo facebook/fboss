@@ -16,7 +16,7 @@ class AgentEgressForwardingDiscardsCounterTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentHwTest::initialConfig(ensemble);
-    auto firstPortId = ensemble.masterLogicalInterfacePortIds()[0];
+    auto firstPortId = ensemble.masterLogicalInterfaceOrHyperPortIds()[0];
     for (auto& port : *cfg.ports()) {
       if (PortID(*port.logicalID()) == firstPortId) {
         port.maxFrameSize() = 1500;
@@ -31,7 +31,8 @@ class AgentEgressForwardingDiscardsCounterTest : public AgentHwTest {
 };
 
 TEST_F(AgentEgressForwardingDiscardsCounterTest, outForwardingDiscards) {
-  auto egressPortDesc = PortDescriptor(masterLogicalInterfacePortIds()[0]);
+  auto egressPortDesc =
+      PortDescriptor(masterLogicalInterfaceOrHyperPortIds()[0]);
   auto setup = [=, this]() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper6(
         getSw()->getState(), getSw()->needL2EntryForNeighbor());
@@ -64,7 +65,7 @@ TEST_F(AgentEgressForwardingDiscardsCounterTest, outForwardingDiscards) {
         std::vector<uint8_t>(6000, 0xff));
 
     getSw()->sendPacketOutOfPortAsync(
-        std::move(pkt), masterLogicalInterfacePortIds()[1]);
+        std::move(pkt), masterLogicalInterfaceOrHyperPortIds()[1]);
     WITH_RETRIES({
       auto portStatsAfter = getLatestPortStats(port);
       XLOG(INFO) << " Out forwarding discards, before:"
@@ -110,7 +111,8 @@ TEST_F(AgentEgressForwardingDiscardsCounterTest, outForwardingDiscards) {
         *portStatsBefore.outCongestionDiscardPkts_());
     // Assert that other ports did not see any in discard
     // counter increment
-    auto allPortStats = getLatestPortStats(masterLogicalInterfacePortIds());
+    auto allPortStats =
+        getLatestPortStats(masterLogicalInterfaceOrHyperPortIds());
     for (const auto& [p, otherPortStats] : allPortStats) {
       if (port == port) {
         continue;

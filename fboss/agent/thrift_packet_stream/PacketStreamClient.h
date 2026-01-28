@@ -17,6 +17,10 @@ class PacketStreamClient {
   PacketStreamClient(const std::string& clientId, folly::EventBase* evb);
 
   virtual ~PacketStreamClient();
+  PacketStreamClient(const PacketStreamClient&) = delete;
+  PacketStreamClient& operator=(const PacketStreamClient&) = delete;
+  PacketStreamClient(PacketStreamClient&&) = delete;
+  PacketStreamClient& operator=(PacketStreamClient&&) = delete;
   void connectToServer(const std::string& ip, uint16_t port);
   void registerPortToServer(const std::string& port);
   void clearPortFromServer(const std::string& l2port);

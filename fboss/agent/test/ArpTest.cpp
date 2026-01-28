@@ -1542,3 +1542,30 @@ TYPED_TEST(ArpTest, receivedPacketWithRouteToDestination) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.nexthop.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.no_arp.sum", 0);
 }
+
+TEST(ArpHandlerTest, SendArpRequestSwExiting) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  IPAddressV4 targetIP = IPAddressV4("10.0.0.2");
+  CounterCache counters(sw);
+
+  // Verify that ARP requests are sent when switch is initialized
+  EXPECT_TRUE(sw->isFullyInitialized());
+  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(1);
+  ArpHandler::sendArpRequest(sw, targetIP);
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.tx.sum", 1);
+
+  // Stop the switch
+  sw->stop();
+  EXPECT_FALSE(sw->isFullyInitialized());
+  EXPECT_TRUE(sw->isExiting());
+
+  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
+  ArpHandler::sendArpRequest(sw, targetIP);
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.tx.sum", 0);
+}

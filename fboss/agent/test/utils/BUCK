@@ -170,6 +170,19 @@ cpp_library(
 )
 
 cpp_library(
+    name = "hyper_port_test_utils",
+    srcs = [
+        "HyperPortTestUtils.cpp",
+    ],
+    headers = ["HyperPortTestUtils.h"],
+    exported_deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_library(
     name = "trunk_test_utils",
     srcs = [
         "TrunkTestUtils.cpp",
@@ -191,6 +204,7 @@ cpp_library(
     headers = ["MacTestUtils.h"],
     exported_deps = [
         "//fboss/agent:core",
+        "//fboss/agent:hw_switch_thrift_client_table",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/state:state",
         "//fboss/agent/test:test_ensemble_if",
@@ -218,6 +232,7 @@ cpp_library(
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/agent/state:state",
         "//fboss/agent/test:test_ensemble_if",
+        "//fboss/agent/test:trunk_utils",
         "//fboss/lib/config:fboss_config_utils",
         "//folly:format",
         "//folly:network_address",

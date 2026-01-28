@@ -85,6 +85,9 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
   switch (*switchInfo.asicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
       return std::make_unique<FakeAsic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
+      return std::make_unique<FakeAsicNoWarmboot>(
+          switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_MOCK:
       return std::make_unique<MockAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:

@@ -197,9 +197,6 @@ bool QsfpUtilTx::setCmisTxDisableDirect(
 int QsfpUtilTx::setTxDisableViaService() {
   int retVal = EX_OK;
 
-  // Release the bus access for QSFP service
-  bus_->close();
-
   if (!setTxDisableViaServiceHelper(allPortNames_)) {
     retVal |= EX_SOFTWARE;
   }

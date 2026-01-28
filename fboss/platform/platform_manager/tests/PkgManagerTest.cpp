@@ -301,9 +301,12 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
               *platformConfig_.bspKmodsRpmName())))
       .WillOnce(Return(std::vector<std::string>{}));
   EXPECT_CALL(*mockSystemInterface_, lsmod()).Times(0);
+  EXPECT_FALSE(pkgManager_.wereKmodsUnloaded());
   EXPECT_NO_THROW(pkgManager_.unloadBspKmods());
+  EXPECT_FALSE(pkgManager_.wereKmodsUnloaded());
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 0);
+
   // No kmods.json when it should exist
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(std::nullopt));
@@ -317,8 +320,10 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
           std::vector<std::string>{
               "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}));
   EXPECT_THROW(pkgManager_.unloadBspKmods(), std::runtime_error);
+  EXPECT_FALSE(pkgManager_.wereKmodsUnloaded());
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 1);
+
   // kmods.json exist and all kmods are loaded
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(jsonBspKmodsFile_));
@@ -333,8 +338,10 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
           bspKmodsFile_.bspKmods()->size())
       .WillRepeatedly(Return(true));
   EXPECT_NO_THROW(pkgManager_.unloadBspKmods());
+  EXPECT_TRUE(pkgManager_.wereKmodsUnloaded());
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 0);
+
   // kmods.json exists but unload fails
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(jsonBspKmodsFile_));
@@ -345,8 +352,10 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
           ranges::to<std::set<std::string>>));
   EXPECT_CALL(*mockSystemInterface_, unloadKmod(_)).WillOnce(Return(false));
   EXPECT_THROW(pkgManager_.unloadBspKmods(), std::runtime_error);
+  EXPECT_TRUE(pkgManager_.wereKmodsUnloaded());
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 1);
+
   // kmods.json exist and all kmods aren't loaded
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(jsonBspKmodsFile_));
@@ -354,6 +363,7 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
       .WillOnce(Return(std::set<std::string>{}));
   EXPECT_CALL(*mockSystemInterface_, unloadKmod(_)).Times(0);
   EXPECT_NO_THROW(pkgManager_.unloadBspKmods());
+  EXPECT_TRUE(pkgManager_.wereKmodsUnloaded());
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 0);
 }

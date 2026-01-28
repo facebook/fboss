@@ -29,13 +29,12 @@ from fboss.lib.platform_mapping_v2.read_files_utils import (
 )
 from fboss.lib.platform_mapping_v2.si_settings import SiSettings
 from fboss.lib.platform_mapping_v2.static_mapping import StaticMapping
-
 from neteng.fboss.phy.ttypes import (
     DataPlanePhyChip,
     DataPlanePhyChipType,
     PortPinConfig,
+    Side,
 )
-
 from neteng.fboss.platform_config.ttypes import (
     PlatformMapping,
     PlatformPortConfig,
@@ -356,22 +355,35 @@ class PlatformMappingV2:
                 profile, DataPlanePhyChipType.IPHY
             )
 
-            # Get XPHY speed setting (optional)
-            xphy_speed_setting = None
+            # Get XPHY line speed setting
+            xphy_line_speed_setting = None
             try:
-                xphy_speed_setting = (
+                xphy_line_speed_setting = (
                     self.pm_parser.get_profile_settings().get_speed_setting(
-                        profile, DataPlanePhyChipType.XPHY
+                        profile, DataPlanePhyChipType.XPHY, Side.LINE
                     )
                 )
             except Exception:
-                # XPHY speed setting doesn't exist for this profile, which is okay
+                # XPHY line speed setting doesn't exist for this profile, which is okay
+                pass
+
+            # Get XPHY system speed setting
+            xphy_system_speed_setting = None
+            try:
+                xphy_system_speed_setting = (
+                    self.pm_parser.get_profile_settings().get_speed_setting(
+                        profile, DataPlanePhyChipType.XPHY, Side.SYSTEM
+                    )
+                )
+            except Exception:
+                # XPHY system speed setting doesn't exist for this profile, which is okay
                 pass
 
             entry = get_platform_config_entry(
                 profile=profile,
                 npu_speed_setting=npu_speed_setting,
-                xphy_speed_setting=xphy_speed_setting,
+                xphy_line_speed_setting=xphy_line_speed_setting,
+                xphy_system_speed_setting=xphy_system_speed_setting,
             )
             if entry:
                 platform_config_entry.append(entry)
@@ -437,9 +449,11 @@ class PlatformMappingV2:
             mapping.pins = get_mapping_pins(all_connection_pairs)
             # Sort pins by lane id of the 'a' end
             mapping.pins = sorted(mapping.pins, key=lambda pin: pin.a.lane)
-            # Mark the controllingPort as self here. We'll override it later when
-            # we figure out which ports this port needs to subsume
-            mapping.controllingPort = port_id
+            # If explicit controlling_port is specified in the CSV, use it directly.
+            if port_detail.controlling_port is not None:
+                mapping.controllingPort = port_detail.controlling_port
+            else:
+                mapping.controllingPort = port_id
             mapping.portType = port_detail.port_type
             mapping.scope = port_detail.scope
             if port_detail.attached_coreid is not None:
@@ -463,6 +477,11 @@ class PlatformMappingV2:
         # other port uses its iphy pins, then the former port needs to be a
         # subsumed port controlled by the later port
         for port_id, port_entry in ports.items():
+            # Skip controlling port computation if explicit controlling_port was set in CSV
+            port_detail = self.pm_parser.get_port_profile_mapping().get_ports()[port_id]
+            if port_detail.controlling_port is not None:
+                continue
+
             for port_config in port_entry.supportedProfiles.values():
                 if port_entry.mapping.portType != PortType.HYPER_PORT:
                     all_iphy_pins_needed = port_config.pins.iphy

@@ -219,6 +219,19 @@ CLI::App* CmdSubcommands::addCommand(
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_FAN_PWM:
           subCmd->add_option("pwm", args, "Fan PWM (0..100) or 'disable'");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_MTU:
+          subCmd->add_option(
+              "mtu",
+              args,
+              fmt::format("MTU value ({}-{})", utils::kMtuMin, utils::kMtuMax));
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_INTERFACE_LIST:
+          subCmd->add_option("interfaces", args, "Interface(s)");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_REVISION_LIST:
+          subCmd->add_option(
+              "revisions", args, "Revision(s) in the form 'rN' or 'current'");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;
@@ -238,7 +251,10 @@ void CmdSubcommands::addCommandBranch(
   // Command should not already exists since we only traverse the tree once
   if (utils::getSubcommandIf(app, cmd.name)) {
     // TODO explore moving this check to a compile time check
-    std::runtime_error("Command already exists, command tree must be invalid");
+    throw std::runtime_error(
+        fmt::format(
+            "Command `{}` already exists, command tree must be invalid",
+            cmd.name));
   }
   auto* subCmd = addCommand(app, cmd, fullCmd, depth);
   if (cmd.commandHandler) {

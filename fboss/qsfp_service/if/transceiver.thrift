@@ -578,6 +578,11 @@ struct ModuleStatus {
   5: optional bool cmisStateChanged;
 }
 
+enum TransceiverErrorState {
+  INVALID_IDENTIFIER = 0x1,
+  INVALID_DATA_PATH_LANE_STATE = 0x2,
+}
+
 struct TcvrState {
   1: bool present;
   2: TransceiverType transceiver;
@@ -608,6 +613,8 @@ struct TcvrState {
   // Will be set to true if the last attempt to read data from this transceiver
   // was unsuccessful
   30: bool communicationError;
+  // All the error states that require transceiver remediation from self healing
+  31: set<TransceiverErrorState> errorStates;
 }
 
 struct TcvrStats {

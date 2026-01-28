@@ -12,5 +12,6 @@ add_library(galaxy_platform_mapping
 
 target_link_libraries(galaxy_platform_mapping
   platform_mapping
+  utils
   Folly::folly
 )

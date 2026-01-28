@@ -76,11 +76,43 @@ cfg::SwitchConfig interfaceAndStaticRoutesWithNextHopsConfig() {
 
   return config;
 }
+// Helper function to clear resolvedNextHopSetID fields from thrift for
+// comparison. We clear resolvedNextHopSetID now because ID generation currently
+// does not happen in RIB. Therefore, it is expected that initially the RIB
+// routes wont have IDs. In the future we will remove this after moving ID
+// generation logic to the RIB.
+void clearNextHopSetIDsFromThrift(
+    std::map<int32_t, state::RouteTableFields>& routeTables) {
+  for (auto& [_, routeTable] : routeTables) {
+    for (auto& [__, v4Route] : *routeTable.v4NetworkToRoute()) {
+      v4Route.fwd()->resolvedNextHopSetID().reset();
+      v4Route.fwd()->normalizedResolvedNextHopSetID().reset();
+    }
+    for (auto& [__, v6Route] : *routeTable.v6NetworkToRoute()) {
+      v6Route.fwd()->resolvedNextHopSetID().reset();
+      v6Route.fwd()->normalizedResolvedNextHopSetID().reset();
+    }
+  }
+}
+
+bool ribThriftEqual(
+    const RoutingInformationBase& l,
+    const RoutingInformationBase& r) {
+  auto lThrift = l.toThrift();
+  auto rThrift = r.toThrift();
+  clearNextHopSetIDsFromThrift(lThrift);
+  clearNextHopSetIDsFromThrift(rThrift);
+  return lThrift == rThrift;
+}
+
 bool ribEqual(
     const RoutingInformationBase& l,
     const RoutingInformationBase& r) {
-  return l.getRouteTableDetails(kRid0) == r.getRouteTableDetails(kRid0) &&
-      (l.toThrift() == r.toThrift());
+  // Compare route table details (doesn't include resolvedNextHopSetID)
+  if (l.getRouteTableDetails(kRid0) != r.getRouteTableDetails(kRid0)) {
+    return false;
+  }
+  return ribThriftEqual(l, r);
 }
 
 class RibSerializationTest : public ::testing::Test {
@@ -110,7 +142,8 @@ TEST_F(RibSerializationTest, serializeOnlyUnresolvedRoutes) {
       rib.warmBootState(),
       curState->getFibsInfoMap(),
       curState->getLabelForwardingInformationBase());
-  EXPECT_EQ(rib.toThrift(), deserializedRibThrift->toThrift());
+  // Use ribThriftEqual to compare excluding resolvedNextHopSetID
+  EXPECT_TRUE(ribThriftEqual(rib, *deserializedRibThrift));
 }
 
 TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {

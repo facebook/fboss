@@ -13,6 +13,7 @@ thrift_library(
     thrift_srcs = {"test.thrift": []},
     deps = [
         "//fboss/agent:switch_config",
+        "//fboss/agent/if:common",
         "//thrift/annotation:cpp",
         "//thrift/annotation:thrift",
     ],
@@ -31,8 +32,6 @@ cpp_unittest(
         "//fboss/thrift_cow/nodes:serializer",
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
         "//thrift/lib/cpp2/protocol:protocol",
-        "//thrift/lib/cpp2/reflection:reflection",
-        "//thrift/lib/cpp2/reflection:testing",
     ],
 )
 

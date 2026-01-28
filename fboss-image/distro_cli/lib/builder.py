@@ -61,6 +61,26 @@ class ImageBuilder:
             if component in component_names:
                 self._build_component(component)
 
+    def _mv_distro_file(
+        self, image_builder_dir: Path, format_name: str, file_extension: str
+    ):
+        dist_formats = self.manifest.data.get("distribution_formats")
+        if not dist_formats or format_name not in dist_formats:
+            return
+
+        output = (
+            image_builder_dir
+            / "output"
+            / f"FBOSS-Distro-Image.x86_64-1.0.install.{file_extension}"
+        )
+        image = Path(dist_formats[format_name])
+
+        if not output.exists():
+            logger.error(f"Image build output not found: {output}")
+            sys.exit(1)
+
+        shutil.move(str(output), str(image))
+
     def _build_base_image(self):
         """Build the base OS image and create distribution artifacts."""
         logger.info("Starting base OS image build")
@@ -71,8 +91,13 @@ class ImageBuilder:
             logger.error("No distribution formats specified in manifest")
             sys.exit(1)
 
-        if "usb" not in dist_formats:
-            logger.error("USB distribution format not specified in manifest")
+        if not any(k in dist_formats for k in ["usb", "pxe"]):
+            logger.error(
+                "Neither usb nor pxe distribution format specified in manifest."
+            )
+            logger.error(
+                f"Manifest distribution formats: {', '.join(dist_formats.keys())}"
+            )
             sys.exit(1)
 
         # Locate the image builder directory
@@ -90,24 +115,21 @@ class ImageBuilder:
         logger.info(f"Running build script: {build_script}")
 
         # Run the build script
+        cmd = [str(build_script)]
+        if "pxe" in dist_formats or "usb" in dist_formats:
+            cmd.append("--build-pxe-usb")
+        if "onie" in dist_formats:
+            cmd.append("--build-onie")
         try:
-            subprocess.run([str(build_script), "-b"], check=True)
+            subprocess.run(cmd, check=True)
         except subprocess.CalledProcessError as e:
             logger.error(f"Build script failed with exit code {e.returncode}")
             sys.exit(1)
 
-        # Move the output ISO to the specified location
-        output_iso = (
-            image_builder_dir / "output" / "FBOSS-Distro-Image.x86_64-1.0.install.iso"
-        )
-        usb_image = Path(dist_formats["usb"])
+        self._mv_distro_file(image_builder_dir, "usb", "iso")
+        self._mv_distro_file(image_builder_dir, "pxe", "tar")
+        self._mv_distro_file(image_builder_dir, "onie", "bin")
 
-        if not output_iso.exists():
-            logger.error(f"Build output not found: {output_iso}")
-            sys.exit(1)
-
-        logger.info(f"Moving output ISO to: {usb_image}")
-        shutil.move(str(output_iso), str(usb_image))
         logger.info("Finished base OS image build")
 
     def _build_component(self, component: str):

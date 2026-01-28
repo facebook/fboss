@@ -698,6 +698,8 @@ class BcmSwitch : public BcmSwitchIf {
   // Forbidden copy constructor and assignment operator
   BcmSwitch(BcmSwitch const&) = delete;
   BcmSwitch& operator=(BcmSwitch const&) = delete;
+  BcmSwitch(BcmSwitch&&) = delete;
+  BcmSwitch& operator=(BcmSwitch&&) = delete;
 
   /*
    * gracefulExit performs the requisite cleanup
