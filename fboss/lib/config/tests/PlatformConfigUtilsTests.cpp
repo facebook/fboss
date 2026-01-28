@@ -812,7 +812,8 @@ TEST(PlatformConfigUtilsTests, GetPortToTcvrMapNoTransceiver) {
   platformPorts[1] = createSingleTcvrPortEntry(1, "nonexistent");
   auto chipsMap = createChipsMap();
   auto portToTcvrMap = getPortToTcvrMap(platformPorts, chipsMap);
-  EXPECT_EQ(portToTcvrMap.size(), 0);
+  EXPECT_EQ(portToTcvrMap.size(), 1);
+  EXPECT_EQ(portToTcvrMap[PortID(1)].size(), 0);
 }
 
 TEST(PlatformConfigUtilsTests, GetDataPlanePhyChipsWithTwoTransceivers) {
@@ -1282,6 +1283,107 @@ TEST(
   EXPECT_EQ(phyChips.begin()->first, kDefaultIphyChipName);
   EXPECT_EQ(*phyChips.begin()->second.type(), phy::DataPlanePhyChipType::IPHY);
   EXPECT_EQ(*phyChips.begin()->second.physicalID(), 0);
+}
+
+TEST(PlatformConfigUtilsTests, GetPortIdsWithTransceiverOrXphyEmpty) {
+  std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
+  auto portIds = utility::getPortIdsWithTransceiverOrXphy(
+      platformPorts, getPlatformChips());
+  EXPECT_TRUE(portIds.empty());
+}
+
+TEST(PlatformConfigUtilsTests, GetPortIdsWithTransceiverOrXphyTransceiverOnly) {
+  std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
+
+  auto portWithTcvr = getPlatformPortEntryWithoutXPHY();
+  static constexpr int32_t kPortWithTcvrId = 100;
+  *portWithTcvr.mapping()->id() = kPortWithTcvrId;
+  platformPorts[kPortWithTcvrId] = portWithTcvr;
+
+  auto portIds = utility::getPortIdsWithTransceiverOrXphy(
+      platformPorts, getPlatformChips());
+
+  EXPECT_EQ(portIds.size(), 1);
+  EXPECT_EQ(portIds[0], PortID(kPortWithTcvrId));
+}
+
+TEST(PlatformConfigUtilsTests, GetPortIdsWithTransceiverOrXphyXphyOnly) {
+  std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
+
+  auto portWithXphy = getPlatformPortEntryWithXPHY();
+  static constexpr int32_t kPortWithXphyId = 200;
+  *portWithXphy.mapping()->id() = kPortWithXphyId;
+  platformPorts[kPortWithXphyId] = portWithXphy;
+
+  auto portIds = utility::getPortIdsWithTransceiverOrXphy(
+      platformPorts, getPlatformChips());
+
+  EXPECT_EQ(portIds.size(), 1);
+  EXPECT_EQ(portIds[0], PortID(kPortWithXphyId));
+}
+
+TEST(
+    PlatformConfigUtilsTests,
+    GetPortIdsWithTransceiverOrXphyNoTransceiverNoXphy) {
+  std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
+
+  auto portWithoutTcvr = getPlatformPortEntryWithoutTransceiver();
+  static constexpr int32_t kPortWithoutTcvrId = 300;
+  *portWithoutTcvr.mapping()->id() = kPortWithoutTcvrId;
+  platformPorts[kPortWithoutTcvrId] = portWithoutTcvr;
+
+  auto portIds = utility::getPortIdsWithTransceiverOrXphy(
+      platformPorts, getPlatformChips());
+
+  EXPECT_TRUE(portIds.empty());
+}
+
+TEST(PlatformConfigUtilsTests, GetPortIdsWithTransceiverOrXphyMixedPorts) {
+  std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
+
+  // Port with transceiver only
+  auto portWithTcvr = getPlatformPortEntryWithoutXPHY();
+  static constexpr int32_t kPortWithTcvrId = 100;
+  *portWithTcvr.mapping()->id() = kPortWithTcvrId;
+  platformPorts[kPortWithTcvrId] = portWithTcvr;
+
+  // Port with xphy (and transceiver)
+  auto portWithXphy = getPlatformPortEntryWithXPHY();
+  static constexpr int32_t kPortWithXphyId = 200;
+  *portWithXphy.mapping()->id() = kPortWithXphyId;
+  platformPorts[kPortWithXphyId] = portWithXphy;
+
+  // Port without transceiver or xphy
+  auto portWithoutTcvr = getPlatformPortEntryWithoutTransceiver();
+  static constexpr int32_t kPortWithoutTcvrId = 300;
+  *portWithoutTcvr.mapping()->id() = kPortWithoutTcvrId;
+  platformPorts[kPortWithoutTcvrId] = portWithoutTcvr;
+
+  auto portIds = utility::getPortIdsWithTransceiverOrXphy(
+      platformPorts, getPlatformChips());
+
+  // Should include ports with transceiver and xphy, but not the one without
+  EXPECT_EQ(portIds.size(), 2);
+
+  std::set<PortID> portIdSet(portIds.begin(), portIds.end());
+  EXPECT_TRUE(portIdSet.count(PortID(kPortWithTcvrId)) > 0);
+  EXPECT_TRUE(portIdSet.count(PortID(kPortWithXphyId)) > 0);
+  EXPECT_TRUE(portIdSet.count(PortID(kPortWithoutTcvrId)) == 0);
+}
+
+TEST(PlatformConfigUtilsTests, GetPortIdsWithTransceiverOrXphyBackplanePort) {
+  std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
+
+  auto portWithBackplane = getPlatformPortEntryWithBackplane();
+  static constexpr int32_t kPortWithBackplaneId = 50;
+  *portWithBackplane.mapping()->id() = kPortWithBackplaneId;
+  platformPorts[kPortWithBackplaneId] = portWithBackplane;
+
+  // Backplane ports don't have transceiver or xphy
+  auto portIds = utility::getPortIdsWithTransceiverOrXphy(
+      platformPorts, getPlatformChipsWithBackplane());
+
+  EXPECT_TRUE(portIds.empty());
 }
 
 } // namespace facebook::fboss::utility

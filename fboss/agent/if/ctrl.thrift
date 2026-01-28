@@ -63,6 +63,7 @@ enum PortError {
   LANE_SWAP_DETECTED = 2,
   MISMATCHED_NEIGHBOR = 3,
   MISSING_EXPECTED_NEIGHBOR = 4,
+  LINK_DISABLED_BY_FIRMWARE = 5,
 }
 
 struct IpPrefix {
@@ -455,7 +456,7 @@ struct PortQueueFields {
   19: optional common.BufferPoolFields bufferPoolConfig;
 }
 
-@thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
+@common.AllowSkipThriftCow
 struct SystemPortThrift {
   1: i64 portId;
   2: i64 switchId;

@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiDefaultAttributeValues.h"
+#include "fboss/agent/hw/sai/api/Traits.h"
 
 #include <fmt/format.h>
 #include <fmt/ranges.h>
@@ -336,3 +338,15 @@ static_assert(
 static_assert(
     IsSaiAttribute<VecAttr>::value,
     "VecAttr should be a SAI Attribute");
+
+// Test verifying SaiPortErrStatusDefault returns correct type
+TEST(Attribute, PortErrStatusDefaultType) {
+  SaiPortErrStatusDefault defaultGetter;
+  auto defaultValue = defaultGetter();
+  // Must return sai_port_err_status_list_t to avoid heap-buffer-overflow
+  static_assert(
+      std::is_same<decltype(defaultValue), sai_port_err_status_list_t>::value,
+      "SaiPortErrStatusDefault type check");
+  EXPECT_EQ(defaultValue.count, 0);
+  EXPECT_EQ(defaultValue.list, nullptr);
+}

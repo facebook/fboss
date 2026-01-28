@@ -18,20 +18,19 @@
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/EcmpResourceManager.h"
 #include "fboss/agent/FabricLinkMonitoringManager.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
-#include "fboss/agent/LinkConnectivityProcessor.h"
-#include "fboss/agent/Utils.h"
-
-#include "fboss/agent/EcmpResourceManager.h"
+#include "fboss/agent/FileBasedWarmbootUtils.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LinkAggregationManager.h"
+#include "fboss/agent/LinkConnectivityProcessor.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
@@ -39,6 +38,7 @@
 #include "fboss/agent/ShelManager.h"
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/TxPacketUtils.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #if FOLLY_HAS_COROUTINES
@@ -385,16 +385,6 @@ void updatePhyFb303Stats(
       }
     }
   }
-}
-
-bool isPortDrained(
-    const std::shared_ptr<SwitchState>& state,
-    const Port* port,
-    SwitchID portSwitchId) {
-  HwSwitchMatcher matcher(std::unordered_set<SwitchID>({portSwitchId}));
-  const auto& switchSettings = state->getSwitchSettings()->getSwitchSettings(
-      HwSwitchMatcher(std::unordered_set<SwitchID>({portSwitchId})));
-  return switchSettings->isSwitchDrained() || port->isDrained();
 }
 
 std::string getVirtualDeviceIdToEligibleNumActivePortsStr(
@@ -1330,8 +1320,10 @@ void SwSwitch::exitFatal() const noexcept {
 std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
-  bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
-                                                     : BootType::COLD_BOOT;
+  bootType_ = swSwitchWarmbootHelper_->canWarmBoot(
+                  isRunModeMultiSwitch(), getHwSwitchThriftClientTable())
+      ? BootType::WARM_BOOT
+      : BootType::COLD_BOOT;
   XLOG(INFO) << kNetworkEventLogPrefix
              << " Boot Type: " << apache::thrift::util::enumNameSafe(bootType_)
              << " | SDK version: " << getAsicSdkVersion(sdkVersion_)
@@ -1350,8 +1342,7 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   restart_time::init(
       agentDirUtil_->getWarmBootDir(), bootType_ == BootType::WARM_BOOT);
 
-  auto [state, rib] = SwSwitchWarmBootHelper::reconstructStateAndRib(
-      wbState, scopeResolver_->hasL3());
+  auto [state, rib] = reconstructStateAndRib(wbState, scopeResolver_->hasL3());
   rib_ = std::move(rib);
 
   if (bootType_ != BootType::WARM_BOOT) {

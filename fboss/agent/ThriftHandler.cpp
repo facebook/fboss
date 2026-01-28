@@ -1847,6 +1847,8 @@ void ThriftHandler::programInternalPhyPorts(
         auto newPort = oldPort->modify(&newState);
         newPort->setProfileConfig(*newProfileConfigRef);
         newPort->resetPinConfigs(newPinConfigs);
+        newPort->setSerdesCustomCollection(
+            sw_->getPlatformMapping()->getPortSerdesCustomCollection(matcher));
       }
 
       return newState;

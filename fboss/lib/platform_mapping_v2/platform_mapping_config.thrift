@@ -79,11 +79,15 @@ struct Port {
   8: switch_config.PortType port_type;
   9: switch_config.Scope scope;
   10: optional i32 parent_port_id;
+  // Optional explicit controlling port. If set, this value is used directly
+  // instead of computing based on pin overlap logic.
+  11: optional i32 controlling_port;
 }
 
 struct ChipSetting {
   1: ChipType chip_type;
   2: phy.InterfaceType chip_interface_type;
+  3: optional phy.FecMode chip_fec;
 }
 
 // Stores the information parsed from Profile Settings CSV
@@ -99,7 +103,6 @@ struct SpeedSetting {
 
 struct TransceiverOverrideSetting {
   1: transceiver.Vendor vendor;
-  2: transceiver.MediaInterfaceCode media_interface_code;
 }
 
 // Represents all the factors in the SI Settings CSV

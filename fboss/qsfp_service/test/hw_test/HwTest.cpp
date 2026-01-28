@@ -14,6 +14,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/qsfp_service/QsfpServer.h"
@@ -190,11 +191,28 @@ void HwTest::waitTillCabledTcvrProgrammed(int numRetries, bool portUp) {
   // First get all expected transceivers based on cabled ports from agent.conf
   const auto& expectedIds =
       utility::getCabledPortTranceivers(getHwQsfpEnsemble());
-  const auto& expectedPorts = utility::getCabledPorts(getHwQsfpEnsemble());
+  const auto& allCabledPorts = utility::getCabledPorts(getHwQsfpEnsemble());
   const PortStateMachineState expectedPortState = portUp
       ? PortStateMachineState::PORT_UP
       : PortStateMachineState::PORT_DOWN;
 
+  // Filter cabled ports to only include those managed by qsfp_service
+  // (i.e., ports with TRANSCEIVER or XPHY chips). Ports connected directly
+  // to backplane without XPHY are not managed by qsfp_service.
+  const auto& platformMapping = getHwQsfpEnsemble()->getPlatformMapping();
+  auto managedPortIds = utility::getPortIdsWithTransceiverOrXphy(
+      platformMapping->getPlatformPorts(), platformMapping->getChips());
+  std::set<PortID> managedPortSet(managedPortIds.begin(), managedPortIds.end());
+
+  std::set<PortID> expectedPorts;
+  for (const auto& portId : allCabledPorts) {
+    if (managedPortSet.count(portId) > 0) {
+      expectedPorts.insert(portId);
+    } else {
+      XLOG(INFO) << "Skipping port " << portId
+                 << " - not managed by qsfp_service (no TRANSCEIVER or XPHY)";
+    }
+  }
   // Due to some platforms are easy to have i2c issue which causes the current
   // refresh not work as expected. Adding enough retries to make sure that we
   // at least can secure TRANSCEIVER_PROGRAMMED after `numRetries` times.

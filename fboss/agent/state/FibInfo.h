@@ -12,6 +12,7 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
@@ -25,6 +26,13 @@ RESOLVE_STRUCT_MEMBER(
     FibInfo,
     switch_state_tags::fibsMap,
     ForwardingInformationBaseMap);
+
+RESOLVE_STRUCT_MEMBER(FibInfo, switch_state_tags::idToNextHop, IdToNextHopMap);
+
+RESOLVE_STRUCT_MEMBER(
+    FibInfo,
+    switch_state_tags::idToNextHopIdSet,
+    IdToNextHopIdSetMap);
 
 class FibInfo : public ThriftStructNode<FibInfo, state::FibInfoFields> {
  public:
@@ -62,6 +70,25 @@ class FibInfo : public ThriftStructNode<FibInfo, state::FibInfoFields> {
     } else {
       ref<switch_state_tags::fibsMap>().reset();
     }
+  }
+
+  // IdToNextHop map accessors
+  std::shared_ptr<IdToNextHopMap> getIdToNextHopMap() const {
+    return safe_cref<switch_state_tags::idToNextHop>();
+  }
+
+  void setIdToNextHopMap(std::shared_ptr<IdToNextHopMap> idToNextHopMap) {
+    ref<switch_state_tags::idToNextHop>() = idToNextHopMap;
+  }
+
+  // IdToNextHopIdSet map accessors
+  std::shared_ptr<IdToNextHopIdSetMap> getIdToNextHopIdSetMap() const {
+    return safe_cref<switch_state_tags::idToNextHopIdSet>();
+  }
+
+  void setIdToNextHopIdSetMap(
+      std::shared_ptr<IdToNextHopIdSetMap> idToNextHopIdSetMap) {
+    ref<switch_state_tags::idToNextHopIdSet>() = idToNextHopIdSetMap;
   }
 
  private:

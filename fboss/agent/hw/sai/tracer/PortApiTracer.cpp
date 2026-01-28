@@ -128,6 +128,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortSerdesMap{
     SAI_ATTR_MAP(PortSerdes, TxFirPost1),
     SAI_ATTR_MAP(PortSerdes, TxFirPost2),
     SAI_ATTR_MAP(PortSerdes, TxFirPost3),
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+    SAI_ATTR_MAP(PortSerdes, CustomCollection),
+#endif
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _PortConnectorMap{
@@ -200,6 +203,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(PortSerdes, Dco)
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)
   SAI_EXT_ATTR_MAP(PortSerdes, FltS)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxReach)
   SAI_EXT_ATTR_MAP(PortSerdes, RVga)
   SAI_EXT_ATTR_MAP(PortSerdes, RxEq1)
   SAI_EXT_ATTR_MAP(PortSerdes, RxEq2)

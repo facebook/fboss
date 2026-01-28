@@ -526,6 +526,7 @@ bool needsExtraFPQsetQualifiers(cfg::AsicType asicType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
       return true;
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:

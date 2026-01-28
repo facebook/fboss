@@ -14,6 +14,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/state/FibInfo.h"
@@ -79,12 +80,14 @@ TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
   facebook::fboss::IPv4NetworkToRouteMap v4NetworkToRouteMap;
   facebook::fboss::IPv6NetworkToRouteMap v6NetworkToRouteMap;
   facebook::fboss::LabelToRouteMap labelToRouteMap;
+  facebook::fboss::NextHopIDManager nextHopIDManager;
   facebook::fboss::ForwardingInformationBaseUpdater updater(
       nullptr,
       vrfOne,
       v4NetworkToRouteMap,
       v6NetworkToRouteMap,
-      labelToRouteMap);
+      labelToRouteMap,
+      &nextHopIDManager);
   auto updatedState = updater(initialState);
 
   // Lastly, we check that the invocations of modify() operated on the

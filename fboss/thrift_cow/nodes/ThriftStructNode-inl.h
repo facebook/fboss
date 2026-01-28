@@ -169,8 +169,9 @@ struct ThriftStructFields : public FieldBaseType {
   using Members = typename Info::members;
 
   // Extracting useful common types out of each member via Traits.h
-  using MemberTypes = fatal::
-      transform<Members, ExtractStructFields<Derived, EnableHybridStorage>>;
+  using MemberTypes = fatal::transform<
+      Members,
+      ExtractStructFields<TType, Derived, EnableHybridStorage>>;
 
   // type list of members with SkipThriftCow enabled
   using MemberTypesWithSkipThriftCow =

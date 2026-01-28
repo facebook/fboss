@@ -23,7 +23,8 @@ DECLARE_int32(state_machine_update_thread_heartbeat_ms);
 namespace facebook::fboss {
 class SlotThreadHelper {
  public:
-  explicit SlotThreadHelper(const TransceiverID& id) : id_(id) {}
+  explicit SlotThreadHelper(int id, std::string strPrefix = "port")
+      : id_(id), strPrefix_(std::move(strPrefix)) {}
 
   void startThread();
   void stopThread();
@@ -41,7 +42,8 @@ class SlotThreadHelper {
 
  private:
   //  For logging purposes.
-  TransceiverID id_;
+  int id_;
+  std::string strPrefix_;
 
   // Can't use ScopedEventBaseThread as it won't work well with
   // handcrafted HeaderClientChannel client instead of servicerouter client

@@ -319,6 +319,9 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
     swPort->setProfileConfig(*profileConfig->iphy());
     swPort->resetPinConfigs(
         saiPlatform->getPlatformMapping()->getPortIphyPinConfigs(matcher));
+    swPort->setSerdesCustomCollection(
+        saiPlatform->getPlatformMapping()->getPortSerdesCustomCollection(
+            matcher));
   }
   phy::PortPrbsState prbsState;
   prbsState.enabled() = true;

@@ -71,9 +71,6 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   XLOG(DBG3) << "Created lineport " << saiLinePort->adapterKey();
   handle->port = saiLinePort;
 
-  // Program System and Line side Serdes
-  programSerdes(saiLinePort, swPort, handle.get());
-
   // Create the port connector
   SaiPortConnectorTraits::CreateAttributes portConnAttr{
       saiLinePort->adapterKey(), saiSysPort->adapterKey()};
@@ -84,6 +81,10 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   XLOG(DBG3) << "Created port connector " << saiPortConn->adapterKey();
 
   handle->connector = saiPortConn;
+
+  // Program System and Line side Serdes
+  programSerdes(saiLinePort, swPort, handle.get());
+
   handles_.emplace(swPort->getID(), std::move(handle));
 
   // Make admin state of sysport and lineport up after the connector  is created
@@ -322,7 +323,8 @@ void SaiPortManager::programSerdes(
     SaiPortHandle* portHandle) {
   if (!platform_->isSerdesApiSupported() ||
       !(platform_->getAsic()->isSupported(
-          HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET))) {
+          HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING))) {
+    XLOG(INFO) << "Serdes programming not supported, skipping";
     return;
   }
 
@@ -383,7 +385,8 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     PortSaiId portSaiId,
     const std::vector<phy::PinConfig>& pinConfigs,
     const std::shared_ptr<SaiPortSerdes>& /* serdes */,
-    bool /* zeroPreemphasis */) {
+    bool /* zeroPreemphasis */,
+    const std::optional<std::string>& customCollection) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;

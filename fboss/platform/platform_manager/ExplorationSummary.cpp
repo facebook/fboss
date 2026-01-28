@@ -26,15 +26,33 @@ void ExplorationSummary::addError(
   ExplorationError newError;
   newError.errorType() = toExplorationErrorTypeStr(errorType);
   newError.message() = message;
+
+  auto addExpectedError =
+      [this](const std::string& devicePath, ExplorationError& newError) {
+        devicePathToExpectedErrors_[devicePath].push_back(newError);
+        nExpectedErrs_++;
+      };
+
+  // https://fb.workplace.com/groups/1419427118405392/permalink/2752297575118333
+  // https://fb.workplace.com/groups/264616536023347/permalink/907140855104242/
+  // for details. To be removed once the issue is fixed.
+  if ((*platformConfig_.platformName() == "MONTBLANC" ||
+       *platformConfig_.platformName() == "JANGA800BIC" ||
+       *platformConfig_.platformName() == "TAHAN800BC") &&
+      errorType == ExplorationErrorType::IDPROM_READ &&
+      devicePath == "/[IDPROM]") {
+    addExpectedError(devicePath, newError);
+    return;
+  }
+
   if ((errorType == ExplorationErrorType::SLOT_PM_UNIT_ABSENCE ||
        errorType == ExplorationErrorType::RUN_DEVMAP_SYMLINK) &&
       isSlotExpectedToBeEmpty(devicePath)) {
-    devicePathToExpectedErrors_[devicePath].push_back(newError);
-    nExpectedErrs_++;
-  } else {
-    devicePathToErrors_[devicePath].push_back(newError);
-    nErrs_++;
+    addExpectedError(devicePath, newError);
+    return;
   }
+  devicePathToErrors_[devicePath].push_back(newError);
+  nErrs_++;
 }
 
 void ExplorationSummary::addError(

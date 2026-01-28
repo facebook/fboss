@@ -47,8 +47,6 @@ void SaiHandler::getCurrentHwStateJSONForPaths(
 SaiHandler::SaiHandler(SaiSwitch* hw)
     : hw_(hw), diagShell_(hw), diagCmdServer_(hw, &diagShell_) {}
 
-SaiHandler::~SaiHandler() {}
-
 apache::thrift::ResponseAndServerStream<std::string, std::string>
 SaiHandler::startDiagShell() {
   XLOG(DBG2) << "New diag shell session connecting";

@@ -914,7 +914,17 @@ struct SaiPortSerdesTraits {
         SAI_PORT_SERDES_ATTR_TX_FIR_POST3,
         std::vector<sai_uint32_t>,
         SaiU32ListDefault>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+    using CustomCollection = SaiAttribute<
+        EnumType,
+        SAI_PORT_SERDES_ATTR_CUSTOM_COLLECTION,
+        SaiJsonString,
+        StdNullOptDefault<SaiJsonString>>;
+#endif
     /* extension attributes */
+    struct AttributeRxReachWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
     struct AttributeRVgaWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -985,6 +995,9 @@ struct SaiPortSerdesTraits {
     struct AttributeRxAfeAdaptiveEnableWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
+    using RxReach = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxReachWrapper>;
     using RVga =
         SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeRVgaWrapper>;
     using Dco =
@@ -1291,7 +1304,12 @@ struct SaiPortSerdesTraits {
       std::optional<Attributes::RxDiffEncoderEn>,
       std::optional<Attributes::RxInstgEnableScan>,
       std::optional<Attributes::RxFfeLengthBitmap>,
-      std::optional<Attributes::RxFfeLmsDynamicGatingEn>>;
+      std::optional<Attributes::RxFfeLmsDynamicGatingEn>
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+      ,
+      std::optional<Attributes::CustomCollection>
+#endif
+      >;
 };
 
 SAI_ATTRIBUTE_NAME(PortSerdes, PortId);
@@ -1342,6 +1360,7 @@ SAI_ATTRIBUTE_NAME(PortSerdes, RxDiffEncoderEn);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgEnableScan);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxFfeLengthBitmap);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxFfeLmsDynamicGatingEn);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxReach);
 SAI_ATTRIBUTE_NAME(PortSerdes, RVga);
 SAI_ATTRIBUTE_NAME(PortSerdes, Dco);
 SAI_ATTRIBUTE_NAME(PortSerdes, FltM);
@@ -1358,6 +1377,9 @@ SAI_ATTRIBUTE_NAME(PortSerdes, RxTap1);
 SAI_ATTRIBUTE_NAME(PortSerdes, TpChn2);
 SAI_ATTRIBUTE_NAME(PortSerdes, TpChn1);
 SAI_ATTRIBUTE_NAME(PortSerdes, TpChn0);
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+SAI_ATTRIBUTE_NAME(PortSerdes, CustomCollection);
+#endif
 
 struct SaiPortConnectorTraits {
   static constexpr sai_object_type_t ObjectType =

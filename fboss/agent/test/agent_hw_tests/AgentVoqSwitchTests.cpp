@@ -332,9 +332,15 @@ TEST_F(AgentVoqSwitchTest, fdrRciAndCoreRciWatermarks) {
 
 TEST_F(AgentVoqSwitchTest, addRemoveNeighbor) {
   auto setup = [this]() {
-    const PortDescriptor kPortDesc(
-        getAgentEnsemble()->masterLogicalPortIds(
-            {cfg::PortType::INTERFACE_PORT})[0]);
+    PortID portID;
+    if (FLAGS_hyper_port) {
+      portID = getAgentEnsemble()->masterLogicalPortIds(
+          {cfg::PortType::HYPER_PORT})[0];
+    } else {
+      portID = getAgentEnsemble()->masterLogicalPortIds(
+          {cfg::PortType::INTERFACE_PORT})[0];
+    }
+    const PortDescriptor kPortDesc(portID);
     // Add neighbor
     addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
     // Remove neighbor
@@ -1036,12 +1042,13 @@ TEST_F(AgentVoqSwitchTest, verifyAI23ModeConfig) {
 
         // Check if AI23_mode is enabled in the config
         bool isAI23ModeEnabled =
-            configOutput.find("AI23_mode=1") != std::string::npos;
+            (configOutput.find("AI23_mode=1") != std::string::npos ||
+             configOutput.find("AI23_mode.BCM88897=3") != std::string::npos);
         XLOG(DBG2) << "Switch ID: " << switchId << ", AI23_mode enabled? "
                    << (isAI23ModeEnabled ? "yes" : "no");
 
         EXPECT_TRUE(isAI23ModeEnabled)
-            << "AI23_mode=1 is not enabled for SAI major version "
+            << "AI23_mode=1 or AI23_mode.BCM88897=3 is not enabled for SAI major version "
             << sdkMajorVersionNum << " on switch ID " << switchId;
       } else {
         XLOG(DBG2)

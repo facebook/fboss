@@ -9,7 +9,7 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         ":tomahawk6",
-        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
         "//fboss/lib/platform_mapping_v2:asic_vendor_config",
         "//fboss/lib/platform_mapping_v2:gen-library",
         "//fboss/lib/platform_mapping_v2:platform_mapping_config-py-deprecated",
@@ -21,7 +21,7 @@ python_library(
     name = "asic_config",
     srcs = ["asic_config.py"],
     labels = ["autodeps2_generated"],
-    deps = ["//fboss/agent/hw/config:asic_config_v2-python-types"],
+    deps = ["//fboss/agent/hw/config:asic_config_v2-py-deprecated"],
 )
 
 python_library(
@@ -31,7 +31,7 @@ python_library(
     deps = [
         "fbsource//third-party/pypi/pyyaml:pyyaml",
         ":bcmxgs",
-        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
     ],
 )
 
@@ -41,7 +41,7 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         ":asic_config",
-        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
     ],
 )
 
@@ -51,7 +51,7 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         ":bcm",
-        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
         "//fboss/lib/platform_mapping_v2:asic_vendor_config",
         "//fboss/lib/platform_mapping_v2:platform_mapping_config-py-deprecated",
     ],
@@ -67,7 +67,7 @@ python_binary(
         ":icecube800bc",
         ":montblanc",
         ":wedge800bact",
-        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
         "//fboss/lib/if:fboss_common-py-deprecated",
         "//thrift/lib/py:server_base",
         "//thrift/lib/py/util:py_util",
@@ -80,7 +80,7 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         ":tomahawk5",
-        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
         "//fboss/lib/platform_mapping_v2:asic_vendor_config",
         "//fboss/lib/platform_mapping_v2:gen-library",
         "//fboss/lib/platform_mapping_v2:platform_mapping_config-py-deprecated",
@@ -94,7 +94,7 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         ":tomahawk5",
-        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
         "//fboss/lib/platform_mapping_v2:asic_vendor_config",
         "//fboss/lib/platform_mapping_v2:gen-library",
         "//fboss/lib/platform_mapping_v2:platform_mapping_config-py-deprecated",
@@ -109,7 +109,7 @@ python_library(
     deps = [
         "fbsource//third-party/pypi/pyyaml:pyyaml",
         ":bcmxgs",
-        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
     ],
 )
 
@@ -126,7 +126,7 @@ python_library(
     srcs = ["all_asic_config_params.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
         "//fboss/lib/if:fboss_common-py-deprecated",
     ],
 )

@@ -26,8 +26,8 @@ sai_status_t create_ars_profile_fn(
   sai_uint8_t port_load_past_weight = 16;
   sai_uint32_t load_past_min_val = 1000;
   sai_uint32_t load_past_max_val = 10000;
-  bool port_load_future = true;
-  sai_uint8_t port_load_future_weight = 16;
+  std::optional<bool> port_load_future = std::nullopt;
+  std::optional<sai_uint8_t> port_load_future_weight = std::nullopt;
   sai_uint32_t load_future_min_val = 60000;
   sai_uint32_t load_future_max_val = 3000000;
   bool port_load_current = true;
@@ -282,10 +282,10 @@ sai_status_t get_ars_profile_attribute_fn(
         attr[i].value.u32 = arsProfile.load_past_max_val;
         break;
       case SAI_ARS_PROFILE_ATTR_PORT_LOAD_FUTURE:
-        attr[i].value.booldata = arsProfile.port_load_future;
+        attr[i].value.booldata = arsProfile.port_load_future.value_or(true);
         break;
       case SAI_ARS_PROFILE_ATTR_PORT_LOAD_FUTURE_WEIGHT:
-        attr[i].value.u8 = arsProfile.port_load_future_weight;
+        attr[i].value.u8 = arsProfile.port_load_future_weight.value_or(16);
         break;
       case SAI_ARS_PROFILE_ATTR_LOAD_FUTURE_MIN_VAL:
         attr[i].value.u32 = arsProfile.load_future_min_val;

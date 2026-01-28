@@ -31,7 +31,10 @@ add_library(switch_asics
 )
 
 target_link_libraries(switch_asics
+  agent_features
+  fboss_error
   fboss_cpp2
+  fboss_types
   phy_cpp2
   switch_config_cpp2
   version_util

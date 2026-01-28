@@ -354,7 +354,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
           FbossEepromInterface(eepromPath, *idpromConfig.offset()));
       const auto& eepromContents =
           dataStore_.getEepromContents(idpromDevicePath);
-      if (idpromDevicePath == platformConfig_.chassisEepromDevicePath()) {
+      if (idpromDevicePath == *platformConfig_.chassisEepromDevicePath()) {
         updateHardwareVersions(eepromContents);
       }
       pmUnitNameInEeprom = eepromContents.getProductName();
@@ -498,6 +498,11 @@ void PlatformExplorer::exploreI2cDevices(
               Utils().createDevicePath(
                   slotPath, *i2cDeviceConfig.pmUnitScopedName()),
               FbossEepromInterface(eepromPath, 0));
+          if (devicePath == *platformConfig_.chassisEepromDevicePath()) {
+            const auto& eepromContents =
+                dataStore_.getEepromContents(devicePath);
+            updateHardwareVersions(eepromContents);
+          }
         } catch (const std::exception& e) {
           auto errMsg = fmt::format(
               "Could not fetch contents of EEPROM device {} in {}. {}",
@@ -539,32 +544,37 @@ void PlatformExplorer::explorePciDevices(
     dataStore_.updateSysfsPath(pciDevicePath, pciDevice.sysfsPath());
     dataStore_.updateCharDevPath(pciDevicePath, pciDevice.charDevPath());
 
+    auto createI2cAdapter = [&](const I2cAdapterConfig& i2cAdapterConfig) {
+      auto busNums =
+          pciExplorer_.createI2cAdapter(pciDevice, i2cAdapterConfig, instId++);
+      if (*i2cAdapterConfig.numberOfAdapters() > 1) {
+        CHECK_EQ(busNums.size(), *i2cAdapterConfig.numberOfAdapters());
+        for (auto i = 0; i < busNums.size(); i++) {
+          dataStore_.updateI2cBusNum(
+              slotPath,
+              fmt::format(
+                  "{}@{}",
+                  *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+                  i),
+              busNums[i]);
+        }
+      } else {
+        CHECK_EQ(busNums.size(), 1);
+        dataStore_.updateI2cBusNum(
+            slotPath,
+            *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+            busNums[0]);
+      }
+    };
+    auto i2cAdapterConfigs = Utils::createI2cAdapterConfigs(pciDeviceConfig);
+    if (i2cAdapterConfigs.size() == 0) {
+      i2cAdapterConfigs = *pciDeviceConfig.i2cAdapterConfigs();
+    }
     createPciSubDevices(
         slotPath,
-        *pciDeviceConfig.i2cAdapterConfigs(),
+        i2cAdapterConfigs,
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_I2C_ADAPTER,
-        [&](const auto& i2cAdapterConfig) {
-          auto busNums = pciExplorer_.createI2cAdapter(
-              pciDevice, i2cAdapterConfig, instId++);
-          if (*i2cAdapterConfig.numberOfAdapters() > 1) {
-            CHECK_EQ(busNums.size(), *i2cAdapterConfig.numberOfAdapters());
-            for (auto i = 0; i < busNums.size(); i++) {
-              dataStore_.updateI2cBusNum(
-                  slotPath,
-                  fmt::format(
-                      "{}@{}",
-                      *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
-                      i),
-                  busNums[i]);
-            }
-          } else {
-            CHECK_EQ(busNums.size(), 1);
-            dataStore_.updateI2cBusNum(
-                slotPath,
-                *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
-                busNums[0]);
-          }
-        });
+        createI2cAdapter);
     createPciSubDevices(
         slotPath,
         *pciDeviceConfig.spiMasterConfigs(),

@@ -30,15 +30,14 @@ class MockWedgeManager : public WedgeManager {
         ? platformMapping
         : makeFakePlatformMapping(numModules, numPortsPerModule);
   }
-  static std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-  getSlotThreadHelper(
-      std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          slotThreadHelper,
+  static std::shared_ptr<QsfpServiceThreads> getQsfpServiceThreads(
+      std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads,
       int numModules,
       int numPortsPerModule) {
-    return slotThreadHelper ? slotThreadHelper
-                            : makeSlotThreadHelper(makeFakePlatformMapping(
-                                  numModules, numPortsPerModule));
+    return qsfpServiceThreads
+        ? qsfpServiceThreads
+        : createQsfpServiceThreads(
+              makeFakePlatformMapping(numModules, numPortsPerModule));
   }
 
  public:
@@ -46,14 +45,13 @@ class MockWedgeManager : public WedgeManager {
       int numModules = 16,
       int numPortsPerModule = 4,
       std::shared_ptr<const FakeTestPlatformMapping> platformMapping = nullptr,
-      std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          slotThreadHelper = nullptr)
+      std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads = nullptr)
       : WedgeManager(
             std::make_unique<MockTransceiverPlatformApi>(),
             getPlatformMapping(platformMapping, numModules, numPortsPerModule),
             PlatformType::PLATFORM_WEDGE,
-            getSlotThreadHelper(
-                slotThreadHelper,
+            getQsfpServiceThreads(
+                qsfpServiceThreads,
                 numModules,
                 numPortsPerModule)),
         numModules_(numModules) {}
@@ -104,6 +102,11 @@ class MockWedgeManager : public WedgeManager {
       return it->second.get();
     }
     throw FbossError("Can't find Transceiver=", id);
+  }
+
+  folly::Synchronized<std::unordered_map<TransceiverID, SnapshotManager>>&
+  getSnapshotManagersForTesting() {
+    return TransceiverManager::getSnapshotManagersForTesting();
   }
 
   int getNumQsfpModules() const override {

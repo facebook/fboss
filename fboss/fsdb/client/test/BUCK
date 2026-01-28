@@ -1,6 +1,26 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 
 oncall("fboss_agent_push")
+
+cpp_binary(
+    name = "stress_test_client",
+    srcs = ["stress_test_client.cpp"],
+    deps = [
+        "//fboss/fsdb/client:fsdb_cow_state_sub_manager",
+        "//fboss/fsdb/client:fsdb_cow_stats_sub_manager",
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//folly:string",
+        "//folly/init:init",
+        "//folly/synchronization:baton",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
 
 cpp_unittest(
     name = "fsdb_client_tests",

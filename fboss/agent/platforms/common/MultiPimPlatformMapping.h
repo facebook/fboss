@@ -16,6 +16,7 @@ namespace facebook::fboss {
 class MultiPimPlatformMapping : public PlatformMapping {
  public:
   explicit MultiPimPlatformMapping(const std::string& jsonPlatformMappingStr);
+  ~MultiPimPlatformMapping() override = default;
 
   PlatformMapping* getPimPlatformMapping(uint8_t pimID);
 
@@ -29,5 +30,7 @@ class MultiPimPlatformMapping : public PlatformMapping {
   // Forbidden copy constructor and assignment operator
   MultiPimPlatformMapping(MultiPimPlatformMapping const&) = delete;
   MultiPimPlatformMapping& operator=(MultiPimPlatformMapping const&) = delete;
+  MultiPimPlatformMapping(MultiPimPlatformMapping&&) = delete;
+  MultiPimPlatformMapping& operator=(MultiPimPlatformMapping&&) = delete;
 };
 } // namespace facebook::fboss

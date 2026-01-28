@@ -1188,9 +1188,6 @@ TEST_F(PlatformMappingTest, VerifyWedge100YV3T1DownlinkPortIphyPinConfigs) {
 TEST_F(PlatformMappingTest, VerifyMeru800bfaPlatformPortConfigOverrideFactor) {
   const cfg::PortProfileID meru800bfaProfile =
       cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL;
-  cfg::PlatformPortConfigOverrideFactor factor;
-  factor.mediaInterfaceCode() = MediaInterfaceCode::FR1_100G;
-
   Vendor vendor = Vendor();
   *vendor.name() = "Vendor_1";
   *vendor.oui() = "0x1";
@@ -1199,6 +1196,7 @@ TEST_F(PlatformMappingTest, VerifyMeru800bfaPlatformPortConfigOverrideFactor) {
   *vendor.serialNumber() = "0x123";
   *vendor.dateCode() = "0x1234";
 
+  cfg::PlatformPortConfigOverrideFactor factor;
   factor.vendor() = vendor;
   // Set product version to 5 to get the kJsonMultiNpuProdPlatformMappingStr
   auto mapping = std::make_unique<Meru800bfaPlatformMapping>(
@@ -1212,8 +1210,6 @@ TEST_F(PlatformMappingTest, VerifyMeru800bfaPlatformPortConfigOverrideFactor) {
     CHECK_EQ(override.factor()->profiles()->size(), 1);
     CHECK(override.factor()->profiles()->front() == meru800bfaProfile);
     const auto& overrideFactor = override.factor();
-    EXPECT_EQ(
-        overrideFactor->mediaInterfaceCode(), factor.mediaInterfaceCode());
     EXPECT_EQ(overrideFactor->vendor()->name(), factor.vendor()->name());
     EXPECT_EQ(
         overrideFactor->vendor()->partNumber(), factor.vendor()->partNumber());

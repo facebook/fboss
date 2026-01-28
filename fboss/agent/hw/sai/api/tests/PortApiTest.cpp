@@ -159,6 +159,9 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // RxInstgEnableScan
         std::nullopt, // RxFfeLengthBitmap
         std::nullopt, // RxFfeLmsDynamicGatingEn
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+        std::nullopt, // CustomCollection
+#endif
     };
     return portApi->create<SaiPortSerdesTraits>(a, 0 /*switch id*/);
   }

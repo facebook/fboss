@@ -491,8 +491,7 @@ class ManifestParser(object):
                 )
 
         raise KeyError(
-            "project %s has no fetcher configuration or system packages matching %s"
-            % (self.name, ctx)
+            f"project {self.name} has no fetcher configuration or system packages matching {ctx} - have you run `getdeps.py install-system-deps --recursive`?"
         )
 
     def create_fetcher(self, build_options, loader, ctx):
@@ -525,7 +524,7 @@ class ManifestParser(object):
         dep_manifests,
         final_install_prefix=None,
         extra_cmake_defines=None,
-        cmake_target=None,
+        cmake_targets=None,
         extra_b2_args=None,
     ):
         builder = self.get_builder_name(ctx)
@@ -622,7 +621,7 @@ class ManifestParser(object):
                 defines,
                 final_install_prefix,
                 extra_cmake_defines,
-                cmake_target,
+                cmake_targets,
             )
 
         if builder == "python-wheel":

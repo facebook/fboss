@@ -10,7 +10,7 @@
 
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/SwSwitchWarmBootHelper.h"
+#include "fboss/agent/FileBasedWarmbootUtils.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 
@@ -296,8 +296,7 @@ void BaseEcmpResourceManagerTest::TearDown() {
   {
     auto wbState = sw_->gracefulExitState();
     auto [reconstructedState, reconstructedRib] =
-        sw_->getWarmBootHelper()->reconstructStateAndRib(
-            wbState, true /*hasL3*/);
+        reconstructStateAndRib(wbState, true /*hasL3*/);
     // Assert reconstructed RIB matches both reconstructed
     // state and current SwitchState. The above APIs will
     // be used on WB to reconstruct both rib and switch
