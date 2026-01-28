@@ -128,12 +128,6 @@ void MultiSwitchThriftHandler::processLinkConnectivity(
   sw_->linkConnectivityChanged(port2ConnectivityDelta);
 }
 
-void MultiSwitchThriftHandler::processLinkDisabledByFirmware(
-    SwitchID /*switchId*/,
-    const multiswitch::LinkChangeEvent& /*linkChangeEvent*/) {
-  // TODO
-}
-
 void MultiSwitchThriftHandler::processSwitchReachabilityChangeEvent(
     SwitchID switchId,
     const multiswitch::SwitchReachabilityChangeEvent&
@@ -178,9 +172,6 @@ MultiSwitchThriftHandler::co_notifyLinkChangeEvent(int64_t switchId) {
                 break;
               case multiswitch::LinkChangeEventType::LINK_CONNECTIVITY:
                 processLinkConnectivity(SwitchID(switchId), *item);
-                break;
-              case multiswitch::LinkChangeEventType::LINK_DISABLED_BY_FIRMWARE:
-                processLinkDisabledByFirmware(SwitchID(switchId), *item);
                 break;
               case multiswitch::LinkChangeEventType::INVALID:
                 XLOG(ERR) << "Invalid link event type";
