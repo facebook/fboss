@@ -166,13 +166,16 @@ std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
     uint64_t& currentQsfpSvcTimestamp,
     const std::map<int32_t, TransceiverInfo>& transceiverInfoMap) {
   std::vector<std::pair<std::string, float>> data{};
+  std::vector<int32_t> txvrsIdsWithNoData;
+  std::map<std::string, std::vector<std::pair<int32_t, float>>>
+      transceiversByOpticType;
+
   for (const auto& [xvrId, transceiverInfo] : transceiverInfoMap) {
     const TcvrState& tcvrState = *transceiverInfo.tcvrState();
     const TcvrStats& tcvrStats = *transceiverInfo.tcvrStats();
 
     if (!tcvrStats.sensor()) {
-      XLOG(ERR) << fmt::format(
-          "Transceiver id {} has no sensor data. Ignoring.", xvrId);
+      txvrsIdsWithNoData.push_back(xvrId);
       continue;
     }
 
@@ -234,10 +237,31 @@ std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
             "Transceiver id {} has unsupported media type {}. Ignoring.",
             xvrId,
             int(mediaInterfaceCode));
-        break;
+        continue;
     }
     data.emplace_back(opticType, temp);
+    transceiversByOpticType[opticType].emplace_back(xvrId, temp);
   }
+
+  if (!txvrsIdsWithNoData.empty()) {
+    XLOG(INFO) << fmt::format(
+        "Transceivers with no data (ignored): {}",
+        folly::join(", ", txvrsIdsWithNoData));
+  }
+  if (!transceiversByOpticType.empty()) {
+    for (const auto& [opticType, transceivers] : transceiversByOpticType) {
+      std::vector<std::string> tempStrings;
+      tempStrings.reserve(transceivers.size());
+      for (const auto& [id, temp] : transceivers) {
+        tempStrings.push_back(fmt::format("{}({:.1f}C)", id, temp));
+      }
+      XLOG(INFO) << fmt::format(
+          "Transceivers with data [{}]: {}",
+          opticType,
+          folly::join(", ", tempStrings));
+    }
+  }
+
   return data;
 }
 
