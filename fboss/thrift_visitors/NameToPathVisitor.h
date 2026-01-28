@@ -2,12 +2,13 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include <fatal/type/search.h>
 #include <fatal/type/trie.h>
 #include <folly/Conv.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/op/Get.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
 
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/thrift_visitors/gen-cpp2/results_types.h"
@@ -365,7 +366,7 @@ struct NameToPathVisitor<apache::thrift::type::union_t<T>> {
           path(ChildKeyT()), begin, curr, end, std::forward<Func>(f));
     };
 
-    auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
+    auto idTry = folly::tryTo<std::int16_t>(token);
     if (!idTry.hasError()) {
       fatal::scalar_search<
           typename folly::remove_cvref_t<Path>::ChildrenById,
@@ -402,7 +403,7 @@ struct NameToPathVisitor<apache::thrift::type::union_t<T>> {
             path(ChildKeyT()), curr, end, std::forward<Func>(f));
       };
 
-      auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
+      auto idTry = folly::tryTo<std::int16_t>(token);
       if (!idTry.hasError()) {
         fatal::scalar_search<
             typename folly::remove_cvref_t<Path>::ChildrenById,
@@ -460,7 +461,7 @@ struct NameToPathVisitor<apache::thrift::type::struct_t<T>> {
           path(ChildKeyT()), begin, curr, end, std::forward<Func>(f));
     };
 
-    auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
+    auto idTry = folly::tryTo<std::int16_t>(token);
     if (!idTry.hasError()) {
       fatal::scalar_search<
           typename folly::remove_cvref_t<Path>::ChildrenById,
@@ -496,7 +497,7 @@ struct NameToPathVisitor<apache::thrift::type::struct_t<T>> {
             path(ChildKeyT()), curr, end, std::forward<Func>(f));
       };
 
-      auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
+      auto idTry = folly::tryTo<std::int16_t>(token);
       if (!idTry.hasError()) {
         fatal::scalar_search<
             typename folly::remove_cvref_t<Path>::ChildrenById,

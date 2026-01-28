@@ -168,7 +168,8 @@ class SaiPortManager {
       PortSaiId portSaid,
       const std::vector<phy::PinConfig>& pinConfigs,
       const std::shared_ptr<SaiPortSerdes>& serdes,
-      bool zeroPreemphasis = false);
+      bool zeroPreemphasis = false,
+      const std::optional<std::string>& customCollection = std::nullopt);
 
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);
@@ -278,7 +279,8 @@ class SaiPortManager {
       PortID portID) const;
   std::vector<sai_port_lane_latch_status_t> getRxLockStatus(
       PortSaiId saiPortId,
-      uint8_t numPmdLanes) const;
+      uint8_t numPmdLanes,
+      PortID portID) const;
   std::vector<sai_port_lane_latch_status_t> getFecAlignmentLockStatus(
       PortSaiId saiPortId,
       uint8_t numFecLanes) const;
@@ -503,6 +505,8 @@ class SaiPortManager {
       const std::shared_ptr<Port>& swPort,
       const std::optional<cfg::PortPfc>& newPfc,
       const std::optional<cfg::PortPfc>& oldPfc);
+  SaiPortSerdesTraits::Attributes::RxReach::ValueType getSaiRxReach(
+      const std::vector<phy::RxReach>& rxReaches) const;
   void programPfcDurationCounter(
       const std::shared_ptr<Port>& swPort,
       const std::optional<cfg::PortPfc>& newPfc,

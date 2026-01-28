@@ -2046,7 +2046,8 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     PortID portID = portIdAndHandle.first;
     if (portManager.getPortType(portID) == cfg::PortType::INTERFACE_PORT ||
         portManager.getPortType(portID) == cfg::PortType::FABRIC_PORT ||
-        portManager.getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
+        portManager.getPortType(portID) == cfg::PortType::MANAGEMENT_PORT ||
+        portManager.getPortType(portID) == cfg::PortType::HYPER_PORT_MEMBER) {
       auto portHandle = portIdAndHandle.second.get();
       if (portHandle == nullptr) {
         XLOG(DBG3) << "PortHandle not found for port "
@@ -2248,7 +2249,7 @@ void SaiSwitch::updatePmdInfo(
   }
 
   auto pmdLockStatus = managerTable_->portManager().getRxLockStatus(
-      port->adapterKey(), numPmdLanes);
+      port->adapterKey(), numPmdLanes, portID);
   for (auto pmd : pmdLockStatus) {
     auto laneId = pmd.lane;
     phy::LaneStats laneStat;
@@ -3069,12 +3070,16 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     auto portMaps =
         managerTable_->portManager().reconstructPortsFromStore(getSwitchType());
     auto ports = std::make_shared<MultiSwitchPortMap>();
-    if (FLAGS_hide_fabric_ports) {
+    if (FLAGS_hide_fabric_ports || FLAGS_hide_interface_ports) {
       for (const auto& portMap : std::as_const(*portMaps)) {
         for (const auto& [id, port] : std::as_const(*portMap.second)) {
-          if (port->getPortType() != cfg::PortType::FABRIC_PORT) {
-            ports->addNode(port, scopeResolver->scope(port));
+          if ((port->getPortType() == cfg::PortType::FABRIC_PORT &&
+               FLAGS_hide_fabric_ports) ||
+              (port->getPortType() == cfg::PortType::INTERFACE_PORT &&
+               FLAGS_hide_interface_ports)) {
+            continue;
           }
+          ports->addNode(port, scopeResolver->scope(port));
         }
       }
     } else {
@@ -3210,7 +3215,7 @@ HwInitResult SaiSwitch::initLocked(
   return ret;
 }
 
-void SaiSwitch::setFabricPortOwnershipToAdapter() {
+void SaiSwitch::setPortOwnershipToAdapter() {
   if ((getSwitchType() == cfg::SwitchType::FABRIC) ||
       (getSwitchType() == cfg::SwitchType::VOQ)) {
     // only do this for fabric or voq switches
@@ -3218,6 +3223,7 @@ void SaiSwitch::setFabricPortOwnershipToAdapter() {
     auto fabricPorts = switchApi.getAttribute(
         saiSwitchId_, SaiSwitchTraits::Attributes::FabricPortList{});
     auto& portStore = saiStore_->get<SaiPortTraits>();
+    std::vector<PortSaiId> portSaiIdsOwnedByAdapter;
     for (auto& fid : fabricPorts) {
       // Fabric ports are explicitly made to own by adapter because NOS
       // can't remove/add fabric ports.
@@ -3232,15 +3238,39 @@ void SaiSwitch::setFabricPortOwnershipToAdapter() {
         // case, sdk will continue to load fabric port and serdes, but not
         // claimed by NOS since its created by adapter. Hence we need to
         // explicitly mark serdes objects as owned by adapter in that case.
-        auto& portSerdesStore = saiStore_->get<SaiPortSerdesTraits>();
-        std::optional<SaiPortTraits::Attributes::SerdesId> serdesAttr{};
-        auto serdesId = SaiApiTable::getInstance()->portApi().getAttribute(
-            PortSaiId(fid), serdesAttr);
-        if (serdesId.has_value()) {
-          portSerdesStore.loadObjectOwnedByAdapter(
-              static_cast<PortSerdesSaiId>(serdesId.value()),
-              true /* add to warm boot handles*/);
+        portSaiIdsOwnedByAdapter.emplace_back(fid);
+      }
+    }
+    if (FLAGS_hide_interface_ports) {
+      for (auto& iter : portStore.objects()) {
+        auto saiPort = iter.second.lock();
+        if (!saiPort) {
+          continue;
         }
+        auto portSaiId = saiPort->adapterKey();
+        auto portType = SaiApiTable::getInstance()->portApi().getAttribute(
+            portSaiId, SaiPortTraits::Attributes::Type{});
+        bool isHyperPortMember = false;
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+        isHyperPortMember = SaiApiTable::getInstance()->portApi().getAttribute(
+            portSaiId, SaiPortTraits::Attributes::IsHyperPortMember{});
+#endif
+        if (portType == SAI_PORT_TYPE_LOGICAL && !isHyperPortMember) {
+          portStore.loadObjectOwnedByAdapter(
+              portSaiId, true /* add to warm boot handles*/);
+          portSaiIdsOwnedByAdapter.emplace_back(portSaiId);
+        }
+      }
+    }
+    auto& portSerdesStore = saiStore_->get<SaiPortSerdesTraits>();
+    std::optional<SaiPortTraits::Attributes::SerdesId> serdesAttr{};
+    for (const auto& portSaiId : portSaiIdsOwnedByAdapter) {
+      auto serdesId = SaiApiTable::getInstance()->portApi().getAttribute(
+          portSaiId, serdesAttr);
+      if (serdesId.has_value()) {
+        portSerdesStore.loadObjectOwnedByAdapter(
+            static_cast<PortSerdesSaiId>(serdesId.value()),
+            true /* add to warm boot handles*/);
       }
     }
   }
@@ -3302,7 +3332,7 @@ void SaiSwitch::initStoreAndManagersLocked(
       managerTable_->switchManager().setupCounterRefreshInterval();
     }
     if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
-      setFabricPortOwnershipToAdapter();
+      setPortOwnershipToAdapter();
     }
 
     // during warm boot, all default system ports created for the platform
@@ -4655,6 +4685,70 @@ void SaiSwitch::processRemovedDelta(
     [[maybe_unused]] const auto& lock = lockPolicy.lock();
     (manager.*removedFunc)(removed, args...);
   });
+}
+
+template <typename LockPolicyT, typename AddrT>
+void SaiSwitch::processChangedRoutesDeltaInReverse(
+    const RouterID& routerID,
+    const auto& routesDelta,
+    const LockPolicyT& lockPolicy) {
+  // During rollback, process changed routes in reverse order
+  std::vector<
+      std::pair<std::shared_ptr<Route<AddrT>>, std::shared_ptr<Route<AddrT>>>>
+      changedRoutes;
+
+  DeltaFunctions::forEachChanged(
+      routesDelta,
+      [&changedRoutes](
+          const std::shared_ptr<Route<AddrT>>& oldRoute,
+          const std::shared_ptr<Route<AddrT>>& newRoute) {
+        changedRoutes.push_back({oldRoute, newRoute});
+      });
+
+  for (auto it = changedRoutes.rbegin(); it != changedRoutes.rend(); ++it) {
+    [[maybe_unused]] const auto& lock = lockPolicy.lock();
+    managerTable_->routeManager().changeRoute<AddrT>(
+        it->first, it->second, routerID);
+  }
+}
+
+template <typename LockPolicyT, typename AddrT>
+void SaiSwitch::processAddedRoutesDeltaInReverse(
+    const RouterID& routerID,
+    const auto& routesDelta,
+    const LockPolicyT& lockPolicy) {
+  // During rollback, process added routes in reverse order
+  std::vector<std::shared_ptr<Route<AddrT>>> addedRoutes;
+
+  DeltaFunctions::forEachAdded(
+      routesDelta, [&addedRoutes](const std::shared_ptr<Route<AddrT>>& route) {
+        addedRoutes.push_back(route);
+      });
+
+  for (auto it = addedRoutes.rbegin(); it != addedRoutes.rend(); ++it) {
+    [[maybe_unused]] const auto& lock = lockPolicy.lock();
+    managerTable_->routeManager().addRoute<AddrT>(*it, routerID);
+  }
+}
+
+template <typename LockPolicyT, typename AddrT>
+void SaiSwitch::processRemovedRoutesDeltaInReverse(
+    const RouterID& routerID,
+    const auto& routesDelta,
+    const LockPolicyT& lockPolicy) {
+  // During rollback, process removed routes in reverse order
+  std::vector<std::shared_ptr<Route<AddrT>>> removedRoutes;
+
+  DeltaFunctions::forEachRemoved(
+      routesDelta,
+      [&removedRoutes](const std::shared_ptr<Route<AddrT>>& route) {
+        removedRoutes.push_back(route);
+      });
+
+  for (auto it = removedRoutes.rbegin(); it != removedRoutes.rend(); ++it) {
+    [[maybe_unused]] const auto& lock = lockPolicy.lock();
+    managerTable_->routeManager().removeRoute<AddrT>(*it, routerID);
+  }
 }
 
 void SaiSwitch::dumpDebugState(const std::string& path) const {

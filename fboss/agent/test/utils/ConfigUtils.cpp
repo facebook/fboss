@@ -16,6 +16,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
@@ -103,6 +104,38 @@ cfg::InterfaceType getInterfaceType(const HwAsic& asic) {
     return cfg::InterfaceType::PORT;
   }
   return cfg::InterfaceType::VLAN;
+}
+
+void populateHyperPortAggregates(
+    const PlatformMapping* platformMapping,
+    cfg::SwitchConfig& config) {
+  const auto& platformPorts = platformMapping->getPlatformPorts();
+  for (const auto& [portID, portEntry] : platformPorts) {
+    if (*portEntry.mapping()->portType() != cfg::PortType::HYPER_PORT) {
+      continue;
+    }
+    const auto& supportedProfiles = *portEntry.supportedProfiles();
+    if (supportedProfiles.empty()) {
+      continue;
+    }
+    const auto& firstProfile = supportedProfiles.begin()->second;
+    auto subsumedPorts = firstProfile.subsumedPorts();
+    if (!subsumedPorts) {
+      continue;
+    }
+    std::vector<int32_t> memberPortIDs;
+    for (auto subsumedPort : *subsumedPorts) {
+      memberPortIDs.push_back(static_cast<int32_t>(subsumedPort));
+    }
+    addAggPort(
+        static_cast<int>(portID),
+        memberPortIDs,
+        &config,
+        cfg::LacpPortRate::FAST,
+        1.0,
+        cfg::AggregatePortType::HYPER_PORT,
+        *portEntry.mapping()->name());
+  }
 }
 } // namespace
 folly::MacAddress kLocalCpuMac() {
@@ -788,6 +821,11 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
           portScope);
     }
   }
+
+  if (FLAGS_hyper_port) {
+    populateHyperPortAggregates(platformMapping, config);
+  }
+
   return config;
 }
 
@@ -815,56 +853,64 @@ cfg::SwitchConfig genPortVlanCfg(
   } else {
     std::map<SwitchID, cfg::SwitchInfo> defaultSwitchIdToSwitchInfo;
     std::map<SwitchID, const HwAsic*> defaultHwAsicTable;
-    auto switchType = asic->getSwitchType();
     auto asicType = asic->getAsicType();
     int64_t switchId{0};
+    std::string connectionHandle;
     if (asic->getSwitchId().has_value()) {
       switchId = *asic->getSwitchId();
     }
-    defaultHwAsicTable.insert({SwitchID(switchId), asic});
-    cfg::SwitchInfo switchInfo;
     cfg::Range64 portIdRange;
     portIdRange.minimum() =
         cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
     portIdRange.maximum() = cfg::switch_config_constants::
         DEFAULT_DUAL_STAGE_3Q_2Q_PORT_ID_RANGE_MAX();
-    switchInfo.portIdRange() = portIdRange;
-    switchInfo.switchIndex() = 0;
-    switchInfo.switchType() = switchType;
-    switchInfo.asicType() = asicType;
+
     // TODO: Instead of using hard codings for connection handle and
     // src mac, get the configs from AgentConfig
     if (asicType == cfg::AsicType::ASIC_TYPE_RAMON) {
-      switchInfo.connectionHandle() = "0c:00";
-    } else if (asicType == cfg::AsicType::ASIC_TYPE_RAMON3) {
-      switchInfo.connectionHandle() = "15:00";
+      connectionHandle = "0c:00";
+    } else if (
+        asicType == cfg::AsicType::ASIC_TYPE_RAMON3 ||
+        asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      connectionHandle = "15:00";
     } else if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2) {
-      switchInfo.switchMac() = "02:00:00:00:00:01";
-      switchInfo.connectionHandle() = "68:00";
-    } else if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-      switchInfo.switchMac() = "02:00:00:00:00:01";
-      switchInfo.connectionHandle() = "15:00";
+      connectionHandle = "68:00";
     } else if (
         asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
         asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
         asicType == cfg::AsicType::ASIC_TYPE_G202X) {
-      switchInfo.connectionHandle() = "/dev/uio0";
+      connectionHandle = "/dev/uio0";
     }
-    switchInfo.systemPortRanges() = asic->getSystemPortRanges();
-    if (asic->getLocalSystemPortOffset().has_value()) {
-      switchInfo.localSystemPortOffset() = *asic->getLocalSystemPortOffset();
-    }
-    if (asic->getGlobalSystemPortOffset().has_value()) {
-      switchInfo.globalSystemPortOffset() = *asic->getGlobalSystemPortOffset();
-    }
-    if (asic->getInbandPortId().has_value()) {
-      switchInfo.inbandPortId() = *asic->getInbandPortId();
-    }
+
     if (platformType.has_value() &&
         platformType.value() == PlatformType::PLATFORM_LADAKH800BCLS) {
-      populateSwitchInfoForLadakh(static_cast<SwitchID>(switchId), switchInfo);
+      portIdRange.maximum() =
+          cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
+      defaultSwitchIdToSwitchInfo.insert(
+          {SwitchID(0),
+           generateSwitchInfo((SwitchID)0, portIdRange, "0000:15:00=0", asic)});
+      defaultHwAsicTable.insert({SwitchID(0), asic});
+
+      // Add switch info for switch ID 1
+      auto numPorts =
+          (cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX() -
+           cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN()) +
+          1;
+      portIdRange.minimum() =
+          cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX() + 1;
+      portIdRange.maximum() =
+          cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX() + numPorts;
+
+      defaultSwitchIdToSwitchInfo.insert(
+          {SwitchID(1),
+           generateSwitchInfo((SwitchID)1, portIdRange, "0000:18:00=0", asic)});
+      defaultHwAsicTable.insert({SwitchID(1), asic});
+    } else {
+      cfg::SwitchInfo switchInfo = generateSwitchInfo(
+          (SwitchID)switchId, portIdRange, connectionHandle, asic);
+      defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
+      defaultHwAsicTable.insert({SwitchID(switchId), asic});
     }
-    defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
     populateSwitchInfo(
         config, defaultSwitchIdToSwitchInfo, defaultHwAsicTable, platformType);
   }
@@ -898,13 +944,18 @@ cfg::SwitchConfig genPortVlanCfg(
   CHECK_GT(portToDefaultProfileID.size(), 0);
   const auto& platformPorts = platformMapping->getPlatformPorts();
   for (auto const& [portID, profileID] : portToDefaultProfileID) {
-    if (!FLAGS_hide_fabric_ports ||
-        *platformPorts.find(static_cast<int32_t>(portID))
-                ->second.mapping()
-                ->portType() != cfg::PortType::FABRIC_PORT) {
-      config.ports()->push_back(
-          createDefaultPortConfig(platformMapping, asic, portID, profileID));
+    if ((FLAGS_hide_fabric_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::FABRIC_PORT) ||
+        (FLAGS_hide_interface_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::INTERFACE_PORT)) {
+      continue;
     }
+    config.ports()->push_back(
+        createDefaultPortConfig(platformMapping, asic, portID, profileID));
   }
   auto const kFabricTxQueueConfig = "FabricTxQueueConfig";
   config.portQueueConfigs()[kFabricTxQueueConfig] = getFabTxQueueConfig();
@@ -1040,21 +1091,36 @@ void populateSwitchInfo(
   config.dsfNodes() = newDsfNodes;
 }
 
-void populateSwitchInfoForLadakh(
+cfg::SwitchInfo generateSwitchInfo(
     SwitchID switchId,
-    cfg::SwitchInfo& switchInfo) {
-  cfg::Range64 portIdRange;
-  switchInfo.switchIndex() = static_cast<int64_t>(switchId);
-  if (switchId == SwitchID(0)) {
-    portIdRange.minimum() = 1;
-    portIdRange.maximum() = 512;
-    switchInfo.connectionHandle() = "0000:15:00=0";
-  } else {
-    portIdRange.minimum() = 2049;
-    portIdRange.maximum() = 2560;
-    switchInfo.connectionHandle() = "0000:18:00=0";
-  }
+    const cfg::Range64& portIdRange,
+    const std::string& connectionHandle,
+    const HwAsic* asic) {
+  cfg::SwitchInfo switchInfo;
+  auto asicType = asic->getAsicType();
   switchInfo.portIdRange() = portIdRange;
+  switchInfo.switchIndex() = switchId;
+  switchInfo.switchType() = asic->getSwitchType();
+  switchInfo.asicType() = asicType;
+
+  if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
+      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    switchInfo.switchMac() = "02:00:00:00:00:01";
+  }
+  switchInfo.systemPortRanges() = asic->getSystemPortRanges();
+  if (asic->getLocalSystemPortOffset().has_value()) {
+    switchInfo.localSystemPortOffset() = *asic->getLocalSystemPortOffset();
+  }
+  if (asic->getGlobalSystemPortOffset().has_value()) {
+    switchInfo.globalSystemPortOffset() = *asic->getGlobalSystemPortOffset();
+  }
+  if (asic->getInbandPortId().has_value()) {
+    switchInfo.inbandPortId() = *asic->getInbandPortId();
+  }
+  if (!connectionHandle.empty()) {
+    switchInfo.connectionHandle() = connectionHandle;
+  }
+  return switchInfo;
 }
 
 cfg::SwitchConfig

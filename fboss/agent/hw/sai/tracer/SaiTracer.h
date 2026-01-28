@@ -336,6 +336,9 @@ class SaiTracer {
       {TYPE_INDEX(std::vector<sai_port_snr_values_t>), &portSnrListAttr},
       {TYPE_INDEX(AclEntryFieldU8List), &aclEntryFieldU8ListAttr},
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+      {TYPE_INDEX(SaiJsonString), &jsonAttr},
+#endif
   };
 
  private:

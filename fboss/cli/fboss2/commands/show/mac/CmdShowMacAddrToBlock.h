@@ -12,10 +12,6 @@
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <fboss/cli/fboss2/utils/CmdUtils.h>
-#include <folly/String.h>
-#include <cstddef>
-#include <cstdint>
-#include <type_traits>
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/mac/gen-cpp2/model_types.h"
@@ -32,42 +28,11 @@ struct CmdShowMacAddrToBlockTraits : public ReadCommandTraits {
 class CmdShowMacAddrToBlock
     : public CmdHandler<CmdShowMacAddrToBlock, CmdShowMacAddrToBlockTraits> {
  public:
-  RetType queryClient(const HostInfo& hostInfo) {
-    std::vector<cfg::MacAndVlan> entries;
-    auto client =
-        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
+  RetType queryClient(const HostInfo& hostInfo);
 
-    client->sync_getMacAddrsToBlock(entries);
-    return createModel(entries);
-  }
+  void printOutput(const RetType& model, std::ostream& out = std::cout);
 
-  void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    constexpr auto fmtString = "{:<19}{:<19}\n";
-
-    out << fmt::format(fmtString, "VLAN", "MAC Address");
-
-    for (const auto& entry : model.macAndVlanEntries().value()) {
-      out << fmt::format(
-          fmtString,
-          folly::copy(entry.vlanID().value()),
-          entry.macAddress().value());
-    }
-    out << std::endl;
-  }
-
-  RetType createModel(std::vector<cfg::MacAndVlan>& macAndVlanEntries) {
-    RetType model;
-
-    for (const auto& entry : macAndVlanEntries) {
-      cli::MacAndVlan macAndVlanDetails;
-
-      macAndVlanDetails.vlanID() = folly::copy(entry.vlanID().value());
-      macAndVlanDetails.macAddress() = entry.macAddress().value();
-
-      model.macAndVlanEntries()->push_back(macAndVlanDetails);
-    }
-    return model;
-  }
+  RetType createModel(std::vector<cfg::MacAndVlan>& macAndVlanEntries);
 };
 
 } // namespace facebook::fboss

@@ -8,14 +8,17 @@
  *
  */
 
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
+#include <folly/IPAddress.h>
 #include <gtest/gtest.h>
 #include <memory>
 
@@ -379,6 +382,52 @@ TEST_F(MultiSwitchFibInfoMapTest, GetVrfCount) {
   auto matcher3 = createMatcher(30);
   fibInfoMap->updateFibInfo(fibInfo2, matcher3);
   EXPECT_EQ(fibInfoMap->getVrfCount(), 3);
+}
+
+TEST_F(FibInfoTest, SetAndGetIdToNextHopMap) {
+  auto fibInfo = std::make_shared<FibInfo>();
+
+  // Create and populate IdToNextHopMap
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  NextHopThrift nh1, nh2;
+  nh1.address() = network::toBinaryAddress(folly::IPAddress("10.0.0.1"));
+  nh2.address() = network::toBinaryAddress(folly::IPAddress("10.0.0.2"));
+  idToNextHopMap->addNextHop(100, nh1);
+  idToNextHopMap->addNextHop(200, nh2);
+
+  // Set and verify
+  fibInfo->setIdToNextHopMap(idToNextHopMap);
+  auto retrieved = fibInfo->getIdToNextHopMap();
+  EXPECT_NE(retrieved, nullptr);
+  EXPECT_EQ(retrieved->size(), 2);
+  EXPECT_NE(retrieved->getNextHopIf(100), nullptr);
+  EXPECT_NE(retrieved->getNextHopIf(200), nullptr);
+}
+
+TEST_F(FibInfoTest, SetAndGetIdToNextHopIdSetMap) {
+  auto fibInfo = std::make_shared<FibInfo>();
+
+  // Create and populate IdToNextHopIdSetMap
+  // NextHopSetIds must be >= 2^63 per spec
+  constexpr NextHopSetId setId1 = (1ULL << 63) + 1;
+  constexpr NextHopSetId setId2 = (1ULL << 63) + 2;
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  idToNextHopIdSetMap->addNextHopIdSet(setId1, {100, 200});
+  idToNextHopIdSetMap->addNextHopIdSet(setId2, {300});
+
+  // Set and verify
+  fibInfo->setIdToNextHopIdSetMap(idToNextHopIdSetMap);
+  auto retrieved = fibInfo->getIdToNextHopIdSetMap();
+  EXPECT_NE(retrieved, nullptr);
+  EXPECT_EQ(retrieved->size(), 2);
+  EXPECT_NE(retrieved->getNextHopIdSetIf(setId1), nullptr);
+  EXPECT_NE(retrieved->getNextHopIdSetIf(setId2), nullptr);
+  EXPECT_EQ(
+      retrieved->getNextHopIdSet(setId1)->toThrift(),
+      (std::set<NextHopId>{100, 200}));
+  EXPECT_EQ(
+      retrieved->getNextHopIdSet(setId2)->toThrift(),
+      (std::set<NextHopId>{300}));
 }
 
 } // namespace facebook::fboss

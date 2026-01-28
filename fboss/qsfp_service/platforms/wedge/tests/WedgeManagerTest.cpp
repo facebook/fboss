@@ -93,9 +93,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
 }
 
 TEST_F(WedgeManagerTest, getTransceiverInfoWithReadExceptions) {
-  // Cause read exceptions while refreshing transceivers and confirm that
-  // transceiverInfo still has the old data (this is verified by comparing
-  // timestamps)
+  // Cause read exceptions while refreshing transceivers
   std::map<int32_t, TransceiverInfo> transInfo;
   transceiverManager_->getTransceiversInfo(
       transInfo, std::make_unique<std::vector<int32_t>>());
@@ -110,13 +108,16 @@ TEST_F(WedgeManagerTest, getTransceiverInfoWithReadExceptions) {
   transceiverManager_->getTransceiversInfo(
       transInfo, std::make_unique<std::vector<int32_t>>());
   for (const auto& info : transInfo) {
-    EXPECT_EQ(
+    EXPECT_GT(
         *info.second.tcvrState()->timeCollected(),
         *cachedTransInfo[info.first].tcvrState()->timeCollected());
-    EXPECT_EQ(
+    EXPECT_GT(
         *info.second.tcvrStats()->timeCollected(),
         *cachedTransInfo[info.first].tcvrStats()->timeCollected());
     EXPECT_EQ(*info.second.tcvrState()->present(), true);
+    EXPECT_TRUE(*info.second.tcvrState()->communicationError());
+    EXPECT_FALSE(
+        *cachedTransInfo[info.first].tcvrState()->communicationError());
   }
 
   // Cause read exceptions while reading the management interface. In this case,

@@ -36,7 +36,13 @@ class BcmPortIngressBufferManager {
       const std::string& portName,
       bcm_gport_t portGport);
 
-  ~BcmPortIngressBufferManager() {}
+  ~BcmPortIngressBufferManager() = default;
+  BcmPortIngressBufferManager(const BcmPortIngressBufferManager&) = delete;
+  BcmPortIngressBufferManager& operator=(const BcmPortIngressBufferManager&) =
+      delete;
+  BcmPortIngressBufferManager(BcmPortIngressBufferManager&&) = delete;
+  BcmPortIngressBufferManager& operator=(BcmPortIngressBufferManager&&) =
+      delete;
 
   void programIngressBuffers(const std::shared_ptr<Port>& port);
   PortPgConfigs getCurrentProgrammedPgSettingsHw() const;

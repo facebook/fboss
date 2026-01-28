@@ -171,6 +171,7 @@ cpp_library(
         "//fboss/agent/test/utils:ecmp_dataplane_test_util",
         "//fboss/agent/test/utils:ecmp_test_utils",
         "//fboss/agent/test/utils:fabric_test_utils",
+        "//fboss/agent/test/utils:hyper_port_test_utils",
         "//fboss/agent/test/utils:invariant_test_utils",
         "//fboss/agent/test/utils:l2learn_observer_util",
         "//fboss/agent/test/utils:load_balancer_test_runner_h",

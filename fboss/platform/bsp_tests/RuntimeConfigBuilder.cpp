@@ -217,7 +217,15 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
       // Initialize the auxDevices field to ensure it's marked as having a value
       pciDevice.auxDevices() = std::vector<fbiob::AuxData>();
 
-      for (const auto& adapter : *dev.i2cAdapterConfigs()) {
+      // Add both i2cAdapterConfigs and i2cAdapterBlockConfigs to i2cAdapters
+      auto allI2cAdapters = *dev.i2cAdapterConfigs();
+      auto i2cAdapterConfigs = Utils::createI2cAdapterConfigs(dev);
+      allI2cAdapters.insert(
+          allI2cAdapters.end(),
+          i2cAdapterConfigs.begin(),
+          i2cAdapterConfigs.end());
+
+      for (const auto& adapter : allI2cAdapters) {
         const auto& auxDev = adapter.fpgaIpBlockConfig();
 
         fbiob::AuxData auxData;

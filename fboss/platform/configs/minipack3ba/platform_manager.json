@@ -160,6 +160,126 @@
         },
         "productSubVersion": 1
       }
+    ],
+    "3V3_L": [
+      {
+        "pmUnitConfig": {
+          "pluggedInSlotType": "OPTICL_SLOT",
+          "i2cDeviceConfigs": [
+            {
+              "busName": "INCOMING@0",
+              "address": "0x20",
+              "kernelDeviceName": "mp2891",
+              "pmUnitScopedName": "3V3_L_MONITOR"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x48",
+              "kernelDeviceName": "tmp1075",
+              "pmUnitScopedName": "SMB_TSENSOR1"
+            }
+          ]
+        },
+        "productSubVersion": 10
+      }
+    ],
+    "3V3_R": [
+      {
+        "pmUnitConfig": {
+          "pluggedInSlotType": "OPTICR_SLOT",
+          "i2cDeviceConfigs": [
+            {
+              "busName": "INCOMING@0",
+              "address": "0x20",
+              "kernelDeviceName": "mp2891",
+              "pmUnitScopedName": "3V3_R_MONITOR"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x48",
+              "kernelDeviceName": "tmp1075",
+              "pmUnitScopedName": "SMB_TSENSOR4"
+            }
+          ]
+        },
+        "productSubVersion": 10
+      }
+    ],
+    "SMB": [
+      {
+        "pmUnitConfig": {
+          "pluggedInSlotType": "SMB_SLOT",
+          "i2cDeviceConfigs": [
+            {
+              "busName": "INCOMING@0",
+              "address": "0x21",
+              "kernelDeviceName": "mp2891",
+              "pmUnitScopedName": "SMB_VRM1"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x1f",
+              "kernelDeviceName": "adc128d818",
+              "pmUnitScopedName": "SMB_VOLTAGE_MONITOR1",
+              "initRegSettings": [
+                {
+                  "regOffset": 11,
+                  "ioBuf": [
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "busName": "INCOMING@2",
+              "address": "0x35",
+              "kernelDeviceName": "adc128d818",
+              "pmUnitScopedName": "SMB_VOLTAGE_MONITOR2",
+              "initRegSettings": [
+                {
+                  "regOffset": 11,
+                  "ioBuf": [
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "busName": "INCOMING@3",
+              "address": "0x33",
+              "kernelDeviceName": "mp3_smbcpld",
+              "pmUnitScopedName": "SMB_CPLD"
+            },
+            {
+              "busName": "INCOMING@4",
+              "address": "0x7d",
+              "kernelDeviceName": "mp2975",
+              "pmUnitScopedName": "SMB_VRM2"
+            },
+            {
+              "busName": "INCOMING@5",
+              "address": "0x7b",
+              "kernelDeviceName": "mp2975",
+              "pmUnitScopedName": "SMB_VRM3"
+            }
+          ],
+          "outgoingSlotConfigs": {
+            "OPTICL_SLOT@0": {
+              "slotType": "OPTICL_SLOT",
+              "outgoingI2cBusNames": [
+                "INCOMING@6"
+              ]
+            },
+            "OPTICR_SLOT@0": {
+              "slotType": "OPTICR_SLOT",
+              "outgoingI2cBusNames": [
+                "INCOMING@7"
+              ]
+            }
+          }
+        },
+        "productSubVersion": 10
+      }
     ]
   },
   "pmUnitConfigs": {

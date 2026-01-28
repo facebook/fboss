@@ -70224,16 +70224,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "xphyLine": {
           "numLanes": 1,
           "modulation": 2,
-          "fec": 11,
+          "fec": 1,
           "medium": 3,
-          "interfaceType": 0
+          "interfaceType": 1
         },
         "xphySystem": {
           "numLanes": 1,
           "modulation": 2,
-          "fec": 11,
+          "fec": 1,
           "medium": 3,
-          "interfaceType": 0
+          "interfaceType": 1
         }
       }
     },

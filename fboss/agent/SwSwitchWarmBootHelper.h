@@ -6,22 +6,22 @@
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 
-DECLARE_bool(can_warm_boot);
-DECLARE_string(thrift_switch_state_file);
-
 namespace facebook::fboss {
 
 class SwitchState;
 class RoutingInformationBase;
 class AgentDirectoryUtil;
 class HwAsicTable;
+class HwSwitchThriftClientTable;
 
 class SwSwitchWarmBootHelper {
  public:
   explicit SwSwitchWarmBootHelper(
       const AgentDirectoryUtil* directoryUtil,
       HwAsicTable* table);
-  bool canWarmBoot() const;
+  bool canWarmBoot(
+      bool isRunModeMultiSwitch,
+      HwSwitchThriftClientTable* hwSwitchThriftClientTable);
   void storeWarmBootState(const state::WarmbootState& switchStateThrift);
   state::WarmbootState getWarmBootState() const;
   std::string warmBootThriftSwitchStateFile() const;
@@ -33,25 +33,20 @@ class SwSwitchWarmBootHelper {
       const std::string& sdkVersion,
       const std::string& agentVersion);
 
-  static std::pair<
-      std::shared_ptr<SwitchState>,
-      std::unique_ptr<RoutingInformationBase>>
-  reconstructStateAndRib(
-      std::optional<state::WarmbootState> wbState,
-      bool hasL3);
-
  private:
-  bool checkAndClearWarmBootFlags();
-  std::string forceColdBootOnceFlag() const;
-  std::string forceColdBootOnceFlagLegacy() const;
-  std::string warmBootFlag() const;
-  std::string warmBootFlagLegacy() const;
   void setCanWarmBoot();
+  bool canWarmBootFromFile() const;
+  bool canWarmBootFromThrift(
+      bool isRunModeMultiSwitch,
+      HwSwitchThriftClientTable* hwSwitchThriftClientTable);
 
   const AgentDirectoryUtil* directoryUtil_;
+  const HwAsicTable* asicTable_;
   const std::string warmBootDir_;
-  bool canWarmBoot_{false};
-  HwAsicTable* asicTable_;
+  bool forceColdBootFlag_{false};
+  bool canWarmBootFlag_{false};
+  bool asicCanWarmBoot_{false};
+  std::optional<state::WarmbootState> recoveredStateFromHW_;
 };
 
 } // namespace facebook::fboss

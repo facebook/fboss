@@ -33,8 +33,6 @@ DEFINE_int32(
     4,
     "Number of mirrors to create in ModWithMultipleMirrors");
 DEFINE_int32(mod_num_sflow, 1, "Number of sFlow traffic sources");
-DEFINE_int32(mod_from_port_id, 5, "MOD port ID to reconfigure from");
-DEFINE_int32(mod_to_port_id, 2, "MOD port ID to reconfigure to");
 
 const std::string kSflowMirror = "sflow_mirror";
 const std::string kModPacketAcl = "mod_packet_acl";
@@ -518,6 +516,33 @@ class AgentMirrorOnDropTest
     }
     return masterLogicalInterfacePortIds();
   }
+
+  uint64_t getExpectedLineRate(const PortID& portId) {
+    uint64_t speed =
+        static_cast<uint64_t>(
+            getProgrammedState()->getPorts()->getNodeIf(portId)->getSpeed()) *
+        1000 * 1000;
+    if (FLAGS_hyper_port) {
+      // One hyper port per core, each core processing power is 1.35G pps.
+      // Since mirror created duplicated packets, max processing power
+      // is 1.35G / 2 = 0.675G pps. Besides, core process moves from processing
+      // one full packet per clock to only partial packet segment per clock, if
+      // packet size is larger than 513 bytes. In this test, UDP packet of
+      // payload 512 bytes are used. Thus, each packet has 2 segements. Core
+      // processing power further reduced to 0.675G pps / 2 = 0.3375G pps.
+      // Traffic rate is: 0.3375G pps * (14 (eth header) + 2 (hyper port header)
+      // + 40 (ipv6 header) + 8 (udp header) + 512 (payload) bytes) * 8 bit/byte
+      // = ~1.6T bps
+
+      // In another manual test with 400 UDP payload, each packet can fill into
+      // one segment. Theoretical traffic rate is thus: 0.675G pps * (14 (eth
+      // header) + 2 (hyper port header) + 40 (ipv6 header) + 8 (udp header) +
+      // 400 (payload) bytes) * 8 bit/byte = ~2.6T bps This theoretical rate is
+      // consistent with what we actually monitored.
+      return 0.5 * speed;
+    }
+    return 0.9 * speed;
+  }
 };
 
 class AgentMirrorOnDropMtuTest : public AgentMirrorOnDropTest {
@@ -869,14 +894,6 @@ TEST_P(AgentMirrorOnDropTest, ModWithMultipleMirrors) {
                << portDesc(trafficLoops[i].mirrorDestPortId);
   }
 
-  auto getLineRate = [&](const PortID& portId) {
-    return static_cast<uint64_t>(getProgrammedState()
-                                     ->getPorts()
-                                     ->getNodeIf(portId)
-                                     ->getSpeed()) *
-        1000 * 1000;
-  };
-
   auto setup = [&]() {
     auto config = getAgentEnsemble()->getCurrentConfig();
     setupMirrorOnDrop(
@@ -927,25 +944,25 @@ TEST_P(AgentMirrorOnDropTest, ModWithMultipleMirrors) {
     // Verify that traffic loops, mirrors and MOD are all working. For better
     // accuracy, we will calculate the rates for each port separately.
     for (auto& loop : trafficLoops) {
-      auto lineRate = getLineRate(loop.injectionPortId);
+      auto lineRate = getExpectedLineRate(loop.injectionPortId);
       auto portStats = getLatestPortStats(loop.injectionPortId);
       WITH_RETRIES_N(10, {
         uint64_t rate =
             updateStats(getAgentEnsemble(), loop.injectionPortId, portStats);
         XLOGF(INFO, "Port {}: {}/{} bps", loop.injectionPortId, rate, lineRate);
-        EXPECT_EVENTUALLY_GE(rate, 0.9 * lineRate);
+        EXPECT_EVENTUALLY_GE(rate, lineRate);
       });
     }
 
     for (auto& loop : trafficLoops) {
-      auto lineRate = getLineRate(loop.mirrorDestPortId);
+      auto lineRate = getExpectedLineRate(loop.mirrorDestPortId);
       auto portStats = getLatestPortStats(loop.mirrorDestPortId);
       WITH_RETRIES_N(10, {
         uint64_t rate =
             updateStats(getAgentEnsemble(), loop.mirrorDestPortId, portStats);
         XLOGF(
             INFO, "Port {}: {}/{} bps", loop.mirrorDestPortId, rate, lineRate);
-        EXPECT_EVENTUALLY_GE(rate, 0.9 * lineRate);
+        EXPECT_EVENTUALLY_GE(rate, lineRate);
       });
     }
 
@@ -953,7 +970,7 @@ TEST_P(AgentMirrorOnDropTest, ModWithMultipleMirrors) {
     WITH_RETRIES_N(10, {
       constexpr uint64_t expectedPPS = 1000000; // 1us aging interval
       constexpr uint64_t packetSize = 450 * 8; // 400B payload + hdrs, in bits
-      uint64_t targetRate = expectedPPS * packetSize * FLAGS_mod_num_mirrors;
+      uint64_t targetRate = expectedPPS * packetSize * trafficLoops.size();
       uint64_t rate =
           updateStats(getAgentEnsemble(), collectorPortId, portStats);
       XLOGF(INFO, "Collector port: {}/{} bps", rate, targetRate);
@@ -1464,7 +1481,18 @@ class AgentMirrorOnDropReconfigTest : public AgentMirrorOnDropTest {
  public:
   void setCmdLineFlagOverrides() const override {
     AgentMirrorOnDropTest::setCmdLineFlagOverrides();
-    FLAGS_sflow_egress_port_id = FLAGS_mod_to_port_id;
+    FLAGS_sflow_egress_port_id = modToPortId();
+  }
+
+ protected:
+  static int32_t modFromPortId() {
+    // port id of rcy1/1/445
+    return FLAGS_hyper_port ? 32861 : 5;
+  }
+
+  static int32_t modToPortId() {
+    // port id of rcy1/1/442
+    return FLAGS_hyper_port ? 32858 : 2;
   }
 };
 
@@ -1485,31 +1513,23 @@ class AgentMirrorOnDropReconfigTest : public AgentMirrorOnDropTest {
 // - NIF port B == masterLogicalInterfacePortIds[2]
 // - NIF port C == masterLogicalInterfacePortIds[3]
 // - MOD collector port == masterLogicalInterfacePortIds[0]
-// - RCY port 1 / 2 == FLAGS_mod_from_port_id / FLAGS_mod_to_port_id
+// - RCY port 1 / 2 == modFromPortId() / modToPortId()
 //
 // Moving MOD to RCY port 2 while it's congested causes some MOD packets to go
 // to DRAM. Before CS00012418671 is fixed, this triggers some DRAM related bugs
 // with high probability, which results in an ASIC hard reset.
 TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
-  auto modFromPortId = PortID(FLAGS_mod_from_port_id);
-  auto modToPortId = PortID(FLAGS_mod_to_port_id);
+  PortID modFromPort{static_cast<uint16_t>(modFromPortId())};
+  PortID modToPort{static_cast<uint16_t>(modToPortId())};
   auto collectorPortId = portIdsToTest()[0];
-  XLOG(DBG3) << "MoD port (from): " << portDesc(modFromPortId);
-  XLOG(DBG3) << "MoD port (to): " << portDesc(modToPortId);
+  XLOG(DBG3) << "MoD port (from): " << portDesc(modFromPort);
+  XLOG(DBG3) << "MoD port (to): " << portDesc(modToPort);
   XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
 
   auto loopIp = [&](int i) {
     auto dstIpArray = kDropDestIp.toByteArray();
     dstIpArray[15] = i;
     return folly::IPAddressV6(dstIpArray);
-  };
-
-  auto getLineRate = [&](const PortID& portId) {
-    return static_cast<uint64_t>(getProgrammedState()
-                                     ->getPorts()
-                                     ->getNodeIf(portId)
-                                     ->getSpeed()) *
-        1000 * 1000;
   };
 
   auto getCurrentRate = [&](const PortID& portId) {
@@ -1586,9 +1606,9 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
 
       WITH_RETRIES_N(10, {
         uint64_t rate = getCurrentRate(portId);
-        uint64_t lineRate = getLineRate(portId);
+        uint64_t lineRate = getExpectedLineRate(portId);
         XLOGF(INFO, "Port {}: {}/{} bps", portId, rate, lineRate);
-        EXPECT_EVENTUALLY_GE(rate, 0.9 * lineRate);
+        EXPECT_EVENTUALLY_GE(rate, lineRate);
       });
     }
 
@@ -1596,9 +1616,9 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
     for (const PortID& portId : mirrorDestPorts) {
       WITH_RETRIES_N(10, {
         uint64_t rate = getCurrentRate(portId);
-        uint64_t lineRate = getLineRate(portId);
+        uint64_t lineRate = getExpectedLineRate(portId);
         XLOGF(INFO, "Port {}: {}/{} bps", portId, rate, lineRate);
-        EXPECT_EVENTUALLY_GE(rate, 0.9 * lineRate);
+        EXPECT_EVENTUALLY_GE(rate, lineRate);
       });
     }
   };
@@ -1606,9 +1626,9 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
   auto verify = [&]() {
     auto config = getAgentEnsemble()->getCurrentConfig();
 
-    XLOG(INFO) << "Configuring MOD on port " << modFromPortId;
+    XLOG(INFO) << "Configuring MOD on port " << modFromPort;
     config.mirrorOnDropReports()->clear();
-    setupMirrorOnDrop(&config, modFromPortId, kCollectorIp_, prodModConfig());
+    setupMirrorOnDrop(&config, modFromPort, kCollectorIp_, prodModConfig());
     applyNewConfig(config);
 
     WITH_RETRIES_N(10, {
@@ -1617,9 +1637,9 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
       EXPECT_EVENTUALLY_GE(rate, 10000000);
     });
 
-    XLOG(INFO) << "Configuring MOD on port " << modToPortId;
+    XLOG(INFO) << "Configuring MOD on port " << modToPort;
     config.mirrorOnDropReports()->clear();
-    setupMirrorOnDrop(&config, modToPortId, kCollectorIp_, prodModConfig());
+    setupMirrorOnDrop(&config, modToPort, kCollectorIp_, prodModConfig());
     applyNewConfig(config);
 
     WITH_RETRIES_N(10, {

@@ -5,12 +5,9 @@ import os
 import sys
 from typing import Any, Dict
 
-import neteng.fboss.asic_config_v2.thrift_types as asic_config_thrift
-
+import neteng.fboss.asic_config_v2.ttypes as asic_config_thrift
 from fboss.lib.asic_config_v2.all_asic_config_params import all_params
-
 from fboss.lib.asic_config_v2.icecube800bc import gen_icecube800bc_asic_config
-
 from fboss.lib.asic_config_v2.montblanc import gen_montblanc_asic_config
 from fboss.lib.asic_config_v2.wedge800bact import gen_wedge800bact_asic_config
 from neteng.fboss.fboss_common.ttypes import PlatformType

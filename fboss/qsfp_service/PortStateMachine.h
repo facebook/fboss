@@ -147,14 +147,27 @@ if (!portMgr) {
 }
 
 try {
+  if (!portMgr->portHasTransceiver(portId)) {
+    // XPHY-only port without transceiver - skip IPHY programming via
+    // transceiver, just proceed to next state.
+    XLOG(INFO) << "[Port:" << name
+               << "] No transceiver for port, skipping IPHY programming";
+    return true;
+  }
+
   if (portMgr->isLowestIndexedInitializedPortForTransceiverPortGroup(portId)) {
     // Port should orchestrate PHY programming.
     // First transceiver will communicate which pins need to be programmed (for
     // both ports) - so only one transceiver needs to request information from
     // agent.
-
-    portMgr->programInternalPhyPorts(
-        portMgr->getLowestIndexedStaticTransceiverForPort(portId));
+    auto tcvrIdOpt = portMgr->getLowestIndexedStaticTransceiverForPort(portId);
+    if (!tcvrIdOpt) {
+      XLOG(INFO)
+          << "[Port:" << name
+          << "] Port should have transceiver, but no transceiver found. Failing IPHY programming.";
+      return false;
+    }
+    portMgr->programInternalPhyPorts(*tcvrIdOpt);
   } else {
     // Port shouldn't orchestrate PHY programming. Port needs to check state
     // of orchestrating port to proceed to next stage.
@@ -188,25 +201,23 @@ if (!portMgr) {
 }
 
 try {
-  if (portMgr->isLowestIndexedInitializedPortForTransceiverPortGroup(portId)) {
-    // Port should orchestrate PHY programming.
-    // TODO(smenta) – When Y-Cable support is needed for XPHY tcvrs, may need to
-    // loop through all transceivers for ports.
-    auto tcvrId = portMgr->getLowestIndexedStaticTransceiverForPort(portId);
-    portMgr->programExternalPhyPorts(
-        tcvrId, fsm.get_attribute(xphyNeedResetDataPath));
-  } else {
-    // Port shouldn't orchestrate PHY programming. Port needs to check state
-    // of orchestrating port to proceed to next stage.
-    auto lowestIdxPort =
-        portMgr->getLowestIndexedInitializedPortForTransceiverPortGroup(portId);
-    return portMgr->hasPortFinishedXphyProgramming(lowestIdxPort);
+  std::optional<TransceiverID> tcvrIdOpt;
+  if (portMgr->portHasTransceiver(portId)) {
+    tcvrIdOpt = portMgr->getLowestIndexedStaticTransceiverForPort(portId);
+    if (!tcvrIdOpt) {
+      // This case shouldn't be hit for non-XPHY-only ports, so we return
+      // false.
+      return false;
+    }
   }
+
+  portMgr->programExternalPhyPort(
+      portId, tcvrIdOpt, fsm.get_attribute(xphyNeedResetDataPath));
   return true;
 } catch (const std::exception& ex) {
   // We have retry mechanism to handle failure. No crash here
   XLOG(WARN) << "[Port:" << name
-             << "] programExternalPhyPorts failed:" << folly::exceptionStr(ex);
+             << "] programExternalPhyPort failed:" << folly::exceptionStr(ex);
   return false;
 }
 }

@@ -101,12 +101,13 @@ void waitPfcCounterIncrease(
     // necessarily equal to inDiscardsRaw after warmboot. Just check for <=.
     EXPECT_EVENTUALLY_LE(*portStats.inDiscards_(), *portStats.inDiscardsRaw_());
 
-    // TODO(maxgg): CS00012381334 - Rx counters not incrementing on TH5
+    // TODO(maxgg): CS00012381334 - Rx counters not incrementing on TH5/TH6
     // However we know PFC is working as long as TX PFC is being generated, so
     // skip validating RX PFC counters on TH5 for now.
     auto asicType = facebook::fboss::checkSameAndGetAsic(ensemble->getL3Asics())
                         ->getAsicType();
-    if (asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+    if (asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+        asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
       EXPECT_EVENTUALLY_GT(rxPfcCtr, 0);
       if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
               facebook::fboss::HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER)) {
@@ -474,9 +475,11 @@ class AgentTrafficPfcTest : public AgentHwTest {
         if (isIngressCongestionDiscardsSupported) {
           EXPECT_EVENTUALLY_GT(ingressCongestionDiscards, 0);
 
-          // In packet counters not supported in EDB loopback on TH5.
-          if (checkSameAndGetAsicType(getAgentEnsemble()->getCurrentConfig()) !=
-              facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+          // In packet counters not supported in EDB loopback on TH5 and TH6.
+          auto asicType =
+              checkSameAndGetAsicType(getAgentEnsemble()->getCurrentConfig());
+          if (asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+              asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
             // Ingress congestion discards should be less than
             // the total packets received on this port.
             uint64_t inPackets = *portStats.inUnicastPkts_() +
@@ -934,6 +937,7 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
           break;
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+        case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
           pfcWatchdog.recoveryTimeMsecs() = 100;
           pfcWatchdog.detectionTimeMsecs() = 10;
           break;

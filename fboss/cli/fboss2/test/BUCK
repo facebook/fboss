@@ -1,3 +1,4 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 
@@ -8,6 +9,7 @@ cpp_library(
     headers = [
         "CmdHandlerTestBase.h",
         "MockClients.h",
+        "TestableConfigSession.h",
     ],
     exported_deps = [
         "fbsource//third-party/googletest:gmock",
@@ -16,8 +18,10 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/cli/fboss2:cmd-common-utils",
         "//fboss/cli/fboss2:cmd-global-options",
+        "//fboss/cli/fboss2:fboss2-config-lib",
         "//fboss/cli/fboss2:fboss2-lib",
         "//fboss/cli/fboss2:options",
+        "//fboss/lib:thrift_service_utils",
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly:network_address",
@@ -36,6 +40,7 @@ cpp_unittest(
         "AggregationValidationTest.cpp",
         "CmdArgsTest.cpp",
         "CmdHelpTest.cpp",
+        "CmdSubCommandsTest.cpp",
         "FilterTest.cpp",
         "FilterValidationTest.cpp",
     ],
@@ -43,17 +48,28 @@ cpp_unittest(
         "fbsource//third-party/googletest:gmock",
         ":cmd_test_utils",
         "//fboss/cli/fboss2:cli-cpp2-types",
+        "//fboss/cli/fboss2:cli-parser-utils",
         "//fboss/cli/fboss2:cmd-global-options",
+        "//fboss/cli/fboss2:cmd-subcommands",
         "//fboss/cli/fboss2:fboss2-lib",
         "//fboss/cli/fboss2:ops-utils",
         "//thrift/lib/cpp2/reflection:testing",
+    ],
+    external_deps = [
+        "CLI11",
     ],
 )
 
 cpp_unittest(
     name = "cmd_test",
     srcs = [
+        "CmdConfigAppliedInfoTest.cpp",
+        "CmdConfigHistoryTest.cpp",
+        "CmdConfigInterfaceDescriptionTest.cpp",
+        "CmdConfigInterfaceMtuTest.cpp",
         "CmdConfigReloadTest.cpp",
+        "CmdConfigSessionDiffTest.cpp",
+        "CmdConfigSessionTest.cpp",
         "CmdGetPcapTest.cpp",
         "CmdSetPortStateTest.cpp",
         "CmdShowAclTest.cpp",
@@ -86,7 +102,15 @@ cpp_unittest(
         "CmdShowTransceiverTest.cpp",
         "CmdStartPcapTest.cpp",
         "CmdStopPcapTest.cpp",
+        "PortMapTest.cpp",
     ],
+    # Config files for PortMapTest parameterized tests
+    resources = [
+        "//fboss/oss/link_test_configs:link_test_configs",
+    ],
+    # Required for parameterized tests (TEST_P) - static listing doesn't support them
+    # See: https://fburl.com/parameterized-test-not-supported
+    supports_static_listing = False,
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":cmd_test_utils",
@@ -94,6 +118,7 @@ cpp_unittest(
         "//fboss/agent:address_utils",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/cli/fboss2:cmd-common-utils",
         "//fboss/cli/fboss2:fboss2-config-lib",
         "//fboss/cli/fboss2:fboss2-lib",
         "//fboss/cli/fboss2/commands/show/acl:model-cpp2-types",
@@ -120,10 +145,40 @@ cpp_unittest(
         "//fboss/cli/fboss2/commands/show/route:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/teflow:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/transceiver:model-cpp2-types",
+        "//folly:dynamic",
+        "//folly:file_util",
         "//folly:network_address",
         "//folly/json:dynamic",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
+        "//thrift/lib/cpp2/protocol:protocol",
         "//thrift/lib/cpp2/reflection:testing",
     ],
-    external_deps = [("boost", None, "boost_algorithm")],
+    external_deps = [
+        ("boost", None, "boost_algorithm"),
+        ("boost", None, "boost_filesystem"),
+    ],
+)
+
+# Thrift RPC Latency Test - Comprehensive Backend Comparison
+#
+# This test demonstrates the performance difference between various EventBase
+# backends for Thrift RPC calls. It runs all three backends (LibEvent, Epoll,
+# IoUring) sequentially and reports average/max latency for each.
+#
+# Run with: buck2 run fbcode//fboss/cli/fboss2/test:thrift_latency_test
+cpp_binary(
+    name = "thrift_latency_test",
+    srcs = [
+        "thrift_latency_test.cpp",
+    ],
+    deps = [
+        "//fboss/agent/if:ctrl-cpp2-services",
+        "//fboss/lib:thrift_service_utils_oss",
+        "//folly/init:init",
+        "//folly/io/async:async_base",
+        "//folly/io/async:epoll",
+        "//thrift/lib/cpp2:server",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+        "//thrift/lib/cpp2/util:util",
+    ],
 )

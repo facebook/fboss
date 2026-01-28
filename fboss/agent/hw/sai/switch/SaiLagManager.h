@@ -43,6 +43,10 @@ class SaiLagManager {
         platform_(platform),
         concurrentIndices_(concurrentIndices) {}
   ~SaiLagManager();
+  SaiLagManager(const SaiLagManager&) = delete;
+  SaiLagManager& operator=(const SaiLagManager&) = delete;
+  SaiLagManager(SaiLagManager&&) = delete;
+  SaiLagManager& operator=(SaiLagManager&&) = delete;
   LagSaiId addLag(const std::shared_ptr<AggregatePort>& aggregatePort);
   void removeLag(const std::shared_ptr<AggregatePort>& aggregatePort);
   void changeLag(

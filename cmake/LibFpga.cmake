@@ -22,7 +22,9 @@ add_library(fpga_multi_pim_container
 
 target_link_libraries(fpga_multi_pim_container
   fboss_error
+  fpga_device
   pim_state_cpp2
+  qsfp_stats
 )
 
 add_library(facebook_fpga
@@ -42,6 +44,8 @@ add_library(fb_fpga_i2c
 
 target_link_libraries(fb_fpga_i2c
   facebook_fpga
+  i2c_ctrl
+  i2_api
   utils
   Folly::folly
   i2c_controller_stats_cpp2
@@ -80,6 +84,7 @@ add_library(wedge400_i2c
 target_link_libraries(wedge400_i2c
   wedge400_fpga
   pci_access
+  i2_api
   Folly::folly
   utils
   fb_fpga_i2c

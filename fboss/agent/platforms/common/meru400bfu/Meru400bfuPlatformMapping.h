@@ -17,11 +17,14 @@ class Meru400bfuPlatformMapping : public PlatformMapping {
  public:
   Meru400bfuPlatformMapping();
   explicit Meru400bfuPlatformMapping(const std::string& platformMappingStr);
+  ~Meru400bfuPlatformMapping() = default;
 
  private:
   // Forbidden copy constructor and assignment operator
   Meru400bfuPlatformMapping(Meru400bfuPlatformMapping const&) = delete;
   Meru400bfuPlatformMapping& operator=(Meru400bfuPlatformMapping const&) =
       delete;
+  Meru400bfuPlatformMapping(Meru400bfuPlatformMapping&&) = delete;
+  Meru400bfuPlatformMapping& operator=(Meru400bfuPlatformMapping&&) = delete;
 };
 } // namespace facebook::fboss

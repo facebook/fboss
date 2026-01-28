@@ -6,9 +6,11 @@
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 #include <memory>
+
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/test/MockClients.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
+#include "fboss/lib/ThriftServiceUtils.h"
 
 #pragma once
 
@@ -30,6 +32,7 @@ class CmdHandlerTestBase : public ::testing::Test {
   static auto createFastMockServerConfig() {
     return [](apache::thrift::ThriftServer& server) {
       server.setIdleTimeout(std::chrono::milliseconds(50));
+      ThriftServiceUtils::setPreferredEventBaseBackend(server);
     };
   }
 

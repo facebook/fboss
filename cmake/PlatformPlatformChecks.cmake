@@ -17,6 +17,7 @@ add_library(platform_check
 
 target_link_libraries(platform_check
   check_types_cpp2
+  platform_config_lib
   platform_manager_config_cpp2
 )
 

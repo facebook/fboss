@@ -677,6 +677,22 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::zeroPreemphasis>(zeroPreemphasis);
   }
 
+  std::optional<std::string> getSerdesCustomCollection() const {
+    if (auto value = cref<switch_state_tags::serdesCustomCollection>()) {
+      return value->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setSerdesCustomCollection(
+      const std::optional<std::string>& serdesCustomCollection) {
+    if (serdesCustomCollection.has_value()) {
+      set<switch_state_tags::serdesCustomCollection>(*serdesCustomCollection);
+    } else {
+      ref<switch_state_tags::serdesCustomCollection>().reset();
+    }
+  }
+
   std::optional<bool> getTTLDisableDecrement() const {
     if (auto value = cref<switch_state_tags::disableTTLDecrement>()) {
       return value->toThrift();

@@ -10,6 +10,8 @@ add_library(setup_thrift
 
 target_link_libraries(setup_thrift
   load_agent_config
+  thrift_method_rate_limit
+  thrift_service_utils
   Folly::folly
   FBThrift::thriftcpp2
 )
@@ -52,6 +54,7 @@ add_library(hw_switch_handler
 )
 
 target_link_libraries(hw_switch_handler
+  fboss_event_base
   load_agent_config
   switch_config_cpp2
   utils
@@ -96,6 +99,8 @@ target_link_libraries(switchinfo_utils
   ctrl_cpp2
   fboss_types
   agent_config_cpp2
+  fboss_error
+  load_agent_config
 )
 
 add_library(dsfnode_utils
@@ -144,8 +149,9 @@ add_library(utils
 target_link_libraries(utils
   agent_dir_util
   asic_utils
-  error
+  fboss_error
   ctrl_cpp2
+  hw_switch_fb303_stats
   load_agent_config
   state
   switchid_scope_resolver
@@ -174,6 +180,7 @@ add_library(stats
 target_link_libraries(stats
   fboss_types
   agent_stats_cpp2
+  common_utils
   state
   Folly::folly
 )
@@ -218,7 +225,10 @@ add_library(ecmp_resource_manager
 
 target_link_libraries(ecmp_resource_manager
   fib_helpers
+  ref_map
   state
+  stats
+  utils
   Folly::folly
 )
 
@@ -251,7 +261,7 @@ add_library(hw_switch_thrift_client_table
 )
 
 target_link_libraries(hw_switch_thrift_client_table
-  error
+  fboss_error
   fboss_types
   hw_ctrl_cpp2
   Folly::folly
@@ -370,6 +380,7 @@ set(core_libs
   lldp
   multiswitch_ctrl_cpp2
   packet
+  packet_factory
   product_info
   platform_base
   restart_time_tracker
@@ -417,18 +428,10 @@ set(core_libs
   state_delta_logger
   dsfnode_utils
   hw_switch_thrift_client_table
+  file_based_warmboot_utils
 )
 
 target_link_libraries(core ${core_libs})
-
-add_library(error
-  fboss/agent/FbossError.h
-)
-
-target_link_libraries(error
-  ctrl_cpp2
-  Folly::folly
-)
 
 add_library(thrifthandler_utils
   fboss/agent/ThriftHandlerUtils.cpp
@@ -474,17 +477,18 @@ add_library(fboss_event_base
 )
 
 target_link_libraries(fboss_event_base
+  agent_features
   Folly::folly
 )
 
 add_library(fboss_error
   fboss/agent/FbossError.h
+  fboss/agent/FbossHwUpdateError.h
   fboss/agent/SysError.h
 )
 
 target_link_libraries(fboss_error
   fboss_cpp2
-  fboss_types
   Folly::folly
 )
 
@@ -502,13 +506,16 @@ target_link_libraries(platform_base
   agent_config_cpp2
   agent_dir_util
   ctrl_cpp2
-  error
+  fboss_error
+  fboss_event_base
   fboss_types
   Folly::folly
   load_agent_config
   platform_mapping
+  product_info
   switchid_scope_resolver
   switchinfo_utils
+  utils
 )
 
 add_library(hw_switch
@@ -766,21 +773,46 @@ target_link_libraries(fboss_sw_agent
   -Wl,--no-whole-archive
 )
 
+add_library(thrift_based_warmboot_utils
+  fboss/agent/ThriftBasedWarmbootUtils.cpp
+)
+
+target_link_libraries(thrift_based_warmboot_utils
+  hw_asic_table
+  hw_switch_thrift_client_table
+  switch_state_cpp2
+)
+
+add_library(file_based_warmboot_utils
+  fboss/agent/FileBasedWarmbootUtils.cpp
+)
+
+target_link_libraries(file_based_warmboot_utils
+  agent_dir_util
+  agent_features
+  hw_asic_table
+  switch_state_cpp2
+  standalone_rib
+  state
+  common_file_utils
+  Folly::folly
+)
+
 add_library(sw_switch_warmboot_helper
   fboss/agent/SwSwitchWarmBootHelper.cpp
 )
 
 target_link_libraries(sw_switch_warmboot_helper
+  agent_features
   async_logger
   fboss_error
   hw_asic_table
   state
-  standalone_rib
   utils
-  common_file_utils
   Folly::folly
-  switch_state_cpp2
   warm_boot_file_utils
+  file_based_warmboot_utils
+  thrift_based_warmboot_utils
 )
 
 add_library(sw_agent_initializer
@@ -802,7 +834,9 @@ add_library(agent_netwhoami
   fboss/agent/oss/AgentNetWhoAmI.cpp
 )
 
-target_link_libraries(agent_netwhoami)
+target_link_libraries(agent_netwhoami
+  common_file_utils
+)
 
 add_library(agent_features
   fboss/agent/AgentFeatures.cpp

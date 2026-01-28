@@ -18,6 +18,7 @@
 #include <string>
 
 #include <folly/Range.h>
+#include <folly/Utility.h>
 #include <folly/container/F14Map.h>
 #include <yaml-cpp/yaml.h>
 
@@ -39,7 +40,7 @@ class BcmPlatform;
  * initialize any Broadcom devices found in the system.  Use the BcmUnit class
  * for initializing individual devices.
  */
-class BcmAPI {
+class BcmAPI : public folly::NonCopyableNonMovable {
  public:
   /*
    * Initialize the Broadcom SDK and create the BcmAPI singleton.
@@ -180,10 +181,6 @@ class BcmAPI {
 #endif
 
  private:
-  // Forbidden copy constructor and assignment operator
-  BcmAPI(BcmAPI const&) = delete;
-  BcmAPI& operator=(BcmAPI const&) = delete;
-
   /*
    * Initialize the BcmConfig to hold the config values passed in.
    * We use these values to keep an idea of the bcm configuration

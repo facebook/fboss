@@ -12,13 +12,16 @@ add_library(standalone_rib
 
 target_link_libraries(standalone_rib
   network_to_route_map
+  nexthop_id_manager
   address_utils
-  error
+  fboss_error
+  fboss_event_base
   fboss_types
   switch_config_cpp2
   ctrl_cpp2
   label_forwarding_action
   state_utils
+  utils
   Folly::folly
   switch_state_cpp2
   thrift_cow_nodes
@@ -30,6 +33,7 @@ add_library(network_to_route_map
 
 target_link_libraries(network_to_route_map
   radix_tree
+  state
 )
 
 add_library(fib_updater
@@ -39,8 +43,19 @@ add_library(fib_updater
 
 target_link_libraries(fib_updater
   network_to_route_map
+  nexthop_id_manager
   standalone_rib
   fboss_types
   state
   Folly::folly
+)
+
+add_library(nexthop_id_manager
+  fboss/agent/rib/NextHopIDManager.cpp
+)
+
+target_link_libraries(nexthop_id_manager
+  error
+  fboss_types
+  state
 )

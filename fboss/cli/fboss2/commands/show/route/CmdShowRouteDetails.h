@@ -68,7 +68,7 @@ class CmdShowRouteDetails
         if (it != portInfoEntries.end()) {
           auto vlans = it->second.vlans();
           // If L3 routing with multiple vlans, we can skip this port
-          if (vlans->size() > 1) {
+          if (vlans->size() != 1) {
             continue;
           }
           this->vlanAggregatePortMap[std::to_string(vlans[0])] = aggPortName;

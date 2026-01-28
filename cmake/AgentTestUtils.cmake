@@ -67,6 +67,7 @@ add_library(traffic_policy_utils
 )
 
 target_link_libraries(traffic_policy_utils
+  copp_test_utils
   switch_config_cpp2
   config_factory
   switch_asics
@@ -117,6 +118,28 @@ target_link_libraries(port_test_utils
   state
 )
 
+add_library(trunk_test_utils
+  fboss/agent/test/utils/TrunkTestUtils.cpp
+)
+
+target_link_libraries(trunk_test_utils
+  agent_hw_test_ctrl_cpp2
+  fboss_types
+  state
+  agent_ensemble
+)
+
+add_library(hyper_port_test_utils
+  fboss/agent/test/utils/HyperPortTestUtils.cpp
+)
+
+target_link_libraries(hyper_port_test_utils
+  agent_features
+  fboss_types
+  switch_config_cpp2
+  state
+)
+
 add_library(config_utils
   fboss/agent/test/utils/ConfigUtils.cpp
 )
@@ -131,6 +154,8 @@ target_link_libraries(config_utils
   switch_config_cpp2
   test_ensemble_if
   port_test_utils
+  trunk_test_utils
+  trunk_utils
 )
 
 add_library(asic_test_utils
@@ -151,21 +176,13 @@ target_link_libraries(qos_test_utils
   asic_test_utils
   ecmp_helper
   fboss_types
+  pkt_test_utils
+  resourcelibutil
   switch_asics
   state
   test_ensemble_if
+  voq_test_utils
   Folly::folly
-)
-
-add_library(trunk_test_utils
-  fboss/agent/test/utils/TrunkTestUtils.cpp
-)
-
-target_link_libraries(trunk_test_utils
-  agent_hw_test_ctrl_cpp2
-  fboss_types
-  state
-  agent_ensemble
 )
 
 add_library(l2learn_observer_util
@@ -173,6 +190,7 @@ add_library(l2learn_observer_util
 )
 
 target_link_libraries(l2learn_observer_util
+  agent_ensemble
   core
   l2learn_event_observer
   Folly::folly
@@ -308,6 +326,7 @@ add_library(mac_test_utils
 )
 
 target_link_libraries(mac_test_utils
+  core
   state
   test_ensemble_if
   network_address_cpp2
@@ -339,6 +358,7 @@ add_library(aqm_test_utils
 )
 
 target_link_libraries(aqm_test_utils
+  agent_hw_test_ctrl_cpp2
   switch_asics
   switch_config_cpp2
   fboss_error
@@ -399,8 +419,11 @@ add_library(pfc_test_utils
 
 target_link_libraries(pfc_test_utils
   acl_test_utils
+  agent_ensemble
   hardware_stats_cpp2
+  resourcelibutil
   switch_config_cpp2
+  test_ensemble_if
 )
 
 add_library(queue_test_utils

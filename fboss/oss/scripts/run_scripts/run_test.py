@@ -189,6 +189,7 @@ SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
 SUB_CMD_LINK = "link"
 SUB_CMD_SAI_AGENT = "sai_agent"
+SUB_CMD_CLI = "cli"
 SUB_ARG_AGENT_RUN_MODE = "--agent-run-mode"
 SUB_ARG_AGENT_RUN_MODE_MONO = "mono"
 SUB_ARG_AGENT_RUN_MODE_MULTI = "multi_switch"
@@ -717,7 +718,7 @@ class TestRunner(abc.ABC):
             )
             output = test_output.decode("utf-8")
             print(
-                f"########## Coldboot test results ({idx+1}/{num_tests}): {output}",
+                f"########## Coldboot test results ({idx + 1}/{num_tests}): {output}",
                 flush=True,
             )
             test_outputs.append(test_output)
@@ -745,7 +746,7 @@ class TestRunner(abc.ABC):
                 )
                 output = test_output.decode("utf-8")
                 print(
-                    f"########## Warmboot test results ({idx+1}/{num_tests}): {output}",
+                    f"########## Warmboot test results ({idx + 1}/{num_tests}): {output}",
                     flush=True,
                 )
                 test_outputs.append(test_output)
@@ -1290,6 +1291,119 @@ class SaiAgentTestRunner(TestRunner):
         return tests_to_run
 
 
+class CliTestRunner:
+    """
+    Runner for CLI end-to-end tests.
+
+    Unlike the gtest-based test runners, CLI tests are simple Python tests
+    that run CLI commands and verify output. They test the CLI tool itself
+    (fboss2-dev) on a running FBOSS instance.
+    """
+
+    CLI_TEST_DIR = "./share/cli_tests"
+
+    def run_test(self, args):
+        """Run CLI end-to-end tests"""
+        print("Running CLI end-to-end tests...")
+
+        # Find and run test scripts
+        test_dir = self.CLI_TEST_DIR
+        if not os.path.isdir(test_dir):
+            print(f"CLI test directory not found: {test_dir}")
+            print("No CLI tests to run.")
+            return
+
+        # Get list of test scripts
+        test_scripts = []
+        for filename in sorted(os.listdir(test_dir)):
+            if filename.startswith("test_") and filename.endswith(".py"):
+                test_scripts.append(os.path.join(test_dir, filename))
+
+        if not test_scripts:
+            print(f"No CLI test scripts found in {test_dir}")
+            return
+
+        # Apply filter if specified
+        if args.filter:
+            filtered_scripts = []
+            for script in test_scripts:
+                script_name = os.path.basename(script)
+                if args.filter in script_name:
+                    filtered_scripts.append(script)
+            test_scripts = filtered_scripts
+            if not test_scripts:
+                print(f"No tests match filter: {args.filter}")
+                return
+
+        # Run each test script
+        passed = 0
+        failed = 0
+        failed_tests = []
+        test_times = {}  # Track time for each test
+        total_start_time = time.time()
+
+        for test_script in test_scripts:
+            test_name = os.path.basename(test_script)
+            print(f"\n########## Running CLI test: {test_name}")
+
+            test_start_time = time.time()
+            try:
+                result = subprocess.run(
+                    ["python3", test_script],
+                    capture_output=True,
+                    text=True,
+                    timeout=300,  # 5 minute timeout per test
+                )
+                test_elapsed = time.time() - test_start_time
+                test_times[test_name] = test_elapsed
+
+                if result.returncode == 0:
+                    print(f"[  PASSED  ] {test_name} ({test_elapsed:.1f}s)")
+                    passed += 1
+                else:
+                    print(f"[  FAILED  ] {test_name} ({test_elapsed:.1f}s)")
+                    print(f"stdout: {result.stdout}")
+                    print(f"stderr: {result.stderr}")
+                    failed += 1
+                    failed_tests.append(test_name)
+
+            except subprocess.TimeoutExpired as e:
+                test_elapsed = time.time() - test_start_time
+                test_times[test_name] = test_elapsed
+                print(f"[  TIMEOUT ] {test_name} ({test_elapsed:.1f}s)")
+                if e.stdout:
+                    print(f"stdout: {e.stdout}")
+                if e.stderr:
+                    print(f"stderr: {e.stderr}")
+                failed += 1
+                failed_tests.append(test_name)
+            except Exception as e:
+                test_elapsed = time.time() - test_start_time
+                test_times[test_name] = test_elapsed
+                print(f"[  ERROR   ] {test_name}: {e} ({test_elapsed:.1f}s)")
+                failed += 1
+                failed_tests.append(test_name)
+
+        total_elapsed = time.time() - total_start_time
+
+        # Print summary
+        print("\n" + "=" * 60)
+        print("CLI Test Summary")
+        print("=" * 60)
+        print(f"  Passed: {passed}")
+        print(f"  Failed: {failed}")
+        print(f"  Total:  {passed + failed}")
+        print(f"  Time:   {total_elapsed:.1f}s")
+
+        if failed_tests:
+            print("\nFailed tests:")
+            for test in failed_tests:
+                print(f"  - {test} ({test_times.get(test, 0):.1f}s)")
+
+        if failed > 0:
+            sys.exit(1)
+
+
 if __name__ == "__main__":
     _check_working_dir()
     # Set env variables for FBOSS
@@ -1485,6 +1599,13 @@ if __name__ == "__main__":
     sai_agent_test_runner = SaiAgentTestRunner()
     sai_agent_test_parser.set_defaults(func=sai_agent_test_runner.run_test)
     sai_agent_test_runner.add_subcommand_arguments(sai_agent_test_parser)
+
+    # Add subparser for CLI end-to-end tests
+    cli_test_parser = subparsers.add_parser(
+        SUB_CMD_CLI, help="run CLI end-to-end tests"
+    )
+    cli_test_runner = CliTestRunner()
+    cli_test_parser.set_defaults(func=cli_test_runner.run_test)
 
     # Parse the args
     args = ap.parse_known_args()

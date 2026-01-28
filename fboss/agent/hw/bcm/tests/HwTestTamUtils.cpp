@@ -13,6 +13,7 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
   ensemble->runDiagCommand("\n", out);
   switch (asic) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
