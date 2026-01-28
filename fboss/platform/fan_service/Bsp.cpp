@@ -2,9 +2,12 @@
 
 #include "fboss/platform/fan_service/Bsp.h"
 
+#include <ctime>
 #include <fstream>
 #include <string>
 
+#include <fmt/chrono.h>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <folly/system/ThreadName.h>
 
@@ -320,10 +323,14 @@ void Bsp::getOpticsDataFromQsfpSvc(
     pSensorData->updateOpticEntry(
         *opticsGroup.opticName(), data, currentQsfpSvcTimestamp);
   }
+  auto qsfpTimestamp = static_cast<time_t>(currentQsfpSvcTimestamp);
+  std::tm qsfpTm{};
+  localtime_r(&qsfpTimestamp, &qsfpTm);
   XLOG(INFO) << fmt::format(
-      "Got optics data from Qsfp. Data Size: {}. QsfpSvcTimestamp: {}",
+      "Got optics data from Qsfp. Data Size: {}. QsfpSvcTimestamp: {} ({:%Y-%m-%d %H:%M:%S})",
       data.size(),
-      currentQsfpSvcTimestamp);
+      currentQsfpSvcTimestamp,
+      qsfpTm);
 }
 
 void Bsp::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
@@ -413,11 +420,15 @@ void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
     if (sensorData.value() && sensorData.timeStamp()) {
       pSensorData->updateSensorEntry(
           *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
+      auto timestamp = static_cast<time_t>(*sensorData.timeStamp());
+      std::tm sensorTm{};
+      localtime_r(&timestamp, &sensorTm);
       XLOG(DBG1) << fmt::format(
-          "Storing sensor {} with value {} timestamp {}",
+          "Storing sensor {} with value {} timestamp {} ({:%Y-%m-%d %H:%M:%S})",
           *sensorData.name(),
           *sensorData.value(),
-          *sensorData.timeStamp());
+          *sensorData.timeStamp(),
+          sensorTm);
     }
   }
   XLOG(INFO) << fmt::format(
