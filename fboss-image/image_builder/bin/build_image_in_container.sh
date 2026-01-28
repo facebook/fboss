@@ -19,6 +19,8 @@ ORIGINAL_ARGS=("$0" "$@")
 # Default values
 DESCRIPTION_DIR="${WSROOT}/templates/centos-09.0"
 TARGET_DIR="${WSROOT}/output"
+BUILD_PXE=""
+BUILD_ONIE=""
 
 # User configurable variables (fboss tarfile and kernel rpm directory)
 FBOSS_TARFILE=""
@@ -34,6 +36,8 @@ help() {
   echo ""
   echo "  -f|--fboss-tarfile          Location of compressed FBOSS tar file to add to image"
   echo "  -k|--kernel-rpm-dir         Directory containing kernel rpms to install (default: download LTS 6.12)"
+  echo "  -p|--build-pxe-usb          Build PXE and USB installers image (default: no)"
+  echo "  -o|--build-onie             Build ONIE installer image (default: no)"
   echo ""
   echo "  -h|--help                   Print this help message"
   echo ""
@@ -52,7 +56,77 @@ update_docker() {
     dracut-kiwi-oem-dump \
     kiwi-systemdeps-image-validation \
     syslinux \
-    btrfs-progs
+    btrfs-progs \
+    glibc-static
+}
+
+build_zstd() {
+  if [ ! -d ${TARGET_DIR}/zstd ]; then
+    dprint "Building static zstd..."
+    git clone https://github.com/facebook/zstd.git ${TARGET_DIR}/zstd
+    pushd ${TARGET_DIR}/zstd >/dev/null
+    git checkout release
+    make -C programs zstd-frugal LDFLAGS="-static"
+    strip programs/zstd-frugal
+    popd >/dev/null
+  fi
+}
+
+build_onie_installer() {
+  build_zstd
+
+  dprint "Creating ONIE installer..."
+  out_bin=${TARGET_DIR}/onie/FBOSS-Distro-Image.x86_64-1.0.install.bin
+  rootfs=${TARGET_DIR}/onie/FBOSS-Distro-Image.x86_64-1.0.tar.zst
+
+  pushd ${TARGET_DIR}/onie >/dev/null
+
+  mkdir -p onie_installer
+  templates_dir="${WSROOT}/templates/onie"
+
+  cp ${templates_dir}/distro-setup.sh.tmpl onie_installer/distro-setup.sh
+  chmod a+x onie_installer/distro-setup.sh
+
+  cp ${templates_dir}/default_platform.conf onie_installer/default_platform.conf
+  chmod a+x onie_installer/default_platform.conf
+
+  cp ${templates_dir}/install.sh.tmpl onie_installer/install.sh
+  chmod a+x onie_installer/install.sh
+
+  cp ${TARGET_DIR}/zstd/programs/zstd-frugal onie_installer/zstd
+  chmod a+x onie_installer/zstd
+
+  dprint "  Finding kernel and initrd..."
+  kernel=$(
+    set +o pipefail
+    tar -tf $rootfs | awk -F / '/^boot\/vmlinuz/ {print $2; exit 0}' || exit 1
+  )
+  initrd=$(
+    set +o pipefail
+    tar -tf $rootfs | awk -F / '/^boot\/initramfs/ {print $2; exit 0}' || exit 1
+  )
+
+  sed -i -e "s/%%KERNEL_FILENAME%%/$kernel/g" \
+    -e "s/%%INITRD_FILENAME%%/$initrd/g" \
+    onie_installer/install.sh
+
+  mv $rootfs onie_installer/rootfs.tar.zst
+
+  dprint "  Packaging installer..."
+  tar -cf installer.tar onie_installer
+
+  sha1=$(cat installer.tar | sha1sum | awk '{print $1}')
+
+  cp ${templates_dir}/sharch_body.sh ${out_bin}
+  sed -i -e "s/%%IMAGE_SHA1%%/$sha1/" \
+    -e "s/%%PAYLOAD_IMAGE_SIZE%%/$(stat -c %s installer.tar)/" \
+    ${out_bin}
+
+  cat installer.tar >>${out_bin}
+
+  rm -rf installer.tar onie_installer
+
+  popd >/dev/null
 }
 
 # Parse command line arguments
@@ -67,6 +141,16 @@ while [[ $# -gt 0 ]]; do
   -k | --kernel-rpm-dir)
     KERNEL_RPM_DIR=$2
     shift 2
+    ;;
+
+  -p | --build-pxe-usb)
+    BUILD_PXE="yes"
+    shift 1
+    ;;
+
+  -o | --build-onie)
+    BUILD_ONIE="yes"
+    shift 1
     ;;
 
   -h | --help)
@@ -104,9 +188,6 @@ fi
 # Update the docker image
 dprint "Updating docker image..."
 update_docker >>"${LOG_FILE}" 2>&1
-
-dprint "Deleting target directory: ${TARGET_DIR}"
-rm -rf "${TARGET_DIR}"
 
 # Create the output directory (in case it doesn't exist)
 mkdir -p "${TARGET_DIR}"
@@ -157,16 +238,71 @@ cp /etc/resolv.conf "${DESCRIPTION_DIR}/root/etc/"
 echo "Built on: $(date -u)" >"$DESCRIPTION_DIR/root/etc/build-info"
 
 # Generate the images
-dprint "Generating PXE and USB bootable image, this will take few minutes..."
-kiwi-ng-3 \
-  --profile FBOSS \
-  --type oem \
-  system build \
-  --description "${DESCRIPTION_DIR}" \
-  --target-dir "${TARGET_DIR}" \
-  >>"${LOG_FILE}" 2>&1
+PXE_RC=0
+ONIE_RC=0
 
-RC=$?
+if [ -n "${BUILD_PXE}" ]; then
+  dprint "Generating PXE and USB installer, this will take few minutes..."
+  rm -rf ${TARGET_DIR}/btrfs
+  (
+    set -e -o pipefail
+    kiwi-ng-3 \
+      --profile FBOSS \
+      --type oem \
+      system build \
+      --description ${DESCRIPTION_DIR} \
+      --target-dir ${TARGET_DIR}/btrfs |&
+      tee -a ${LOG_FILE} | awk '{print "PXE/USB Installer| " $0}'
+    mv ${TARGET_DIR}/btrfs/FBOSS-Distro-Image.x86_64-1.0.install.* ${TARGET_DIR}
+  ) &
+  PXE_PID=$!
+fi
 
+if [ -n "${BUILD_ONIE}" ]; then
+  dprint "Generating ONIE installer, this will take few minutes..."
+  rm -rf ${TARGET_DIR}/onie
+  (
+    set -e -o pipefail
+    kiwi-ng-3 \
+      --profile FBOSS \
+      --type tbz \
+      system build \
+      --description ${DESCRIPTION_DIR} \
+      --target-dir ${TARGET_DIR}/onie |&
+      tee -a ${LOG_FILE} | awk '{print "ONIE installer| " $0}'
+    # Repack the rootfs so really long filenames are not truncated under Busybox
+    dprint "Repacking rootfs with zstd..."
+    mkdir ${TARGET_DIR}/onie/rootfs
+    pushd ${TARGET_DIR}/onie/rootfs >/dev/null
+    xzcat --threads=0 ${TARGET_DIR}/onie/FBOSS-Distro-Image.x86_64-1.0.tar.xz | tar -x
+    rm ${TARGET_DIR}/onie/FBOSS-Distro-Image.x86_64-1.0.tar.xz
+    tar --format=gnu -cf ${TARGET_DIR}/onie/FBOSS-Distro-Image.x86_64-1.0.tar *
+    zstd --threads=0 -19 ${TARGET_DIR}/onie/FBOSS-Distro-Image.x86_64-1.0.tar
+    popd >/dev/null
+
+    build_onie_installer | awk '{print "ONIE installer| " $0}'
+    mv ${TARGET_DIR}/onie/FBOSS-Distro-Image.x86_64-1.0.install.* ${TARGET_DIR}
+  ) &
+  ONIE_PID=$!
+fi
+
+if [ -n "${BUILD_PXE}" ]; then
+  wait ${PXE_PID}
+  PXE_RC=$?
+fi
+
+if [ -n "${BUILD_ONIE}" ]; then
+  wait ${ONIE_PID}
+  ONIE_RC=$?
+fi
+
+if [ ${PXE_RC} -ne 0 ]; then
+  dprint "ERROR: PXE/USB image build failed"
+fi
+if [ ${ONIE_RC} -ne 0 ]; then
+  dprint "ERROR: ONIE installer build failed"
+fi
+
+RC=$((PXE_RC + ONIE_RC))
 dprint "Image generation completed with exit code ${RC}"
 exit "${RC}"

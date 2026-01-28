@@ -1,7 +1,8 @@
 {
   "distribution_formats": {
     "usb": "fboss-distro-image_usb.iso",
-    "pxe": "fboss-distro-image_pxe.tar"
+    "pxe": "fboss-distro-image_pxe.tar",
+    "onie": "fboss-distro-image_onie.bin"
   },
   "kernel": {
   },

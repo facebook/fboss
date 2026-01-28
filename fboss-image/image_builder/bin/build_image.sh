@@ -21,6 +21,8 @@ DOCKER_INSTANCE_NAME="${USER}-fboss-image-builder"
 DOCKER_IMAGE_NAME="${USER}-fboss-image-builder"
 BUILD_DOCKER_IMAGE="no"
 DELETE_DOCKER_IMAGE="no"
+BUILD_PXEUSB="no"
+BUILD_ONIE="no"
 
 print_help() {
   echo "Usage: $0 [options] [--] [options for child scripts]"
@@ -33,7 +35,8 @@ print_help() {
   echo ""
   echo "  --docker-image-name <name>      Name of docker image to use (default: ${DOCKER_IMAGE_NAME})"
   echo "  --docker-instance-name <name>   Name of docker instance to use (default: ${DOCKER_INSTANCE_NAME})"
-  echo "  -b|--build-fboss-images         Generate FBOSS images - USB ISO and PXE bootable"
+  echo "  -p|--build-pxe-usb              Build PXE and USB bootable image"
+  echo "  -o|--build-onie                 Build ONIE installer image"
   echo "  -e|--enter-shell                Enter shell in the docker container (for debugging)"
   echo "  --                              All arguments after this are passed to child scripts"
   echo ""
@@ -42,8 +45,8 @@ print_help() {
   echo "       $(basename "$0") -D                      Delete docker image"
   echo "       $(basename "$0") -e                      Enter shell in docker container"
   echo "       $(basename "$0") -B -b                   Build FBOSS images"
-  echo "       $(basename "$0") -b -- -k <kernelrpmdir> Build FBOSS images using kernel from specified directory"
-  echo "       $(basename "$0") -b -- -f <fboss.tar>    Overlay image with specified tar file"
+  echo "       $(basename "$0") -p -- -k <kernelrpmdir> Build FBOSS images using kernel from specified directory"
+  echo "       $(basename "$0") -p -- -f <fboss.tar>    Overlay image with specified tar file"
   echo ""
 }
 
@@ -72,8 +75,15 @@ while [[ $# -gt 0 ]]; do
     shift 1
     ;;
 
-  -b | --build-fboss-images)
-    BUILD_FBOSS_IMAGES=yes
+  -p | --build-pxe-usb)
+    BUILD_FBOSS_IMAGES="yes"
+    BUILD_PXEUSB="yes"
+    shift 1
+    ;;
+
+  -o | --build-onie)
+    BUILD_FBOSS_IMAGES="yes"
+    BUILD_ONIE="yes"
     shift 1
     ;;
 
@@ -181,10 +191,17 @@ if [ "${ENTER_SHELL}" = "yes" ]; then
 else
   if [ "${BUILD_FBOSS_IMAGES}" = "yes" ]; then
     dprint "Starting image build, launching in docker: /${IMAGE_BUILDER_DIR}/bin/build_image_in_container.sh ${CHILD_SCRIPT_ARGS[*]}"
+    image_args=""
+    if [ "${BUILD_PXEUSB}" = "yes" ]; then
+      image_args="${image_args} --build-pxe-usb"
+    fi
+    if [ "${BUILD_ONIE}" = "yes" ]; then
+      image_args="${image_args} --build-onie"
+    fi
     #shellcheck disable=SC2086
-    docker run --rm ${DOCKER_ARGS} "${DOCKER_IMAGE_NAME}" /"${IMAGE_BUILDER_DIR}"/bin/build_image_in_container.sh "${CHILD_SCRIPT_ARGS[@]}" >>"${LOG_FILE}" 2>&1
+    docker run --rm ${DOCKER_ARGS} "${DOCKER_IMAGE_NAME}" /"${IMAGE_BUILDER_DIR}"/bin/build_image_in_container.sh ${image_args} "${CHILD_SCRIPT_ARGS[@]}" |& tee -a ${LOG_FILE}
     RC=$?
-    handle_error "${RC}" "docker run /${IMAGE_BUILDER_DIR}/bin/build_image.sh ${CHILD_SCRIPT_ARGS[*]}"
+    handle_error "${RC}" "docker run /${IMAGE_BUILDER_DIR}/bin/build_image.sh ${image_args} ${CHILD_SCRIPT_ARGS[*]}"
   fi
 fi
 dprint "$0 execution complete, exit code: ${RC}"
