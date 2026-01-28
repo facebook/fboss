@@ -2626,34 +2626,8 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
 }
 
 void SwSwitch::linkAdminStateChangedByFw(
-    const std::vector<int32_t>& fwDisabledPortIds) {
-  auto updateAdminDisableStateFn =
-      [fwDisabledPortIds, this](const std::shared_ptr<SwitchState>& state) {
-        std::shared_ptr<SwitchState> newState(state);
-        for (const auto& portId : fwDisabledPortIds) {
-          // Firmware Admin disable the link and issues callback. While the link
-          // is Admin disabled, since Firmware wants to issue callback quickly,
-          // it does not run the usual Admin disable sequence.
-          // Thus, explicit Admin disable means:
-          //  - FBOSS SwitchState is updated.
-          //  - SAI API call to Admin Disable. SAI implementation can run the
-          //  usual Admin disable sequence then.
-          // Note: this change cannot be persistent, so link will come up as
-          // Admin Enabled post warmboot, and Firmware may disable it again if
-          // the problem persists.
-          XLOG(DBG2) << "Admin Disable link disabled by Firmware: " << portId;
-          auto* port = newState->getPorts()->getNodeIf(portId).get();
-          auto newPort = port->modify(&newState);
-          newPort->setAdminState(cfg::PortState::DISABLED);
-        }
-
-        return newState;
-      };
-
-  updateStateNoCoalescing(
-      "Fw Isolate Link Admin Disable Update",
-      std::move(updateAdminDisableStateFn));
-  return;
+    const std::vector<int32_t>& /*fwDisabledPortIds*/) {
+  // TODO
 }
 
 void SwSwitch::validateSwitchReachabilityInformation(
