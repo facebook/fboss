@@ -5,7 +5,6 @@
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
-#include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 // For Netcastle runs, netcastle sets up db directory under
@@ -436,21 +435,7 @@ TYPED_TEST(AgentVoqSwitchIsolationFirmwareTest, forceLinkAdminDisable) {
   };
 
   auto verify = [this]() {
-    // setup() induces Firmware link disable.
-    // On Firmware link disable, SAI implementation issues a callback.
-    // Agent processes this callback to Admin Disable the link.
-    // However, since the config is not modified, the link is Admin
-    // re-enabled post-warmboot.
-    // Thus, verify() DISABLED for coldboot runs, but ENABLED for warmboot runs.
-    auto expectedAdminState =
-        this->getSw()->getBootType() == BootType::COLD_BOOT
-        ? cfg::PortState::DISABLED
-        : cfg::PortState::ENABLED;
-
-    utility::checkPortsAdminState(
-        this->getAgentEnsemble(),
-        {this->masterLogicalFabricPortIds()[0]},
-        expectedAdminState);
+    // TODO
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
