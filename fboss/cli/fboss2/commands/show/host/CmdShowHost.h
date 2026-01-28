@@ -19,11 +19,21 @@
 #include "fboss/cli/fboss2/utils/Table.h"
 
 #include <boost/algorithm/string.hpp>
+#include <functional>
 
 namespace facebook::fboss {
 
 using facebook::network::NetworkUtil;
 using utils::Table;
+
+// Type alias for DNS resolver function: takes IP address string, returns
+// hostname
+using DnsResolver = std::function<std::string(const std::string&)>;
+
+// Default DNS resolver using the real NetworkUtil
+inline std::string defaultDnsResolver(const std::string& ipAddr) {
+  return NetworkUtil::getHostByAddr(ipAddr);
+}
 
 struct CmdShowHostTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
@@ -39,7 +49,8 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const ObjectArgType& queriedPorts) {
+      const ObjectArgType& queriedPorts,
+      DnsResolver resolver = defaultDnsResolver) {
     std::vector<int32_t> ports;
     std::vector<NdpEntryThrift> ndpEntries;
     std::map<int32_t, PortInfoThrift> portInfoEntries;
@@ -50,14 +61,15 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
     agentClient->sync_getAllPortInfo(portInfoEntries);
     agentClient->sync_getPortStatus(portStatusEntries, ports);
     return createModel(
-        ndpEntries, portInfoEntries, portStatusEntries, queriedPorts);
+        ndpEntries, portInfoEntries, portStatusEntries, queriedPorts, resolver);
   }
 
   RetType createModel(
       const std::vector<NdpEntryThrift>& ndpEntries,
       const std::map<int32_t, PortInfoThrift>& portInfoEntries,
       const std::map<int32_t, PortStatus>& portStatusEntries,
-      const ObjectArgType& queriedPorts) {
+      const ObjectArgType& queriedPorts,
+      DnsResolver resolver = defaultDnsResolver) {
     RetType model;
     for (const auto& ndpEntry : ndpEntries) {
       cli::ShowHostModelEntry hostDetails;
@@ -77,7 +89,7 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
         hostDetails.queueID() = "Olympic";
       }
       std::string ndpEntryHostName =
-          utils::removeFbDomains(NetworkUtil::getHostByAddr(ndpEntryAddr));
+          utils::removeFbDomains(resolver(ndpEntryAddr));
       if (ndpEntryHostName.empty()) {
         hostDetails.hostName() = ndpEntryAddr;
       } else {
