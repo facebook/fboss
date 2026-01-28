@@ -129,20 +129,9 @@ void MultiSwitchThriftHandler::processLinkConnectivity(
 }
 
 void MultiSwitchThriftHandler::processLinkDisabledByFirmware(
-    SwitchID switchId,
-    const multiswitch::LinkChangeEvent& linkChangeEvent) {
-  if (linkChangeEvent.linkFwDisableEvent()->portIds()->size() == 0) {
-    return;
-  }
-  XLOG(DBG3) << "Got link disabled by firmware event from switch " << switchId
-             << " for : "
-             << linkChangeEvent.linkFwDisableEvent()->portIds()->size()
-             << " ports";
-
-  std::vector<int32_t> portIds(
-      linkChangeEvent.linkFwDisableEvent()->portIds()->begin(),
-      linkChangeEvent.linkFwDisableEvent()->portIds()->end());
-  sw_->linkAdminStateChangedByFw(portIds);
+    SwitchID /*switchId*/,
+    const multiswitch::LinkChangeEvent& /*linkChangeEvent*/) {
+  // TODO
 }
 
 void MultiSwitchThriftHandler::processSwitchReachabilityChangeEvent(
