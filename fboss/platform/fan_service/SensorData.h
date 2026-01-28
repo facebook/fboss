@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <map>
 #include <unordered_map>
 #include <vector>
 
@@ -20,9 +21,14 @@ struct SensorEntry {
   float value{0};
 };
 
+struct OpticData {
+  int32_t txvrId{0};
+  float temp{0};
+};
+
 struct OpticEntry {
-  // Map from opticType to sensor (temperature) reading
-  std::vector<std::pair<std::string, float>> data;
+  // Map from opticType to list of transceiver readings (txvrId, temp)
+  std::map<std::string, std::vector<OpticData>> data;
   // Timestamp of when this entry was last updated in fan_service
   uint64_t lastOpticsUpdateTimeInSec{0};
   // Timestamp of when this entry was last updated in qsfp_service
@@ -40,7 +46,7 @@ class SensorData {
   std::optional<OpticEntry> getOpticEntry(const std::string& name) const;
   void updateOpticEntry(
       const std::string& name,
-      const std::vector<std::pair<std::string, float>>& data,
+      const std::map<std::string, std::vector<OpticData>>& data,
       uint64_t qsfpServiceTimeStamp);
   void resetOpticData(const std::string& name);
   void updateOpticDataProcessingTimestamp(const std::string& name, uint64_t ts);

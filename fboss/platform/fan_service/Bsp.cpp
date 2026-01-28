@@ -164,14 +164,12 @@ bool Bsp::writeToWatchdog(const std::string& value) {
   return res;
 }
 
-std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
+std::map<std::string, std::vector<OpticData>> Bsp::processOpticEntries(
     const Optic& opticsGroup,
     uint64_t& currentQsfpSvcTimestamp,
     const std::map<int32_t, TransceiverInfo>& transceiverInfoMap) {
-  std::vector<std::pair<std::string, float>> data{};
+  std::map<std::string, std::vector<OpticData>> data{};
   std::vector<int32_t> txvrsIdsWithNoData;
-  std::map<std::string, std::vector<std::pair<int32_t, float>>>
-      transceiversByOpticType;
 
   for (const auto& [xvrId, transceiverInfo] : transceiverInfoMap) {
     const TcvrState& tcvrState = *transceiverInfo.tcvrState();
@@ -242,8 +240,7 @@ std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
             int(mediaInterfaceCode));
         continue;
     }
-    data.emplace_back(opticType, temp);
-    transceiversByOpticType[opticType].emplace_back(xvrId, temp);
+    data[opticType].push_back(OpticData{xvrId, temp});
   }
 
   if (!txvrsIdsWithNoData.empty()) {
@@ -251,12 +248,13 @@ std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
         "Transceivers with no data (ignored): {}",
         folly::join(", ", txvrsIdsWithNoData));
   }
-  if (!transceiversByOpticType.empty()) {
-    for (const auto& [opticType, transceivers] : transceiversByOpticType) {
+  if (!data.empty()) {
+    for (const auto& [opticType, transceivers] : data) {
       std::vector<std::string> tempStrings;
       tempStrings.reserve(transceivers.size());
-      for (const auto& [id, temp] : transceivers) {
-        tempStrings.push_back(fmt::format("{}({:.1f}C)", id, temp));
+      for (const auto& opticData : transceivers) {
+        tempStrings.push_back(
+            fmt::format("{}({:.1f}C)", opticData.txvrId, opticData.temp));
       }
       XLOG(INFO) << fmt::format(
           "Transceivers with data [{}]: {}",
@@ -327,7 +325,7 @@ void Bsp::getOpticsDataFromQsfpSvc(
   std::tm qsfpTm{};
   localtime_r(&qsfpTimestamp, &qsfpTm);
   XLOG(INFO) << fmt::format(
-      "Got optics data from Qsfp. Data Size: {}. QsfpSvcTimestamp: {} ({:%Y-%m-%d %H:%M:%S})",
+      "Got optics data from Qsfp. OpticTypes: {}. QsfpSvcTimestamp: {} ({:%Y-%m-%d %H:%M:%S})",
       data.size(),
       currentQsfpSvcTimestamp,
       qsfpTm);
