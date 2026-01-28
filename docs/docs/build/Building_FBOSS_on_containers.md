@@ -117,6 +117,19 @@ we highly recommend to do it in the following order:
 ```bash file=./static/code_snips/build_qsfp_targets_with_brcm_pai.sh
 ```
 
+### Build Type Options
+
+The `getdeps.py` script supports different build types via the `--build-type` flag. This controls optimization levels and debug information:
+
+| Build Type | Description | Use Case |
+|------------|-------------|----------|
+| **Debug** | No optimization, full debug symbols | Development and debugging |
+| **RelWithDebInfo** | Optimized with debug symbols | **Default** - Balances performance with debuggability |
+| **MinSizeRel** | Optimized for size, no debug symbols | Production deployments and resource-constrained environments |
+| **Release** | Full optimization, no debug symbols | Maximum performance (may have compatibility issues) |
+
+**Note**: If `--build-type` is not specified, the build defaults to `RelWithDebInfo`, which balances performance with the ability to debug issues.
+
 ### Limit the Build to a Specific Target
 
 You can limit the build to a specific target by using the `--cmake-target` flag.
