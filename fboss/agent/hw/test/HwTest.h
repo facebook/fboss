@@ -71,8 +71,6 @@ class HwTest : public ::testing::Test,
       bool /* fwIsolated */,
       const std::optional<uint32_t>& /* numActiveFabricPortsAtFwIsolate */
       ) override {}
-  void linkAdminStateChangedByFw(
-      const std::vector<int32_t>& /* fwDisabledPortIds */) override {}
   void switchReachabilityChanged(
       const SwitchID /*switchId*/,
       const std::map<SwitchID, std::set<PortID>>& /*switchReachabilityInfo*/)
