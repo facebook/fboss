@@ -136,8 +136,6 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
       bool /* fwIsolated */,
       const std::optional<uint32_t>& /* numActiveFabricPortsAtFwIsolate */)
       override {}
-  void linkAdminStateChangedByFw(
-      const std::vector<int32_t>& /*fwDisabledPortIds*/) override {}
   void l2LearningUpdateReceived(
       L2Entry /* l2Entry */,
       L2EntryUpdateType /* l2EntryUpdateType */) override {}

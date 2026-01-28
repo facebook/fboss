@@ -161,10 +161,6 @@ class AgentEnsemble : public TestEnsembleIf {
     getSw()->linkActiveStateChangedOrFwIsolated(
         port2IsActive, fwIsolated, numActiveFabricPortsAtFwIsolate);
   }
-  void linkAdminStateChangedByFw(
-      const std::vector<int32_t>& fwDisabledPortIds) override {
-    getSw()->linkAdminStateChangedByFw(fwDisabledPortIds);
-  }
   void linkConnectivityChanged(
       const std::map<PortID, multiswitch::FabricConnectivityDelta>&
           port2OldAndNewConnectivity) override {

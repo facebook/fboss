@@ -168,11 +168,6 @@ void SplitAgentThriftSyncer::linkActiveStateChangedOrFwIsolated(
   linkChangeEventSinkClient_->enqueue(std::move(changeEvent));
 }
 
-void SplitAgentThriftSyncer::linkAdminStateChangedByFw(
-    const std::vector<int32_t>& /*fwDisabledPortIds*/) {
-  // TODO
-}
-
 void SplitAgentThriftSyncer::switchReachabilityChanged(
     const SwitchID /*switchId*/,
     const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo) {
