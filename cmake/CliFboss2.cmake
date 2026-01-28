@@ -505,6 +505,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h
   fboss/cli/fboss2/commands/show/rif/CmdShowRif.h
   fboss/cli/fboss2/commands/show/rif/CmdShowRif.cpp
+  fboss/cli/fboss2/commands/show/running_config/CmdShowRunningConfig.cpp
+  fboss/cli/fboss2/commands/show/running_config/CmdShowRunningConfig.h
   fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h
   fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.cpp
   fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h
