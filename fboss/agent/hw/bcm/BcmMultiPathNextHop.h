@@ -35,6 +35,10 @@ class BcmMultiPathNextHop {
  public:
   BcmMultiPathNextHop(const BcmSwitchIf* hw, BcmMultiPathNextHopKey key);
   virtual ~BcmMultiPathNextHop();
+  BcmMultiPathNextHop(const BcmMultiPathNextHop&) = delete;
+  BcmMultiPathNextHop& operator=(const BcmMultiPathNextHop&) = delete;
+  BcmMultiPathNextHop(BcmMultiPathNextHop&&) = delete;
+  BcmMultiPathNextHop& operator=(BcmMultiPathNextHop&&) = delete;
   bcm_if_t getEgressId() const;
   bcm_if_t getEcmpEgressId() const {
     return ecmpEgress_ ? ecmpEgress_->getID() : BcmEgressBase::INVALID;

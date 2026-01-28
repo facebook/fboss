@@ -314,7 +314,8 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
         RibRouteUpdater updater(
             &(routeTable.v4NetworkToRoute),
             &(routeTable.v6NetworkToRoute),
-            &(routeTable.labelToRoute));
+            &(routeTable.labelToRoute),
+            nextHopIDManager_);
         updater.update(
             {{ClientID::REMOTE_INTERFACE_ROUTE, toAddRoutes}},
             {{ClientID::REMOTE_INTERFACE_ROUTE, toDelRoutes}},
@@ -341,7 +342,8 @@ void RibRouteTables::update(
     RibRouteUpdater updater(
         &(routeTable.v4NetworkToRoute),
         &(routeTable.v6NetworkToRoute),
-        &(routeTable.labelToRoute));
+        &(routeTable.labelToRoute),
+        nextHopIDManager_);
     updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
   });
   updateFib(resolver, routerID, fibUpdateCallback, cookie);
@@ -389,6 +391,15 @@ void RibRouteTables::updateFib(
             hwUpdateError.appliedState->getLabelForwardingInformationBase();
         reconstructRibFromFib<LabelID, MultiLabelForwardingInformationBase>(
             std::move(labelFib), &routeTable.labelToRoute);
+      }
+
+      // Reconstruct NextHopIDManager from the applied state's FIB
+      // This consolidates ID maps from all switches and recalculates ref counts
+      if (nextHopIDManager_) {
+        auto fibsInfoMap = hwUpdateError.appliedState->getFibsInfoMap();
+        if (fibsInfoMap && !fibsInfoMap->empty()) {
+          nextHopIDManager_->reconstructFromFib(fibsInfoMap);
+        }
       }
     }
     throw;
@@ -848,6 +859,13 @@ std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
   auto rib = std::make_unique<RoutingInformationBase>();
   rib->ribTables_ =
       RibRouteTables::fromThrift(ribThrift, fibsInfoMap, labelFib);
+
+  // Reconstruct NextHopIDManager state from FIB during warm boot
+  // This consolidates ID maps from all switches and reconstructs ref counts
+  if (fibsInfoMap && !fibsInfoMap->empty()) {
+    rib->nextHopIDManager_.reconstructFromFib(fibsInfoMap);
+  }
+
   return rib;
 }
 

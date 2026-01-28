@@ -62,9 +62,10 @@ class ControlLogicTests : public testing::Test {
 
     for (const auto& optic : *fanServiceConfig_.optics()) {
       value = 30.0;
-      auto opticData = std::vector<std::pair<std::string, float>>();
+      std::map<std::string, std::vector<OpticData>> opticData;
+      int32_t txvrId = 1;
       for (const auto& [opticType, tempToPwm] : *optic.tempToPwmMaps()) {
-        opticData.emplace_back(opticType, value);
+        opticData[opticType].push_back(OpticData{txvrId++, value});
         value += 12.0;
       }
       sensorData_->updateOpticEntry(

@@ -310,13 +310,19 @@ cpp_library(
         "commands/show/facebook/techsupport/CmdShowTechSupport.cpp",
         "commands/show/fsdb/CmdShowFsdbUtils.cpp",
         "commands/show/hwagent/CmdShowHwAgentStatus.cpp",
+        "commands/show/hwobject/CmdShowHwObject.cpp",
+        "commands/show/l2/CmdShowL2.cpp",
         "commands/show/lldp/CmdShowLldp.cpp",
+        "commands/show/mac/CmdShowMacAddrToBlock.cpp",
         "commands/show/mac/CmdShowMacDetails.cpp",
+        "commands/show/mirror/CmdShowMirror.cpp",
         "commands/show/ndp/CmdShowNdp.cpp",
         "commands/show/port/CmdShowPort.cpp",
+        "commands/show/port/CmdShowPortQueue.cpp",
         "commands/show/rif/CmdShowRif.cpp",
         "commands/show/route/utils.cpp",
         "commands/show/systemport/CmdShowSystemPort.cpp",
+        "commands/show/transceiver/CmdShowTransceiver.cpp",
         "facebook/CmdHandlerImpl.cpp",
         "facebook/CmdList.cpp",
         "facebook/CmdStreamHandler.cpp",
@@ -507,6 +513,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/glog:glog",
         "fbsource//third-party/re2:re2",
         ":cli-cpp2-types",
         ":cmd-common-utils",
@@ -736,7 +743,6 @@ cpp_library(
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [
-        "glog",
         ("boost", None, "boost_algorithm"),
     ],
 )
@@ -807,6 +813,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/glog:glog",
         "fbsource//third-party/re2:re2",
         ":cmd-common-utils",
         ":cmd-handler",
@@ -824,7 +831,6 @@ cpp_library(
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [
-        "glog",
         ("boost", None, "boost_filesystem"),
     ],
 )

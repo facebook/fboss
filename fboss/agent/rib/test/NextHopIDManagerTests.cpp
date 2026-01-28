@@ -10,12 +10,140 @@
 
 #include <gtest/gtest.h>
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
+#include "fboss/agent/state/ForwardingInformationBase.h"
+#include "fboss/agent/state/ForwardingInformationBaseContainer.h"
+#include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/NextHopIdMaps.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/TestUtils.h"
 
 namespace facebook::fboss {
 
 constexpr int64_t kSetIdOffset = 1LL << 62;
+
+namespace {
+
+// Helper function to create a V4 route with resolvedNextHopSetID and add to FIB
+void addV4RouteWithSetId(
+    const std::shared_ptr<ForwardingInformationBaseV4>& fibV4,
+    const std::string& prefixStr,
+    const RouteNextHopSet& nhops,
+    std::optional<NextHopSetID> setId = std::nullopt) {
+  auto route =
+      std::make_shared<RouteV4>(RouteV4::makeThrift(makePrefixV4(prefixStr)));
+  route->update(ClientID::BGPD, RouteNextHopEntry(nhops, AdminDistance::EBGP));
+  if (setId.has_value()) {
+    auto fwdInfo = route->getForwardInfo().toThrift();
+    fwdInfo.resolvedNextHopSetID() = static_cast<uint64_t>(*setId);
+    route->setResolved(RouteNextHopEntry(std::move(fwdInfo)));
+  } else {
+    route->setResolved(RouteNextHopEntry(nhops, AdminDistance::EBGP));
+  }
+  route->publish();
+  fibV4->addNode(route);
+}
+
+// Helper function to create a V6 route with resolvedNextHopSetID and add to FIB
+void addV6RouteWithSetId(
+    const std::shared_ptr<ForwardingInformationBaseV6>& fibV6,
+    const std::string& prefixStr,
+    const RouteNextHopSet& nhops,
+    std::optional<NextHopSetID> setId = std::nullopt) {
+  auto route =
+      std::make_shared<RouteV6>(RouteV6::makeThrift(makePrefixV6(prefixStr)));
+  route->update(ClientID::BGPD, RouteNextHopEntry(nhops, AdminDistance::EBGP));
+  if (setId.has_value()) {
+    auto fwdInfo = route->getForwardInfo().toThrift();
+    fwdInfo.resolvedNextHopSetID() = static_cast<uint64_t>(*setId);
+    route->setResolved(RouteNextHopEntry(std::move(fwdInfo)));
+  } else {
+    route->setResolved(RouteNextHopEntry(nhops, AdminDistance::EBGP));
+  }
+  route->publish();
+  fibV6->addNode(route);
+}
+
+// Helper function to create a ForwardingInformationBaseMap with empty FIBs
+std::shared_ptr<ForwardingInformationBaseMap> createFibsMap(
+    RouterID vrf = RouterID(0)) {
+  auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
+  auto fibContainer = std::make_shared<ForwardingInformationBaseContainer>(vrf);
+  fibContainer->ref<switch_state_tags::fibV4>() =
+      std::make_shared<ForwardingInformationBaseV4>();
+  fibContainer->ref<switch_state_tags::fibV6>() =
+      std::make_shared<ForwardingInformationBaseV6>();
+  fibsMap->updateForwardingInformationBaseContainer(fibContainer);
+  return fibsMap;
+}
+
+// Helper function to get FibV4 from FibsMap
+std::shared_ptr<ForwardingInformationBaseV4> getFibV4(
+    const std::shared_ptr<ForwardingInformationBaseMap>& fibsMap,
+    RouterID vrf = RouterID(0)) {
+  auto fibContainer = fibsMap->getNodeIf(vrf);
+  return fibContainer ? fibContainer->getFibV4() : nullptr;
+}
+
+// Helper function to get FibV6 from FibsMap
+std::shared_ptr<ForwardingInformationBaseV6> getFibV6(
+    const std::shared_ptr<ForwardingInformationBaseMap>& fibsMap,
+    RouterID vrf = RouterID(0)) {
+  auto fibContainer = fibsMap->getNodeIf(vrf);
+  return fibContainer ? fibContainer->getFibV6() : nullptr;
+}
+
+// Helper function to create a MultiSwitchFibInfoMap with FIB and ID maps
+std::shared_ptr<MultiSwitchFibInfoMap> createMultiSwitchFibInfoMap(
+    const std::shared_ptr<ForwardingInformationBaseMap>& fibsMap,
+    const std::shared_ptr<IdToNextHopMap>& idToNextHopMap = nullptr,
+    const std::shared_ptr<IdToNextHopIdSetMap>& idToNextHopIdSetMap = nullptr) {
+  auto multiSwitchFibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+  auto fibInfo = std::make_shared<FibInfo>();
+
+  // Set the FIBs map using the resetFibsMap method
+  if (fibsMap) {
+    fibInfo->resetFibsMap(fibsMap);
+  }
+
+  // Set the ID maps if provided
+  if (idToNextHopMap) {
+    fibInfo->setIdToNextHopMap(idToNextHopMap);
+  }
+  if (idToNextHopIdSetMap) {
+    fibInfo->setIdToNextHopIdSetMap(idToNextHopIdSetMap);
+  }
+
+  // Add the FibInfo to the map using a default switch matcher string key
+  multiSwitchFibInfoMap->addNode("id=0", fibInfo);
+  return multiSwitchFibInfoMap;
+}
+
+// Helper function to add FibInfo to an existing MultiSwitchFibInfoMap
+void addFibInfoToMultiSwitchMap(
+    const std::shared_ptr<MultiSwitchFibInfoMap>& multiSwitchFibInfoMap,
+    const std::string& switchId,
+    const std::shared_ptr<ForwardingInformationBaseMap>& fibsMap,
+    const std::shared_ptr<IdToNextHopMap>& idToNextHopMap = nullptr,
+    const std::shared_ptr<IdToNextHopIdSetMap>& idToNextHopIdSetMap = nullptr) {
+  auto fibInfo = std::make_shared<FibInfo>();
+
+  if (fibsMap) {
+    fibInfo->resetFibsMap(fibsMap);
+  }
+  if (idToNextHopMap) {
+    fibInfo->setIdToNextHopMap(idToNextHopMap);
+  }
+  if (idToNextHopIdSetMap) {
+    fibInfo->setIdToNextHopIdSetMap(idToNextHopIdSetMap);
+  }
+
+  multiSwitchFibInfoMap->addNode(switchId, fibInfo);
+}
+
+} // namespace
 
 class NextHopIDManagerTest : public ::testing::Test {
  public:
@@ -792,4 +920,252 @@ TEST_F(NextHopIDManagerTest, updateRouteNextHopSetID) {
       manager_->updateRouteNextHopSetID(nonExistentID, nhSet8), FbossError);
 }
 
+// This tests the single-phase reconstructFromFib which builds ID maps
+// and refcounts in a single pass through FIB routes
+TEST_F(NextHopIDManagerTest, reconstructFromFib) {
+  // Create IdToNextHopMap
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "2001:db8::1", UCMP_DEFAULT_WEIGHT);
+
+  NextHopID nhId1 = NextHopID(1);
+  NextHopID nhId2 = NextHopID(2);
+  NextHopID nhId3 = NextHopID(3);
+
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId1), nh1.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId2), nh2.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId3), nh3.toThrift());
+
+  // Create IdToNextHopIdSetMap
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  NextHopSetID setId1 = NextHopSetID(kSetIdOffset + 1);
+  NextHopSetID setId2 = NextHopSetID(kSetIdOffset + 2);
+
+  std::set<state::NextHopIdType> set1{
+      static_cast<state::NextHopIdType>(nhId1),
+      static_cast<state::NextHopIdType>(nhId2)};
+  std::set<state::NextHopIdType> set2{
+      static_cast<state::NextHopIdType>(nhId2),
+      static_cast<state::NextHopIdType>(nhId3)};
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1), set1);
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId2), set2);
+
+  // Create FIB with routes using helper functions
+  auto fibsMap = createFibsMap();
+  auto fibV4 = getFibV4(fibsMap);
+  auto fibV6 = getFibV6(fibsMap);
+
+  RouteNextHopSet nhops1 = {nh1, nh2};
+  RouteNextHopSet nhops2 = {nh2, nh3};
+
+  // Create V4 routes using setId1
+  addV4RouteWithSetId(fibV4, "10.0.0.0/24", nhops1, setId1);
+  addV4RouteWithSetId(fibV4, "10.1.0.0/24", nhops1, setId1);
+
+  // Create V6 routes using setId2
+  addV6RouteWithSetId(fibV6, "2001:db8::/32", nhops2, setId2);
+  addV6RouteWithSetId(fibV6, "2001:db8:1::/48", nhops2, setId2);
+
+  // Create MultiSwitchFibInfoMap with ID maps and FIBs
+  auto multiSwitchFibInfoMap =
+      createMultiSwitchFibInfoMap(fibsMap, idToNextHopMap, idToNextHopIdSetMap);
+
+  // Call reconstructFromFib (the full workflow)
+  manager_->reconstructFromFib(multiSwitchFibInfoMap);
+
+  // Verify maps are populated
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 2);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId1), nh1);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId2), nh2);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId3), nh3);
+
+  NextHopIDSet expectedSet1 = {nhId1, nhId2};
+  NextHopIDSet expectedSet2 = {nhId2, nhId3};
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setId1), expectedSet1);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setId2), expectedSet2);
+
+  // Verify ref counts are correct
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(expectedSet1), 2);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(expectedSet2), 2);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh1), 2);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh2), 4);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh3), 2);
+
+  // Verify next available IDs are set correctly
+  NextHop nh4 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.4", UCMP_DEFAULT_WEIGHT);
+  auto newNhIter = manager_->getOrAllocateNextHopID(nh4);
+  EXPECT_EQ(newNhIter->second.id, NextHopID(4));
+
+  NextHopIDSet newSet = {nhId1};
+  auto newSetIter = manager_->getOrAllocateNextHopSetID(newSet);
+  EXPECT_EQ(newSetIter->second.id, NextHopSetID(kSetIdOffset + 3));
+}
+
+// This tests reconstructFromFib with multiple switches.
+// In a multi-switch environment, each switch has its own FibInfo with its own
+// routes and ID maps, but the NextHopIDManager is common across all switches.
+// The reconstruction should consolidate maps and refcounts from ALL switches.
+//
+// Test setup with partial overlap across switches:
+//   NextHops: nh1, nh2, nh3, nh4
+//   Switch 0: setId1 = {nh1, nh2} (2 routes), setId2 = {nh2, nh3} (1 route)
+//   Switch 1: setId2 = {nh2, nh3} (2 routes), setId3 = {nh3, nh4} (1 route)
+//
+// Expected refcounts:
+//   nh1: 2 (from setId1 x2 on switch0)
+//   nh2: 5 (from setId1 x2 on switch0 + setId2 x1 on switch0 + setId2 x2 on
+//   switch1) nh3: 4 (from setId2 x1 on switch0 + setId2 x2 on switch1 + setId3
+//   x1 on switch1) nh4: 1 (from setId3 x1 on switch1)
+TEST_F(NextHopIDManagerTest, reconstructFromFibMultiSwitch) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.3", UCMP_DEFAULT_WEIGHT);
+  NextHop nh4 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.4", UCMP_DEFAULT_WEIGHT);
+
+  NextHopID nhId1 = NextHopID(1);
+  NextHopID nhId2 = NextHopID(2);
+  NextHopID nhId3 = NextHopID(3);
+  NextHopID nhId4 = NextHopID(4);
+
+  NextHopSetID setId1 = NextHopSetID(kSetIdOffset + 1);
+  NextHopSetID setId2 = NextHopSetID(kSetIdOffset + 2);
+  NextHopSetID setId3 = NextHopSetID(kSetIdOffset + 3);
+
+  // Switch 0 has: nh1, nh2, nh3 and setId1, setId2
+  auto idToNextHopMapSwitch0 = std::make_shared<IdToNextHopMap>();
+  idToNextHopMapSwitch0->addNextHop(
+      static_cast<state::NextHopIdType>(nhId1), nh1.toThrift());
+  idToNextHopMapSwitch0->addNextHop(
+      static_cast<state::NextHopIdType>(nhId2), nh2.toThrift());
+  idToNextHopMapSwitch0->addNextHop(
+      static_cast<state::NextHopIdType>(nhId3), nh3.toThrift());
+
+  auto idToNextHopIdSetMapSwitch0 = std::make_shared<IdToNextHopIdSetMap>();
+  std::set<state::NextHopIdType> set1{
+      static_cast<state::NextHopIdType>(nhId1),
+      static_cast<state::NextHopIdType>(nhId2)};
+  std::set<state::NextHopIdType> set2{
+      static_cast<state::NextHopIdType>(nhId2),
+      static_cast<state::NextHopIdType>(nhId3)};
+  idToNextHopIdSetMapSwitch0->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1), set1);
+  idToNextHopIdSetMapSwitch0->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId2), set2);
+
+  // Create FIB for switch 0
+  auto fibsMapSwitch0 = createFibsMap();
+  auto fibV4Switch0 = getFibV4(fibsMapSwitch0);
+
+  RouteNextHopSet nhops1 = {nh1, nh2};
+  RouteNextHopSet nhops2 = {nh2, nh3};
+  // 2 routes using setId1, 1 route using setId2
+  addV4RouteWithSetId(fibV4Switch0, "10.0.0.0/24", nhops1, setId1);
+  addV4RouteWithSetId(fibV4Switch0, "10.1.0.0/24", nhops1, setId1);
+  addV4RouteWithSetId(fibV4Switch0, "10.2.0.0/24", nhops2, setId2);
+
+  // Switch 1 has: nh2, nh3, nh4 and setId2, setId3
+  auto idToNextHopMapSwitch1 = std::make_shared<IdToNextHopMap>();
+  idToNextHopMapSwitch1->addNextHop(
+      static_cast<state::NextHopIdType>(nhId2), nh2.toThrift());
+  idToNextHopMapSwitch1->addNextHop(
+      static_cast<state::NextHopIdType>(nhId3), nh3.toThrift());
+  idToNextHopMapSwitch1->addNextHop(
+      static_cast<state::NextHopIdType>(nhId4), nh4.toThrift());
+
+  auto idToNextHopIdSetMapSwitch1 = std::make_shared<IdToNextHopIdSetMap>();
+  std::set<state::NextHopIdType> set3{
+      static_cast<state::NextHopIdType>(nhId3),
+      static_cast<state::NextHopIdType>(nhId4)};
+  idToNextHopIdSetMapSwitch1->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId2), set2);
+  idToNextHopIdSetMapSwitch1->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId3), set3);
+
+  // Create FIB for switch 1
+  auto fibsMapSwitch1 = createFibsMap();
+  auto fibV4Switch1 = getFibV4(fibsMapSwitch1);
+  auto fibV6Switch1 = getFibV6(fibsMapSwitch1);
+
+  RouteNextHopSet nhops3 = {nh3, nh4};
+  // 2 routes using setId2, 1 route using setId3
+  addV4RouteWithSetId(fibV4Switch1, "10.3.0.0/24", nhops2, setId2);
+  addV6RouteWithSetId(fibV6Switch1, "2001:db8::/32", nhops2, setId2);
+  addV6RouteWithSetId(fibV6Switch1, "2001:db8:1::/48", nhops3, setId3);
+
+  // ============ CREATE MULTI-SWITCH FIB INFO MAP ============
+  auto multiSwitchFibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+
+  addFibInfoToMultiSwitchMap(
+      multiSwitchFibInfoMap,
+      "id=0",
+      fibsMapSwitch0,
+      idToNextHopMapSwitch0,
+      idToNextHopIdSetMapSwitch0);
+
+  addFibInfoToMultiSwitchMap(
+      multiSwitchFibInfoMap,
+      "id=1",
+      fibsMapSwitch1,
+      idToNextHopMapSwitch1,
+      idToNextHopIdSetMapSwitch1);
+
+  EXPECT_EQ(multiSwitchFibInfoMap->size(), 2);
+
+  manager_->reconstructFromFib(multiSwitchFibInfoMap);
+
+  // Verify all 4 NextHops are in idToNextHop map
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 4);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId1), nh1);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId2), nh2);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId3), nh3);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId4), nh4);
+
+  // Verify all 3 NextHopIDSets are in idToNextHopIdSet map
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 3);
+
+  NextHopIDSet expectedSet1 = {nhId1, nhId2};
+  NextHopIDSet expectedSet2 = {nhId2, nhId3};
+  NextHopIDSet expectedSet3 = {nhId3, nhId4};
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setId1), expectedSet1);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setId2), expectedSet2);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setId3), expectedSet3);
+
+  // Verify NextHopIDSet ref counts
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(expectedSet1), 2);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(expectedSet2), 3);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(expectedSet3), 1);
+
+  // Verify NextHop ref counts
+  EXPECT_EQ(manager_->getNextHopRefCount(nh1), 2);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh2), 5);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh3), 4);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh4), 1);
+
+  // Verify next available IDs are set correctly (max ID + 1)
+  NextHop nh5 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.5", UCMP_DEFAULT_WEIGHT);
+  auto newNhIter = manager_->getOrAllocateNextHopID(nh5);
+  EXPECT_EQ(newNhIter->second.id, NextHopID(5)); // max was 4, so next is 5
+
+  NextHopIDSet newSet = {nhId1};
+  auto newSetIter = manager_->getOrAllocateNextHopSetID(newSet);
+  EXPECT_EQ(
+      newSetIter->second.id,
+      NextHopSetID(kSetIdOffset + 4)); // max was +3, so next is +4
+}
 } // namespace facebook::fboss

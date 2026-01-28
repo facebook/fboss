@@ -51,7 +51,6 @@ FORWARDING_EXTRA = {
 }
 
 FORWARDING_TEST_BINARIES = [
-    "fboss-asic-config-gen",
     "fboss-platform-mapping-gen",
     "led_service_hw_test",
     "multi_switch_agent_hw_test",

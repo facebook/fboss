@@ -206,6 +206,20 @@ class CmakeParser:
         self.repo_root = Path(repo_root)
         self.targets: dict[str, CmakeTarget] = {}  # name -> target
         self.variables: dict[str, list[str]] = {}  # cmake variable -> values
+        self.duplicate_errors: list[str] = []  # List of duplicate target errors
+
+    def _add_target(self, name: str, target: CmakeTarget):
+        """Add a target, reporting error if it already exists"""
+        if name in self.targets:
+            existing = self.targets[name]
+            error = (
+                f"ERROR: Duplicate cmake target '{name}' defined in:\n"
+                f"  First:  {existing.file_path}\n"
+                f"  Second: {target.file_path}"
+            )
+            self.duplicate_errors.append(error)
+            print(error)
+        self.targets[name] = target
 
     def parse_all(self) -> dict[str, CmakeTarget]:
         """Parse all cmake files in cmake/ directory and CMakeLists.txt"""
@@ -292,7 +306,7 @@ class CmakeParser:
             target = CmakeTarget(
                 name=name, target_type="library", srcs=srcs, file_path=file_path
             )
-            self.targets[name] = target
+            self._add_target(name, target)
 
     def _parse_add_executable(self, content: str, file_path: str):
         """Parse add_executable calls"""
@@ -305,7 +319,7 @@ class CmakeParser:
             target = CmakeTarget(
                 name=name, target_type="executable", srcs=srcs, file_path=file_path
             )
-            self.targets[name] = target
+            self._add_target(name, target)
 
     def _parse_add_fbthrift_cpp_library(self, content: str, file_path: str):
         """Parse add_fbthrift_cpp_library calls"""
@@ -329,7 +343,7 @@ class CmakeParser:
                 thrift_deps=deps,
                 file_path=file_path,
             )
-            self.targets[name] = target
+            self._add_target(name, target)
 
     def _extract_thrift_depends(self, block: str) -> list[str]:
         """Extract DEPENDS from a thrift cmake block"""
@@ -542,6 +556,9 @@ class DependencyAnalyzer:
 
         When multiple cmake targets match the same Buck target, prefer
         the cmake target with the same name as the Buck target.
+
+        For thrift libraries, also map sub-targets like -cpp2-types, -cpp2-services
+        to the corresponding cmake thrift target.
         """
         # Track which Buck targets have same-name cmake matches
         same_name_matches: dict[str, str] = {}  # buck_full_name -> cmake_name
@@ -562,6 +579,28 @@ class DependencyAnalyzer:
             # Also map short form like ":name" within same BUCK file
             short_name = f":{match.buck_target.name}"
             self.buck_to_cmake[short_name] = cmake_name
+
+            # For thrift libraries, also map sub-targets like -cpp2-types
+            # Buck thrift_library generates sub-targets like:
+            #   //path:name-cpp2-types, //path:name-cpp2-services, etc.
+            # These should all map to the same cmake thrift target
+            if match.buck_target.target_type == "thrift_library":
+                thrift_suffixes = [
+                    "-cpp2-types",
+                    "-cpp2-services",
+                    "-cpp2",
+                    "-py",
+                    "-py3",
+                    "-rust",
+                    "-go",
+                ]
+                buck_path = match.buck_target.buck_path
+                buck_name = match.buck_target.name
+                for suffix in thrift_suffixes:
+                    sub_target_full = f"{buck_path}:{buck_name}{suffix}"
+                    sub_target_short = f":{buck_name}{suffix}"
+                    self.buck_to_cmake[sub_target_full] = cmake_name
+                    self.buck_to_cmake[sub_target_short] = cmake_name
 
     def _resolve_buck_dep(self, dep: str, buck_path: str) -> str:
         """Resolve a Buck dependency to its full form"""
@@ -757,8 +796,9 @@ Examples:
 
     print_report(missing, analyzer.matches, args.verbose)
 
-    # Return non-zero if there are missing dependencies
-    return 1 if missing else 0
+    # Return non-zero if there are missing dependencies or duplicate targets
+    has_duplicates = len(analyzer.cmake_parser.duplicate_errors) > 0
+    return 1 if missing or has_duplicates else 0
 
 
 if __name__ == "__main__":

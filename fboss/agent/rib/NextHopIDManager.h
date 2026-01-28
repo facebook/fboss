@@ -2,11 +2,14 @@
 
 #pragma once
 
-#include <gtest/gtest.h>
+#include <gtest/gtest_prod.h>
 #include <cstdint>
 #include <optional>
 #include <unordered_map>
 #include <vector>
+#include "fboss/agent/state/FibInfoMap.h"
+#include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
@@ -138,6 +141,35 @@ class NextHopIDManager {
       NextHopSetID oldNextHopSetID,
       const RouteNextHopSet& newNextHopSet);
 
+  /**
+   * Reconstruct the NextHopIDManager for two main scenarios:
+   *
+   * 1. Warm Boot:
+   *    When the RIB is reconstructed back from the FIB, we need to reconstruct
+   *    the NextHopIDManager.
+   *
+   * 2. Rollback:
+   *    When the RIB's NextHopIDManager has to be reconstructed from the
+   *    previous FIB state. This is when route updates fail to apply.
+   *
+   * For each FibInfo in MultiSwitchFibInfoMap:
+   *   1. Get idToNextHopMap and idToNextHopIdSetMap from this FibInfo
+   *   2. For each route in FibV4/FibV6:
+   *      a. Collect all NextHopSetIDs from route (resolvedNextHopSetID, and
+   *         future: normalizedResolvedNextHopID)
+   *      b. For each SetID, lookup NextHopIDSet from this FibInfo's
+   *         idToNextHopIdSetMap
+   *      c. For each NextHopID in the set, lookup NextHop from this FibInfo's
+   *         idToNextHopMap
+   *      d. Update internal maps and refcounts
+   *
+   * We have to reconstruct the IDmanager from all the FibsInfo present on all
+   * switches. NextHopID manager is common across all switches, but the NextHop
+   * ID maps in the switch state are specific to each switch.
+   */
+  void reconstructFromFib(
+      const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap);
+
  private:
   static constexpr int64_t kNextHopIDStart = 1;
   static constexpr int64_t kNextHopSetIDStart = 1LL << 62;
@@ -177,6 +209,9 @@ class NextHopIDManager {
   // Returns std::nullopt if the NextHop doesn't exist
   std::optional<NextHopID> getNextHopID(const NextHop& nextHop) const;
 
+  // Clear all NextHop and NextHopIDSet mappings
+  void clearNhopIdManagerState();
+
   FRIEND_TEST(NextHopIDManagerTest, getOrAllocateNextHopID);
   FRIEND_TEST(NextHopIDManagerTest, getOrAllocateNextHopSetID);
   FRIEND_TEST(NextHopIDManagerTest, getOrAllocateNextHopSetIDOrderIndependence);
@@ -188,6 +223,8 @@ class NextHopIDManager {
       getOrAllocRouteNextHopSetIDSubSetSuperSetNextHops);
   FRIEND_TEST(NextHopIDManagerTest, delOrDecrRouteNextHopSetID);
   FRIEND_TEST(NextHopIDManagerTest, updateRouteNextHopSetID);
+  FRIEND_TEST(NextHopIDManagerTest, reconstructFromFib);
+  FRIEND_TEST(NextHopIDManagerTest, reconstructFromFibMultiSwitch);
 };
 
 } // namespace facebook::fboss

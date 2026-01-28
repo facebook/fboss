@@ -321,6 +321,9 @@ void HwTransceiverUtils::verifyOpticsSettings(
   EXPECT_GT(relevantMediaLanes.size(), 0);
   EXPECT_GT(relevantHostLanes.size(), 0);
 
+  // Identify tunable optics based on tunableLaserStatus
+  bool isTunableOptics = tcvrState.tunableLaserStatus().has_value();
+
   for (auto& mediaLane :
        apache::thrift::can_throw(*settings.mediaLaneSettings())) {
     if (std::find(
@@ -333,14 +336,17 @@ void HwTransceiverUtils::verifyOpticsSettings(
         << "Transceiver:" << *tcvrState.port() << ", Lane=" << *mediaLane.lane()
         << " txDisable doesn't match expected";
     if (*tcvrState.transceiver() == TransceiverType::QSFP) {
-      EXPECT_EQ(
-          *mediaLane.txSquelch(),
-          profile ==
-              cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL)
+      // For tunable optics (ZR modules), txSquelch disable should always be
+      // true
+      bool expectedTxSquelch = isTunableOptics ||
+          (profile ==
+           cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL);
+      EXPECT_EQ(*mediaLane.txSquelch(), expectedTxSquelch)
           << "Transceiver:" << *tcvrState.port()
           << ", Lane=" << *mediaLane.lane()
           << " txSquelch doesn't match expected." << " Profile was "
-          << apache::thrift::util::enumNameSafe(profile);
+          << apache::thrift::util::enumNameSafe(profile)
+          << ", isTunableOptics=" << isTunableOptics;
     }
   }
 
@@ -371,13 +377,17 @@ void HwTransceiverUtils::verifyOpticsSettings(
               *hostLane.lane()) == relevantHostLanes.end()) {
         continue;
       }
-      EXPECT_EQ(
-          *hostLane.rxSquelch(),
-          profile ==
-              cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL)
+      // For tunable optics (ZR modules), rxSquelch disable should always be
+      // true
+      bool expectedRxSquelch = isTunableOptics ||
+          (profile ==
+           cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL);
+      EXPECT_EQ(*hostLane.rxSquelch(), expectedRxSquelch)
           << "Transceiver:" << *tcvrState.port()
           << ", Lane=" << *hostLane.lane()
-          << " rxSquelch doesn't match expected";
+          << " rxSquelch doesn't match expected."
+          << " Profile was " << apache::thrift::util::enumNameSafe(profile)
+          << ", isTunableOptics=" << isTunableOptics;
     }
   }
 }

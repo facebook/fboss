@@ -11,7 +11,7 @@ add_library(platform_mapping
 
 target_link_libraries(platform_mapping
   agent_features
-  error
+  fboss_error
   fboss_config_utils
   platform_config_cpp2
   state
@@ -23,7 +23,7 @@ add_library(platform_mapping_utils
 )
 
 target_link_libraries(platform_mapping_utils
-  error
+  fboss_error
   minipack_platform_mapping
   elbert_platform_mapping
   yamp_platform_mapping
