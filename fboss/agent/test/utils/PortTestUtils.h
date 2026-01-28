@@ -34,10 +34,5 @@ void resetQueueCreditBalance(
     TestEnsembleIf* ensemble,
     PortID port,
     bool enable);
-void checkPortsAdminState(
-    TestEnsembleIf* ensemble,
-    const std::vector<PortID>& portIds,
-    cfg::PortState portState);
-
 } // namespace utility
 } // namespace facebook::fboss

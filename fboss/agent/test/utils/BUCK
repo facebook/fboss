@@ -161,12 +161,10 @@ cpp_library(
     ],
     headers = ["PortTestUtils.h"],
     exported_deps = [
-        "fbsource//third-party/googletest:gtest",
         "//fboss/agent:fboss-error",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/state:state",
         "//fboss/agent/test:test_ensemble_if",
-        "//fboss/lib:common_utils",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
     ],
 )
