@@ -43747,6 +43747,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                259,
+                260,
+                261
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -43833,6 +43838,88 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BACKPLANE-EXAMAX-slot1/chip34",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                259
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                      "lane": 0
                     }
                   }
                 ]
@@ -43843,54 +43930,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "259": {
         "mapping": {
           "id": 259,
-          "name": "eth1/34/5",
-          "controllingPort": 259,
+          "name": "eth1/34/2",
+          "controllingPort": 258,
           "pins": [
             {
               "a": {
                 "chip": "NPU-TH6_NIF-slot1/chip1/core16",
-                "lane": 4
+                "lane": 1
               },
               "z": {
                 "end": {
                   "chip": "BACKPLANE-EXAMAX-slot1/chip34",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip34",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip34",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip34",
-                  "lane": 7
+                  "lane": 1
                 }
               }
             }
@@ -43899,58 +43950,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core16",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
-                      "lane": 7
+                      "lane": 1
                     },
                     "tx": {
                       "pre": 0,
@@ -43967,25 +43973,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BACKPLANE-EXAMAX-slot1/chip34",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
-                      "lane": 7
+                      "lane": 1
                     }
                   }
                 ]
@@ -43996,53 +43984,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "260": {
         "mapping": {
           "id": 260,
-          "name": "eth1/35/1",
-          "controllingPort": 260,
+          "name": "eth1/34/3",
+          "controllingPort": 258,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip34",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip34",
                   "lane": 3
                 }
               }
@@ -44052,42 +44016,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                261
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                       "lane": 2
                     },
                     "tx": {
@@ -44102,7 +44039,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                       "lane": 3
                     },
                     "tx": {
@@ -44119,26 +44056,43 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                      "lane": 2
                     }
                   }
                 ]
@@ -44149,54 +44103,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "261": {
         "mapping": {
           "id": 261,
-          "name": "eth1/35/5",
-          "controllingPort": 261,
+          "name": "eth1/34/4",
+          "controllingPort": 260,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                  "lane": 3
                 }
               }
             }
@@ -44205,58 +44123,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 3
                     },
                     "tx": {
                       "pre": 0,
@@ -44272,26 +44145,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                      "lane": 3
                     }
                   }
                 ]
@@ -44302,54 +44157,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "262": {
         "mapping": {
           "id": 262,
-          "name": "eth1/36/1",
+          "name": "eth1/34/5",
           "controllingPort": 262,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
-                "lane": 0
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                "lane": 4
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
-                  "lane": 0
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                  "lane": 4
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
-                "lane": 1
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
-                  "lane": 1
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                  "lane": 5
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
-                "lane": 2
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
-                  "lane": 2
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                  "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
-                "lane": 3
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
-                  "lane": 3
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                  "lane": 7
                 }
               }
             }
@@ -44359,12 +44214,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                263,
+                264,
+                265
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
-                      "lane": 0
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 0,
@@ -44378,8 +44238,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
-                      "lane": 1
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 0,
@@ -44393,8 +44253,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
-                      "lane": 2
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 6
                     },
                     "tx": {
                       "pre": 0,
@@ -44408,8 +44268,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
-                      "lane": 3
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -44425,26 +44285,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
-                      "lane": 0
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                      "lane": 4
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
-                      "lane": 1
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                      "lane": 5
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
-                      "lane": 2
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
-                      "lane": 3
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                263
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                      "lane": 4
                     }
                   }
                 ]
@@ -44455,54 +44397,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "263": {
         "mapping": {
           "id": 263,
-          "name": "eth1/36/5",
-          "controllingPort": 263,
+          "name": "eth1/34/6",
+          "controllingPort": 262,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                 "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip34",
                   "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
-                  "lane": 7
                 }
               }
             }
@@ -44511,58 +44417,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                       "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
-                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -44578,26 +44439,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
                       "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
-                      "lane": 7
                     }
                   }
                 ]
@@ -44608,206 +44451,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "264": {
         "mapping": {
           "id": 264,
-          "name": "eth1/37/1",
-          "controllingPort": 264,
+          "name": "eth1/34/7",
+          "controllingPort": 262,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "57": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "265": {
-        "mapping": {
-          "id": 265,
-          "name": "eth1/37/5",
-          "controllingPort": 265,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                 "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip34",
                   "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                 "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip34",
                   "lane": 7
                 }
               }
@@ -44817,42 +44483,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                265
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                       "lane": 6
                     },
                     "tx": {
@@ -44867,7 +44506,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                       "lane": 7
                     },
                     "tx": {
@@ -44884,25 +44523,96 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
                       "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "265": {
+        "mapping": {
+          "id": 265,
+          "name": "eth1/34/8",
+          "controllingPort": 264,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip34",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip34",
                       "lane": 7
                     }
                   }
@@ -44914,53 +44624,53 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "266": {
         "mapping": {
           "id": 266,
-          "name": "eth1/38/1",
+          "name": "eth1/35/1",
           "controllingPort": 266,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                   "lane": 0
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                   "lane": 1
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                   "lane": 3
                 }
               }
@@ -44971,11 +44681,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                267,
+                268,
+                269
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 0
                     },
                     "tx": {
@@ -44990,7 +44705,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 1
                     },
                     "tx": {
@@ -45005,7 +44720,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 2
                     },
                     "tx": {
@@ -45020,7 +44735,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 3
                     },
                     "tx": {
@@ -45037,26 +44752,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                267
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 0
                     }
                   }
                 ]
@@ -45067,54 +44864,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "267": {
         "mapping": {
           "id": 267,
-          "name": "eth1/38/5",
-          "controllingPort": 267,
+          "name": "eth1/35/2",
+          "controllingPort": 266,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                  "lane": 1
                 }
               }
             }
@@ -45123,58 +44884,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 1
                     },
                     "tx": {
                       "pre": 0,
@@ -45190,26 +44906,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 1
                     }
                   }
                 ]
@@ -45220,53 +44918,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "268": {
         "mapping": {
           "id": 268,
-          "name": "eth1/39/1",
-          "controllingPort": 268,
+          "name": "eth1/35/3",
+          "controllingPort": 266,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                   "lane": 3
                 }
               }
@@ -45276,42 +44950,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                269
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 2
                     },
                     "tx": {
@@ -45326,7 +44973,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 3
                     },
                     "tx": {
@@ -45343,26 +44990,43 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 2
                     }
                   }
                 ]
@@ -45373,54 +45037,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "269": {
         "mapping": {
           "id": 269,
-          "name": "eth1/39/5",
-          "controllingPort": 269,
+          "name": "eth1/35/4",
+          "controllingPort": 268,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                  "lane": 3
                 }
               }
             }
@@ -45429,58 +45057,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 3
                     },
                     "tx": {
                       "pre": 0,
@@ -45496,26 +45079,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 3
                     }
                   }
                 ]
@@ -45526,54 +45091,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "270": {
         "mapping": {
           "id": 270,
-          "name": "eth1/40/1",
+          "name": "eth1/35/5",
           "controllingPort": 270,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
-                "lane": 0
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                "lane": 4
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
-                  "lane": 0
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                  "lane": 4
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
-                "lane": 1
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
-                  "lane": 1
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                  "lane": 5
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
-                "lane": 2
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
-                  "lane": 2
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                  "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
-                "lane": 3
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
-                  "lane": 3
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                  "lane": 7
                 }
               }
             }
@@ -45583,12 +45148,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                271,
+                272,
+                273
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
-                      "lane": 0
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 0,
@@ -45602,8 +45172,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
-                      "lane": 1
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 0,
@@ -45617,8 +45187,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
-                      "lane": 2
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 6
                     },
                     "tx": {
                       "pre": 0,
@@ -45632,8 +45202,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
-                      "lane": 3
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -45649,26 +45219,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
-                      "lane": 0
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 4
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
-                      "lane": 1
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 5
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
-                      "lane": 2
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
-                      "lane": 3
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                271
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 4
                     }
                   }
                 ]
@@ -45679,54 +45331,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "271": {
         "mapping": {
           "id": 271,
-          "name": "eth1/40/5",
-          "controllingPort": 271,
+          "name": "eth1/35/6",
+          "controllingPort": 270,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                 "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                   "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
-                  "lane": 7
                 }
               }
             }
@@ -45735,58 +45351,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
-                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -45802,26 +45373,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                       "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
-                      "lane": 7
                     }
                   }
                 ]
@@ -45832,206 +45385,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "272": {
         "mapping": {
           "id": 272,
-          "name": "eth1/41/1",
-          "controllingPort": 272,
+          "name": "eth1/35/7",
+          "controllingPort": 270,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "57": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "273": {
-        "mapping": {
-          "id": 273,
-          "name": "eth1/41/5",
-          "controllingPort": 273,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                 "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                   "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                 "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                   "lane": 7
                 }
               }
@@ -46041,42 +45417,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                273
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 6
                     },
                     "tx": {
@@ -46091,7 +45440,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 7
                     },
                     "tx": {
@@ -46108,25 +45457,96 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                       "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "273": {
+        "mapping": {
+          "id": 273,
+          "name": "eth1/35/8",
+          "controllingPort": 272,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip35",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip35",
                       "lane": 7
                     }
                   }
@@ -46138,53 +45558,53 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "274": {
         "mapping": {
           "id": 274,
-          "name": "eth1/42/1",
+          "name": "eth1/36/1",
           "controllingPort": 274,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                   "lane": 0
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                   "lane": 1
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                   "lane": 3
                 }
               }
@@ -46195,11 +45615,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                275,
+                276,
+                277
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 0
                     },
                     "tx": {
@@ -46214,7 +45639,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 1
                     },
                     "tx": {
@@ -46229,7 +45654,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 2
                     },
                     "tx": {
@@ -46244,7 +45669,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 3
                     },
                     "tx": {
@@ -46261,26 +45686,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                275
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 0
                     }
                   }
                 ]
@@ -46291,54 +45798,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "275": {
         "mapping": {
           "id": 275,
-          "name": "eth1/42/5",
-          "controllingPort": 275,
+          "name": "eth1/36/2",
+          "controllingPort": 274,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                  "lane": 1
                 }
               }
             }
@@ -46347,58 +45818,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 1
                     },
                     "tx": {
                       "pre": 0,
@@ -46414,26 +45840,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 1
                     }
                   }
                 ]
@@ -46444,53 +45852,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "276": {
         "mapping": {
           "id": 276,
-          "name": "eth1/43/1",
-          "controllingPort": 276,
+          "name": "eth1/36/3",
+          "controllingPort": 274,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                   "lane": 3
                 }
               }
@@ -46500,42 +45884,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                277
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 2
                     },
                     "tx": {
@@ -46550,7 +45907,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 3
                     },
                     "tx": {
@@ -46567,26 +45924,43 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 2
                     }
                   }
                 ]
@@ -46597,54 +45971,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "277": {
         "mapping": {
           "id": 277,
-          "name": "eth1/43/5",
-          "controllingPort": 277,
+          "name": "eth1/36/4",
+          "controllingPort": 276,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                  "lane": 3
                 }
               }
             }
@@ -46653,58 +45991,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 3
                     },
                     "tx": {
                       "pre": 0,
@@ -46720,26 +46013,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 3
                     }
                   }
                 ]
@@ -46750,54 +46025,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "278": {
         "mapping": {
           "id": 278,
-          "name": "eth1/44/1",
+          "name": "eth1/36/5",
           "controllingPort": 278,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
-                "lane": 0
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                "lane": 4
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
-                  "lane": 0
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                  "lane": 4
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
-                "lane": 1
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
-                  "lane": 1
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                  "lane": 5
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
-                "lane": 2
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
-                  "lane": 2
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                  "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
-                "lane": 3
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
-                  "lane": 3
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                  "lane": 7
                 }
               }
             }
@@ -46807,12 +46082,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                279,
+                280,
+                281
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
-                      "lane": 0
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 0,
@@ -46826,8 +46106,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
-                      "lane": 1
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 0,
@@ -46841,8 +46121,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
-                      "lane": 2
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 6
                     },
                     "tx": {
                       "pre": 0,
@@ -46856,8 +46136,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
-                      "lane": 3
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -46873,26 +46153,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
-                      "lane": 0
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 4
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
-                      "lane": 1
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 5
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
-                      "lane": 2
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
-                      "lane": 3
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                279
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 4
                     }
                   }
                 ]
@@ -46903,54 +46265,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "279": {
         "mapping": {
           "id": 279,
-          "name": "eth1/44/5",
-          "controllingPort": 279,
+          "name": "eth1/36/6",
+          "controllingPort": 278,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                 "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                   "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
-                  "lane": 7
                 }
               }
             }
@@ -46959,58 +46285,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
-                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -47026,26 +46307,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                       "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
-                      "lane": 7
                     }
                   }
                 ]
@@ -47056,206 +46319,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "280": {
         "mapping": {
           "id": 280,
-          "name": "eth1/45/1",
-          "controllingPort": 280,
+          "name": "eth1/36/7",
+          "controllingPort": 278,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "57": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "281": {
-        "mapping": {
-          "id": 281,
-          "name": "eth1/45/5",
-          "controllingPort": 281,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                 "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                   "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                 "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                   "lane": 7
                 }
               }
@@ -47265,42 +46351,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                281
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 6
                     },
                     "tx": {
@@ -47315,7 +46374,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 7
                     },
                     "tx": {
@@ -47332,25 +46391,96 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                       "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "281": {
+        "mapping": {
+          "id": 281,
+          "name": "eth1/36/8",
+          "controllingPort": 280,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip36",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip36",
                       "lane": 7
                     }
                   }
@@ -47362,53 +46492,53 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "282": {
         "mapping": {
           "id": 282,
-          "name": "eth1/46/1",
+          "name": "eth1/37/1",
           "controllingPort": 282,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                   "lane": 0
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                   "lane": 1
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                   "lane": 3
                 }
               }
@@ -47419,11 +46549,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                283,
+                284,
+                285
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 0
                     },
                     "tx": {
@@ -47438,7 +46573,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 1
                     },
                     "tx": {
@@ -47453,7 +46588,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 2
                     },
                     "tx": {
@@ -47468,7 +46603,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 3
                     },
                     "tx": {
@@ -47485,26 +46620,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                283
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 0
                     }
                   }
                 ]
@@ -47515,54 +46732,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "283": {
         "mapping": {
           "id": 283,
-          "name": "eth1/46/5",
-          "controllingPort": 283,
+          "name": "eth1/37/2",
+          "controllingPort": 282,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                  "lane": 1
                 }
               }
             }
@@ -47571,58 +46752,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 1
                     },
                     "tx": {
                       "pre": 0,
@@ -47638,26 +46774,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 1
                     }
                   }
                 ]
@@ -47668,53 +46786,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "284": {
         "mapping": {
           "id": 284,
-          "name": "eth1/47/1",
-          "controllingPort": 284,
+          "name": "eth1/37/3",
+          "controllingPort": 282,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                   "lane": 3
                 }
               }
@@ -47724,42 +46818,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                285
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 2
                     },
                     "tx": {
@@ -47774,7 +46841,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 3
                     },
                     "tx": {
@@ -47791,26 +46858,43 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 2
                     }
                   }
                 ]
@@ -47821,54 +46905,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "285": {
         "mapping": {
           "id": 285,
-          "name": "eth1/47/5",
-          "controllingPort": 285,
+          "name": "eth1/37/4",
+          "controllingPort": 284,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                  "lane": 3
                 }
               }
             }
@@ -47877,58 +46925,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 3
                     },
                     "tx": {
                       "pre": 0,
@@ -47944,26 +46947,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 3
                     }
                   }
                 ]
@@ -47974,54 +46959,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "286": {
         "mapping": {
           "id": 286,
-          "name": "eth1/48/1",
+          "name": "eth1/37/5",
           "controllingPort": 286,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
-                "lane": 0
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                "lane": 4
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
-                  "lane": 0
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                  "lane": 4
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
-                "lane": 1
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
-                  "lane": 1
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                  "lane": 5
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
-                "lane": 2
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
-                  "lane": 2
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                  "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
-                "lane": 3
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
-                  "lane": 3
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                  "lane": 7
                 }
               }
             }
@@ -48031,12 +47016,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                287,
+                288,
+                289
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
-                      "lane": 0
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 0,
@@ -48050,8 +47040,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
-                      "lane": 1
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 0,
@@ -48065,8 +47055,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
-                      "lane": 2
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 6
                     },
                     "tx": {
                       "pre": 0,
@@ -48080,8 +47070,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
-                      "lane": 3
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -48097,26 +47087,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
-                      "lane": 0
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 4
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
-                      "lane": 1
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 5
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
-                      "lane": 2
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
-                      "lane": 3
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                287
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 4
                     }
                   }
                 ]
@@ -48127,54 +47199,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "287": {
         "mapping": {
           "id": 287,
-          "name": "eth1/48/5",
-          "controllingPort": 287,
+          "name": "eth1/37/6",
+          "controllingPort": 286,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                 "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                   "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
-                  "lane": 7
                 }
               }
             }
@@ -48183,58 +47219,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
-                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -48250,26 +47241,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                       "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
-                      "lane": 7
                     }
                   }
                 ]
@@ -48280,206 +47253,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "288": {
         "mapping": {
           "id": 288,
-          "name": "eth1/49/1",
-          "controllingPort": 288,
+          "name": "eth1/37/7",
+          "controllingPort": 286,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "57": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "289": {
-        "mapping": {
-          "id": 289,
-          "name": "eth1/49/5",
-          "controllingPort": 289,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                 "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                   "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                 "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                   "lane": 7
                 }
               }
@@ -48489,42 +47285,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                289
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 6
                     },
                     "tx": {
@@ -48539,7 +47308,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 7
                     },
                     "tx": {
@@ -48556,25 +47325,96 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                       "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "289": {
+        "mapping": {
+          "id": 289,
+          "name": "eth1/37/8",
+          "controllingPort": 288,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip37",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip37",
                       "lane": 7
                     }
                   }
@@ -48586,53 +47426,53 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "290": {
         "mapping": {
           "id": 290,
-          "name": "eth1/50/1",
+          "name": "eth1/38/1",
           "controllingPort": 290,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                   "lane": 0
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                   "lane": 1
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                   "lane": 3
                 }
               }
@@ -48643,11 +47483,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                291,
+                292,
+                293
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 0
                     },
                     "tx": {
@@ -48662,7 +47507,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 1
                     },
                     "tx": {
@@ -48677,7 +47522,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 2
                     },
                     "tx": {
@@ -48692,7 +47537,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 3
                     },
                     "tx": {
@@ -48709,26 +47554,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                291
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 0
                     }
                   }
                 ]
@@ -48739,54 +47666,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "291": {
         "mapping": {
           "id": 291,
-          "name": "eth1/50/5",
-          "controllingPort": 291,
+          "name": "eth1/38/2",
+          "controllingPort": 290,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                  "lane": 1
                 }
               }
             }
@@ -48795,58 +47686,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 1
                     },
                     "tx": {
                       "pre": 0,
@@ -48862,26 +47708,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 1
                     }
                   }
                 ]
@@ -48892,53 +47720,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "292": {
         "mapping": {
           "id": 292,
-          "name": "eth1/51/1",
-          "controllingPort": 292,
+          "name": "eth1/38/3",
+          "controllingPort": 290,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                   "lane": 3
                 }
               }
@@ -48948,42 +47752,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                293
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 2
                     },
                     "tx": {
@@ -48998,7 +47775,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 3
                     },
                     "tx": {
@@ -49015,26 +47792,43 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 2
                     }
                   }
                 ]
@@ -49045,54 +47839,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "293": {
         "mapping": {
           "id": 293,
-          "name": "eth1/51/5",
-          "controllingPort": 293,
+          "name": "eth1/38/4",
+          "controllingPort": 292,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                  "lane": 3
                 }
               }
             }
@@ -49101,58 +47859,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 3
                     },
                     "tx": {
                       "pre": 0,
@@ -49168,26 +47881,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 3
                     }
                   }
                 ]
@@ -49198,54 +47893,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "294": {
         "mapping": {
           "id": 294,
-          "name": "eth1/52/1",
+          "name": "eth1/38/5",
           "controllingPort": 294,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
-                "lane": 0
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "lane": 4
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
-                  "lane": 0
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                  "lane": 4
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
-                "lane": 1
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
-                  "lane": 1
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                  "lane": 5
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
-                "lane": 2
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
-                  "lane": 2
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                  "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
-                "lane": 3
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
-                  "lane": 3
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                  "lane": 7
                 }
               }
             }
@@ -49255,12 +47950,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                295,
+                296,
+                297
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
-                      "lane": 0
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 0,
@@ -49274,8 +47974,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
-                      "lane": 1
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 0,
@@ -49289,8 +47989,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
-                      "lane": 2
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 6
                     },
                     "tx": {
                       "pre": 0,
@@ -49304,8 +48004,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
-                      "lane": 3
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -49321,26 +48021,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
-                      "lane": 0
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 4
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
-                      "lane": 1
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 5
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
-                      "lane": 2
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
-                      "lane": 3
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                295
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 4
                     }
                   }
                 ]
@@ -49351,54 +48133,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "295": {
         "mapping": {
           "id": 295,
-          "name": "eth1/52/5",
-          "controllingPort": 295,
+          "name": "eth1/38/6",
+          "controllingPort": 294,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                 "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                   "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
-                  "lane": 7
                 }
               }
             }
@@ -49407,58 +48153,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
-                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -49474,26 +48175,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                       "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
-                      "lane": 7
                     }
                   }
                 ]
@@ -49504,206 +48187,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "296": {
         "mapping": {
           "id": 296,
-          "name": "eth1/53/1",
-          "controllingPort": 296,
+          "name": "eth1/38/7",
+          "controllingPort": 294,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "57": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "297": {
-        "mapping": {
-          "id": 297,
-          "name": "eth1/53/5",
-          "controllingPort": 297,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                 "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                   "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                 "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                   "lane": 7
                 }
               }
@@ -49713,42 +48219,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                297
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 6
                     },
                     "tx": {
@@ -49763,7 +48242,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 7
                     },
                     "tx": {
@@ -49780,25 +48259,96 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                       "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "297": {
+        "mapping": {
+          "id": 297,
+          "name": "eth1/38/8",
+          "controllingPort": 296,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip38",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip38",
                       "lane": 7
                     }
                   }
@@ -49810,53 +48360,53 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "298": {
         "mapping": {
           "id": 298,
-          "name": "eth1/54/1",
+          "name": "eth1/39/1",
           "controllingPort": 298,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                   "lane": 0
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                   "lane": 1
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                   "lane": 3
                 }
               }
@@ -49867,11 +48417,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                299,
+                300,
+                301
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 0
                     },
                     "tx": {
@@ -49886,7 +48441,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 1
                     },
                     "tx": {
@@ -49901,7 +48456,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 2
                     },
                     "tx": {
@@ -49916,7 +48471,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 3
                     },
                     "tx": {
@@ -49933,26 +48488,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                299
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 0
                     }
                   }
                 ]
@@ -49963,54 +48600,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "299": {
         "mapping": {
           "id": 299,
-          "name": "eth1/54/5",
-          "controllingPort": 299,
+          "name": "eth1/39/2",
+          "controllingPort": 298,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                  "lane": 1
                 }
               }
             }
@@ -50019,58 +48620,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 1
                     },
                     "tx": {
                       "pre": 0,
@@ -50086,26 +48642,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 1
                     }
                   }
                 ]
@@ -50116,53 +48654,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "300": {
         "mapping": {
           "id": 300,
-          "name": "eth1/55/1",
-          "controllingPort": 300,
+          "name": "eth1/39/3",
+          "controllingPort": 298,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                   "lane": 3
                 }
               }
@@ -50172,42 +48686,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                301
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 2
                     },
                     "tx": {
@@ -50222,7 +48709,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 3
                     },
                     "tx": {
@@ -50239,26 +48726,43 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 2
                     }
                   }
                 ]
@@ -50269,54 +48773,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "301": {
         "mapping": {
           "id": 301,
-          "name": "eth1/55/5",
-          "controllingPort": 301,
+          "name": "eth1/39/4",
+          "controllingPort": 300,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                  "lane": 3
                 }
               }
             }
@@ -50325,58 +48793,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 3
                     },
                     "tx": {
                       "pre": 0,
@@ -50392,26 +48815,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 3
                     }
                   }
                 ]
@@ -50422,54 +48827,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "302": {
         "mapping": {
           "id": 302,
-          "name": "eth1/56/1",
+          "name": "eth1/39/5",
           "controllingPort": 302,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
-                "lane": 0
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                "lane": 4
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
-                  "lane": 0
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                  "lane": 4
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
-                "lane": 1
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
-                  "lane": 1
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                  "lane": 5
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
-                "lane": 2
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
-                  "lane": 2
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                  "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
-                "lane": 3
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
-                  "lane": 3
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                  "lane": 7
                 }
               }
             }
@@ -50479,12 +48884,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                303,
+                304,
+                305
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
-                      "lane": 0
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 0,
@@ -50498,8 +48908,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
-                      "lane": 1
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 0,
@@ -50513,8 +48923,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
-                      "lane": 2
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 6
                     },
                     "tx": {
                       "pre": 0,
@@ -50528,8 +48938,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
-                      "lane": 3
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -50545,26 +48955,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
-                      "lane": 0
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 4
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
-                      "lane": 1
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 5
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
-                      "lane": 2
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
-                      "lane": 3
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                303
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 4
                     }
                   }
                 ]
@@ -50575,54 +49067,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "303": {
         "mapping": {
           "id": 303,
-          "name": "eth1/56/5",
-          "controllingPort": 303,
+          "name": "eth1/39/6",
+          "controllingPort": 302,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                 "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                   "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
-                  "lane": 7
                 }
               }
             }
@@ -50631,58 +49087,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
-                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -50698,26 +49109,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                       "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
-                      "lane": 7
                     }
                   }
                 ]
@@ -50728,206 +49121,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "304": {
         "mapping": {
           "id": 304,
-          "name": "eth1/57/1",
-          "controllingPort": 304,
+          "name": "eth1/39/7",
+          "controllingPort": 302,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "57": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "305": {
-        "mapping": {
-          "id": 305,
-          "name": "eth1/57/5",
-          "controllingPort": 305,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                 "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                   "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                 "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                   "lane": 7
                 }
               }
@@ -50937,42 +49153,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                305
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 6
                     },
                     "tx": {
@@ -50987,7 +49176,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 7
                     },
                     "tx": {
@@ -51004,25 +49193,96 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                       "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "305": {
+        "mapping": {
+          "id": 305,
+          "name": "eth1/39/8",
+          "controllingPort": 304,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip39",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip39",
                       "lane": 7
                     }
                   }
@@ -51034,53 +49294,53 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "306": {
         "mapping": {
           "id": 306,
-          "name": "eth1/58/1",
+          "name": "eth1/40/1",
           "controllingPort": 306,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                   "lane": 0
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                   "lane": 1
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                   "lane": 3
                 }
               }
@@ -51091,11 +49351,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                307,
+                308,
+                309
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 0
                     },
                     "tx": {
@@ -51110,7 +49375,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 1
                     },
                     "tx": {
@@ -51125,7 +49390,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 2
                     },
                     "tx": {
@@ -51140,7 +49405,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 3
                     },
                     "tx": {
@@ -51157,26 +49422,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                307
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 0
                     }
                   }
                 ]
@@ -51187,54 +49534,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "307": {
         "mapping": {
           "id": 307,
-          "name": "eth1/58/5",
-          "controllingPort": 307,
+          "name": "eth1/40/2",
+          "controllingPort": 306,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                  "lane": 1
                 }
               }
             }
@@ -51243,58 +49554,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 1
                     },
                     "tx": {
                       "pre": 0,
@@ -51310,26 +49576,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 1
                     }
                   }
                 ]
@@ -51340,53 +49588,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "308": {
         "mapping": {
           "id": 308,
-          "name": "eth1/59/1",
-          "controllingPort": 308,
+          "name": "eth1/40/3",
+          "controllingPort": 306,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                   "lane": 3
                 }
               }
@@ -51396,42 +49620,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                309
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 2
                     },
                     "tx": {
@@ -51446,7 +49643,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 3
                     },
                     "tx": {
@@ -51463,26 +49660,43 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 2
                     }
                   }
                 ]
@@ -51493,54 +49707,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "309": {
         "mapping": {
           "id": 309,
-          "name": "eth1/59/5",
-          "controllingPort": 309,
+          "name": "eth1/40/4",
+          "controllingPort": 308,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                  "lane": 3
                 }
               }
             }
@@ -51549,58 +49727,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 3
                     },
                     "tx": {
                       "pre": 0,
@@ -51616,26 +49749,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 3
                     }
                   }
                 ]
@@ -51646,54 +49761,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "310": {
         "mapping": {
           "id": 310,
-          "name": "eth1/60/1",
+          "name": "eth1/40/5",
           "controllingPort": 310,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
-                "lane": 0
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                "lane": 4
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
-                  "lane": 0
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                  "lane": 4
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
-                "lane": 1
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
-                  "lane": 1
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                  "lane": 5
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
-                "lane": 2
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
-                  "lane": 2
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                  "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
-                "lane": 3
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
-                  "lane": 3
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                  "lane": 7
                 }
               }
             }
@@ -51703,12 +49818,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                311,
+                312,
+                313
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
-                      "lane": 0
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 0,
@@ -51722,8 +49842,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
-                      "lane": 1
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 0,
@@ -51737,8 +49857,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
-                      "lane": 2
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 6
                     },
                     "tx": {
                       "pre": 0,
@@ -51752,8 +49872,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
-                      "lane": 3
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -51769,26 +49889,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
-                      "lane": 0
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 4
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
-                      "lane": 1
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 5
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
-                      "lane": 2
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
-                      "lane": 3
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                311
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 4
                     }
                   }
                 ]
@@ -51799,54 +50001,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "311": {
         "mapping": {
           "id": 311,
-          "name": "eth1/60/5",
-          "controllingPort": 311,
+          "name": "eth1/40/6",
+          "controllingPort": 310,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                 "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                   "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
-                  "lane": 7
                 }
               }
             }
@@ -51855,58 +50021,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
-                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -51922,26 +50043,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                       "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
-                      "lane": 7
                     }
                   }
                 ]
@@ -51952,206 +50055,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "312": {
         "mapping": {
           "id": 312,
-          "name": "eth1/61/1",
-          "controllingPort": 312,
+          "name": "eth1/40/7",
+          "controllingPort": 310,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "57": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "313": {
-        "mapping": {
-          "id": 313,
-          "name": "eth1/61/5",
-          "controllingPort": 313,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                 "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                   "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                 "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                   "lane": 7
                 }
               }
@@ -52161,42 +50087,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                313
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 6
                     },
                     "tx": {
@@ -52211,7 +50110,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 7
                     },
                     "tx": {
@@ -52228,25 +50127,96 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                       "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "313": {
+        "mapping": {
+          "id": 313,
+          "name": "eth1/40/8",
+          "controllingPort": 312,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip40",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip40",
                       "lane": 7
                     }
                   }
@@ -52258,53 +50228,53 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "314": {
         "mapping": {
           "id": 314,
-          "name": "eth1/62/1",
+          "name": "eth1/41/1",
           "controllingPort": 314,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
                   "lane": 0
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
                   "lane": 1
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
                   "lane": 3
                 }
               }
@@ -52315,11 +50285,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                315,
+                316,
+                317
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                       "lane": 0
                     },
                     "tx": {
@@ -52334,7 +50309,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                       "lane": 1
                     },
                     "tx": {
@@ -52349,7 +50324,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                       "lane": 2
                     },
                     "tx": {
@@ -52364,7 +50339,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                       "lane": 3
                     },
                     "tx": {
@@ -52381,26 +50356,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                315
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 0
                     }
                   }
                 ]
@@ -52411,54 +50468,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "315": {
         "mapping": {
           "id": 315,
-          "name": "eth1/62/5",
-          "controllingPort": 315,
+          "name": "eth1/41/2",
+          "controllingPort": 314,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                  "lane": 1
                 }
               }
             }
@@ -52467,58 +50488,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 1
                     },
                     "tx": {
                       "pre": 0,
@@ -52534,26 +50510,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 1
                     }
                   }
                 ]
@@ -52564,53 +50522,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "316": {
         "mapping": {
           "id": 316,
-          "name": "eth1/63/1",
-          "controllingPort": 316,
+          "name": "eth1/41/3",
+          "controllingPort": 314,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
                   "lane": 3
                 }
               }
@@ -52620,42 +50554,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "58": {
+              "subsumedPorts": [
+                317
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                       "lane": 2
                     },
                     "tx": {
@@ -52670,7 +50577,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                       "lane": 3
                     },
                     "tx": {
@@ -52687,26 +50594,43 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 2
                     }
                   }
                 ]
@@ -52717,54 +50641,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "317": {
         "mapping": {
           "id": 317,
-          "name": "eth1/63/5",
-          "controllingPort": 317,
+          "name": "eth1/41/4",
+          "controllingPort": 316,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
-                "lane": 4
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
-                  "lane": 7
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                  "lane": 3
                 }
               }
             }
@@ -52773,58 +50661,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "57": {
+          "59": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
-                      "lane": 7
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 3
                     },
                     "tx": {
                       "pre": 0,
@@ -52840,26 +50683,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
-                      "lane": 7
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 3
                     }
                   }
                 ]
@@ -52870,54 +50695,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "318": {
         "mapping": {
           "id": 318,
-          "name": "eth1/64/1",
+          "name": "eth1/41/5",
           "controllingPort": 318,
           "pins": [
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
-                "lane": 0
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "lane": 4
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
-                  "lane": 0
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                  "lane": 4
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
-                "lane": 1
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
-                  "lane": 1
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                  "lane": 5
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
-                "lane": 2
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
-                  "lane": 2
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                  "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
-                "lane": 3
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
-                  "lane": 3
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                  "lane": 7
                 }
               }
             }
@@ -52927,12 +50752,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                319,
+                320,
+                321
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
-                      "lane": 0
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 0,
@@ -52946,8 +50776,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
-                      "lane": 1
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 0,
@@ -52961,8 +50791,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
-                      "lane": 2
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 6
                     },
                     "tx": {
                       "pre": 0,
@@ -52976,8 +50806,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
-                      "lane": 3
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -52993,26 +50823,108 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
-                      "lane": 0
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 4
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
-                      "lane": 1
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 5
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
-                      "lane": 2
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
-                      "lane": 3
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                319
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 4
                     }
                   }
                 ]
@@ -53023,8 +50935,21250 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "319": {
         "mapping": {
           "id": 319,
+          "name": "eth1/41/6",
+          "controllingPort": 318,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "320": {
+        "mapping": {
+          "id": 320,
+          "name": "eth1/41/7",
+          "controllingPort": 318,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                321
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "321": {
+        "mapping": {
+          "id": 321,
+          "name": "eth1/41/8",
+          "controllingPort": 320,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip41",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "322": {
+        "mapping": {
+          "id": 322,
+          "name": "eth1/42/1",
+          "controllingPort": 322,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                323,
+                324,
+                325
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                323
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "323": {
+        "mapping": {
+          "id": 323,
+          "name": "eth1/42/2",
+          "controllingPort": 322,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "324": {
+        "mapping": {
+          "id": 324,
+          "name": "eth1/42/3",
+          "controllingPort": 322,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                325
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "325": {
+        "mapping": {
+          "id": 325,
+          "name": "eth1/42/4",
+          "controllingPort": 324,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "326": {
+        "mapping": {
+          "id": 326,
+          "name": "eth1/42/5",
+          "controllingPort": 326,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                327,
+                328,
+                329
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                327
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "327": {
+        "mapping": {
+          "id": 327,
+          "name": "eth1/42/6",
+          "controllingPort": 326,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "328": {
+        "mapping": {
+          "id": 328,
+          "name": "eth1/42/7",
+          "controllingPort": 326,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                329
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "329": {
+        "mapping": {
+          "id": 329,
+          "name": "eth1/42/8",
+          "controllingPort": 328,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip42",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "330": {
+        "mapping": {
+          "id": 330,
+          "name": "eth1/43/1",
+          "controllingPort": 330,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                331,
+                332,
+                333
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                331
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "331": {
+        "mapping": {
+          "id": 331,
+          "name": "eth1/43/2",
+          "controllingPort": 330,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "332": {
+        "mapping": {
+          "id": 332,
+          "name": "eth1/43/3",
+          "controllingPort": 330,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                333
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "333": {
+        "mapping": {
+          "id": 333,
+          "name": "eth1/43/4",
+          "controllingPort": 332,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "334": {
+        "mapping": {
+          "id": 334,
+          "name": "eth1/43/5",
+          "controllingPort": 334,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                335,
+                336,
+                337
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                335
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "335": {
+        "mapping": {
+          "id": 335,
+          "name": "eth1/43/6",
+          "controllingPort": 334,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "336": {
+        "mapping": {
+          "id": 336,
+          "name": "eth1/43/7",
+          "controllingPort": 334,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                337
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "337": {
+        "mapping": {
+          "id": 337,
+          "name": "eth1/43/8",
+          "controllingPort": 336,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip43",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "338": {
+        "mapping": {
+          "id": 338,
+          "name": "eth1/44/1",
+          "controllingPort": 338,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                339,
+                340,
+                341
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                339
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "339": {
+        "mapping": {
+          "id": 339,
+          "name": "eth1/44/2",
+          "controllingPort": 338,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "340": {
+        "mapping": {
+          "id": 340,
+          "name": "eth1/44/3",
+          "controllingPort": 338,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                341
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "341": {
+        "mapping": {
+          "id": 341,
+          "name": "eth1/44/4",
+          "controllingPort": 340,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "342": {
+        "mapping": {
+          "id": 342,
+          "name": "eth1/44/5",
+          "controllingPort": 342,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                343,
+                344,
+                345
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                343
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "343": {
+        "mapping": {
+          "id": 343,
+          "name": "eth1/44/6",
+          "controllingPort": 342,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "344": {
+        "mapping": {
+          "id": 344,
+          "name": "eth1/44/7",
+          "controllingPort": 342,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                345
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "345": {
+        "mapping": {
+          "id": 345,
+          "name": "eth1/44/8",
+          "controllingPort": 344,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip44",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "346": {
+        "mapping": {
+          "id": 346,
+          "name": "eth1/45/1",
+          "controllingPort": 346,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                347,
+                348,
+                349
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                347
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "347": {
+        "mapping": {
+          "id": 347,
+          "name": "eth1/45/2",
+          "controllingPort": 346,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "348": {
+        "mapping": {
+          "id": 348,
+          "name": "eth1/45/3",
+          "controllingPort": 346,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                349
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "349": {
+        "mapping": {
+          "id": 349,
+          "name": "eth1/45/4",
+          "controllingPort": 348,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "350": {
+        "mapping": {
+          "id": 350,
+          "name": "eth1/45/5",
+          "controllingPort": 350,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                351,
+                352,
+                353
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                351
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "351": {
+        "mapping": {
+          "id": 351,
+          "name": "eth1/45/6",
+          "controllingPort": 350,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "352": {
+        "mapping": {
+          "id": 352,
+          "name": "eth1/45/7",
+          "controllingPort": 350,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                353
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "353": {
+        "mapping": {
+          "id": 353,
+          "name": "eth1/45/8",
+          "controllingPort": 352,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip45",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "354": {
+        "mapping": {
+          "id": 354,
+          "name": "eth1/46/1",
+          "controllingPort": 354,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                355,
+                356,
+                357
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                355
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "355": {
+        "mapping": {
+          "id": 355,
+          "name": "eth1/46/2",
+          "controllingPort": 354,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "356": {
+        "mapping": {
+          "id": 356,
+          "name": "eth1/46/3",
+          "controllingPort": 354,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                357
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "357": {
+        "mapping": {
+          "id": 357,
+          "name": "eth1/46/4",
+          "controllingPort": 356,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "358": {
+        "mapping": {
+          "id": 358,
+          "name": "eth1/46/5",
+          "controllingPort": 358,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                359,
+                360,
+                361
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                359
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "359": {
+        "mapping": {
+          "id": 359,
+          "name": "eth1/46/6",
+          "controllingPort": 358,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "360": {
+        "mapping": {
+          "id": 360,
+          "name": "eth1/46/7",
+          "controllingPort": 358,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                361
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "361": {
+        "mapping": {
+          "id": 361,
+          "name": "eth1/46/8",
+          "controllingPort": 360,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip46",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "362": {
+        "mapping": {
+          "id": 362,
+          "name": "eth1/47/1",
+          "controllingPort": 362,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                363,
+                364,
+                365
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                363
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "363": {
+        "mapping": {
+          "id": 363,
+          "name": "eth1/47/2",
+          "controllingPort": 362,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "364": {
+        "mapping": {
+          "id": 364,
+          "name": "eth1/47/3",
+          "controllingPort": 362,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                365
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "365": {
+        "mapping": {
+          "id": 365,
+          "name": "eth1/47/4",
+          "controllingPort": 364,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "366": {
+        "mapping": {
+          "id": 366,
+          "name": "eth1/47/5",
+          "controllingPort": 366,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                367,
+                368,
+                369
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                367
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "367": {
+        "mapping": {
+          "id": 367,
+          "name": "eth1/47/6",
+          "controllingPort": 366,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "368": {
+        "mapping": {
+          "id": 368,
+          "name": "eth1/47/7",
+          "controllingPort": 366,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                369
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "369": {
+        "mapping": {
+          "id": 369,
+          "name": "eth1/47/8",
+          "controllingPort": 368,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip47",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "370": {
+        "mapping": {
+          "id": 370,
+          "name": "eth1/48/1",
+          "controllingPort": 370,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                371,
+                372,
+                373
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                371
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "371": {
+        "mapping": {
+          "id": 371,
+          "name": "eth1/48/2",
+          "controllingPort": 370,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "372": {
+        "mapping": {
+          "id": 372,
+          "name": "eth1/48/3",
+          "controllingPort": 370,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                373
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "373": {
+        "mapping": {
+          "id": 373,
+          "name": "eth1/48/4",
+          "controllingPort": 372,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "374": {
+        "mapping": {
+          "id": 374,
+          "name": "eth1/48/5",
+          "controllingPort": 374,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                375,
+                376,
+                377
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                375
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "375": {
+        "mapping": {
+          "id": 375,
+          "name": "eth1/48/6",
+          "controllingPort": 374,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "376": {
+        "mapping": {
+          "id": 376,
+          "name": "eth1/48/7",
+          "controllingPort": 374,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                377
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "377": {
+        "mapping": {
+          "id": 377,
+          "name": "eth1/48/8",
+          "controllingPort": 376,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip48",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "378": {
+        "mapping": {
+          "id": 378,
+          "name": "eth1/49/1",
+          "controllingPort": 378,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                379,
+                380,
+                381
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                379
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "379": {
+        "mapping": {
+          "id": 379,
+          "name": "eth1/49/2",
+          "controllingPort": 378,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "380": {
+        "mapping": {
+          "id": 380,
+          "name": "eth1/49/3",
+          "controllingPort": 378,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                381
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "381": {
+        "mapping": {
+          "id": 381,
+          "name": "eth1/49/4",
+          "controllingPort": 380,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "382": {
+        "mapping": {
+          "id": 382,
+          "name": "eth1/49/5",
+          "controllingPort": 382,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                383,
+                384,
+                385
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                383
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "383": {
+        "mapping": {
+          "id": 383,
+          "name": "eth1/49/6",
+          "controllingPort": 382,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "384": {
+        "mapping": {
+          "id": 384,
+          "name": "eth1/49/7",
+          "controllingPort": 382,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                385
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "385": {
+        "mapping": {
+          "id": 385,
+          "name": "eth1/49/8",
+          "controllingPort": 384,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip49",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "386": {
+        "mapping": {
+          "id": 386,
+          "name": "eth1/50/1",
+          "controllingPort": 386,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                387,
+                388,
+                389
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                387
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "387": {
+        "mapping": {
+          "id": 387,
+          "name": "eth1/50/2",
+          "controllingPort": 386,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "388": {
+        "mapping": {
+          "id": 388,
+          "name": "eth1/50/3",
+          "controllingPort": 386,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                389
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "389": {
+        "mapping": {
+          "id": 389,
+          "name": "eth1/50/4",
+          "controllingPort": 388,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "390": {
+        "mapping": {
+          "id": 390,
+          "name": "eth1/50/5",
+          "controllingPort": 390,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                391,
+                392,
+                393
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                391
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "391": {
+        "mapping": {
+          "id": 391,
+          "name": "eth1/50/6",
+          "controllingPort": 390,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "392": {
+        "mapping": {
+          "id": 392,
+          "name": "eth1/50/7",
+          "controllingPort": 390,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                393
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "393": {
+        "mapping": {
+          "id": 393,
+          "name": "eth1/50/8",
+          "controllingPort": 392,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip50",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "394": {
+        "mapping": {
+          "id": 394,
+          "name": "eth1/51/1",
+          "controllingPort": 394,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                395,
+                396,
+                397
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                395
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "395": {
+        "mapping": {
+          "id": 395,
+          "name": "eth1/51/2",
+          "controllingPort": 394,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "396": {
+        "mapping": {
+          "id": 396,
+          "name": "eth1/51/3",
+          "controllingPort": 394,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                397
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "397": {
+        "mapping": {
+          "id": 397,
+          "name": "eth1/51/4",
+          "controllingPort": 396,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "398": {
+        "mapping": {
+          "id": 398,
+          "name": "eth1/51/5",
+          "controllingPort": 398,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                399,
+                400,
+                401
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                399
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "399": {
+        "mapping": {
+          "id": 399,
+          "name": "eth1/51/6",
+          "controllingPort": 398,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "400": {
+        "mapping": {
+          "id": 400,
+          "name": "eth1/51/7",
+          "controllingPort": 398,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                401
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "401": {
+        "mapping": {
+          "id": 401,
+          "name": "eth1/51/8",
+          "controllingPort": 400,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip51",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "402": {
+        "mapping": {
+          "id": 402,
+          "name": "eth1/52/1",
+          "controllingPort": 402,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                403,
+                404,
+                405
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                403
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "403": {
+        "mapping": {
+          "id": 403,
+          "name": "eth1/52/2",
+          "controllingPort": 402,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "404": {
+        "mapping": {
+          "id": 404,
+          "name": "eth1/52/3",
+          "controllingPort": 402,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                405
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "405": {
+        "mapping": {
+          "id": 405,
+          "name": "eth1/52/4",
+          "controllingPort": 404,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "406": {
+        "mapping": {
+          "id": 406,
+          "name": "eth1/52/5",
+          "controllingPort": 406,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                407,
+                408,
+                409
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                407
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "407": {
+        "mapping": {
+          "id": 407,
+          "name": "eth1/52/6",
+          "controllingPort": 406,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "408": {
+        "mapping": {
+          "id": 408,
+          "name": "eth1/52/7",
+          "controllingPort": 406,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                409
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "409": {
+        "mapping": {
+          "id": 409,
+          "name": "eth1/52/8",
+          "controllingPort": 408,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip52",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "410": {
+        "mapping": {
+          "id": 410,
+          "name": "eth1/53/1",
+          "controllingPort": 410,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                411,
+                412,
+                413
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                411
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "411": {
+        "mapping": {
+          "id": 411,
+          "name": "eth1/53/2",
+          "controllingPort": 410,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "412": {
+        "mapping": {
+          "id": 412,
+          "name": "eth1/53/3",
+          "controllingPort": 410,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                413
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "413": {
+        "mapping": {
+          "id": 413,
+          "name": "eth1/53/4",
+          "controllingPort": 412,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "414": {
+        "mapping": {
+          "id": 414,
+          "name": "eth1/53/5",
+          "controllingPort": 414,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                415,
+                416,
+                417
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                415
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "415": {
+        "mapping": {
+          "id": 415,
+          "name": "eth1/53/6",
+          "controllingPort": 414,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "416": {
+        "mapping": {
+          "id": 416,
+          "name": "eth1/53/7",
+          "controllingPort": 414,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                417
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "417": {
+        "mapping": {
+          "id": 417,
+          "name": "eth1/53/8",
+          "controllingPort": 416,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip53",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "418": {
+        "mapping": {
+          "id": 418,
+          "name": "eth1/54/1",
+          "controllingPort": 418,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                419,
+                420,
+                421
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                419
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "419": {
+        "mapping": {
+          "id": 419,
+          "name": "eth1/54/2",
+          "controllingPort": 418,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "420": {
+        "mapping": {
+          "id": 420,
+          "name": "eth1/54/3",
+          "controllingPort": 418,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                421
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "421": {
+        "mapping": {
+          "id": 421,
+          "name": "eth1/54/4",
+          "controllingPort": 420,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "422": {
+        "mapping": {
+          "id": 422,
+          "name": "eth1/54/5",
+          "controllingPort": 422,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                423,
+                424,
+                425
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                423
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "423": {
+        "mapping": {
+          "id": 423,
+          "name": "eth1/54/6",
+          "controllingPort": 422,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "424": {
+        "mapping": {
+          "id": 424,
+          "name": "eth1/54/7",
+          "controllingPort": 422,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                425
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "425": {
+        "mapping": {
+          "id": 425,
+          "name": "eth1/54/8",
+          "controllingPort": 424,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip54",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "426": {
+        "mapping": {
+          "id": 426,
+          "name": "eth1/55/1",
+          "controllingPort": 426,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                427,
+                428,
+                429
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                427
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "427": {
+        "mapping": {
+          "id": 427,
+          "name": "eth1/55/2",
+          "controllingPort": 426,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "428": {
+        "mapping": {
+          "id": 428,
+          "name": "eth1/55/3",
+          "controllingPort": 426,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                429
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "429": {
+        "mapping": {
+          "id": 429,
+          "name": "eth1/55/4",
+          "controllingPort": 428,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "430": {
+        "mapping": {
+          "id": 430,
+          "name": "eth1/55/5",
+          "controllingPort": 430,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                431,
+                432,
+                433
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                431
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "431": {
+        "mapping": {
+          "id": 431,
+          "name": "eth1/55/6",
+          "controllingPort": 430,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "432": {
+        "mapping": {
+          "id": 432,
+          "name": "eth1/55/7",
+          "controllingPort": 430,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                433
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "433": {
+        "mapping": {
+          "id": 433,
+          "name": "eth1/55/8",
+          "controllingPort": 432,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip55",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "434": {
+        "mapping": {
+          "id": 434,
+          "name": "eth1/56/1",
+          "controllingPort": 434,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                435,
+                436,
+                437
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                435
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "435": {
+        "mapping": {
+          "id": 435,
+          "name": "eth1/56/2",
+          "controllingPort": 434,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "436": {
+        "mapping": {
+          "id": 436,
+          "name": "eth1/56/3",
+          "controllingPort": 434,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                437
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "437": {
+        "mapping": {
+          "id": 437,
+          "name": "eth1/56/4",
+          "controllingPort": 436,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "438": {
+        "mapping": {
+          "id": 438,
+          "name": "eth1/56/5",
+          "controllingPort": 438,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                439,
+                440,
+                441
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                439
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "439": {
+        "mapping": {
+          "id": 439,
+          "name": "eth1/56/6",
+          "controllingPort": 438,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "440": {
+        "mapping": {
+          "id": 440,
+          "name": "eth1/56/7",
+          "controllingPort": 438,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                441
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "441": {
+        "mapping": {
+          "id": 441,
+          "name": "eth1/56/8",
+          "controllingPort": 440,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip56",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "442": {
+        "mapping": {
+          "id": 442,
+          "name": "eth1/57/1",
+          "controllingPort": 442,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                443,
+                444,
+                445
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                443
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "443": {
+        "mapping": {
+          "id": 443,
+          "name": "eth1/57/2",
+          "controllingPort": 442,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "444": {
+        "mapping": {
+          "id": 444,
+          "name": "eth1/57/3",
+          "controllingPort": 442,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                445
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "445": {
+        "mapping": {
+          "id": 445,
+          "name": "eth1/57/4",
+          "controllingPort": 444,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "446": {
+        "mapping": {
+          "id": 446,
+          "name": "eth1/57/5",
+          "controllingPort": 446,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                447,
+                448,
+                449
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                447
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "447": {
+        "mapping": {
+          "id": 447,
+          "name": "eth1/57/6",
+          "controllingPort": 446,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "448": {
+        "mapping": {
+          "id": 448,
+          "name": "eth1/57/7",
+          "controllingPort": 446,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                449
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "449": {
+        "mapping": {
+          "id": 449,
+          "name": "eth1/57/8",
+          "controllingPort": 448,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip57",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "450": {
+        "mapping": {
+          "id": 450,
+          "name": "eth1/58/1",
+          "controllingPort": 450,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                451,
+                452,
+                453
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                451
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "451": {
+        "mapping": {
+          "id": 451,
+          "name": "eth1/58/2",
+          "controllingPort": 450,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "452": {
+        "mapping": {
+          "id": 452,
+          "name": "eth1/58/3",
+          "controllingPort": 450,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                453
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "453": {
+        "mapping": {
+          "id": 453,
+          "name": "eth1/58/4",
+          "controllingPort": 452,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "454": {
+        "mapping": {
+          "id": 454,
+          "name": "eth1/58/5",
+          "controllingPort": 454,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                455,
+                456,
+                457
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                455
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "455": {
+        "mapping": {
+          "id": 455,
+          "name": "eth1/58/6",
+          "controllingPort": 454,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "456": {
+        "mapping": {
+          "id": 456,
+          "name": "eth1/58/7",
+          "controllingPort": 454,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                457
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "457": {
+        "mapping": {
+          "id": 457,
+          "name": "eth1/58/8",
+          "controllingPort": 456,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip58",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "458": {
+        "mapping": {
+          "id": 458,
+          "name": "eth1/59/1",
+          "controllingPort": 458,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                459,
+                460,
+                461
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                459
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "459": {
+        "mapping": {
+          "id": 459,
+          "name": "eth1/59/2",
+          "controllingPort": 458,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "460": {
+        "mapping": {
+          "id": 460,
+          "name": "eth1/59/3",
+          "controllingPort": 458,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                461
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "461": {
+        "mapping": {
+          "id": 461,
+          "name": "eth1/59/4",
+          "controllingPort": 460,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "462": {
+        "mapping": {
+          "id": 462,
+          "name": "eth1/59/5",
+          "controllingPort": 462,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                463,
+                464,
+                465
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                463
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "463": {
+        "mapping": {
+          "id": 463,
+          "name": "eth1/59/6",
+          "controllingPort": 462,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "464": {
+        "mapping": {
+          "id": 464,
+          "name": "eth1/59/7",
+          "controllingPort": 462,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                465
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "465": {
+        "mapping": {
+          "id": 465,
+          "name": "eth1/59/8",
+          "controllingPort": 464,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip59",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "466": {
+        "mapping": {
+          "id": 466,
+          "name": "eth1/60/1",
+          "controllingPort": 466,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                467,
+                468,
+                469
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                467
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "467": {
+        "mapping": {
+          "id": 467,
+          "name": "eth1/60/2",
+          "controllingPort": 466,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "468": {
+        "mapping": {
+          "id": 468,
+          "name": "eth1/60/3",
+          "controllingPort": 466,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                469
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "469": {
+        "mapping": {
+          "id": 469,
+          "name": "eth1/60/4",
+          "controllingPort": 468,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "470": {
+        "mapping": {
+          "id": 470,
+          "name": "eth1/60/5",
+          "controllingPort": 470,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                471,
+                472,
+                473
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                471
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "471": {
+        "mapping": {
+          "id": 471,
+          "name": "eth1/60/6",
+          "controllingPort": 470,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "472": {
+        "mapping": {
+          "id": 472,
+          "name": "eth1/60/7",
+          "controllingPort": 470,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                473
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "473": {
+        "mapping": {
+          "id": 473,
+          "name": "eth1/60/8",
+          "controllingPort": 472,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip60",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "474": {
+        "mapping": {
+          "id": 474,
+          "name": "eth1/61/1",
+          "controllingPort": 474,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                475,
+                476,
+                477
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                475
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "475": {
+        "mapping": {
+          "id": 475,
+          "name": "eth1/61/2",
+          "controllingPort": 474,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "476": {
+        "mapping": {
+          "id": 476,
+          "name": "eth1/61/3",
+          "controllingPort": 474,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                477
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "477": {
+        "mapping": {
+          "id": 477,
+          "name": "eth1/61/4",
+          "controllingPort": 476,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "478": {
+        "mapping": {
+          "id": 478,
+          "name": "eth1/61/5",
+          "controllingPort": 478,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                479,
+                480,
+                481
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                479
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "479": {
+        "mapping": {
+          "id": 479,
+          "name": "eth1/61/6",
+          "controllingPort": 478,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "480": {
+        "mapping": {
+          "id": 480,
+          "name": "eth1/61/7",
+          "controllingPort": 478,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                481
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "481": {
+        "mapping": {
+          "id": 481,
+          "name": "eth1/61/8",
+          "controllingPort": 480,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip61",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "482": {
+        "mapping": {
+          "id": 482,
+          "name": "eth1/62/1",
+          "controllingPort": 482,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                483,
+                484,
+                485
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                483
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "483": {
+        "mapping": {
+          "id": 483,
+          "name": "eth1/62/2",
+          "controllingPort": 482,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "484": {
+        "mapping": {
+          "id": 484,
+          "name": "eth1/62/3",
+          "controllingPort": 482,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                485
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "485": {
+        "mapping": {
+          "id": 485,
+          "name": "eth1/62/4",
+          "controllingPort": 484,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "486": {
+        "mapping": {
+          "id": 486,
+          "name": "eth1/62/5",
+          "controllingPort": 486,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                487,
+                488,
+                489
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                487
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "487": {
+        "mapping": {
+          "id": 487,
+          "name": "eth1/62/6",
+          "controllingPort": 486,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "488": {
+        "mapping": {
+          "id": 488,
+          "name": "eth1/62/7",
+          "controllingPort": 486,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                489
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "489": {
+        "mapping": {
+          "id": 489,
+          "name": "eth1/62/8",
+          "controllingPort": 488,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip62",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "490": {
+        "mapping": {
+          "id": 490,
+          "name": "eth1/63/1",
+          "controllingPort": 490,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                491,
+                492,
+                493
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                491
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "491": {
+        "mapping": {
+          "id": 491,
+          "name": "eth1/63/2",
+          "controllingPort": 490,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "492": {
+        "mapping": {
+          "id": 492,
+          "name": "eth1/63/3",
+          "controllingPort": 490,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                493
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "493": {
+        "mapping": {
+          "id": 493,
+          "name": "eth1/63/4",
+          "controllingPort": 492,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "494": {
+        "mapping": {
+          "id": 494,
+          "name": "eth1/63/5",
+          "controllingPort": 494,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                495,
+                496,
+                497
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                495
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "495": {
+        "mapping": {
+          "id": 495,
+          "name": "eth1/63/6",
+          "controllingPort": 494,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "496": {
+        "mapping": {
+          "id": 496,
+          "name": "eth1/63/7",
+          "controllingPort": 494,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                497
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "497": {
+        "mapping": {
+          "id": 497,
+          "name": "eth1/63/8",
+          "controllingPort": 496,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip63",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "498": {
+        "mapping": {
+          "id": 498,
+          "name": "eth1/64/1",
+          "controllingPort": 498,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "57": {
+              "subsumedPorts": [
+                499,
+                500,
+                501
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                499
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "499": {
+        "mapping": {
+          "id": 499,
+          "name": "eth1/64/2",
+          "controllingPort": 498,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "500": {
+        "mapping": {
+          "id": 500,
+          "name": "eth1/64/3",
+          "controllingPort": 498,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                501
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "501": {
+        "mapping": {
+          "id": 501,
+          "name": "eth1/64/4",
+          "controllingPort": 500,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "502": {
+        "mapping": {
+          "id": 502,
           "name": "eth1/64/5",
-          "controllingPort": 319,
+          "controllingPort": 502,
           "pins": [
             {
               "a": {
@@ -53080,6 +72234,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                503,
+                504,
+                505
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -53170,14 +72329,323 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "58": {
+              "subsumedPorts": [
+                503
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
           }
         }
     },
-    "320": {
+    "503": {
         "mapping": {
-          "id": 320,
+          "id": 503,
+          "name": "eth1/64/6",
+          "controllingPort": 502,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "504": {
+        "mapping": {
+          "id": 504,
+          "name": "eth1/64/7",
+          "controllingPort": 502,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                505
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "505": {
+        "mapping": {
+          "id": 505,
+          "name": "eth1/64/8",
+          "controllingPort": 504,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip64",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "506": {
+        "mapping": {
+          "id": 506,
           "name": "eth1/65/1",
-          "controllingPort": 320,
+          "controllingPort": 506,
           "pins": [
             {
               "a": {
@@ -53233,6 +72701,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                507,
+                508,
+                509
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -53323,14 +72796,323 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "58": {
+              "subsumedPorts": [
+                507
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
-    "321": {
+    "507": {
         "mapping": {
-          "id": 321,
+          "id": 507,
+          "name": "eth1/65/2",
+          "controllingPort": 506,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "508": {
+        "mapping": {
+          "id": 508,
+          "name": "eth1/65/3",
+          "controllingPort": 506,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                509
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "509": {
+        "mapping": {
+          "id": 509,
+          "name": "eth1/65/4",
+          "controllingPort": 508,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "510": {
+        "mapping": {
+          "id": 510,
           "name": "eth1/65/5",
-          "controllingPort": 321,
+          "controllingPort": 510,
           "pins": [
             {
               "a": {
@@ -53386,6 +73168,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "57": {
+              "subsumedPorts": [
+                511,
+                512,
+                513
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -53468,6 +73255,315 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     }
                   },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "58": {
+              "subsumedPorts": [
+                511
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "511": {
+        "mapping": {
+          "id": 511,
+          "name": "eth1/65/6",
+          "controllingPort": 510,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "512": {
+        "mapping": {
+          "id": 512,
+          "name": "eth1/65/7",
+          "controllingPort": 510,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "58": {
+              "subsumedPorts": [
+                513
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "513": {
+        "mapping": {
+          "id": 513,
+          "name": "eth1/65/8",
+          "controllingPort": 512,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "BACKPLANE-EXAMAX-slot1/chip65",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "59": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
                   {
                     "id": {
                       "chip": "BACKPLANE-EXAMAX-slot1/chip65",
@@ -54234,7 +74330,37 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 2,
           "fec": 11,
           "medium": 3,
-          "interfaceType": 4
+          "interfaceType": 3
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 58
+      },
+      "profile": {
+        "speed": 400000,
+        "iphy": {
+          "numLanes": 2,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 3,
+          "interfaceType": 2
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 59
+      },
+      "profile": {
+        "speed": 200000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 3,
+          "interfaceType": 1
         }
       }
     }
