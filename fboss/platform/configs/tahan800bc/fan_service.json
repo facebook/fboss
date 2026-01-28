@@ -23,7 +23,7 @@
           "kp": 2,
           "ki": 0.6,
           "kd": 0,
-          "setPoint": 76.0,
+          "setPoint": 65.0,
           "posHysteresis": 0.0,
           "negHysteresis": 2.0
         },
@@ -31,7 +31,7 @@
           "kp": 2,
           "ki": 0.6,
           "kd": 0,
-          "setPoint": 76.0,
+          "setPoint": 65.0,
           "posHysteresis": 0.0,
           "negHysteresis": 2.0
         },
@@ -39,7 +39,7 @@
           "kp": 2,
           "ki": 0.6,
           "kd": 0,
-          "setPoint": 76.0,
+          "setPoint": 65.0,
           "posHysteresis": 0.0,
           "negHysteresis": 2.0
         },
@@ -47,7 +47,7 @@
           "kp": 2,
           "ki": 0.6,
           "kd": 0,
-          "setPoint": 76.0,
+          "setPoint": 65.0,
           "posHysteresis": 0.0,
           "negHysteresis": 2.0
         }
