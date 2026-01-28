@@ -107,11 +107,9 @@ cpp_unittest(
     ],
     deps = [
         ":visitor_test_utils",
-        "//fboss/agent:switch_config-cpp2-reflection",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/thrift_cow:patch-cpp2-types",
         "//fboss/thrift_cow/nodes:nodes",
-        "//fboss/thrift_cow/nodes/tests:test-cpp2-reflection",
         "//fboss/thrift_cow/nodes/tests:test-cpp2-types",
         "//fboss/thrift_cow/visitors:visitors",
         "//folly/json:dynamic",

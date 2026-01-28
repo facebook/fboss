@@ -586,4 +586,12 @@ std::vector<PortID> getPortIdsWithTransceiverOrXphy(
 
   return portIds;
 }
+
+bool hasTransceiver(
+    const cfg::PlatformPortEntry& port,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap) {
+  auto transceiverChips = getDataPlanePhyChips(
+      port, chipsMap, phy::DataPlanePhyChipType::TRANSCEIVER);
+  return !transceiverChips.empty();
+}
 } // namespace facebook::fboss::utility

@@ -96,8 +96,8 @@ TEST_F(SensorDataTest, GetOpticEntryNotFound) {
 // Test updateOpticEntry and getOpticEntry
 TEST_F(SensorDataTest, UpdateAndGetOpticEntry) {
   const std::string opticName = "optic_1";
-  std::vector<std::pair<std::string, float>> data = {
-      {"temp_type_1", 35.0}, {"temp_type_2", 40.0}};
+  std::map<std::string, std::vector<OpticData>> data = {
+      {"temp_type_1", {{1, 35.0}, {2, 36.0}}}, {"temp_type_2", {{3, 40.0}}}};
   const uint64_t qsfpTimestamp = 9876543210;
 
   sensorData_->updateOpticEntry(opticName, data, qsfpTimestamp);
@@ -105,10 +105,16 @@ TEST_F(SensorDataTest, UpdateAndGetOpticEntry) {
   auto entry = sensorData_->getOpticEntry(opticName);
   ASSERT_TRUE(entry.has_value());
   EXPECT_EQ(entry->data.size(), 2);
-  EXPECT_EQ(entry->data[0].first, "temp_type_1");
-  EXPECT_FLOAT_EQ(entry->data[0].second, 35.0);
-  EXPECT_EQ(entry->data[1].first, "temp_type_2");
-  EXPECT_FLOAT_EQ(entry->data[1].second, 40.0);
+  EXPECT_TRUE(entry->data.find("temp_type_1") != entry->data.end());
+  EXPECT_EQ(entry->data.at("temp_type_1").size(), 2);
+  EXPECT_EQ(entry->data.at("temp_type_1")[0].txvrId, 1);
+  EXPECT_FLOAT_EQ(entry->data.at("temp_type_1")[0].temp, 35.0);
+  EXPECT_EQ(entry->data.at("temp_type_1")[1].txvrId, 2);
+  EXPECT_FLOAT_EQ(entry->data.at("temp_type_1")[1].temp, 36.0);
+  EXPECT_TRUE(entry->data.find("temp_type_2") != entry->data.end());
+  EXPECT_EQ(entry->data.at("temp_type_2").size(), 1);
+  EXPECT_EQ(entry->data.at("temp_type_2")[0].txvrId, 3);
+  EXPECT_FLOAT_EQ(entry->data.at("temp_type_2")[0].temp, 40.0);
   EXPECT_EQ(entry->qsfpServiceTimeStamp, qsfpTimestamp);
   EXPECT_GT(entry->lastOpticsUpdateTimeInSec, 0);
 }
@@ -118,12 +124,13 @@ TEST_F(SensorDataTest, UpdateExistingOpticEntry) {
   const std::string opticName = "optic_1";
 
   // First update
-  std::vector<std::pair<std::string, float>> data1 = {{"temp_type_1", 30.0}};
+  std::map<std::string, std::vector<OpticData>> data1 = {
+      {"temp_type_1", {{1, 30.0}}}};
   sensorData_->updateOpticEntry(opticName, data1, 1000);
 
   // Second update with different data
-  std::vector<std::pair<std::string, float>> data2 = {
-      {"temp_type_1", 35.0}, {"temp_type_2", 40.0}};
+  std::map<std::string, std::vector<OpticData>> data2 = {
+      {"temp_type_1", {{1, 35.0}}}, {"temp_type_2", {{2, 40.0}}}};
   const uint64_t newTimestamp = 2000;
   sensorData_->updateOpticEntry(opticName, data2, newTimestamp);
 
@@ -136,7 +143,8 @@ TEST_F(SensorDataTest, UpdateExistingOpticEntry) {
 // Test resetOpticData
 TEST_F(SensorDataTest, ResetOpticData) {
   const std::string opticName = "optic_1";
-  std::vector<std::pair<std::string, float>> data = {{"temp_type_1", 35.0}};
+  std::map<std::string, std::vector<OpticData>> data = {
+      {"temp_type_1", {{1, 35.0}}}};
   sensorData_->updateOpticEntry(opticName, data, 1000);
 
   // Verify data exists
@@ -150,7 +158,7 @@ TEST_F(SensorDataTest, ResetOpticData) {
   // Verify data is empty but entry still exists
   entry = sensorData_->getOpticEntry(opticName);
   ASSERT_TRUE(entry.has_value());
-  EXPECT_EQ(entry->data.size(), 0);
+  EXPECT_TRUE(entry->data.empty());
 }
 
 // Test resetOpticData on non-existent optic (should create empty entry)
@@ -180,8 +188,10 @@ TEST_F(SensorDataTest, UpdateOpticDataProcessingTimestamp) {
 
 // Test getOpticEntries
 TEST_F(SensorDataTest, GetOpticEntries) {
-  std::vector<std::pair<std::string, float>> data1 = {{"type1", 30.0}};
-  std::vector<std::pair<std::string, float>> data2 = {{"type2", 40.0}};
+  std::map<std::string, std::vector<OpticData>> data1 = {
+      {"type1", {{1, 30.0}}}};
+  std::map<std::string, std::vector<OpticData>> data2 = {
+      {"type2", {{2, 40.0}}}};
 
   sensorData_->updateOpticEntry("optic1", data1, 1000);
   sensorData_->updateOpticEntry("optic2", data2, 2000);
@@ -199,7 +209,7 @@ TEST_F(SensorDataTest, GetLastQsfpSvcTime) {
 
   // Update optic entry which sets lastSuccessfulQsfpServiceContact_
   const uint64_t timestamp1 = 1111111111;
-  std::vector<std::pair<std::string, float>> data = {{"type1", 30.0}};
+  std::map<std::string, std::vector<OpticData>> data = {{"type1", {{1, 30.0}}}};
   sensorData_->updateOpticEntry("optic1", data, timestamp1);
 
   EXPECT_EQ(sensorData_->getLastQsfpSvcTime(), timestamp1);
@@ -234,9 +244,10 @@ TEST_F(SensorDataTest, MultipleSensorOperations) {
 
 // Test multiple optic operations
 TEST_F(SensorDataTest, MultipleOpticOperations) {
-  std::vector<std::pair<std::string, float>> data1 = {{"type1", 30.0}};
-  std::vector<std::pair<std::string, float>> data2 = {
-      {"type2", 40.0}, {"type3", 45.0}};
+  std::map<std::string, std::vector<OpticData>> data1 = {
+      {"type1", {{1, 30.0}}}};
+  std::map<std::string, std::vector<OpticData>> data2 = {
+      {"type2", {{2, 40.0}}}, {"type3", {{3, 45.0}}}};
 
   // Add multiple optics
   sensorData_->updateOpticEntry("optic1", data1, 1000);
@@ -248,7 +259,7 @@ TEST_F(SensorDataTest, MultipleOpticOperations) {
   sensorData_->resetOpticData("optic1");
   auto entry = sensorData_->getOpticEntry("optic1");
   ASSERT_TRUE(entry.has_value());
-  EXPECT_EQ(entry->data.size(), 0);
+  EXPECT_TRUE(entry->data.empty());
 
   // Update processing timestamp
   sensorData_->updateOpticDataProcessingTimestamp("optic2", 5555);

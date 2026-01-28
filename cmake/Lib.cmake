@@ -80,6 +80,7 @@ add_library(common_utils
 )
 
 target_link_libraries(common_utils
+  common_file_utils
   fboss_error
   fb303::fb303
 )
@@ -138,6 +139,7 @@ add_library(common_thrift_utils
 target_link_libraries(common_thrift_utils
   Folly::folly
   fb303::fb303
+  thrift_service_client
 )
 
 add_library(gpiod_line
@@ -188,4 +190,13 @@ add_library(bmc_rest_client
 target_link_libraries(bmc_rest_client
   rest_client
   Folly::folly
+)
+
+add_library(thrift_service_utils
+  fboss/lib/oss/ThriftServiceUtils.cpp
+)
+
+target_link_libraries(thrift_service_utils
+  Folly::folly
+  FBThrift::thriftcpp2
 )

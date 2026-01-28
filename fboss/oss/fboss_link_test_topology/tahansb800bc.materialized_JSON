@@ -714,11 +714,6 @@
             "neighbor": "eth1/7/7",
             "profileID": 51,
             "hasTransceiver": true
-        },
-        "eth1/9/1": {
-            "neighbor": "eth1/9/1",
-            "profileID": 23,
-            "hasTransceiver": true
         }
       },
       "tcvrs": {

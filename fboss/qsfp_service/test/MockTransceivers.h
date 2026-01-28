@@ -30,7 +30,7 @@ class MockSff8472Module : public Sff8472Module {
       MockSff8472TransceiverImpl* qsfpImpl,
       std::string tcvrName)
       : Sff8472Module(std::move(portNames), qsfpImpl, std::move(tcvrName)) {
-    ON_CALL(*this, ensureTransceiverReadyLocked())
+    ON_CALL(*this, ensureTransceiverReadyLocked(testing::_))
         .WillByDefault(testing::Return(true));
     ON_CALL(*this, numHostLanes()).WillByDefault(testing::Return(1));
   }
@@ -48,7 +48,7 @@ class MockSff8472Module : public Sff8472Module {
       void(const std::vector<HostLaneSettings>&));
   MOCK_METHOD1(resetDataPath, void(const std::string&));
   MOCK_METHOD1(updateCachedTransceiverInfoLocked, void(ModuleStatus));
-  MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
+  MOCK_METHOD1(ensureTransceiverReadyLocked, bool(bool));
 };
 
 /*
@@ -83,7 +83,7 @@ class MockCmisModule : public CmisModule {
             std::move(tcvrName)) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
-    ON_CALL(*this, ensureTransceiverReadyLocked())
+    ON_CALL(*this, ensureTransceiverReadyLocked(testing::_))
         .WillByDefault(testing::Return(true));
     ON_CALL(*this, getPortPrbsStateLocked(testing::_, testing::_))
         .WillByDefault(testing::Return(prbs::InterfacePrbsState()));
@@ -105,7 +105,7 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD1(updateQsfpData, void(bool));
   MOCK_METHOD1(updateCachedTransceiverInfoLocked, void(ModuleStatus));
   MOCK_CONST_METHOD0(ensureOutOfReset, void());
-  MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
+  MOCK_METHOD1(ensureTransceiverReadyLocked, bool(bool));
   MOCK_METHOD2(
       getPortPrbsStateLocked,
       prbs::InterfacePrbsState(std::optional<const std::string>, phy::Side));

@@ -23,13 +23,15 @@
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
+DECLARE_bool(override_program_iphy_ports_for_test);
+
 #define TYPED_LOG(level, logType) XLOG(level) << logType << " "
 
 #define PORTMGR_SM_LOG(level) TYPED_LOG(level, "[SM]")
 
-#define SW_PORT_LOG(level, logType, portName, portId)  \
-  XLOG(level) << logType << " [portName: " << portName \
-              << ", portId: " << portId << "]: "
+#define SW_PORT_LOG(level, logType, portName, portId)                 \
+  XLOG(level) << logType << " [portName: " << portName << ", PortID(" \
+              << portId << ")]: "
 
 #define PORT_SM_LOG(level, portName, portId) \
   SW_PORT_LOG(level, "[SM]", portName, portId)
@@ -390,6 +392,10 @@ class PortManager {
   void getPortStates(
       std::map<int32_t, PortStateMachineState>& states,
       std::unique_ptr<std::vector<int32_t>> ids);
+
+  void getPortStates(
+      std::map<std::string, PortStateMachineState>& states,
+      std::unique_ptr<std::vector<std::string>> portNames);
 
   virtual void initExternalPhyMap(bool forceWarmboot = false);
 

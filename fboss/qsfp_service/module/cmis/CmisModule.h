@@ -271,8 +271,12 @@ class CmisModule : public QsfpModule {
   /*
    * If the current power state is not same as desired one then change it and
    * return true when module is in ready state
+   * @param hasTunableOpticsConfig - indicates if tunable optics config is
+   *        present. For tunable optics modules without config, an exception
+   *        is thrown to prevent high power mode transition.
    */
-  virtual bool ensureTransceiverReadyLocked() override;
+  virtual bool ensureTransceiverReadyLocked(
+      bool hasTunableOpticsConfig) override;
 
   /*
    * Based on identifier, sets whether the upper memory of the module is flat

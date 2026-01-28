@@ -665,6 +665,10 @@ class TransceiverManager {
     return {0, 0};
   }
 
+  virtual std::pair<size_t, size_t> dumpTransceiverI2cLog(int32_t) {
+    return {0, 0};
+  }
+
   virtual void publishPhyStateToFsdb(
       std::string&& /* portName */,
       std::optional<phy::PhyState>&& /* newState */) const {}

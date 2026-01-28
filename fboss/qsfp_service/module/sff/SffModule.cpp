@@ -1559,7 +1559,8 @@ void SffModule::customizeTransceiverLocked(TransceiverPortState& portState) {
  * that (by configuring power mode register) otherwise return true when module
  * is in ready state otherwise return false.
  */
-bool SffModule::ensureTransceiverReadyLocked() {
+bool SffModule::ensureTransceiverReadyLocked(
+    bool /* hasTunableOpticsConfig */) {
   // If customization is not supported then the Power control bit can't be
   // touched. Return true as nothing needs to be done here
   if (!customizationSupported()) {

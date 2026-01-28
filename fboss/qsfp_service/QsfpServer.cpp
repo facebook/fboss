@@ -2,6 +2,8 @@
 #include "fboss/qsfp_service/QsfpServer.h"
 
 #include <thrift/lib/cpp2/server/ThriftServer.h>
+
+#include "fboss/lib/ThriftServiceUtils.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/qsfp_service/platforms/wedge/FbossMacsecHandler.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
@@ -28,6 +30,7 @@ setupThriftServer(
       std::move(tcvrManager), std::move(portManager), macsecHandler);
   handler->init();
   auto server = std::make_shared<apache::thrift::ThriftServer>();
+  ThriftServiceUtils::setPreferredEventBaseBackend(*server);
   // Since thrift calls may involve programming HW, don't
   // set queue timeouts
   server->setQueueTimeout(std::chrono::milliseconds(0));

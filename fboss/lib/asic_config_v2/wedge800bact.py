@@ -1,3 +1,4 @@
+# pyre-unsafe
 from itertools import chain
 from typing import List, Optional
 

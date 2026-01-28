@@ -34,6 +34,7 @@ cpp_library(
     ],
     exported_deps = [
         ":network_to_route_map",
+        ":nexthop_id_manager",
         "//fboss/agent:address_utils",
         "//fboss/agent:agent_features",
         "//fboss/agent:fboss-error",
@@ -62,6 +63,7 @@ cpp_unittest(
     srcs = [
         "test/FibInteractionTests.cpp",
         "test/NextHopIDManagerTests.cpp",
+        "test/NextHopMapPopulationTests.cpp",
         "test/RibLpmTests.cpp",
         "test/RibRollbackTests.cpp",
         "test/RibRouteNormalizerTests.cpp",
@@ -128,6 +130,7 @@ cpp_library(
     ],
     exported_deps = [
         ":network_to_route_map",
+        ":nexthop_id_manager",
         ":standalone_rib",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switchid_scope_resolver",

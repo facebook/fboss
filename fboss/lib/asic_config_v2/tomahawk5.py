@@ -1,3 +1,4 @@
+# pyre-unsafe
 from typing import List, Optional
 
 import neteng.fboss.asic_config_v2.ttypes as asic_config_thrift

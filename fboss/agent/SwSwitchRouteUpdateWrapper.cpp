@@ -14,6 +14,7 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 
 #include "fboss/agent/state/SwitchState.h"
 
@@ -28,6 +29,7 @@ StateDelta swSwitchFibUpdate(
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
+    const NextHopIDManager* nextHopIDManager,
     void* cookie) {
   // Since FIB updater will be accessed in swSwitch's update event
   // base protect with a lock. This is even though we know the
@@ -41,7 +43,8 @@ StateDelta swSwitchFibUpdate(
           vrf,
           v4NetworkToRoute,
           v6NetworkToRoute,
-          labelToRoute);
+          labelToRoute,
+          nextHopIDManager);
 
   auto wFibUpdater = fibUpdater.wlock();
   auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);

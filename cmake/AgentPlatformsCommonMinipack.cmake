@@ -10,4 +10,5 @@ add_library(minipack_platform_mapping
 
 target_link_libraries(minipack_platform_mapping
   platform_mapping
+  platform_mode
 )

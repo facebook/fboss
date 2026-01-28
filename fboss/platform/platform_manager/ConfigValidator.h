@@ -2,6 +2,10 @@
 
 #pragma once
 
+#include <optional>
+#include <unordered_map>
+#include <unordered_set>
+
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
 namespace facebook::fboss::platform::platform_manager {
@@ -19,6 +23,8 @@ class ConfigValidator {
   bool isValidLedCtrlBlockConfig(const LedCtrlBlockConfig& ledCtrlBlockConfig);
   bool isValidXcvrCtrlBlockConfig(
       const XcvrCtrlBlockConfig& xcvrCtrlBlockConfig);
+  bool isValidI2cAdapterBlockConfig(
+      const I2cAdapterBlockConfig& i2cAdapterBlockConfig);
   bool isValidPciDeviceConfig(const PciDeviceConfig& pciDeviceConfig);
   bool isValidI2cDeviceConfig(const I2cDeviceConfig& i2cDeviceConfig);
   bool isValidDevicePath(
@@ -67,6 +73,14 @@ class ConfigValidator {
       const std::string& slotPath,
       const std::string& pmUnitName);
   int16_t numXcvrs_ = 0;
+
+ private:
+  void buildDeviceNameCache(const PlatformConfig& platformConfig);
+
+  // Cache: SlotType -> set of valid device names for that slot type
+  std::optional<
+      std::unordered_map<std::string, std::unordered_set<std::string>>>
+      deviceNamesBySlotType_;
 };
 
 } // namespace facebook::fboss::platform::platform_manager

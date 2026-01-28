@@ -84,6 +84,7 @@ target_link_libraries(hw_switch_fb303_stats
 
 target_link_libraries(hw_fb303_stats
   counter_utils
+  fboss_error
   fb303::fb303
   Folly::folly
   switch_config_cpp2
@@ -91,8 +92,10 @@ target_link_libraries(hw_fb303_stats
 
 target_link_libraries(hw_port_fb303_stats
   counter_utils
+  fboss_types
   FBThrift::thriftcpp2
   hardware_stats_cpp2
+  hw_fb303_stats
   Folly::folly
 )
 

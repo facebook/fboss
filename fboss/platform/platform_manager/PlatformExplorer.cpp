@@ -544,32 +544,37 @@ void PlatformExplorer::explorePciDevices(
     dataStore_.updateSysfsPath(pciDevicePath, pciDevice.sysfsPath());
     dataStore_.updateCharDevPath(pciDevicePath, pciDevice.charDevPath());
 
+    auto createI2cAdapter = [&](const I2cAdapterConfig& i2cAdapterConfig) {
+      auto busNums =
+          pciExplorer_.createI2cAdapter(pciDevice, i2cAdapterConfig, instId++);
+      if (*i2cAdapterConfig.numberOfAdapters() > 1) {
+        CHECK_EQ(busNums.size(), *i2cAdapterConfig.numberOfAdapters());
+        for (auto i = 0; i < busNums.size(); i++) {
+          dataStore_.updateI2cBusNum(
+              slotPath,
+              fmt::format(
+                  "{}@{}",
+                  *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+                  i),
+              busNums[i]);
+        }
+      } else {
+        CHECK_EQ(busNums.size(), 1);
+        dataStore_.updateI2cBusNum(
+            slotPath,
+            *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+            busNums[0]);
+      }
+    };
+    auto i2cAdapterConfigs = Utils::createI2cAdapterConfigs(pciDeviceConfig);
+    if (i2cAdapterConfigs.size() == 0) {
+      i2cAdapterConfigs = *pciDeviceConfig.i2cAdapterConfigs();
+    }
     createPciSubDevices(
         slotPath,
-        *pciDeviceConfig.i2cAdapterConfigs(),
+        i2cAdapterConfigs,
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_I2C_ADAPTER,
-        [&](const auto& i2cAdapterConfig) {
-          auto busNums = pciExplorer_.createI2cAdapter(
-              pciDevice, i2cAdapterConfig, instId++);
-          if (*i2cAdapterConfig.numberOfAdapters() > 1) {
-            CHECK_EQ(busNums.size(), *i2cAdapterConfig.numberOfAdapters());
-            for (auto i = 0; i < busNums.size(); i++) {
-              dataStore_.updateI2cBusNum(
-                  slotPath,
-                  fmt::format(
-                      "{}@{}",
-                      *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
-                      i),
-                  busNums[i]);
-            }
-          } else {
-            CHECK_EQ(busNums.size(), 1);
-            dataStore_.updateI2cBusNum(
-                slotPath,
-                *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
-                busNums[0]);
-          }
-        });
+        createI2cAdapter);
     createPciSubDevices(
         slotPath,
         *pciDeviceConfig.spiMasterConfigs(),

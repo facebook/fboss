@@ -7,6 +7,7 @@
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "rx_vlan_untagged_packets": "true",
+    "sai_configure_six_tap": "true",
     "sai_user_defined_trap": "true",
     "set_classid_for_my_subnet_and_ip_routes": "true",
     "skip_transceiver_programming": "true",

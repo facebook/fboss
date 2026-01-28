@@ -29,10 +29,9 @@ add_library(weutil_fboss_eeprom_interface
 )
 
 target_link_libraries(weutil_fboss_eeprom_interface
-    fmt::fmt
-    Folly::folly
-    weutil_crc16_ccitt_aug
-    weutil_eeprom_contents_cpp2
+  Folly::folly
+  weutil_crc16_ccitt_aug
+  weutil_eeprom_contents_cpp2
 )
 
 add_library(weutil_lib
