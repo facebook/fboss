@@ -37,6 +37,10 @@ class BcmAclEntry {
 
   BcmAclEntry(BcmSwitch* hw, int gid, const std::shared_ptr<AclEntry>& acl);
   ~BcmAclEntry();
+  BcmAclEntry(const BcmAclEntry&) = delete;
+  BcmAclEntry& operator=(const BcmAclEntry&) = delete;
+  BcmAclEntry(BcmAclEntry&&) = delete;
+  BcmAclEntry& operator=(BcmAclEntry&&) = delete;
   BcmAclEntryHandle getHandle() const {
     return handle_;
   }
