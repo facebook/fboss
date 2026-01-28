@@ -243,8 +243,6 @@ target_link_libraries(linkstate_toggler
 
 add_library(system_scale_test_utils
   fboss/agent/test/utils/SystemScaleTestUtils.cpp
-  fboss/agent/test/utils/PortFlapHelper.cpp
-  fboss/agent/test/utils/MacLearningFloodHelper.cpp
 )
 
 target_link_libraries(system_scale_test_utils
@@ -261,6 +259,8 @@ target_link_libraries(system_scale_test_utils
   route_scale_gen
   qos_test_utils
   trap_packet_utils
+  port_flap_helper
+  mac_learning_flood_helper
   Folly::folly
   Folly::follybenchmark
 )

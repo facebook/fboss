@@ -25,6 +25,7 @@ add_library(fan_service_config_validator
 )
 
 target_link_libraries(fan_service_config_validator
+  fan_service_cpp2
   fan_service_config_types_cpp2
   Folly::folly
   range-v3

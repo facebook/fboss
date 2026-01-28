@@ -39,7 +39,7 @@ add_library(led_config
 )
 
 target_link_libraries(led_config
-  error
+  fboss_error
   led_config_cpp2
   Folly::folly
   FBThrift::thriftcpp2

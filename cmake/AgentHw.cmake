@@ -84,7 +84,7 @@ target_link_libraries(hw_switch_fb303_stats
 
 target_link_libraries(hw_fb303_stats
   counter_utils
-  error
+  fboss_error
   fb303::fb303
   Folly::folly
   switch_config_cpp2

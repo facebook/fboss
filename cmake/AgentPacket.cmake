@@ -44,7 +44,7 @@ add_library(pktutil
 )
 
 target_link_libraries(pktutil
-  error
+  fboss_error
   Folly::folly
 )
 

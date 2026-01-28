@@ -18,6 +18,7 @@ add_library(logging_util
 target_link_libraries(logging_util
   fboss_cpp2
   fboss_error
+  switch_config_cpp2
   Folly::folly
 )
 

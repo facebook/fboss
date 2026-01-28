@@ -9,6 +9,8 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     reflection
+  DEPENDS
+    common_cpp2
 )
 
 add_library(fsdb_test_server

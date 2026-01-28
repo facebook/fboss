@@ -11,6 +11,7 @@ add_library(external_phy
 target_link_libraries(external_phy
   alert_logger
   ctrl_cpp2
+  fboss_error
   fboss_types
   mdio
   platform_config_cpp2
@@ -77,7 +78,7 @@ add_library(phy_management_base
 
 target_link_libraries(phy_management_base
   external_phy
-  error
+  fboss_error
   platform_mapping
   fboss_config_utils
   Folly::folly

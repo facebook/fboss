@@ -14,7 +14,7 @@ target_link_libraries(standalone_rib
   network_to_route_map
   nexthop_id_manager
   address_utils
-  error
+  fboss_error
   fboss_event_base
   fboss_types
   switch_config_cpp2

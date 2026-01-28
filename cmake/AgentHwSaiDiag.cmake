@@ -11,7 +11,7 @@ add_library(diag_shell
 target_link_libraries(diag_shell
   sai_repl
   python_repl
-  error
+  fboss_error
   sai_switch
   sai_tracer
   Folly::folly
@@ -32,7 +32,7 @@ add_library(python_repl
 target_include_directories(python_repl PRIVATE Python3::Python)
 
 target_link_libraries(python_repl
-  error
+  fboss_error
   Folly::folly
   Python3::Python
   # Python3::Python requires forkpty and openpty provided by libutil.
@@ -46,7 +46,7 @@ add_library(sai_repl
 )
 
 target_link_libraries(sai_repl
-  error
+  fboss_error
   sai_api
   Folly::folly
 )

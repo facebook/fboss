@@ -10,6 +10,7 @@ add_library(qsfp_stats
 
 target_link_libraries(qsfp_stats
   fboss_types
+  transceiver_cpp2
   transceiver_manager
   Folly::folly
 )
@@ -48,7 +49,7 @@ add_library(qsfp_config
 )
 
 target_link_libraries(qsfp_config
-  error
+  fboss_error
   qsfp_config_cpp2
   Folly::folly
   FBThrift::thriftcpp2

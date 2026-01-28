@@ -358,6 +358,7 @@ add_library(aqm_test_utils
 )
 
 target_link_libraries(aqm_test_utils
+  agent_hw_test_ctrl_cpp2
   switch_asics
   switch_config_cpp2
   fboss_error
