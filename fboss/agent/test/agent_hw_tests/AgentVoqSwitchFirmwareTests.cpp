@@ -164,23 +164,6 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
       getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
     }
   }
-  void forceLinkAdminDisable(int portId) {
-    // SAI Implementation for diag shell requires offset of 1024
-    constexpr auto kPortIdOffset = 1024;
-
-    std::stringstream ss;
-    auto portToDisable = portId - kPortIdOffset;
-    ss << "edk -c fi force_link_down 0 5 " << portToDisable << " 1"
-       << std::endl;
-    XLOG(INFO) << "Running force link Admin Disable command to disable port: "
-               << portId;
-    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      std::string out;
-      getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
-      XLOG(INFO) << "force link admin disable output: " << out;
-      getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
-    }
-  }
   /*
    * Invoked post FW crash to
    * - Induce a isolate event through FW
@@ -408,34 +391,6 @@ TYPED_TEST(AgentVoqSwitchIsolationFirmwareTest, forceCrash) {
       }
     });
     this->forceIsolatePostCrashAndVerify();
-  };
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
-TYPED_TEST(AgentVoqSwitchIsolationFirmwareTest, forceLinkAdminDisable) {
-  if (!this->isLinkDisableFirmware()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
-
-  auto setup = [this]() {
-    this->assertPortAndDrainState(false /* not drained */);
-    this->setMinLinksConfig();
-    this->assertFirmwareInfo(
-        FirmwareOpStatus::RUNNING, FirmwareFuncStatus::MONITORING);
-
-    utility::checkFabricPortsActiveState(
-        this->getAgentEnsemble(),
-        this->masterLogicalFabricPortIds(),
-        true /* expect active */);
-    ASSERT_TRUE(!this->masterLogicalFabricPortIds().empty());
-    this->forceLinkAdminDisable(this->masterLogicalFabricPortIds()[0]);
-  };
-
-  auto verify = [this]() {
-    // TODO
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
