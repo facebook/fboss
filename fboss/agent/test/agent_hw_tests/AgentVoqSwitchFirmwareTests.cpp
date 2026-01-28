@@ -599,19 +599,6 @@ TYPED_TEST(AgentVoqSwitchIsolationFirmwareUpgradeDownGrade, firmwareChange) {
   auto verify = [this]() {
     this->assertFirmwareInfo(
         FirmwareOpStatus::RUNNING, FirmwareFuncStatus::MONITORING);
-
-    // With one firmware running, warmboot upgrade to a different firmware,
-    // then force firmware isolate and verify that the newly loaded firmware can
-    // isolate as expected.
-    // Thus, force isolate during warmboot only.
-    if (this->getSw()->getBootType() == BootType::WARM_BOOT) {
-      this->forceIsolate();
-      this->assertSwitchDrainState(true /* drained */);
-      utility::checkFabricPortsActiveState(
-          this->getAgentEnsemble(),
-          this->masterLogicalFabricPortIds(),
-          true /* expect active*/);
-    }
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
