@@ -1022,27 +1022,18 @@ void SaiSwitch::switchEventCallback(
                 << " Auto Admin disabled link: "
                 << static_cast<int>(fwDisabledPortId);
 
-      if (eventInfo->error_type ==
-          SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_LINK_DISABLE) {
-        // Link active/inactive callback and Firmware device isolate is
-        // processed by txReadyStatusChangeOrFwIsolateCallbackBottomHalf.
-        // Schedule Firmware link disable callback Bottom half in the same event
-        // base. Serializing this processing in a single thread keeps the logic
-        // simple / less prone to races. Firmware device isolate and Firmware
-        // link disable will be serialized in the Firmware anyway. We always
-        // want to process Firmare link disable, thus unconditionally queue for
-        // processing regardless of txReadyStatusCHangePending_.
-        txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
-            [this, fwDisabledPortId]() mutable {
-              fwDisabledLinksCallbackBottomHalf({fwDisabledPortId});
-            });
-
-      } else {
-        XLOG(ERR)
-            << "Firmware Auto link disable callback received with invalid info"
-            << " error type: " << errorType(eventInfo->error_type)
-            << " Auto Admin disabled link: " << fwDisabledPortId;
-      }
+      // Link active/inactive callback and Firmware device isolate is processed
+      // by txReadyStatusChangeOrFwIsolateCallbackBottomHalf. Schedule Firmware
+      // link disable callback Bottom half in the same event base.
+      // Serializing this processing in a single thread keeps the logic simple /
+      // less prone to races. Firmware device isolate and Firmware link disable
+      // will be serialized in the Firmware anyway.
+      // We always want to process Firmare link disable, thus unconditionally
+      // queue for processing regardless of txReadyStatusCHangePending_.
+      txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
+          [this, fwDisabledPortId]() mutable {
+            fwDisabledLinksCallbackBottomHalf({fwDisabledPortId});
+          });
 
       break;
 #endif
