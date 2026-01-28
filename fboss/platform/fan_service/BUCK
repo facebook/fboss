@@ -76,6 +76,7 @@ cpp_library(
         "OvertempCondition.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":pid_logic_library",
         "//common/fbwhoami:fb_who_am_i",
         "//common/services/cpp:facebook_identity_verifier",
@@ -98,6 +99,7 @@ cpp_library(
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/lib:qsfp-service-client",
+        "//folly:string",
         "//folly/coro:blocking_wait",
         "//folly/io/async:async_base",
         "//folly/io/async:async_ssl_socket",
