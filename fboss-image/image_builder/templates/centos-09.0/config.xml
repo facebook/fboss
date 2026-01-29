@@ -28,8 +28,7 @@
             initrd_system="dracut"
             primary="true"
             installiso="true"
-            bootpartition="true"
-            bootfilesystem="ext4"
+            bootpartition="false"
             kernelcmdline="nomodeset console=ttyS4,57600n8 biosdevname=0 net.ifnames=0 quiet rootfstype=btrfs">
 
             <bootloader name="grub2" console="serial" serial_line="ttyS4,57600n8"/>
@@ -74,7 +73,7 @@
         <package name="gdisk"/>
         <package name="grub2"/>
         <package name="grub2-efi"/>
-        <package name="grub2-efi-modules"/>
+        <package name="grub2-efi-x64-modules"/>
         <package name="plymouth-theme-charge"/>
         <package name="audit"/>
         <package name="dhclient"/>
