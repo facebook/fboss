@@ -28,6 +28,7 @@ from cli_test_lib import (
     SYSTEM_CONFIG_PATH,
     cleanup_config,
     commit_config,
+    find_first_eth_interface,
     run_cli,
 )
 
@@ -213,8 +214,12 @@ def configure_queue(policy_name: str, queue_id: int, config: dict) -> None:
     run_cli(cmd)
 
 
-def cleanup_test_config() -> None:
-    """Remove port queue config test data."""
+def cleanup_test_config(interface_name: str) -> None:
+    """Remove port queue config test data.
+
+    Args:
+        interface_name: Interface name to remove portQueueConfigName from.
+    """
 
     def modify_config(sw_config: dict[str, Any]) -> None:
         # Remove test configs
@@ -222,6 +227,11 @@ def cleanup_test_config() -> None:
         port_queue_configs.pop(TEST_POLICY_NAME, None)
         buffer_pool_configs = sw_config.get("bufferPoolConfigs", {})
         buffer_pool_configs.pop(TEST_BUFFER_POOL_NAME, None)
+        # Remove portQueueConfigName from test interface
+        for port in sw_config.get("ports", []):
+            if port.get("name") == interface_name:
+                port.pop("portQueueConfigName", None)
+                break
 
     cleanup_config(modify_config, "port queue configs")
 
@@ -231,9 +241,13 @@ def main() -> int:
     print("CLI E2E Test: Port Queue Configuration")
     print("=" * 70)
 
+    # Find a test interface
+    test_intf = find_first_eth_interface()
+    print(f"Using test interface: {test_intf.name}")
+
     # Step 0: Cleanup any existing test config
     print("\n[Step 0] Cleaning up any existing test config...")
-    cleanup_test_config()
+    cleanup_test_config(test_intf.name)
     print("  Cleanup complete")
 
     # Step 1: Configure buffer pool (needed for buffer-pool-name reference)
@@ -248,6 +262,10 @@ def main() -> int:
         print(f"  Configuring queue-id {queue_id}...")
         configure_queue(TEST_POLICY_NAME, queue_id, queue_config)
     print("  All queues configured")
+    # Assign queuing policy to interface
+    print(f"  Assigning queuing policy to interface '{test_intf.name}'...")
+    run_cli(["config", "interface", test_intf.name, "queuing-policy", TEST_POLICY_NAME])
+    print("  Queuing policy assigned")
 
     # Step 3: Commit the configuration
     print("\n[Step 3] Committing configuration...")
@@ -291,13 +309,31 @@ def main() -> int:
         return 1
     print(f"  Queuing policy '{TEST_POLICY_NAME}' verified")
 
+    # Verify interface has queuing policy assigned
+    ports = sw_config.get("ports", [])
+    test_port = None
+    for port in ports:
+        if port.get("name") == test_intf.name:
+            test_port = port
+            break
+    if test_port is None:
+        print(f"  ERROR: Interface '{test_intf.name}' not found in config")
+        return 1
+    actual_policy = test_port.get("portQueueConfigName")
+    if actual_policy != TEST_POLICY_NAME:
+        print(f"  ERROR: Interface '{test_intf.name}' portQueueConfigName mismatch")
+        print(f"  Expected: {TEST_POLICY_NAME}")
+        print(f"  Actual:   {actual_policy}")
+        return 1
+    print(f"  Interface '{test_intf.name}' queuing policy verified")
+
     print("\n" + "=" * 70)
     print("TEST PASSED")
     print("=" * 70)
 
     # Step 5: Cleanup test config
     print("\n[Step 5] Cleaning up test config...")
-    cleanup_test_config()
+    cleanup_test_config(test_intf.name)
     print("  Cleanup complete")
 
     return 0
