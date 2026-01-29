@@ -356,6 +356,10 @@ void SaiSwitch::unregisterCallbacks() noexcept {
     unregisterCallbacksLocked(lock);
   }
 
+  stopThreads();
+}
+
+void SaiSwitch::stopThreads() {
   // linkscan is turned off and the evb loop is set to break
   // just need to block until the last event is processed
   if (runState_ >= SwitchRunState::CONFIGURED &&

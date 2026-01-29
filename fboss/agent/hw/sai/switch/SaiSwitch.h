@@ -701,6 +701,7 @@ class SaiSwitch : public HwSwitch {
   reconstructMultiSwitchAclTableGroupMap() const;
   std::shared_ptr<MultiSwitchAclMap> reconstructMultiSwitchAclMap() const;
 
+  void stopThreads();
   /*
    * SaiSwitch must support a few varieties of concurrent access:
    * 1. state updates on the SwSwitch update thread calling stateChanged
