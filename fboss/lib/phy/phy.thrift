@@ -162,6 +162,7 @@ struct TxSettings {
   29: optional i32 firPost1;
   30: optional i32 firPost2;
   31: optional i32 firPost3;
+  32: optional i32 precoding;
 }
 
 struct RxSettings {
@@ -207,6 +208,7 @@ struct RxSettings {
   40: optional i32 dcwOvEn;
   41: optional i32 ffeLmsDynamicGatingEn;
   42: optional RxReach rxReach;
+  43: optional i32 precoding;
 }
 
 struct LaneMap {
