@@ -219,7 +219,34 @@ bool LinkStateToggler::waitForPortEvents(
     ensemble_->applyNewState(updateOperState);
   }
   for (const auto& portId : ports) {
-    WITH_RETRIES_N_TIMED(60, std::chrono::milliseconds(1000), {
+    bool fastPollSuccess = false;
+    // Fast poll for 120ms without throwing exceptions
+    for (int i = 0; i < 120; ++i) {
+      auto state = ensemble_->getProgrammedState()
+                       ->getPorts()
+                       ->getNodeIf(portId)
+                       ->getOperState();
+      XLOG(DBG5) << "Port " << portId << " state expect:" << up << " real:"
+                 << (state == PortFields::OperState::UP ? "UP" : "Down");
+      if (state ==
+          (up ? PortFields::OperState::UP : PortFields::OperState::DOWN)) {
+        fastPollSuccess = true;
+        XLOG(DBG5) << "Port " << portId << " reached state "
+                   << (up ? "UP" : "DOWN") << " in fast poll";
+        break;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    if (fastPollSuccess) {
+      continue;
+    }
+
+    XLOG(DBG5) << "Port " << portId
+               << " did not reach state in fast poll, starting slow poll.";
+
+    // Slow poll
+    WITH_RETRIES_N_TIMED(59, std::chrono::milliseconds(1000), {
       EXPECT_EVENTUALLY_EQ(
           ensemble_->getProgrammedState()
               ->getPorts()
