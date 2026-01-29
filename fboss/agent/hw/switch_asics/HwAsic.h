@@ -464,6 +464,7 @@ class HwAsic {
     // are capable of CPU queuing.
     CPU_QUEUES,
     SAI_SERDES_RX_REACH,
+    ECN_PROBABILISTIC_MARKING,
   };
 
   enum class AsicMode {
