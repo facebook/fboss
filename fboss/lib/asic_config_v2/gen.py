@@ -10,10 +10,12 @@ from fboss.lib.asic_config_v2.all_asic_config_params import all_params
 from fboss.lib.asic_config_v2.icecube800bc import gen_icecube800bc_asic_config
 from fboss.lib.asic_config_v2.montblanc import gen_montblanc_asic_config
 from fboss.lib.asic_config_v2.wedge800bact import gen_wedge800bact_asic_config
+from fboss.lib.asic_config_v2.icecube800banw import gen_icecube800banw_asic_config
 from neteng.fboss.fboss_common.ttypes import PlatformType
 from thrift.util import Serializer
 
 _PLATFORM_TO_ASIC_CONFIG_FUNC: Dict[PlatformType, Any] = {
+    PlatformType.PLATFORM_ICECUBE800BANW: gen_icecube800banw_asic_config,
     PlatformType.PLATFORM_ICECUBE800BC: gen_icecube800bc_asic_config,
     PlatformType.PLATFORM_MONTBLANC: gen_montblanc_asic_config,
     PlatformType.PLATFORM_WEDGE800BACT: gen_wedge800bact_asic_config,
