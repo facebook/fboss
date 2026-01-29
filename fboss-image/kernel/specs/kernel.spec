@@ -1,5 +1,10 @@
-# Copyright 2025 Nexthop Systems Inc. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2004-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+#
 
 # Required: Ensure kernel_version is provided
 %{?!kernel_version:%{error:kernel_version not provided. Provide it with --define 'kernel_version X.Y.Z'}}
@@ -80,37 +85,15 @@ Requires: kernel-headers = %{epoch}:%{version}-%{release}
 # Build phase - creates binary artifacts for RPM
 %build
 # Build with FBOSS toolchain (using gcc-toolset-12 from container)
-# Use CC from environment if set (e.g., "sccache gcc"), otherwise default to gcc
 # Must pass CC= on make command line because Makefile variables override env vars
 KERNEL_CC="${CC:-gcc}"
 
-# When using sccache:
-# - Use num_jobs for parallelism (set by nhfboss-common.sh)
-# - Set reproducible build variables to allow cache hits
-if [[ "$KERNEL_CC" == *sccache* ]]; then
-  JOBS="${num_jobs:-$(nproc)}"
-  export KBUILD_BUILD_TIMESTAMP="$(date -u -d "$(date +%Y-%m)-01 00:42:42")"
-  export KBUILD_BUILD_HOST="fboss-build"
-  export KBUILD_BUILD_USER="build"
-else
-  JOBS="$(nproc)"
-fi
+JOBS="$(nproc)"
 
 # Build kernel and modules with correct KERNELRELEASE
 # This ensures uname -r returns the full version-release-arch string
 KERNELRELEASE=%{version}-%{release}.%{_arch}
-# When using sccache distributed compilation, some files must be built locally
-# first because they use a .incbin directive that references a file such as
-# kernel/config_data.gz or kernel/kheaders_data.tar.xz that only exists locally
-# and that sccache is not aware of.
-# We use KBUILD_NOCMDDEP=1 to prevent make from rebuilding those files during
-# the main build just because CC changed from "gcc" to "sccache gcc".
-NOCMDDEP=""
-if [[ "$KERNEL_CC" == *sccache* ]]; then
-  make %{?_smp_mflags} CC=gcc KERNELRELEASE=$KERNELRELEASE kernel/configs.o kernel/kheaders.o
-  NOCMDDEP="KBUILD_NOCMDDEP=1"
-fi
-make -j"$JOBS" CC="$KERNEL_CC" $NOCMDDEP KERNELRELEASE=$KERNELRELEASE bzImage modules
+make -j"$JOBS" CC="$KERNEL_CC" KERNELRELEASE=$KERNELRELEASE bzImage modules
 
 # Install phase - places files for binary RPM packaging
 %install
