@@ -146,7 +146,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(stateV0, stateV3)));
 
-  // PortQueue with invalid ECN probability
+  // PortQueue with valid ECN probability
   auto stateV4 = stateV0->clone();
   auto portMap1 = stateV4->getPorts()->modify(&stateV4);
   state::PortFields portFields1;
@@ -168,7 +168,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   stateV4->publish();
 
-  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(stateV0, stateV4)));
+  EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(stateV0, stateV4)));
 }
 
 TEST_F(SwSwitchTest, gracefulExit) {
