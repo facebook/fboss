@@ -6,6 +6,10 @@ echo "--- Executing $0 ---"
 sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="FBOSS Distro Image"/' /usr/lib/os-release
 sed -i 's/^NAME=.*/NAME="FBOSS Distro Image"/' /usr/lib/os-release
 
+# All dnf invocations with an invalid RPM repo configured will fail. Create the
+# metadata for the local_rpm_repo now to prevent that.
+createrepo /usr/local/share/local_rpm_repo
+
 # 1. Install our custom kernel RPMs
 #
 # On purpose we don't install any kernel rpms as part of
@@ -14,15 +18,15 @@ sed -i 's/^NAME=.*/NAME="FBOSS Distro Image"/' /usr/lib/os-release
 # kernel rpm present in /repos directory. This will either
 # be the LTS 6.12 or whatever the user specified.
 echo "Installing kernel rpms..."
-dnf install --disablerepo=* -y  /repos/*.rpm
+dnf install --disablerepo=* -y /repos/*.rpm
 
 # 2. Define paths
 # Detect the installed kernel version from the boot directory
 # shellcheck disable=SC2012
 VMLINUZ_PATH=$(ls /boot/vmlinuz-* 2>/dev/null | head -n 1)
 if [ -z "$VMLINUZ_PATH" ]; then
-    echo "Error: No vmlinuz found in /boot"
-    exit 1
+  echo "Error: No vmlinuz found in /boot"
+  exit 1
 fi
 
 KERNEL_VERSION=$(basename "$VMLINUZ_PATH" | sed 's/^vmlinuz-//')
@@ -30,8 +34,8 @@ KERNEL_VERSION=$(basename "$VMLINUZ_PATH" | sed 's/^vmlinuz-//')
 # shellcheck disable=SC2012
 INITRD_PATH=$(ls /boot/initramfs-* 2>/dev/null | head -n 1)
 if [ -z "$INITRD_PATH" ]; then
-    echo "Error: No initramfs found in /boot"
-    exit 1
+  echo "Error: No initramfs found in /boot"
+  exit 1
 fi
 
 echo "Detected kernel version: ${KERNEL_VERSION}"
@@ -48,8 +52,19 @@ dracut --force --kver "${KERNEL_VERSION}" "${INITRD_PATH}"
 # This wipes ALL interfering variables set by kiwi-ng
 # and runs kernel-install in a "sterile" environment.
 env -i \
-    PATH="/usr/bin:/usr/sbin:/bin:/sbin" \
-    kernel-install add "${KERNEL_VERSION}" "${VMLINUZ_PATH}" --initrd-file "${INITRD_PATH}"
+  PATH="/usr/bin:/usr/sbin:/bin:/sbin" \
+  kernel-install add "${KERNEL_VERSION}" "${VMLINUZ_PATH}" --initrd-file "${INITRD_PATH}"
+
+# 5. Enable systemd services
+echo "Enabling FBOSS systemd services..."
+systemctl enable local_rpm_repo.service
+systemctl enable platform_manager.service
+systemctl enable data_corral_service.service
+systemctl enable fan_service.service
+systemctl enable sensor_service.service
+systemctl enable fsdb.service
+systemctl enable qsfp_service.service
+systemctl enable wedge_agent.service
 
 # 6. Done! Cleanup, remember that we are chrooted on the rootfs
 echo "Removing kernel rpms from rootfs..."
