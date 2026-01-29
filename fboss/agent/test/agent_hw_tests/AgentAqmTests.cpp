@@ -206,7 +206,7 @@ class AgentAqmTest : public AgentHwTest {
     }
   }
 
-  cfg::SwitchConfig configureQueue2WithAqmThreshold(
+  virtual cfg::SwitchConfig configureQueue2WithAqmThreshold(
       bool enableWred,
       bool enableEcn) const {
     auto config = utility::onePortPerInterfaceConfig(
@@ -940,6 +940,85 @@ class AgentAqmEcnOnlyTest : public AgentAqmTest {
   }
 };
 
+class AgentAqmEcnProbabilisticMarkingTest : public AgentAqmTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::ECN, ProductionFeature::ECN_PROBABILISTIC_MARKING};
+  }
+
+ protected:
+  static constexpr int kMinThresh = 10 * 1024;
+  static constexpr int kMaxThresh = 30 * 1024 * 1024;
+  static constexpr int kProbability = 50;
+
+  cfg::SwitchConfig configureQueue2WithAqmThreshold(
+      bool enableWred,
+      bool enableEcn) const override {
+    auto config = utility::onePortPerInterfaceConfig(
+        getSw(), masterLogicalPortIds(), true /*interfaceHasSubnet*/);
+    if (getAgentEnsemble()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+            HwAsic::Feature::L3_QOS)) {
+      auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto streamType =
+          *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
+      bool isVoq = hwAsic->getSwitchType() == cfg::SwitchType::VOQ;
+
+      if (isDualStage3Q2QQos()) {
+        utility::addNetworkAIQueueConfig(
+            &config,
+            streamType,
+            cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
+            hwAsic,
+            enableWred,
+            false /* enableEcn - override below */);
+      } else {
+        utility::addOlympicQueueConfig(
+            &config,
+            getAgentEnsemble()->getL3Asics(),
+            enableWred,
+            false /* enableEcn - we'll add our own */);
+        if (isVoq) {
+          utility::addVoqAqmConfig(
+              &config,
+              streamType,
+              hwAsic,
+              enableWred,
+              false /* enableEcn, override below */);
+        }
+      }
+
+      if (enableEcn) {
+        auto kQueueId =
+            utility::getOlympicQueueId(utility::OlympicQueueType::ECN1);
+        if (isVoq) {
+          utility::addVoqEcnProbabilisticMarkingConfig(
+              &config,
+              streamType,
+              hwAsic,
+              kQueueId,
+              kProbability,
+              kMinThresh,
+              kMaxThresh);
+        } else {
+          utility::addQueueEcnProbabilisticMarkingConfig(
+              &config,
+              streamType,
+              getAgentEnsemble()->getL3Asics(),
+              kQueueId,
+              kProbability,
+              kMinThresh,
+              kMaxThresh);
+        }
+      }
+      utility::addOlympicQosMaps(config, getAgentEnsemble()->getL3Asics());
+    }
+    utility::setTTLZeroCpuConfig(getAgentEnsemble()->getL3Asics(), config);
+    return config;
+  }
+};
+
 TEST_F(AgentAqmTest, verifyEct0) {
   runTest(kECT0, true /* enableWred */, true /* enableEcn */);
 }
@@ -994,6 +1073,10 @@ TEST_F(AgentAqmEcnOnlyTest, verifyEcnThreshold) {
 
 TEST_F(AgentAqmEcnOnlyTest, verifyPerQueueEcnMarkedStats) {
   runPerQueueEcnMarkedStatsTest();
+}
+
+TEST_F(AgentAqmEcnProbabilisticMarkingTest, verifyEcnProbabilisticMarking) {
+  runTest(kECT0, false /* enableWred */, true /* enableEcn */);
 }
 
 } // namespace facebook::fboss
