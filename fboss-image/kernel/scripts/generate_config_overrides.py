@@ -8,11 +8,10 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 #
 
-import argparse
 import sys
-from pathlib import Path
-
+import argparse
 import yaml
+from pathlib import Path
 
 HEADER_TEMPLATE = """# Automatically generated file; DO NOT EDIT.
 # Generated for kernel version {kernel_version}

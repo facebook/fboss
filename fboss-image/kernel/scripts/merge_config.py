@@ -8,9 +8,9 @@
 # of patent rights can be found in the PATENTS file in the same directory
 #
 
+import sys
 import pathlib
 import re
-import sys
 
 
 def main(argv):
