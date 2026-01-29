@@ -231,6 +231,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
       return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
       /*

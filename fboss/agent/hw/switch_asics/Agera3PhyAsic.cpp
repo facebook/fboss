@@ -22,6 +22,7 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
       return false;
     default:
       return false;
