@@ -24,7 +24,7 @@
     "artifact": "forwarding-stack.tar"
   },
   "image_build_hooks": {
-     "after_pkgs_install": "fboss-image/after_pkgs_install_input.json",
-     "after_pkgs_execute": "fboss-image/after_pkgs_execute_input.json"
+     "after_pkgs_install": "after_pkgs_install_input.json",
+     "after_pkgs_execute": "after_pkgs_execute_input.json"
   }
 }
