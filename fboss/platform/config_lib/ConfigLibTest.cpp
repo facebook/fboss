@@ -16,6 +16,7 @@ const std::string kMeru800bfa = "meru800bfa";
 const std::string kMorgan800cc = "morgan800cc";
 const std::string kJanga800bic = "janga800bic";
 const std::string kTahan800bc = "tahan800bc";
+const std::string kBlackwolf800banw = "blackwolf800banw";
 const std::string kSample = "sample";
 const std::string kNonExistentPlatform = "nonExistentPlatform";
 } // namespace
@@ -68,6 +69,7 @@ TEST(ConfigLibTest, Basic) {
   // LedManager Configs
   EXPECT_NO_THROW(ConfigLib().getLedManagerConfig(kDarwin));
   EXPECT_NO_THROW(ConfigLib().getLedManagerConfig(kMorgan800cc));
+  EXPECT_NO_THROW(ConfigLib().getLedManagerConfig(kBlackwolf800banw));
   EXPECT_THROW(
       ConfigLib().getLedManagerConfig(kNonExistentPlatform),
       std::runtime_error);
