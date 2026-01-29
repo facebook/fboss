@@ -27,6 +27,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "montblanc",
             "montblanc_odd_ports_8x100G",
             "minipack3n",
+            "minipack3bta",
             "meru800bia",
             "meru800bia_dual_stage_rdsw",
             "meru800bia_dual_stage_edsw",
