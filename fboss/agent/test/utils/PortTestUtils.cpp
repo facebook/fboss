@@ -186,6 +186,7 @@ cfg::PortSpeed getDefaultInterfaceSpeed(const cfg::AsicType& asicType) {
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
       return cfg::PortSpeed::HUNDREDG;
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_Q4D:
       return cfg::PortSpeed::FOURHUNDREDG;
     default:
       throw FbossError(
@@ -199,6 +200,7 @@ cfg::PortSpeed getDefaultFabricSpeed(const cfg::AsicType& asicType) {
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
       return cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG;
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_Q4D:
       return cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG;
     default:
       throw FbossError(
