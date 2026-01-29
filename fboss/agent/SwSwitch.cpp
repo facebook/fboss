@@ -3631,6 +3631,9 @@ void SwSwitch::updateConfigAppliedInfo() {
 
 bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
   bool isValid = true;
+  bool isEcnProbabilisticMarkingSupported =
+      getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::ECN_PROBABILISTIC_MARKING);
 
   forEachChanged(
       delta.getAclsDelta(),
@@ -3649,11 +3652,13 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
       delta.getPortsDelta(),
       [&](const shared_ptr<Port>& /* oldport */,
           const shared_ptr<Port>& newport) {
-        isValid = isValid && newport->hasValidPortQueues();
+        isValid = isValid &&
+            newport->hasValidPortQueues(isEcnProbabilisticMarkingSupported);
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<Port>& addport) {
-        isValid = isValid && addport->hasValidPortQueues();
+        isValid = isValid &&
+            addport->hasValidPortQueues(isEcnProbabilisticMarkingSupported);
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<Port>& /* delport */) {});
