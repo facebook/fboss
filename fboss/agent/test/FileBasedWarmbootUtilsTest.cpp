@@ -138,33 +138,9 @@ TEST_F(FileBasedWarmbootUtilsTest, CheckCanWarmBootFlagWhenFlagExists) {
   EXPECT_FALSE(checkFileExists(flagPath));
 }
 
-TEST_F(FileBasedWarmbootUtilsTest, CheckCanWarmBootFlagWhenLegacyFlagExists) {
-  // Create legacy warmboot flag
-  auto flagPath = getWarmBootFlagLegacy(directoryUtil_.get());
-  createDir(std::filesystem::path(flagPath).parent_path().string());
-  createTestFile(flagPath);
-
-  bool result = checkCanWarmBootFlag(directoryUtil_.get());
-
-  EXPECT_TRUE(result);
-}
-
 TEST_F(FileBasedWarmbootUtilsTest, CheckCanWarmBootFlagWhenNoFlagExists) {
   bool result = checkCanWarmBootFlag(directoryUtil_.get());
   EXPECT_FALSE(result);
-}
-
-TEST_F(FileBasedWarmbootUtilsTest, CheckCanWarmBootFlagWhenBothFlagsExist) {
-  // Create both current and legacy flags
-  auto flagPath = directoryUtil_->getSwSwitchCanWarmBootFile();
-  auto legacyFlagPath = getWarmBootFlagLegacy(directoryUtil_.get());
-  createDir(std::filesystem::path(flagPath).parent_path().string());
-  createTestFile(flagPath);
-  createTestFile(legacyFlagPath);
-
-  bool result = checkCanWarmBootFlag(directoryUtil_.get());
-
-  EXPECT_TRUE(result);
 }
 
 // ============================================================================
