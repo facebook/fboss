@@ -60,6 +60,15 @@ std::string getValidStreamTypes() {
   return folly::join(", ", names);
 }
 
+std::string getValidCongestionBehaviors() {
+  std::vector<std::string> names;
+  for (auto value :
+       apache::thrift::TEnumTraits<cfg::QueueCongestionBehavior>::values) {
+    names.push_back(apache::thrift::util::enumNameSafe(value));
+  }
+  return folly::join(", ", names);
+}
+
 // Convert to uppercase and replace dashes with underscores.
 // This allows users to type "strict-priority" instead of "STRICT_PRIORITY".
 std::string toUpper(const std::string& value) {
@@ -69,6 +78,129 @@ std::string toUpper(const std::string& value) {
         return c == '-' ? '_' : std::toupper(c);
       });
   return result;
+}
+
+// Parse active-queue-management sub-attributes and update the AQM config.
+// The aqmArgs are everything after "active-queue-management" keyword.
+// Expected formats:
+//   congestion-behavior <value>
+//   detection linear <attr> <value> [<attr> <value> ...]
+// where linear attrs are: minimum-length, maximum-length, probability
+void parseAqmAttributes(
+    const std::vector<std::string>& aqmArgs,
+    cfg::ActiveQueueManagement& aqm) {
+  if (aqmArgs.empty()) {
+    throw std::invalid_argument(
+        "active-queue-management requires sub-attributes: "
+        "congestion-behavior <value> or detection linear <attr> <value> ...");
+  }
+
+  const size_t numArgs = aqmArgs.size();
+  size_t i = 0;
+  while (i < numArgs) {
+    const auto& subAttr = aqmArgs[i];
+
+    if (subAttr == "congestion-behavior") {
+      if (i + 1 >= numArgs) {
+        throw std::invalid_argument(
+            fmt::format(
+                "congestion-behavior requires a value. Valid values are: {}",
+                getValidCongestionBehaviors()));
+      }
+      cfg::QueueCongestionBehavior behavior{};
+      if (!apache::thrift::TEnumTraits<cfg::QueueCongestionBehavior>::findValue(
+              toUpper(aqmArgs[i + 1]), &behavior)) {
+        throw std::invalid_argument(
+            fmt::format(
+                "Invalid congestion-behavior: '{}'. Valid values are: {}",
+                aqmArgs[i + 1],
+                getValidCongestionBehaviors()));
+      }
+      aqm.behavior() = behavior;
+      i += 2;
+    } else if (subAttr == "detection") {
+      if (i + 1 >= numArgs) {
+        throw std::invalid_argument(
+            "detection requires a type. Currently supported: linear");
+      }
+      const auto& detectionType = aqmArgs[i + 1];
+      if (toUpper(detectionType) != "LINEAR") {
+        throw std::invalid_argument(
+            fmt::format(
+                "Invalid detection type: '{}'. Currently supported: linear",
+                detectionType));
+      }
+      i += 2;
+
+      // Parse linear detection attributes
+      cfg::LinearQueueCongestionDetection linear;
+      if (aqm.detection().has_value() &&
+          aqm.detection()->linear().has_value()) {
+        linear = *aqm.detection()->linear();
+      }
+
+      while (i < numArgs) {
+        const auto& linearAttr = aqmArgs[i];
+        // Check if this is a new top-level AQM attribute
+        if (linearAttr == "congestion-behavior") {
+          break; // Let the outer loop handle it
+        }
+        if (i + 1 >= numArgs) {
+          throw std::invalid_argument(
+              fmt::format(
+                  "Linear detection attribute '{}' requires a value. "
+                  "Valid attributes are: minimum-length, maximum-length, probability",
+                  linearAttr));
+        }
+        const auto& linearValue = aqmArgs[i + 1];
+
+        if (linearAttr == "minimum-length") {
+          int32_t val = folly::to<int32_t>(linearValue);
+          if (val < 0) {
+            throw std::invalid_argument(
+                fmt::format(
+                    "minimum-length must be non-negative, got: {}",
+                    linearValue));
+          }
+          linear.minimumLength() = val;
+        } else if (linearAttr == "maximum-length") {
+          int32_t val = folly::to<int32_t>(linearValue);
+          if (val < 0) {
+            throw std::invalid_argument(
+                fmt::format(
+                    "maximum-length must be non-negative, got: {}",
+                    linearValue));
+          }
+          linear.maximumLength() = val;
+        } else if (linearAttr == "probability") {
+          int32_t val = folly::to<int32_t>(linearValue);
+          if (val < 0) {
+            throw std::invalid_argument(
+                fmt::format(
+                    "probability must be non-negative, got: {}", linearValue));
+          }
+          linear.probability() = val;
+        } else {
+          throw std::invalid_argument(
+              fmt::format(
+                  "Unknown linear detection attribute: '{}'. "
+                  "Valid attributes are: minimum-length, maximum-length, probability",
+                  linearAttr));
+        }
+        i += 2;
+      }
+
+      cfg::QueueCongestionDetection detection;
+      detection.linear() = linear;
+      aqm.detection() = detection;
+    } else {
+      throw std::invalid_argument(
+          fmt::format(
+              "Unknown active-queue-management sub-attribute: '{}'. "
+              "Valid sub-attributes are: congestion-behavior, detection",
+              subAttr));
+    }
+  }
 }
 
 // Map short names to full enum names for scheduling
@@ -105,7 +237,8 @@ QueueConfig::QueueConfig(std::vector<std::string> v) {
   if (v.empty()) {
     throw std::invalid_argument(
         "Expected: <queue-id> <attr> <value> [<attr> <value> ...] where <attr> is one of: "
-        "reserved-bytes, shared-bytes, weight, scaling-factor, scheduling, stream-type, buffer-pool-name");
+        "reserved-bytes, shared-bytes, weight, scaling-factor, scheduling, stream-type, "
+        "buffer-pool-name, active-queue-management");
   }
 
   // Parse the queue ID (first argument)
@@ -121,17 +254,33 @@ QueueConfig::QueueConfig(std::vector<std::string> v) {
   }
   data_.push_back(v[0]);
 
-  // Parse the remaining key-value pairs
-  // After the queue ID, we need pairs of <attr> <value>
-  if ((v.size() - 1) % 2 != 0) {
-    throw std::invalid_argument(
-        "Attribute-value pairs must come in pairs. Got odd number of arguments after queue ID.");
-  }
+  // Parse the remaining arguments
+  // Most attributes are simple key-value pairs, but "active-queue-management"
+  // has nested sub-attributes that consume all remaining arguments.
+  for (size_t i = 1; i < v.size();) {
+    const auto& attr = v[i];
+    data_.push_back(attr);
 
-  for (size_t i = 1; i < v.size(); i += 2) {
-    attributes_.emplace_back(v[i], v[i + 1]);
-    data_.push_back(v[i]);
-    data_.push_back(v[i + 1]);
+    if (attr == "active-queue-management" || attr == "aqm") {
+      // Everything after "active-queue-management" is part of the AQM config
+      std::vector<std::string> aqmArgs;
+      for (size_t j = i + 1; j < v.size(); ++j) {
+        aqmArgs.push_back(v[j]);
+        data_.push_back(v[j]);
+      }
+      aqmAttributes_ = std::move(aqmArgs);
+      break; // AQM consumes all remaining arguments
+    }
+
+    // Regular key-value pair
+    if (i + 1 >= v.size()) {
+      throw std::invalid_argument(
+          fmt::format("Attribute '{}' requires a value.", attr));
+    }
+    const auto& value = v[i + 1];
+    attributes_.emplace_back(attr, value);
+    data_.push_back(value);
+    i += 2;
   }
 }
 
@@ -224,8 +373,22 @@ CmdConfigQosQueuingPolicyQueueId::queryClient(
       throw std::invalid_argument(
           "Unknown attribute: '" + attr +
           "'. Valid attributes are: reserved-bytes, shared-bytes, weight, "
-          "scaling-factor, scheduling, stream-type, buffer-pool-name");
+          "scaling-factor, scheduling, stream-type, buffer-pool-name, "
+          "active-queue-management");
     }
+  }
+
+  // Process active-queue-management attributes if present
+  const auto& aqmArgs = config.getAqmAttributes();
+  if (!aqmArgs.empty()) {
+    // Get or create the AQM entry in the aqms list
+    // For now, we only support a single AQM entry per queue
+    if (!targetConfig->aqms().has_value() || targetConfig->aqms()->empty()) {
+      targetConfig->aqms() = std::vector<cfg::ActiveQueueManagement>{};
+      targetConfig->aqms()->emplace_back();
+    }
+    auto& aqm = targetConfig->aqms()->front();
+    parseAqmAttributes(aqmArgs, aqm);
   }
 
   // Save the updated config

@@ -44,6 +44,9 @@ SCALING_FACTOR_MAP = {"ONE_HALF": 8, "TWO": 9, "FOUR": 10}
 # StreamType enum values: UNICAST=0, MULTICAST=1, ALL=2, FABRIC_TX=3
 STREAM_TYPE_MAP = {"UNICAST": 0, "MULTICAST": 1, "ALL": 2, "FABRIC_TX": 3}
 
+# QueueCongestionBehavior enum values: EARLY_DROP=0, ECN=1
+CONGESTION_BEHAVIOR_MAP = {"EARLY_DROP": 0, "ECN": 1}
+
 # Buffer pool configuration (needed for buffer-pool-name reference)
 TEST_BUFFER_POOL_CONFIG = {
     "sharedBytes": 78773528,
@@ -78,6 +81,21 @@ CLI_QUEUE_CONFIGS = [
         "weight": 15,
         "streamType": "MULTICAST",
     },
+    {
+        "id": 4,
+        "scheduling": "SP",
+        "sharedBytes": 83618832,
+        "aqm": {
+            "behavior": "ECN",
+            "detection": {
+                "linear": {
+                    "minimumLength": 120000,
+                    "maximumLength": 120000,
+                    "probability": 100,
+                }
+            },
+        },
+    },
 ]
 
 # Expected portQueueConfigs after test (what we expect in the JSON file)
@@ -111,6 +129,24 @@ EXPECTED_PORT_QUEUE_CONFIGS = {
             "streamType": STREAM_TYPE_MAP["MULTICAST"],
             "scheduling": SCHEDULING_MAP["WRR"],
             "weight": 15,
+        },
+        {
+            "id": 4,
+            "streamType": 0,
+            "scheduling": SCHEDULING_MAP["SP"],
+            "sharedBytes": 83618832,
+            "aqms": [
+                {
+                    "behavior": CONGESTION_BEHAVIOR_MAP["ECN"],
+                    "detection": {
+                        "linear": {
+                            "minimumLength": 120000,
+                            "maximumLength": 120000,
+                            "probability": 100,
+                        }
+                    },
+                }
+            ],
         },
     ]
 }
@@ -154,6 +190,25 @@ def configure_queue(policy_name: str, queue_id: int, config: dict) -> None:
         cmd.extend(["stream-type", config["streamType"]])
     if "bufferPoolName" in config:
         cmd.extend(["buffer-pool-name", config["bufferPoolName"]])
+
+    # Handle active-queue-management (AQM) configuration
+    # AQM must come last as it consumes all remaining arguments
+    if "aqm" in config:
+        aqm = config["aqm"]
+        cmd.append("active-queue-management")
+        if "behavior" in aqm:
+            cmd.extend(["congestion-behavior", aqm["behavior"]])
+        if "detection" in aqm:
+            detection = aqm["detection"]
+            if "linear" in detection:
+                linear = detection["linear"]
+                cmd.extend(["detection", "linear"])
+                if "minimumLength" in linear:
+                    cmd.extend(["minimum-length", str(linear["minimumLength"])])
+                if "maximumLength" in linear:
+                    cmd.extend(["maximum-length", str(linear["maximumLength"])])
+                if "probability" in linear:
+                    cmd.extend(["probability", str(linear["probability"])])
 
     run_cli(cmd)
 
