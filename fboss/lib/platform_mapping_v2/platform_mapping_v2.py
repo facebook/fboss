@@ -477,10 +477,9 @@ class PlatformMappingV2:
         # other port uses its iphy pins, then the former port needs to be a
         # subsumed port controlled by the later port
         for port_id, port_entry in ports.items():
-            # Skip controlling port computation if explicit controlling_port was set in CSV
+            # Check if explicit controlling_port was set in CSV
             port_detail = self.pm_parser.get_port_profile_mapping().get_ports()[port_id]
-            if port_detail.controlling_port is not None:
-                continue
+            has_explicit_controlling_port = port_detail.controlling_port is not None
 
             for port_config in port_entry.supportedProfiles.values():
                 if port_entry.mapping.portType != PortType.HYPER_PORT:
@@ -510,7 +509,9 @@ class PlatformMappingV2:
                                     other_port_config.subsumedPorts = []
                                 if port_id not in other_port_config.subsumedPorts:
                                     other_port_config.subsumedPorts.append(port_id)
-                                port_entry.mapping.controllingPort = other_port_id
+                                # Only set controllingPort if not explicitly set in CSV
+                                if not has_explicit_controlling_port:
+                                    port_entry.mapping.controllingPort = other_port_id
 
                 elif port_entry.mapping.portType == PortType.HYPER_PORT:
                     for other_port_id, other_port_entry in ports.items():
