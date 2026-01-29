@@ -1,0 +1,12 @@
+{
+  "defaultCommandLineArgs": {
+    "mode": "icecube800banw"
+  },
+  "transceiverConfigOverrides": [
+
+  ],
+  "qsfpTestConfig": {
+    "cabledPortPairs": [
+    ]
+  }
+}
