@@ -24,6 +24,8 @@
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
 #include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
+#include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.h"
+#include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicyMap.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h"
 #include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicy.h"
@@ -115,6 +117,18 @@ const CommandTree& kConfigCommandTree() {
                "Configure buffer pool settings",
                commandHandler<CmdConfigQosBufferPool>,
                argTypeHandler<CmdConfigQosBufferPoolTraits>,
+           },
+           {
+               "policy",
+               "Configure QoS policy settings",
+               commandHandler<CmdConfigQosPolicy>,
+               argTypeHandler<CmdConfigQosPolicyTraits>,
+               {{
+                   "map",
+                   "Set QoS map entry (tc-to-queue, pfc-pri-to-queue, tc-to-pg, pfc-pri-to-pg)",
+                   commandHandler<CmdConfigQosPolicyMap>,
+                   argTypeHandler<CmdConfigQosPolicyMapTraits>,
+               }},
            },
            {
                "priority-group-policy",
