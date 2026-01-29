@@ -17,6 +17,7 @@
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h"
+#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
@@ -75,6 +76,12 @@ const CommandTree& kConfigCommandTree() {
                "Configure PFC settings for interface",
                commandHandler<CmdConfigInterfacePfcConfig>,
                argTypeHandler<CmdConfigInterfacePfcConfigTraits>,
+           },
+           {
+               "queuing-policy",
+               "Set queuing policy for interface",
+               commandHandler<CmdConfigInterfaceQueuingPolicy>,
+               argTypeHandler<CmdConfigInterfaceQueuingPolicyTraits>,
            },
            {
                "switchport",
