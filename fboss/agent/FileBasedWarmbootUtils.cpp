@@ -46,8 +46,6 @@ bool checkForceColdBootFlag(const AgentDirectoryUtil* directoryUtil) {
 bool checkCanWarmBootFlag(const AgentDirectoryUtil* directoryUtil) {
   bool canWarmBoot =
       removeFile(directoryUtil->getSwSwitchCanWarmBootFile(), true /*log*/);
-  canWarmBoot =
-      canWarmBoot || checkFileExists(getWarmBootFlagLegacy(directoryUtil));
   return canWarmBoot;
 }
 
