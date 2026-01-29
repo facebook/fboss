@@ -55,7 +55,7 @@ add_library(nexthop_id_manager
 )
 
 target_link_libraries(nexthop_id_manager
-  error
+  fboss_error
   fboss_types
   state
 )
