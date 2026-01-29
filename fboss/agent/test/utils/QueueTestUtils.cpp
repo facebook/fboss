@@ -148,12 +148,16 @@ int getAqmGranularThreshold(const HwAsic& asic, int value) {
       asic.getThresholdGranularity();
 }
 
-cfg::ActiveQueueManagement
-GetEcnConfig(const HwAsic& asic, int minLength, int maxLength) {
+cfg::ActiveQueueManagement GetEcnConfig(
+    const HwAsic& asic,
+    int minLength,
+    int maxLength,
+    int probability) {
   cfg::ActiveQueueManagement ecnAQM;
   cfg::LinearQueueCongestionDetection ecnLQCD;
   ecnLQCD.minimumLength() = getAqmGranularThreshold(asic, minLength);
   ecnLQCD.maximumLength() = getAqmGranularThreshold(asic, maxLength);
+  ecnLQCD.probability() = probability;
   ecnAQM.detection()->linear() = ecnLQCD;
   ecnAQM.behavior() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;

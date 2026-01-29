@@ -106,6 +106,7 @@ constexpr int kQueueConfigBurstSizeMaxKb = 224;
 constexpr int kQueueConfigAqmsEcnThresholdMinMax = 40600;
 constexpr int kQueueConfigAqmsWredThresholdMinMax = 48600;
 constexpr int kQueueConfigAqmsWredDropProbability = 100;
+constexpr int kQueueConfigAqmsEcnMarkProbability = 100;
 
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
@@ -125,6 +126,17 @@ void addQueueWredDropConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
     const std::vector<const HwAsic*>& asics);
+
+// Configure a specific queue with ECN marking at the specified probability.
+// Used to apply ECN config dynamically after traffic is flowing.
+void addQueueEcnProbabilisticMarkingConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType,
+    const std::vector<const HwAsic*>& asics,
+    int queueId,
+    int probability,
+    int minThresh,
+    int maxThresh);
 
 void addQosMapsHelper(
     cfg::SwitchConfig& cfg,
@@ -168,6 +180,7 @@ void addQueueEcnConfig(
     const int queueId,
     const uint32_t minLen,
     const uint32_t maxLen,
+    const int probability,
     bool isVoq);
 void addQueueWredConfig(
     cfg::SwitchConfig& config,
