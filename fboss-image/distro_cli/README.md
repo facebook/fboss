@@ -26,46 +26,13 @@ Requires Python 3.10+. No external dependencies.
 
 The manifest is a JSON file that defines what components to build, where to get them, and how to compose the final FBOSS distribution image.
 
-### What Goes Into the Manifest
 
-The manifest describes your FBOSS image composition through these sections:
-
-**1. Output Formats** (`distribution_formats` - required)
-
-Specifies what image formats to produce. Supported formats:
-- `onie`: ONIE installer binary for network switches
-- `usb`: Bootable ISO image for USB installation
-
-**2. Kernel** (`kernel` - required)
-
-Where to get the Linux kernel. Specify a `download` URL pointing to the kernel tarball.
-
-**3. Dependencies** (`other_dependencies` - optional)
-
-Additional packages needed for your image (RPMs, tools, etc.). Each dependency specifies:
-- `download`: URL (http/https) or local file path (`file:path/to/package.rpm`)
-
-**4. FBOSS Components** (all optional)
-
-The FBOSS software stack components to build:
-- `fboss-platform-stack`: Platform services and hardware abstraction
-- `bsps`: Board Support Packages for specific hardware platforms (array)
-- `sai`: Switch Abstraction Interface implementation
-- `fboss-forwarding-stack`: Core switching/routing logic
-
-Each component specifies:
-- `execute`: Command to build it (string or array of command + args)
-
-**5. Build Hooks** (`image_build_hooks` - optional)
-
-Customization points in the build process:
-- `after_pkgs`: Additional package configuration for extra OS packages
-
-### Example
+For example:
 
 ```json
 {
   "distribution_formats": {
+    "pxe": "FBOSS-k6.4.3.tar",
     "onie": "FBOSS-k6.4.3.bin",
     "usb": "FBOSS-k6.4.3.iso"
   },
@@ -77,7 +44,7 @@ Customization points in the build process:
     {"download": "file:vendor_debug_tools/tools.rpm"}
   ],
   "fboss-platform-stack": {
-    "execute": ["fboss/fboss/oss/scripts/build.py", "platformstack"]
+    "execute": ["../fboss/oss/scripts/build_fboss_stack.sh", "platform"]
   },
   "bsps": [
     {"execute": "vendor_bsp/build.make"},
@@ -87,58 +54,132 @@ Customization points in the build process:
     "execute": "fboss_brcm_sai/build.sh"
   },
   "fboss-forwarding-stack": {
-    "execute": ["fboss/fboss/oss/scripts/build.py", "forwardingstack"]
+    "execute": ["../fboss/oss/scripts/build_fboss_stack.sh", "forwarding"]
   },
   "image_build_hooks": {
-    "after_pkgs": "additional_os_pkgs.xml"
+    "after_pkgs_install": "additional_os_pkgs.json",
+    "after_pkgs_execute": "additional_image_mods.json"
   }
 }
 ```
 
-## Build Order
+### Distribution Formats
 
-Components are built in the following order:
-1. `kernel`
-2. `other_dependencies`
-3. `fboss-platform-stack`
-4. `bsps`
-5. `sai`
-6. `fboss-forwarding-stack`
-7. Image composition with `distribution_formats`
+`distribution_formats` specifies which output image formats to produce. Supported formats:
+- `onie`: ONIE installer binary for network switches. Normal extension `.bin`
+- `usb`: Bootable ISO image for USB installation. Normal extension `.iso`
+- `pxe`: Tarball for network installation (PXE). Normal extension `.tar`
+
+### Image Build Hooks
+
+`image_build_hooks` specifies customization points in the build process. Supported hooks:
+- `after_pkgs_install`: JSON file with list of additional packages to install
+- `after_pkgs_execute`: JSON file with list of commands to execute after packages are installed
+
+To install additional files or RPM packages not in the CentOS RPM repos, use the "other_dependencies" component.
+
+`after_pkgs_install` hook file example:
+```json
+{
+  "packages": [
+    "tcpdump"
+  ]
+}
+```
+
+`after_pkgs_execute` hook file example:
+```json
+{
+  "execute": [
+    [ "date"],
+    [ "uname", "-a"]
+  ]
+}
+```
+
+### Components
+
+Each remaining top-level key in the manifest represents a component or component list to build. Components can be one of
+two types:
+- `download`: URL or local file path to download the component from. The component will be extracted from the downloaded
+  archive. If the component artifact type is a tarball, then it can be compressed or uncompressed. `file:` URLs are
+  relative to the manifest file. `file:/` URLs are absolute.
+- `execute`: Script to execute to build the component. The command is executed in the directory of the script file. Two
+  forms are supported: a string script path to execute, or an array of the script path followed by arguments to pass to
+  the script.
+
+Component build scripts are responsible for caching and incremental build support. All build scripts are executed inside
+a fresh build container with the component dependencies either installed or available in `/deps` as appropriate. The
+output artifact of the build script must be placed into /output to be copied outside the build container.
+
+For components that are lists (e.g. bsps), each list element is built independently and the artifacts are collected
+together.
+
+### Kernel output artifact
+
+The kernel build script must output an uncompressed tarball containing the kernel RPMs along the standard Redhat
+structure. See the FBOSS-OSS kernel under `fboss-image/kernel` for an example.
+
+### Other dependencies output artifact
+
+Each other_dependency must produce a single RPM which is installed in the final image. These RPMs may have runtime
+dependencies which will be satisfied by dnf. See `examples/thirdparty_build.sh` for an example of how to build a
+third-party RPM.
+
+During each of these builds, the kernel devel package will be installed in the build container.
+
+### FBOSS Platform and Forwarding Stack
+
+See `fboss/oss/scripts/build_fboss_stack.sh` for details on how to build the FBOSS stacks. The artifact format is a
+tarball of files which will be extracted under `/opt/fboss` in the final image.
+
+Each of these two stacks are built separately. The Platform Stack has only the kernel installed, while the Forwarding
+Stack also has the SAI implementation installed.
+
+### BSPs
+
+Each BSP artifact is a tarball of RPMs. The RPM files will be copied (not installed) into the image in the local RPM
+repository at `/usr/local/share/local_rpm_repo`. platform_manager will install the BSP RPMs from this repository at
+runtime.
+
+During each of these builds, the kernel devel package will be installed in the build container.
+
+### SAI
+
+The SAI build script must output a tarball containing the following file structure:
+```
+sai_build.env   -- FBOSS SAI build environment variables
+include/        -- SAI headers
+lib/            -- SAI library (libsai_impl.a)
+sai-runtime.rpm -- SAI runtime package
+```
+
+The `sai_build.env` file defines the environment variables needed to build the FBOSS platform and forwarding stacks
+against the SAI implementation. See [Building FBOSS on docker
+containers](https://facebook.github.io/fboss/docs/build/building_fboss_on_docker_containers/#set-important-environment-variables).
+The file might look like:
+```
+SAI_BRCM_IMPL=1
+SAI_SDK_VERSION=SAI_VERSION_13_3_0_0_ODP
+SAI_VERSION=1.16.1
+```
+
+The `sai-runtime.rpm` package contains the SAI runtime dependencies, normally kernel modules and init scripts. It is
+installed into the image at build-time.
+
+The SAI is built with the kernel devel packages installed.
+
+A special `fboss/oss/scripts/fake-sai-devel.tar.zstd` is provided which will activate the Fake-SAI build of the
+Forwarding Stack.
+
+# Environment variables
+
+The environment `FBOSS_BUILDER_CACHE_EXPIRATION_HOURS` controls how long to cache the fboss_builder Docker image,
+irrespective of whether the hashed contents have changed. The default is 24 hours.
 
 ## Development
 
 ### Running Tests
-
-#### With pytest
-
-```bash
-# Run all tests (from fboss-image directory)
-cd fboss-image
-PYTHONPATH=. python3 -m pytest distro_cli/tests/ -v
-
-# Run specific test file
-PYTHONPATH=. python3 -m pytest distro_cli/tests/cli_test.py -v
-
-# Run specific test class or method
-PYTHONPATH=. python3 -m pytest distro_cli/tests/cli_test.py::CLITest::test_cli_creation -v
-```
-
-#### With unittest
-
-```bash
-# Run all tests (from fboss-image directory)
-cd fboss-image
-PYTHONPATH=. python3 -m unittest discover -s distro_cli/tests -p '*_test.py'
-
-# Run specific test module
-PYTHONPATH=. python3 -m unittest distro_cli.tests.cli_test
-
-# Run specific test class
-PYTHONPATH=. python3 -m unittest distro_cli.tests.cli_test.CLITest
-```
-
-#### With CMake
 
 ```bash
 # Build and run all tests
@@ -154,89 +195,3 @@ A few tests are deliberately skipped while unit testing due to longer execution 
 ```bash
 python -m pytest distro_cli/tests/kernel_build_test.py::TestKernelBuildE2E::test_real_kernel_build_compressed -v -s -m e2e
 ```
-
-# Testing kernel build with uncompressed artifacts
-```bash
-python -m pytest distro_cli/tests/kernel_build_test.py::TestKernelBuildE2E::test_real_kernel_build_uncompressed -v -s -m e2e
-```
-
-### Linting
-
-```bash
-# With ruff (from distro_cli directory)
-cd fboss-image/distro_cli
-python3 -m ruff check .
-
-# With bazel (from repository root)
-bazel test //private-fboss/fboss-image/distro_cli:lint_check
-```
-
-### Project Structure
-
-```
-fboss-image/distro_cli/
-├── fboss-image          # Main CLI entry point
-├── lib/                 # Core libraries
-│   ├── cli.py          # CLI framework (argparse abstraction)
-│   ├── manifest.py     # Manifest parsing and validation
-│   ├── builder.py      # Image builder
-│   └── logger.py       # Logging setup
-├── cmds/               # Command implementations
-│   ├── build.py        # Build command
-│   └── device.py       # Device commands
-└── tests/              # Unit tests
-    ├── cli_test.py     # CLI framework tests
-    ├── manifest_test.py
-    ├── image_builder_test.py
-    ├── build_test.py
-    └── device_test.py
-```
-
-### CLI Framework
-
-The CLI uses a custom OOP wrapper around argparse (stdlib only, no external dependencies):
-
-```python
-from distro_cli.lib.cli import CLI
-
-# Create CLI
-cli = CLI(description='My CLI')
-
-# Add simple command
-cli.add_command('build', build_func,
-                help_text='Build something',
-                arguments=[('file', {'help': 'Input file'})])
-
-# Add command group with subcommands
-device = cli.add_command_group('device',
-                               help_text='Device commands',
-                               arguments=[('mac', {'help': 'MAC address'})])
-device.add_command('ssh', ssh_func, help_text='SSH to device')
-
-# Run
-cli.run(setup_logging_func=setup_logging)
-```
-
-## Running Tests
-
-### Quick Tests (Default)
-Run all fast unit tests (excludes long-running E2E tests):
-```bash
-python3 -m pytest distro_cli/tests/ -v
-# or explicitly exclude e2e tests:
-python3 -m pytest distro_cli/tests/ -m "not e2e" -v
-```
-
-### E2E Tests Only
-Run only the end-to-end tests (kernel build, SAI build):
-```bash
-python3 -m pytest distro_cli/tests/ -m e2e -v -s
-```
-
-### All Tests (Including E2E)
-Run everything:
-```bash
-python3 -m pytest distro_cli/tests/ -v -s
-```
-
-**Note:** E2E tests can take 10-60 minutes and require actual source files (kernel sources, SAI SDK, etc.).
