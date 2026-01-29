@@ -786,7 +786,7 @@
         },
         {
           "name": "SMB_U327_TPS25990_COME_P12V_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_U327_TPS25990_COME/in2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_U327_TPS25990_COME/in3_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 13.2,
