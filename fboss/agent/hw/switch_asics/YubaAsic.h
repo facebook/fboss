@@ -131,7 +131,7 @@ class YubaAsic : public TajoAsic {
      * But the test passed for 18172 and failed for 18173. So, returning 18172.
      * Will work with Cisco to understand the reason for this. - MT-803
      */
-    return 18172;
+    return 18171;
   }
   uint32_t getNumCores() const override {
     return 12;
