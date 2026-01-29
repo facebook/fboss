@@ -116,7 +116,10 @@ class ExplorationSummary {
   // Return final exploration status.
   ExplorationStatus summarize();
   virtual bool isSlotExpectedToBeEmpty(const std::string& devicePath);
+  virtual bool isDeviceFailureExpected(const std::string& devicePath);
   std::map<std::string, std::vector<ExplorationError>> getFailedDevices();
+  std::map<std::string, std::vector<ExplorationError>>&
+  getExpectedFailedDevices();
 
  private:
   const PlatformConfig& platformConfig_;

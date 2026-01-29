@@ -12,6 +12,7 @@
 namespace facebook::fboss::platform::platform_manager {
 namespace {
 const re2::RE2 kPsuSlotPath{R"(/PSU_SLOT@\d+$)"};
+const re2::RE2 kRtmOutletTsensor{R"(RTM_[LR]_OUTLET_TSENSOR$)"};
 } // namespace
 
 ExplorationSummary::ExplorationSummary(
@@ -51,6 +52,15 @@ void ExplorationSummary::addError(
     addExpectedError(devicePath, newError);
     return;
   }
+
+  if ((errorType == ExplorationErrorType::I2C_DEVICE_CREATE ||
+       errorType == ExplorationErrorType::I2C_DEVICE_REG_INIT ||
+       errorType == ExplorationErrorType::RUN_DEVMAP_SYMLINK) &&
+      isDeviceFailureExpected(devicePath)) {
+    addExpectedError(devicePath, newError);
+    return;
+  }
+
   devicePathToErrors_[devicePath].push_back(newError);
   nErrs_++;
 }
@@ -151,8 +161,22 @@ bool ExplorationSummary::isSlotExpectedToBeEmpty(
   return false;
 }
 
+bool ExplorationSummary::isDeviceFailureExpected(
+    const std::string& devicePath) {
+  auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
+  if (re2::RE2::FullMatch(deviceName, kRtmOutletTsensor)) {
+    return true;
+  }
+  return false;
+}
+
 std::map<std::string, std::vector<ExplorationError>>
 ExplorationSummary::getFailedDevices() {
   return devicePathToErrors_;
+}
+
+std::map<std::string, std::vector<ExplorationError>>&
+ExplorationSummary::getExpectedFailedDevices() {
+  return devicePathToExpectedErrors_;
 }
 } // namespace facebook::fboss::platform::platform_manager

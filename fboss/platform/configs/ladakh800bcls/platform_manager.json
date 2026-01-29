@@ -528,7 +528,6 @@
               "csrOffset": "0x48000"
             }
           ],
-          "mdioBusConfigs": [],
           "mdioBusBlockConfigs": [
             {
               "pmUnitScopedNamePrefix": "RTM_L_MDIO_BUS",
@@ -986,6 +985,70 @@
           "address": "0x49",
           "kernelDeviceName": "lm75b",
           "pmUnitScopedName": "RTM_L_TSENSOR_2"
+        },
+        {
+          "busName": "RTM_L_MUX_2@7",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp432",
+          "pmUnitScopedName": "RTM_L_OUTLET_TSENSOR",
+          "initRegSettings": [
+            {
+              "__comment__": "Local temperature high limit for high byte.",
+              "regOffset": 11,
+              "ioBuf": [
+                100
+              ]
+            },
+            {
+              "__comment__": "Local temperature high limit for low byte.",
+              "regOffset": 61,
+              "ioBuf": [
+                0
+              ]
+            },
+            {
+              "__comment__": "Remote temp1 high limit setting for high byte.",
+              "regOffset": 13,
+              "ioBuf": [
+                100
+              ]
+            },
+            {
+              "__comment__": "Remote temp1 high limit setting for low byte.",
+              "regOffset": 19,
+              "ioBuf": [
+                0
+              ]
+            },
+            {
+              "__comment__": "Remote temp2 high limit setting for high byte.",
+              "regOffset": 21,
+              "ioBuf": [
+                100
+              ]
+            },
+            {
+              "__comment__": "Remote temp2 high limit setting for low byte.",
+              "regOffset": 23,
+              "ioBuf": [
+                0
+              ]
+            },
+            {
+              "__comment__": "N-factor correction remote1.",
+              "regOffset": 39,
+              "ioBuf": [
+                5
+              ]
+            },
+            {
+              "__comment__": "N-factor correction remote2.",
+              "regOffset": 40,
+              "ioBuf": [
+                5
+              ]
+            }
+          ]
         }
       ]
     },
@@ -1100,6 +1163,70 @@
           "address": "0x49",
           "kernelDeviceName": "lm75b",
           "pmUnitScopedName": "RTM_R_TSENSOR_2"
+        },
+        {
+          "busName": "RTM_R_MUX_2@7",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp432",
+          "pmUnitScopedName": "RTM_R_OUTLET_TSENSOR",
+          "initRegSettings": [
+            {
+              "__comment__": "Local temperature high limit for high byte.",
+              "regOffset": 11,
+              "ioBuf": [
+                100
+              ]
+            },
+            {
+              "__comment__": "Local temperature high limit for low byte.",
+              "regOffset": 61,
+              "ioBuf": [
+                0
+              ]
+            },
+            {
+              "__comment__": "Remote temp1 high limit setting for high byte.",
+              "regOffset": 13,
+              "ioBuf": [
+                100
+              ]
+            },
+            {
+              "__comment__": "Remote temp1 high limit setting for low byte.",
+              "regOffset": 19,
+              "ioBuf": [
+                0
+              ]
+            },
+            {
+              "__comment__": "Remote temp2 high limit setting for high byte.",
+              "regOffset": 21,
+              "ioBuf": [
+                100
+              ]
+            },
+            {
+              "__comment__": "Remote temp2 high limit setting for low byte.",
+              "regOffset": 23,
+              "ioBuf": [
+                0
+              ]
+            },
+            {
+              "__comment__": "N-factor correction remote1.",
+              "regOffset": 39,
+              "ioBuf": [
+                5
+              ]
+            },
+            {
+              "__comment__": "N-factor correction remote2.",
+              "regOffset": 40,
+              "ioBuf": [
+                5
+              ]
+            }
+          ]
         }
       ]
     },
@@ -1706,6 +1833,7 @@
     "/run/devmap/sensors/RTM_L_ADC2_SENSOR": "/RTM_L_SLOT@0/[RTM_L_ADC2_SENSOR]",
     "/run/devmap/sensors/RTM_L_TSENSOR_1": "/RTM_L_SLOT@0/[RTM_L_TSENSOR_1]",
     "/run/devmap/sensors/RTM_L_TSENSOR_2": "/RTM_L_SLOT@0/[RTM_L_TSENSOR_2]",
+    "/run/devmap/sensors/RTM_L_OUTLET_TSENSOR": "/RTM_L_SLOT@0/[RTM_L_OUTLET_TSENSOR]",
     "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_1": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_1]",
     "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_2": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_2]",
     "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_3": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_3]",
@@ -1717,6 +1845,7 @@
     "/run/devmap/sensors/RTM_R_ADC2_SENSOR": "/RTM_R_SLOT@0/[RTM_R_ADC2_SENSOR]",
     "/run/devmap/sensors/RTM_R_TSENSOR_1": "/RTM_R_SLOT@0/[RTM_R_TSENSOR_1]",
     "/run/devmap/sensors/RTM_R_TSENSOR_2": "/RTM_R_SLOT@0/[RTM_R_TSENSOR_2]",
+    "/run/devmap/sensors/RTM_R_OUTLET_TSENSOR": "/RTM_R_SLOT@0/[RTM_R_OUTLET_TSENSOR]",
     "/run/devmap/cplds/SMB_L_CPLD": "/SMB_L_SLOT@0/[SMB_L_CPLD]",
     "/run/devmap/cplds/SMB_R_CPLD": "/SMB_R_SLOT@0/[SMB_R_CPLD]",
     "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0": "/SMB_L_SLOT@0/[SMB_L_ASIC_VOLTAGE_0]",
