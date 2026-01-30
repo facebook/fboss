@@ -18,7 +18,9 @@
 #include <folly/IPAddress.h>
 
 DECLARE_bool(enable_capacity_pruning);
-
+namespace facebook::fboss {
+class NextHopIDManager;
+}
 namespace facebook::fboss {
 
 /**
@@ -49,12 +51,14 @@ class RibRouteUpdater {
  public:
   RibRouteUpdater(
       IPv4NetworkToRouteMap* v4Routes,
-      IPv6NetworkToRouteMap* v6Routes);
+      IPv6NetworkToRouteMap* v6Routes,
+      NextHopIDManager* nextHopIDManager);
 
   RibRouteUpdater(
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes,
-      LabelToRouteMap* mplsRoutes);
+      LabelToRouteMap* mplsRoutes,
+      NextHopIDManager* nextHopIDManager);
 
   struct RouteEntry {
     folly::CIDRNetwork prefix;
@@ -163,14 +167,6 @@ class RibRouteUpdater {
       typename NetworkToRouteMap<AddressT>::Iterator ritr);
 
   template <typename AddressT>
-  std::shared_ptr<Route<AddressT>> writableRoute(
-      typename NetworkToRouteMap<AddressT>::Iterator ritr);
-
-  template <typename AddressT>
-  std::shared_ptr<Route<AddressT>> writableRoute(
-      std::shared_ptr<Route<AddressT>> route);
-
-  template <typename AddressT>
   void getFwdInfoFromNhop(
       NetworkToRouteMap<AddressT>* routes,
       const AddressT& nh,
@@ -190,6 +186,7 @@ class RibRouteUpdater {
   IPv4NetworkToRouteMap* v4Routes_{nullptr};
   IPv6NetworkToRouteMap* v6Routes_{nullptr};
   LabelToRouteMap* mplsRoutes_{nullptr};
+  NextHopIDManager* nextHopIDManager_{nullptr};
   std::unordered_set<void*> needsResolution_;
   /*
    * Cache for next hop to FWD information. For our use case

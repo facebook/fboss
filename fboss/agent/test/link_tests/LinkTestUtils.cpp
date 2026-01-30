@@ -1,17 +1,13 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 #include <folly/Subprocess.h>
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
-
-DEFINE_bool(
-    qsfp_port_manager_mode,
-    false,
-    "Set to true to enable Port Manager mode. This means PortManager object will manage all port-level logic and TransceiverManager object will only manage transceiver-level logic.");
 
 namespace facebook::fboss::utility {
 const std::vector<std::string> kRestartQsfpService = {

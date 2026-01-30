@@ -44,6 +44,7 @@ target_link_libraries(bsp_test_utils
   bsp_tests_runtime_config_cpp2
   fbiob_device_config_cpp2
   platform_utils
+  platform_manager_i2c_explorer
   platform_manager_pkg_manager
   platform_manager_config_cpp2
   Folly::folly

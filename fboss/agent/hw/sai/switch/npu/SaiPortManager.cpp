@@ -544,6 +544,15 @@ void SaiPortManager::attributesFromSaiStore(
         attributes,
         SaiPortTraits::Attributes::DisableTtlDecrement{});
   }
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  // FabricSystemPort is only applicable for fabric ports
+  if (GET_ATTR(Port, Type, attributes) == SAI_PORT_TYPE_FABRIC) {
+    getAndSetAttribute(
+        port->attributes(),
+        attributes,
+        SaiPortTraits::Attributes::FabricSystemPort{});
+  }
+#endif
 }
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
@@ -747,11 +756,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           cfg::AsicType::ASIC_TYPE_CHENAB) {
         arsPortLoadScalingFactor = flowletCfgPtr->getScalingFactor();
         arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
-        arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
+        if (platform_->getAsic()->isSupported(
+                HwAsic::Feature::ARS_FUTURE_PORT_LOAD)) {
+          arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
+        }
       }
-      // exclude 14.0 until this attr is ported there by BCM
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS) && \
-    defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0)
+    defined(BRCM_SAI_SDK_GTE_13_0)
       if (swPort->getLoopbackMode() == cfg::PortLoopbackMode::MAC) {
         arsLinkState = SAI_PORT_ARS_LINK_STATE_UP;
       }
@@ -1156,6 +1167,35 @@ void SaiPortManager::programSerdes(
       rxReach = getSaiRxReach(rxReachVals);
       SaiApiTable::getInstance()->portApi().setAttribute(
           portHandle->serdes->adapterKey(), rxReach);
+    }
+  }
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    SaiPortSerdesTraits::Attributes::RxPrecoding::ValueType rxPrecoding;
+    SaiPortSerdesTraits::Attributes::TxPrecoding::ValueType txPrecoding;
+    for (const auto& pinConfig : swPort->getPinConfigs()) {
+      if (auto rx = pinConfig.rx()) {
+        if (auto precoding = rx->precoding()) {
+          rxPrecoding.push_back(precoding.value());
+        }
+      }
+      if (auto tx = pinConfig.tx()) {
+        if (auto precoding = tx->precoding()) {
+          txPrecoding.push_back(precoding.value());
+        }
+      }
+    }
+    if (!rxPrecoding.empty()) {
+      SaiPortSerdesTraits::Attributes::RxPrecoding rxPrecodingAttr{rxPrecoding};
+      SaiApiTable::getInstance()->portApi().setAttribute(
+          portHandle->serdes->adapterKey(), rxPrecodingAttr);
+    }
+    if (!txPrecoding.empty()) {
+      SaiPortSerdesTraits::Attributes::TxPrecoding txPrecodingAttr{txPrecoding};
+      SaiApiTable::getInstance()->portApi().setAttribute(
+          portHandle->serdes->adapterKey(), txPrecodingAttr);
     }
   }
 #endif

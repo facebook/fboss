@@ -63,7 +63,7 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
       std::string& output,
       std::optional<SwitchID> switchId = std::nullopt) override;
 
-  void init(const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info) override;
+  void init(const TestEnsembleInitInfo& info) override;
   void gracefulExit() override;
 
   bool isSai() const override {

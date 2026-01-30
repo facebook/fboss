@@ -44,7 +44,7 @@ add_library(pktutil
 )
 
 target_link_libraries(pktutil
-  error
+  fboss_error
   Folly::folly
 )
 
@@ -58,6 +58,7 @@ add_library(packet_factory
 )
 
 target_link_libraries(packet_factory
+  hw_switch
   packet
   ctrl_cpp2
   switch_config_cpp2

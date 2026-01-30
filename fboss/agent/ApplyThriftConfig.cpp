@@ -40,6 +40,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
@@ -124,9 +125,15 @@ StateDelta updateFibFromConfig(
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
+    facebook::fboss::NextHopIDManager const* nextHopIDManager,
     void* cookie) {
   facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
-      resolver, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
+      resolver,
+      vrf,
+      v4NetworkToRoute,
+      v6NetworkToRoute,
+      labelToRoute,
+      nextHopIDManager);
 
   auto nextStatePtr =
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
@@ -663,7 +670,7 @@ class ThriftConfigApplier {
   SwitchIdScopeResolver scopeResolver_;
   const PlatformMapping* platformMapping_{nullptr};
   const HwAsicTable* hwAsicTable_{nullptr};
-  const FabricLinkMonitoring* fabricLinkMon_{nullptr};
+  std::unique_ptr<const FabricLinkMonitoring> fabricLinkMon_;
 
   struct InterfaceIpInfo {
     InterfaceIpInfo(uint8_t mask, MacAddress mac, InterfaceID intf)
@@ -728,7 +735,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   if (FLAGS_enable_fabric_link_monitoring) {
     // Create the fabric link mon object in case we have
     // fabric link monitoring enabled.
-    fabricLinkMon_ = new FabricLinkMonitoring(cfg_);
+    fabricLinkMon_ = std::make_unique<FabricLinkMonitoring>(cfg_);
   }
 
   {

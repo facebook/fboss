@@ -1965,10 +1965,10 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
        platform_->getAsic()->getAsicType() ==
            cfg::AsicType::ASIC_TYPE_TOMAHAWK6) &&
       getPortType(portId) == cfg::PortType::MANAGEMENT_PORT) {
-    // TODO(daiweix): follow up why not supported on TH5 mgmt port, e.g.
-    // SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES
+#if !defined(BRCM_SAI_SDK_GTE_14_0)
     // CS00012443185
     return false;
+#endif
   }
   return platform_->getAsic()->isSupported(HwAsic::Feature::SAI_FEC_COUNTERS) &&
       utility::isReedSolomonFec(getFECMode(portId));
@@ -1980,10 +1980,10 @@ bool SaiPortManager::fecCorrectedBitsSupported(PortID portId) const {
        platform_->getAsic()->getAsicType() ==
            cfg::AsicType::ASIC_TYPE_TOMAHAWK6) &&
       getPortType(portId) == cfg::PortType::MANAGEMENT_PORT) {
-    // TODO(daiweix): follow up why not supported on TH5 mgmt port, e.g.
-    // SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS
+#if !defined(BRCM_SAI_SDK_GTE_14_0)
     // CS00012443185
     return false;
+#endif
   }
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_FEC_CORRECTED_BITS) &&

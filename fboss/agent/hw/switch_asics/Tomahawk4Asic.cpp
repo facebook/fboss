@@ -126,6 +126,8 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
+    case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -243,6 +245,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
+    case HwAsic::Feature::SAI_SERDES_PRECODING:
       return false;
   }
   return false;

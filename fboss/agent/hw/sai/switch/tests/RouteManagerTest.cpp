@@ -180,6 +180,41 @@ TEST_F(RouteManagerTest, addRemoteInterfaceRoute) {
       SAI_PACKET_ACTION_DROP);
 }
 
+/*
+ * Test for connected route with a next hop interface that doesn't exist
+ * in the local NPU (multi-NPU scenario),
+ * the route should be set to DROP.
+ */
+TEST_F(RouteManagerTest, addConnectedRouteNonLocalInterfaceNpu) {
+  // Create a route with a non-existent interface ID
+  // This simulates a multi-NPU scenario where the interface is on another NPU
+  constexpr int nonExistentInterfaceId = 999;
+  folly::IPAddress routerIp{"192.168.100.1"};
+  folly::CIDRNetwork subnet{routerIp, 24};
+
+  RouteFields<folly::IPAddressV4>::Prefix destination(
+      subnet.first.asV4(), subnet.second);
+  ResolvedNextHop nh{
+      routerIp, InterfaceID(nonExistentInterfaceId), ECMP_WEIGHT};
+  RouteNextHopEntry::NextHopSet swNextHops{nh};
+  RouteNextHopEntry entry(swNextHops, AdminDistance::DIRECTLY_CONNECTED);
+  auto r = std::make_shared<Route<folly::IPAddressV4>>(
+      RouteV4::makeThrift(destination));
+  r->update(ClientID::INTERFACE_ROUTE, entry);
+  r->setResolved(entry);
+  r->setConnected();
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  auto saiEntry =
+      saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r);
+  auto saiRouteHandle =
+      saiManagerTable->routeManager().getRouteHandle(saiEntry);
+  auto saiRoute = saiRouteHandle->route;
+  // For NPU switches, connected routes with non-local interfaces should be DROP
+  EXPECT_EQ(
+      GET_ATTR(Route, PacketAction, saiRoute->attributes()),
+      SAI_PACKET_ACTION_DROP);
+}
+
 TEST_F(RouteManagerTest, updateRouteOneNextHopUpdate) {
   tr1.nextHopInterfaces = {testInterfaces.at(1)};
   auto r = makeRoute(tr1);

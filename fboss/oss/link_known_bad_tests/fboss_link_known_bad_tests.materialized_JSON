@@ -32916,7 +32916,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity$"
         }
     ],
-    "morgan800cc/sai/asicsdk-1.42.8/25.5.5210": [
+    "morgan800cc/sai/asicsdk-1.42.8/25.5.4210": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -33017,7 +33017,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity$"
         }
     ],
-    "morgan800cc/sai/asicsdk-1.42.8/25.5.5210/physdk-credo-0.7.2/credo-0.7.2": [
+    "morgan800cc/sai/asicsdk-1.42.8/25.5.4210/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -33118,7 +33118,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity$"
         }
     ],
-    "morgan800cc/sai/asicsdk-1.42.8/25.5.5210/physdk-credo-0.9.0/credo-0.9.0": [
+    "morgan800cc/sai/asicsdk-1.42.8/25.5.4210/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -33825,7 +33825,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity$"
         }
     ],
-    "morgan800cc/sai/asicsdk-25.5.5210/25.5.5210": [
+    "morgan800cc/sai/asicsdk-25.5.4210/25.5.4210": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -33926,7 +33926,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity$"
         }
     ],
-    "morgan800cc/sai/asicsdk-25.5.5210/25.5.5210/physdk-credo-0.7.2/credo-0.7.2": [
+    "morgan800cc/sai/asicsdk-25.5.4210/25.5.4210/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -34027,7 +34027,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity$"
         }
     ],
-    "morgan800cc/sai/asicsdk-25.5.5210/25.5.5210/physdk-credo-0.9.0/credo-0.9.0": [
+    "morgan800cc/sai/asicsdk-25.5.4210/25.5.4210/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -45009,7 +45009,7 @@
           "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         }
     ],
-    "wedge400c/sai/asicsdk-1.42.8/25.5.5210": [
+    "wedge400c/sai/asicsdk-1.42.8/25.5.4210": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -45092,7 +45092,7 @@
           "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         }
     ],
-    "wedge400c/sai/asicsdk-1.42.8/25.5.5210/physdk-credo-0.7.2/credo-0.7.2": [
+    "wedge400c/sai/asicsdk-1.42.8/25.5.4210/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -45175,7 +45175,7 @@
           "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         }
     ],
-    "wedge400c/sai/asicsdk-1.42.8/25.5.5210/physdk-credo-0.9.0/credo-0.9.0": [
+    "wedge400c/sai/asicsdk-1.42.8/25.5.4210/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -45756,7 +45756,7 @@
           "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         }
     ],
-    "wedge400c/sai/asicsdk-25.5.5210/25.5.5210": [
+    "wedge400c/sai/asicsdk-25.5.4210/25.5.4210": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -45839,7 +45839,7 @@
           "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         }
     ],
-    "wedge400c/sai/asicsdk-25.5.5210/25.5.5210/physdk-credo-0.7.2/credo-0.7.2": [
+    "wedge400c/sai/asicsdk-25.5.4210/25.5.4210/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -45922,7 +45922,7 @@
           "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         }
     ],
-    "wedge400c/sai/asicsdk-25.5.5210/25.5.5210/physdk-credo-0.9.0/credo-0.9.0": [
+    "wedge400c/sai/asicsdk-25.5.4210/25.5.4210/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },

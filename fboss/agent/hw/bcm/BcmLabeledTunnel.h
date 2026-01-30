@@ -26,6 +26,10 @@ class BcmLabeledTunnel {
       bcm_if_t intf,
       LabelForwardingAction::LabelStack stack);
   ~BcmLabeledTunnel();
+  BcmLabeledTunnel(const BcmLabeledTunnel&) = delete;
+  BcmLabeledTunnel& operator=(const BcmLabeledTunnel&) = delete;
+  BcmLabeledTunnel(BcmLabeledTunnel&&) = delete;
+  BcmLabeledTunnel& operator=(BcmLabeledTunnel&&) = delete;
   std::string str() const;
   bcm_if_t getTunnelInterface() const {
     return labeledTunnel_;

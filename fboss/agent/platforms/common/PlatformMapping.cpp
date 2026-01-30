@@ -416,7 +416,7 @@ PlatformMapping::getPortTransceiverPinConfigs(
   auto portID = matcher.getPortIDIf();
   auto profileID = matcher.getProfileID();
   if (!portID.has_value()) {
-    throw FbossError("getPortIphyPinConfigs miss portID match factor");
+    throw FbossError("getPortTransceiverPinConfigs miss portID match factor");
   }
   const auto& platformPortConfig =
       getPlatformPortConfig(portID.value(), profileID);

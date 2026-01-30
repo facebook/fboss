@@ -17,6 +17,7 @@ add_library(config_factory
 )
 
 target_link_libraries(config_factory
+  acl_test_utils
   config_utils
   fboss_types
   hw_switch
@@ -26,6 +27,8 @@ target_link_libraries(config_factory
   fboss_config_utils
   port_test_utils
   linkstate_toggler
+  split_agent_thrift_syncer
+  multiswitch_test_server
 )
 
 add_library(hw_test_main
@@ -47,6 +50,7 @@ add_library(hw_packet_utils
 )
 
 target_link_libraries(hw_packet_utils
+  agent_test_utils
   hw_switch_ensemble
   packet_factory
   packet_snooper
@@ -77,6 +81,8 @@ add_library(hw_copp_utils
 )
 
 target_link_libraries(hw_copp_utils
+  copp_test_utils
+  hw_packet_utils
   hw_test_acl_utils
   switch_asics
   packet_factory
@@ -136,6 +142,7 @@ target_link_libraries(hw_link_state_toggler
   core
   switch_config_cpp2
   state
+  test_ensemble_if
   Folly::folly
 )
 
@@ -174,6 +181,7 @@ add_library(load_balancer_utils
 target_link_libraries(load_balancer_utils
   fboss_types
   hw_switch
+  load_balancer_test_utils
   platform_base
   switch_asics
   state

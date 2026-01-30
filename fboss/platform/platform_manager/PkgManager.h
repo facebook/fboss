@@ -62,6 +62,7 @@ class PkgManager {
   virtual void loadRequiredKmods() const;
   void removeInstalledRpms() const;
   BspKmodsFile readKmodsFile() const;
+  bool wereKmodsUnloaded() const;
 
  private:
   std::string getKmodsRpmName() const;
@@ -71,6 +72,7 @@ class PkgManager {
   const PlatformConfig& platformConfig_;
   const std::shared_ptr<package_manager::SystemInterface> systemInterface_;
   const std::shared_ptr<PlatformFsUtils> platformFsUtils_;
+  mutable bool kmodsUnloaded_{false};
 };
 
 } // namespace facebook::fboss::platform::platform_manager

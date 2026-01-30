@@ -68,6 +68,10 @@ class SaiHostifManager {
       const SaiPlatform* platform,
       ConcurrentIndices* concurrentIndices);
   ~SaiHostifManager();
+  SaiHostifManager(const SaiHostifManager&) = delete;
+  SaiHostifManager& operator=(const SaiHostifManager&) = delete;
+  SaiHostifManager(SaiHostifManager&&) = delete;
+  SaiHostifManager& operator=(SaiHostifManager&&) = delete;
   HostifTrapSaiId addHostifTrap(
       cfg::PacketRxReason trapId,
       uint32_t queueId,

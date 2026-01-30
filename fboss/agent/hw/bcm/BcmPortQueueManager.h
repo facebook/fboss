@@ -23,7 +23,11 @@ class BcmPortQueueManager : public BcmCosQueueManager {
       bcm_gport_t portGport)
       : BcmCosQueueManager(hw, portName, portGport) {}
 
-  ~BcmPortQueueManager() {}
+  ~BcmPortQueueManager() override = default;
+  BcmPortQueueManager(const BcmPortQueueManager&) = delete;
+  BcmPortQueueManager& operator=(const BcmPortQueueManager&) = delete;
+  BcmPortQueueManager(BcmPortQueueManager&&) = delete;
+  BcmPortQueueManager& operator=(BcmPortQueueManager&&) = delete;
 
   int getNumQueues(cfg::StreamType streamType) const override;
 
@@ -41,10 +45,6 @@ class BcmPortQueueManager : public BcmCosQueueManager {
   static bcm_cos_queue_t bcmInternalPriorityToCosQ(int prio);
 
  private:
-  // Forbidden copy constructor and assignment operator
-  BcmPortQueueManager(BcmPortQueueManager const&) = delete;
-  BcmPortQueueManager& operator=(BcmPortQueueManager const&) = delete;
-
   const PortQueue& getDefaultQueueSettings(
       cfg::StreamType streamType) const override;
 

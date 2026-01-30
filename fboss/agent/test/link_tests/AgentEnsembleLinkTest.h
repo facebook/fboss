@@ -9,6 +9,7 @@
 #include "fboss/agent/test/link_tests/gen-cpp2/link_test_production_features_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
 
 DECLARE_string(config);
 DECLARE_bool(disable_neighbor_updates);
@@ -77,6 +78,17 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
     }
     return xphyPorts;
   }
+
+  /*
+   * Get Primary port names (e.g. eth1/1/1) from list of cabled ports
+   */
+  std::vector<std::string> getPrimaryPortNamesCabledPorts();
+
+  /*
+   * Dumps The transceiver I2c Logs at the end of a test run.
+   */
+  void dumpTransceiverI2cLogs(
+      apache::thrift::Client<facebook::fboss::QsfpService>& qsfpClient);
 
   void checkAgentMemoryInBounds() const;
 

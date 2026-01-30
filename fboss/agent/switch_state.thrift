@@ -541,8 +541,17 @@ struct FibContainerFields {
   3: map<string, RouteFields> fibV6;
 }
 
+// NextHopID and NextHopSetID
+typedef i64 NextHopIdType
+
+typedef i64 NextHopSetIdType
+
 struct FibInfoFields {
   1: map<i16, FibContainerFields> fibsMap;
+  // Map from NextHop ID to NextHop
+  2: map<NextHopIdType, common.NextHopThrift> idToNextHop;
+  // Map from NextHopSetID to set of NextHopIDs
+  3: map<NextHopSetIdType, set<NextHopIdType>> idToNextHopIdSet;
 }
 
 struct TrafficClassToQosAttributeEntry {

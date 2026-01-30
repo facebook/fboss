@@ -75,6 +75,11 @@ DEFINE_bool(
     false,
     "Set to true to enable Port Manager mode. This means PortManager object will manage all port-level logic and TransceiverManager object will only manage transceiver-level logic.");
 
+DEFINE_bool(
+    override_program_iphy_ports_for_test,
+    false,
+    "Override wedge_agent programInternalPhyPorts(). For test only");
+
 namespace {
 constexpr auto kFbossPortNameRegex = "(eth|fab)(\\d+)/(\\d+)/(\\d+)";
 constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
@@ -1700,6 +1705,11 @@ void TransceiverManager::programTransceiver(
  * Calls the module type specific function to check their power control
  * configuration and if needed, corrects it. Returns if the module is in ready
  * state to proceed further with programming.
+ *
+ * For ZR module, this function checks if tunable optics config
+ * is present in qsfp_service_config and passes this information to the
+ * transceiver. If the config is not present for a ZR optic,
+ * the module will not be moved to high power mode.
  */
 bool TransceiverManager::readyTransceiver(TransceiverID id) {
   auto lockedTransceivers = transceivers_.rlock();
@@ -1710,7 +1720,11 @@ bool TransceiverManager::readyTransceiver(TransceiverID id) {
     return true;
   }
 
-  return tcvrIt->second->readyTransceiver();
+  // Check if tunable optics config is present for this transceiver
+  const auto opticalChannelConfig = getOpticalChannelConfig(id);
+  bool hasTunableOpticsConfig = opticalChannelConfig.has_value();
+
+  return tcvrIt->second->readyTransceiver(hasTunableOpticsConfig);
 }
 
 void TransceiverManager::resetPortState(const TransceiverID& id) {

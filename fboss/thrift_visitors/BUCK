@@ -42,7 +42,6 @@ cpp_library(
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2:thrift-core",
         "//thrift/lib/cpp2/op:get",
-        "//thrift/lib/cpp2/reflection:reflection",
     ],
     exported_external_deps = [
         "boost",

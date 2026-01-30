@@ -303,6 +303,8 @@ class BcmPort {
   // no copy or assignment
   BcmPort(BcmPort const&) = delete;
   BcmPort& operator=(BcmPort const&) = delete;
+  BcmPort(BcmPort&&) = delete;
+  BcmPort& operator=(BcmPort&&) = delete;
 
   stats::MonotonicCounter* getPortCounterIf(folly::StringPiece statName);
   void reinitPortStatsLocked(

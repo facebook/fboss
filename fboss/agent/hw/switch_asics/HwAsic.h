@@ -448,6 +448,7 @@ class HwAsic {
     MAC_TRANSMIT_DATA_QUEUE_WATERMARK,
     FABRIC_LINK_MONITORING,
     ARS_ALTERNATE_MEMBERS,
+    ARS_FUTURE_PORT_LOAD,
     RESERVED_BYTES_FOR_BUFFER_POOL,
     // Indicates the buffer pool size excludes the headroom
     // pool size given the buffer pool size determination is
@@ -463,6 +464,8 @@ class HwAsic {
     // are capable of CPU queuing.
     CPU_QUEUES,
     SAI_SERDES_RX_REACH,
+    ECN_PROBABILISTIC_MARKING,
+    SAI_SERDES_PRECODING,
   };
 
   enum class AsicMode {

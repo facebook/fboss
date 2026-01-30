@@ -449,9 +449,11 @@ class PlatformMappingV2:
             mapping.pins = get_mapping_pins(all_connection_pairs)
             # Sort pins by lane id of the 'a' end
             mapping.pins = sorted(mapping.pins, key=lambda pin: pin.a.lane)
-            # Mark the controllingPort as self here. We'll override it later when
-            # we figure out which ports this port needs to subsume
-            mapping.controllingPort = port_id
+            # If explicit controlling_port is specified in the CSV, use it directly.
+            if port_detail.controlling_port is not None:
+                mapping.controllingPort = port_detail.controlling_port
+            else:
+                mapping.controllingPort = port_id
             mapping.portType = port_detail.port_type
             mapping.scope = port_detail.scope
             if port_detail.attached_coreid is not None:
@@ -475,6 +477,10 @@ class PlatformMappingV2:
         # other port uses its iphy pins, then the former port needs to be a
         # subsumed port controlled by the later port
         for port_id, port_entry in ports.items():
+            # Check if explicit controlling_port was set in CSV
+            port_detail = self.pm_parser.get_port_profile_mapping().get_ports()[port_id]
+            has_explicit_controlling_port = port_detail.controlling_port is not None
+
             for port_config in port_entry.supportedProfiles.values():
                 if port_entry.mapping.portType != PortType.HYPER_PORT:
                     all_iphy_pins_needed = port_config.pins.iphy
@@ -503,7 +509,9 @@ class PlatformMappingV2:
                                     other_port_config.subsumedPorts = []
                                 if port_id not in other_port_config.subsumedPorts:
                                     other_port_config.subsumedPorts.append(port_id)
-                                port_entry.mapping.controllingPort = other_port_id
+                                # Only set controllingPort if not explicitly set in CSV
+                                if not has_explicit_controlling_port:
+                                    port_entry.mapping.controllingPort = other_port_id
 
                 elif port_entry.mapping.portType == PortType.HYPER_PORT:
                     for other_port_id, other_port_entry in ports.items():

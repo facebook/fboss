@@ -4,15 +4,11 @@
 
 #include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
-#include <re2/re2.h>
 
 #include "fboss/platform/platform_manager/ScubaLogger.h"
 #include "fboss/platform/platform_manager/Utils.h"
 
 namespace facebook::fboss::platform::platform_manager {
-namespace {
-const re2::RE2 kPsuSlotPath{R"(/PSU_SLOT@\d+$)"};
-} // namespace
 
 ExplorationSummary::ExplorationSummary(
     const PlatformConfig& config,
@@ -27,28 +23,9 @@ void ExplorationSummary::addError(
   newError.errorType() = toExplorationErrorTypeStr(errorType);
   newError.message() = message;
 
-  auto addExpectedError =
-      [this](const std::string& devicePath, ExplorationError& newError) {
-        devicePathToExpectedErrors_[devicePath].push_back(newError);
-        nExpectedErrs_++;
-      };
-
-  // https://fb.workplace.com/groups/1419427118405392/permalink/2752297575118333
-  // https://fb.workplace.com/groups/264616536023347/permalink/907140855104242/
-  // for details. To be removed once the issue is fixed.
-  if ((*platformConfig_.platformName() == "MONTBLANC" ||
-       *platformConfig_.platformName() == "JANGA800BIC" ||
-       *platformConfig_.platformName() == "TAHAN800BC") &&
-      errorType == ExplorationErrorType::IDPROM_READ &&
-      devicePath == "/[IDPROM]") {
-    addExpectedError(devicePath, newError);
-    return;
-  }
-
-  if ((errorType == ExplorationErrorType::SLOT_PM_UNIT_ABSENCE ||
-       errorType == ExplorationErrorType::RUN_DEVMAP_SYMLINK) &&
-      isSlotExpectedToBeEmpty(devicePath)) {
-    addExpectedError(devicePath, newError);
+  if (isExpectedError(platformConfig_, errorType, devicePath)) {
+    devicePathToExpectedErrors_[devicePath].push_back(newError);
+    nExpectedErrs_++;
     return;
   }
   devicePathToErrors_[devicePath].push_back(newError);
@@ -140,15 +117,6 @@ ExplorationStatus ExplorationSummary::summarize() {
   publishCounters(finalStatus);
   publishToScuba(finalStatus);
   return finalStatus;
-}
-
-bool ExplorationSummary::isSlotExpectedToBeEmpty(
-    const std::string& devicePath) {
-  auto [slotPath, _] = Utils().parseDevicePath(devicePath);
-  if (re2::RE2::PartialMatch(slotPath, kPsuSlotPath)) {
-    return true;
-  }
-  return false;
 }
 
 std::map<std::string, std::vector<ExplorationError>>

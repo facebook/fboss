@@ -2809,11 +2809,11 @@ void CmisModule::setApplicationCodeLocked(
     // Check if current AppSel matches the desired one
     uint8_t currentAppSelCode = getCurrentAppSelCode(startHostLane);
     auto& dpState = portDatapathStates_[portName];
-    if (currentAppSelCode == newAppSelCode && dpState.dpInitDone) {
-      QSFP_LOG(INFO, this) << folly::sformat(
-          "AppSel code matches: current {:#x} new {:#x}, skipping programming",
-          currentAppSelCode,
-          newAppSelCode);
+    auto& initTimers = dpState.initTimers;
+    if (currentAppSelCode == newAppSelCode &&
+        (initTimers.progStartTimer.time_since_epoch().count() == 0)) {
+      QSFP_LOG(INFO, this)
+          << "AppSel codes for tunable optics are matching, skipping programming";
       return;
     }
 
@@ -3400,14 +3400,30 @@ int16_t CmisModule::getChannelNumFromFrequency(
  * If the current power configuration state is not same as desired one then
  * change it to that (by setting and resetting LP mode) otherwise return true
  * when module is in ready state otherwise return false.
+ *
+ * @param hasTunableOpticsConfig - indicates if tunable optics config is
+ *        present in qsfp_service_config. For tunable optics modules without
+ *        config, an exception is thrown to prevent high power mode transition.
  */
-bool CmisModule::ensureTransceiverReadyLocked() {
+bool CmisModule::ensureTransceiverReadyLocked(bool hasTunableOpticsConfig) {
   // If customization is not supported then the Power control bit can't be
   // touched. Return true as nothing needs to be done here
   if (!customizationSupported()) {
     QSFP_LOG(DBG1, this)
         << "ensureTransceiverReadyLocked: Customization not supported";
     return true;
+  }
+
+  // For tunable optics modules, if tunable optics config is not present in
+  // qsfp_service_config, throw an exception. This requires operators to
+  // explicitly provide the necessary config before tunable optics can be
+  // brought up to high power mode.
+  if (isTunableOptics() && !hasTunableOpticsConfig) {
+    throw FbossError(
+        "ensureTransceiverReadyLocked: Tunable optics module ",
+        qsfpImpl_->getName(),
+        " detected but no tunable optics config present in qsfp_service_config. "
+        "Cannot move to high power mode without optical channel configuration.");
   }
 
   // Read the current power configuration values. Don't depend on refresh
@@ -3419,12 +3435,7 @@ bool CmisModule::ensureTransceiverReadyLocked() {
   // return true else return false as the optics state machine might be in
   // transition and need more time to be ready
   if (powerState == PowerControlState::HIGH_POWER_OVERRIDE) {
-    if (isTunableOptics()) {
-      return (isModuleInReadyState()) &&
-          (dataPathProgram(getNameString(), kFullDataPathDeInitMask, false));
-    } else {
-      return isModuleInReadyState();
-    }
+    return isModuleInReadyState();
   }
 
   // If the optics current power configuration is Low Power then set the LP

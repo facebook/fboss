@@ -1356,3 +1356,122 @@ TEST(ConfigValidatorTest, ChassisEepromDevicePath) {
   config.chassisEepromDevicePath() = "/[SOME_OTHER_EEPROM]";
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
+
+TEST(ConfigValidatorTest, I2cAdapterBlockConfig) {
+  ConfigValidator validator;
+  I2cAdapterBlockConfig config;
+
+  // Test case: Valid config
+  config.pmUnitScopedNamePrefix() = "SMB_I2C_ADAPTER";
+  config.deviceName() = "i2c_adapter";
+  config.csrOffsetCalc() = "0x1000 + {adapterIndex}*0x100";
+  config.numAdapters() = 8;
+  config.numBusesPerAdapter() = 4;
+  config.iobufOffsetCalc() = "";
+  config.startAdapterIndex() = 1;
+  EXPECT_TRUE(validator.isValidI2cAdapterBlockConfig(config));
+
+  // Test case: Valid config with iobufOffsetCalc
+  config.pmUnitScopedNamePrefix() = "SMB_I2C_ADAPTER";
+  config.deviceName() = "i2c_adapter";
+  config.csrOffsetCalc() = "0x1000 + {adapterIndex}*0x100";
+  config.iobufOffsetCalc() = "0x2000 + {adapterIndex}*0x100";
+  config.numAdapters() = 8;
+  config.numBusesPerAdapter() = 4;
+  EXPECT_TRUE(validator.isValidI2cAdapterBlockConfig(config));
+
+  // Test case: Invalid iobufOffsetCalc expression
+  config.iobufOffsetCalc() = "invalid_expression";
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.iobufOffsetCalc() = "";
+
+  // Test case: Empty pmUnitScopedNamePrefix
+  config.pmUnitScopedNamePrefix() = "";
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.pmUnitScopedNamePrefix() = "SMB_I2C_ADAPTER";
+
+  // Test case: pmUnitScopedNamePrefix ends with _
+  config.pmUnitScopedNamePrefix() = "SMB_I2C_ADAPTER_";
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.pmUnitScopedNamePrefix() = "SMB_I2C_ADAPTER";
+
+  // Test case: Empty deviceName
+  config.deviceName() = "";
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.deviceName() = "i2c_adapter";
+
+  // Test case: Empty csrOffsetCalc
+  config.csrOffsetCalc() = "";
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.csrOffsetCalc() = "0x1000 + {adapterIndex}*0x100";
+
+  // Test case: Zero numAdapters
+  config.numAdapters() = 0;
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.numAdapters() = 8;
+
+  // Test case: Negative numAdapters
+  config.numAdapters() = -1;
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.numAdapters() = 8;
+
+  // Test case: Zero numBusesPerAdapter
+  config.numBusesPerAdapter() = 0;
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.numBusesPerAdapter() = 4;
+
+  // Test case: Negative numBusesPerAdapter
+  config.numBusesPerAdapter() = -1;
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.numBusesPerAdapter() = 4;
+
+  // Test case: Invalid csrOffsetCalc expression
+  config.csrOffsetCalc() = "invalid_expression";
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.csrOffsetCalc() = "0x1000 + {adapterIndex}*0x100";
+
+  // Test case: Large valid values
+  config.numAdapters() = 16;
+  config.numBusesPerAdapter() = 64;
+  EXPECT_TRUE(validator.isValidI2cAdapterBlockConfig(config));
+
+  // Test case: Valid config with non-zero startAdapterIndex
+  config.numAdapters() = 8;
+  config.numBusesPerAdapter() = 4;
+  config.startAdapterIndex() = 5;
+  EXPECT_TRUE(validator.isValidI2cAdapterBlockConfig(config));
+
+  // Test case: Negative startAdapterIndex
+  config.startAdapterIndex() = -1;
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.startAdapterIndex() = 1;
+
+  // Test case: Large valid startAdapterIndex
+  config.startAdapterIndex() = 100;
+  EXPECT_TRUE(validator.isValidI2cAdapterBlockConfig(config));
+  config.startAdapterIndex() = 1;
+}
+
+TEST(ConfigValidatorTest, PciDeviceConfigWithI2cAdapterBlockConfigs) {
+  auto pciDevConfig = getValidPciDeviceConfig();
+
+  // Test case: Invalid I2cAdapterBlockConfig in PciDeviceConfig
+  I2cAdapterBlockConfig invalidConfig;
+  invalidConfig.pmUnitScopedNamePrefix() = ""; // This will make it invalid
+  invalidConfig.deviceName() = "i2c_adapter";
+  invalidConfig.csrOffsetCalc() = "0x1000";
+  invalidConfig.numAdapters() = 8;
+  invalidConfig.numBusesPerAdapter() = 1;
+  pciDevConfig.i2cAdapterBlockConfigs() = {invalidConfig};
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+
+  // Test case: Valid I2cAdapterBlockConfig in PciDeviceConfig
+  I2cAdapterBlockConfig validConfig;
+  validConfig.pmUnitScopedNamePrefix() = "SMB_I2C_ADAPTER";
+  validConfig.deviceName() = "i2c_adapter";
+  validConfig.csrOffsetCalc() = "0x1000 + {adapterIndex}*0x100";
+  validConfig.numAdapters() = 8;
+  validConfig.numBusesPerAdapter() = 4;
+  pciDevConfig.i2cAdapterBlockConfigs() = {validConfig};
+  EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+}

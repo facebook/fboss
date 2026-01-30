@@ -19,7 +19,6 @@ class SaiTajoPlatform : public SaiPlatform {
       std::unique_ptr<PlatformProductInfo> productInfo,
       std::unique_ptr<PlatformMapping> platformMapping,
       folly::MacAddress localMac);
-  ~SaiTajoPlatform() override;
 
   std::optional<SaiSwitchTraits::Attributes::AclFieldList> getAclFieldList()
       const override;

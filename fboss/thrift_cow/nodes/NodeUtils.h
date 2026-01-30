@@ -4,10 +4,8 @@
 
 #include "fboss/thrift_cow/nodes/Serializer.h"
 
-#include <fatal/type/enum.h>
 #include <folly/Conv.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
 
 namespace facebook::fboss::thrift_cow {
 

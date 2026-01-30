@@ -1740,6 +1740,26 @@ sai_status_t set_port_serdes_attribute_fn(
         return SAI_STATUS_INVALID_ATTRIBUTE_0;
       }
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    case SAI_PORT_SERDES_ATTR_TX_PRECODING:
+      fillVec(
+          portSerdes.txPrecoding,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.txPrecoding)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+    case SAI_PORT_SERDES_ATTR_RX_PRECODING:
+      fillVec(
+          portSerdes.rxPrecoding,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxPrecoding)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
     case SAI_PORT_SERDES_ATTR_CUSTOM_COLLECTION:
       portSerdes.serdesCustomCollection = std::string(
@@ -2174,6 +2194,24 @@ sai_status_t get_port_serdes_attribute_fn(
         copyVecToList(
             portSerdes.rxFfeLmsDynamicGatingEn, attr_list[i].value.s32list);
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      case SAI_PORT_SERDES_ATTR_TX_PRECODING:
+        if (!checkListSize(
+                attr_list[i].value.s32list, portSerdes.txPrecoding)) {
+          attr_list[i].value.s32list.count = portSerdes.txPrecoding.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.txPrecoding, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_RX_PRECODING:
+        if (!checkListSize(
+                attr_list[i].value.s32list, portSerdes.rxPrecoding)) {
+          attr_list[i].value.s32list.count = portSerdes.rxPrecoding.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.rxPrecoding, attr_list[i].value.s32list);
+        break;
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
       case SAI_PORT_SERDES_ATTR_CUSTOM_COLLECTION:
         if (portSerdes.serdesCustomCollection.size() >

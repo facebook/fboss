@@ -18,6 +18,10 @@ class BcmLogBuffer : public BcmFacebookAPI::LogListener {
  public:
   explicit BcmLogBuffer(size_t initialSize = 1024);
   ~BcmLogBuffer() override;
+  BcmLogBuffer(const BcmLogBuffer&) = delete;
+  BcmLogBuffer& operator=(const BcmLogBuffer&) = delete;
+  BcmLogBuffer(BcmLogBuffer&&) = delete;
+  BcmLogBuffer& operator=(BcmLogBuffer&&) = delete;
 
   void vprintf(const char* fmt, va_list varg) override;
 

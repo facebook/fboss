@@ -96,7 +96,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     std::vector<QsfpModule*> qsfpModules = getQsfpModules(multiTcvr);
     for (auto qsfpModule : qsfpModules) {
       MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(qsfpModule);
-      EXPECT_CALL(*mockXcvr, ensureTransceiverReadyLocked())
+      EXPECT_CALL(*mockXcvr, ensureTransceiverReadyLocked(testing::_))
           .WillRepeatedly(::testing::Return(isReady));
     }
   }
@@ -2550,7 +2550,7 @@ TEST_F(
       [this]() {
         // Make only tcvrId2_ present but not ready
         MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr2_);
-        EXPECT_CALL(*mockXcvr, ensureTransceiverReadyLocked())
+        EXPECT_CALL(*mockXcvr, ensureTransceiverReadyLocked(testing::_))
             .WillRepeatedly(::testing::Return(false));
       } /* preUpdate */,
       [this]() {

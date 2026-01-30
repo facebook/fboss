@@ -21,7 +21,6 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
   auto samplingInterval = flowletSwitchConfig->getDynamicSampleRate();
   sai_uint32_t randomSeed = kArsRandomSeed;
   auto portLoadPastWeight = flowletSwitchConfig->getDynamicEgressLoadExponent();
-  auto portLoadFutureWeight = flowletSwitchConfig->getDynamicQueueExponent();
   auto portLoadExponent =
       flowletSwitchConfig->getDynamicPhysicalQueueExponent();
   auto loadPastMinVal =
@@ -38,6 +37,17 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       flowletSwitchConfig->getDynamicQueueMinThresholdBytes() >> 1;
   auto loadCurrentMaxVal =
       flowletSwitchConfig->getDynamicQueueMaxThresholdBytes() >> 1;
+
+  std::optional<SaiArsProfileTraits::Attributes::PortLoadFuture> portLoadFuture{
+      std::nullopt};
+  std::optional<SaiArsProfileTraits::Attributes::PortLoadFutureWeight>
+      portLoadFutureWeight{std::nullopt};
+
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::ARS_FUTURE_PORT_LOAD)) {
+    portLoadFuture = true;
+    portLoadFutureWeight = flowletSwitchConfig->getDynamicQueueExponent();
+  }
 
   // Workarounds until 11.7 completely goes away and 13.0 is rolled out
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
@@ -85,7 +95,7 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       portLoadPastWeight,
       loadPastMinVal,
       loadPastMaxVal,
-      true,
+      portLoadFuture,
       portLoadFutureWeight,
       loadFutureMinVal,
       loadFutureMaxVal,

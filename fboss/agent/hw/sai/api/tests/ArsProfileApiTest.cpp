@@ -45,11 +45,13 @@ class ArsProfileApiTest : public ::testing::Test {
         arsProfileLoadPastMinValAttribute{kLoadPastMinVal()};
     SaiArsProfileTraits::Attributes::LoadPastMaxVal
         arsProfileLoadPastMaxValAttribute{kLoadPastMaxVal()};
-    SaiArsProfileTraits::Attributes::PortLoadFuture
-        arsProfilePortLoadFutureAttribute{true};
-    SaiArsProfileTraits::Attributes::PortLoadFutureWeight
+    std::optional<SaiArsProfileTraits::Attributes::PortLoadFuture>
+        arsProfilePortLoadFutureAttribute{
+            SaiArsProfileTraits::Attributes::PortLoadFuture{true}};
+    std::optional<SaiArsProfileTraits::Attributes::PortLoadFutureWeight>
         arsProfilePortLoadFutureWeightAttribute{
-            static_cast<uint8_t>(kFutureWeight())};
+            SaiArsProfileTraits::Attributes::PortLoadFutureWeight{
+                static_cast<uint8_t>(kFutureWeight())}};
     SaiArsProfileTraits::Attributes::LoadFutureMinVal
         arsProfileLoadFutureMinValAttribute{kLoadFutureMinVal()};
     SaiArsProfileTraits::Attributes::LoadFutureMaxVal

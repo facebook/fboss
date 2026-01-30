@@ -42,6 +42,10 @@ class BcmAclStat {
       BcmAclStatType type = BcmAclStatType::IFP,
       BcmAclStatActionIndex actionIndex = kDefaultAclActionIndex);
   ~BcmAclStat();
+  BcmAclStat(const BcmAclStat&) = delete;
+  BcmAclStat& operator=(const BcmAclStat&) = delete;
+  BcmAclStat(BcmAclStat&&) = delete;
+  BcmAclStat& operator=(BcmAclStat&&) = delete;
 
   BcmAclStatHandle getHandle() const {
     return handle_;

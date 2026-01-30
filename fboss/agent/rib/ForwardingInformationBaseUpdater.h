@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
@@ -26,12 +27,45 @@ class SwitchIdScopeResolver;
 
 class ForwardingInformationBaseUpdater {
  public:
+  /*
+   * Constructor with NextHopIDManager for clients that need ECMP NextHop ID
+   * allocation.
+   *
+   * The nextHopIDManager parameter is passed as const pointer
+   * even though this class internally modifies its state.
+   *
+   * In the long-term design, NextHop ID allocation
+   * will happen directly in the RIB layer, not in the FIB updater.
+   * The const interface reflects this intended ownership model where
+   * the FIB updater should ideally only read from the manager.
+   *
+   * During this temporary phase, we use const_cast
+   * internally to perform ID allocation/deallocation. This approach allows
+   * us to maintain a clean const interface while still enabling the
+   * temporary functionality needed before the RIB-based allocation is
+   * complete.
+   */
   ForwardingInformationBaseUpdater(
       const SwitchIdScopeResolver* resolver,
       RouterID vrf,
       const IPv4NetworkToRouteMap& v4NetworkToRoute,
       const IPv6NetworkToRouteMap& v6NetworkToRoute,
-      const LabelToRouteMap& labelToRoute);
+      const LabelToRouteMap& labelToRoute,
+      const NextHopIDManager* nextHopIDManager);
+
+  ForwardingInformationBaseUpdater(
+      const SwitchIdScopeResolver* resolver,
+      RouterID vrf,
+      const IPv4NetworkToRouteMap& v4NetworkToRoute,
+      const IPv6NetworkToRouteMap& v6NetworkToRoute,
+      const LabelToRouteMap& labelToRoute)
+      : ForwardingInformationBaseUpdater(
+            resolver,
+            vrf,
+            v4NetworkToRoute,
+            v6NetworkToRoute,
+            labelToRoute,
+            nullptr) {}
 
   std::shared_ptr<SwitchState> operator()(
       const std::shared_ptr<SwitchState>& state);
@@ -50,18 +84,30 @@ class ForwardingInformationBaseUpdater {
   createUpdatedFib(
       const facebook::fboss::NetworkToRouteMap<AddressT>& rib,
       const std::shared_ptr<
-          facebook::fboss::ForwardingInformationBase<AddressT>>& fib);
+          facebook::fboss::ForwardingInformationBase<AddressT>>& fib,
+      std::shared_ptr<SwitchState>& state,
+      NextHopIDManager* nextHopIDManager);
   std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase>
   createUpdatedLabelFib(
       const facebook::fboss::NetworkToRouteMap<LabelID>& rib,
       std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase>
           fib);
 
+  // Apply NextHopIDManager deltas to switch state FibInfo maps
+  void applyNextHopAllocationDelta(
+      const NextHopIDManager::NextHopAllocationResult& allocResult,
+      std::shared_ptr<SwitchState>& state,
+      NextHopIDManager* nextHopIDManager);
+  void applyNextHopDeallocationDelta(
+      const NextHopIDManager::NextHopDeallocationResult& deallocResult,
+      std::shared_ptr<SwitchState>& state);
+
   const SwitchIdScopeResolver* resolver_;
   RouterID vrf_;
   const IPv4NetworkToRouteMap& v4NetworkToRoute_;
   const IPv6NetworkToRouteMap& v6NetworkToRoute_;
   const LabelToRouteMap& labelToRoute_;
+  const NextHopIDManager* nextHopIDManager_;
   std::optional<StateDelta> lastDelta_;
 };
 
