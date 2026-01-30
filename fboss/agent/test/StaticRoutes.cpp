@@ -101,7 +101,7 @@ class StaticRouteTest : public ::testing::TestWithParam<bool> {
         RouterID(0), nw.toCidrNetwork(), this->sw_->getState());
   }
 
-  static ConfigApplier getConfigApplier(
+  ConfigApplier getConfigApplier(
       cfg::SwitchConfig& config,
       IPv4NetworkToRouteMap* v4Table,
       IPv6NetworkToRouteMap* v6Table,
@@ -132,7 +132,8 @@ class StaticRouteTest : public ::testing::TestWithParam<bool> {
             config.staticMplsRoutesToNull()->end()),
         folly::range(
             config.staticMplsRoutesToCPU()->begin(),
-            config.staticMplsRoutesToCPU()->end()));
+            config.staticMplsRoutesToCPU()->end()),
+        nullptr);
   }
 
  protected:
