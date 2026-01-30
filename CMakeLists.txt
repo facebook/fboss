@@ -1083,6 +1083,30 @@ add_dependencies(fboss2_targets
   fboss2-dev
 )
 
+if (SAI_IMPL OR BUILD_SAI_FAKE)
+  add_custom_target(fboss_forwarding_stack)
+  # Common forwarding services
+  add_dependencies(fboss_forwarding_stack
+    diag_shell_client
+    fboss2
+    fsdb
+    qsfp_service
+    wedge_qsfp_util
+  )
+
+  if (BUILD_SAI_FAKE)
+    add_dependencies(fboss_forwarding_stack
+      fboss_fake_agent_targets
+    )
+  else()
+    add_dependencies(fboss_forwarding_stack
+      fboss_hw_agent-sai_impl
+      fboss_sw_agent
+      wedge_agent-sai_impl
+    )
+  endif()
+endif()
+
 add_custom_target(fboss_other_services)
 add_dependencies(fboss_other_services
   qsfp_targets
@@ -1176,3 +1200,6 @@ if (GITHUB_ACTIONS_BUILD)
     fsdb_all_services
   )
 endif()
+
+# FBOSS Image Builder distro_cli tests
+include(cmake/FbossImageDistroCliTests.cmake)
