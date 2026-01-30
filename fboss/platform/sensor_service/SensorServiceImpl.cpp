@@ -426,11 +426,26 @@ void SensorServiceImpl::processInputVoltage(
   }
 
   publishDerivedStats(kMaxInputVoltage, maxVoltage);
+
+  // Determine input power type based on voltage
+  // AC if maxVoltage > kACVoltageThreshold, DC otherwise
+  // We only do this once as power input type should not change during the
+  // sensor service execution lifetime
+  if (maxVoltage && *maxVoltage > kMinVoltageThreshold &&
+      inputPowerType_ == kInputPowerTypeUnknown) {
+    inputPowerType_ = (*maxVoltage > kACVoltageThreshold) ? kInputPowerTypeAC
+                                                          : kInputPowerTypeDC;
+  }
+  publishDerivedStats(kInputPowerType, inputPowerType_);
+
   XLOG(INFO) << fmt::format(
-      "Max Input Voltage: {}V (Based on {}).  Processed: {}/{}",
+      "Max Input Voltage: {}V (Based on {}).  Processed: {}/{}.  Power Type: {}",
       maxVoltage.value_or(0),
       maxSensor.value_or("NONE"),
       inputVoltageSensors.size() - numFailures,
-      inputVoltageSensors.size());
+      inputVoltageSensors.size(),
+      inputPowerType_ == kInputPowerTypeUnknown
+          ? "Unknown"
+          : (inputPowerType_ == kInputPowerTypeDC ? "DC" : "AC"));
 }
 } // namespace facebook::fboss::platform::sensor_service

@@ -53,6 +53,25 @@ using folly::IPAddressV6;
 
 namespace facebook::fboss {
 
+namespace {
+template <typename AddressT>
+std::shared_ptr<Route<AddressT>> writableRoute(
+    typename NetworkToRouteMap<AddressT>::Iterator ritr) {
+  if (value<AddressT>(ritr)->isPublished()) {
+    value<AddressT>(ritr) = value<AddressT>(ritr)->clone();
+  }
+  return value<AddressT>(ritr);
+}
+
+template <typename AddressT>
+std::shared_ptr<Route<AddressT>> writableRoute(
+    std::shared_ptr<Route<AddressT>> route) {
+  if (route->isPublished()) {
+    route = route->clone();
+  }
+  return route;
+}
+} // namespace
 static const RoutePrefixV6 kIPv6LinkLocalPrefix{
     folly::IPAddressV6("fe80::"),
     64};
@@ -859,24 +878,6 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
                << " route " << route->str();
   }
   return updatedRoute ? updatedRoute : route;
-}
-
-template <typename AddressT>
-std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
-    typename NetworkToRouteMap<AddressT>::Iterator ritr) {
-  if (value<AddressT>(ritr)->isPublished()) {
-    value<AddressT>(ritr) = value<AddressT>(ritr)->clone();
-  }
-  return value<AddressT>(ritr);
-}
-
-template <typename AddressT>
-std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
-    std::shared_ptr<Route<AddressT>> route) {
-  if (route->isPublished()) {
-    route = route->clone();
-  }
-  return route;
 }
 
 template <typename AddressT>

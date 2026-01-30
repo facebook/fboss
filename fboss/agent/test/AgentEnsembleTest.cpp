@@ -52,7 +52,7 @@ void AgentEnsembleTest::setupAgentEnsemble(bool disableLinkStateToggler) {
       platformConfigFn_,
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
-      false /* failHwCallsOnWarmboot*/);
+      TestEnsembleInitInfo{.failHwCallsOnWarmboot = false});
   XLOG(DBG2) << "Agent has been setup and ready for the test";
 }
 

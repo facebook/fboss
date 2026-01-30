@@ -55,8 +55,11 @@ int getTrafficClassToEgressQueueId(const HwAsic* hwAsic, int trafficClass);
 
 int getAqmGranularThreshold(const HwAsic* asic, int value);
 
-cfg::ActiveQueueManagement
-GetEcnConfig(const HwAsic& asic, int minLength = 41600, int maxLength = 41600);
+cfg::ActiveQueueManagement GetEcnConfig(
+    const HwAsic& asic,
+    int minLength = 41600,
+    int maxLength = 41600,
+    int probability = 100);
 
 cfg::ActiveQueueManagement GetWredConfig(
     const HwAsic& asic,

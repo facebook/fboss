@@ -104,6 +104,7 @@ DECLARE_bool(prod_invariant_config_test);
 DECLARE_int32(max_unprocessed_switch_reachability_changes);
 DECLARE_bool(enable_ecmp_resource_manager);
 DECLARE_int32(ecmp_resource_manager_make_before_break_buffer);
+DECLARE_bool(enable_nexthop_id_manager);
 
 DECLARE_int32(update_stats_interval_s);
 DECLARE_bool(update_route_with_dlb_type);

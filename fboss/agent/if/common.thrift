@@ -140,6 +140,7 @@ enum SwitchRunState {
   CONFIGURED = 2,
   FIB_SYNCED = 3,
   EXITING = 4,
+  ROLLBACK = 5,
 }
 
 enum RemoteInterfaceType {

@@ -446,9 +446,12 @@ cpp_library(
     ],
     exported_deps = [
         ":agent_config-cpp2-types",
+        ":agent_features",
         ":fboss-error",
         ":load_agent_config",
         ":switch_config-cpp2-types",
+        ":voq_constants",
+        "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
 
