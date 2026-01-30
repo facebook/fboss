@@ -7474,7 +7474,7 @@
                 "upperCriticalVal": 0.95,
                 "lowerCriticalVal": 0.7
               },
-              "compute": "0.5*@/1000.0"
+              "compute": "@/1000.0"
             },
             {
               "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_POUT",
@@ -7534,7 +7534,7 @@
                 "upperCriticalVal": 0.95,
                 "lowerCriticalVal": 0.7
               },
-              "compute": "0.5*@/1000.0"
+              "compute": "@/1000.0"
             },
             {
               "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_POUT",
@@ -8130,7 +8130,7 @@
                 "upperCriticalVal": 0.95,
                 "lowerCriticalVal": 0.7
               },
-              "compute": "0.5*@/1000.0"
+              "compute": "@/1000.0"
             },
             {
               "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_POUT",
@@ -8190,7 +8190,7 @@
                 "upperCriticalVal": 0.95,
                 "lowerCriticalVal": 0.7
               },
-              "compute": "0.5*@/1000.0"
+              "compute": "@/1000.0"
             },
             {
               "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_POUT",
