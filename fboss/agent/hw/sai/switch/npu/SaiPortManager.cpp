@@ -1161,6 +1161,35 @@ void SaiPortManager::programSerdes(
     }
   }
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    SaiPortSerdesTraits::Attributes::RxPrecoding::ValueType rxPrecoding;
+    SaiPortSerdesTraits::Attributes::TxPrecoding::ValueType txPrecoding;
+    for (const auto& pinConfig : swPort->getPinConfigs()) {
+      if (auto rx = pinConfig.rx()) {
+        if (auto precoding = rx->precoding()) {
+          rxPrecoding.push_back(precoding.value());
+        }
+      }
+      if (auto tx = pinConfig.tx()) {
+        if (auto precoding = tx->precoding()) {
+          txPrecoding.push_back(precoding.value());
+        }
+      }
+    }
+    if (!rxPrecoding.empty()) {
+      SaiPortSerdesTraits::Attributes::RxPrecoding rxPrecodingAttr{rxPrecoding};
+      SaiApiTable::getInstance()->portApi().setAttribute(
+          portHandle->serdes->adapterKey(), rxPrecodingAttr);
+    }
+    if (!txPrecoding.empty()) {
+      SaiPortSerdesTraits::Attributes::TxPrecoding txPrecodingAttr{txPrecoding};
+      SaiApiTable::getInstance()->portApi().setAttribute(
+          portHandle->serdes->adapterKey(), txPrecodingAttr);
+    }
+  }
+#endif
 
   if (platform_->getAsic()->getAsicType() ==
           cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
