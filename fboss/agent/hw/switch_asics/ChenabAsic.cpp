@@ -235,7 +235,9 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
+    case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
       return false;
   }
   return false;
@@ -431,13 +433,13 @@ uint32_t ChenabAsic::getMaxVariableWidthEcmpSize() const {
   return 512;
 }
 uint32_t ChenabAsic::getMaxEcmpSize() const {
-  return 512;
+  return 128;
 }
 std::optional<uint32_t> ChenabAsic::getMaxEcmpGroups() const {
   return 4096;
 }
 std::optional<uint32_t> ChenabAsic::getMaxEcmpMembers() const {
-  return 32000;
+  return 64000;
 }
 uint32_t ChenabAsic::getNumCores() const {
   return 1;

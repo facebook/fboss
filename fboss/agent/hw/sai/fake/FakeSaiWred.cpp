@@ -44,6 +44,9 @@ sai_status_t set_wred_attribute_fn(
     case SAI_WRED_ATTR_ECN_GREEN_MAX_THRESHOLD:
       wred.setEcnGreenMaxThreshold(attr->value.u32);
       break;
+    case SAI_WRED_ATTR_ECN_GREEN_MARK_PROBABILITY:
+      wred.setEcnGreenMarkProbability(attr->value.u32);
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -65,6 +68,7 @@ sai_status_t create_wred_fn(
   std::optional<sai_int32_t> ecnMarkMode;
   std::optional<sai_uint32_t> ecnGreenMinThreshold;
   std::optional<sai_uint32_t> ecnGreenMaxThreshold;
+  std::optional<sai_uint32_t> ecnGreenMarkProbability;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -89,6 +93,9 @@ sai_status_t create_wred_fn(
       case SAI_WRED_ATTR_ECN_GREEN_MAX_THRESHOLD:
         ecnGreenMaxThreshold = attr_list[i].value.u32;
         break;
+      case SAI_WRED_ATTR_ECN_GREEN_MARK_PROBABILITY:
+        ecnGreenMarkProbability = attr_list[i].value.u32;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -107,7 +114,8 @@ sai_status_t create_wred_fn(
       greenDropProbability.value(),
       ecnMarkMode.value(),
       ecnGreenMinThreshold.value(),
-      ecnGreenMaxThreshold.value());
+      ecnGreenMaxThreshold.value(),
+      ecnGreenMarkProbability.value_or(100));
 
   return SAI_STATUS_SUCCESS;
 }
@@ -146,6 +154,9 @@ sai_status_t get_wred_attribute_fn(
         break;
       case SAI_WRED_ATTR_ECN_GREEN_MAX_THRESHOLD:
         attr_list[i].value.u32 = wred.getEcnGreenMaxThreshold();
+        break;
+      case SAI_WRED_ATTR_ECN_GREEN_MARK_PROBABILITY:
+        attr_list[i].value.u32 = wred.getEcnGreenMarkProbability();
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;

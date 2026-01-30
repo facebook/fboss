@@ -147,7 +147,11 @@ sai_service_method_table_t* SaiPhyPlatform::getServiceMethodTable() const {
 
 const std::set<sai_api_t>& SaiPhyPlatform::getSupportedApiList() const {
   XLOG(DBG5) << __func__ << ": Called for phyId=" << phyId_;
-  return getDefaultPhyAsicSupportedApis();
+  static const std::set<sai_api_t> kSupportedPhyApiList = {
+      facebook::fboss::PortApi::ApiType,
+      facebook::fboss::SwitchApi::ApiType,
+  };
+  return kSupportedPhyApiList;
 }
 
 void SaiPhyPlatform::initSaiProfileValues(bool warmboot) {

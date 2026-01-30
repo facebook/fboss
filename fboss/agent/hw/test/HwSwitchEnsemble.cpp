@@ -630,7 +630,7 @@ void HwSwitchEnsemble::setupEnsemble(
     std::unique_ptr<HwAgent> hwAgent,
     std::unique_ptr<LinkStateToggler> linkToggler,
     std::unique_ptr<std::thread> thriftThread,
-    const HwSwitchEnsembleInitInfo& initInfo) {
+    const TestEnsembleInitInfo& initInfo) {
   hwAgent_ = std::move(hwAgent);
   linkToggler_ = std::move(linkToggler);
   auto asic = getPlatform()->getAsic();
