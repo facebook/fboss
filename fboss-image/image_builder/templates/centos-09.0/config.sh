@@ -66,7 +66,45 @@ systemctl enable fsdb.service
 systemctl enable qsfp_service.service
 systemctl enable wedge_agent.service
 
-# 6. Done! Cleanup, remember that we are chrooted on the rootfs
+# 6. Use system GRUB 2.06 from packages
+# The grub2-efi-x64 package already provides grubx64.efi with all necessary modules
+# We just need to make sure the btrfs module is accessible on the EFI partition
+echo "Using system GRUB 2.06 from grub2-efi-x64 package..."
+
+# Clean up any old GRUB module directories from any previous builds
+# (The grub2-efi-x64 package creates /boot/grub2/ and /boot/efi/EFI/ but not the module directories)
+echo "Cleaning up old GRUB module directories..."
+rm -rf /boot/grub/x86_64-efi /boot/grub2/x86_64-efi
+echo "Old GRUB module directories cleaned"
+
+# Copy GRUB modules to multiple locations
+# EFI partition structure: (hd0,gpt2)/efi/centos/x86_64-efi/ and (hd0,gpt2)/efi/boot/x86_64-efi/
+# During build, EFI partition is mounted at /boot/efi/, so:
+#   (hd0,gpt2)/efi/centos/x86_64-efi/ -> /boot/efi/efi/centos/x86_64-efi/
+#   (hd0,gpt2)/efi/boot/x86_64-efi/ -> /boot/efi/efi/boot/x86_64-efi/
+#
+# Essential modules needed for early boot (to find and mount btrfs root) dependency tree:
+#   btrfs -> zstd, lzopio, extcmd, raid6rec, gzio
+#   lzopio -> crypto
+#   raid6rec -> diskfilter
+#   gzio -> gcry_crc, crypto
+ESSENTIAL_MODULES="btrfs.mod zstd.mod lzopio.mod extcmd.mod raid6rec.mod gzio.mod crypto.mod diskfilter.mod gcry_crc.mod"
+
+# Copy essential modules to EFI partition locations
+for efi_dir in /boot/efi/efi/centos/x86_64-efi /boot/efi/efi/boot/x86_64-efi; do
+  mkdir -p "$efi_dir"
+  for mod in $ESSENTIAL_MODULES; do
+    cp /usr/lib/grub/x86_64-efi/$mod "$efi_dir/" 2>/dev/null || echo "Warning: $mod not found"
+  done
+  echo "Copied essential GRUB modules to $efi_dir (EFI partition)"
+done
+
+# Copy ALL modules to root partition (plenty of space there)
+mkdir -p /boot/grub2/x86_64-efi
+cp -r /usr/lib/grub/x86_64-efi/* /boot/grub2/x86_64-efi/
+echo "Copied all GRUB modules to /boot/grub2/x86_64-efi/ (root partition)"
+
+# 7. Done! Cleanup, remember that we are chrooted on the rootfs
 echo "Removing kernel rpms from rootfs..."
 rm -f /repos/*.rpm
 rmdir /repos

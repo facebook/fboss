@@ -21,6 +21,7 @@ DESCRIPTION_DIR="${WSROOT}/templates/centos-09.0"
 TARGET_DIR="${WSROOT}/output"
 BUILD_PXE=""
 BUILD_ONIE=""
+KIWI_DEBUG=""
 
 # User configurable variables (fboss tarfile and kernel rpm directory)
 FBOSS_TARFILE=""
@@ -39,6 +40,7 @@ help() {
   echo "  -p|--build-pxe-usb          Build PXE and USB installers image (default: no)"
   echo "  -o|--build-onie             Build ONIE installer image (default: no)"
   echo ""
+  echo "  -d|--debug                  Enable kiwi-ng debug"
   echo "  -h|--help                   Print this help message"
   echo ""
 }
@@ -150,6 +152,11 @@ while [[ $# -gt 0 ]]; do
 
   -o | --build-onie)
     BUILD_ONIE="yes"
+    shift 1
+    ;;
+
+  -d | --debug)
+    KIWI_DEBUG=" --debug "
     shift 1
     ;;
 

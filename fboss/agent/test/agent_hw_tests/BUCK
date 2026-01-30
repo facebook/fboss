@@ -90,6 +90,7 @@ cpp_library(
         "AgentTrunkTests.cpp",
         "AgentTunnelMgrTests.cpp",
         "AgentVoqConditionalEntropyTests.cpp",
+        "AgentVoqSwitchFabricLinkMonitoringTests.cpp",
         "AgentVoqSwitchFirmwareTests.cpp",
         "AgentVoqSwitchFullScaleDsfTests.cpp",
         "AgentVoqSwitchInterruptsTests.cpp",
@@ -101,6 +102,7 @@ cpp_library(
     ],
     headers = [
         "AgentArsBase.h",
+        "AgentVoqSwitchFabricLinkMonitoringTests.h",
     ],
     link_whole = True,
     exported_deps = [

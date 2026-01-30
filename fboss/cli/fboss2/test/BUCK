@@ -173,7 +173,7 @@ cpp_binary(
     ],
     deps = [
         "//fboss/agent/if:ctrl-cpp2-services",
-        "//fboss/lib:thrift_service_utils_oss",
+        "//fboss/lib:thrift_service_utils_oss",  # @manual
         "//folly/init:init",
         "//folly/io/async:async_base",
         "//folly/io/async:epoll",
