@@ -446,9 +446,12 @@ cpp_library(
     ],
     exported_deps = [
         ":agent_config-cpp2-types",
+        ":agent_features",
         ":fboss-error",
         ":load_agent_config",
         ":switch_config-cpp2-types",
+        ":voq_constants",
+        "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
 
@@ -941,6 +944,7 @@ cpp_library(
         "facebook/ScubaRouteLogger.h",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         "fbsource//third-party/googletest:gtest",
         "fbsource//third-party/re2:re2",
         ":address_utils",
@@ -1092,7 +1096,6 @@ cpp_library(
     exported_external_deps = [
         "boost",
         "gflags",
-        "glog",
         ("boost", None, "boost_container"),
         ("iproute2", None, "netlink"),
         ("libnl", None, "nl-route-3"),
