@@ -26,6 +26,9 @@ auto constexpr kFanReadRpmFailure = "{}.rpm_read.failure";
 auto constexpr kFanReadRpmValue = "{}.rpm_read.value";
 auto constexpr kSensorReadFailure = "{}.sensor_read.failure";
 auto constexpr kSensorReadValue = "{}.sensor_read.value";
+auto constexpr kOpticsReadMaxValue = "{}.optics_read.max.value";
+auto constexpr kOpticsPwmValue = "{}.optics_pwm.value";
+auto constexpr kOpticsAggPwmValue = "agg.optics_pwm.value";
 auto constexpr kLedWriteFailure = "{}.led_write.failure";
 auto constexpr kFanFailThresholdInSec = 300;
 auto constexpr kSensorFailThresholdInSec = 300;
@@ -355,15 +358,22 @@ void ControlLogic::getOpticsUpdate() {
           maxTempTxvrId,
           pwmForThis);
 
+      fb303::fbData->setCounter(
+          fmt::format(kOpticsReadMaxValue, opticType), maxTemp);
+      fb303::fbData->setCounter(
+          fmt::format(kOpticsPwmValue, opticType), pwmForThis);
+
       if (pwmForThis > aggOpticPwm) {
         aggOpticPwm = pwmForThis;
       }
     }
 
     XLOG(INFO) << fmt::format(
-        "Optics: Aggregation Type: {}. Aggregate PWM is {}",
+        "Optics: {}. Aggregation Type: {}. Aggregate PWM is {}",
+        opticName,
         aggregationType,
         aggOpticPwm);
+    fb303::fbData->setCounter(kOpticsAggPwmValue, aggOpticPwm);
     opticReadCaches_[opticName] = aggOpticPwm;
     pSensor_->updateOpticDataProcessingTimestamp(
         opticName, opticEntry->qsfpServiceTimeStamp);
