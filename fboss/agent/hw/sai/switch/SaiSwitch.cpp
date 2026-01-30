@@ -798,7 +798,11 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
   // reuse and correctness
   try {
     CoarseGrainedLockPolicy lockPolicy(saiSwitchMutex_);
-
+    // unregister callbacks to prevent sdk call backs from interfering the
+    // rollback
+    auto preRollbackSwitchRunState = getSwitchRunState();
+    switchRunStateChangedImplLocked(
+        lockPolicy.lock(), SwitchRunState::ROLLBACK);
     auto hwSwitchJson = toFollyDynamicLocked(lockPolicy.lock());
     {
       HwWriteBehaviorRAII writeBehavior{HwWriteBehavior::SKIP};
@@ -844,6 +848,16 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
     saiStore_->removeUnexpectedUnclaimedWarmbootHandles();
     bootType_ = curBootType;
     rollbackInProgress_ = false;
+    for (const auto& value :
+         apache::thrift::TEnumTraits<SwitchRunState>::values) {
+      // transition through all switch run states until pre-rollback run state
+      // is reached. this will register all appropriate callbacks which were
+      // unregistered
+      if (value > preRollbackSwitchRunState) {
+        continue;
+      }
+      switchRunStateChangedImplLocked(lockPolicy.lock(), value);
+    }
   } catch (const std::exception& ex) {
     // Rollback failed. Fail hard.
     XLOG(FATAL) << " Roll back failed with : " << ex.what();
@@ -4403,6 +4417,10 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       }
 #endif
     } break;
+    case SwitchRunState::ROLLBACK:
+      // rolling back
+      unregisterCallbacksLocked(lock);
+      break;
     default:
       break;
   }
