@@ -111,6 +111,7 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
         static_cast<uint32_t>(swInterface->getMtu()));
   }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   // Enable MPLS admin state if supported
   std::optional<SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState>
       adminMplsStateAttribute = std::nullopt;
@@ -118,6 +119,7 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
     adminMplsStateAttribute =
         SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState(true);
   }
+#endif
 
   // create the router interface
   SaiVlanRouterInterfaceTraits::CreateAttributes attributes{
@@ -125,8 +127,12 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
       typeAttribute,
       vlanIdAttribute,
       srcMacAttribute,
-      mtuAttribute,
-      adminMplsStateAttribute};
+      mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      ,
+      adminMplsStateAttribute
+#endif
+  };
   SaiVlanRouterInterfaceTraits::AdapterHostKey k{
       virtualRouterIdAttribute,
       vlanIdAttribute,
@@ -188,6 +194,7 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
       ? getSystemPortId(swInterface)
       : getPortId(swInterface);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   // Enable MPLS admin state if supported
   std::optional<SaiPortRouterInterfaceTraits::Attributes::AdminMplsState>
       adminMplsStateAttribute = std::nullopt;
@@ -195,6 +202,7 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
     adminMplsStateAttribute =
         SaiPortRouterInterfaceTraits::Attributes::AdminMplsState(true);
   }
+#endif
 
   // create the router interface
   SaiPortRouterInterfaceTraits::CreateAttributes attributes{
@@ -202,8 +210,12 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
       typeAttribute,
       portIdAttribute,
       srcMacAttribute,
-      mtuAttribute,
-      adminMplsStateAttribute};
+      mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      ,
+      adminMplsStateAttribute
+#endif
+  };
   SaiPortRouterInterfaceTraits::AdapterHostKey k{
       virtualRouterIdAttribute,
       portIdAttribute,
