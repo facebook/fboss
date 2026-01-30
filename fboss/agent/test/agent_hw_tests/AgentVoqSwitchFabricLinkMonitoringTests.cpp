@@ -21,6 +21,7 @@ constexpr int kFabricPortsPerSwitch = 4;
 constexpr int kTotalFabricPorts = kNumFabricSwitches * kFabricPortsPerSwitch;
 constexpr int kFabricLinkMonitoringSystemPortOffset = -480;
 constexpr int64_t kFabricSwitchIdStart = 512;
+constexpr int64_t kMinCounterIncrement = 3;
 
 int64_t getFabricSwitchId(int fabricSwitchIndex) {
   return kFabricSwitchIdStart + (fabricSwitchIndex * 4);
@@ -44,6 +45,66 @@ void addFabricDsfNode(
   node.platformType() = platformType;
   node.asicType() = asicType;
   (*config.dsfNodes())[switchId] = node;
+}
+
+// Collect initial fabric link monitoring stats from PortStats
+// Returns a map of portID -> {txCount, rxCount}
+std::map<PortID, std::pair<int64_t, int64_t>> collectInitialStats(
+    SwSwitch* sw,
+    const std::vector<PortID>& fabricPorts,
+    size_t numPortsToCheck) {
+  std::map<PortID, std::pair<int64_t, int64_t>> initialStats;
+
+  for (size_t i = 0; i < numPortsToCheck; i++) {
+    const auto& portId = fabricPorts[i];
+    auto* portStat = sw->portStats(portId);
+    CHECK(portStat) << "PortStats should exist for port " << portId;
+
+    int64_t txCount = portStat->getFabricLinkMonitoringTxPackets();
+    int64_t rxCount = portStat->getFabricLinkMonitoringRxPackets();
+
+    initialStats[portId] = {txCount, rxCount};
+  }
+  return initialStats;
+}
+
+bool allPortsHaveIncrementedCounters(
+    SwSwitch* sw,
+    const std::vector<PortID>& fabricPorts,
+    const std::map<PortID, std::pair<int64_t, int64_t>>& initialStats,
+    size_t numPortsToCheck) {
+  auto state = sw->getState();
+
+  for (size_t i = 0; i < numPortsToCheck; i++) {
+    auto portId = fabricPorts[i];
+    auto port = state->getPorts()->getNodeIf(portId);
+    CHECK(port) << "Port " << portId << " should exist in state";
+    auto portName = port->getName();
+
+    auto it = initialStats.find(portId);
+    CHECK(it != initialStats.end())
+        << "Port " << portId << " should exist in initialStats";
+    auto [initialTx, initialRx] = it->second;
+
+    // Get current fabric link monitoring counters from PortStats
+    auto* portStat = sw->portStats(portId);
+    CHECK(portStat) << "PortStats should exist for port " << portId;
+
+    int64_t currentTx = portStat->getFabricLinkMonitoringTxPackets();
+    int64_t currentRx = portStat->getFabricLinkMonitoringRxPackets();
+
+    int64_t txIncrement = currentTx - initialTx;
+    int64_t rxIncrement = currentRx - initialRx;
+
+    XLOG(DBG3) << "Port " << portName << ": TX increment=" << txIncrement
+               << ", RX increment=" << rxIncrement;
+
+    if (txIncrement < kMinCounterIncrement ||
+        rxIncrement < kMinCounterIncrement) {
+      return false;
+    }
+  }
+  return true;
 }
 
 } // namespace
@@ -127,6 +188,35 @@ void AgentVoqSwitchFabricLinkMonitoringTest::addFabricLinkMonitoringDsfNodes(
 
     fabricPortIndex++;
   }
+}
+
+TEST_F(AgentVoqSwitchFabricLinkMonitoringTest, validateFabricLinkMonitoring) {
+  auto setup = []() {};
+  auto verify = [this]() {
+    auto fabricPorts = masterLogicalFabricPortIds();
+    if (fabricPorts.empty()) {
+      XLOG(WARNING) << "No fabric ports found, skipping verification";
+      return;
+    }
+
+    size_t numPortsToCheck =
+        std::min(fabricPorts.size(), static_cast<size_t>(kTotalFabricPorts));
+
+    // Collect initial stats from PortStats fb303 counters
+    // (fabric_link_monitoring_tx_packets and fabric_link_monitoring_rx_packets)
+    auto initialStats =
+        collectInitialStats(getSw(), fabricPorts, numPortsToCheck);
+
+    WITH_RETRIES({
+      getSw()->updateStats();
+      EXPECT_EVENTUALLY_TRUE(allPortsHaveIncrementedCounters(
+          getSw(), fabricPorts, initialStats, numPortsToCheck))
+          << "Waiting for fabric_link_monitoring_tx_packets/rx_packets "
+          << "counters to increment by at least " << kMinCounterIncrement
+          << " on all " << numPortsToCheck << " fabric ports";
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
