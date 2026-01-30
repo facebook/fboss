@@ -544,6 +544,15 @@ void SaiPortManager::attributesFromSaiStore(
         attributes,
         SaiPortTraits::Attributes::DisableTtlDecrement{});
   }
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  // FabricSystemPort is only applicable for fabric ports
+  if (GET_ATTR(Port, Type, attributes) == SAI_PORT_TYPE_FABRIC) {
+    getAndSetAttribute(
+        port->attributes(),
+        attributes,
+        SaiPortTraits::Attributes::FabricSystemPort{});
+  }
+#endif
 }
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
