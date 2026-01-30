@@ -66,6 +66,7 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_MTU,
   OBJECT_ARG_TYPE_ID_INTERFACE_LIST,
   OBJECT_ARG_TYPE_ID_REVISION_LIST,
+  OBJECT_ARG_TYPE_ID_BUFFER_POOL_NAME,
 };
 
 template <typename T>

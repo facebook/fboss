@@ -17,6 +17,8 @@
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h"
+#include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
+#include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
@@ -55,6 +57,20 @@ const CommandTree& kConfigCommandTree() {
                commandHandler<CmdConfigInterfaceMtu>,
                argTypeHandler<CmdConfigInterfaceMtuTraits>,
            }},
+      },
+
+      {
+          "config",
+          "qos",
+          "Configure QoS settings",
+          commandHandler<CmdConfigQos>,
+          argTypeHandler<CmdConfigQosTraits>,
+          {{
+              "buffer-pool",
+              "Configure buffer pool settings",
+              commandHandler<CmdConfigQosBufferPool>,
+              argTypeHandler<CmdConfigQosBufferPoolTraits>,
+          }},
       },
 
       {
