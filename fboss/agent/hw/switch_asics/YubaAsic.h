@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/impl/util.h"
 #include "fboss/agent/hw/switch_asics/TajoAsic.h"
 
 namespace facebook::fboss {
@@ -23,6 +24,9 @@ class YubaAsic : public TajoAsic {
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
       : TajoAsic(switchId, switchInfo, sdkVersion, {cfg::SwitchType::NPU}) {
     HwAsic::setDefaultStreamType(cfg::StreamType::UNICAST);
+    if (sdkVersion.has_value() && sdkVersion->asicSdk().has_value()) {
+      currentSdkVersion_ = getAsicSdkVersion(sdkVersion->asicSdk().value());
+    }
   }
   bool isSupported(Feature feature) const override {
     return getSwitchType() != cfg::SwitchType::FABRIC
@@ -169,12 +173,19 @@ class YubaAsic : public TajoAsic {
   }
 
   cfg::IpTunnelMode getTunnelDscpMode() const override {
-    return cfg::IpTunnelMode::UNIFORM;
+    auto uniformDscpModeSdkVersion = getAsicSdkVersion("24.8.3001");
+    // PIPE mode for YUBA ASIC is supported in SDK > 24.8.3001
+    if (currentSdkVersion_.has_value() &&
+        currentSdkVersion_ <= uniformDscpModeSdkVersion) {
+      return cfg::IpTunnelMode::UNIFORM;
+    }
+    return cfg::IpTunnelMode::PIPE;
   }
 
  private:
   bool isSupportedFabric(Feature feature) const;
   bool isSupportedNonFabric(Feature feature) const;
+  std::optional<uint64_t> currentSdkVersion_{std::nullopt};
 };
 
 } // namespace facebook::fboss

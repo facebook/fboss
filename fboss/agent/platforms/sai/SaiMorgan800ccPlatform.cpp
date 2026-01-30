@@ -32,7 +32,12 @@ void SaiMorgan800ccPlatform::setupAsic(
     const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(!fabricNodeRole.has_value());
-  asic_ = std::make_unique<YubaAsic>(switchId, switchInfo);
+  std::optional<cfg::SdkVersion> sdkVersion;
+  auto agentConfig = config();
+  if (agentConfig->thrift.sw()->sdkVersion().has_value()) {
+    sdkVersion = agentConfig->thrift.sw()->sdkVersion().value();
+  }
+  asic_ = std::make_unique<YubaAsic>(switchId, switchInfo, sdkVersion);
   asic_->setDefaultStreamType(cfg::StreamType::UNICAST);
 }
 
