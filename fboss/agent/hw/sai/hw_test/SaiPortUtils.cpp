@@ -262,7 +262,8 @@ void verifyTxSettting(
     pre2 = portApi.getAttribute(
         serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPre2{});
     EXPECT_EQ(pre2, GET_OPT_ATTR(PortSerdes, TxFirPre2, expectedTx));
-    if (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
+        asicType != cfg::AsicType::ASIC_TYPE_YUBA) {
       post2 = portApi.getAttribute(
           serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost2{});
       post3 = portApi.getAttribute(
@@ -276,13 +277,35 @@ void verifyTxSettting(
   EXPECT_EQ(pre.size(), txSettings.size());
   for (int i = 0; i < txSettings.size(); ++i) {
     auto expectedTxFromPin = txSettings[i];
-    EXPECT_EQ(pre[i], expectedTxFromPin.pre());
-    EXPECT_EQ(main[i], expectedTxFromPin.main());
-    EXPECT_EQ(post[i], expectedTxFromPin.post());
+
+    // YUBA platform uses firPre1/firMain/firPost1 fields in Thrift,
+    // while other platforms use pre/main/post fields
+    if (asicType == cfg::AsicType::ASIC_TYPE_YUBA) {
+      // YUBA/Leaba ASICs use FIR-specific fields
+      auto firPre1 = *expectedTxFromPin.firPre1();
+      auto firMain = *expectedTxFromPin.firMain();
+      auto firPost1 = *expectedTxFromPin.firPost1();
+      EXPECT_EQ(pre[i], static_cast<sai_uint32_t>(firPre1));
+      EXPECT_EQ(main[i], static_cast<sai_uint32_t>(firMain));
+      EXPECT_EQ(post[i], static_cast<sai_uint32_t>(firPost1));
+    } else {
+      // Standard platforms use standard fields
+      EXPECT_EQ(pre[i], expectedTxFromPin.pre());
+      EXPECT_EQ(main[i], expectedTxFromPin.main());
+      EXPECT_EQ(post[i], expectedTxFromPin.post());
+    }
     if (saiPlatform->getAsic()->isSupported(
             HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
-      EXPECT_EQ(pre2[i], expectedTxFromPin.pre2());
-      if (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // YUBA uses firPre2 field, others use pre2
+      if (asicType == cfg::AsicType::ASIC_TYPE_YUBA) {
+        auto firPre2 = *expectedTxFromPin.firPre2();
+        EXPECT_EQ(pre2[i], static_cast<sai_uint32_t>(firPre2));
+      } else {
+        EXPECT_EQ(pre2[i], expectedTxFromPin.pre2());
+      }
+      // POST2/POST3 only for non-CHENAB and non-YUBA platforms
+      if (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
+          asicType != cfg::AsicType::ASIC_TYPE_YUBA) {
         EXPECT_EQ(post2[i], expectedTxFromPin.post2());
         EXPECT_EQ(post3[i], expectedTxFromPin.post3());
       }
