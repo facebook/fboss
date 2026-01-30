@@ -312,9 +312,11 @@ void ControlLogic::getOpticsUpdate() {
 
         if (tablePointer) {
           float maxTemp = 0.0;
+          int maxTempTxvrId = -1;
           for (const auto& opticData : opticDataList) {
             if (opticData.temp > maxTemp) {
               maxTemp = opticData.temp;
+              maxTempTxvrId = opticData.txvrId;
             }
           }
 
@@ -325,9 +327,10 @@ void ControlLogic::getOpticsUpdate() {
             }
           }
           XLOG(INFO) << fmt::format(
-              "{}: Max optic temp is {}. PWM is {}",
+              "{}: Max optic temp is {} from txvr {}. PWM is {}",
               opticType,
               maxTemp,
+              maxTempTxvrId,
               pwmForThis);
         }
         if (pwmForThis > aggOpticPwm) {
@@ -340,9 +343,11 @@ void ControlLogic::getOpticsUpdate() {
             constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
       for (const auto& [opticType, opticDataList] : opticEntry->data) {
         float maxTemp = 0.0;
+        int maxTempTxvrId = -1;
         for (const auto& opticData : opticDataList) {
           if (opticData.temp > maxTemp) {
             maxTemp = opticData.temp;
+            maxTempTxvrId = opticData.txvrId;
           }
         }
 
@@ -356,6 +361,12 @@ void ControlLogic::getOpticsUpdate() {
 
         std::string cacheKey = opticName + opticType;
         float pwm = pidLogics_.at(cacheKey)->calculatePwm(maxTemp);
+        XLOG(INFO) << fmt::format(
+            "{}: Max optic temp is {} from txvr {}. PWM is {}",
+            opticType,
+            maxTemp,
+            maxTempTxvrId,
+            pwm);
         if (pwm > aggOpticPwm) {
           aggOpticPwm = pwm;
         }
