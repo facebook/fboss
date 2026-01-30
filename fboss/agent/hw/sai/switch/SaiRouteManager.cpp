@@ -209,17 +209,29 @@ void SaiRouteManager::addOrUpdateRoute(
         CHECK(!systemPortRanges.systemPortRanges()->empty());
         if (!withinRange(systemPortRanges, interfaceId)) {
           packetAction = SAI_PACKET_ACTION_DROP;
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-          attributes = SaiRouteTraits::CreateAttributes{
-              packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
-#else
-          attributes = SaiRouteTraits::CreateAttributes{
-              packetAction, SAI_NULL_OBJECT_ID, metadata};
-#endif
+        }
+      } else if (
+          platform_->getAsic()->getSwitchType() == cfg::SwitchType::NPU) {
+        /* Set connected routes to drop if the interface is not on the same
+         * asic for multi-NPU switches.
+         * TODO - Selectively add routes with nexthop interfaces on the same
+         * asic, associate different ranges of interfaceIDs with each NPU.
+         */
+        if (!managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
+                interfaceId)) {
+          packetAction = SAI_PACKET_ACTION_DROP;
         }
       }
 
-      if (packetAction != SAI_PACKET_ACTION_DROP) {
+      if (packetAction == SAI_PACKET_ACTION_DROP) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
+#else
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, SAI_NULL_OBJECT_ID, metadata};
+#endif
+      } else {
         const SaiRouterInterfaceHandle* routerInterfaceHandle =
             managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
                 interfaceId);

@@ -423,7 +423,9 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.cpp
   fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h
+  fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.cpp
   fboss/cli/fboss2/commands/show/l2/CmdShowL2.h
+  fboss/cli/fboss2/commands/show/l2/CmdShowL2.cpp
   fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h
   fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.cpp
   fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h
@@ -431,15 +433,18 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/port/CmdShowPort.h
   fboss/cli/fboss2/commands/show/port/CmdShowPort.cpp
   fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h
+  fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.cpp
   fboss/cli/fboss2/commands/show/product/CmdShowProduct.h
   fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h
   fboss/cli/fboss2/commands/show/route/utils.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h
   fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h
   fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h
+  fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.cpp
   fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h
   fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.cpp
   fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h
+  fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.cpp
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
   fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h
@@ -468,6 +473,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.cpp
   fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
+  fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.cpp
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
   fboss/cli/fboss2/CmdSubcommands.cpp
@@ -496,14 +502,17 @@ add_library(fboss2_lib
 target_link_libraries(fboss2_lib
   CLI11::CLI11
   tabulate::tabulate
+  data_corral_service_cpp2
   fb303_cpp2
   ctrl_cpp2
+  fan_service_cpp2
   hw_ctrl_cpp2
   qsfp_cpp2
   phy_cpp2
   led_service_types_cpp2
   hardware_stats_cpp2
   mka_structs_cpp2
+  rackmon_cpp2
   fsdb_cpp2
   fsdb_oper_cpp2
   fsdb_model_cpp2
@@ -577,6 +586,11 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.cpp
   fboss/cli/fboss2/commands/config/CmdConfigReload.h
   fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.cpp
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.cpp
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.cpp
   fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h
@@ -587,6 +601,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.cpp
   fboss/cli/fboss2/session/ConfigSession.h
   fboss/cli/fboss2/session/ConfigSession.cpp
+  fboss/cli/fboss2/utils/InterfaceList.h
+  fboss/cli/fboss2/utils/InterfaceList.cpp
   fboss/cli/fboss2/CmdListConfig.cpp
   fboss/cli/fboss2/CmdHandlerImplConfig.cpp
 )

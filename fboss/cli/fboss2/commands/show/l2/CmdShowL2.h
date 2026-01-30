@@ -11,13 +11,9 @@
 #pragma once
 
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
-#include "fboss/cli/fboss2/utils/Table.h"
 
 namespace facebook::fboss {
-
-using utils::Table;
 
 struct CmdShowL2Traits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
@@ -30,13 +26,9 @@ class CmdShowL2 : public CmdHandler<CmdShowL2, CmdShowL2Traits> {
  public:
   using RetType = CmdShowL2Traits::RetType;
 
-  RetType queryClient(const HostInfo& hostInfo) {
-    return "Please run \"show mac details\" for L2 entries.";
-  }
+  RetType queryClient(const HostInfo& hostInfo);
 
-  void printOutput(const RetType& message, std::ostream& out = std::cout) {
-    out << message << std::endl;
-  }
+  void printOutput(const RetType& message, std::ostream& out = std::cout);
 };
 
 } // namespace facebook::fboss

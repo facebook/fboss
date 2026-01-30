@@ -39,6 +39,12 @@ class SensorServiceImpl {
   auto static constexpr kAsicTemp = "asic_temp";
   auto static constexpr kTotalPower = "TOTAL_POWER";
   auto static constexpr kMaxInputVoltage = "MAX_INPUT_VOLTAGE";
+  auto static constexpr kInputPowerType = "INPUT_POWER_TYPE";
+  static constexpr int kInputPowerTypeUnknown = 0;
+  static constexpr int kInputPowerTypeDC = 1;
+  static constexpr int kInputPowerTypeAC = 2;
+  static constexpr float kACVoltageThreshold = 80.0f;
+  static constexpr float kMinVoltageThreshold = 9.0f;
   auto static constexpr kDerivedFailure = "derived.{}.failure";
   auto static constexpr kDerivedValue = "derived.{}.value";
   auto static constexpr kPmUnitVersion = "pmunit.{}.version.{}.{}.{}";
@@ -104,6 +110,7 @@ class SensorServiceImpl {
   std::shared_ptr<Utils> utils_{};
   std::shared_ptr<PlatformUtils> platformUtils_{};
   PmUnitInfoFetcher pmUnitInfoFetcher_{};
+  int inputPowerType_{kInputPowerTypeUnknown};
 };
 
 } // namespace facebook::fboss::platform::sensor_service

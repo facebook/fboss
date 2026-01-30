@@ -74,8 +74,7 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
     return 64;
   }
   uint32_t getPacketBufferUnitSize() const override {
-    // TODO: update numbers if necessary
-    return 254;
+    return 420;
   }
   uint32_t getPacketBufferDescriptorSize() const override {
     // TODO: update numbers if necessary
@@ -101,6 +100,9 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
   }
   uint32_t getNumMemoryBuffers() const override {
     return 1;
+  }
+  std::optional<uint32_t> getMaxNdpTableSize() const override {
+    return 8192;
   }
   std::optional<uint32_t> getMaxArsGroups() const override;
   std::optional<uint32_t> getArsBaseIndex() const override;

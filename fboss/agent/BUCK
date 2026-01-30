@@ -289,6 +289,7 @@ cpp_library(
         "//fb303:export_type",
         "//fb303:service_data",
         "//fboss/lib:thrift_method_rate_limit",
+        "//fboss/lib:thrift_service_utils",
         "//folly:network_address",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
@@ -445,9 +446,12 @@ cpp_library(
     ],
     exported_deps = [
         ":agent_config-cpp2-types",
+        ":agent_features",
         ":fboss-error",
         ":load_agent_config",
         ":switch_config-cpp2-types",
+        ":voq_constants",
+        "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
 
@@ -713,6 +717,7 @@ cpp_library(
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/agent/rib:fib_updater",
         "//fboss/agent/rib:network_to_route_map",
+        "//fboss/agent/rib:nexthop_id_manager",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_utils",
@@ -939,6 +944,7 @@ cpp_library(
         "facebook/ScubaRouteLogger.h",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         "fbsource//third-party/googletest:gtest",
         "fbsource//third-party/re2:re2",
         ":address_utils",
@@ -1015,6 +1021,7 @@ cpp_library(
         "//fboss/agent/platforms/common/janga800bic:janga800bic_platform_mapping",
         "//fboss/agent/rib:fib_updater",
         "//fboss/agent/rib:network_to_route_map",
+        "//fboss/agent/rib:nexthop_id_manager",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
@@ -1089,7 +1096,6 @@ cpp_library(
     exported_external_deps = [
         "boost",
         "gflags",
-        "glog",
         ("boost", None, "boost_container"),
         ("iproute2", None, "netlink"),
         ("libnl", None, "nl-route-3"),
@@ -1314,6 +1320,7 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/if:multiswitch_ctrl-cpp2-services",
         "//fboss/agent/rib:fib_updater",
+        "//fboss/agent/rib:nexthop_id_manager",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",

@@ -19,6 +19,7 @@ add_executable(fboss2_framework_test
 
 target_link_libraries(fboss2_framework_test
   fboss2_lib
+  thrift_service_utils
   CLI11::CLI11
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
@@ -35,6 +36,8 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/TestMain.cpp
   fboss/cli/fboss2/test/CmdConfigAppliedInfoTest.cpp
   fboss/cli/fboss2/test/CmdConfigHistoryTest.cpp
+  fboss/cli/fboss2/test/CmdConfigInterfaceDescriptionTest.cpp
+  fboss/cli/fboss2/test/CmdConfigInterfaceMtuTest.cpp
   fboss/cli/fboss2/test/CmdConfigReloadTest.cpp
   fboss/cli/fboss2/test/CmdConfigSessionDiffTest.cpp
   fboss/cli/fboss2/test/CmdConfigSessionTest.cpp
@@ -76,6 +79,7 @@ add_executable(fboss2_cmd_test
 target_link_libraries(fboss2_cmd_test
   fboss2_lib
   fboss2_config_lib
+  thrift_service_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
   Folly::folly
@@ -85,3 +89,19 @@ target_link_libraries(fboss2_cmd_test
 )
 
 gtest_discover_tests(fboss2_cmd_test)
+
+# thrift_latency_test - Comprehensive backend comparison test
+#
+# This test demonstrates the performance difference between various EventBase
+# backends for Thrift RPC calls. It runs all three backends (LibEvent, Epoll,
+# IoUring) sequentially and reports average/max latency for each.
+add_executable(thrift_latency_test
+  fboss/cli/fboss2/test/thrift_latency_test.cpp
+)
+
+target_link_libraries(thrift_latency_test
+  ctrl_cpp2
+  thrift_service_utils
+  Folly::folly
+  FBThrift::thriftcpp2
+)

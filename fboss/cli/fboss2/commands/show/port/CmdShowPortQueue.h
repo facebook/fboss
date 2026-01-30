@@ -12,6 +12,7 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 
@@ -33,63 +34,11 @@ class CmdShowPortQueue
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const utils::PortList& queriedPorts) {
-    RetType portEntries;
+      const utils::PortList& queriedPorts);
 
-    auto client =
-        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-
-    client->sync_getAllPortInfo(portEntries);
-
-    if (queriedPorts.size() == 0) {
-      return portEntries;
-    }
-
-    RetType retVal;
-    for (auto const& [portId, portInfo] : portEntries) {
-      for (auto const& queriedPort : queriedPorts.data()) {
-        if (portInfo.name().value() == queriedPort) {
-          retVal.insert(std::make_pair(portId, portInfo));
-        }
-      }
-    }
-
-    return retVal;
-  }
-
-  void printOutput(const RetType& portId2PortInfoThrift) {
-    constexpr auto fmtString = "{:<7}{:<20}{:<25}{:<10}{:<15}{:<15}\n";
-
-    for (auto const& [portId, portInfo] : portId2PortInfoThrift) {
-      std::ignore = portId;
-
-      std::cout << portInfo.name().value() << "\n";
-      std::cout << std::string(10, '=') << std::endl;
-
-      std::cout << fmt::format(
-          fmtString,
-          "ID",
-          "Name",
-          "Mode",
-          "Weight",
-          "ReservedBytes",
-          "ScalingFactor");
-      std::cout << std::string(90, '-') << std::endl;
-
-      for (auto const& queue : portInfo.portQueues().value()) {
-        std::cout << fmt::format(
-            fmtString,
-            folly::copy(queue.id().value()),
-            queue.name().value(),
-            queue.mode().value(),
-            queue.weight() ? std::to_string(*queue.weight()) : "",
-            queue.reservedBytes() ? std::to_string(*queue.reservedBytes()) : "",
-            queue.scalingFactor() ? *queue.scalingFactor() : "");
-      }
-
-      std::cout << "\n";
-    }
-  }
+  void printOutput(
+      const RetType& portId2PortInfoThrift,
+      std::ostream& out = std::cout);
 };
 
 } // namespace facebook::fboss

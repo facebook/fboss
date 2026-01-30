@@ -247,6 +247,52 @@ std::string Utils::convertHexLiteralsToDecimal(const std::string& expression) {
   return result;
 }
 
+std::vector<I2cAdapterConfig> Utils::createI2cAdapterConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<I2cAdapterConfig> i2cAdapterConfigs;
+  const auto i2cAdapterBlockConfigs = pciDeviceConfig.i2cAdapterBlockConfigs();
+  for (const auto& i2cAdapterBlockConfig : *i2cAdapterBlockConfigs) {
+    int endAdapterIndex = *i2cAdapterBlockConfig.startAdapterIndex() +
+        *i2cAdapterBlockConfig.numAdapters();
+    for (int adapterIndex = *i2cAdapterBlockConfig.startAdapterIndex();
+         adapterIndex < endAdapterIndex;
+         ++adapterIndex) {
+      I2cAdapterConfig i2cAdapterConfig;
+      i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
+          "{}_{}",
+          *i2cAdapterBlockConfig.pmUnitScopedNamePrefix(),
+          adapterIndex);
+      i2cAdapterConfig.fpgaIpBlockConfig()->deviceName() =
+          *i2cAdapterBlockConfig.deviceName();
+
+      std::string csrExpression = fmt::format(
+          fmt::runtime(*i2cAdapterBlockConfig.csrOffsetCalc()),
+          fmt::arg("adapterIndex", adapterIndex),
+          fmt::arg(
+              "startAdapterIndex", *i2cAdapterBlockConfig.startAdapterIndex()));
+      i2cAdapterConfig.fpgaIpBlockConfig()->csrOffset() =
+          Utils().evaluateExpression(csrExpression);
+
+      if (!i2cAdapterBlockConfig.iobufOffsetCalc()->empty()) {
+        std::string iobufExpression = fmt::format(
+            fmt::runtime(*i2cAdapterBlockConfig.iobufOffsetCalc()),
+            fmt::arg("adapterIndex", adapterIndex),
+            fmt::arg(
+                "startAdapterIndex",
+                *i2cAdapterBlockConfig.startAdapterIndex()));
+        i2cAdapterConfig.fpgaIpBlockConfig()->iobufOffset() =
+            Utils().evaluateExpression(iobufExpression);
+      }
+
+      i2cAdapterConfig.numberOfAdapters() =
+          *i2cAdapterBlockConfig.numBusesPerAdapter();
+
+      i2cAdapterConfigs.push_back(i2cAdapterConfig);
+    }
+  }
+  return i2cAdapterConfigs;
+}
+
 std::vector<XcvrCtrlConfig> Utils::createXcvrCtrlConfigs(
     const PciDeviceConfig& pciDeviceConfig) {
   std::vector<XcvrCtrlConfig> xcvrCtrlConfigs;

@@ -75,6 +75,11 @@ DEFINE_bool(
     false,
     "Set to true to enable Port Manager mode. This means PortManager object will manage all port-level logic and TransceiverManager object will only manage transceiver-level logic.");
 
+DEFINE_bool(
+    override_program_iphy_ports_for_test,
+    false,
+    "Override wedge_agent programInternalPhyPorts(). For test only");
+
 namespace {
 constexpr auto kFbossPortNameRegex = "(eth|fab)(\\d+)/(\\d+)/(\\d+)";
 constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";

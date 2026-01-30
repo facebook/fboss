@@ -128,6 +128,8 @@ class HwPortProfileTest : public HwTest {
           transceivers);
       utility::HwTransceiverUtils::verifyTempAndVccFlags(
           portToTransceiverInfoMap);
+      utility::HwTransceiverUtils::verifyTcvrErrorStates(
+          portToTransceiverInfoMap);
     };
     verifyAcrossWarmBoots(setup, verify);
   }

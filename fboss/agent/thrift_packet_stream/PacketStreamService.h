@@ -12,6 +12,10 @@ class PacketStreamService : virtual public PacketStreamSvIf,
   explicit PacketStreamService(const std::string& serviceName)
       : facebook::fb303::FacebookBase2(serviceName.c_str()) {}
   virtual ~PacketStreamService() override;
+  PacketStreamService(const PacketStreamService&) = delete;
+  PacketStreamService& operator=(const PacketStreamService&) = delete;
+  PacketStreamService(PacketStreamService&&) = delete;
+  PacketStreamService& operator=(PacketStreamService&&) = delete;
 
   // helper functions.
   void send(const std::string& clientId, TPacket&& packet);

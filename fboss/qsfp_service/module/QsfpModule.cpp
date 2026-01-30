@@ -482,6 +482,18 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     if (!getSignalsPerHostLane(*tcvrState.hostLaneSignals())) {
       tcvrState.hostLaneSignals()->clear();
     }
+    if (auto hostLaneSignals = tcvrState.hostLaneSignals()) {
+      for (auto& hostLaneSignal : *hostLaneSignals) {
+        if (hostLaneSignal.cmisLaneState() &&
+            !apache::thrift::util::tryGetEnumName(
+                *hostLaneSignal.cmisLaneState())) {
+          tcvrState.errorStates()->insert(
+              TransceiverErrorState::INVALID_DATA_PATH_LANE_STATE);
+          QSFP_LOG(ERR, this) << "Invalid data path lane state";
+          break;
+        }
+      }
+    }
 
     if (auto transceiverStats = getTransceiverStats()) {
       tcvrStats.stats() = *transceiverStats;
@@ -496,6 +508,11 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     tcvrState.transceiverManagementInterface() = managementInterface();
 
     tcvrState.identifier() = getIdentifier();
+    if (!apache::thrift::util::tryGetEnumName(*tcvrState.identifier())) {
+      tcvrState.errorStates()->insert(
+          TransceiverErrorState::INVALID_IDENTIFIER);
+      QSFP_LOG(ERR, this) << "Invalid module identifier";
+    }
     auto currentStatus = getModuleStatus();
     // Use the input `moduleStatus` as the reference to update the
     // `cmisStateChanged` for currentStatus, which will be used in the

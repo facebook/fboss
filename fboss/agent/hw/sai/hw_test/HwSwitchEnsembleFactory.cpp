@@ -23,7 +23,7 @@ std::unique_ptr<HwSwitchEnsemble> createHwEnsemble(
 
 std::unique_ptr<HwSwitchEnsemble> createAndInitHwEnsemble(
     const HwSwitchEnsemble::Features& featuresDesired,
-    const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info) {
+    const TestEnsembleInitInfo& info) {
   auto ensemble = createHwEnsemble(featuresDesired);
   ensemble->init(info);
   return ensemble;

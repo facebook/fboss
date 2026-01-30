@@ -661,9 +661,12 @@ TEST_F(PortManagerTest, programXphyPort) {
 
   EXPECT_NO_THROW(portManager_->programXphyPort(
       PortID(1), cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL));
-  // We don't throw if port is not an XPHY port.
-  EXPECT_NO_THROW(portManager_->programXphyPort(
-      PortID(1000), cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL));
+  // We throw if port is not found.
+  EXPECT_THROW(
+      portManager_->programXphyPort(
+          PortID(1000),
+          cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL),
+      FbossError);
 }
 
 TEST_F(PortManagerTest, programXphyPortNoPhyManager) {

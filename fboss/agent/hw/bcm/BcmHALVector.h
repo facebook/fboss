@@ -15,9 +15,9 @@ namespace facebook::fboss {
  */
 class BcmHALVector {
  public:
-  BcmHALVector() {}
+  BcmHALVector() = default;
 
-  virtual ~BcmHALVector() {}
+  virtual ~BcmHALVector() = default;
 
   virtual void initialize() = 0;
 
@@ -30,6 +30,8 @@ class BcmHALVector {
   // Forbidden copy constructor and assignment operator
   BcmHALVector(BcmHALVector const&) = delete;
   BcmHALVector& operator=(BcmHALVector const&) = delete;
+  BcmHALVector(BcmHALVector&&) = delete;
+  BcmHALVector& operator=(BcmHALVector&&) = delete;
 };
 
 } // namespace facebook::fboss

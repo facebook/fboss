@@ -2,6 +2,7 @@
 
 #include "fboss/agent/HwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/HwSwitch.h"
@@ -17,9 +18,15 @@ StateDelta hwSwitchFibUpdate(
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
+    const NextHopIDManager* nextHopIDManager,
     const std::shared_ptr<SwitchState> oldState) {
   facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
-      resolver, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
+      resolver,
+      vrf,
+      v4NetworkToRoute,
+      v6NetworkToRoute,
+      labelToRoute,
+      nextHopIDManager);
   fibUpdater(oldState);
   auto lastDelta = fibUpdater.getLastDelta();
   CHECK(lastDelta.has_value());
@@ -39,6 +46,7 @@ HwSwitchRouteUpdateWrapper::HwSwitchRouteUpdateWrapper(
               const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
               const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
               const facebook::fboss::LabelToRouteMap& labelToRoute,
+              const NextHopIDManager* nextHopIDManager,
               void* cookie) {
             auto hwSwitch = static_cast<HwSwitch*>(cookie);
             auto oldState = hwSwitch->getProgrammedState();
@@ -48,6 +56,7 @@ HwSwitchRouteUpdateWrapper::HwSwitchRouteUpdateWrapper(
                                 v4NetworkToRoute,
                                 v6NetworkToRoute,
                                 labelToRoute,
+                                nextHopIDManager,
                                 oldState)
                                 .newState();
             if (apply) {

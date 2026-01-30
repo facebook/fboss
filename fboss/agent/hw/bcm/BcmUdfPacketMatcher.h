@@ -34,6 +34,10 @@ class BcmUdfPacketMatcher {
       BcmSwitch* hw,
       const std::shared_ptr<UdfPacketMatcher>& udfPacketMatcher);
   ~BcmUdfPacketMatcher();
+  BcmUdfPacketMatcher(const BcmUdfPacketMatcher&) = delete;
+  BcmUdfPacketMatcher& operator=(const BcmUdfPacketMatcher&) = delete;
+  BcmUdfPacketMatcher(BcmUdfPacketMatcher&&) = delete;
+  BcmUdfPacketMatcher& operator=(BcmUdfPacketMatcher&&) = delete;
 
   bcm_udf_pkt_format_id_t getUdfPacketMatcherId() const {
     return udfPacketMatcherId_;

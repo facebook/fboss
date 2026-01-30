@@ -16695,7 +16695,7 @@
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
         }
     ],
-    "leaba/25.5.5210/25.5.5210/gibraltar/mono": [
+    "leaba/25.5.4210/25.5.4210/gibraltar/mono": [
         {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
@@ -16826,7 +16826,7 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         }
     ],
-    "leaba/25.5.5210/25.5.5210/gibraltar/multi_switch": [
+    "leaba/25.5.4210/25.5.4210/gibraltar/multi_switch": [
         {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
@@ -16960,7 +16960,7 @@
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
         }
     ],
-    "leaba/25.5.5210/25.5.5210/graphene200/mono": [
+    "leaba/25.5.4210/25.5.4210/graphene200/mono": [
         {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
@@ -17151,7 +17151,7 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         }
     ],
-    "leaba/25.5.5210/25.5.5210/graphene200/multi_switch": [
+    "leaba/25.5.4210/25.5.4210/graphene200/multi_switch": [
         {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },

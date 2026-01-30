@@ -62,9 +62,10 @@ class ControlLogicTests : public testing::Test {
 
     for (const auto& optic : *fanServiceConfig_.optics()) {
       value = 30.0;
-      auto opticData = std::vector<std::pair<std::string, float>>();
+      std::map<std::string, std::vector<OpticData>> opticData;
+      int32_t txvrId = 1;
       for (const auto& [opticType, tempToPwm] : *optic.tempToPwmMaps()) {
-        opticData.emplace_back(opticType, value);
+        opticData[opticType].push_back(OpticData{txvrId++, value});
         value += 12.0;
       }
       sensorData_->updateOpticEntry(
@@ -303,6 +304,52 @@ TEST_F(ControlLogicTests, UpdateControlSensorReadFailure) {
             fmt::format("{}.sensor_read.failure", sensorName)),
         1);
   }
+}
+
+TEST_F(ControlLogicTests, OpticsFb303CountersAreSet) {
+  EXPECT_CALL(*mockBsp_, checkIfInitialSensorDataRead()).WillOnce(Return(true));
+  for (const auto& fan : *fanServiceConfig_.fans()) {
+    EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmSysfsPath(), _))
+        .Times(2)
+        .WillRepeatedly(Return(true));
+    EXPECT_CALL(*mockBsp_, turnOnLedSysfs(*fan.goodLedSysfsPath()))
+        .WillOnce(Return(true));
+    EXPECT_CALL(*mockBsp_, readSysfs(*fan.rpmSysfsPath()))
+        .WillOnce(Return(kDefaultRpm));
+    EXPECT_CALL(*mockBsp_, readSysfs(*fan.presenceSysfsPath()))
+        .WillOnce(Return(1 /* fan exists */));
+  }
+
+  controlLogic_->setTransitionValue();
+  controlLogic_->updateControl(sensorData_);
+
+  // Verify optics counters are set per optic type.
+  // SetUp creates optic data with temps 30.0, 42.0, 54.0 for each optic type
+  // (in std::map alphabetical order: 100_GENERIC, 200_GENERIC, 400_GENERIC).
+  // Expected PWM values based on tempToPwmMaps:
+  //   - OPTIC_TYPE_100_GENERIC: temp=30, PWM=24 (30 >= 5)
+  //   - OPTIC_TYPE_200_GENERIC: temp=42, PWM=26 (42 >= 5, < 43)
+  //   - OPTIC_TYPE_400_GENERIC: temp=54, PWM=36 (54 >= 5, < 59)
+  std::map<std::string, std::pair<int64_t, int64_t>> expectedOpticValues = {
+      {"OPTIC_TYPE_100_GENERIC", {30, 24}},
+      {"OPTIC_TYPE_200_GENERIC", {42, 26}},
+      {"OPTIC_TYPE_400_GENERIC", {54, 36}},
+  };
+
+  for (const auto& [opticType, expected] : expectedOpticValues) {
+    const auto& [expectedTemp, expectedPwm] = expected;
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format("{}.optics_read.max.value", opticType)),
+        expectedTemp);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format("{}.optics_pwm.value", opticType)),
+        expectedPwm);
+  }
+
+  // Verify aggregate optics PWM counter is max(24, 26, 36) = 36.
+  EXPECT_EQ(fb303::fbData->getCounter("agg.optics_pwm.value"), 36);
 }
 
 } // namespace facebook::fboss::platform

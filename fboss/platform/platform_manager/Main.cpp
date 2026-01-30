@@ -1,6 +1,7 @@
 // Copyright (c) 2004-present, Meta Platforms, Inc. and affiliates.
 // All Rights Reserved.
 
+#include <chrono>
 #include <cstdlib>
 #include <stdexcept>
 
@@ -58,11 +59,32 @@ int main(int argc, char** argv) {
     dataStore.emplace(config);
     scubaLogger.emplace(*config.platformName(), dataStore.value());
 
+    auto startTime = std::chrono::steady_clock::now();
     PkgManager pkgManager(config);
     pkgManager.processAll();
     PlatformExplorer platformExplorer(
         config, dataStore.value(), scubaLogger.value());
     platformExplorer.explore();
+    auto endTime = std::chrono::steady_clock::now();
+
+    // Calculate elapsed time in seconds
+    auto elapsedSeconds =
+        std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime)
+            .count();
+
+    // Publish exploration time counters
+    if (pkgManager.wereKmodsUnloaded()) {
+      fb303::fbData->setCounter(
+          "package_manager.exploration_time.with_kmod_unload", elapsedSeconds);
+    } else {
+      fb303::fbData->setCounter(
+          "package_manager.exploration_time.without_kmod_unload",
+          elapsedSeconds);
+    }
+    XLOG(INFO) << fmt::format(
+        "Exploration complete in {} seconds. Kmods were {}reloaded.",
+        elapsedSeconds,
+        pkgManager.wereKmodsUnloaded() ? "" : "NOT ");
 
     if (FLAGS_run_once) {
       XLOG(INFO) << fmt::format(

@@ -115,14 +115,20 @@ class ImageBuilder:
         logger.info(f"Running build script: {build_script}")
 
         # Run the build script
+        cmd = [str(build_script)]
+        if "pxe" in dist_formats or "usb" in dist_formats:
+            cmd.append("--build-pxe-usb")
+        if "onie" in dist_formats:
+            cmd.append("--build-onie")
         try:
-            subprocess.run([str(build_script), "-b"], check=True)
+            subprocess.run(cmd, check=True)
         except subprocess.CalledProcessError as e:
             logger.error(f"Build script failed with exit code {e.returncode}")
             sys.exit(1)
 
         self._mv_distro_file(image_builder_dir, "usb", "iso")
         self._mv_distro_file(image_builder_dir, "pxe", "tar")
+        self._mv_distro_file(image_builder_dir, "onie", "bin")
 
         logger.info("Finished base OS image build")
 

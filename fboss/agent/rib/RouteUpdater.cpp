@@ -53,6 +53,25 @@ using folly::IPAddressV6;
 
 namespace facebook::fboss {
 
+namespace {
+template <typename AddressT>
+std::shared_ptr<Route<AddressT>> writableRoute(
+    typename NetworkToRouteMap<AddressT>::Iterator ritr) {
+  if (value<AddressT>(ritr)->isPublished()) {
+    value<AddressT>(ritr) = value<AddressT>(ritr)->clone();
+  }
+  return value<AddressT>(ritr);
+}
+
+template <typename AddressT>
+std::shared_ptr<Route<AddressT>> writableRoute(
+    std::shared_ptr<Route<AddressT>> route) {
+  if (route->isPublished()) {
+    route = route->clone();
+  }
+  return route;
+}
+} // namespace
 static const RoutePrefixV6 kIPv6LinkLocalPrefix{
     folly::IPAddressV6("fe80::"),
     64};
@@ -62,9 +81,11 @@ static const auto kRemoteInterfaceRouteClientId =
 
 RibRouteUpdater::RibRouteUpdater(
     IPv4NetworkToRouteMap* v4Routes,
-    IPv6NetworkToRouteMap* v6Routes)
+    IPv6NetworkToRouteMap* v6Routes,
+    NextHopIDManager* nextHopIDManager)
     : v4Routes_(v4Routes),
       v6Routes_(v6Routes),
+      nextHopIDManager_(nextHopIDManager),
       weightNormalizer_(
           FLAGS_nsf_num_racks_per_pod,
           FLAGS_nsf_num_parallel_rack_links,
@@ -75,10 +96,12 @@ RibRouteUpdater::RibRouteUpdater(
 RibRouteUpdater::RibRouteUpdater(
     IPv4NetworkToRouteMap* v4Routes,
     IPv6NetworkToRouteMap* v6Routes,
-    LabelToRouteMap* mplsRoutes)
+    LabelToRouteMap* mplsRoutes,
+    NextHopIDManager* nextHopIDManager)
     : v4Routes_(v4Routes),
       v6Routes_(v6Routes),
       mplsRoutes_(mplsRoutes),
+      nextHopIDManager_(nextHopIDManager),
       weightNormalizer_(
           FLAGS_nsf_num_racks_per_pod,
           FLAGS_nsf_num_parallel_rack_links,
@@ -855,24 +878,6 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
                << " route " << route->str();
   }
   return updatedRoute ? updatedRoute : route;
-}
-
-template <typename AddressT>
-std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
-    typename NetworkToRouteMap<AddressT>::Iterator ritr) {
-  if (value<AddressT>(ritr)->isPublished()) {
-    value<AddressT>(ritr) = value<AddressT>(ritr)->clone();
-  }
-  return value<AddressT>(ritr);
-}
-
-template <typename AddressT>
-std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
-    std::shared_ptr<Route<AddressT>> route) {
-  if (route->isPublished()) {
-    route = route->clone();
-  }
-  return route;
 }
 
 template <typename AddressT>

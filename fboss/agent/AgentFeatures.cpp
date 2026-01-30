@@ -315,6 +315,11 @@ DEFINE_bool(
     false,
     "This flag is used to enable ecmp resource manager feature");
 
+DEFINE_bool(
+    enable_nexthop_id_manager,
+    false,
+    "Enable NextHop ID allocation and management for routes");
+
 DEFINE_int32(
     ecmp_resource_manager_make_before_break_buffer,
     2,
@@ -448,3 +453,8 @@ DEFINE_string(
     thrift_switch_state_file,
     "thrift_switch_state",
     "File for dumping switch state in serialized thrift format on exit");
+
+DEFINE_bool(
+    qsfp_port_manager_mode,
+    false,
+    "Set to true to enable Port Manager mode. This means PortManager object will manage all port-level logic and TransceiverManager object will only manage transceiver-level logic.");

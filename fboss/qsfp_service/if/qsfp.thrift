@@ -33,6 +33,16 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
   ) throws (1: fboss.FbossBaseError error);
 
   /*
+   * Get state information about a port
+   */
+  map<
+    string,
+    transceiver.PortStateMachineState
+  > getPortStateMachineStateFromPortNames(1: list<string> portNames) throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
    * Get config validation status of a transceiver
    */
   map<i32, string> getTransceiverConfigValidationInfo(

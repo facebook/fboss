@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RouteUpdater.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -40,6 +41,7 @@ using FibUpdateFunction = std::function<StateDelta(
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
     const LabelToRouteMap& labelToRoute,
+    const NextHopIDManager* nextHopIDManager,
     void* cookie)>;
 
 /*
@@ -50,6 +52,14 @@ using FibUpdateFunction = std::function<StateDelta(
  */
 class RibRouteTables {
  public:
+  RibRouteTables() = default;
+  explicit RibRouteTables(NextHopIDManager* nextHopIDManager)
+      : nextHopIDManager_(nextHopIDManager) {}
+
+  const NextHopIDManager* getNextHopIDManager() const {
+    return nextHopIDManager_;
+  }
+
   template <typename RouteType, typename RouteIdType>
   void update(
       const SwitchIdScopeResolver* resolver,
@@ -127,7 +137,8 @@ class RibRouteTables {
   static RibRouteTables fromThrift(
       const std::map<int32_t, state::RouteTableFields>& ribThrift,
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
-      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+      NextHopIDManager* nextHopIDManager);
 
   void ensureVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;
@@ -141,7 +152,8 @@ class RibRouteTables {
 
   std::map<int32_t, state::RouteTableFields> toThrift() const;
   static RibRouteTables fromThrift(
-      const std::map<int32_t, state::RouteTableFields>&);
+      const std::map<int32_t, state::RouteTableFields>&,
+      NextHopIDManager* nextHopIDManager);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
   void updateEcmpOverrides(const StateDelta& delta);
@@ -204,6 +216,10 @@ class RibRouteTables {
           configRouterIDToInterfaceRoutes) const;
 
   SynchronizedRouteTables synchronizedRouteTables_;
+
+  // Non-owning pointer to NextHopIDManager
+  // Set by RoutingInformationBase after construction
+  NextHopIDManager* nextHopIDManager_{nullptr};
 };
 
 class RoutingInformationBase {
@@ -374,6 +390,11 @@ class RoutingInformationBase {
       const std::map<int32_t, state::RouteTableFields>&);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
+  // Getter for NextHopIDManager
+  const NextHopIDManager* getNextHopIDManager() const {
+    return nextHopIDManager_.get();
+  }
+
  private:
   void ensureRunning() const;
   void setClassIDImpl(
@@ -400,6 +421,7 @@ class RoutingInformationBase {
 
   std::unique_ptr<std::thread> ribUpdateThread_;
   FbossEventBase ribUpdateEventBase_{"RibUpdateEventBase"};
+  std::unique_ptr<NextHopIDManager> nextHopIDManager_;
   RibRouteTables ribTables_;
 };
 

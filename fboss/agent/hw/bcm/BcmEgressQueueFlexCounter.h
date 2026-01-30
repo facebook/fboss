@@ -53,6 +53,8 @@ class BcmEgressQueueFlexCounter : public BcmFlexCounter {
   BcmEgressQueueFlexCounter(BcmEgressQueueFlexCounter const&) = delete;
   BcmEgressQueueFlexCounter& operator=(BcmEgressQueueFlexCounter const&) =
       delete;
+  BcmEgressQueueFlexCounter(BcmEgressQueueFlexCounter&&) = delete;
+  BcmEgressQueueFlexCounter& operator=(BcmEgressQueueFlexCounter&&) = delete;
 
   BcmSwitch* hw_;
   int numQueuesPerPort_{0};
@@ -63,6 +65,7 @@ class BcmEgressQueueFlexCounter : public BcmFlexCounter {
 class BcmEgressQueueFlexCounterManager {
  public:
   explicit BcmEgressQueueFlexCounterManager(BcmSwitch* hw);
+  ~BcmEgressQueueFlexCounterManager() = default;
 
   void attachToCPU() {
     cpuQueueFlexCounter_->attach(BCM_GPORT_LOCAL_CPU);
@@ -94,6 +97,9 @@ class BcmEgressQueueFlexCounterManager {
       delete;
   BcmEgressQueueFlexCounterManager& operator=(
       BcmEgressQueueFlexCounterManager const&) = delete;
+  BcmEgressQueueFlexCounterManager(BcmEgressQueueFlexCounterManager&&) = delete;
+  BcmEgressQueueFlexCounterManager& operator=(
+      BcmEgressQueueFlexCounterManager&&) = delete;
 
   /*
    * Because cpu and regular port have different numbers of queues, which will
