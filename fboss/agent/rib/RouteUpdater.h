@@ -167,14 +167,6 @@ class RibRouteUpdater {
       typename NetworkToRouteMap<AddressT>::Iterator ritr);
 
   template <typename AddressT>
-  std::shared_ptr<Route<AddressT>> writableRoute(
-      typename NetworkToRouteMap<AddressT>::Iterator ritr);
-
-  template <typename AddressT>
-  std::shared_ptr<Route<AddressT>> writableRoute(
-      std::shared_ptr<Route<AddressT>> route);
-
-  template <typename AddressT>
   void getFwdInfoFromNhop(
       NetworkToRouteMap<AddressT>* routes,
       const AddressT& nh,
