@@ -304,53 +304,39 @@ void ControlLogic::getOpticsUpdate() {
     int aggOpticPwm = 0;
     const auto& aggregationType = *optic.aggregationType();
 
-    if (aggregationType == constants::OPTIC_AGGREGATION_TYPE_MAX()) {
-      for (const auto& [opticType, opticDataList] : opticEntry->data) {
-        int pwmForThis = 0;
-        auto tablePointer =
-            getConfigOpticData<TempToPwmMap>(opticType, *optic.tempToPwmMaps());
+    if (aggregationType != constants::OPTIC_AGGREGATION_TYPE_MAX() &&
+        aggregationType != constants::OPTIC_AGGREGATION_TYPE_PID() &&
+        aggregationType !=
+            constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
+      throw facebook::fboss::FbossError(
+          "Only max and pid aggregation is supported for optics!");
+    }
 
-        if (tablePointer) {
-          float maxTemp = 0.0;
-          int maxTempTxvrId = -1;
-          for (const auto& opticData : opticDataList) {
-            if (opticData.temp > maxTemp) {
-              maxTemp = opticData.temp;
-              maxTempTxvrId = opticData.txvrId;
-            }
-          }
-
-          pwmForThis = tablePointer->begin()->second;
-          for (const auto& [temp, pwm] : *tablePointer) {
-            if (maxTemp >= temp) {
-              pwmForThis = pwm;
-            }
-          }
-          XLOG(INFO) << fmt::format(
-              "{}: Max optic temp is {} from txvr {}. PWM is {}",
-              opticType,
-              maxTemp,
-              maxTempTxvrId,
-              pwmForThis);
-        }
-        if (pwmForThis > aggOpticPwm) {
-          aggOpticPwm = pwmForThis;
+    for (const auto& [opticType, opticDataList] : opticEntry->data) {
+      float maxTemp = 0.0;
+      int maxTempTxvrId = -1;
+      for (const auto& opticData : opticDataList) {
+        if (opticData.temp > maxTemp) {
+          maxTemp = opticData.temp;
+          maxTempTxvrId = opticData.txvrId;
         }
       }
-    } else if (
-        aggregationType == constants::OPTIC_AGGREGATION_TYPE_PID() ||
-        aggregationType ==
-            constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
-      for (const auto& [opticType, opticDataList] : opticEntry->data) {
-        float maxTemp = 0.0;
-        int maxTempTxvrId = -1;
-        for (const auto& opticData : opticDataList) {
-          if (opticData.temp > maxTemp) {
-            maxTemp = opticData.temp;
-            maxTempTxvrId = opticData.txvrId;
+
+      int pwmForThis = 0;
+
+      if (aggregationType == constants::OPTIC_AGGREGATION_TYPE_MAX()) {
+        auto tablePointer =
+            getConfigOpticData<TempToPwmMap>(opticType, *optic.tempToPwmMaps());
+        if (!tablePointer) {
+          continue;
+        }
+        pwmForThis = tablePointer->begin()->second;
+        for (const auto& [temp, pwm] : *tablePointer) {
+          if (maxTemp >= temp) {
+            pwmForThis = pwm;
           }
         }
-
+      } else {
         auto pidSetting =
             getConfigOpticData<PidSetting>(opticType, *optic.pidSettings());
         if (!pidSetting) {
@@ -358,23 +344,22 @@ void ControlLogic::getOpticsUpdate() {
               "Optic {} does not have PID setting", opticType);
           continue;
         }
-
         std::string cacheKey = opticName + opticType;
-        float pwm = pidLogics_.at(cacheKey)->calculatePwm(maxTemp);
-        XLOG(INFO) << fmt::format(
-            "{}: Max optic temp is {} from txvr {}. PWM is {}",
-            opticType,
-            maxTemp,
-            maxTempTxvrId,
-            pwm);
-        if (pwm > aggOpticPwm) {
-          aggOpticPwm = pwm;
-        }
+        pwmForThis = pidLogics_.at(cacheKey)->calculatePwm(maxTemp);
       }
-    } else {
-      throw facebook::fboss::FbossError(
-          "Only max and pid aggregation is supported for optics!");
+
+      XLOG(INFO) << fmt::format(
+          "{}: Max optic temp is {} from txvr {}. PWM is {}",
+          opticType,
+          maxTemp,
+          maxTempTxvrId,
+          pwmForThis);
+
+      if (pwmForThis > aggOpticPwm) {
+        aggOpticPwm = pwmForThis;
+      }
     }
+
     XLOG(INFO) << fmt::format(
         "Optics: Aggregation Type: {}. Aggregate PWM is {}",
         aggregationType,
