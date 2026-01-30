@@ -52,13 +52,13 @@ class RibRouteUpdater {
   RibRouteUpdater(
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes,
-      NextHopIDManager* nextHopIDManager = nullptr);
+      NextHopIDManager* nextHopIDManager);
 
   RibRouteUpdater(
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes,
       LabelToRouteMap* mplsRoutes,
-      NextHopIDManager* nextHopIDManager = nullptr);
+      NextHopIDManager* nextHopIDManager);
 
   struct RouteEntry {
     folly::CIDRNetwork prefix;
