@@ -2509,6 +2509,33 @@
           "type": 3,
           "compute": "@/1000.0"
         }
+      ],
+      "versionedSensors": [
+        {
+          "sensors": [
+            {
+              "name": "RTM_L_U10_TMP432_LOCAL_TEMP",
+              "sysfsPath": "/run/devmap/sensors/RTM_L_OUTLET_TSENSOR/temp1_input",
+              "type": 3,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "RTM_L_U10_TMP432_REMOTE1_TEMP",
+              "sysfsPath": "/run/devmap/sensors/RTM_L_OUTLET_TSENSOR/temp2_input",
+              "type": 3,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "RTM_L_U10_TMP432_REMOTE2_TEMP",
+              "sysfsPath": "/run/devmap/sensors/RTM_L_OUTLET_TSENSOR/temp3_input",
+              "type": 3,
+              "compute": "@/1000.0"
+            }
+          ],
+          "productProductionState": 1,
+          "productVersion": 2,
+          "productSubVersion": 11
+        }
       ]
     },
     {
@@ -3294,6 +3321,33 @@
           "sysfsPath": "/run/devmap/sensors/RTM_R_TSENSOR_2/temp1_input",
           "type": 3,
           "compute": "@/1000.0"
+        }
+      ],
+      "versionedSensors": [
+        {
+          "sensors": [
+            {
+              "name": "RTM_R_U10_TMP432_LOCAL_TEMP",
+              "sysfsPath": "/run/devmap/sensors/RTM_R_OUTLET_TSENSOR/temp1_input",
+              "type": 3,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "RTM_R_U10_TMP432_REMOTE1_TEMP",
+              "sysfsPath": "/run/devmap/sensors/RTM_R_OUTLET_TSENSOR/temp2_input",
+              "type": 3,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "RTM_R_U10_TMP432_REMOTE2_TEMP",
+              "sysfsPath": "/run/devmap/sensors/RTM_R_OUTLET_TSENSOR/temp3_input",
+              "type": 3,
+              "compute": "@/1000.0"
+            }
+          ],
+          "productProductionState": 1,
+          "productVersion": 2,
+          "productSubVersion": 11
         }
       ]
     },
