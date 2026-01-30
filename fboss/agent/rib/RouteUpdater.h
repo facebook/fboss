@@ -52,13 +52,13 @@ class RibRouteUpdater {
   RibRouteUpdater(
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes,
-      NextHopIDManager* nextHopIDManager = nullptr);
+      NextHopIDManager* nextHopIDManager);
 
   RibRouteUpdater(
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes,
       LabelToRouteMap* mplsRoutes,
-      NextHopIDManager* nextHopIDManager = nullptr);
+      NextHopIDManager* nextHopIDManager);
 
   struct RouteEntry {
     folly::CIDRNetwork prefix;
@@ -165,14 +165,6 @@ class RibRouteUpdater {
   template <typename AddressT>
   std::shared_ptr<Route<AddressT>> resolveOne(
       typename NetworkToRouteMap<AddressT>::Iterator ritr);
-
-  template <typename AddressT>
-  std::shared_ptr<Route<AddressT>> writableRoute(
-      typename NetworkToRouteMap<AddressT>::Iterator ritr);
-
-  template <typename AddressT>
-  std::shared_ptr<Route<AddressT>> writableRoute(
-      std::shared_ptr<Route<AddressT>> route);
 
   template <typename AddressT>
   void getFwdInfoFromNhop(

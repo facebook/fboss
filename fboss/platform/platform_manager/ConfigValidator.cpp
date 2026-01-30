@@ -1357,7 +1357,7 @@ void ConfigValidator::buildDeviceNameCache(
 
       for (const auto& i2cAdapterConfig :
            Utils::createI2cAdapterConfigs(pciConfig)) {
-        addFromFpgaIpBlock(slotType, *i2cAdapterConfig.fpgaIpBlockConfig());
+        addI2cAdapterNames(slotType, i2cAdapterConfig);
       }
 
       for (const auto& mdioBusConfig : Utils::createMdioBusConfigs(pciConfig)) {

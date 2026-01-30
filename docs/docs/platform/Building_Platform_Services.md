@@ -16,7 +16,7 @@ Building the entire fboss OSS repository could be time consuming. Optionally,
 you can just build the platform services by running
 
 ```
-time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
+time ./fboss/oss/scripts/run-getdeps.py build --allow-system-packages \
 --extra-cmake-defines='{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}' \
 --scratch-path /var/FBOSS/tmp_bld_dir --cmake-target fboss_platform_services fboss
 ```
