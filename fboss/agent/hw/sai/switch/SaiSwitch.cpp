@@ -171,6 +171,12 @@ static std::set<facebook::fboss::cfg::PacketRxReason> kAllowedRxReasons = {
 
 } // namespace
 
+namespace {
+// This global mutex is used to provide thread-safe callbacks to the
+// Broadcom PAI implementation for PHY operations.
+std::mutex gBrcmPaiPhySyncMutex;
+} // namespace
+
 namespace facebook::fboss {
 
 // We need this global SaiSwitch* to support registering SAI callbacks
@@ -291,6 +297,22 @@ void __gSwitchAsicSdkHealthNotificationCallBack(
   switchIter->second->switchAsicSdkHealthNotificationTopHalf(
       std::move(notification));
   ;
+}
+#endif
+
+#if defined(SAI_BRCM_PAI_IMPL)
+sai_status_t SaiSwitch::sync_lock() {
+  XLOG(DBG2) << "PAI Sync Lock acquired by thread "
+             << std::this_thread::get_id();
+  gBrcmPaiPhySyncMutex.lock();
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t SaiSwitch::sync_unlock() {
+  XLOG(DBG2) << "PAI Sync Unlock released by thread "
+             << std::this_thread::get_id();
+  gBrcmPaiPhySyncMutex.unlock();
+  return SAI_STATUS_SUCCESS;
 }
 #endif
 

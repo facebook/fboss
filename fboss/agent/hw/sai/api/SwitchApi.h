@@ -861,7 +861,26 @@ struct SaiSwitchTraits {
         bool,
         AttributeCablePropagationDelayMeasurement,
         SaiBoolDefaultFalse>;
+
+#if defined(SAI_BRCM_PAI_IMPL)
+    struct AttributeSyncLockWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SyncLock = SaiExtensionAttribute<
+        sai_pointer_t,
+        AttributeSyncLockWrapper,
+        SaiPointerDefault>;
+
+    struct AttributeSyncUnlockWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SyncUnlock = SaiExtensionAttribute<
+        sai_pointer_t,
+        AttributeSyncUnlockWrapper,
+        SaiPointerDefault>;
+#endif
   };
+
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
   using CreateAttributes = std::tuple<
@@ -963,7 +982,14 @@ struct SaiSwitchTraits {
       std::optional<Attributes::LocalSystemPortIdRangeList>,
 #endif
       std::optional<Attributes::PfcMonitorEnable>,
-      std::optional<Attributes::CablePropagationDelayMeasurement>>;
+      std::optional<Attributes::CablePropagationDelayMeasurement>
+
+#if defined(SAI_BRCM_PAI_IMPL)
+      ,
+      std::optional<Attributes::SyncLock>,
+      std::optional<Attributes::SyncUnlock>
+#endif
+      >;
 
   // Avoid using SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP as that counts
   // both DramPacketError and EgressRcvPacketError. As we now have a
@@ -1158,6 +1184,10 @@ SAI_ATTRIBUTE_NAME(Switch, ModuleIdFabricPortList)
 SAI_ATTRIBUTE_NAME(Switch, LocalSystemPortIdRangeList)
 #endif
 
+#if defined(SAI_BRCM_PAI_IMPL)
+SAI_ATTRIBUTE_NAME(Switch, SyncLock)
+SAI_ATTRIBUTE_NAME(Switch, SyncUnlock)
+#endif
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};
 

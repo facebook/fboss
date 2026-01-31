@@ -92,6 +92,7 @@ if ($ENV{SAI_BRCM_PAI_IMPL})
   # macsec headers
   include_directories("${SAI_BRCM_PAI_IMPL_INC_DIR}/pai_macsec")
 
+  add_definitions (-DSAI_BRCM_PAI_IMPL)
   # SDK artifacts directory which hosts libpai.a, EPDM SW artifact, PHY Driver
   # SW artifact
   set(SAI_BRCM_PAI_IMPL_LIB_DIR "/var/FBOSS/pai_impl/lib")

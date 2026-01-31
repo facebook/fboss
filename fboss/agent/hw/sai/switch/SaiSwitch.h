@@ -250,6 +250,11 @@ class SaiSwitch : public HwSwitch {
   SwitchRunState getSwitchRunState() const;
   bool isFullyInitialized() const;
 
+#if defined(SAI_BRCM_PAI_IMPL)
+  static sai_status_t sync_lock();
+  static sai_status_t sync_unlock();
+#endif
+
   std::string listObjects(const std::vector<HwObjectType>& types, bool cached)
       const override;
   void dumpDebugState(const std::string& /*path*/) const override;
