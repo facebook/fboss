@@ -56,13 +56,6 @@ int main(int argc, char** argv) {
       "FanControl");
   scheduler.start();
 
-  server->setPort(FLAGS_thrift_port);
-  server->setInterface(handler);
-  server->setAllowPlaintextOnLoopback(true);
-
-  auto evb = server->getEventBaseManager()->getEventBase();
-  helpers::SignalHandler signalHandler(evb, server);
-
   helpers::runThriftService(server, handler, "FanService", FLAGS_thrift_port);
 
   XLOG(INFO) << "================ STOPPED PLATFORM BINARY ================";
