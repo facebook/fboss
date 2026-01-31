@@ -1,0 +1,109 @@
+name: Build & Test FSDB
+run-name: Build & Test FSDB
+on:
+  # Allow on pull request
+  pull_request:
+    paths:
+      - 'fboss/fsdb/**'
+      - 'cmake/fsdb/**'
+      - '.github/workflows/fsdb.yml'
+  # Allow manually triggering the workflow
+  workflow_dispatch:
+  # Also schedule the workflow to run every 3 hours during day only
+  # ShipIt job will sync hourly around HH:21, so schedule the run with 15 minute offset
+  schedule:
+    # Run daily at 1:36AM UTC = 6:36PM PDT
+    # Run daily at 1:36PM UTC = 6:36AM PDT
+    # Run daily at 7:36PM UTC = 12:36PM PDT
+    - cron: '36 1,13,19 * * *'
+jobs:
+  FSDB-Build:
+    runs-on: 32-core-ubuntu
+    steps:
+      - run: echo "Confirming hardware specifications:"; sudo lscpu
+      - name: Clean workspace
+        run: sudo rm -rf ${{ github.workspace }}/*
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - name: Run Docker-based build for FBOSS
+        run: >
+          sudo
+          ./fboss/oss/scripts/docker-build.py
+          --scratch-path
+          ${{ github.workspace }}/build-output
+          --target
+          fsdb_all_services
+          --no-docker-output
+          --no-system-deps
+          --env-var
+          GITHUB_ACTIONS_BUILD
+          --num-jobs
+          18
+          --local
+          &&
+          sudo
+          chown
+          -R
+          runner:runner
+          ${{ github.workspace }}
+      - name: Package FBOSS binaries and library dependencies
+        run: >
+          sudo
+          docker
+          run
+          -v
+          ${{ github.workspace }}:/var/FBOSS/fboss:z
+          -v
+          ${{ github.workspace }}/build-output:/var/FBOSS/tmp_bld_dir:z
+          --cap-add=CAP_AUDIT_WRITE
+          --name
+          FBOSS_PACKAGE_CONTAINER
+          fboss_image:latest
+          python3
+          /var/FBOSS/fboss/fboss/oss/scripts/package-fboss.py
+          --copy-root-libs
+          --scratch-path=/var/FBOSS/tmp_bld_dir
+          --compress
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: fboss
+          path: ${{ github.workspace }}/build-output/fboss_bins.tar.zst
+          # Explicitly set the retention at the object level
+          retention-days: 14
+  FSDB-Test:
+    runs-on: ubuntu-latest
+    needs: FSDB-Build
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - name: Download artifact with test binaries
+        uses: actions/download-artifact@v7
+        with:
+          name: fboss
+      - run: ls ${{ github.workspace }}
+      - name: Verify IPv6 is available
+        run: |
+          echo "=== IPv6 Configuration ==="
+          cat /proc/sys/net/ipv6/conf/all/disable_ipv6 || echo "IPv6 config not found"
+          echo "=== Network Interfaces ==="
+          ip addr show lo
+          echo "=== Test IPv6 Localhost Connectivity ==="
+          if ping -6 -c 1 ::1; then
+            echo "IPv6 localhost (::1) is available"
+          else
+            echo "IPv6 localhost (::1) is NOT available"
+            echo "FSDB tests require IPv6 for client-server communication, exit early to prevvent infinite reconnect loop in test."
+            exit 1
+          fi
+      - name: Run unit tests
+        run: >
+          sudo
+          ./fboss/oss/scripts/github_actions/docker-unittest.py
+          ${{ github.workspace }}/fboss_bins.tar.zst
+          &&
+          sudo
+          chown
+          -R
+          runner:runner
+          ${{ github.workspace }}
