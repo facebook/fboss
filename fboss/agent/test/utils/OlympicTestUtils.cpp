@@ -204,14 +204,13 @@ void addQueueEcnConfig(
     const int queueId,
     const uint32_t minLen,
     const uint32_t maxLen,
-    const int probability,
     bool isVoq) {
   auto asic = checkSameAndGetAsic(asics);
   auto& queue = getPortQueueConfig(config, queueId, isVoq);
   if (!queue.aqms().has_value()) {
     queue.aqms() = {};
   }
-  queue.aqms()->push_back(GetEcnConfig(*asic, minLen, maxLen, probability));
+  queue.aqms()->push_back(GetEcnConfig(*asic, minLen, maxLen));
 }
 
 void addQueueWredConfig(
@@ -291,64 +290,6 @@ void addQueueWredDropConfig(
   queue2.aqms() = {};
   queue2.aqms()->push_back(GetWredConfig(*asic, 1, maxThresh, 5));
   portQueues.push_back(queue2);
-
-  config->portQueueConfigs()["queue_config"] = portQueues;
-  for (auto& port : *config->ports()) {
-    port.portQueueConfigName() = "queue_config";
-  }
-}
-
-// Configure a specific queue with ECN marking at the specified probability.
-// Used to apply ECN config dynamically after traffic is flowing.
-void addQueueEcnProbabilisticMarkingConfig(
-    cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
-    const std::vector<const HwAsic*>& asics,
-    int queueId,
-    int probability,
-    int minThresh,
-    int maxThresh) {
-  auto asic = checkSameAndGetAsic(asics);
-
-  XLOG(DBG2) << "Configuring ECN probabilistic marking for queue " << queueId
-             << " with minThresh: " << minThresh << " bytes"
-             << ", maxThresh: " << maxThresh << " bytes"
-             << ", probability: " << probability << "%";
-
-  // Get existing queue config or create new one
-  std::vector<cfg::PortQueue> portQueues;
-  if (config->portQueueConfigs()->count("queue_config")) {
-    portQueues = config->portQueueConfigs()->at("queue_config");
-  }
-
-  // Find or create the queue with the specified ID
-  bool found = false;
-  for (auto& queue : portQueues) {
-    if (queue.id() == queueId) {
-      queue.aqms() = {};
-      queue.aqms()->push_back(
-          GetEcnConfig(*asic, minThresh, maxThresh, probability));
-      found = true;
-      break;
-    }
-  }
-
-  if (!found) {
-    // Create new queue entry
-    cfg::PortQueue queue;
-    queue.id() = queueId;
-    queue.name() = "queue" + std::to_string(queueId);
-    queue.streamType() = streamType;
-    queue.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue.weight() = kOlympicEcn1Weight;
-    if (asic->scalingFactorBasedDynamicThresholdSupported()) {
-      queue.scalingFactor() = cfg::MMUScalingFactor::ONE;
-    }
-    queue.aqms() = {};
-    queue.aqms()->push_back(
-        GetEcnConfig(*asic, minThresh, maxThresh, probability));
-    portQueues.push_back(queue);
-  }
 
   config->portQueueConfigs()["queue_config"] = portQueues;
   for (auto& port : *config->ports()) {
