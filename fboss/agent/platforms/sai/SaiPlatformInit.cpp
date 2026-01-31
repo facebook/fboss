@@ -15,6 +15,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatform.h"
@@ -133,6 +134,10 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_TAHANSB800BC) {
     return std::make_unique<SaiBcmTahansb800bcPlatform>(
+        std::move(productInfo), localMac, platformMappingStr);
+  } else if (
+      productInfo->getType() == PlatformType::PLATFORM_BLACKWOLF800BANW) {
+    return std::make_unique<SaiBcmBlackwolf800banwPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_FAKE_SAI) {
     return std::make_unique<SaiFakePlatform>(std::move(productInfo));
