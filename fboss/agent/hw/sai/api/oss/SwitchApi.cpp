@@ -394,4 +394,18 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeCablePropagationDelayMeasurement::operator()() {
   return std::nullopt;
 }
+
+#if defined(SAI_BRCM_PAI_IMPL)
+#include <brcm_pai_extensions.h>
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSyncLockWrapper::operator()() {
+  return BRCM_PAI_SWITCH_ATTR_SYNC_LOCK;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSyncUnlockWrapper::operator()() {
+  return BRCM_PAI_SWITCH_ATTR_SYNC_UNLOCK;
+}
+#endif
 } // namespace facebook::fboss

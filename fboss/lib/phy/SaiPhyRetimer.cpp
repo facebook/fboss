@@ -14,6 +14,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include <fmt/format.h>
 
@@ -307,6 +308,12 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
 #endif
       std::nullopt, // enable PFC monitoring for the switch
       std::nullopt, // enable cable propagation delay measurement
+#if defined(SAI_BRCM_PAI_IMPL)
+      (sai_pointer_t)
+          facebook::fboss::SaiSwitch::sync_lock, // user sync_lock for pai
+      (sai_pointer_t)
+          facebook::fboss::SaiSwitch::sync_unlock, // user sync_unlock for pai
+#endif
   };
 }
 
