@@ -62,6 +62,7 @@ add_library(led_manager_lib
   fboss/led_service/LedUtils.cpp
   fboss/led_service/MinipackBaseLedManager.cpp
   fboss/led_service/MontblancLedManager.cpp
+  fboss/led_service/Icecube800banwLedManager.cpp
   fboss/led_service/Icecube800bcLedManager.cpp
   fboss/led_service/Icetea800bcLedManager.cpp
   fboss/led_service/Meru800biaLedManager.cpp
@@ -86,6 +87,7 @@ target_link_libraries(led_manager_lib
   log_thrift_call
   led_utils
   montblanc_bsp
+  icecube800banw_bsp
   icecube800bc_bsp
   icetea800bc_bsp
   meru800bia_bsp
@@ -102,6 +104,7 @@ target_link_libraries(led_manager_lib
   minipack_platform_mapping
   minipack3n_platform_mapping
   montblanc_platform_mapping
+  icecube800banw_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
   meru800bia_platform_mapping
