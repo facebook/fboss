@@ -835,6 +835,33 @@ TEST_F(AgentTrafficPfcTxDurationTest, verifyPfcTxDuration) {
       validatePfcDurationCounters);
 }
 
+class AgentTrafficPfcRxTxDurationTest : public AgentTrafficPfcTest {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::PFC_RX_TX_DURATION};
+  }
+};
+
+TEST_F(AgentTrafficPfcRxTxDurationTest, verifyPfcRxTxDuration) {
+  TrafficTestParams param{
+      .buffer = defaultPfcBufferParams(),
+  };
+  auto cfg =
+      getPfcTestConfig(kLosslessTrafficClass, kLosslessPriority, {}, param);
+  std::vector<PortID> portIds = portIdsForTest(false /*scale*/);
+  setupPfcDurationCounters(
+      cfg,
+      portIds,
+      true /*rxPfcDurationEnabled*/,
+      true /*txPfcDurationEnabled*/);
+  runPfcTestWithCfg(
+      cfg,
+      kLosslessTrafficClass,
+      kLosslessPriority,
+      param,
+      validatePfcDurationCounters);
+}
+
 class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
  protected:
   void setupConfigAndEcmpTraffic(
