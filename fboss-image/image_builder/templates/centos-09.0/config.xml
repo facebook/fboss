@@ -115,6 +115,7 @@
         <package name="vim"/>
         <package name="vi"/>
         <package name="btrfs-progs"/>
+        <package name="createrepo"/>
         <package name="re2"/>
         <package name="libsodium"/>
         <package name="double-conversion"/>
