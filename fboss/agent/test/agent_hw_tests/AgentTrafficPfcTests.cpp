@@ -404,9 +404,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
   void setupPfcDurationCounters(
       cfg::SwitchConfig& cfg,
       const std::vector<PortID>& portIds,
-      bool rxPfcDurationEnabled) {
-    // Either RX or TX direction is enabled based on production feature to
-    // ensure we can test these separately.
+      bool rxPfcDurationEnabled,
+      bool txPfcDurationEnabled) {
     auto getPfcEnabledPortCfg = [&](const PortID& portId) {
       auto portCfg = std::find_if(
           cfg.ports()->begin(), cfg.ports()->end(), [&portId](auto& port) {
@@ -421,7 +420,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
       if (rxPfcDurationEnabled) {
         portCfg->pfc()->rxPfcDurationEnable() = true;
         XLOG(DBG0) << "Enabled PFC RX duration counter for port ID " << portId;
-      } else {
+      }
+      if (txPfcDurationEnabled) {
         portCfg->pfc()->txPfcDurationEnable() = true;
         XLOG(DBG0) << "Enabled PFC TX duration counter for port ID " << portId;
       }
@@ -822,7 +822,11 @@ TEST_F(AgentTrafficPfcTxDurationTest, verifyPfcTxDuration) {
   auto cfg =
       getPfcTestConfig(kLosslessTrafficClass, kLosslessPriority, {}, param);
   std::vector<PortID> portIds = portIdsForTest(false /*scale*/);
-  setupPfcDurationCounters(cfg, portIds, false /*rxPfcDurationEnabled*/);
+  setupPfcDurationCounters(
+      cfg,
+      portIds,
+      false /*rxPfcDurationEnabled*/,
+      true /*txPfcDurationEnabled*/);
   runPfcTestWithCfg(
       cfg,
       kLosslessTrafficClass,
