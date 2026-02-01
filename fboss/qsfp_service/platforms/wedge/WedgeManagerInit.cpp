@@ -11,6 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMappingUtils.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
+#include "fboss/lib/bsp/blackwolf800banw/Blackwolf800banwBspPlatformMapping.h"
 #include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
@@ -130,6 +131,11 @@ std::unique_ptr<WedgeManager> createWedgeManager(
       return createBspWedgeManager<
           MontblancBspPlatformMapping,
           PlatformType::PLATFORM_MONTBLANC>(
+          platformMapping, qsfpServiceThreads);
+    case PlatformType::PLATFORM_BLACKWOLF800BANW:
+      return createBspWedgeManager<
+          Blackwolf800banwBspPlatformMapping,
+          PlatformType::PLATFORM_BLACKWOLF800BANW>(
           platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_ICECUBE800BC:
       return createBspWedgeManager<
