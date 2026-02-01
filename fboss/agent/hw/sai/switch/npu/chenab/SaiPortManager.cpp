@@ -80,11 +80,4 @@ SaiPortManager::getSaiRxReach(
     const std::vector<phy::RxReach>& /* rxReaches */) const {
   throw FbossError("RxReach is not supported on this platform");
 }
-
-const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
-    const PortID& /* portId */) {
-  static const std::vector<sai_stat_id_t> stats;
-  return stats;
-}
-
 } // namespace facebook::fboss
