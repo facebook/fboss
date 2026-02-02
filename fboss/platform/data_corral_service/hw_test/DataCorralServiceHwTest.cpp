@@ -136,7 +136,9 @@ TEST_F(DataCorralServiceHwTest, getUncachedFruid) {
 }
 
 TEST_F(DataCorralServiceHwTest, testThrift) {
-  apache::thrift::ScopedServerInterfaceThread server(thriftHandler_);
+  apache::thrift::ScopedServerInterfaceThread server(
+      thriftHandler_,
+      facebook::fboss::platform::helpers::createTestThriftServerConfig());
   auto client =
       server.newClient<apache::thrift::Client<DataCorralServiceThrift>>();
   DataCorralFruidReadResponse response;
