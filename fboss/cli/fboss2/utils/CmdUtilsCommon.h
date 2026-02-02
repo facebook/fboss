@@ -82,6 +82,9 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_SCALING_FACTOR,
   // PFC config argument types
   OBJECT_ARG_TYPE_ID_PFC_CONFIG_ATTRS,
+  // Queuing policy argument types
+  OBJECT_ARG_TYPE_ID_QUEUING_POLICY_NAME,
+  OBJECT_ARG_TYPE_ID_QUEUE_ID,
 };
 
 template <typename T>

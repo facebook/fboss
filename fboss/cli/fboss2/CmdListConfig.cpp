@@ -25,6 +25,8 @@
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h"
+#include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicy.h"
+#include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
@@ -107,14 +109,28 @@ const CommandTree& kConfigCommandTree() {
                commandHandler<CmdConfigQosBufferPool>,
                argTypeHandler<CmdConfigQosBufferPoolTraits>,
            },
-           {"priority-group-policy",
-            "Configure priority group policy settings",
-            commandHandler<CmdConfigQosPriorityGroupPolicy>,
-            argTypeHandler<CmdConfigQosPriorityGroupPolicyTraits>,
-            {{"group-id",
-              "Specify priority group ID (0-7)",
-              commandHandler<CmdConfigQosPriorityGroupPolicyGroupId>,
-              argTypeHandler<CmdConfigQosPriorityGroupPolicyGroupIdTraits>}}}},
+           {
+               "priority-group-policy",
+               "Configure priority group policy settings",
+               commandHandler<CmdConfigQosPriorityGroupPolicy>,
+               argTypeHandler<CmdConfigQosPriorityGroupPolicyTraits>,
+               {{"group-id",
+                 "Specify priority group ID (0-7)",
+                 commandHandler<CmdConfigQosPriorityGroupPolicyGroupId>,
+                 argTypeHandler<CmdConfigQosPriorityGroupPolicyGroupIdTraits>}},
+           },
+           {
+               "queuing-policy",
+               "Configure queuing policy settings",
+               commandHandler<CmdConfigQosQueuingPolicy>,
+               argTypeHandler<CmdConfigQosQueuingPolicyTraits>,
+               {{
+                   "queue-id",
+                   "Specify queue ID and attributes",
+                   commandHandler<CmdConfigQosQueuingPolicyQueueId>,
+                   argTypeHandler<CmdConfigQosQueuingPolicyQueueIdTraits>,
+               }},
+           }},
       },
 
       {

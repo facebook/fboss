@@ -285,6 +285,19 @@ CLI::App* CmdSubcommands::addCommand(
               "watchdog-detection-time, watchdog-recovery-action, "
               "watchdog-recovery-time");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QUEUING_POLICY_NAME:
+          subCmd->add_option(
+              "queuing_policy_name", args, "Queuing policy name");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QUEUE_ID:
+          subCmd->add_option(
+              "queue_config",
+              args,
+              "Queue ID followed by key-value pairs: <queue-id> <attr> <value> "
+              "[<attr> <value> ...] where <attr> is one of: reserved-bytes, "
+              "shared-bytes, weight, scaling-factor, scheduling, stream-type, "
+              "buffer-pool-name");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;
