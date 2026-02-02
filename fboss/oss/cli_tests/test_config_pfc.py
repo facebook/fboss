@@ -21,16 +21,15 @@ This test:
 """
 
 import json
-import os
-import shutil
 import sys
+from typing import Any
 
-from cli_test_lib import commit_config, run_cli
-
-
-# Paths
-SYSTEM_CONFIG_PATH = "/etc/coop/agent.conf"
-SESSION_CONFIG_PATH = os.path.expanduser("~/.fboss2/agent.conf")
+from cli_test_lib import (
+    SYSTEM_CONFIG_PATH,
+    cleanup_config,
+    commit_config,
+    run_cli,
+)
 
 # Test names
 TEST_BUFFER_POOL_NAME = "cli_e2e_test_buffer_pool"
@@ -219,46 +218,20 @@ def configure_port_pfc(port_name: str, config: dict) -> None:
 
 def cleanup_test_config() -> None:
     """Remove PFC-related test config: portPgConfigs, bufferPoolConfigs, and port pfc."""
-    session_dir = os.path.dirname(SESSION_CONFIG_PATH)
-    metadata_path = os.path.join(session_dir, "cli_metadata.json")
 
-    print("  Copying system config to session config...")
-    os.makedirs(session_dir, exist_ok=True)
-    shutil.copy(SYSTEM_CONFIG_PATH, SESSION_CONFIG_PATH)
+    def modify_config(sw_config: dict[str, Any]) -> None:
+        # Remove global PFC configs
+        sw_config.pop("portPgConfigs", None)
+        sw_config.pop("bufferPoolConfigs", None)
 
-    print("  Removing PFC-related configs...")
-    with open(SESSION_CONFIG_PATH, "r") as f:
-        config = json.load(f)
+        # Remove per-port PFC config from test port
+        ports = sw_config.get("ports", [])
+        for port in ports:
+            if port.get("name") == TEST_PORT_NAME:
+                port.pop("pfc", None)
+                break
 
-    sw_config = config.get("sw", {})
-
-    # Remove global PFC configs
-    sw_config.pop("portPgConfigs", None)
-    sw_config.pop("bufferPoolConfigs", None)
-
-    # Remove per-port PFC config from test port
-    ports = sw_config.get("ports", [])
-    for port in ports:
-        if port.get("name") == TEST_PORT_NAME:
-            port.pop("pfc", None)
-            break
-
-    with open(SESSION_CONFIG_PATH, "w") as f:
-        json.dump(config, f, indent=2)
-
-    # Update metadata to require AGENT_RESTART since we're changing PFC config
-    # Use symbolic names matching thrift PORTABLE format
-    print("  Updating metadata for AGENT_RESTART...")
-    metadata = {
-        "action": {"WEDGE_AGENT": "AGENT_RESTART"},
-        "commands": [],
-        "base": "",
-    }
-    with open(metadata_path, "w") as f:
-        json.dump(metadata, f, indent=2)
-
-    print("  Committing cleanup...")
-    commit_config()
+    cleanup_config(modify_config, "PFC-related configs")
 
 
 def main() -> int:

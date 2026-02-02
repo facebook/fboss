@@ -29,6 +29,8 @@
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h"
+#include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicy.h"
+#include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
@@ -88,5 +90,10 @@ template void CmdHandler<
 template void CmdHandler<
     CmdConfigQosPriorityGroupPolicyGroupId,
     CmdConfigQosPriorityGroupPolicyGroupIdTraits>::run();
+template void
+CmdHandler<CmdConfigQosQueuingPolicy, CmdConfigQosQueuingPolicyTraits>::run();
+template void CmdHandler<
+    CmdConfigQosQueuingPolicyQueueId,
+    CmdConfigQosQueuingPolicyQueueIdTraits>::run();
 
 } // namespace facebook::fboss
