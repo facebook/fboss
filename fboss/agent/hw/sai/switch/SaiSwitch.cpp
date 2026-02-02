@@ -798,7 +798,11 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
   // reuse and correctness
   try {
     CoarseGrainedLockPolicy lockPolicy(saiSwitchMutex_);
-
+    // unregister callbacks to prevent sdk call backs from interfering the
+    // rollback
+    auto preRollbackSwitchRunState = getSwitchRunState();
+    switchRunStateChangedImplLocked(
+        lockPolicy.lock(), SwitchRunState::ROLLBACK);
     auto hwSwitchJson = toFollyDynamicLocked(lockPolicy.lock());
     {
       HwWriteBehaviorRAII writeBehavior{HwWriteBehavior::SKIP};
@@ -844,6 +848,16 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
     saiStore_->removeUnexpectedUnclaimedWarmbootHandles();
     bootType_ = curBootType;
     rollbackInProgress_ = false;
+    for (const auto& value :
+         apache::thrift::TEnumTraits<SwitchRunState>::values) {
+      // transition through all switch run states until pre-rollback run state
+      // is reached. this will register all appropriate callbacks which were
+      // unregistered
+      if (value > preRollbackSwitchRunState) {
+        continue;
+      }
+      switchRunStateChangedImplLocked(lockPolicy.lock(), value);
+    }
   } catch (const std::exception& ex) {
     // Rollback failed. Fail hard.
     XLOG(FATAL) << " Roll back failed with : " << ex.what();
@@ -2745,7 +2759,15 @@ void SaiSwitch::linkStateChangedBottomHalf(const PortID& portId) {
 
 void SaiSwitch::linkStateChangedCallbackBottomHalf(
     std::vector<sai_port_oper_status_notification_t> operStatus) {
-  std::map<PortID, bool> swPortId2Status;
+  // Store both link status AND port type from concurrentIndices_ to avoid
+  // race condition. The port2PortType_ map in SaiPortManager is not thread-safe
+  // (std::unordered_map), while concurrentIndices_->portSaiId2PortInfo is
+  // thread-safe (folly::ConcurrentHashMap). During warm boot, the main thread
+  // populates port2PortType_ via addPort(), but this thread (fbossSaiLnkScnBH)
+  // may read from it before the write is visible due to lack of memory
+  // barriers. By using portType from concurrentIndices_, we avoid this race
+  // condition.
+  std::map<PortID, std::pair<bool, cfg::PortType>> swPortId2StatusAndType;
   std::map<PortID, std::optional<AggregatePortID>> swPortId2DownAggPort;
   for (auto i = 0; i < operStatus.size(); i++) {
     bool up = utility::isPortOperUp(operStatus[i].port_state);
@@ -2760,6 +2782,7 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
       continue;
     }
     PortID swPortId = portItr->second.portID;
+    cfg::PortType portType = portItr->second.portType;
 
     std::optional<AggregatePortID> swAggPort{};
     const auto aggrItr = concurrentIndices_->memberPort2AggregatePortIds.find(
@@ -2833,21 +2856,21 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
             SaiPortDescriptor(swPortId));
       }
     }
-    swPortId2Status[swPortId] = up;
+    swPortId2StatusAndType[swPortId] = std::make_pair(up, portType);
   }
   // Issue callbacks in a separate loop so fast link status change
   // processing is not at the mercy of what the callback (SwSwitch, HwTest)
   // does with the callback notification.
-  for (auto swPortIdAndStatus : swPortId2Status) {
+  for (const auto& [swPortId, statusAndType] : swPortId2StatusAndType) {
     std::optional<AggregatePortID> downAggPort;
-    auto it = swPortId2DownAggPort.find(swPortIdAndStatus.first);
+    auto it = swPortId2DownAggPort.find(swPortId);
     if (it != swPortId2DownAggPort.end()) {
       downAggPort = it->second;
     }
     callback_->linkStateChanged(
-        swPortIdAndStatus.first,
-        swPortIdAndStatus.second,
-        managerTable_->portManager().getPortType(swPortIdAndStatus.first),
+        swPortId,
+        statusAndType.first,
+        statusAndType.second,
         std::nullopt,
         downAggPort);
   }
@@ -4403,6 +4426,10 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       }
 #endif
     } break;
+    case SwitchRunState::ROLLBACK:
+      // rolling back
+      unregisterCallbacksLocked(lock);
+      break;
     default:
       break;
   }

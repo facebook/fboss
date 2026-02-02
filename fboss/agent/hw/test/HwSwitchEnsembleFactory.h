@@ -30,7 +30,6 @@ std::unique_ptr<HwSwitchEnsemble> createHwEnsemble(
 
 std::unique_ptr<HwSwitchEnsemble> createAndInitHwEnsemble(
     const HwSwitchEnsemble::Features& featuresDesired,
-    const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info =
-        HwSwitchEnsemble::HwSwitchEnsembleInitInfo{});
+    const TestEnsembleInitInfo& info = TestEnsembleInitInfo{});
 
 } // namespace facebook::fboss

@@ -243,7 +243,8 @@ void RibRouteTables::reconfigure(
           folly::range(
               staticMplsRoutesToNull.cbegin(), staticMplsRoutesToNull.cend()),
           folly::range(
-              staticMplsRoutesToCpu.cbegin(), staticMplsRoutesToCpu.cend()));
+              staticMplsRoutesToCpu.cbegin(), staticMplsRoutesToCpu.cend()),
+          nextHopIDManager_);
       // Apply config
       configApplier.apply();
     });

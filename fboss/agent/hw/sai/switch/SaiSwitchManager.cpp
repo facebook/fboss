@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
+#include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
@@ -235,7 +236,7 @@ SaiSwitchManager::SaiSwitchManager(
       // be a no-op if already set.
       switch_->setOptionalAttribute(
           SaiSwitchTraits::Attributes::MaxSwitchId{
-              platform->getAsic()->getMaxSwitchId()});
+              utility::getDsfVoqSwitchMaxSwitchId()});
 #endif
     }
   } else {

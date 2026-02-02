@@ -475,10 +475,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_U355_ADC128D818_1/in0_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 1.26,
-            "minAlarmVal": 1.14,
-            "upperCriticalVal": 1.3,
-            "lowerCriticalVal": 1.1
+            "maxAlarmVal": 1.32,
+            "minAlarmVal": 1.19,
+            "upperCriticalVal": 1.35,
+            "lowerCriticalVal": 1.16
           },
           "compute": "@/1000.0"
         },
@@ -499,10 +499,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_U355_ADC128D818_1/in2_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 1.26,
-            "minAlarmVal": 1.14,
-            "upperCriticalVal": 1.3,
-            "lowerCriticalVal": 1.1
+            "maxAlarmVal": 1.32,
+            "minAlarmVal": 1.19,
+            "upperCriticalVal": 1.35,
+            "lowerCriticalVal": 1.16
           },
           "compute": "@/1000.0"
         },
@@ -974,7 +974,7 @@
         },
         {
           "name": "SMB_U327_TPS25990_COME_P12V_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_U327_TPS25990_COME/in2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_U327_TPS25990_COME/in3_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 13.2,
@@ -1455,7 +1455,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -2172,7 +2171,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -2889,7 +2887,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -3606,7 +3603,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -4323,7 +4319,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -5040,7 +5035,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -5757,7 +5751,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -6474,7 +6467,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -7171,7 +7163,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -7483,7 +7474,7 @@
                 "upperCriticalVal": 0.95,
                 "lowerCriticalVal": 0.7
               },
-              "compute": "0.5*@/1000.0"
+              "compute": "@/1000.0"
             },
             {
               "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_POUT",
@@ -7543,7 +7534,7 @@
                 "upperCriticalVal": 0.95,
                 "lowerCriticalVal": 0.7
               },
-              "compute": "0.5*@/1000.0"
+              "compute": "@/1000.0"
             },
             {
               "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_POUT",
@@ -7828,7 +7819,6 @@
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 25,
-                "minAlarmVal": 0,
                 "upperCriticalVal": 30
               },
               "compute": "@/1000.0"
@@ -8140,7 +8130,7 @@
                 "upperCriticalVal": 0.95,
                 "lowerCriticalVal": 0.7
               },
-              "compute": "0.5*@/1000.0"
+              "compute": "@/1000.0"
             },
             {
               "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_POUT",
@@ -8200,7 +8190,7 @@
                 "upperCriticalVal": 0.95,
                 "lowerCriticalVal": 0.7
               },
-              "compute": "0.5*@/1000.0"
+              "compute": "@/1000.0"
             },
             {
               "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_POUT",

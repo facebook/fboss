@@ -21,6 +21,7 @@
 #include "fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmLadakh800bclsPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmMinipack3BTAPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmTahansb800bcPlatformPort.h"
@@ -364,6 +365,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmDarwinPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MINIPACK) {
       saiPort = std::make_unique<SaiBcmMinipackPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_MINIPACK3BTA) {
+      saiPort = std::make_unique<SaiBcmMinipack3BTAPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MORGAN800CC) {
       saiPort = std::make_unique<SaiMorgan800ccPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_YAMP) {
@@ -739,7 +742,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
   std::optional<int32_t> maxSystemPorts;
   std::optional<int32_t> maxVoqs;
-  std::optional<int32_t> maxSwitchId;
+  std::optional<uint32_t> maxSwitchId;
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
   if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_RAMON3 ||
       getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
@@ -747,25 +750,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     // switch id that's used in their deployment to be below the
     // default (HW advertised) value.
     auto agentConfig = config();
-    bool isL2FabricNode = false;
     if (swType == cfg::SwitchType::FABRIC) {
-      auto fabricNodeRole = getAsic()->getFabricNodeRole();
-      isL2FabricNode =
-          fabricNodeRole == HwAsic::FabricNodeRole::DUAL_STAGE_L1 ||
-          fabricNodeRole == HwAsic::FabricNodeRole::DUAL_STAGE_L2;
-    }
-    auto isDualStage = utility::isDualStage(*agentConfig) ||
-        // Use isDualStage3Q2QMode and fabricNodeRole so we set
-        // max switch-id in single node tests as well
-        isDualStage3Q2QMode() || isL2FabricNode;
-    if (isDualStage) {
-      // TODO: look at 2-stage configs, find max switch-id and use that
-      // to compute the value here.
-      maxSwitchId = kDualStageMaxGlobalSwitchId;
+      HwAsic::FabricNodeRole fabricNodeRole = getAsic()->getFabricNodeRole();
+      maxSwitchId =
+          utility::getDsfFabricSwitchMaxSwitchId(*agentConfig, fabricNodeRole);
     } else {
-      // TODO: Programatically calculate the max switch-id and
-      // assert that we are are within this limit
-      maxSwitchId = kSingleStageMaxGlobalSwitchId;
+      maxSwitchId = utility::getDsfVoqSwitchMaxSwitchId();
     }
     auto maxDsfConfigSwitchId = utility::maxDsfSwitchId(*agentConfig) +
         std::max(getAsic()->getNumCores(),

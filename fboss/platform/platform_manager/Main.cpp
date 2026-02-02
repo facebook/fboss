@@ -117,12 +117,6 @@ int main(int argc, char** argv) {
     auto server = std::make_shared<apache::thrift::ThriftServer>();
     auto handler = std::make_shared<PlatformManagerHandler>(
         platformExplorer, ds.value(), config);
-    server->setPort(FLAGS_thrift_port);
-    server->setInterface(handler);
-    server->setAllowPlaintextOnLoopback(true);
-
-    auto evb = server->getEventBaseManager()->getEventBase();
-    helpers::SignalHandler signalHandler(evb, server);
 
     helpers::runThriftService(
         server, handler, "PlatformManagerService", FLAGS_thrift_port);

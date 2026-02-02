@@ -206,7 +206,6 @@ bool HwTestThriftHandler::validateRemoveUdfGroup(
   } catch (const SaiApiError&) {
     return true;
   }
-  return true;
 }
 
 bool HwTestThriftHandler::validateRemoveUdfPacketMatcher(
@@ -231,7 +230,6 @@ bool HwTestThriftHandler::validateRemoveUdfPacketMatcher(
   } catch (const SaiApiError&) {
     return true;
   }
-  return false;
 }
 
 int32_t HwTestThriftHandler::getHwUdfGroupId(

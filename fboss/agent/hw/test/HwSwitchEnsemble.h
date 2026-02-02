@@ -96,11 +96,6 @@ class HwSwitchEnsemble : public TestEnsembleIf {
     std::atomic<bool> stopped_{false};
   };
   void stopObservers();
-  struct HwSwitchEnsembleInitInfo {
-    std::optional<TransceiverInfo> overrideTransceiverInfo;
-    std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes;
-    bool failHwCallsOnWarmboot;
-  };
   enum Feature : uint32_t {
     PACKET_RX,
     LINKSCAN,
@@ -181,8 +176,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   virtual std::map<int64_t, cfg::DsfNode> dsfNodesFromInputConfig() const {
     return {};
   }
-  virtual void init(
-      const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& /*info*/) = 0;
+  virtual void init(const TestEnsembleInitInfo& /*info*/) = 0;
 
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
   void linkStateChanged(
@@ -372,7 +366,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       std::unique_ptr<HwAgent> hwAgent,
       std::unique_ptr<LinkStateToggler> linkToggler,
       std::unique_ptr<std::thread> thriftThread,
-      const HwSwitchEnsembleInitInfo& info);
+      const TestEnsembleInitInfo& info);
   uint32_t getHwSwitchFeatures() const;
   bool haveFeature(Feature feature) {
     return featuresDesired_.find(feature) != featuresDesired_.end();

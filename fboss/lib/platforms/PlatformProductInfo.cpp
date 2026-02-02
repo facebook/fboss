@@ -108,6 +108,10 @@ void PlatformProductInfo::initMode() {
         modelName.find("MINIPACK3N") == 0) {
       type_ = PlatformType::PLATFORM_MINIPACK3N;
     } else if (
+        modelName.find("Minipack3BTA") == 0 ||
+        modelName.find("MINIPACK3BTA") == 0) {
+      type_ = PlatformType::PLATFORM_MINIPACK3BTA;
+    } else if (
         modelName.find("Montblanc") == 0 || modelName.find("MONTBLANC") == 0 ||
         modelName.find("MINIPACK3_CHASSIS_BUNDLE") == 0 ||
         modelName.find("MINIPACK3") == 0 ||
@@ -272,6 +276,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MORGAN800CC;
     } else if (FLAGS_mode == "yangra") {
       type_ = PlatformType::PLATFORM_YANGRA;
+    } else if (FLAGS_mode == "minipack3bta") {
+      type_ = PlatformType::PLATFORM_MINIPACK3BTA;
     } else if (FLAGS_mode == "minipack3n") {
       type_ = PlatformType::PLATFORM_MINIPACK3N;
     } else if (FLAGS_mode == "wedge800bact") {
