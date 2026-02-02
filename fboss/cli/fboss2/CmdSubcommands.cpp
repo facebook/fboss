@@ -276,6 +276,15 @@ CLI::App* CmdSubcommands::addCommand(
               "ONE_16TH, ONE_8TH, ONE_QUARTER, ONE_HALF, TWO, FOUR, ONE_32768TH, "
               "ONE_HUNDRED_TWENTY_EIGHT)");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PFC_CONFIG_ATTRS:
+          subCmd->add_option(
+              "pfc_config_attrs",
+              args,
+              "<attr> <value> [<attr> <value> ...] where <attr> is one of: "
+              "rx, tx, rx-duration, tx-duration, priority-group-policy, "
+              "watchdog-detection-time, watchdog-recovery-action, "
+              "watchdog-recovery-time");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;

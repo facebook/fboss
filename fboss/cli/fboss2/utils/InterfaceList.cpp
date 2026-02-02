@@ -10,6 +10,11 @@
 
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
 #include <folly/String.h>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
 
@@ -24,7 +29,7 @@ InterfaceList::InterfaceList(std::vector<std::string> names)
   std::vector<std::string> notFound;
 
   for (const auto& name : names_) {
-    Intf intf;
+    Intf intf(name);
 
     // First try to look up as a port name
     cfg::Port* port = portMap.getPort(name);
