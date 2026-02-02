@@ -2743,7 +2743,6 @@ bool setTransceiverLoopback(
     }
     return true;
   }
-  return true;
 }
 
 bool doMiniphotonLoopbackDirect(

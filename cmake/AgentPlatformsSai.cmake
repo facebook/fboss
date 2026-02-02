@@ -14,6 +14,7 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiBcmDarwinPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmElbertPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMinipackPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmMinipack3BTAPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmYampPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmFujiPlatform.cpp
   fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.cpp
@@ -42,6 +43,7 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmLadakh800bclsPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmTahansb800bcPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmMinipack3BTAPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmWedge800BACTPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmWedge800BACTPlatformPort.cpp
   fboss/agent/platforms/sai/SaiWedge800CACTPlatform.cpp
@@ -118,6 +120,7 @@ target_link_libraries(sai_platform
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
   yangra_platform_mapping
+  minipack3bta_platform_mapping
   minipack3n_platform_mapping
   montblanc_platform_mapping
   janga800bic_platform_mapping

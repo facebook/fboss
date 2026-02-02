@@ -62,12 +62,20 @@ void AgentEnsemble::setupEnsemble(
     bool disableLinkStateToggler,
     AgentEnsemblePlatformConfigFn platformConfigFn,
     uint32_t hwFeaturesDesired,
-    bool failHwCallsOnWarmboot) {
+    const TestEnsembleInitInfo& initInfo) {
   FLAGS_verify_apply_oper_delta = true;
 
   if (bootType_ == BootType::COLD_BOOT || FLAGS_prod_invariant_config_test) {
     auto inputAgentConfig =
         AgentConfig::fromFile(AgentEnsemble::getInputConfigFile())->thrift;
+    // If overrideDsfNodes is provided in initInfo, use it to update the
+    // dsfNodes in the config. This is useful for tests that need specific
+    // DSF configuration (e.g., L2 fabric level) before the HwSwitch is
+    // created.
+    if (initInfo.overrideDsfNodes.has_value()) {
+      inputAgentConfig.sw()->dsfNodes() = *initInfo.overrideDsfNodes;
+    }
+
     if (platformConfigFn) {
       platformConfigFn(
           *(inputAgentConfig.sw()), *(inputAgentConfig.platform()));
@@ -145,7 +153,7 @@ void AgentEnsemble::setupEnsemble(
       disableLinkStateToggler == false) {
     setupLinkStateToggler();
   }
-  startAgent(failHwCallsOnWarmboot);
+  startAgent(initInfo.failHwCallsOnWarmboot);
 
   for (const auto& switchId : getSw()->getSwitchInfoTable().getL3SwitchIDs()) {
     ensureHwSwitchConnected(switchId);

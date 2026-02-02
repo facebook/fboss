@@ -22,9 +22,17 @@ std::string getBuildVersion() {
 
 void runThriftService(
     std::shared_ptr<apache::thrift::ThriftServer> server,
-    std::shared_ptr<apache::thrift::ServerInterface> /* handler */,
+    std::shared_ptr<apache::thrift::ServerInterface> handler,
     const std::string& /* serviceName */,
-    uint32_t /* port */) {
+    uint32_t port) {
+  // Setup thrift server
+  server->setPort(port);
+  server->setInterface(handler);
+  server->setAllowPlaintextOnLoopback(true);
+
+  auto evb = server->getEventBaseManager()->getEventBase();
+  SignalHandler signalHandler(evb, server);
+
   server->serve();
 }
 } // namespace facebook::fboss::platform::helpers

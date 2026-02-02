@@ -27,6 +27,9 @@ thrift_library(
         "serde",
     ],
     thrift_srcs = {"fboss_common.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -54,6 +57,9 @@ thrift_library(
         "serde",
     ],
     thrift_srcs = {"io_stats.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -81,4 +87,7 @@ thrift_library(
         "serde",
     ],
     thrift_srcs = {"pim_state.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )

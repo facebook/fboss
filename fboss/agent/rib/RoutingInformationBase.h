@@ -56,6 +56,10 @@ class RibRouteTables {
   explicit RibRouteTables(NextHopIDManager* nextHopIDManager)
       : nextHopIDManager_(nextHopIDManager) {}
 
+  const NextHopIDManager* getNextHopIDManager() const {
+    return nextHopIDManager_;
+  }
+
   template <typename RouteType, typename RouteIdType>
   void update(
       const SwitchIdScopeResolver* resolver,
@@ -133,7 +137,8 @@ class RibRouteTables {
   static RibRouteTables fromThrift(
       const std::map<int32_t, state::RouteTableFields>& ribThrift,
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
-      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+      NextHopIDManager* nextHopIDManager);
 
   void ensureVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;
@@ -147,7 +152,8 @@ class RibRouteTables {
 
   std::map<int32_t, state::RouteTableFields> toThrift() const;
   static RibRouteTables fromThrift(
-      const std::map<int32_t, state::RouteTableFields>&);
+      const std::map<int32_t, state::RouteTableFields>&,
+      NextHopIDManager* nextHopIDManager);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
   void updateEcmpOverrides(const StateDelta& delta);
@@ -385,8 +391,8 @@ class RoutingInformationBase {
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
   // Getter for NextHopIDManager
-  const NextHopIDManager& getNextHopIDManager() const {
-    return nextHopIDManager_;
+  const NextHopIDManager* getNextHopIDManager() const {
+    return nextHopIDManager_.get();
   }
 
  private:
@@ -415,7 +421,7 @@ class RoutingInformationBase {
 
   std::unique_ptr<std::thread> ribUpdateThread_;
   FbossEventBase ribUpdateEventBase_{"RibUpdateEventBase"};
-  NextHopIDManager nextHopIDManager_;
+  std::unique_ptr<NextHopIDManager> nextHopIDManager_;
   RibRouteTables ribTables_;
 };
 

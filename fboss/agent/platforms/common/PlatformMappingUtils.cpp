@@ -32,6 +32,7 @@
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/minipack/MinipackPlatformMapping.h"
+#include "fboss/agent/platforms/common/minipack3bta/Minipack3BTAPlatformMapping.h"
 #include "fboss/agent/platforms/common/minipack3n/Minipack3NPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
@@ -182,6 +183,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<YangraPlatformMapping>()
           : std::make_unique<YangraPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_MINIPACK3BTA:
+      return platformMappingStr.empty()
+          ? std::make_unique<Minipack3BTAPlatformMapping>()
+          : std::make_unique<Minipack3BTAPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_MINIPACK3N:
       return platformMappingStr.empty()
           ? std::make_unique<Minipack3NPlatformMapping>()

@@ -103,7 +103,6 @@ cpp_unittest(
         "//fboss/agent:file_based_warmboot_utils",
         "//fboss/agent:handler",
         "//fboss/agent:hw_asic_table",
-        "//fboss/agent:hw_switch_thrift_client_table",
         "//fboss/agent:hwswitch_matcher",
         "//fboss/agent:hwswitchcallback",
         "//fboss/agent:load_agent_config",
@@ -128,6 +127,7 @@ cpp_unittest(
         "//fboss/agent/packet:ipproto",
         "//fboss/agent/packet:packet",
         "//fboss/agent/packet:pktutil",
+        "//fboss/agent/rib:nexthop_id_manager",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_utils",
@@ -218,12 +218,14 @@ cpp_library(
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:hw_switch_thrift_client_table",
         "//fboss/agent:load_agent_config",
         "//fboss/agent:monolithic_hw_switch_handler",
         "//fboss/agent:multi_switch_hw_switch_handler",
         "//fboss/agent:packet",
         "//fboss/agent:state_observer",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:switch_state-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/hw/mock:mock",
         "//fboss/agent/rib:standalone_rib",
@@ -309,6 +311,7 @@ cpp_library(
         "RouteDistributionGenerator.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         ":ecmp_helper",
         ":resourcelibutil",
         "//fboss/agent:fboss-types",
@@ -318,9 +321,6 @@ cpp_library(
         "//fboss/agent/state:state",
         "//fboss/lib/if:fboss_common-cpp2-types",
         "//folly:network_address",
-    ],
-    exported_external_deps = [
-        "glog",
     ],
 )
 
@@ -774,6 +774,7 @@ cpp_library(
         "//fboss/agent:utils",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_update",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly/gen:base",
     ],
 )
