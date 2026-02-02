@@ -9,13 +9,15 @@ End-to-end tests for PFC (Priority Flow Control) CLI commands.
 
 This test covers:
 1. Priority group policy configuration (config qos priority-group-policy)
+2. Per-port PFC configuration (config interface <port> pfc-config)
 
 This test:
-1. Cleans up any existing test config (portPgConfigs and bufferPoolConfigs)
+1. Cleans up any existing test config (portPgConfigs, bufferPoolConfigs, port pfc)
 2. Creates a buffer pool (required for priority group config)
 3. Creates a new priority group policy with multiple group IDs
-4. Commits the configuration and verifies it was applied
-5. Cleans up the test config
+4. Configures PFC on a test port with tx, rx, watchdog settings
+5. Commits the configuration and verifies it was applied
+6. Cleans up the test config
 """
 
 import json
@@ -33,6 +35,7 @@ SESSION_CONFIG_PATH = os.path.expanduser("~/.fboss2/agent.conf")
 # Test names
 TEST_BUFFER_POOL_NAME = "cli_e2e_test_buffer_pool"
 TEST_POLICY_NAME = "cli_e2e_test_pg_policy"
+TEST_PORT_NAME = "eth1/1/1"
 
 # Buffer pool configuration
 TEST_BUFFER_POOL_CONFIG = {
@@ -117,6 +120,19 @@ CLI_PG_CONFIGS = [
     },
 ]
 
+# Per-port PFC configuration (similar to l3_scaleup.conf)
+# recoveryAction enum: NO_DROP=0, DROP=1
+TEST_PORT_PFC_CONFIG = {
+    "tx": True,
+    "rx": True,
+    "portPgConfigName": TEST_POLICY_NAME,
+    "watchdog": {
+        "detectionTimeMsecs": 150,
+        "recoveryTimeMsecs": 1000,
+        "recoveryAction": 0,  # NO_DROP
+    },
+}
+
 
 def configure_buffer_pool(pool_name: str, config: dict) -> None:
     """Configure a buffer pool with shared and headroom bytes."""
@@ -171,8 +187,38 @@ def configure_priority_group_multi_attr(
     run_cli(cmd)
 
 
+def configure_port_pfc(port_name: str, config: dict) -> None:
+    """Configure PFC settings on a port.
+
+    Demonstrates both single-attribute and multi-attribute command variants.
+    """
+    base_cmd = ["config", "interface", port_name, "pfc-config"]
+    watchdog = config["watchdog"]
+    recovery_action = "no-drop" if watchdog["recoveryAction"] == 0 else "drop"
+
+    # First, use single-attribute commands for tx, rx, and priority-group-policy
+    print("  Using single-attribute commands for tx, rx, priority-group-policy...")
+    run_cli(base_cmd + ["tx", "enabled" if config["tx"] else "disabled"])
+    run_cli(base_cmd + ["rx", "enabled" if config["rx"] else "disabled"])
+    run_cli(base_cmd + ["priority-group-policy", config["portPgConfigName"]])
+
+    # Then, use a multi-attribute command for all watchdog settings at once
+    print("  Using multi-attribute command for all watchdog settings...")
+    run_cli(
+        base_cmd
+        + [
+            "watchdog-detection-time",
+            str(watchdog["detectionTimeMsecs"]),
+            "watchdog-recovery-time",
+            str(watchdog["recoveryTimeMsecs"]),
+            "watchdog-recovery-action",
+            recovery_action,
+        ]
+    )
+
+
 def cleanup_test_config() -> None:
-    """Remove portPgConfigs and bufferPoolConfigs from the config."""
+    """Remove PFC-related test config: portPgConfigs, bufferPoolConfigs, and port pfc."""
     session_dir = os.path.dirname(SESSION_CONFIG_PATH)
     metadata_path = os.path.join(session_dir, "cli_metadata.json")
 
@@ -189,6 +235,13 @@ def cleanup_test_config() -> None:
     # Remove global PFC configs
     sw_config.pop("portPgConfigs", None)
     sw_config.pop("bufferPoolConfigs", None)
+
+    # Remove per-port PFC config from test port
+    ports = sw_config.get("ports", [])
+    for port in ports:
+        if port.get("name") == TEST_PORT_NAME:
+            port.pop("pfc", None)
+            break
 
     with open(SESSION_CONFIG_PATH, "w") as f:
         json.dump(config, f, indent=2)
@@ -241,13 +294,18 @@ def main() -> int:
         )
     print("  All priority groups configured")
 
-    # Step 3: Commit the configuration
-    print("\n[Step 3] Committing configuration...")
+    # Step 3: Configure per-port PFC
+    print(f"\n[Step 3] Configuring PFC on port '{TEST_PORT_NAME}'...")
+    configure_port_pfc(TEST_PORT_NAME, TEST_PORT_PFC_CONFIG)
+    print("  Port PFC configured")
+
+    # Step 4: Commit the configuration
+    print("\n[Step 4] Committing configuration...")
     commit_config()
     print("  Configuration committed successfully")
 
-    # Step 4: Verify configuration by reading /etc/coop/agent.conf
-    print("\n[Step 4] Verifying configuration...")
+    # Step 5: Verify configuration by reading /etc/coop/agent.conf
+    print("\n[Step 5] Verifying configuration...")
     with open(SYSTEM_CONFIG_PATH, "r") as f:
         config = json.load(f)
 
@@ -283,12 +341,36 @@ def main() -> int:
         return 1
     print(f"  Priority group policy '{TEST_POLICY_NAME}' verified")
 
+    # Verify per-port PFC config
+    ports = sw_config.get("ports", [])
+    test_port = None
+    for port in ports:
+        if port.get("name") == TEST_PORT_NAME:
+            test_port = port
+            break
+
+    if test_port is None:
+        print(f"  ERROR: Port '{TEST_PORT_NAME}' not found in config")
+        return 1
+
+    actual_pfc = test_port.get("pfc")
+    if actual_pfc is None:
+        print(f"  ERROR: PFC config not found on port '{TEST_PORT_NAME}'")
+        return 1
+
+    if actual_pfc != TEST_PORT_PFC_CONFIG:
+        print("  ERROR: Port PFC config mismatch")
+        print(f"  Expected: {json.dumps(TEST_PORT_PFC_CONFIG, indent=2)}")
+        print(f"  Actual:   {json.dumps(actual_pfc, indent=2)}")
+        return 1
+    print(f"  Port '{TEST_PORT_NAME}' PFC config verified")
+
     print("\n" + "=" * 70)
     print("TEST PASSED")
     print("=" * 70)
 
-    # Step 5: Cleanup test config
-    print("\n[Step 5] Cleaning up test config...")
+    # Step 6: Cleanup test config
+    print("\n[Step 6] Cleaning up test config...")
     cleanup_test_config()
     print("  Cleanup complete")
 

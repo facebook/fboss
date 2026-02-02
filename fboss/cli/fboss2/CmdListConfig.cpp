@@ -17,6 +17,7 @@
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h"
+#include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
@@ -66,6 +67,12 @@ const CommandTree& kConfigCommandTree() {
                "Set interface MTU",
                commandHandler<CmdConfigInterfaceMtu>,
                argTypeHandler<CmdConfigInterfaceMtuTraits>,
+           },
+           {
+               "pfc-config",
+               "Configure PFC settings for interface",
+               commandHandler<CmdConfigInterfacePfcConfig>,
+               argTypeHandler<CmdConfigInterfacePfcConfigTraits>,
            },
            {
                "switchport",

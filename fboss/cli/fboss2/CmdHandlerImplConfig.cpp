@@ -21,6 +21,7 @@
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h"
+#include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
@@ -50,6 +51,9 @@ template void CmdHandler<
     CmdConfigInterfaceDescriptionTraits>::run();
 template void
 CmdHandler<CmdConfigInterfaceMtu, CmdConfigInterfaceMtuTraits>::run();
+template void CmdHandler<
+    CmdConfigInterfacePfcConfig,
+    CmdConfigInterfacePfcConfigTraits>::run();
 template void CmdHandler<
     CmdConfigInterfaceSwitchport,
     CmdConfigInterfaceSwitchportTraits>::run();
