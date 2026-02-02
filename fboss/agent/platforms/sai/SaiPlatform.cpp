@@ -15,7 +15,6 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
-#include "fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
@@ -407,9 +406,6 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmIcecube800bcPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_ICETEA800BC) {
       saiPort = std::make_unique<SaiBcmIcetea800bcPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_BLACKWOLF800BANW) {
-      saiPort =
-          std::make_unique<SaiBcmBlackwolf800banwPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_LADAKH800BCLS) {
       saiPort = std::make_unique<SaiBcmLadakh800bclsPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_WEDGE800BACT) {
@@ -549,7 +545,6 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         }
         switch (*dsfNode.asicType()) {
           case cfg::AsicType::ASIC_TYPE_JERICHO3:
-          case cfg::AsicType::ASIC_TYPE_Q4D:
             // for directly connected interface nodes we don't expect
             // asic type to change across dsf nodes
             maxCoreCount = std::max(j3.getNumCores(), maxCoreCount);
