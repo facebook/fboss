@@ -26,6 +26,8 @@
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
+#include "fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h"
+#include "fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h"
 #include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
 #include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.h"
@@ -39,6 +41,8 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
 #include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h"
+#include "fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.h"
+#include "fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
@@ -79,6 +83,9 @@ template void
 CmdHandler<CmdConfigSessionDiff, CmdConfigSessionDiffTraits>::run();
 template void
 CmdHandler<CmdConfigSessionRebase, CmdConfigSessionRebaseTraits>::run();
+template void CmdHandler<CmdConfigL2, CmdConfigL2Traits>::run();
+template void
+CmdHandler<CmdConfigL2LearningMode, CmdConfigL2LearningModeTraits>::run();
 template void CmdHandler<CmdConfigQos, CmdConfigQosTraits>::run();
 template void
 CmdHandler<CmdConfigQosBufferPool, CmdConfigQosBufferPoolTraits>::run();
@@ -86,6 +93,10 @@ template void CmdHandler<CmdConfigQosPolicy, CmdConfigQosPolicyTraits>::run();
 template void
 CmdHandler<CmdConfigQosPolicyMap, CmdConfigQosPolicyMapTraits>::run();
 template void CmdHandler<CmdConfigVlan, CmdConfigVlanTraits>::run();
+template void CmdHandler<CmdConfigVlanPort, CmdConfigVlanPortTraits>::run();
+template void CmdHandler<
+    CmdConfigVlanPortTaggingMode,
+    CmdConfigVlanPortTaggingModeTraits>::run();
 template void
 CmdHandler<CmdConfigVlanStaticMac, CmdConfigVlanStaticMacTraits>::run();
 template void

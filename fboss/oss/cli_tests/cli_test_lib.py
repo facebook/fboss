@@ -297,3 +297,61 @@ def cleanup_config(
 
     print("  Committing cleanup...")
     commit_config()
+
+
+def running_config() -> dict[str, Any]:
+    """
+    Get the running configuration from the FBOSS agent.
+
+    Returns the nested JSON payload, skipping the initial 'localhost' level.
+    This allows direct access to the configuration without needing to iterate
+    over host keys.
+
+    Returns:
+        The configuration dict containing 'sw', 'platform', etc.
+    """
+    data = run_cli(["show", "running-config"])
+
+    # The JSON has a host key (e.g., "localhost") containing a JSON string
+    for host_data_str in data.values():
+        # The value is a JSON string that needs to be parsed
+        if isinstance(host_data_str, str):
+            return json.loads(host_data_str)
+        return host_data_str
+
+    return {}
+
+
+def wait_for_agent_ready(max_wait_seconds: int = 60) -> bool:
+    """
+    Wait for the wedge_agent to be ready after a restart.
+
+    The agent restart typically takes 40-50 seconds. We wait for an initial
+    period and then poll until the agent responds with valid data.
+
+    Args:
+        max_wait_seconds: Maximum time to wait for the agent to be ready.
+
+    Returns:
+        True if the agent is ready, False if timeout.
+    """
+    # Initial delay - agent restart takes significant time
+    # This avoids noisy polling during the restart
+    initial_wait = 30
+    print(f"  Sleeping {initial_wait}s for agent restart...")
+    time.sleep(initial_wait)
+
+    # Now poll until agent is ready or timeout
+    start_time = time.time()
+    remaining = max_wait_seconds - initial_wait
+    while time.time() - start_time < remaining:
+        try:
+            # Try to get the running config - if it works, agent is ready
+            data = run_cli(["show", "running-config"], check=False)
+            # Make sure we got valid data (not empty due to connection issues)
+            if data and any(data.values()):
+                return True
+        except (RuntimeError, json.JSONDecodeError):
+            pass
+        time.sleep(2)
+    return False

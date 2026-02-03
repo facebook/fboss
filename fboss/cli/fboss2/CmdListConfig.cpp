@@ -22,6 +22,8 @@
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
+#include "fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h"
+#include "fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h"
 #include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
 #include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.h"
@@ -35,6 +37,8 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
 #include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h"
+#include "fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.h"
+#include "fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
@@ -104,6 +108,20 @@ const CommandTree& kConfigCommandTree() {
                    }},
                }},
            }},
+      },
+
+      {
+          "config",
+          "l2",
+          "Configure L2 settings",
+          commandHandler<CmdConfigL2>,
+          argTypeHandler<CmdConfigL2Traits>,
+          {{
+              "learning-mode",
+              "Set L2 learning mode (hardware, software, or disabled)",
+              commandHandler<CmdConfigL2LearningMode>,
+              argTypeHandler<CmdConfigL2LearningModeTraits>,
+          }},
       },
 
       {
@@ -197,23 +215,35 @@ const CommandTree& kConfigCommandTree() {
           commandHandler<CmdConfigVlan>,
           argTypeHandler<CmdConfigVlanTraits>,
           {{
-              "static-mac",
-              "Manage static MAC entries for VLANs",
-              commandHandler<CmdConfigVlanStaticMac>,
-              argTypeHandler<CmdConfigVlanStaticMacTraits>,
-              {{
-                   "add",
-                   "Add a static MAC entry to a VLAN",
-                   commandHandler<CmdConfigVlanStaticMacAdd>,
-                   argTypeHandler<CmdConfigVlanStaticMacAddTraits>,
-               },
-               {
-                   "delete",
-                   "Delete a static MAC entry from a VLAN",
-                   commandHandler<CmdConfigVlanStaticMacDelete>,
-                   argTypeHandler<CmdConfigVlanStaticMacDeleteTraits>,
+               "port",
+               "Configure port settings for a VLAN",
+               commandHandler<CmdConfigVlanPort>,
+               argTypeHandler<CmdConfigVlanPortTraits>,
+               {{
+                   "taggingMode",
+                   "Set port tagging mode (tagged/untagged) for the VLAN",
+                   commandHandler<CmdConfigVlanPortTaggingMode>,
+                   argTypeHandler<CmdConfigVlanPortTaggingModeTraits>,
                }},
-          }},
+           },
+           {
+               "static-mac",
+               "Manage static MAC entries for VLANs",
+               commandHandler<CmdConfigVlanStaticMac>,
+               argTypeHandler<CmdConfigVlanStaticMacTraits>,
+               {{
+                    "add",
+                    "Add a static MAC entry to a VLAN",
+                    commandHandler<CmdConfigVlanStaticMacAdd>,
+                    argTypeHandler<CmdConfigVlanStaticMacAddTraits>,
+                },
+                {
+                    "delete",
+                    "Delete a static MAC entry from a VLAN",
+                    commandHandler<CmdConfigVlanStaticMacDelete>,
+                    argTypeHandler<CmdConfigVlanStaticMacDeleteTraits>,
+                }},
+           }},
       },
   };
   sort(root.begin(), root.end());
