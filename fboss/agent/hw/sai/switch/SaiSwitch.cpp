@@ -835,7 +835,6 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
     // so set the bootType to warm boot for duration of roll back. We
     // will restore it once we are done with roll back.
     bootType_ = BootType::WARM_BOOT;
-    rollbackInProgress_ = true;
     initStoreAndManagersLocked(
         lockPolicy.lock(),
         // We are being strict here in the sense of not allowing any HW
@@ -854,7 +853,6 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
     saiStore_->printWarmbootHandles();
     saiStore_->removeUnexpectedUnclaimedWarmbootHandles();
     bootType_ = curBootType;
-    rollbackInProgress_ = false;
     for (const auto& value :
          apache::thrift::TEnumTraits<SwitchRunState>::values) {
       // transition through all switch run states until pre-rollback run state
