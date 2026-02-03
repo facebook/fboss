@@ -249,13 +249,6 @@ FEATURE_LIST_PREFIX = "Feature List: "
 DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND = 1200
 
 
-def _check_working_dir():
-    current_dir = os.getcwd()
-    if not current_dir.endswith("/opt/fboss"):
-        print("Error: Script must be run from /opt/fboss directory.")
-        sys.exit(1)
-
-
 def run_script(script_file: str):
     if not os.path.exists(script_file):
         raise Exception(f"Script file {script_file} does not exist")
@@ -288,6 +281,9 @@ def setup_fboss_env() -> None:
         os.environ["LD_LIBRARY_PATH"] = (
             f"{os.environ['FBOSS_LIB64']}:{os.environ['FBOSS_LIB']}"
         )
+
+    # Update TestRunner.ENV_VAR to pick up the modified environment
+    TestRunner.ENV_VAR = dict(os.environ)
 
 
 class TestRunner(abc.ABC):
@@ -802,6 +798,9 @@ class TestRunner(abc.ABC):
         self._write_results_to_csv(test_summaries)
 
     def _write_results_to_csv(self, output):
+        if not output:
+            print("No tests we were run.")
+            return
         output_csv = (
             f"hwtest_results_{datetime.now().strftime('%Y_%b_%d-%I_%M_%S_%p')}.csv"
         )
@@ -1551,122 +1550,68 @@ class PlatformServicesTestRunner(TestRunner):
         self._print_output_summary(output)
 
 
-class CliTestRunner:
+class CliTestRunner(TestRunner):
     """
     Runner for CLI end-to-end tests.
 
-    Unlike the gtest-based test runners, CLI tests are simple Python tests
-    that run CLI commands and verify output. They test the CLI tool itself
-    (fboss2-dev) on a running FBOSS instance.
+    CLI tests are C++ gtest-based tests that run CLI commands and verify output.
+    They test the CLI tool itself (fboss2-dev) on a running FBOSS instance.
+
+    CLI tests are platform/SAI independent - they test the CLI binary which
+    communicates with the agent via Thrift, regardless of the underlying
+    hardware abstraction layer.
     """
 
-    CLI_TEST_DIR = "./share/cli_tests"
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        """Add CLI test-specific command line arguments"""
+        # Override defaults for CLI tests:
+        # - fruid_path: CLI tests don't use fruid files
+        # - coldboot_only: Some CLI tests use warmboot/coldboot but the test binary doesn't support the --setup-for-warmboot flag.
+        sub_parser.set_defaults(fruid_path=None, coldboot_only=True)
 
-    def run_test(self, args):  # noqa: PLR0912, PLR0915 - complex test orchestration; splitting would harm readability
-        """Run CLI end-to-end tests"""
-        print("Running CLI end-to-end tests...")
+    def _get_config_path(self):
+        return "/etc/coop/agent.conf"
 
-        # Find and run test scripts
-        test_dir = self.CLI_TEST_DIR
-        if not os.path.isdir(test_dir):
-            print(f"CLI test directory not found: {test_dir}")
-            print("No CLI tests to run.")
-            return
+    def _get_known_bad_tests_file(self):
+        return ""
 
-        # Get list of test scripts
-        test_scripts = []
-        for filename in sorted(os.listdir(test_dir)):
-            if filename.startswith("test_") and filename.endswith(".py"):
-                test_scripts.append(os.path.join(test_dir, filename))
+    def _get_unsupported_tests_file(self):
+        return ""
 
-        if not test_scripts:
-            print(f"No CLI test scripts found in {test_dir}")
-            return
+    def _get_test_binary_name(self):
+        return "cli_test"
 
-        # Apply filter if specified
-        if args.filter:
-            filtered_scripts = []
-            for script in test_scripts:
-                script_name = os.path.basename(script)
-                if args.filter in script_name:
-                    filtered_scripts.append(script)
-            test_scripts = filtered_scripts
-            if not test_scripts:
-                print(f"No tests match filter: {args.filter}")
-                return
+    def _get_sai_replayer_logging_flags(
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
+        return []
 
-        # Run each test script
-        passed = 0
-        failed = 0
-        failed_tests = []
-        test_times = {}  # Track time for each test
-        total_start_time = time.time()
+    def _get_sai_logging_flags(self, sai_logging):
+        # CLI tests don't use SAI logging
+        return []
 
-        for test_script in test_scripts:
-            test_name = os.path.basename(test_script)
-            print(f"\n########## Running CLI test: {test_name}")
+    def _get_warmboot_check_file(self):
+        return ""
 
-            test_start_time = time.time()
-            try:
-                result = subprocess.run(
-                    ["python3", test_script],
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                    timeout=300,  # 5 minute timeout per test
-                )
-                test_elapsed = time.time() - test_start_time
-                test_times[test_name] = test_elapsed
+    def _get_test_run_args(self, conf_file):
+        # CLI tests don't need any additional args
+        return []
 
-                if result.returncode == 0:
-                    print(f"[  PASSED  ] {test_name} ({test_elapsed:.1f}s)")
-                    passed += 1
-                else:
-                    print(f"[  FAILED  ] {test_name} ({test_elapsed:.1f}s)")
-                    print(f"stdout: {result.stdout}")
-                    print(f"stderr: {result.stderr}")
-                    failed += 1
-                    failed_tests.append(test_name)
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
+        pass
 
-            except subprocess.TimeoutExpired as e:
-                test_elapsed = time.time() - test_start_time
-                test_times[test_name] = test_elapsed
-                print(f"[  TIMEOUT ] {test_name} ({test_elapsed:.1f}s)")
-                if e.stdout:
-                    print(f"stdout: {e.stdout}")
-                if e.stderr:
-                    print(f"stderr: {e.stderr}")
-                failed += 1
-                failed_tests.append(test_name)
-            except Exception as e:
-                test_elapsed = time.time() - test_start_time
-                test_times[test_name] = test_elapsed
-                print(f"[  ERROR   ] {test_name}: {e} ({test_elapsed:.1f}s)")
-                failed += 1
-                failed_tests.append(test_name)
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
+        pass
 
-        total_elapsed = time.time() - total_start_time
+    def _end_run(self):
+        pass
 
-        # Print summary
-        print("\n" + "=" * 60)
-        print("CLI Test Summary")
-        print("=" * 60)
-        print(f"  Passed: {passed}")
-        print(f"  Failed: {failed}")
-        print(f"  Total:  {passed + failed}")
-        print(f"  Time:   {total_elapsed:.1f}s")
-
-        if failed_tests:
-            print("\nFailed tests:")
-            for test in failed_tests:
-                print(f"  - {test} ({test_times.get(test, 0):.1f}s)")
-
-        if failed > 0:
-            sys.exit(1)
+    def _filter_tests(self, tests: list[str]) -> list[str]:
+        return tests
 
 
 if __name__ == "__main__":
-    _check_working_dir()
+    os.chdir("/opt/fboss")
     # Set env variables for FBOSS
     setup_fboss_env()
 
@@ -1908,6 +1853,7 @@ if __name__ == "__main__":
     )
     cli_test_runner = CliTestRunner()
     cli_test_parser.set_defaults(func=cli_test_runner.run_test)
+    cli_test_runner.add_subcommand_arguments(cli_test_parser)
 
     # Parse the args
     args = ap.parse_known_args()

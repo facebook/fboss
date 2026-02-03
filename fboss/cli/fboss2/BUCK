@@ -79,6 +79,7 @@ cpp_library(
         "CmdSubcommands.cpp",
     ],
     headers = [
+        "CliAppInit.h",
         "CmdArgsLists.h",
         "CmdSubcommands.h",
     ],
