@@ -803,6 +803,13 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
     auto preRollbackSwitchRunState = getSwitchRunState();
     switchRunStateChangedImplLocked(
         lockPolicy.lock(), SwitchRunState::ROLLBACK);
+    auto pfcWatchdogRecoveryAction =
+        knownGoodState->getPfcWatchdogRecoveryAction();
+    bool pfcDeadlockEnabled = pfcDeadlockEnabled_;
+    if (pfcDeadlockEnabled) {
+      processPfcDeadlockNotificationCallback(
+          std::nullopt /* ignored */, std::nullopt);
+    }
     auto hwSwitchJson = toFollyDynamicLocked(lockPolicy.lock());
     {
       HwWriteBehaviorRAII writeBehavior{HwWriteBehavior::SKIP};
@@ -857,6 +864,10 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
         continue;
       }
       switchRunStateChangedImplLocked(lockPolicy.lock(), value);
+    }
+    if (pfcDeadlockEnabled) {
+      processPfcDeadlockNotificationCallback(
+          std::nullopt /* ignored */, pfcWatchdogRecoveryAction);
     }
   } catch (const std::exception& ex) {
     // Rollback failed. Fail hard.
