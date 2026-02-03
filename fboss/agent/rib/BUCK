@@ -80,6 +80,7 @@ cpp_unittest(
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent:utils",
@@ -93,6 +94,10 @@ cpp_unittest(
         "//folly:network_address",
         "//folly/functional:partial",
         "//folly/json:dynamic",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "gflags",
     ],
 )
 
