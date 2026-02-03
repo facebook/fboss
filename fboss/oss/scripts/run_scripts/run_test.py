@@ -22,141 +22,67 @@ from fboss_agent_utils import (
 )
 from qsfp_service_utils import cleanup_qsfp_service, setup_and_start_qsfp_service
 
-# Helper to run HwTests
+# FBOSS Hardware Test Runner
 #
-# RUNNING HW TESTS:
-# -----------------
+# This script runs hardware tests for FBOSS. It supports multiple test types:
+# - sai_agent: SAI agent hardware tests
+# - sai: SAI hardware tests
+# - qsfp: QSFP hardware tests
+# - link: Link tests
+# - benchmark: Benchmark tests
+# - cli: CLI tests
 #
-# Running Sanity Tests:
+# USAGE EXAMPLES:
 #
-# 1. Run Jericho2 Sanity Tests
-#    ./run_test.py sai --config meru400biu.agent.materialized_JSON --coldboot_only --filter_file=/root/jericho2_sanity_tests
+# Run all SAI agent tests:
+#   ./run_test.py sai_agent --config $CONFIG
 #
-# 2. Run Ramon Sanity Tests
-#    ./run_test.py sai --config meru400bfu.agent.materialized_JSON --coldboot_only --filter_file=/root/ramon_sanity_tests
+# Run all SAI tests:
+#   ./run_test.py sai --config $CONFIG
 #
-# Running HW Test Regression:
+# Run all QSFP tests:
+#   ./run_test.py qsfp --qsfp-config $QSFP_CONFIG
 #
-#  1. Run entire BCM SAI XGS Regression for a specific ASIC type and SDK
+# Run all link tests:
+#   ./run_test.py link --config $CONFIG --qsfp-config $QSFP_CONFIG
 #
-#   ./run_test.py sai --config $confFile --skip-known-bad-tests $test-config
-#      Example to run HW Tests on Fuji Tomahawk4 Platform with bcm-sai SDK 8.2 and skips all known bad tests
-#     ./run_test.py sai --config fuji.agent.materialized_JSON --skip-known-bad-tests "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4"
+# Run only coldboot tests:
+#   ./run_test.py sai --config $CONFIG --coldboot_only
 #
-#  2. Run entire SAI DNX regression for Jericho2 and SDK:
-#   ./run_test.py sai --config $confFile --coldboot_only --skip-known-bad-tests $test-config
-#      Example to run HW Tests on Meru Jericho2 Platform and runs only the known good test listed for Jericho2 asic.
-#     ./run_test.py sai --config meru400biu.agent.materialized_JSON --skip-known-bad-tests "brcm/9.0_ea_dnx_odp/9.0_ea_dnx_odp/jericho2"
+# Run specific tests using filter:
+#   ./run_test.py sai --config $CONFIG --filter=HwVlanTest.VlanApplyConfig
+#   ./run_test.py sai --config $CONFIG --filter=*Route*V6*
 #
-# Sample invocation for HW Tests:
-#
-#  1. Running all HW SAI TESTS:
-#      ./run_test.py sai --config $confFile
-#      desc: Runs ALL Hw SAI tests: coldboot and warmboot
-#
-#  2. Running all HW QSFP TESTS:
-#     ./run_test.py qsfp --qsfp-config $qsfpConfFile
-#     desc: Runs ALL Hw QSFP tests: coldboot and warmboot
-#
-#  3. Running all HW Link TESTS:
-#     ./run_test.py link --config $linkConfFile --qsfp-config $qsfpConfFile
-#     desc: Runs ALL Hw Link tests: coldboot and warmboot
-#
-#  4. Running only coldboot tests:
-#      ./run_test.py sai --config $confFile --coldboot_only
-#      desc: Runs all HW tests only on coldboot mode
-#
-#  5. Running specific tests through regex:
-#      ./run_test.py sai --config $confFile --filter=*Route*V6*
-#      desc: Runs only the HW test matching the regex *Route*V6*
-#
-#      e./run_test.py sai --config $confFile --filter=*Vlan*:*Port*
-#      desc: Run tests matching "Vlan" and "Port" filters
-#
-#  6. Running specific tests through regex and excluding certain tests:
-#      ./run_test.py sai --config $confFile --filter=*Vlan*:*Port*:-*Mac*:*Intf*
-#      desc: Run tests matching "Vlan" and "Port" filters, but excluding "Mac" and "Intf" tests in that list
-#
-#  7. Running a targeted test:
-#      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig
-#      desc: Runs a single test by providing the entire test name as a filter
-#
-#  8. Enable SAI Replayer Logging:
-#      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --sai_replayer_logging /tmp/XYZ #
-#      desc: Enables SAI Replayer Logging for the specified test case
-#
-#      ./run_test.py sai --config $confFile --sai_replayer_logging /root/all_replayer_logs
-#      desc: Enables SAI replayer Logging for all test cases
-#
-#  9. Running a single test in coldboot mode:
-#      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --coldboot_only
-#      desc: Runs a single test and performs only coldboot
-#
-#  10. Example of control plane tests:
-#      ./run_test.py sai --config $confFile --filter=HwAclQualifierTest*
-#      desc: Sample HW test by programming the hardware and validating the functionality
-#
-#  11. Example of data plane tests:
-#      ./run_test.py sai --config $confFile --filter=HwOlympicQosSchedulerTest*
-#      desc: Sample HW test by programming the hardware, creating a dataplane loop and validating functionality
-#
-#  12. List all tests in the test binary:
-#      ./run_test.py sai --config $confFile --list_tests
-#      desc: Print all the tests but do not run any test
-#
-#  13. List tests matching given regex:
-#      ./run_test.py sai --config $confFile --filter=<filter_regex> --list_tests
-#      desc: Print the matching tests but do not run any test
-#
-#  14. Skip running Known Bad Tests:
-#      ./run_test.py sai --config $confFile --skip-known-bad-tests $test-config
-#      desc: Run tests but skip running known bad tests for a specific platform
-#
-#  15. Use Custom Management Interface:
-#      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --mgmt-if eth0
-#      desc: Instead of eth0, provide a custom mgmt-if
-#
-#  16. Running non-OSS Binary using run_test helper:
-#      ./run_test.py sai --config fuji.agent.materialized_JSON --filter HwVlanTest.VlanApplyConfig --sai_replayer_logging /root/skhare/sai_replayer_logs --no-oss --sai-bin /root/skhare/sai_test-brcm-8.2.0.0_odp --mgmt-if eth0
-#      desc: Runs tests but does not use OSS binary for testing
-#
-#  17. Enable more FBOSS Logging:
-#      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --fboss_logging DBG5
-#      desc: Enable more FBOSS logging
-#
-#
-# TERMS & DEFINITIONS:
-# ---------------------
+# Run tests from a filter file:
+#   ./run_test.py sai_agent --config $CONFIG --filter_file=./share/hw_sanity_tests/t0_agent_hw_tests.conf
 #
 # Skip known bad tests:
-# We maintain a list of known bad tests per SDK per platform to skip running them
-# when running the entite suite of HW tests.
+#   ./run_test.py sai --config $CONFIG --skip-known-bad-tests $KEY
+#   Example: --skip-known-bad-tests "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4"
 #
-# For SAI HW tests, there is a consolidated JSON file under fboss.git/oss/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON.
-# This file is indexed based on $test-config format - vendor/coldboot-sdk-version-from/warmboot-sdk-version-to/asic.
-# The known bad list can be provided to run_test.py as an argument --skip-known-bad-tests $testConfig
-# which can be used to skip running known bad tests for specific platforms.
-# eg: To skip running bad tests on tomahawk asic on SDK 7.2, the test-config to be used is
-# "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk"
+# Filter by production features (sai_agent only):
+#   ./run_test.py sai_agent --config $CONFIG --enable-production-features $ASIC
 #
-# Similarly, for QSFP HW tests, there is a consolidated JSON file under fboss.git/oss/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON.
-# This file is also indexed based on $test-config format - platform/coldboot-phy-sdk-version-from/warmboot-phy-sdk-version-to.
-# The known bad list can be provided to run_test.py as an argument --skip-known-bad-tests $testConfig
-# which can be used to skip running known bad tests for specific platforms.
-# eg: To skip running bad tests on meru400bfu on phy sdk version credo-0.7.2, the test-config to be used is
-# "meru400bfu/physdk-credo-0.7.2/credo-0.7.2"
+# List tests without running:
+#   ./run_test.py sai --config $CONFIG --list_tests
 #
-# Similarly, for link HW tests, there is a consolidated JSON file under fboss.git/oss/link_known_bad_tests/fboss_link_known_bad_tests.materialized_JSON.
-# This file is also indexed based on $test-config format - platform/{bcm,sai}/coldboot-asic-sdk-version-from/warmboot-asic-sdk-version-to.
-# The known bad list can be provided to run_test.py as an argument --skip-known-bad-tests $testConfig
-# which can be used to skip running known bad tests for specific platforms.
-# eg: To skip running bad tests on SAI-configured meru400bfu on asic sdk version 10.0_ea_dnx_odp, the test-config to be used is
-# "meru400bfu/sai/asicsdk-10.0_ea_dnx_odp/10.0_ea_dnx_odp"
+# Enable SAI replayer logging:
+#   ./run_test.py sai --config $CONFIG --sai_replayer_logging /tmp/logs
 #
-# (TODO):
-# SDK Logging:
-# Coldboot & Warmboot:
-# Regex
+# Enable FBOSS logging:
+#   ./run_test.py sai --config $CONFIG --fboss_logging DBG5
+#
+# KNOWN BAD TESTS AND UNSUPPORTED TESTS:
+#
+# Known bad tests and unsupported tests are maintained in JSON files indexed by test configuration key.
+# Key format: vendor/coldboot-sai/warmboot-sai/asic (e.g., "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4")
+#
+# File locations:
+# - SAI/SAI Agent: ./share/hw_known_bad_tests/sai_*_known_bad_tests.materialized_JSON
+#                  ./share/sai_hw_unsupported_tests/sai_hw_unsupported_tests.materialized_JSON
+# - QSFP: ./share/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON
+#         ./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON
+# - Link: ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON
 
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"
@@ -171,14 +97,12 @@ OPT_ARG_SKIP_KNOWN_BAD_TESTS = "--skip-known-bad-tests"
 OPT_ARG_OSS = "--oss"
 OPT_ARG_NO_OSS = "--no-oss"
 OPT_ARG_MGT_IF = "--mgmt-if"
-OPT_ARG_SAI_BIN = "--sai-bin"
 OPT_ARG_FRUID_PATH = "--fruid-path"
 OPT_ARG_SIMULATOR = "--simulator"
 OPT_ARG_SAI_LOGGING = "--sai_logging"
 OPT_ARG_FBOSS_LOGGING = "--fboss_logging"
 OPT_ARG_PRODUCTION_FEATURES = "--production-features"
 OPT_ARG_ENABLE_PRODUCTION_FEATURES = "--enable-production-features"
-OPT_ARG_ASIC = "--asic"
 OPT_KNOWN_BAD_TESTS_FILE = "--known-bad-tests-file"
 OPT_UNSUPPORTED_TESTS_FILE = "--unsupported-tests-file"
 OPT_ARG_SETUP_CB = "--setup-for-coldboot"
@@ -196,7 +120,6 @@ SUB_ARG_AGENT_RUN_MODE_MONO = "mono"
 SUB_ARG_AGENT_RUN_MODE_MULTI = "multi_switch"
 SUB_ARG_AGENT_RUN_MODE_LEGACY = "legacy"
 SUB_ARG_NUM_NPUS = "--num-npus"
-SUB_ARG_HW_AGENT_BIN_PATH = "--hw-agent-bin-path"
 
 SAI_HW_KNOWN_BAD_TESTS = (
     "./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON"
@@ -838,7 +761,7 @@ class BcmTestRunner(TestRunner):
         return ""
 
     def _get_test_binary_name(self):
-        return "bcm_test"
+        return "/opt/fboss/bin/bcm_test"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: Optional[str]
@@ -894,7 +817,7 @@ class SaiTestRunner(TestRunner):
         return args.unsupported_tests_file
 
     def _get_test_binary_name(self):
-        return args.sai_bin if args.sai_bin else "sai_test-sai_impl"
+        return "/opt/fboss/bin/sai_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: Optional[str]
@@ -944,10 +867,6 @@ class SaiTestRunner(TestRunner):
 class QsfpTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
         sub_parser.add_argument(
-            OPT_ARG_PRODUCTION_FEATURES, type=str, help="", default=None
-        )
-
-        sub_parser.add_argument(
             OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
             nargs="?",
             type=str,
@@ -975,7 +894,7 @@ class QsfpTestRunner(TestRunner):
         return QSFP_UNSUPPORTED_TESTS
 
     def _get_test_binary_name(self):
-        return "qsfp_hw_test"
+        return "/opt/fboss/bin/qsfp_hw_test"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: Optional[str]
@@ -1063,14 +982,12 @@ class LinkTestRunner(TestRunner):
         return ""
 
     def _get_test_binary_name(self):
-        if args.sai_bin:
-            return args.sai_bin
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
-            return "sai_mono_link_test-sai_impl"
+            return "/opt/fboss/bin/sai_mono_link_test-sai_impl"
         # if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
-        # return "sai_multi_link_test-sai_impl"
+        # return "/opt/fboss/bin/sai_multi_link_test-sai_impl"
         # Deprecate legacy mode when we finish testing mono mode on all platforms
-        return "sai_link_test-sai_impl"
+        return "/opt/fboss/bin/sai_link_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: Optional[str]
@@ -1128,14 +1045,9 @@ class SaiAgentTestRunner(TestRunner):
         )
         sub_parser.add_argument(
             OPT_ARG_ENABLE_PRODUCTION_FEATURES,
-            action="store_true",
-            help="enable/disable filtering by production feature",
-            default=False,
-        )
-        sub_parser.add_argument(
-            OPT_ARG_ASIC,
             type=str,
-            help="Specify asic to filter production feature",
+            metavar="ASIC",
+            help="Enable filtering by production features for the specified ASIC",
             default=None,
         )
         sub_parser.add_argument(
@@ -1162,13 +1074,6 @@ class SaiAgentTestRunner(TestRunner):
             type=int,
             help="Specify number of npus to run in multi switch mode. Default is 1.",
         )
-        sub_parser.add_argument(
-            SUB_ARG_HW_AGENT_BIN_PATH,
-            nargs="?",
-            type=str,
-            help="FBOSS HW Agent binary path(absolute path).",
-            default=None,
-        )
 
     def _get_config_path(self):
         # TOOO Not available in OSS
@@ -1185,12 +1090,10 @@ class SaiAgentTestRunner(TestRunner):
         return args.unsupported_tests_file
 
     def _get_test_binary_name(self):
-        if args.sai_bin:
-            return args.sai_bin
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
-            return "multi_switch_agent_hw_test"
+            return "/opt/fboss/bin/multi_switch_agent_hw_test"
         # Default is mono mode
-        return "sai_agent_hw_test-sai_impl"
+        return "/opt/fboss/bin/sai_agent_hw_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: Optional[str]
@@ -1248,7 +1151,6 @@ class SaiAgentTestRunner(TestRunner):
             setup_and_start_hw_agent_service(
                 switch_indexes=list(range(args.num_npus)),
                 fboss_agent_config_path=args.config,
-                hw_agent_service_bin_path=args.hw_agent_bin_path,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
                 is_warm_boot=False,
@@ -1261,7 +1163,6 @@ class SaiAgentTestRunner(TestRunner):
             setup_and_start_hw_agent_service(
                 switch_indexes=list(range(args.num_npus)),
                 fboss_agent_config_path=args.config,
-                hw_agent_service_bin_path=args.hw_agent_bin_path,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
                 is_warm_boot=True,
@@ -1274,11 +1175,17 @@ class SaiAgentTestRunner(TestRunner):
     def _filter_tests(self, tests: List[str]) -> List[str]:
         if not args.enable_production_features:
             return tests
-        asic = str(args.asic)
+
+        asic = str(args.enable_production_features)
         asic_production_features = json.load(open(args.production_features))
-        producition_features = {
-            feature for feature in asic_production_features["asicToFeatureNames"][asic]
-        }
+        asic_to_feature_names = asic_production_features["asicToFeatureNames"]
+
+        # Check if the specified asic exists in the production features file
+        if asic not in asic_to_feature_names:
+            print(f"Error: ASIC '{asic}' not found in production features file.")
+            sys.exit(1)
+
+        production_features = set(asic_to_feature_names.get(asic, []))
         tests_to_run = []
         for test in tests:
             cmd = [
@@ -1302,7 +1209,7 @@ class SaiAgentTestRunner(TestRunner):
                 if "HW_SWITCH" in test_features:
                     tests_to_run += (test,)
                     break
-                if test_features.issubset(producition_features):
+                if test_features.issubset(production_features):
                     tests_to_run += (test,)
                     break
         return tests_to_run
@@ -1638,7 +1545,7 @@ class BenchmarkTestRunner:
                 print(benchmark)
             return
 
-        print(f"Total benchmarks to run: {len(benchmarks_to_run)}")
+        print(f"Running {len(benchmarks_to_run)} benchmarks from {benchmark_file}")
 
         # Filter out binaries that don't exist
         existing_benchmarks = []
@@ -1811,7 +1718,6 @@ if __name__ == "__main__":
         default="eth0",
         help=("Management interface (default = eth0)"),
     )
-    ap.add_argument(OPT_ARG_SAI_BIN, type=str, help=("SAI Test binary name"))
 
     ap.add_argument(
         OPT_ARG_OSS,

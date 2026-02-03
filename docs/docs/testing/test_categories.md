@@ -39,6 +39,21 @@ T0/T1/T2, a filter file, or a gtest filter so that the binary runs all tests.
 Even though we recommend following this process to make testing more organized,
 feel free to run all tests and work through them however you please.
 
+:::note Test Configuration Variables
+
+When running tests with `run_test.py`, you may need to specify the following variables:
+
+- **$CONFIG**: Path to the hardware test configuration file for your platform
+- **$QSFP_CONFIG**: Path to the QSFP test configuration file for your platform
+- **$ASIC**: ASIC identifier for production features filtering. Available ASICs can be found in `./share/production_features/asic_production_features.materialized_JSON` under the `asicToFeatureNames` key.
+- **$KEY**: Test configuration key for skipping known bad or unsupported tests. The key format is: `vendor/coldboot-sai/warmboot-sai/asic` (e.g., `brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk`). Available keys can be found in:
+  - For SAI Agent tests: `./share/sai_hw_unsupported_tests/sai_hw_unsupported_tests.materialized_JSON`
+  - For SAI tests: `./share/sai_hw_unsupported_tests/sai_hw_unsupported_tests.materialized_JSON`
+  - For QSFP tests: `./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON`
+  - For Link tests: `./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON`
+
+:::
+
 ## T0 Tests
 
 ### Platform Services
@@ -58,12 +73,8 @@ feel free to run all tests and work through them however you please.
 ./bin/run_test.py sai_agent \
 --filter_file=./share/hw_sanity_tests/t0_agent_hw_tests.conf \
 --config ./share/hw_test_configs/$CONFIG \
---enable-production-features \
---production-features ./share/production_features/asic_production_features.materialized_JSON \
---known-bad-tests-file ./share/hw_known_bad_tests/sai_agent_known_bad_tests.materialized_JSON \
---unsupported-tests-file $UNSUPPORTED_TESTS \
---asic $ASIC \ # $ASIC can be found in asic_production_features.materialized_JSON
---skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+--enable-production-features $ASIC \
+--skip-known-bad-tests $KEY
 ```
 
 ```bash file=../fboss/oss/hw_sanity_tests/t0_agent_hw_tests.conf
@@ -76,12 +87,7 @@ feel free to run all tests and work through them however you please.
 ./bin/run_test.py sai \
 --filter_file=./share/hw_sanity_tests/t0_sai_tests.conf \
 --config ./share/hw_test_configs/$CONFIG \
---enable-production-features \
---production-features ./share/production_features/asic_production_features.materialized_JSON \
---known-bad-tests-file ./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON \
---unsupported-tests-file $UNSUPPORTED_TESTS \
---asic $ASIC \ # $ASIC can be found in asic_production_features.materialized_JSON
---skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+--skip-known-bad-tests $KEY
 ```
 
 ```bash file=../fboss/oss/hw_sanity_tests/t0_sai_tests.conf
@@ -94,9 +100,7 @@ feel free to run all tests and work through them however you please.
 ./bin/run_test.py qsfp \
 --filter_file=./share/hw_sanity_tests/t0_qsfp_hw_tests.conf \
 --qsfp-config ./share/qsfp_test_configs/$CONFIG \
---known-bad-tests-file ./share/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON \
---unsupported-tests-file ./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON \
---skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+--skip-known-bad-tests $KEY
 ```
 
 ```bash file=../fboss/oss/hw_sanity_tests/t0_qsfp_hw_tests.conf
@@ -110,9 +114,7 @@ feel free to run all tests and work through them however you please.
 ./bin/run_test.py qsfp \
 --filter_file=./share/hw_sanity_tests/t0_qsfp_hw_tests_without_transceivers.conf \
 --qsfp-config ./share/qsfp_test_configs/$CONFIG \
---known-bad-tests-file ./share/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON \
---unsupported-tests-file ./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON \
---skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+--skip-known-bad-tests $KEY
 ```
 
 ```bash file=../fboss/oss/hw_sanity_tests/t0_qsfp_hw_tests_without_transceivers.conf
@@ -128,7 +130,7 @@ feel free to run all tests and work through them however you please.
 --config ./share/link_test_configs/$CONFIG \
 --qsfp-config /opt/fboss/share/qsfp_test_configs/$QSFP_CONFIG \
 --known-bad-tests-file ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON \
---skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+--skip-known-bad-tests $KEY
 ```
 
 ```bash file=../fboss/oss/hw_sanity_tests/t0_ensemble_link_tests.conf
@@ -145,7 +147,7 @@ feel free to run all tests and work through them however you please.
 --config ./share/link_test_configs/$CONFIG \
 --qsfp-config /opt/fboss/share/qsfp_test_configs/$QSFP_CONFIG \
 --known-bad-tests-file ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON \
---skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+--skip-known-bad-tests $KEY
 ```
 
 ```bash file=../fboss/oss/hw_sanity_tests/t0_ensemble_link_tests_without_transceivers.conf
@@ -164,12 +166,8 @@ feel free to run all tests and work through them however you please.
 ./bin/run_test.py sai_agent \
 --filter_file=./share/hw_sanity_tests/t1_agent_hw_tests.conf \
 --config ./share/hw_test_configs/$CONFIG \
---enable-production-features \
---production-features ./share/production_features/asic_production_features.materialized_JSON \
---known-bad-tests-file ./share/hw_known_bad_tests/sai_agent_known_bad_tests.materialized_JSON \
---unsupported-tests-file $UNSUPPORTED_TESTS \
---asic $ASIC \ # $ASIC can be found in asic_production_features.materialized_JSON
---skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+--enable-production-features $ASIC \
+--skip-known-bad-tests $KEY
 ```
 
 ```bash file=../fboss/oss/hw_sanity_tests/t1_agent_hw_tests.conf
@@ -185,9 +183,7 @@ T1 QSFP HW tests scope is controlled by the known-bad and unsupported test files
 ```bash
 ./bin/run_test.py qsfp \
 --qsfp-config ./share/qsfp_test_configs/$CONFIG \
---known-bad-tests-file ./share/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON \
---unsupported-tests-file ./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON \
---skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+--skip-known-bad-tests $KEY
 ```
 
 ### Link Tests
@@ -203,7 +199,7 @@ T1 Link tests scope is controlled by the known-bad and unsupported test files, s
 --config ./share/link_test_configs/$CONFIG \
 --qsfp-config /opt/fboss/share/qsfp_test_configs/$QSFP_CONFIG \
 --known-bad-tests-file ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON \
---skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+--skip-known-bad-tests $KEY
 ```
 
 ### Agent Benchmark Tests
@@ -224,12 +220,7 @@ T1 Link tests scope is controlled by the known-bad and unsupported test files, s
 ./bin/run_test.py sai \
 --filter_file=./share/hw_sanity_tests/t1_sai_tests.conf \
 --config ./share/hw_test_configs/$CONFIG \
---enable-production-features \
---production-features ./share/production_features/asic_production_features.materialized_JSON \
---known-bad-tests-file ./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON \
---unsupported-tests-file $UNSUPPORTED_TESTS \
---asic $ASIC \ # $ASIC can be found in asic_production_features.materialized_JSON
---skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+--skip-known-bad-tests $KEY
 ```
 
 ```bash file=../fboss/oss/hw_sanity_tests/t1_sai_tests.conf
@@ -244,12 +235,8 @@ T1 Link tests scope is controlled by the known-bad and unsupported test files, s
 ./bin/run_test.py sai_agent \
 --filter_file=./share/hw_sanity_tests/t2_agent_hw_tests.conf \
 --config ./share/hw_test_configs/$CONFIG \
---enable-production-features \
---production-features ./share/production_features/asic_production_features.materialized_JSON \
---known-bad-tests-file ./share/hw_known_bad_tests/sai_agent_known_bad_tests.materialized_JSON \
---unsupported-tests-file $UNSUPPORTED_TESTS \
---asic $ASIC \ # $ASIC can be found in asic_production_features.materialized_JSON
---skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+--enable-production-features $ASIC \
+--skip-known-bad-tests $KEY
 ```
 
 ```bash file=../fboss/oss/hw_sanity_tests/t2_agent_hw_tests.conf
@@ -273,12 +260,7 @@ T1 Link tests scope is controlled by the known-bad and unsupported test files, s
 ./bin/run_test.py sai \
 --filter_file=./share/hw_sanity_tests/t2_sai_tests.conf \
 --config ./share/hw_test_configs/$CONFIG \
---enable-production-features \
---production-features ./share/production_features/asic_production_features.materialized_JSON \
---known-bad-tests-file ./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON \
---unsupported-tests-file $UNSUPPORTED_TESTS \
---asic $ASIC \ # $ASIC can be found in asic_production_features.materialized_JSON
---skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+--skip-known-bad-tests $KEY
 ```
 
 ```bash file=../fboss/oss/hw_sanity_tests/t2_sai_tests.conf
