@@ -2,9 +2,9 @@
 
 # fboss2_integration_test - CLI E2E test binary
 #
-# CLI tests are platform/SAI independent - they test the CLI binary which
-# communicates with the agent via Thrift, without running the actual fboss2-dev
-# binary.
+# These tests require a live FBOSS agent running on the device and should
+# only be run on actual hardware, not in CI. The binary name includes "hw_test"
+# so it will be automatically skipped by the GitHub Actions test runner.
 add_executable(fboss2_integration_test
   fboss/cli/fboss2/oss/CmdListConfig.cpp
   fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.cpp

@@ -391,6 +391,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/CmdHandlerImpl.cpp
   fboss/cli/fboss2/CmdArgsLists.cpp
   fboss/cli/fboss2/CmdList.cpp
+  fboss/cli/fboss2/oss/CmdListShowConfig.cpp
   fboss/cli/fboss2/CmdLocalOptions.cpp
   fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h
   fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h
@@ -657,6 +658,9 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h
   fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h
   fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.cpp
+  fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h
+  fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.cpp
+  fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h
   fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h
   fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.cpp
   fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.h
@@ -798,6 +802,9 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.cpp
   fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h
+  fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.h
+  fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.h
+  fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.cpp
   fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h
   fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h
   fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.cpp
