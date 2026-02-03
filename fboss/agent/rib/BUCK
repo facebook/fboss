@@ -63,12 +63,14 @@ cpp_unittest(
     srcs = [
         "test/FibInteractionTests.cpp",
         "test/NextHopIDManagerTests.cpp",
-        "test/NextHopMapPopulationTests.cpp",
         "test/RibLpmTests.cpp",
         "test/RibRollbackTests.cpp",
         "test/RibRouteNormalizerTests.cpp",
         "test/RouteTests.cpp",
         "test/SerDesTests.cpp",
+        # TODO - change these tests to go through rib and
+        # not through ForwardingInformationBaseUpdater
+        # "test/NextHopMapPopulationTests.cpp",
     ],
     deps = [
         ":fib_updater",

@@ -99,6 +99,32 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
   }
   auto nextFibContainer = previousFibContainer->modify(&nextState);
 
+  if (nextHopIDManager_) {
+    auto scope = resolver_->scope(previousFibContainer);
+    auto fibInfo = nextState->getFibsInfoMap()->getFibInfo(scope);
+
+    auto fibInfoPtr = fibInfo->modify(&nextState);
+    CHECK(fibInfoPtr);
+    auto id2Nhop = std::make_shared<IdToNextHopMap>();
+    auto id2NhopSetIds = std::make_shared<IdToNextHopIdSetMap>();
+    for (const auto& [id, nhop] : nextHopIDManager_->getIdToNextHop()) {
+      id2Nhop->addNextHop(id, nhop.toThrift());
+    }
+    for (const auto& [id, nhopIdSet] :
+         nextHopIDManager_->getIdToNextHopIdSet()) {
+      auto toNhopIdsThrift = [](const auto& nhopIdSet) {
+        std::set<int64_t> nhopIds;
+        std::for_each(
+            nhopIdSet.begin(), nhopIdSet.end(), [&nhopIds](const auto nhopId) {
+              nhopIds.insert(static_cast<int64_t>(nhopId));
+            });
+        return nhopIds;
+      };
+      id2NhopSetIds->addNextHopIdSet(id, toNhopIdsThrift(nhopIdSet));
+    }
+    fibInfoPtr->setIdToNextHopMap(id2Nhop);
+    fibInfoPtr->setIdToNextHopIdSetMap(id2NhopSetIds);
+  }
   if (newFibV4) {
     nextFibContainer->ref<switch_state_tags::fibV4>() = std::move(newFibV4);
   }
@@ -141,93 +167,18 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
     std::shared_ptr<facebook::fboss::Route<AddressT>> fibRoute =
         fib->getNodeIf(fibPrefix.str());
 
-    std::optional<uint64_t> newResolvedNextHopSetId;
     if (fibRoute) {
       if (fibRoute == ribRoute || fibRoute->isSame(ribRoute.get())) {
         // Pointer or contents are same
-        // But check if old route is missing NextHopSetID - if so, allocate one
-        if (nextHopIDManager) {
-          auto existingNextHopSetID =
-              fibRoute->getForwardInfo().getResolvedNextHopSetID();
-          if (!existingNextHopSetID.has_value()) {
-            // Route is same but has no ID allocated yet - allocate one
-            const auto& nextHopSet = fibRoute->getForwardInfo().getNextHopSet();
-            if (!nextHopSet.empty()) {
-              auto allocResult =
-                  nextHopIDManager->getOrAllocRouteNextHopSetID(nextHopSet);
-
-              // Apply delta of what got added/deleted to switch state nexthop
-              // maps
-              applyNextHopAllocationDelta(allocResult, state, nextHopIDManager);
-
-              newResolvedNextHopSetId = allocResult.nextHopIdSetIter->second.id;
-
-              updated = true;
-            }
-          }
-        }
       } else {
         // Route has changed - need to update ResolvedNextHopSetID
         fibRoute = ribRoute;
-        if (nextHopIDManager) {
-          // Get the existing NextHopSetID from the old route
-          auto oldNextHopSetID = fib->getNodeIf(fibPrefix.str())
-                                     ->getForwardInfo()
-                                     .getResolvedNextHopSetID();
-
-          // Get the new nexthops
-          const auto& newNextHopSet =
-              ribRoute->getForwardInfo().getNextHopSet();
-
-          if (oldNextHopSetID.has_value() && !newNextHopSet.empty()) {
-            // Update the nexthop set ID
-            auto updateResult = nextHopIDManager->updateRouteNextHopSetID(
-                *oldNextHopSetID, newNextHopSet);
-
-            // Apply deltas to switch state to update NextHop maps incrementally
-            applyNextHopDeallocationDelta(updateResult.deallocation, state);
-            applyNextHopAllocationDelta(
-                updateResult.allocation, state, nextHopIDManager);
-            newResolvedNextHopSetId =
-                updateResult.allocation.nextHopIdSetIter->second.id;
-
-          } else if (!newNextHopSet.empty()) {
-            // Old route had no ID, allocate new one
-            auto allocResult =
-                nextHopIDManager->getOrAllocRouteNextHopSetID(newNextHopSet);
-
-            // Apply delta to switch state
-            applyNextHopAllocationDelta(allocResult, state, nextHopIDManager);
-            newResolvedNextHopSetId = allocResult.nextHopIdSetIter->second.id;
-          }
-        }
         updated = true;
       }
     } else {
       // New route - allocate NextHopSetID
       fibRoute = ribRoute;
-      if (nextHopIDManager) {
-        const auto& nextHopSet = ribRoute->getForwardInfo().getNextHopSet();
-        if (!nextHopSet.empty()) {
-          auto allocResult =
-              nextHopIDManager->getOrAllocRouteNextHopSetID(nextHopSet);
-
-          // Apply delta to switch state
-          applyNextHopAllocationDelta(allocResult, state, nextHopIDManager);
-
-          newResolvedNextHopSetId = allocResult.nextHopIdSetIter->second.id;
-        }
-      }
       updated = true;
-    }
-    // Clone route and set NextHopSetID
-    if (newResolvedNextHopSetId.has_value()) {
-      fibRoute = ribRoute->clone();
-      auto fwdInfo = fibRoute->getForwardInfo().toThrift();
-      fwdInfo.resolvedNextHopSetID() =
-          static_cast<uint64_t>(*newResolvedNextHopSetId);
-      fibRoute->setResolved(RouteNextHopEntry(std::move(fwdInfo)));
-      fibRoute->publish();
     }
     CHECK(fibRoute->isPublished());
     updatedFib.emplace_hint(updatedFib.cend(), fibPrefix.str(), fibRoute);
@@ -242,18 +193,6 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
     auto prefix = fibEntry->getID();
     if (updatedFib.find(prefix) == updatedFib.end()) {
       updated = true;
-      // Deallocate NextHopSetID for deleted route
-      if (nextHopIDManager) {
-        auto oldNextHopSetID =
-            fibEntry->getForwardInfo().getResolvedNextHopSetID();
-        if (oldNextHopSetID.has_value()) {
-          auto deallocResult = nextHopIDManager->decrOrDeallocRouteNextHopSetID(
-              *oldNextHopSetID);
-
-          // Apply delta to NextHopID maps in the switch state
-          applyNextHopDeallocationDelta(deallocResult, state);
-        }
-      }
     }
   }
 
