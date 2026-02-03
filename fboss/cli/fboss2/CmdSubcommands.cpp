@@ -316,6 +316,18 @@ CLI::App* CmdSubcommands::addCommand(
               "<map-type> <key> <value> where map-type is one of: "
               "tc-to-queue, pfc-pri-to-queue, tc-to-pg, pfc-pri-to-pg");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PORT_AND_TAGGING_MODE:
+          subCmd->add_option(
+              "port_and_tagging_mode",
+              args,
+              "Port name and tagging mode (e.g., eth1/1/1 tagged|untagged)");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_L2_LEARNING_MODE:
+          subCmd->add_option(
+              "learning_mode",
+              args,
+              "L2 learning mode (hardware|software|disabled)");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;
