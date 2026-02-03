@@ -145,7 +145,6 @@ cpp_library(
     headers = ["NextHopIDManager.h"],
     exported_deps = [
         "fbsource//third-party/googletest:gtest_headers",
-        "//fboss/agent:address_utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent/state:state",
