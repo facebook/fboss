@@ -529,4 +529,54 @@ TYPED_TEST(AgentVoqSwitchIsolationFirmwareUpdateTest, loadOnWarmboot) {
   this->verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
 }
 
+template <typename EnableLinkDisableFirmwareT>
+class AgentVoqSwitchIsolationFirmwareUpgradeDownGrade
+    : public AgentVoqSwitchIsolationFirmwareUpdateTest<
+          EnableLinkDisableFirmwareT> {
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true, /*interfaceHasSubnet*/
+        true, /*setInterfaceMac*/
+        utility::kBaseVlanId,
+        true /*enable fabric ports*/);
+    utility::populatePortExpectedNeighborsToSelf(
+        ensemble.masterLogicalPortIds(), config);
+    config = this->clearFWConfig(config);
+
+    // AgentVoqSwitchIsolationFirmwareUpgradeDownGrade/0.* run tests warmboot
+    // transition from fw version 2.4.0.1 to 2.4.11.
+    // AgentVoqSwitchIsolationFirmwareUpgradeDownGrade/1.* tests the reverse
+    // transition.
+    std::string fwPath;
+    if (this->isLinkDisableFirmware()) {
+      fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.11-GA.elf";
+    } else {
+      fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf";
+    }
+    config = this->addFwConfig(config, fwPath);
+    return config;
+  }
+};
+
+TYPED_TEST_SUITE(
+    AgentVoqSwitchIsolationFirmwareUpgradeDownGrade,
+    FirmwareTypes);
+
+TYPED_TEST(AgentVoqSwitchIsolationFirmwareUpgradeDownGrade, firmwareChange) {
+  auto setup = [this]() {
+    this->assertPortAndDrainState(false /* not drained*/);
+    this->setMinLinksConfig();
+  };
+
+  auto verify = [this]() {
+    this->assertFirmwareInfo(
+        FirmwareOpStatus::RUNNING, FirmwareFuncStatus::MONITORING);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
