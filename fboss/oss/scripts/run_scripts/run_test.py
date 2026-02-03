@@ -1291,116 +1291,115 @@ class SaiAgentTestRunner(TestRunner):
         return tests_to_run
 
 
-class CliTestRunner:
+class CliTestRunner(TestRunner):
     """
     Runner for CLI end-to-end tests.
 
-    Unlike the gtest-based test runners, CLI tests are simple Python tests
-    that run CLI commands and verify output. They test the CLI tool itself
-    (fboss2-dev) on a running FBOSS instance.
+    CLI tests are C++ gtest-based tests that run CLI commands and verify output.
+    They test the CLI tool itself (fboss2-dev) on a running FBOSS instance.
+
+    CLI tests are platform/SAI independent - they test the CLI binary which
+    communicates with the agent via Thrift, regardless of the underlying
+    hardware abstraction layer.
     """
 
-    CLI_TEST_DIR = "./share/cli_tests"
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        """Add CLI test-specific command line arguments"""
+        pass
+
+    def _get_config_path(self):
+        # CLI tests don't need a config file - they run against the already-running agent
+        return ""
+
+    def _get_known_bad_tests_file(self):
+        return ""
+
+    def _get_unsupported_tests_file(self):
+        return ""
+
+    def _get_test_binary_name(self):
+        return "cli_test"
+
+    def _get_sai_replayer_logging_flags(
+        self, sai_replayer_log_path: Optional[str]
+    ) -> List[str]:
+        return []
+
+    def _get_sai_logging_flags(self):
+        return []
+
+    def _get_warmboot_check_file(self):
+        return ""
+
+    def _get_test_run_args(self, conf_file):
+        # CLI tests don't need any additional args
+        return []
+
+    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+        pass
+
+    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+        pass
+
+    def _end_run(self):
+        pass
+
+    def _filter_tests(self, tests: List[str]) -> List[str]:
+        return tests
 
     def run_test(self, args):
-        """Run CLI end-to-end tests"""
-        print("Running CLI end-to-end tests...")
+        """
+        Run CLI end-to-end tests.
 
-        # Find and run test scripts
-        test_dir = self.CLI_TEST_DIR
-        if not os.path.isdir(test_dir):
-            print(f"CLI test directory not found: {test_dir}")
-            print("No CLI tests to run.")
+        CLI tests are simpler than hardware tests - they don't need config file
+        manipulation, warmboot/coldboot setup, or SAI-specific logging. They just
+        run against the already-running agent via Thrift.
+        """
+        tests_to_run = self._get_tests_to_run()
+        tests_to_run = self._filter_tests(tests_to_run)
+
+        if args.list_tests:
+            # Tests were already printed by _get_tests_to_run
             return
 
-        # Get list of test scripts
-        test_scripts = []
-        for filename in sorted(os.listdir(test_dir)):
-            if filename.startswith("test_") and filename.endswith(".py"):
-                test_scripts.append(os.path.join(test_dir, filename))
-
-        if not test_scripts:
-            print(f"No CLI test scripts found in {test_dir}")
+        if not tests_to_run:
+            print("No tests to run")
             return
 
-        # Apply filter if specified
-        if args.filter:
-            filtered_scripts = []
-            for script in test_scripts:
-                script_name = os.path.basename(script)
-                if args.filter in script_name:
-                    filtered_scripts.append(script)
-            test_scripts = filtered_scripts
-            if not test_scripts:
-                print(f"No tests match filter: {args.filter}")
-                return
+        print(f"Running {len(tests_to_run)} CLI end-to-end tests...")
+        start_time = datetime.now()
 
-        # Run each test script
-        passed = 0
-        failed = 0
-        failed_tests = []
-        test_times = {}  # Track time for each test
-        total_start_time = time.time()
+        # Run all tests in a single gtest invocation
+        test_filter = ":".join(tests_to_run)
+        # Use /tmp for test results since CLI tests may not have write access
+        # to the default TESTRESULT_FILE location
+        result_file = "/tmp/cli_test_results.xml"
+        cmd = [
+            self._get_test_binary_name(),
+            f"--gtest_filter={test_filter}",
+            f"--gtest_output=xml:{result_file}",
+        ]
 
-        for test_script in test_scripts:
-            test_name = os.path.basename(test_script)
-            print(f"\n########## Running CLI test: {test_name}")
+        print(f"Running command: {' '.join(cmd)}")
 
-            test_start_time = time.time()
-            try:
-                result = subprocess.run(
-                    ["python3", test_script],
-                    capture_output=True,
-                    text=True,
-                    timeout=300,  # 5 minute timeout per test
-                )
-                test_elapsed = time.time() - test_start_time
-                test_times[test_name] = test_elapsed
+        try:
+            result = subprocess.run(
+                cmd,
+                timeout=args.test_run_timeout,
+            )
 
-                if result.returncode == 0:
-                    print(f"[  PASSED  ] {test_name} ({test_elapsed:.1f}s)")
-                    passed += 1
-                else:
-                    print(f"[  FAILED  ] {test_name} ({test_elapsed:.1f}s)")
-                    print(f"stdout: {result.stdout}")
-                    print(f"stderr: {result.stderr}")
-                    failed += 1
-                    failed_tests.append(test_name)
+            end_time = datetime.now()
+            delta_time = end_time - start_time
+            print(f"Running all tests took {delta_time}")
 
-            except subprocess.TimeoutExpired as e:
-                test_elapsed = time.time() - test_start_time
-                test_times[test_name] = test_elapsed
-                print(f"[  TIMEOUT ] {test_name} ({test_elapsed:.1f}s)")
-                if e.stdout:
-                    print(f"stdout: {e.stdout}")
-                if e.stderr:
-                    print(f"stderr: {e.stderr}")
-                failed += 1
-                failed_tests.append(test_name)
-            except Exception as e:
-                test_elapsed = time.time() - test_start_time
-                test_times[test_name] = test_elapsed
-                print(f"[  ERROR   ] {test_name}: {e} ({test_elapsed:.1f}s)")
-                failed += 1
-                failed_tests.append(test_name)
+            if result.returncode != 0:
+                sys.exit(result.returncode)
 
-        total_elapsed = time.time() - total_start_time
-
-        # Print summary
-        print("\n" + "=" * 60)
-        print("CLI Test Summary")
-        print("=" * 60)
-        print(f"  Passed: {passed}")
-        print(f"  Failed: {failed}")
-        print(f"  Total:  {passed + failed}")
-        print(f"  Time:   {total_elapsed:.1f}s")
-
-        if failed_tests:
-            print("\nFailed tests:")
-            for test in failed_tests:
-                print(f"  - {test} ({test_times.get(test, 0):.1f}s)")
-
-        if failed > 0:
+        except subprocess.TimeoutExpired:
+            print(f"[  TIMEOUT ] CLI tests timed out after {args.test_run_timeout}s")
+            sys.exit(1)
+        except Exception as e:
+            print(f"[  ERROR   ] Failed to run CLI tests: {e}")
             sys.exit(1)
 
 
@@ -1606,6 +1605,7 @@ if __name__ == "__main__":
     )
     cli_test_runner = CliTestRunner()
     cli_test_parser.set_defaults(func=cli_test_runner.run_test)
+    cli_test_runner.add_subcommand_arguments(cli_test_parser)
 
     # Parse the args
     args = ap.parse_known_args()

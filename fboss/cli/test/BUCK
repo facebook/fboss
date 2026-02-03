@@ -1,0 +1,40 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+
+oncall("fboss_agent_push")
+
+# CLI E2E test binary - End-to-end tests for CLI commands
+#
+# These tests run against a live FBOSS agent and execute actual CLI commands.
+# Unlike unit tests, they require the agent to be running with valid config.
+# They are equivalent to the Python tests in fboss/oss/cli_tests/.
+#
+# CLI tests are platform/SAI independent - they test the CLI binary which
+# communicates with the agent via Thrift, regardless of the underlying
+# hardware abstraction layer.
+#
+# Unlike the Python-based CLI tests, these C++ tests directly invoke the CLI
+# library code rather than spawning a subprocess.
+cpp_binary(
+    name = "cli_test",
+    srcs = [
+        "CliTest.cpp",
+        "ConfigInterfaceDescriptionTest.cpp",
+        "ConfigInterfaceMtuTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/cli/fboss2:cmd-global-options",
+        "//fboss/cli/fboss2:cmd-list-header",
+        "//fboss/cli/fboss2:cmd-subcommands",
+        "//folly:dynamic",
+        "//folly:format",
+        "//folly:subprocess",
+        "//folly/json:dynamic",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "CLI11",
+        "gflags",
+    ],
+)

@@ -402,9 +402,10 @@ void ConfigSession::saveConfig(
   // Automatically record the command from /proc/self/cmdline.
   // This ensures all config commands are tracked without requiring manual
   // instrumentation in each command implementation.
+  // Note: When running CLI commands directly (e.g., in tests),
+  // /proc/self/cmdline may not contain the CLI command, so we gracefully skip
+  // command tracking.
   std::string rawCmd = readCommandLineFromProc();
-  CHECK(!rawCmd.empty())
-      << "saveConfig() called with no command line arguments";
   // Only record if this is a config command and not already the last one
   // recorded as that'd be idempotent anyway. Strip any leading flags.
   auto pos = rawCmd.find("config ");
@@ -604,6 +605,12 @@ void ConfigSession::restartAgent(cli::AgentType agent) {
 }
 
 void ConfigSession::loadConfig() {
+  // If session file doesn't exist (e.g., after a commit), re-initialize
+  // the session by copying from system config.
+  if (!sessionExists()) {
+    initializeSession();
+  }
+
   std::string configJson;
   std::string sessionConfigPath = getSessionConfigPath();
   if (!folly::readFile(sessionConfigPath.c_str(), configJson)) {
@@ -626,6 +633,13 @@ void ConfigSession::loadConfig() {
 void ConfigSession::initializeSession() {
   initializeGit();
   if (!sessionExists()) {
+    // Starting a new session - reset all state to ensure we don't carry over
+    // stale data from a previous session (e.g., if the singleton persisted
+    // in memory but the session files were deleted).
+    commands_.clear();
+    requiredActions_.clear();
+    configLoaded_ = false;
+
     // Ensure the session config directory exists
     ensureDirectoryExists(sessionConfigDir_);
     copySystemConfigToSession();
@@ -817,8 +831,12 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
         ec.message());
   }
 
-  // Reset action level after successful commit
+  // Reset internal state after successful commit so subsequent commands
+  // start with a fresh session based on the new commit.
   resetRequiredAction(cli::AgentType::WEDGE_AGENT);
+  base_ = commitSha;
+  // Force config reload from system config on next access
+  configLoaded_ = false;
 
   return CommitResult{commitSha, actionLevel};
 }

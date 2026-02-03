@@ -70,7 +70,15 @@ CLI::App* CmdSubcommands::addCommand(
   }
   auto* subCmd = app.add_subcommand(cmd.name, cmd.help);
   if (auto& commandHandler = cmd.commandHandler) {
-    subCmd->callback(*commandHandler);
+    // Wrap the handler to only execute if this is the leaf command
+    // (i.e., no subcommands were parsed). This is needed because CLI11
+    // invokes callbacks for all commands in the chain, but we only want
+    // the target leaf command to execute.
+    subCmd->callback([commandHandler, subCmd]() {
+      if (subCmd->get_subcommands().empty()) {
+        (*commandHandler)();
+      }
+    });
 
     if (auto& localOptionsHandler = cmd.localOptionsHandler) {
       auto& localOptionMap =
