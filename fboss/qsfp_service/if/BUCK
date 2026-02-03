@@ -23,7 +23,6 @@ thrift_library(
         "//thrift/annotation:java",
         "//thrift/annotation:python",
         "//thrift/annotation:thrift",
-        "//thrift/facebook/erlang:annotations",
     ],
     py3_namespace = "neteng.fboss",
     py_asyncio_base_module = "neteng.fboss.asyncio",
