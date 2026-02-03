@@ -49,7 +49,6 @@ target_link_libraries(platform_mapping_utils
   janga800bic_platform_mapping
   tahan800bc_platform_mapping
   icecube800bc_platform_mapping
-  blackwolf800banw_platform_mapping
   wedge800bact_platform_mapping
   icetea800bc_platform_mapping
   tahansb800bc_platform_mapping
