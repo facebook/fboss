@@ -650,6 +650,12 @@ void ConfigSession::applyServiceActions(
 }
 
 void ConfigSession::loadConfig() {
+  // If session file doesn't exist (e.g., after a commit), re-initialize
+  // the session by copying from system config.
+  if (!sessionExists()) {
+    initializeSession();
+  }
+
   std::string configJson;
   std::string sessionConfigPath = getSessionConfigPath();
   if (!folly::readFile(sessionConfigPath.c_str(), configJson)) {
@@ -672,6 +678,13 @@ void ConfigSession::loadConfig() {
 void ConfigSession::initializeSession() {
   initializeGit();
   if (!sessionExists()) {
+    // Starting a new session - reset all state to ensure we don't carry over
+    // stale data from a previous session (e.g., if the singleton persisted
+    // in memory but the session files were deleted).
+    commands_.clear();
+    requiredActions_.clear();
+    configLoaded_ = false;
+
     // Ensure the session config directory exists
     ensureDirectoryExists(sessionConfigDir_);
     copySystemConfigToSession();

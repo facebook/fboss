@@ -112,3 +112,33 @@ target_link_libraries(thrift_latency_test
   Folly::folly
   FBThrift::thriftcpp2
 )
+
+# cli_test - CLI E2E test binary
+#
+# CLI tests are platform/SAI independent - they test the CLI binary which
+# communicates with the agent via Thrift, without running the actual fboss2-dev
+# binary.
+add_executable(cli_test
+  fboss/cli/fboss2/oss/CmdListConfig.cpp
+  fboss/cli/test/CliTest.cpp
+  fboss/cli/test/ConfigInterfaceDescriptionTest.cpp
+  fboss/cli/test/ConfigInterfaceMtuTest.cpp
+)
+
+target_link_libraries(cli_test
+  fboss2_lib
+  fboss2_config_lib
+  thrift_service_utils
+  CLI11::CLI11
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+  Folly::folly
+  Folly::folly_test_util
+  FBThrift::thriftcpp2
+  gflags
+  fmt::fmt
+)
+
+target_include_directories(cli_test PUBLIC
+  ${CMAKE_SOURCE_DIR}
+)
