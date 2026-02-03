@@ -308,6 +308,11 @@ class TestRunner(abc.ABC):
         re.VERBOSE,
     )
 
+    def __init__(self):
+        # Test lists will be initialized in run_test() when args are available
+        self._known_bad_test_regexes = None
+        self._unsupported_test_regexes = None
+
     @abc.abstractmethod
     def _get_config_path(self):
         pass
@@ -395,52 +400,95 @@ class TestRunner(abc.ABC):
             run_test_result = (line[:idx] + test_prefix + line[idx:]).encode("utf-8")
         return run_test_result
 
-    def _get_known_bad_test_regexes(self):
-        if not args.skip_known_bad_tests:
+    def _get_test_regexes_from_file(
+        self,
+        file_path: str,
+        test_dict_key: str,
+        keys_to_try: List[str],
+    ) -> List[str]:
+        """
+        Helper function to extract test regexes from a JSON file.
+
+        Tries multiple key variants provided in keys_to_try list.
+        Collects regexes from all matching keys.
+
+        Args:
+            file_path: Path to the JSON file containing test configurations
+            test_dict_key: Key in the JSON to access the test dictionary (e.g., "known_bad_tests", "unsupported_tests")
+            keys_to_try: List of keys to try in the test dictionary
+
+        Returns:
+            List of test name regexes from all matching keys
+        """
+        if not os.path.exists(file_path):
+            print(f"Warning: Test file {file_path} does not exist")
             return []
 
-        known_bad_tests_file = self._get_known_bad_tests_file()
-        if not os.path.exists(known_bad_tests_file):
-            return []
+        with open(file_path) as f:
+            test_json = json.load(f)
+            test_dict = test_json[test_dict_key]
 
-        with open(known_bad_tests_file) as f:
-            known_bad_test_json = json.load(f)
-            known_bad_tests = known_bad_test_json["known_bad_tests"]
-            key = args.skip_known_bad_tests
-            if key not in known_bad_tests and args.agent_run_mode:
-                key = key + "/" + args.agent_run_mode
-            known_bad_test_structs = known_bad_tests[key]
-            known_bad_tests = []
-            for test_struct in known_bad_test_structs:
-                known_bad_test = test_struct["test_name_regex"]
-                known_bad_tests.append(known_bad_test)
-        return known_bad_tests
+            # Collect regexes from all matching keys
+            test_regexes = set()
+            for key in keys_to_try:
+                if key in test_dict:
+                    for test_struct in test_dict[key]:
+                        test_regexes.add(test_struct["test_name_regex"])
 
-    def _get_unsupported_test_regexes(self):
+            if not test_regexes:
+                print(
+                    f"Warning: Could not find tests for key '{keys_to_try[0]}'. "
+                    f"Available keys: {list(test_dict.keys())}"
+                )
+
+            return list(test_regexes)
+
+    def _initialize_test_lists(self, args):
+        """
+        Initialize known bad and unsupported test lists.
+        This should be called once at the start of run_test() when args are available.
+        """
         if not args.skip_known_bad_tests:
             print(
                 "The --skip-known-bad-tests option is not set, therefore unsupported tests will be run."
             )
-            return []
+            self._known_bad_test_regexes = []
+            self._unsupported_test_regexes = []
+            return
 
+        # Build list of keys to try - always try exactly two keys:
+        # 1. The key as provided
+        # 2. Either the key with run mode suffix stripped (if it ends with one)
+        #    or the key with run mode suffix appended (if it doesn't)
+        base_key = args.skip_known_bad_tests
+        keys_to_try = [base_key]
+
+        # Only try run mode suffix if the subcommand has agent_run_mode
+        if hasattr(args, "agent_run_mode"):
+            run_mode_suffix = f"/{args.agent_run_mode}"
+            if base_key.endswith(run_mode_suffix):
+                # Key already has the run mode suffix, try the stripped version
+                stripped_key = base_key[: -len(run_mode_suffix)]
+                keys_to_try.append(stripped_key)
+            else:
+                # Key doesn't have the run mode suffix, try adding it
+                keys_to_try.append(f"{base_key}{run_mode_suffix}")
+
+        # Load known bad tests
+        known_bad_tests_file = self._get_known_bad_tests_file()
+        self._known_bad_test_regexes = self._get_test_regexes_from_file(
+            file_path=known_bad_tests_file,
+            test_dict_key="known_bad_tests",
+            keys_to_try=keys_to_try,
+        )
+
+        # Load unsupported tests
         unsupported_tests_file = self._get_unsupported_tests_file()
-        if not os.path.exists(unsupported_tests_file):
-            unsupported_tests_file_abs_path = os.path.abspath(unsupported_tests_file)
-            print(
-                f"The unsupported tests file {unsupported_tests_file_abs_path} does not exist, therefore all tests will be considered supported"
-            )
-            return []
-
-        with open(unsupported_tests_file) as f:
-            unsupported_test_json = json.load(f)
-            unsupported_test_structs = unsupported_test_json["unsupported_tests"][
-                args.skip_known_bad_tests
-            ]
-            unsupported_tests = []
-            for test_struct in unsupported_test_structs:
-                unsupported_test = test_struct["test_name_regex"]
-                unsupported_tests.append(unsupported_test)
-        return unsupported_tests
+        self._unsupported_test_regexes = self._get_test_regexes_from_file(
+            file_path=unsupported_tests_file,
+            test_dict_key="unsupported_tests",
+            keys_to_try=keys_to_try,
+        )
 
     def _parse_list_test_output(self, output):
         ret = []
@@ -475,7 +523,7 @@ class TestRunner(abc.ABC):
             test_summary.append(line)
         return test_summary
 
-    def _list_tests_to_run(self, filter, should_print=True):
+    def _list_tests_to_run(self, filter):
         output = subprocess.check_output(
             [
                 self._get_test_binary_name(),
@@ -483,24 +531,28 @@ class TestRunner(abc.ABC):
                 f"--gtest_filter={filter}",
             ]
         )
-        # Print all the matching tests
-        if should_print:
-            print(output.decode("utf-8"))
         return self._parse_list_test_output(output)
 
+    def _test_matches_any_regex(self, test, regex_list):
+        """
+        Check if a test name matches any regex in the provided list.
+
+        Args:
+            test: Test name to check
+            regex_list: List of regex patterns to match against
+
+        Returns:
+            True if test matches any regex in the list, False otherwise
+        """
+        return any(re.match(regex_pattern, test) for regex_pattern in regex_list)
+
     def _is_known_bad_test(self, test):
-        known_bad_test_regexes = self._get_known_bad_test_regexes()
-        for known_bad_test_regex in known_bad_test_regexes:
-            if re.match(known_bad_test_regex, test):
-                return True
-        return False
+        """Check if a test is in the known bad tests list."""
+        return self._test_matches_any_regex(test, self._known_bad_test_regexes)
 
     def _is_unsupported_test(self, test):
-        unsupported_test_regexes = self._get_unsupported_test_regexes()
-        for unsupported_test_regex in unsupported_test_regexes:
-            if re.match(unsupported_test_regex, test):
-                return True
-        return False
+        """Check if a test is in the unsupported tests list."""
+        return self._test_matches_any_regex(test, self._unsupported_test_regexes)
 
     def _get_tests_to_run(self):
         # Filter syntax is -
@@ -523,11 +575,11 @@ class TestRunner(abc.ABC):
         if args.filter or args.filter_file:
             if args.filter_file:
                 gtest_regexes = _load_from_file(args.filter_file)
-                test_names = self._list_tests_to_run(":".join(gtest_regexes), False)
+                test_names = self._list_tests_to_run(":".join(gtest_regexes))
             elif args.filter:
-                test_names = self._list_tests_to_run(args.filter, False)
+                test_names = self._list_tests_to_run(args.filter)
         else:
-            test_names = self._list_tests_to_run("*", False)
+            test_names = self._list_tests_to_run("*")
         filter = ""
         for test_name in test_names:
             if self._is_known_bad_test(test_name) or self._is_unsupported_test(
@@ -804,6 +856,9 @@ class TestRunner(abc.ABC):
         print(f"\nTest output stored at: {output_csv}")
 
     def run_test(self, args):
+        # Initialize test lists once at the start
+        self._initialize_test_lists(args)
+
         tests_to_run = self._get_tests_to_run()
         tests_to_run = self._filter_tests(tests_to_run)
 
@@ -822,6 +877,10 @@ class TestRunner(abc.ABC):
                 flush=True,
             )
             self._print_output_summary(output)
+        else:
+            # Print the filtered tests
+            for test in tests_to_run:
+                print(test)
 
 
 class BcmTestRunner(TestRunner):
@@ -1788,7 +1847,9 @@ if __name__ == "__main__":
         OPT_ARG_SKIP_KNOWN_BAD_TESTS,
         type=str,
         help=(
-            "test config to specify which known bad tests to skip e.g. "
+            "test config key to specify which known bad tests to skip. "
+            "The key format is: vendor/coldboot-sai/warmboot-sai/asic. "
+            "Example: "
             + OPT_ARG_SKIP_KNOWN_BAD_TESTS
             + "=brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk"
         ),
