@@ -147,10 +147,10 @@ std::unordered_map<std::string, FruEeprom> ConfigUtils::getFruEepromList() {
   }
 
   // Because of upstream kernel issues, we have to manually read the
-  // SCM EEPROM for the Meru800BFA/BIA platforms. It is read directly
+  // SCM/SMB EEPROM for certain platforms. It is read directly
   // with ioctl and written to the /run/devmap file.
   // See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
-  // The SCM EEPROM is not a symlink created by PlatformManager (instead it is
+  // The EEPROM is not a symlink created by PlatformManager (instead it is
   // a regular file). So it is not present in `symbolicLinkToDevicePath`, and we
   // have to add it explicitly. ```
   if (config_.platformName().value() == "MERU800BFA" ||
@@ -160,6 +160,12 @@ std::unordered_map<std::string, FruEeprom> ConfigUtils::getFruEepromList() {
     std::string eepromName = "SCM";
     FruEeprom fruEeprom;
     fruEeprom.path = "/run/devmap/eeproms/MERU_SCM_EEPROM";
+    fruEeprom.offset = getEepromOffset(config_, eepromName);
+    fruEepromList[eepromName] = fruEeprom;
+  } else if (config_.platformName().value() == "ICECUBE800BANW") {
+    std::string eepromName = "SMB";
+    FruEeprom fruEeprom;
+    fruEeprom.path = "/run/devmap/eeproms/SMB_EEPROM";
     fruEeprom.offset = getEepromOffset(config_, eepromName);
     fruEepromList[eepromName] = fruEeprom;
   } else if (config_.platformName().value() == "DARWIN") {
