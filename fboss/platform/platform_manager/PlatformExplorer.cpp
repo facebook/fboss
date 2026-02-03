@@ -310,17 +310,22 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
 
     /*
     Because of upstream kernel issues, we have to manually read the
-    SCM EEPROM for the Meru800BFA/BIA platforms. It is read directly
+    SCM/SMB EEPROM for certain platforms. It is read directly
     with ioctl and written to the /run/devmap file.
     See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
     */
     if ((platformConfig_.platformName().value() == "MERU800BFA" ||
-         platformConfig_.platformName().value() == "MERU800BIA") &&
+         platformConfig_.platformName().value() == "MERU800BIA" ||
+         platformConfig_.platformName().value() == "ICECUBE800BANW") &&
         (!(idpromConfig.busName()->starts_with("INCOMING")) &&
          *idpromConfig.address() == "0x50")) {
       try {
         std::string eepromDir = "/run/devmap/eeproms/";
-        std::string eepromName = "MERU_SCM_EEPROM";
+        // ICECUBE800BANW has SMB at root level, others have SCM
+        std::string eepromName =
+            (platformConfig_.platformName().value() == "ICECUBE800BANW")
+            ? "SMB_EEPROM"
+            : "MERU_SCM_EEPROM";
         eepromPath = eepromDir + eepromName;
         IoctlSmbusEepromReader::readEeprom(
             eepromDir,
@@ -330,7 +335,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
             dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName()));
       } catch (const std::exception& e) {
         auto errMsg = fmt::format(
-            "Could not read MERU_SCM_EEPROM for {}: {}",
+            "Could not read EEPROM for {}: {}",
             *idpromConfig.address(),
             e.what());
         XLOG(ERR) << errMsg;
@@ -1066,6 +1071,15 @@ void PlatformExplorer::genHumanReadableEeproms() {
           linkPath);
       continue;
     }
+
+    // Ignore Darwin's I2cDeviceConfig eeproms as they don't support meta eeprom
+    // Darwin48v eeproms defined in I2cDeviceConfig aren't at offset 0
+    if (devicePath == "/RACKMON_SLOT@0/[FANSPINNER_EEPROM]" ||
+        devicePath == "/RACKMON_SLOT@0/[IDPROM]" ||
+        devicePath == "/[CHASSIS_EEPROM]") {
+      continue;
+    }
+
     writeEepromContent(devicePath, linkPath);
   }
 
@@ -1075,6 +1089,9 @@ void PlatformExplorer::genHumanReadableEeproms() {
   // See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
   if (std::filesystem::exists("/run/devmap/eeproms/MERU_SCM_EEPROM")) {
     writeEepromContent("/[IDPROM]", "/run/devmap/eeproms/MERU_SCM_EEPROM");
+  }
+  if (std::filesystem::exists("/run/devmap/eeproms/SMB_EEPROM")) {
+    writeEepromContent("/[IDPROM]", "/run/devmap/eeproms/SMB_EEPROM");
   }
 }
 } // namespace facebook::fboss::platform::platform_manager
