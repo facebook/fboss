@@ -2979,6 +2979,11 @@ void SaiSwitch::txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
 #endif
 }
 
+void SaiSwitch::fwDisabledLinksCallbackBottomHalf(
+    const std::vector<int32_t>& fwDisabledPortIds) {
+  // TODO
+}
+
 void SaiSwitch::linkConnectivityChanged(
     const std::map<PortID, multiswitch::FabricConnectivityDelta>&
         connectivityDelta) {
