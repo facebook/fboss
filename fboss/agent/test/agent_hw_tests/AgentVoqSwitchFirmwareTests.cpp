@@ -559,6 +559,31 @@ class AgentVoqSwitchIsolationFirmwareUpgradeDownGrade
     config = this->addFwConfig(config, fwPath);
     return config;
   }
+
+  void tearDownAgentEnsemble(bool warmboot = false) override {
+    // We check for agentEnsemble not being NULL since the tests
+    // are also invoked for just listing their prod features.
+    // Then in such case, agentEnsemble is never setup
+    if (this->getAgentEnsemble() &&
+        this->getSw()->getBootType() == BootType::COLD_BOOT) {
+      auto agentConfig = this->getSw()->getAgentConfig();
+      const auto& configFileName = this->getAgentEnsemble()->configFileName();
+      agentConfig.sw() = this->clearFWConfig(*agentConfig.sw());
+
+      // To test firmware transition on warmboot, if we chose 2.4.11 during cb,
+      // configure 2.4.0.1 post wb and vice-versa.
+      std::string fwPath;
+      if (!this->isLinkDisableFirmware()) {
+        fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.11-GA.elf";
+      } else {
+        fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf";
+      }
+      agentConfig.sw() =
+          this->addFwConfig(*agentConfig.sw(), std::move(fwPath));
+      AgentEnsemble::writeConfig(agentConfig, configFileName);
+    }
+    AgentHwTest::tearDownAgentEnsemble(warmboot);
+  }
 };
 
 TYPED_TEST_SUITE(
