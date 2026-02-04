@@ -657,6 +657,7 @@ std::shared_ptr<SwitchState> SaiSwitch::constructSwitchStateWithFib() noexcept {
 
   const auto& switchStateRoutesMap =
       managerTable_->routeManager().getSwitchStateRoutesMap();
+  const auto& virtualRouterManager = managerTable_->virtualRouterManager();
 
   // Create a new ForwardingInformationBaseMap for the new design
   auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
@@ -666,12 +667,18 @@ std::shared_ptr<SwitchState> SaiSwitch::constructSwitchStateWithFib() noexcept {
   std::map<RouterID, std::vector<std::shared_ptr<RouteV6>>> routesV6;
 
   // Create a set of routerIds from each routeEntry in switchStateRoutesMap
+  // Typically, there is only RouterID(0) but not making that assumption
   std::set<RouterID> routerIds;
+  std::map<sai_object_id_t, RouterID> vrIdToRouterIdCache;
   std::for_each(
       switchStateRoutesMap.begin(),
       switchStateRoutesMap.end(),
-      [&routerIds](const auto& routeEntry) {
-        routerIds.insert(RouterID(routeEntry.first.virtualRouterId()));
+      [&virtualRouterManager, &routerIds, &vrIdToRouterIdCache](
+          const auto& routeEntry) {
+        auto vrId = routeEntry.first.virtualRouterId();
+        auto routerId = virtualRouterManager.getRouterID(vrId);
+        vrIdToRouterIdCache[vrId] = routerId;
+        routerIds.insert(routerId);
       });
   for (const auto& routerId : routerIds) {
     // Create FIB containers
@@ -682,7 +689,7 @@ std::shared_ptr<SwitchState> SaiSwitch::constructSwitchStateWithFib() noexcept {
 
   // Iterate through the switchStateRoutesMap
   for (const auto& [routeEntry, routeVariant] : switchStateRoutesMap) {
-    RouterID routerId(routeEntry.virtualRouterId());
+    RouterID routerId = vrIdToRouterIdCache.at(routeEntry.virtualRouterId());
 
     if (std::holds_alternative<std::shared_ptr<RouteV4>>(routeVariant)) {
       auto route = std::get<std::shared_ptr<RouteV4>>(routeVariant);

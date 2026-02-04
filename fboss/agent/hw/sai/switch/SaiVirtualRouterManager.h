@@ -43,6 +43,7 @@ class SaiVirtualRouterManager {
   SaiVirtualRouterHandle* getVirtualRouterHandle(const RouterID& routerId);
   const SaiVirtualRouterHandle* getVirtualRouterHandle(
       const RouterID& routerId) const;
+  RouterID getRouterID(const sai_object_id_t vrId) const;
 
  private:
   SaiVirtualRouterHandle* getVirtualRouterHandleImpl(
