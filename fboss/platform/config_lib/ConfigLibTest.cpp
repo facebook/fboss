@@ -29,6 +29,7 @@ TEST(ConfigLibTest, Basic) {
   EXPECT_NO_THROW(ConfigLib().getSensorServiceConfig(kMorgan800cc));
   EXPECT_NO_THROW(ConfigLib().getSensorServiceConfig(kJanga800bic));
   EXPECT_NO_THROW(ConfigLib().getSensorServiceConfig(kTahan800bc));
+  EXPECT_NO_THROW(ConfigLib().getSensorServiceConfig(kBlackwolf800banw));
   EXPECT_THROW(
       ConfigLib().getSensorServiceConfig(kNonExistentPlatform),
       std::runtime_error);
