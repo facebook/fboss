@@ -52,6 +52,7 @@ enum LinkChangeEventType {
   LINK_STATE = 1,
   LINK_ACTIVE = 2,
   LINK_CONNECTIVITY = 3,
+  LINK_DISABLED_BY_FIRMWARE = 4,
 }
 
 struct LinkChangeEvent {

@@ -12,13 +12,13 @@ cpp_binary(
         "cp2112_util.cpp",
     ],
     deps = [
+        "fbsource//third-party/glog:glog",
         "//fboss/lib/usb:cp2112",
         "//folly:conv",
         "//folly:range",
     ],
     external_deps = [
         "gflags",
-        "glog",
     ],
 )
 

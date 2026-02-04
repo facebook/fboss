@@ -1851,7 +1851,6 @@ cpp_library(
     ],
     exported_deps = [
         ":agent_dir_util",
-        ":agent_features",
         ":hw_asic_table",
         ":switch_state-cpp2-types",
         "//fboss/agent/rib:standalone_rib",

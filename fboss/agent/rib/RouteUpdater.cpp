@@ -19,6 +19,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Route.h"
 
@@ -250,6 +251,10 @@ void RibRouteUpdater::delRouteImpl(
   if (route->numClientEntries() == 1) {
     // If this client's the only entry, simply erase
     XLOG(DBG3) << "Deleting route: " << route->str();
+    auto oldNextHopSetID = route->getForwardInfo().getResolvedNextHopSetID();
+    if (nextHopIDManager_ && oldNextHopSetID.has_value()) {
+      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
+    }
     routes->erase(it);
   } else {
     route = writableRoute<AddressT>(it);
@@ -820,7 +825,32 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
                          typename NetworkToRouteMap<AddressT>::Iterator ritr,
                          std::optional<RouteNextHopEntry> nhop) {
     updatedRoute = writableRoute<AddressT>(ritr);
+    auto oldNextHopSetID =
+        value<AddressT>(ritr)->getForwardInfo().getResolvedNextHopSetID();
     if (nhop) {
+      std::optional<NextHopSetID> newResolvedNextHopSetId;
+      if (nextHopIDManager_) {
+        const auto& newNextHopSet = nhop->getNextHopSet();
+
+        if (!newNextHopSet.empty()) {
+          if (oldNextHopSetID.has_value()) {
+            // Route update from old nhops -> new nhops
+            // Update the nexthop set ID
+            auto updateResult = nextHopIDManager_->updateRouteNextHopSetID(
+                *oldNextHopSetID, newNextHopSet);
+            newResolvedNextHopSetId =
+                updateResult.allocation.nextHopIdSetIter->second.id;
+          } else {
+            // Old route had no ID, allocate new one
+            auto allocResult =
+                nextHopIDManager_->getOrAllocRouteNextHopSetID(newNextHopSet);
+            newResolvedNextHopSetId = allocResult.nextHopIdSetIter->second.id;
+          }
+        } else if (oldNextHopSetID) { // empty newNextHopSet
+          nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
+        }
+      }
+      nhop->setResolvedNextHopSetID(newResolvedNextHopSetId);
       updatedRoute->setResolved(*nhop);
       if ((clientId == kInterfaceRouteClientId ||
            clientId == kRemoteInterfaceRouteClientId) &&
@@ -828,6 +858,9 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         updatedRoute->setConnected();
       }
     } else {
+      if (nextHopIDManager_ && oldNextHopSetID.has_value()) {
+        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
+      }
       updatedRoute->setUnresolvable();
     }
     updatedRoute->updateClassID(classID);

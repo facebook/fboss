@@ -803,6 +803,13 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
     auto preRollbackSwitchRunState = getSwitchRunState();
     switchRunStateChangedImplLocked(
         lockPolicy.lock(), SwitchRunState::ROLLBACK);
+    auto pfcWatchdogRecoveryAction =
+        knownGoodState->getPfcWatchdogRecoveryAction();
+    bool pfcDeadlockEnabled = pfcDeadlockEnabled_;
+    if (pfcDeadlockEnabled) {
+      processPfcDeadlockNotificationCallback(
+          std::nullopt /* ignored */, std::nullopt);
+    }
     auto hwSwitchJson = toFollyDynamicLocked(lockPolicy.lock());
     {
       HwWriteBehaviorRAII writeBehavior{HwWriteBehavior::SKIP};
@@ -828,7 +835,6 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
     // so set the bootType to warm boot for duration of roll back. We
     // will restore it once we are done with roll back.
     bootType_ = BootType::WARM_BOOT;
-    rollbackInProgress_ = true;
     initStoreAndManagersLocked(
         lockPolicy.lock(),
         // We are being strict here in the sense of not allowing any HW
@@ -847,7 +853,6 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
     saiStore_->printWarmbootHandles();
     saiStore_->removeUnexpectedUnclaimedWarmbootHandles();
     bootType_ = curBootType;
-    rollbackInProgress_ = false;
     for (const auto& value :
          apache::thrift::TEnumTraits<SwitchRunState>::values) {
       // transition through all switch run states until pre-rollback run state
@@ -857,6 +862,10 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
         continue;
       }
       switchRunStateChangedImplLocked(lockPolicy.lock(), value);
+    }
+    if (pfcDeadlockEnabled) {
+      processPfcDeadlockNotificationCallback(
+          std::nullopt /* ignored */, pfcWatchdogRecoveryAction);
     }
   } catch (const std::exception& ex) {
     // Rollback failed. Fail hard.
@@ -2977,6 +2986,11 @@ void SaiSwitch::txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
   callback_->linkActiveStateChangedOrFwIsolated(
       port2IsActive, fwIsolated, numActiveFabricPortsAtFwIsolate);
 #endif
+}
+
+void SaiSwitch::fwDisabledLinksCallbackBottomHalf(
+    const std::vector<int32_t>& fwDisabledPortIds) {
+  callback_->linkAdminStateChangedByFw(fwDisabledPortIds);
 }
 
 void SaiSwitch::linkConnectivityChanged(

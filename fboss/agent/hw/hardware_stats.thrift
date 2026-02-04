@@ -381,6 +381,10 @@ struct HwSwitchDropStats {
   17: optional i64 rqpParityErrorDrops;
   18: optional i64 tc0RateLimitDrops;
   19: optional i64 dramDataPathPacketError;
+  // Switch debug counter drops
+  20: optional i64 switchL2InDrops;
+  21: optional i64 switchL3InDrops;
+  22: optional i64 switchTunnelInDrops;
 }
 
 struct HwSwitchDramStats {

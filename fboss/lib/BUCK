@@ -393,6 +393,7 @@ cpp_library(
         "//folly/executors:io_thread_pool_executor",
         "//folly/io/async:epoll",
         "//folly/io/async:epoll_backend",
+        "//folly/logging:logging",
         "//folly/system:hardware_concurrency",
         "//thrift/lib/cpp2:server",
     ],

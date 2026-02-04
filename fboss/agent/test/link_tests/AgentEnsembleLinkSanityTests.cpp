@@ -58,6 +58,9 @@ const std::string qsfpUtilPrefix() {
   if (FLAGS_janga_test) {
     extraFlags += " --janga-test ";
   }
+  if (FLAGS_montblanc_odd_ports_8x100G) {
+    extraFlags += " --montblanc-odd-ports-8x100G ";
+  }
   return "wedge_qsfp_util " + extraFlags;
 }
 

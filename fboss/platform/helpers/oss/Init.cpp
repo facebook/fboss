@@ -6,6 +6,8 @@
 
 #include <folly/init/Init.h>
 
+#include "fboss/lib/ThriftServiceUtils.h"
+
 namespace facebook::fboss::platform::helpers {
 
 void init(int* argc, char*** argv) {
@@ -26,6 +28,7 @@ void runThriftService(
     const std::string& /* serviceName */,
     uint32_t port) {
   // Setup thrift server
+  facebook::fboss::ThriftServiceUtils::setPreferredEventBaseBackend(*server);
   server->setPort(port);
   server->setInterface(handler);
   server->setAllowPlaintextOnLoopback(true);
@@ -34,5 +37,12 @@ void runThriftService(
   SignalHandler signalHandler(evb, server);
 
   server->serve();
+}
+
+folly::Function<void(apache::thrift::ThriftServer&)>
+createTestThriftServerConfig() {
+  return [](apache::thrift::ThriftServer& server) {
+    facebook::fboss::ThriftServiceUtils::setPreferredEventBaseBackend(server);
+  };
 }
 } // namespace facebook::fboss::platform::helpers

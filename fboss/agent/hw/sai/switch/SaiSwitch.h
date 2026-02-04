@@ -219,7 +219,7 @@ class SaiSwitch : public HwSwitch {
   SaiManagerTable* managerTable();
 
   bool getRollbackInProgress_() {
-    return rollbackInProgress_;
+    return getSwitchRunState() == SwitchRunState::ROLLBACK;
   }
 
   /*
@@ -471,6 +471,8 @@ class SaiSwitch : public HwSwitch {
       bool fwIsolated = false,
       const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate =
           std::nullopt);
+  void fwDisabledLinksCallbackBottomHalf(
+      const std::vector<int32_t>& fwDisabledPortIds);
 
   void setSwitchReachabilityChangePending();
   std::map<SwitchID, std::set<PortID>> getSwitchReachabilityChange();
@@ -735,7 +737,6 @@ class SaiSwitch : public HwSwitch {
   std::unique_ptr<SaiStore> saiStore_;
   std::unique_ptr<SaiManagerTable> managerTable_;
   std::atomic<BootType> bootType_{BootType::UNINITIALIZED};
-  bool rollbackInProgress_{false};
   Callback* callback_{nullptr};
 
   SwitchSaiId saiSwitchId_;

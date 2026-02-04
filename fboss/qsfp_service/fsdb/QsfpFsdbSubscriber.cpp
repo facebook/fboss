@@ -48,7 +48,7 @@ void QsfpFsdbSubscriber::subscribeToSwitchStatePortMap(
     for (auto& [switchStr, oneSwPortMap] : swPortMaps) {
       for (auto& [onePortId, onePortInfo] : oneSwPortMap) {
         facebook::fboss::NpuPortStatus portStatus;
-        portStatus.portId = onePortId;
+        portStatus.portId = onePortInfo.portId().value();
         // TODO: We should not do the string comparison when portState is
         // changed to enum in switch_state
         portStatus.portEnabled = onePortInfo.portState().value() != "DISABLED";
@@ -56,7 +56,7 @@ void QsfpFsdbSubscriber::subscribeToSwitchStatePortMap(
         auto asicPrbs = onePortInfo.asicPrbs().value();
         portStatus.asicPrbsEnabled = asicPrbs.enabled().value();
         portStatus.profileID = onePortInfo.portProfileID().value();
-        newPortStatus.emplace(onePortId, portStatus);
+        newPortStatus.emplace(portStatus.portId, portStatus);
       }
     }
     if (FLAGS_port_manager_mode) {
