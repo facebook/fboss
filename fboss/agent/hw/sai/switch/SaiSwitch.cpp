@@ -788,9 +788,57 @@ void SaiSwitch::preRollback(const StateDelta& delta) noexcept {
   }
 }
 
+void SaiSwitch::rollbackPartialRoutes(const StateDelta& delta) noexcept {
+  // This API called before the actual rollback
+
+  // During state change, assuming there are state delta vector is of size 10
+  // If deltas were of size 10 and delta from 0-5 succeeded and 6th failed,
+  // HwSwitch state would still be goodKnownState but SaiSwitch would have
+  // the routes from 0-5 and the partial applied state from the 6th delta
+  // This API will be invoked to clear partially applied delta
+  try {
+    CoarseGrainedLockPolicy lockPolicy(saiSwitchMutex_);
+
+    for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
+      for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
+        auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
+                                            : routeDelta.getNew()->getID();
+        // v6 routes first since they go after v4 during normal operation
+        processRemovedRoutesDeltaInReverse<
+            CoarseGrainedLockPolicy,
+            folly::IPAddressV6>(
+            routerID, routeDelta.getFibDelta<folly::IPAddressV6>(), lockPolicy);
+        processAddedRoutesDeltaInReverse<
+            CoarseGrainedLockPolicy,
+            folly::IPAddressV6>(
+            routerID, routeDelta.getFibDelta<folly::IPAddressV6>(), lockPolicy);
+        processChangedRoutesDeltaInReverse<
+            CoarseGrainedLockPolicy,
+            folly::IPAddressV6>(
+            routerID, routeDelta.getFibDelta<folly::IPAddressV6>(), lockPolicy);
+
+        processRemovedRoutesDeltaInReverse<
+            CoarseGrainedLockPolicy,
+            folly::IPAddressV4>(
+            routerID, routeDelta.getFibDelta<folly::IPAddressV4>(), lockPolicy);
+        processAddedRoutesDeltaInReverse<
+            CoarseGrainedLockPolicy,
+            folly::IPAddressV4>(
+            routerID, routeDelta.getFibDelta<folly::IPAddressV4>(), lockPolicy);
+        processChangedRoutesDeltaInReverse<
+            CoarseGrainedLockPolicy,
+            folly::IPAddressV4>(
+            routerID, routeDelta.getFibDelta<folly::IPAddressV4>(), lockPolicy);
+      }
+    }
+  } catch (const std::exception& ex) {
+    // Partial route Rollback failed. Fail hard.
+    XLOG(FATAL) << " Partial route rollback failed with : " << ex.what();
+  }
+}
+
 void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
-  CHECK_EQ(deltas.size(), 1);
-  const auto& knownGoodState = deltas.front().oldState();
+  const auto& knownGoodState = deltas.back().newState();
   auto curBootType = getBootType();
   // Attempt rollback
   // Detailed design is in the sai_switch_transactions wiki, but at a high
@@ -854,9 +902,9 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
         HwWriteBehavior::FAIL,
         &hwSwitchJson[kAdapterKeys],
         &hwSwitchJson[kAdapterKey2AdapterHostKey]);
-    stateChangedImplLocked(
-        StateDelta(std::make_shared<SwitchState>(), knownGoodState),
-        lockPolicy);
+    for (const auto& delta : deltas) {
+      stateChangedImplLocked(delta, lockPolicy);
+    }
     saiStore_->printWarmbootHandles();
     saiStore_->removeUnexpectedUnclaimedWarmbootHandles();
     bootType_ = curBootType;
@@ -936,6 +984,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
   if (deltas.size() == 0) {
     return getProgrammedState();
   }
+  setIntermediateState(getProgrammedState());
   int count = 0;
   std::shared_ptr<SwitchState> appliedState{nullptr};
   for (const auto& delta : deltas) {
@@ -947,6 +996,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
                  << deltas.size() << " deltas";
       return appliedState;
     }
+    // Save the current delta that applied cleanly
+    setIntermediateState(appliedState);
     count++;
   }
   return appliedState;
@@ -5028,9 +5079,8 @@ phy::FecMode SaiSwitch::getPortFECMode(PortID portId) const {
 }
 
 void SaiSwitch::rollbackInTest(const StateDelta& delta) {
-  preRollback(delta);
   std::vector<StateDelta> deltas;
-  deltas.emplace_back(delta.oldState(), delta.newState());
+  deltas.emplace_back(std::make_shared<SwitchState>(), delta.oldState());
   rollback(deltas);
   setProgrammedState(delta.oldState());
 }
