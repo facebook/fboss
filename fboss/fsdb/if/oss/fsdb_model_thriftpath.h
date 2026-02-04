@@ -21731,7 +21731,10 @@ std::pair<strings::rqpNonFabricCellCorruptionDrops, Child<::std::int64_t, ::apac
 std::pair<strings::rqpNonFabricCellMissingDrops, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::rqpParityErrorDrops, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::tc0RateLimitDrops, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<strings::dramDataPathPacketError, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<strings::dramDataPathPacketError, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::switchL2InDrops, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::switchL3InDrops, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::switchTunnelInDrops, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
@@ -21750,7 +21753,10 @@ std::pair<strings::dramDataPathPacketError, Child<::std::int64_t, ::apache::thri
    std::pair<std::integral_constant<apache::thrift::field_id_t, 16>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 17>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 18>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 19>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 19>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 20>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 21>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 22>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::globalDrops, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::globalReachabilityDrops, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -21770,7 +21776,10 @@ std::pair<strings::rqpNonFabricCellCorruptionDrops, std::integral_constant<apach
 std::pair<strings::rqpNonFabricCellMissingDrops, std::integral_constant<apache::thrift::field_id_t, 16>>,
 std::pair<strings::rqpParityErrorDrops, std::integral_constant<apache::thrift::field_id_t, 17>>,
 std::pair<strings::tc0RateLimitDrops, std::integral_constant<apache::thrift::field_id_t, 18>>,
-std::pair<strings::dramDataPathPacketError, std::integral_constant<apache::thrift::field_id_t, 19>>>::template type_of<Name>;
+std::pair<strings::dramDataPathPacketError, std::integral_constant<apache::thrift::field_id_t, 19>>,
+std::pair<strings::switchL2InDrops, std::integral_constant<apache::thrift::field_id_t, 20>>,
+std::pair<strings::switchL3InDrops, std::integral_constant<apache::thrift::field_id_t, 21>>,
+std::pair<strings::switchTunnelInDrops, std::integral_constant<apache::thrift::field_id_t, 22>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -21795,6 +21804,9 @@ std::pair<strings::dramDataPathPacketError, std::integral_constant<apache::thrif
     STRUCT_CHILD_GETTERS(rqpParityErrorDrops, 17);
     STRUCT_CHILD_GETTERS(tc0RateLimitDrops, 18);
     STRUCT_CHILD_GETTERS(dramDataPathPacketError, 19);
+    STRUCT_CHILD_GETTERS(switchL2InDrops, 20);
+    STRUCT_CHILD_GETTERS(switchL3InDrops, 21);
+    STRUCT_CHILD_GETTERS(switchTunnelInDrops, 22);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -21817,6 +21829,9 @@ std::pair<strings::dramDataPathPacketError, std::integral_constant<apache::thrif
     else if constexpr (__id == 17) { return rqpParityErrorDrops(); }
     else if constexpr (__id == 18) { return tc0RateLimitDrops(); }
     else if constexpr (__id == 19) { return dramDataPathPacketError(); }
+    else if constexpr (__id == 20) { return switchL2InDrops(); }
+    else if constexpr (__id == 21) { return switchL3InDrops(); }
+    else if constexpr (__id == 22) { return switchTunnelInDrops(); }
   }
 
   template <typename T, T... Values>
