@@ -697,6 +697,18 @@ class SaiSwitch : public HwSwitch {
       std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction);
   void setPortOwnershipToAdapter();
 
+  template <typename LockPolicyT, typename AddrT>
+  void processRemovedRoutesDelta(
+      const RouterID& routerID,
+      const auto& routesDelta,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT, typename AddrT>
+  void processChangedAndAddedRoutesDelta(
+      const RouterID& routerID,
+      const auto& routesDelta,
+      const LockPolicyT& lockPolicy);
+
   bool processVlanUntaggedPackets() const;
 
   /* reconstruction state apis */

@@ -976,6 +976,52 @@ bool SaiSwitch::l2LearningModeChangeProhibited() const {
   return getSwitchRunState() >= l2LearningChangeProhibitedAfter;
 }
 
+template <typename LockPolicyT, typename AddrT>
+void SaiSwitch::processRemovedRoutesDelta(
+    const RouterID& routerID,
+    const auto& routesDelta,
+    const LockPolicyT& lockPolicy) {
+  if (!getRollbackInProgress_()) {
+    // Normal processing order
+    processRemovedDelta(
+        routesDelta,
+        managerTable_->routeManager(),
+        lockPolicy,
+        &SaiRouteManager::removeRoute<AddrT>,
+        routerID);
+  } else {
+    processRemovedRoutesDeltaInReverse<LockPolicyT, AddrT>(
+        routerID, routesDelta, lockPolicy);
+  }
+}
+
+template <typename LockPolicyT, typename AddrT>
+void SaiSwitch::processChangedAndAddedRoutesDelta(
+    const RouterID& routerID,
+    const auto& routesDelta,
+    const LockPolicyT& lockPolicy) {
+  if (!getRollbackInProgress_()) {
+    // Normal processing order: changed first, then added
+    processChangedDelta(
+        routesDelta,
+        managerTable_->routeManager(),
+        lockPolicy,
+        &SaiRouteManager::changeRoute<AddrT>,
+        routerID);
+    processAddedDelta(
+        routesDelta,
+        managerTable_->routeManager(),
+        lockPolicy,
+        &SaiRouteManager::addRoute<AddrT>,
+        routerID);
+  } else {
+    processAddedRoutesDeltaInReverse<LockPolicyT, AddrT>(
+        routerID, routesDelta, lockPolicy);
+    processChangedRoutesDeltaInReverse<LockPolicyT, AddrT>(
+        routerID, routesDelta, lockPolicy);
+  }
+}
+
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
     const std::vector<StateDelta>& deltas) {
   FineGrainedLockPolicy lockPolicy(saiSwitchMutex_);
@@ -1038,18 +1084,10 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
     for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
       auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
                                           : routeDelta.getNew()->getID();
-      processRemovedDelta(
-          routeDelta.getFibDelta<folly::IPAddressV4>(),
-          managerTable_->routeManager(),
-          lockPolicy,
-          &SaiRouteManager::removeRoute<folly::IPAddressV4>,
-          routerID);
-      processRemovedDelta(
-          routeDelta.getFibDelta<folly::IPAddressV6>(),
-          managerTable_->routeManager(),
-          lockPolicy,
-          &SaiRouteManager::removeRoute<folly::IPAddressV6>,
-          routerID);
+      processRemovedRoutesDelta<LockPolicyT, folly::IPAddressV6>(
+          routerID, routeDelta.getFibDelta<folly::IPAddressV6>(), lockPolicy);
+      processRemovedRoutesDelta<LockPolicyT, folly::IPAddressV4>(
+          routerID, routeDelta.getFibDelta<folly::IPAddressV4>(), lockPolicy);
     }
   }
 
@@ -1378,46 +1416,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiFdbManager::addMac);
   }
 
-  auto processV4RoutesChangedAndAddedDelta =
-      [this, &lockPolicy](RouterID rid, const auto& routesDelta) {
-        processChangedDelta(
-            routesDelta,
-            managerTable_->routeManager(),
-            lockPolicy,
-            &SaiRouteManager::changeRoute<folly::IPAddressV4>,
-            rid);
-        processAddedDelta(
-            routesDelta,
-            managerTable_->routeManager(),
-            lockPolicy,
-            &SaiRouteManager::addRoute<folly::IPAddressV4>,
-            rid);
-      };
-
-  auto processV6RoutesChangedAndAddedDelta =
-      [this, &lockPolicy](RouterID rid, const auto& routesDelta) {
-        processChangedDelta(
-            routesDelta,
-            managerTable_->routeManager(),
-            lockPolicy,
-            &SaiRouteManager::changeRoute<folly::IPAddressV6>,
-            rid);
-        processAddedDelta(
-            routesDelta,
-            managerTable_->routeManager(),
-            lockPolicy,
-            &SaiRouteManager::addRoute<folly::IPAddressV6>,
-            rid);
-      };
-
   for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
     for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
       auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
                                           : routeDelta.getNew()->getID();
-      processV4RoutesChangedAndAddedDelta(
-          routerID, routeDelta.getFibDelta<folly::IPAddressV4>());
-      processV6RoutesChangedAndAddedDelta(
-          routerID, routeDelta.getFibDelta<folly::IPAddressV6>());
+      processChangedAndAddedRoutesDelta<LockPolicyT, folly::IPAddressV6>(
+          routerID, routeDelta.getFibDelta<folly::IPAddressV6>(), lockPolicy);
+      processChangedAndAddedRoutesDelta<LockPolicyT, folly::IPAddressV4>(
+          routerID, routeDelta.getFibDelta<folly::IPAddressV4>(), lockPolicy);
     }
   }
   {
