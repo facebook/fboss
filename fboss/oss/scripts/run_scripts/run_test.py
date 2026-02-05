@@ -1026,12 +1026,26 @@ class LinkTestRunner(TestRunner):
             SUB_ARG_AGENT_RUN_MODE,
             choices=[
                 SUB_ARG_AGENT_RUN_MODE_MONO,
-                # SUB_ARG_AGENT_RUN_MODE_MULTI,
+                SUB_ARG_AGENT_RUN_MODE_MULTI,
                 SUB_ARG_AGENT_RUN_MODE_LEGACY,
             ],
             nargs="?",
             default=SUB_ARG_AGENT_RUN_MODE_LEGACY,
             help="Specify agent run mode. Default is legacy mode.",
+        )
+        sub_parser.add_argument(
+            SUB_ARG_NUM_NPUS,
+            choices=[1, 2],
+            default=1,
+            type=int,
+            help="Specify number of npus to run in multi switch mode. Default is 1.",
+        )
+        sub_parser.add_argument(
+            SUB_ARG_HW_AGENT_BIN_PATH,
+            nargs="?",
+            type=str,
+            help="FBOSS HW Agent binary path(absolute path).",
+            default=None,
         )
 
     def _get_config_path(self):
@@ -1050,8 +1064,8 @@ class LinkTestRunner(TestRunner):
             return args.sai_bin
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
             return "sai_mono_link_test-sai_impl"
-        # if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
-        # return "sai_multi_link_test-sai_impl"
+        if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
+            return "sai_multi_link_test-sai_impl"
         # Deprecate legacy mode when we finish testing mono mode on all platforms
         return "sai_link_test-sai_impl"
 
@@ -1064,7 +1078,12 @@ class LinkTestRunner(TestRunner):
         return ["--enable_sai_log", sai_logging]
 
     def _get_warmboot_check_file(self):
-        # TODO(joseph5wu): Need to support multi-switch mode
+        # If it's multi_switch mode, we need to check the warmboot file for SW switch which doesn't
+        # have any switch_index
+        if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
+            return agent_can_warm_boot_file_path(switch_index=None)
+        # If it's mono mode, we need to check the warmboot file for hw switch which has switch_index
+        # as 0
         return agent_can_warm_boot_file_path(switch_index=0)
 
     def _get_test_run_args(self, conf_file):
@@ -1085,6 +1104,15 @@ class LinkTestRunner(TestRunner):
             bsp_platform_mapping_override_path=args.bsp_platform_mapping_override_path,
             is_warm_boot=False,
         )
+        if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
+            setup_and_start_hw_agent_service(
+                switch_indexes=list(range(args.num_npus)),
+                fboss_agent_config_path=args.config,
+                hw_agent_service_bin_path=args.hw_agent_bin_path,
+                platform_mapping_override_path=args.platform_mapping_override_path,
+                sai_replayer_log_path=sai_replayer_log_path,
+                is_warm_boot=False,
+            )
 
     def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
         setup_and_start_qsfp_service(
@@ -1093,9 +1121,20 @@ class LinkTestRunner(TestRunner):
             bsp_platform_mapping_override_path=args.bsp_platform_mapping_override_path,
             is_warm_boot=True,
         )
+        if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
+            setup_and_start_hw_agent_service(
+                switch_indexes=list(range(args.num_npus)),
+                fboss_agent_config_path=args.config,
+                hw_agent_service_bin_path=args.hw_agent_bin_path,
+                platform_mapping_override_path=args.platform_mapping_override_path,
+                sai_replayer_log_path=sai_replayer_log_path,
+                is_warm_boot=True,
+            )
 
     def _end_run(self):
         cleanup_qsfp_service()
+        if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
+            cleanup_hw_agent_service(list(range(args.num_npus)))
 
     def _filter_tests(self, tests: List[str]) -> List[str]:
         return tests
