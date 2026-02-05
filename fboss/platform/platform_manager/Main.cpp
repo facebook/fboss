@@ -12,12 +12,14 @@
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
+#include "fboss/platform/platform_manager/PlatformExplorer.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
 #include "fboss/platform/platform_manager/ScubaLogger.h"
 
 using namespace facebook;
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::platform_manager;
+using namespace std::chrono_literals;
 
 DEFINE_int32(thrift_port, 5975, "Port for the thrift service");
 
@@ -48,6 +50,7 @@ void sdNotifyReady() {
 }
 
 int main(int argc, char** argv) {
+  auto startTime = std::chrono::steady_clock::now();
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(&argc, &argv);
 
@@ -59,18 +62,13 @@ int main(int argc, char** argv) {
     dataStore.emplace(config);
     scubaLogger.emplace(*config.platformName(), dataStore.value());
 
-    auto startTime = std::chrono::steady_clock::now();
     PkgManager pkgManager(config);
     pkgManager.processAll();
     PlatformExplorer platformExplorer(
         config, dataStore.value(), scubaLogger.value());
     platformExplorer.explore();
-    auto endTime = std::chrono::steady_clock::now();
-
-    // Calculate elapsed time in seconds
-    auto elapsedSeconds =
-        std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime)
-            .count();
+    auto duration = std::chrono::steady_clock::now() - startTime;
+    auto elapsedSeconds = duration_cast<std::chrono::seconds>(duration).count();
 
     // Publish exploration time counters
     if (pkgManager.wereKmodsUnloaded()) {
@@ -85,6 +83,13 @@ int main(int argc, char** argv) {
         "Exploration complete in {} seconds. Kmods were {}reloaded.",
         elapsedSeconds,
         pkgManager.wereKmodsUnloaded() ? "" : "NOT ");
+
+    if (duration > PlatformExplorer::kMaxSetupTime) {
+      XLOG(ERR) << fmt::format(
+          "Setup time {}s exceeded maximum allowed {}s",
+          elapsedSeconds,
+          PlatformExplorer::kMaxSetupTime.count());
+    }
 
     if (FLAGS_run_once) {
       XLOG(INFO) << fmt::format(
