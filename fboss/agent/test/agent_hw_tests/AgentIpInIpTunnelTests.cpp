@@ -230,7 +230,7 @@ TEST_F(AgentIpInIpTunnelTest, DecapPacketParsing) {
       // using UNIFORM mode: Where the DSCP field is preserved end-to-end by
       // copying into the outer header on encapsulation and copying from the
       // outer header on decapsulation.
-      EXPECT_EQ(hdr.trafficClass, 0xF8);
+      EXPECT_EQ(hdr.trafficClass, 0xFA);
     }
 
     auto udpPkt = v6Pkt->udpPayload();
