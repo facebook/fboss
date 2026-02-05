@@ -18,7 +18,7 @@ error() {
 get_platform_dir() {
   local platform
   # convert the platform name to lowercase and delete spaces
-  platform=$(dmidecode -s system-product-name 2>/dev/null | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
+  platform=$(dmidecode -s system-product-name 2>/dev/null | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]-_')
   if [[ -z $platform ]]; then
     error "Failed to get system-product-name from dmidecode"
     return 1
