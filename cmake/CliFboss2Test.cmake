@@ -125,6 +125,7 @@ add_executable(cli_test
   fboss/cli/test/CliTest.cpp
   fboss/cli/test/ConfigInterfaceDescriptionTest.cpp
   fboss/cli/test/ConfigInterfaceMtuTest.cpp
+  fboss/cli/test/ConfigQosPolicyMapTest.cpp
 )
 
 target_link_libraries(cli_test
