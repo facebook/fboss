@@ -15,5 +15,6 @@ target_link_libraries(platform_manager_hw_test
   platform_manager_config_utils
   platform_manager_pkg_manager
   platform_manager_handler
+  thrift_service_utils
   FBThrift::thriftcpp2
 )
