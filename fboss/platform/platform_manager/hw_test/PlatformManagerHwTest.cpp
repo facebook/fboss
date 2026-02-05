@@ -11,6 +11,7 @@
 #include "fboss/platform/platform_manager/ConfigUtils.h"
 #include "fboss/platform/platform_manager/ExplorationErrors.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
+#include "fboss/platform/platform_manager/PlatformExplorer.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
 #include "fboss/platform/platform_manager/ScubaLogger.h"
 
@@ -101,11 +102,18 @@ class PlatformManagerHwTest : public ::testing::Test {
     return platformExplorer_.updatedPmStatuses_;
   }
   void explorationOk() {
-    auto now = std::chrono::duration_cast<std::chrono::seconds>(
-                   std::chrono::system_clock::now().time_since_epoch())
-                   .count();
+    auto startTime = std::chrono::system_clock::now();
     pkgManager_.processAll();
     platformExplorer_.explore();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now() - startTime);
+    // Skip timing check for MORGAN800CC as it has longer exploration time
+    if (platformConfig_.platformName().value() != "MORGAN800CC") {
+      EXPECT_LE(duration, PlatformExplorer::kMaxSetupTime) << fmt::format(
+          "Exploration time {}s exceeded maximum allowed {}s",
+          duration.count(),
+          PlatformExplorer::kMaxSetupTime.count());
+    }
     auto pmStatus = getPmStatus();
     EXPECT_TRUE(
         *pmStatus.explorationStatus() == ExplorationStatus::SUCCEEDED ||
@@ -115,7 +123,11 @@ class PlatformManagerHwTest : public ::testing::Test {
                "Ended with unexpected exploration status {}",
                apache::thrift::util::enumNameSafe(
                    *pmStatus.explorationStatus()));
-    EXPECT_GE(*pmStatus.lastExplorationTime(), now);
+    EXPECT_GE(
+        *pmStatus.lastExplorationTime(),
+        std::chrono::duration_cast<std::chrono::seconds>(
+            startTime.time_since_epoch())
+            .count());
   }
 
   PlatformConfig platformConfig_{ConfigUtils().getConfig()};
