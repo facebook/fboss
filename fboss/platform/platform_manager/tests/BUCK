@@ -84,6 +84,16 @@ cpp_unittest(
 )
 
 cpp_unittest(
+    name = "exploration_errors_test",
+    srcs = [
+        "ExplorationErrorsTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/platform_manager:exploration_errors",
+    ],
+)
+
+cpp_unittest(
     name = "exploration_summary_test",
     srcs = [
         "ExplorationSummaryTest.cpp",

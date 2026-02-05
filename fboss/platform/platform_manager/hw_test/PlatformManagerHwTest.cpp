@@ -9,6 +9,7 @@
 
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
+#include "fboss/platform/platform_manager/ExplorationErrors.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
 #include "fboss/platform/platform_manager/ScubaLogger.h"
@@ -81,6 +82,16 @@ class PlatformExplorerWrapper : public PlatformExplorer {
 };
 class PlatformManagerHwTest : public ::testing::Test {
  public:
+  void SetUp() override {
+    thriftHandler_ = std::make_shared<PlatformManagerHandler>(
+        platformExplorer_, ds.value(), platformConfig_);
+    server_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
+        thriftHandler_,
+        facebook::fboss::platform::helpers::createTestThriftServerConfig());
+    pmClient_ =
+        server_->newClient<apache::thrift::Client<PlatformManagerService>>();
+  }
+
   PlatformManagerStatus getPmStatus() {
     PlatformManagerStatus pmStatus;
     pmClient_->sync_getLastPMStatus(pmStatus);
@@ -117,13 +128,11 @@ class PlatformManagerHwTest : public ::testing::Test {
   PkgManager pkgManager_{platformConfig_};
   std::optional<DataStore> ds =
       platformExplorer_.getDataStore().value_or(DataStore(platformConfig_));
-  std::unique_ptr<apache::thrift::Client<PlatformManagerService>> pmClient_{
-      apache::thrift::makeTestClient<
-          apache::thrift::Client<PlatformManagerService>>(
-          std::make_unique<PlatformManagerHandler>(
-              platformExplorer_,
-              ds.value(),
-              platformConfig_))};
+
+  // Test Thrift Service related members
+  std::shared_ptr<PlatformManagerHandler> thriftHandler_;
+  std::unique_ptr<apache::thrift::ScopedServerInterfaceThread> server_;
+  std::unique_ptr<apache::thrift::Client<PlatformManagerService>> pmClient_;
 };
 
 TEST_F(PlatformManagerHwTest, ExploreAsDeployed) {
@@ -179,6 +188,12 @@ TEST_F(PlatformManagerHwTest, Symlinks) {
   explorationOk();
   for (const auto& [symlink, devicePath] :
        *platformConfig_.symbolicLinkToDevicePath()) {
+    if (isExpectedError(
+            platformConfig_,
+            ExplorationErrorType::RUN_DEVMAP_SYMLINK,
+            devicePath)) {
+      continue;
+    }
     EXPECT_TRUE(fs::exists(symlink))
         << fmt::format("{} doesn't exist", symlink);
     EXPECT_TRUE(fs::is_symlink(symlink))

@@ -247,6 +247,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
+    case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
       return false;
   }
   return false;

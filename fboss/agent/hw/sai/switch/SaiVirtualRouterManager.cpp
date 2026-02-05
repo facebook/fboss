@@ -71,6 +71,16 @@ SaiVirtualRouterHandle* SaiVirtualRouterManager::getVirtualRouterHandleImpl(
   return itr->second.get();
 }
 
+RouterID SaiVirtualRouterManager::getRouterID(
+    const sai_object_id_t vrId) const {
+  for (const auto& [routerId, handle] : handles_) {
+    if (handle.get()->virtualRouter->adapterKey() == vrId) {
+      return routerId;
+    }
+  }
+  throw FbossError("No RouterID found for virtual router SAI id ", vrId);
+}
+
 std::shared_ptr<SaiMplsRouterInterface>
 SaiVirtualRouterManager::createMplsRouterInterface(VirtualRouterSaiId vrId) {
   auto asicType = platform_->getAsic()->getAsicType();

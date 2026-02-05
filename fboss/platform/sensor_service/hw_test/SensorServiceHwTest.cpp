@@ -142,7 +142,9 @@ TEST_F(SensorServiceHwTest, GetSomeSensorsViaThrift) {
   std::vector<std::string> someSensorNames = someSensorNamesFromConfig();
   // Trigger a fetch before the thrift request hits the server.
   sensorServiceImpl_->fetchSensorData();
-  apache::thrift::ScopedServerInterfaceThread server(sensorServiceHandler_);
+  apache::thrift::ScopedServerInterfaceThread server(
+      sensorServiceHandler_,
+      facebook::fboss::platform::helpers::createTestThriftServerConfig());
   auto client = server.newClient<apache::thrift::Client<SensorServiceThrift>>();
   SensorReadResponse response;
   client->sync_getSensorValuesByNames(response, someSensorNames);

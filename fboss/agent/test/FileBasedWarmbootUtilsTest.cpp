@@ -6,6 +6,7 @@
 #include <folly/logging/xlog.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <re2/re2.h>
 #include <filesystem>
 
 #include "fboss/agent/AgentDirectoryUtil.h"
@@ -226,6 +227,88 @@ TEST_F(FileBasedWarmbootUtilsTest, LogBootHistoryOverridesExistingLog) {
   EXPECT_NE(logContent.find("warm"), std::string::npos);
   EXPECT_EQ(logContent.find("1.0.0"), std::string::npos);
   EXPECT_NE(logContent.find("1.0.1"), std::string::npos);
+}
+
+// ============================================================================
+// LOG BOOT FORMAT TESTS - fboss-build-info parser compatibility
+// These tests assert the exact log format that fboss-build-info depends on.
+// If these tests fail, update the parser in:
+// fbcode/neteng/fboss/tools/build_info/src/helpers.rs
+// ============================================================================
+
+TEST_F(FileBasedWarmbootUtilsTest, LogBootHistoryFormatMatchesBuildInfoParser) {
+  // This test asserts the exact log format that fboss-build-info depends on
+  // for parsing boot history. If this test fails, update the parser in:
+  // fbcode/neteng/fboss/tools/build_info/src/helpers.rs
+  //
+  // Expected format:
+  // "[ %Y %B %d %H:%M:%S ]: Start of a {BOOT_TYPE}, SDK version: {sdk}, Agent
+  // version: {agent}"
+
+  logBootHistory(directoryUtil_.get(), "COLD_BOOT", "6.5.30-5", "abc123def");
+
+  // Read the log file
+  std::string logContent;
+  auto logPath = directoryUtil_->getAgentBootHistoryLogFile();
+  if (checkFileExists(logPath)) {
+    folly::readFile(logPath.c_str(), logContent);
+  } else {
+    folly::readFile("/tmp/wedge_agent_starts.log", logContent);
+  }
+
+  // Verify format using regex - this is the format fboss-build-info expects
+  // Pattern: [ YYYY Month DD HH:MM:SS ]: Start of a BOOT_TYPE, SDK version: X,
+  // Agent version: Y
+  RE2 formatRegex(
+      R"(\[ \d{4} \w+ \d{2} \d{2}:\d{2}:\d{2} \]: Start of a COLD_BOOT, SDK version: 6\.5\.30-5, Agent version: abc123def)");
+  EXPECT_TRUE(RE2::PartialMatch(logContent, formatRegex))
+      << "Log format does not match expected pattern. "
+      << "fboss-build-info parser depends on this format. "
+      << "Actual content: " << logContent;
+}
+
+TEST_F(FileBasedWarmbootUtilsTest, LogBootHistoryWarmBootFormat) {
+  // Test WARM_BOOT format specifically
+  logBootHistory(directoryUtil_.get(), "WARM_BOOT", "1.2.3-4", "xyz789");
+
+  std::string logContent;
+  auto logPath = directoryUtil_->getAgentBootHistoryLogFile();
+  if (checkFileExists(logPath)) {
+    folly::readFile(logPath.c_str(), logContent);
+  } else {
+    folly::readFile("/tmp/wedge_agent_starts.log", logContent);
+  }
+
+  // Verify WARM_BOOT format
+  EXPECT_NE(logContent.find("Start of a WARM_BOOT"), std::string::npos)
+      << "WARM_BOOT marker not found in log";
+  EXPECT_NE(logContent.find("SDK version: 1.2.3-4"), std::string::npos)
+      << "SDK version not found in expected format";
+  EXPECT_NE(logContent.find("Agent version: xyz789"), std::string::npos)
+      << "Agent version not found in expected format";
+}
+
+TEST_F(FileBasedWarmbootUtilsTest, LogBootHistoryTimestampFormat) {
+  // Verify timestamp format is parseable by fboss-build-info
+  // Expected: [ YYYY Month DD HH:MM:SS ]
+  logBootHistory(directoryUtil_.get(), "COLD_BOOT", "1.0.0", "test");
+
+  std::string logContent;
+  auto logPath = directoryUtil_->getAgentBootHistoryLogFile();
+  if (checkFileExists(logPath)) {
+    folly::readFile(logPath.c_str(), logContent);
+  } else {
+    folly::readFile("/tmp/wedge_agent_starts.log", logContent);
+  }
+
+  // Verify timestamp format matches: [ YYYY Month DD HH:MM:SS ]
+  // The month should be full name (January, February, etc.)
+  RE2 timestampRegex(
+      R"(\[ \d{4} (January|February|March|April|May|June|July|August|September|October|November|December) \d{2} \d{2}:\d{2}:\d{2} \])");
+  EXPECT_TRUE(RE2::PartialMatch(logContent, timestampRegex))
+      << "Timestamp format does not match expected pattern '[ YYYY Month DD HH:MM:SS ]'. "
+      << "fboss-build-info parser depends on this format. "
+      << "Actual content: " << logContent;
 }
 
 // ============================================================================

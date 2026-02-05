@@ -11,8 +11,6 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/state/NextHopIdMaps.h"
 
-#include <folly/Format.h>
-#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
 namespace facebook::fboss {

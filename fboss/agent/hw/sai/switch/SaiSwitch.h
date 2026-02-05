@@ -219,7 +219,7 @@ class SaiSwitch : public HwSwitch {
   SaiManagerTable* managerTable();
 
   bool getRollbackInProgress_() {
-    return rollbackInProgress_;
+    return getSwitchRunState() == SwitchRunState::ROLLBACK;
   }
 
   /*
@@ -304,6 +304,7 @@ class SaiSwitch : public HwSwitch {
       const StateDelta& delta,
       const LockPolicyT& lk);
   void preRollback(const StateDelta& delta) noexcept override;
+  void rollbackPartialRoutes(const StateDelta& delta) noexcept override;
   void rollback(const std::vector<StateDelta>& deltas) noexcept override;
   std::string listObjectsLocked(
       const std::vector<sai_object_type_t>& objects,
@@ -471,6 +472,8 @@ class SaiSwitch : public HwSwitch {
       bool fwIsolated = false,
       const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate =
           std::nullopt);
+  void fwDisabledLinksCallbackBottomHalf(
+      const std::vector<int32_t>& fwDisabledPortIds);
 
   void setSwitchReachabilityChangePending();
   std::map<SwitchID, std::set<PortID>> getSwitchReachabilityChange();
@@ -694,6 +697,18 @@ class SaiSwitch : public HwSwitch {
       std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction);
   void setPortOwnershipToAdapter();
 
+  template <typename LockPolicyT, typename AddrT>
+  void processRemovedRoutesDelta(
+      const RouterID& routerID,
+      const auto& routesDelta,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT, typename AddrT>
+  void processChangedAndAddedRoutesDelta(
+      const RouterID& routerID,
+      const auto& routesDelta,
+      const LockPolicyT& lockPolicy);
+
   bool processVlanUntaggedPackets() const;
 
   /* reconstruction state apis */
@@ -735,7 +750,6 @@ class SaiSwitch : public HwSwitch {
   std::unique_ptr<SaiStore> saiStore_;
   std::unique_ptr<SaiManagerTable> managerTable_;
   std::atomic<BootType> bootType_{BootType::UNINITIALIZED};
-  bool rollbackInProgress_{false};
   Callback* callback_{nullptr};
 
   SwitchSaiId saiSwitchId_;

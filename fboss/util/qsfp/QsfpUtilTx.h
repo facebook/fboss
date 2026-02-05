@@ -21,6 +21,7 @@ class QsfpUtilTx {
   QsfpUtilTx(
       DirectI2cInfo i2cInfo,
       const std::vector<std::string>& portNames,
+      const std::map<std::string, std::vector<int32_t>>& portNameToTcvrIds,
       folly::EventBase& evb);
   ~QsfpUtilTx() {}
   int setTxDisable();
@@ -43,12 +44,12 @@ class QsfpUtilTx {
   static const uint8_t maxCmisChannels = 8;
 
   TransceiverI2CApi* bus_;
-  TransceiverManager* wedgeManager_;
   std::vector<std::string> allPortNames_;
   std::vector<std::string> sffPortNames_;
   std::vector<std::string> cmisPortNames_;
   folly::EventBase& evb_;
   bool disableTx_;
+  std::map<std::string, std::vector<int32_t>> portNameToModuleMap_;
 };
 
 } // namespace facebook::fboss

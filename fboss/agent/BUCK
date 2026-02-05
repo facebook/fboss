@@ -1324,6 +1324,7 @@ cpp_library(
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
+        "//fboss/agent/state:state_utils",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:hw_write_behavior",
         "//folly:file_util",
@@ -1851,7 +1852,6 @@ cpp_library(
     ],
     exported_deps = [
         ":agent_dir_util",
-        ":agent_features",
         ":hw_asic_table",
         ":switch_state-cpp2-types",
         "//fboss/agent/rib:standalone_rib",

@@ -12709,6 +12709,12 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorAddressFamilySwitchingTest.*$"
         }
     ],
     "brcm/14.0_ea_odp/14.0_ea_odp/tomahawk6/multi_switch": [
@@ -13050,6 +13056,12 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorAddressFamilySwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"

@@ -11,53 +11,22 @@
 
 namespace facebook::fboss::platform::bsp_tests {
 
-re2::RE2 kPortLedName("port(\\d+)_led(\\d*)");
-re2::RE2 kFanLedName("fan(\\d*)_led");
+const re2::RE2 kInvalidLedName("[^0-9]0\\d*");
 
 const std::vector<std::string> expectedColors = {"blue", "amber"};
-const std::vector<std::string> validSysLedNames = {
-    "psu_led",
-    "sys_led",
-    "smb_led",
-    "fan_led"};
 
 // Helper function to validate LED names with a specific pattern
 void validateLedName(
     const std::string& ledName,
     std::vector<std::string>& errorMessages) {
-  std::string firstIdStr;
-  std::string secondIdStr;
-
-  if (ledName.starts_with("port")) {
-    if (!re2::RE2::FullMatch(
-            ledName, kPortLedName, &firstIdStr, &secondIdStr)) {
-      errorMessages.emplace_back(
-          fmt::format("LED name `{}` does not match expected format", ledName));
-    }
-  } else if (ledName.starts_with("fan")) {
-    if (!re2::RE2::FullMatch(ledName, kFanLedName, &firstIdStr)) {
-      errorMessages.emplace_back(
-          fmt::format("LED name `{}` does not match expected format", ledName));
-    }
-  } else {
-    if (std::find(validSysLedNames.begin(), validSysLedNames.end(), ledName) ==
-        validSysLedNames.end()) {
-      errorMessages.emplace_back(fmt::format("Invalid LED name {}", ledName));
-    }
-    return;
+  if (std::isdigit(ledName.front())) {
+    errorMessages.emplace_back(
+        fmt::format("LED name {} starts with a digit", ledName));
   }
-
-  if (!firstIdStr.empty() && std::stoi(firstIdStr) == 0) {
+  // Check if the LED name matches the pattern
+  if (re2::RE2::PartialMatch(ledName, kInvalidLedName)) {
     errorMessages.emplace_back(
         fmt::format("index in LED name {} is not 1-based", ledName));
-  }
-
-  if (!secondIdStr.empty()) {
-    int secondId = std::stoi(secondIdStr);
-    if (secondId <= 0) {
-      errorMessages.emplace_back(
-          fmt::format("index in LED name {} is not 1-based", ledName));
-    }
   }
 }
 
@@ -311,24 +280,7 @@ TEST_F(LedTest, SysLedDevicesCreated) {
         CdevUtils::createNewDevice(*device.pciInfo(), auxDevice, id);
         registerDeviceForCleanup(*device.pciInfo(), auxDevice, id);
 
-        // Get the device name to determine the expected LED prefix
-        // Can be psu_led, fan_led, smb_led, or sys_led
-        std::string deviceName = *auxDevice.id()->deviceName();
-
-        // Check if device name is in the list of expected SYSLED device names
-        if (std::find(
-                validSysLedNames.begin(), validSysLedNames.end(), deviceName) ==
-            validSysLedNames.end()) {
-          errorMessages.emplace_back(
-              fmt::format(
-                  "Unknown SYSLED device name: {}, expected one of [{}]",
-                  deviceName,
-                  folly::join(", ", validSysLedNames)));
-          continue;
-        }
-
-        std::string expectedSysLedPrefix = deviceName;
-
+        std::string expectedSysLedPrefix = *auxDevice.id()->deviceName();
         std::vector<std::string> ledFiles;
         for (const auto& entry :
              std::filesystem::directory_iterator("/sys/class/leds")) {

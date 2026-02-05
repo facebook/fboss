@@ -160,6 +160,21 @@ cpp_library(
 )
 
 cpp_library(
+    name = "exploration_errors",
+    srcs = [
+        "ExplorationErrors.cpp",
+    ],
+    headers = [
+        "ExplorationErrors.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/re2:re2",
+        ":platform_manager_config-cpp2-types",
+        ":utils",
+    ],
+)
+
+cpp_library(
     name = "platform_explorer",
     srcs = [
         "ExplorationSummary.cpp",
@@ -169,6 +184,7 @@ cpp_library(
         "fbsource//third-party/re2:re2",
         ":data_store",
         ":device_path_resolver",
+        ":exploration_errors",
         ":i2c_explorer",
         ":pci_explorer",
         ":platform_manager_config-cpp2-types",

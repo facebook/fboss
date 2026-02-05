@@ -157,6 +157,7 @@ target_link_libraries(scuba_logger
 add_library(platform_manager_platform_explorer
   fboss/platform/platform_manager/PlatformExplorer.cpp
   fboss/platform/platform_manager/ExplorationSummary.cpp
+  fboss/platform/platform_manager/ExplorationErrors.cpp
 )
 
 target_link_libraries(platform_manager_platform_explorer

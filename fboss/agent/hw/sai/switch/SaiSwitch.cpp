@@ -657,6 +657,7 @@ std::shared_ptr<SwitchState> SaiSwitch::constructSwitchStateWithFib() noexcept {
 
   const auto& switchStateRoutesMap =
       managerTable_->routeManager().getSwitchStateRoutesMap();
+  const auto& virtualRouterManager = managerTable_->virtualRouterManager();
 
   // Create a new ForwardingInformationBaseMap for the new design
   auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
@@ -666,12 +667,18 @@ std::shared_ptr<SwitchState> SaiSwitch::constructSwitchStateWithFib() noexcept {
   std::map<RouterID, std::vector<std::shared_ptr<RouteV6>>> routesV6;
 
   // Create a set of routerIds from each routeEntry in switchStateRoutesMap
+  // Typically, there is only RouterID(0) but not making that assumption
   std::set<RouterID> routerIds;
+  std::map<sai_object_id_t, RouterID> vrIdToRouterIdCache;
   std::for_each(
       switchStateRoutesMap.begin(),
       switchStateRoutesMap.end(),
-      [&routerIds](const auto& routeEntry) {
-        routerIds.insert(RouterID(routeEntry.first.virtualRouterId()));
+      [&virtualRouterManager, &routerIds, &vrIdToRouterIdCache](
+          const auto& routeEntry) {
+        auto vrId = routeEntry.first.virtualRouterId();
+        auto routerId = virtualRouterManager.getRouterID(vrId);
+        vrIdToRouterIdCache[vrId] = routerId;
+        routerIds.insert(routerId);
       });
   for (const auto& routerId : routerIds) {
     // Create FIB containers
@@ -682,7 +689,7 @@ std::shared_ptr<SwitchState> SaiSwitch::constructSwitchStateWithFib() noexcept {
 
   // Iterate through the switchStateRoutesMap
   for (const auto& [routeEntry, routeVariant] : switchStateRoutesMap) {
-    RouterID routerId(routeEntry.virtualRouterId());
+    RouterID routerId = vrIdToRouterIdCache.at(routeEntry.virtualRouterId());
 
     if (std::holds_alternative<std::shared_ptr<RouteV4>>(routeVariant)) {
       auto route = std::get<std::shared_ptr<RouteV4>>(routeVariant);
@@ -781,9 +788,57 @@ void SaiSwitch::preRollback(const StateDelta& delta) noexcept {
   }
 }
 
+void SaiSwitch::rollbackPartialRoutes(const StateDelta& delta) noexcept {
+  // This API called before the actual rollback
+
+  // During state change, assuming there are state delta vector is of size 10
+  // If deltas were of size 10 and delta from 0-5 succeeded and 6th failed,
+  // HwSwitch state would still be goodKnownState but SaiSwitch would have
+  // the routes from 0-5 and the partial applied state from the 6th delta
+  // This API will be invoked to clear partially applied delta
+  try {
+    CoarseGrainedLockPolicy lockPolicy(saiSwitchMutex_);
+
+    for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
+      for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
+        auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
+                                            : routeDelta.getNew()->getID();
+        // v6 routes first since they go after v4 during normal operation
+        processRemovedRoutesDeltaInReverse<
+            CoarseGrainedLockPolicy,
+            folly::IPAddressV6>(
+            routerID, routeDelta.getFibDelta<folly::IPAddressV6>(), lockPolicy);
+        processAddedRoutesDeltaInReverse<
+            CoarseGrainedLockPolicy,
+            folly::IPAddressV6>(
+            routerID, routeDelta.getFibDelta<folly::IPAddressV6>(), lockPolicy);
+        processChangedRoutesDeltaInReverse<
+            CoarseGrainedLockPolicy,
+            folly::IPAddressV6>(
+            routerID, routeDelta.getFibDelta<folly::IPAddressV6>(), lockPolicy);
+
+        processRemovedRoutesDeltaInReverse<
+            CoarseGrainedLockPolicy,
+            folly::IPAddressV4>(
+            routerID, routeDelta.getFibDelta<folly::IPAddressV4>(), lockPolicy);
+        processAddedRoutesDeltaInReverse<
+            CoarseGrainedLockPolicy,
+            folly::IPAddressV4>(
+            routerID, routeDelta.getFibDelta<folly::IPAddressV4>(), lockPolicy);
+        processChangedRoutesDeltaInReverse<
+            CoarseGrainedLockPolicy,
+            folly::IPAddressV4>(
+            routerID, routeDelta.getFibDelta<folly::IPAddressV4>(), lockPolicy);
+      }
+    }
+  } catch (const std::exception& ex) {
+    // Partial route Rollback failed. Fail hard.
+    XLOG(FATAL) << " Partial route rollback failed with : " << ex.what();
+  }
+}
+
 void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
-  CHECK_EQ(deltas.size(), 1);
-  const auto& knownGoodState = deltas.front().oldState();
+  const auto& knownGoodState = deltas.back().newState();
   auto curBootType = getBootType();
   // Attempt rollback
   // Detailed design is in the sai_switch_transactions wiki, but at a high
@@ -803,6 +858,13 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
     auto preRollbackSwitchRunState = getSwitchRunState();
     switchRunStateChangedImplLocked(
         lockPolicy.lock(), SwitchRunState::ROLLBACK);
+    auto pfcWatchdogRecoveryAction =
+        knownGoodState->getPfcWatchdogRecoveryAction();
+    bool pfcDeadlockEnabled = pfcDeadlockEnabled_;
+    if (pfcDeadlockEnabled) {
+      processPfcDeadlockNotificationCallback(
+          std::nullopt /* ignored */, std::nullopt);
+    }
     auto hwSwitchJson = toFollyDynamicLocked(lockPolicy.lock());
     {
       HwWriteBehaviorRAII writeBehavior{HwWriteBehavior::SKIP};
@@ -828,7 +890,6 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
     // so set the bootType to warm boot for duration of roll back. We
     // will restore it once we are done with roll back.
     bootType_ = BootType::WARM_BOOT;
-    rollbackInProgress_ = true;
     initStoreAndManagersLocked(
         lockPolicy.lock(),
         // We are being strict here in the sense of not allowing any HW
@@ -841,13 +902,12 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
         HwWriteBehavior::FAIL,
         &hwSwitchJson[kAdapterKeys],
         &hwSwitchJson[kAdapterKey2AdapterHostKey]);
-    stateChangedImplLocked(
-        StateDelta(std::make_shared<SwitchState>(), knownGoodState),
-        lockPolicy);
+    for (const auto& delta : deltas) {
+      stateChangedImplLocked(delta, lockPolicy);
+    }
     saiStore_->printWarmbootHandles();
     saiStore_->removeUnexpectedUnclaimedWarmbootHandles();
     bootType_ = curBootType;
-    rollbackInProgress_ = false;
     for (const auto& value :
          apache::thrift::TEnumTraits<SwitchRunState>::values) {
       // transition through all switch run states until pre-rollback run state
@@ -857,6 +917,10 @@ void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
         continue;
       }
       switchRunStateChangedImplLocked(lockPolicy.lock(), value);
+    }
+    if (pfcDeadlockEnabled) {
+      processPfcDeadlockNotificationCallback(
+          std::nullopt /* ignored */, pfcWatchdogRecoveryAction);
     }
   } catch (const std::exception& ex) {
     // Rollback failed. Fail hard.
@@ -912,6 +976,52 @@ bool SaiSwitch::l2LearningModeChangeProhibited() const {
   return getSwitchRunState() >= l2LearningChangeProhibitedAfter;
 }
 
+template <typename LockPolicyT, typename AddrT>
+void SaiSwitch::processRemovedRoutesDelta(
+    const RouterID& routerID,
+    const auto& routesDelta,
+    const LockPolicyT& lockPolicy) {
+  if (!getRollbackInProgress_()) {
+    // Normal processing order
+    processRemovedDelta(
+        routesDelta,
+        managerTable_->routeManager(),
+        lockPolicy,
+        &SaiRouteManager::removeRoute<AddrT>,
+        routerID);
+  } else {
+    processRemovedRoutesDeltaInReverse<LockPolicyT, AddrT>(
+        routerID, routesDelta, lockPolicy);
+  }
+}
+
+template <typename LockPolicyT, typename AddrT>
+void SaiSwitch::processChangedAndAddedRoutesDelta(
+    const RouterID& routerID,
+    const auto& routesDelta,
+    const LockPolicyT& lockPolicy) {
+  if (!getRollbackInProgress_()) {
+    // Normal processing order: changed first, then added
+    processChangedDelta(
+        routesDelta,
+        managerTable_->routeManager(),
+        lockPolicy,
+        &SaiRouteManager::changeRoute<AddrT>,
+        routerID);
+    processAddedDelta(
+        routesDelta,
+        managerTable_->routeManager(),
+        lockPolicy,
+        &SaiRouteManager::addRoute<AddrT>,
+        routerID);
+  } else {
+    processAddedRoutesDeltaInReverse<LockPolicyT, AddrT>(
+        routerID, routesDelta, lockPolicy);
+    processChangedRoutesDeltaInReverse<LockPolicyT, AddrT>(
+        routerID, routesDelta, lockPolicy);
+  }
+}
+
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
     const std::vector<StateDelta>& deltas) {
   FineGrainedLockPolicy lockPolicy(saiSwitchMutex_);
@@ -920,6 +1030,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
   if (deltas.size() == 0) {
     return getProgrammedState();
   }
+  setIntermediateState(getProgrammedState());
   int count = 0;
   std::shared_ptr<SwitchState> appliedState{nullptr};
   for (const auto& delta : deltas) {
@@ -931,6 +1042,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
                  << deltas.size() << " deltas";
       return appliedState;
     }
+    // Save the current delta that applied cleanly
+    setIntermediateState(appliedState);
     count++;
   }
   return appliedState;
@@ -971,18 +1084,10 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
     for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
       auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
                                           : routeDelta.getNew()->getID();
-      processRemovedDelta(
-          routeDelta.getFibDelta<folly::IPAddressV4>(),
-          managerTable_->routeManager(),
-          lockPolicy,
-          &SaiRouteManager::removeRoute<folly::IPAddressV4>,
-          routerID);
-      processRemovedDelta(
-          routeDelta.getFibDelta<folly::IPAddressV6>(),
-          managerTable_->routeManager(),
-          lockPolicy,
-          &SaiRouteManager::removeRoute<folly::IPAddressV6>,
-          routerID);
+      processRemovedRoutesDelta<LockPolicyT, folly::IPAddressV6>(
+          routerID, routeDelta.getFibDelta<folly::IPAddressV6>(), lockPolicy);
+      processRemovedRoutesDelta<LockPolicyT, folly::IPAddressV4>(
+          routerID, routeDelta.getFibDelta<folly::IPAddressV4>(), lockPolicy);
     }
   }
 
@@ -1311,46 +1416,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiFdbManager::addMac);
   }
 
-  auto processV4RoutesChangedAndAddedDelta =
-      [this, &lockPolicy](RouterID rid, const auto& routesDelta) {
-        processChangedDelta(
-            routesDelta,
-            managerTable_->routeManager(),
-            lockPolicy,
-            &SaiRouteManager::changeRoute<folly::IPAddressV4>,
-            rid);
-        processAddedDelta(
-            routesDelta,
-            managerTable_->routeManager(),
-            lockPolicy,
-            &SaiRouteManager::addRoute<folly::IPAddressV4>,
-            rid);
-      };
-
-  auto processV6RoutesChangedAndAddedDelta =
-      [this, &lockPolicy](RouterID rid, const auto& routesDelta) {
-        processChangedDelta(
-            routesDelta,
-            managerTable_->routeManager(),
-            lockPolicy,
-            &SaiRouteManager::changeRoute<folly::IPAddressV6>,
-            rid);
-        processAddedDelta(
-            routesDelta,
-            managerTable_->routeManager(),
-            lockPolicy,
-            &SaiRouteManager::addRoute<folly::IPAddressV6>,
-            rid);
-      };
-
   for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
     for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
       auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
                                           : routeDelta.getNew()->getID();
-      processV4RoutesChangedAndAddedDelta(
-          routerID, routeDelta.getFibDelta<folly::IPAddressV4>());
-      processV6RoutesChangedAndAddedDelta(
-          routerID, routeDelta.getFibDelta<folly::IPAddressV6>());
+      processChangedAndAddedRoutesDelta<LockPolicyT, folly::IPAddressV6>(
+          routerID, routeDelta.getFibDelta<folly::IPAddressV6>(), lockPolicy);
+      processChangedAndAddedRoutesDelta<LockPolicyT, folly::IPAddressV4>(
+          routerID, routeDelta.getFibDelta<folly::IPAddressV4>(), lockPolicy);
     }
   }
   {
@@ -2759,7 +2832,15 @@ void SaiSwitch::linkStateChangedBottomHalf(const PortID& portId) {
 
 void SaiSwitch::linkStateChangedCallbackBottomHalf(
     std::vector<sai_port_oper_status_notification_t> operStatus) {
-  std::map<PortID, bool> swPortId2Status;
+  // Store both link status AND port type from concurrentIndices_ to avoid
+  // race condition. The port2PortType_ map in SaiPortManager is not thread-safe
+  // (std::unordered_map), while concurrentIndices_->portSaiId2PortInfo is
+  // thread-safe (folly::ConcurrentHashMap). During warm boot, the main thread
+  // populates port2PortType_ via addPort(), but this thread (fbossSaiLnkScnBH)
+  // may read from it before the write is visible due to lack of memory
+  // barriers. By using portType from concurrentIndices_, we avoid this race
+  // condition.
+  std::map<PortID, std::pair<bool, cfg::PortType>> swPortId2StatusAndType;
   std::map<PortID, std::optional<AggregatePortID>> swPortId2DownAggPort;
   for (auto i = 0; i < operStatus.size(); i++) {
     bool up = utility::isPortOperUp(operStatus[i].port_state);
@@ -2774,6 +2855,7 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
       continue;
     }
     PortID swPortId = portItr->second.portID;
+    cfg::PortType portType = portItr->second.portType;
 
     std::optional<AggregatePortID> swAggPort{};
     const auto aggrItr = concurrentIndices_->memberPort2AggregatePortIds.find(
@@ -2847,21 +2929,21 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
             SaiPortDescriptor(swPortId));
       }
     }
-    swPortId2Status[swPortId] = up;
+    swPortId2StatusAndType[swPortId] = std::make_pair(up, portType);
   }
   // Issue callbacks in a separate loop so fast link status change
   // processing is not at the mercy of what the callback (SwSwitch, HwTest)
   // does with the callback notification.
-  for (auto swPortIdAndStatus : swPortId2Status) {
+  for (const auto& [swPortId, statusAndType] : swPortId2StatusAndType) {
     std::optional<AggregatePortID> downAggPort;
-    auto it = swPortId2DownAggPort.find(swPortIdAndStatus.first);
+    auto it = swPortId2DownAggPort.find(swPortId);
     if (it != swPortId2DownAggPort.end()) {
       downAggPort = it->second;
     }
     callback_->linkStateChanged(
-        swPortIdAndStatus.first,
-        swPortIdAndStatus.second,
-        managerTable_->portManager().getPortType(swPortIdAndStatus.first),
+        swPortId,
+        statusAndType.first,
+        statusAndType.second,
         std::nullopt,
         downAggPort);
   }
@@ -2968,6 +3050,11 @@ void SaiSwitch::txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
   callback_->linkActiveStateChangedOrFwIsolated(
       port2IsActive, fwIsolated, numActiveFabricPortsAtFwIsolate);
 #endif
+}
+
+void SaiSwitch::fwDisabledLinksCallbackBottomHalf(
+    const std::vector<int32_t>& fwDisabledPortIds) {
+  callback_->linkAdminStateChangedByFw(fwDisabledPortIds);
 }
 
 void SaiSwitch::linkConnectivityChanged(
@@ -4998,9 +5085,8 @@ phy::FecMode SaiSwitch::getPortFECMode(PortID portId) const {
 }
 
 void SaiSwitch::rollbackInTest(const StateDelta& delta) {
-  preRollback(delta);
   std::vector<StateDelta> deltas;
-  deltas.emplace_back(delta.oldState(), delta.newState());
+  deltas.emplace_back(std::make_shared<SwitchState>(), delta.oldState());
   rollback(deltas);
   setProgrammedState(delta.oldState());
 }

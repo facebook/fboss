@@ -122,7 +122,8 @@ bool BcmQcmCollector::getCollectorVlan(
     const std::shared_ptr<SwitchState>& swState) {
   const auto vlans = swState->getVlans();
   for (const auto& vlanMap : std::as_const(*vlans)) {
-    for (const auto& [id, vlan] : std::as_const(*vlanMap.second)) {
+    if (!vlanMap.second->empty()) {
+      const auto& [id, vlan] = *vlanMap.second->cbegin();
       // pick up any arbitrary vlan which is programmed
       // Collector pkts need to hit my station table entry
       // to route which can happen based on {dst_mac, vlan}
