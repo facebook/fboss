@@ -511,7 +511,6 @@ Global_PortID,Logical_PortID,Port_Name,Supported_Port_Profiles,Attached_CoreID,A
 510,510,eth1/66/6,59,,,,0,0
 511,511,eth1/66/7,59,,,,0,0
 512,512,eth1/66/8,59,,,,0,0
-513,513,eth1/1/1,22-23,,,,4,0
 2049,1,eth1/67/1,59,,,,0,0
 2050,2,eth1/67/2,59,,,,0,0
 2051,3,eth1/67/3,59,,,,0,0
@@ -1024,4 +1023,3 @@ Global_PortID,Logical_PortID,Port_Name,Supported_Port_Profiles,Attached_CoreID,A
 2558,510,eth1/130/6,59,,,,0,0
 2559,511,eth1/130/7,59,,,,0,0
 2560,512,eth1/130/8,59,,,,0,0
-2561,513,eth1/2/1,22-23,,,,4,0
