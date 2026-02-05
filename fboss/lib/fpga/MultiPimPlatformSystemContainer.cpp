@@ -52,6 +52,34 @@ std::map<int, PimState> MultiPimPlatformSystemContainer::getPimStates() const {
 
     pimStates.emplace(pimId, std::move(pimState));
   }
+
+  // Check for xphy getPortInfo failures in a separate loop to minimize lock
+  // hold time on pimToFailedXphyIds_
+  auto failedXphyIds = pimToFailedGetInfoXphyIds_.rlock();
+  for (auto& [pimId, xphyIds] : *failedXphyIds) {
+    if (!xphyIds.empty()) {
+      if (auto it = pimStates.find(static_cast<int>(pimId));
+          it != pimStates.end()) {
+        it->second.errors()->push_back(PimError::XPHY_GET_PORT_INFO_FAILED);
+      }
+    }
+  }
+
   return pimStates;
+}
+
+void MultiPimPlatformSystemContainer::recordXphyGetPortInfoFailure(
+    const PimID& pimId,
+    const GlobalXphyID& xphyId) {
+  pimToFailedGetInfoXphyIds_.wlock()->operator[](pimId).insert(xphyId);
+}
+
+void MultiPimPlatformSystemContainer::clearXphyGetPortInfoFailures(
+    const PimID& pimId,
+    const GlobalXphyID& xphyId) {
+  auto lockedMap = pimToFailedGetInfoXphyIds_.wlock();
+  if (auto pimItr = lockedMap->find(pimId); pimItr != lockedMap->end()) {
+    pimItr->second.erase(xphyId);
+  }
 }
 } // namespace facebook::fboss

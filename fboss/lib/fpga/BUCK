@@ -99,6 +99,7 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/lib/if:pim_state-cpp2-types",
         "//folly:conv",
+        "//folly:synchronized",
     ],
 )
 
