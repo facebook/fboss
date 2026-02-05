@@ -41,7 +41,6 @@ class StatsPublisher {
   static void bumpHighTempPort(std::string& portName);
   static void bumpHighVccPort(std::string& portName);
   static void initPerPortFb303Stats(std::set<std::string>& portNames);
-  static void initPerPimFb303Stats(const PimID& pimID);
 
  private:
   TransceiverManager* transceiverManager_{nullptr};
