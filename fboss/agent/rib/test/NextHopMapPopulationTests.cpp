@@ -279,69 +279,16 @@ class NextHopMapPopulationTest : public ::testing::Test {
     }
   }
 
-  void verifyRouteNextHopsInternal(
-      const RouteNextHopEntry& fwdInfo,
-      const std::string& prefixStr,
-      const std::shared_ptr<IdToNextHopMap>& idToNextHopMap,
-      const std::shared_ptr<IdToNextHopIdSetMap>& idToNextHopIdSetMap) {
-    auto resolvedSetId = fwdInfo.getResolvedNextHopSetID();
-    const auto& nextHopSet = fwdInfo.getNextHopSet();
-
-    // Routes with empty nexthop sets (TO_CPU/DROP) don't get IDs
-    if (nextHopSet.empty()) {
-      EXPECT_FALSE(resolvedSetId.has_value())
-          << prefixStr
-          << ": Empty nexthop set should not have resolvedNextHopSetID";
-      return;
-    }
-
-    // Routes with nexthops should have a resolvedNextHopSetID
-    ASSERT_TRUE(resolvedSetId.has_value())
-        << prefixStr << ": Missing resolvedNextHopSetID";
-
-    // Look up the NextHopIdSet from the map
-    auto nextHopIdSetNode = idToNextHopIdSetMap->getNextHopIdSetIf(
-        static_cast<NextHopSetId>(*resolvedSetId));
-    ASSERT_NE(nextHopIdSetNode, nullptr)
-        << prefixStr << ": NextHopIdSet for setId " << *resolvedSetId
-        << " not found";
-
-    std::set<std::string> retrievedNexthops;
-    // Use toThrift() to get the set without modifying published node
-    auto nextHopIdSet = nextHopIdSetNode->toThrift();
-    for (const auto& nhId : nextHopIdSet) {
-      auto nextHopNode = idToNextHopMap->getNextHopIf(nhId);
-      ASSERT_NE(nextHopNode, nullptr)
-          << prefixStr << ": NextHop for id " << nhId << " not found";
-
-      // Extract IP address from the NextHop
-      auto nextHopThrift = nextHopNode->toThrift();
-      auto addr = network::toIPAddress(*nextHopThrift.address());
-      retrievedNexthops.insert(addr.str());
-    }
-
-    // Compare with expected nexthops from the route's forward info
-    std::set<std::string> expectedNexthops;
-    for (const auto& nhop : fwdInfo.getNextHopSet()) {
-      expectedNexthops.insert(nhop.addr().str());
-    }
-
-    EXPECT_EQ(retrievedNexthops, expectedNexthops)
-        << "NextHops mismatch for route " << prefixStr;
-  }
-
   // This verifies if the NextHop IDs present in the FIB resolves to the correct
   // set of NextHops in the route. This will resolve the ID to set of NextHops
-  // and then compare it with the NextHopSet present in the route.
+  // using resolveNextHopSetFromId and compare it with the NextHopSet present
+  // in the route.
   void verifyIDMapsConsistency() {
     auto fibInfo = getFibInfo();
     ASSERT_NE(fibInfo, nullptr) << "FibInfo is null";
 
     auto fibContainer = fibInfo->getFibContainerIf(kRid0);
     ASSERT_NE(fibContainer, nullptr) << "FibContainer is null";
-
-    auto idToNextHopMap = getIdToNextHopMap();
-    auto idToNextHopIdSetMap = getIdToNextHopIdSetMap();
 
     // Verify all V4 routes
     auto fibV4 = fibContainer->getFibV4();
@@ -350,8 +297,32 @@ class NextHopMapPopulationTest : public ::testing::Test {
       std::string prefixStr =
           folly::sformat("{}/{}", prefix.network().str(), prefix.mask());
       const auto& fwdInfo = route->getForwardInfo();
-      verifyRouteNextHopsInternal(
-          fwdInfo, prefixStr, idToNextHopMap, idToNextHopIdSetMap);
+      auto resolvedSetId = fwdInfo.getResolvedNextHopSetID();
+      const auto& expectedNextHopSet = fwdInfo.getNextHopSet();
+
+      // Routes with empty nexthop sets (TO_CPU/DROP) don't get IDs
+      if (expectedNextHopSet.empty()) {
+        EXPECT_FALSE(resolvedSetId.has_value())
+            << prefixStr
+            << ": Empty nexthop set should not have resolvedNextHopSetID";
+        continue;
+      }
+
+      // Routes with nexthops should have a resolvedNextHopSetID
+      ASSERT_TRUE(resolvedSetId.has_value())
+          << prefixStr << ": Missing resolvedNextHopSetID";
+
+      // Use resolveNextHopSetFromId to resolve the ID back to NextHops
+      auto resolvedNextHops = fibInfo->resolveNextHopSetFromId(
+          static_cast<NextHopSetId>(*resolvedSetId));
+
+      // Sort and compare as vectors
+      std::sort(resolvedNextHops.begin(), resolvedNextHops.end());
+      std::vector<NextHop> expectedNextHops(
+          expectedNextHopSet.begin(), expectedNextHopSet.end());
+
+      EXPECT_EQ(resolvedNextHops, expectedNextHops)
+          << "NextHops mismatch for route " << prefixStr;
     }
 
     // Verify all V6 routes
@@ -361,8 +332,32 @@ class NextHopMapPopulationTest : public ::testing::Test {
       std::string prefixStr =
           folly::sformat("{}/{}", prefix.network().str(), prefix.mask());
       const auto& fwdInfo = route->getForwardInfo();
-      verifyRouteNextHopsInternal(
-          fwdInfo, prefixStr, idToNextHopMap, idToNextHopIdSetMap);
+      auto resolvedSetId = fwdInfo.getResolvedNextHopSetID();
+      const auto& expectedNextHopSet = fwdInfo.getNextHopSet();
+
+      // Routes with empty nexthop sets (TO_CPU/DROP) don't get IDs
+      if (expectedNextHopSet.empty()) {
+        EXPECT_FALSE(resolvedSetId.has_value())
+            << prefixStr
+            << ": Empty nexthop set should not have resolvedNextHopSetID";
+        continue;
+      }
+
+      // Routes with nexthops should have a resolvedNextHopSetID
+      ASSERT_TRUE(resolvedSetId.has_value())
+          << prefixStr << ": Missing resolvedNextHopSetID";
+
+      // Use resolveNextHopSetFromId to resolve the ID back to NextHops
+      auto resolvedNextHops = fibInfo->resolveNextHopSetFromId(
+          static_cast<NextHopSetId>(*resolvedSetId));
+
+      // Sort and compare as vectors
+      std::sort(resolvedNextHops.begin(), resolvedNextHops.end());
+      std::vector<NextHop> expectedNextHops(
+          expectedNextHopSet.begin(), expectedNextHopSet.end());
+
+      EXPECT_EQ(resolvedNextHops, expectedNextHops)
+          << "NextHops mismatch for route " << prefixStr;
     }
   }
 
