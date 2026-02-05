@@ -313,8 +313,9 @@ CLI::App* CmdSubcommands::addCommand(
           subCmd->add_option(
               "map_entry",
               args,
-              "<map-type> <key> <value> where map-type is one of: "
-              "tc-to-queue, pfc-pri-to-queue, tc-to-pg, pfc-pri-to-pg");
+              "<map-type> ... where map-type is one of: "
+              "tc-to-queue, pfc-pri-to-queue, tc-to-pg, pfc-pri-to-pg, "
+              "dscp, mpls-exp, dot1p, traffic-class");
           break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PORT_AND_TAGGING_MODE:
           subCmd->add_option(
