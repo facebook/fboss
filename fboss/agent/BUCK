@@ -3,6 +3,7 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/target_determinator/macros:ci.bzl", "ci")
 load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
 load("//fboss/agent:sai.bzl", "sai_main_all")
 load("//fboss/thriftpath_plugin/facebook:thriftpath_plugin.bzl", "thrift_plugin_thriftpath")
@@ -2115,6 +2116,10 @@ ci_sandcastle(
     ],
     command = "SandcastleUniversalCommand",
     oncall = "fboss_agent",
+    schedules = [
+        ci.diff,
+        ci.continuous,
+    ],
 )
 
 cpp_library(
