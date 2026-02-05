@@ -68,4 +68,11 @@ void ThriftServiceUtils::setPreferredEventBaseBackendToEpoll(
 #endif
 }
 
+folly::Function<void(apache::thrift::ThriftServer&)>
+ThriftServiceUtils::createTestThriftServerConfig() {
+  return [](apache::thrift::ThriftServer& server) {
+    ThriftServiceUtils::setPreferredEventBaseBackend(server);
+  };
+}
+
 } // namespace facebook::fboss

@@ -10,9 +10,9 @@ cpp_binary(
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
+        "//fboss/lib:thrift_service_utils",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/fan_service:core",
-        "//fboss/platform/helpers:init",
         "//thrift/lib/cpp2/async:rocket_client_channel",
         "//thrift/lib/cpp2/protocol:protocol",
         "//thrift/lib/cpp2/util:util",

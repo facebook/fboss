@@ -7,7 +7,7 @@
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
-#include "fboss/platform/helpers/Init.h"
+#include "fboss/lib/ThriftServiceUtils.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
 #include "fboss/platform/platform_manager/ExplorationErrors.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
@@ -88,7 +88,7 @@ class PlatformManagerHwTest : public ::testing::Test {
         platformExplorer_, ds.value(), platformConfig_);
     server_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
         thriftHandler_,
-        facebook::fboss::platform::helpers::createTestThriftServerConfig());
+        facebook::fboss::ThriftServiceUtils::createTestThriftServerConfig());
     pmClient_ =
         server_->newClient<apache::thrift::Client<PlatformManagerService>>();
   }

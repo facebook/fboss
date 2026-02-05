@@ -11,7 +11,7 @@ cpp_binary(
     deps = [
         "fbsource//third-party/googletest:gtest",
         "//common/services/cpp:light",
-        "//fboss/platform/helpers:init",
+        "//fboss/lib:thrift_service_utils",
         "//fboss/platform/rackmon:core",
         "//fboss/platform/rackmon:handler",
         "//fboss/platform/rackmon:rackmon_pls",

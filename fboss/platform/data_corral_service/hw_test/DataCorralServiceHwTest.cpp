@@ -15,12 +15,12 @@
 #include <folly/FileUtil.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
+#include "fboss/lib/ThriftServiceUtils.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/data_corral_service/DataCorralServiceThriftHandler.h"
 #include "fboss/platform/data_corral_service/FruPresenceExplorer.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/DataCorralServiceThrift.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/data_corral_service_types.h"
-#include "fboss/platform/helpers/Init.h"
 
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::data_corral_service;
@@ -73,7 +73,7 @@ class DataCorralServiceHwTest : public ::testing::Test {
   DataCorralFruidReadResponse getFruid(bool uncached) {
     apache::thrift::ScopedServerInterfaceThread server(
         thriftHandler_,
-        facebook::fboss::platform::helpers::createTestThriftServerConfig());
+        facebook::fboss::ThriftServiceUtils::createTestThriftServerConfig());
     auto client =
         server.newClient<apache::thrift::Client<DataCorralServiceThrift>>();
     DataCorralFruidReadResponse response;
