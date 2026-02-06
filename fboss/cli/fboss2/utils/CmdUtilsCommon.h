@@ -9,11 +9,19 @@
  */
 #pragma once
 
-#include <CLI/CLI.hpp>
+#include <CLI/App.hpp>
+#include <bits/types/struct_timeval.h>
 #include <folly/IPAddress.h>
 #include <folly/stop_watch.h>
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <optional>
 #include <string>
+#include <tuple>
+#include <utility>
 #include <variant>
+#include <vector>
 
 namespace facebook::fboss::utils {
 
@@ -66,6 +74,12 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_MTU,
   OBJECT_ARG_TYPE_ID_INTERFACE_LIST,
   OBJECT_ARG_TYPE_ID_REVISION_LIST,
+  OBJECT_ARG_TYPE_ID_BUFFER_POOL_NAME,
+  OBJECT_ARG_TYPE_VLAN_ID,
+  OBJECT_ARG_TYPE_MAC_AND_PORT,
+  OBJECT_ARG_TYPE_ID_PRIORITY_GROUP_POLICY_NAME,
+  OBJECT_ARG_TYPE_ID_PRIORITY_GROUP_ID,
+  OBJECT_ARG_TYPE_ID_SCALING_FACTOR,
 };
 
 template <typename T>
