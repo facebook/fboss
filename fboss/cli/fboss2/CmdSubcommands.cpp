@@ -232,6 +232,16 @@ CLI::App* CmdSubcommands::addCommand(
           subCmd->add_option(
               "revisions", args, "Revision(s) in the form 'rN' or 'current'");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_BUFFER_POOL_NAME:
+          subCmd->add_option(
+              "buffer_pool_config",
+              args,
+              "<name> <attr> <value> [<attr> <value> ...] where <attr> is one "
+              "of: shared-bytes, headroom-bytes, reserved-bytes");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_VLAN_ID:
+          subCmd->add_option("vlan_id", args, "VLAN ID (1-4094)");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;

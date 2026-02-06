@@ -26,6 +26,9 @@ class TestableConfigSession : public ConfigSession {
 
   // Expose protected setInstance() for testing
   using ConfigSession::setInstance;
+
+  // Expose protected addCommand() for testing
+  using ConfigSession::addCommand;
 };
 
 } // namespace facebook::fboss
