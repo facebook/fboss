@@ -529,82 +529,183 @@ std::map<std::string, std::string> PciExplorer::getSpiDeviceCharDevPaths(
             pciDevice.sysfsPath()),
         *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
   }
-  if (!fs::exists(spiMasterPath)) {
+
+  // wait spi_master folder to be created
+  if (!checkDeviceReadinessWithTimeout(
+          *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+          [&]() -> bool { return fs::exists(spiMasterPath); },
+          fmt::format(
+              "SPI Master path {} is not yet initialized. Waiting for at most {}s",
+              spiMasterPath,
+              kPciWaitSecs.count()),
+          kPciWaitSecs)) {
     throw PciSubDeviceRuntimeError(
-        fmt::format("SPI Master path not found at: {}", spiMasterPath),
+        fmt::format(
+            "SPI Master path not found at: {}. This could either mean the "
+            "FPGA does not show up as PCI device (see lspci output), or the kmods "
+            "are not setting up the SPI master path for the PCI device at {}.",
+            spiMasterPath,
+            spiMasterPath),
         *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
   }
+
   std::map<std::string, std::string> spiCharDevPaths;
-  for (const auto& dirEntry : fs::directory_iterator(spiMasterPath)) {
-    if (!re2::RE2::FullMatch(dirEntry.path().filename().string(), kSpiBusRe)) {
+  // wait at least one SPI bus node（e.g. spi0、spi2）to be created
+  bool hasValidBus = checkDeviceReadinessWithTimeout(
+      *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+      [&]() -> bool {
+        return std::any_of(
+            fs::directory_iterator(spiMasterPath),
+            fs::directory_iterator(),
+            [](const auto& entry) {
+              return entry.is_directory() &&
+                     re2::RE2::FullMatch(entry.path().filename().string(), kSpiBusRe);
+            });
+      },
+      fmt::format(
+          "No SPI bus nodes (matching {}) found in {}. Waiting up to {}s",
+          kSpiBusRe.pattern(),
+          spiMasterPath,
+          kPciWaitSecs.count()),
+      kPciWaitSecs);
+
+  if (!hasValidBus) {
+    throw PciSubDeviceRuntimeError(
+        fmt::format(
+            "No SPI bus nodes (pattern: {}) found in {}. Check kmods for SPI bus initialization.",
+            kSpiBusRe.pattern(),
+            spiMasterPath),
+        *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
+  }
+  // iterate every SPI bus node (e.g. spi0, spi1)
+  for (const auto& busDirEntry : fs::directory_iterator(spiMasterPath)) {
+    auto busName = busDirEntry.path().filename().string();
+    if (!busDirEntry.is_directory() || !re2::RE2::FullMatch(busName, kSpiBusRe)) {
       continue;
     }
-    for (const auto& childDirEntry : fs::directory_iterator(dirEntry)) {
-      auto spiDevId = childDirEntry.path().filename().string();
+    XLOG(INFO) << fmt::format("Processing SPI bus: {}", busDirEntry.path().string());
+
+    // wait for bus node to be created (e.g. spi0.0)
+    bool hasValidDevice = checkDeviceReadinessWithTimeout(
+        *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+        [&]() -> bool {
+          return std::any_of(
+              fs::directory_iterator(busDirEntry),
+              fs::directory_iterator(),
+              [](const auto& entry) {
+                return entry.is_directory() &&
+                       re2::RE2::FullMatch(entry.path().filename().string(), kSpiDevIdRe);
+              });
+        },
+        fmt::format(
+            "No SPI devices (spix.x) found in {}. Waiting up to {}s",
+            busDirEntry.path().string(),
+            kPciWaitSecs.count()),
+        kPciWaitSecs);
+
+    if (!hasValidDevice) {
+      XLOG(WARNING) << fmt::format("No SPI devices found in bus: {}", busDirEntry.path().string());
+      continue;
+    }
+
+    // process every spi device node (e.g. spi0.0)
+    for (const auto& devDirEntry : fs::directory_iterator(busDirEntry)) {
+      auto spiDevId = devDirEntry.path().filename().string();
       int busNum, chipSelect;
-      if (!re2::RE2::FullMatch(spiDevId, kSpiDevIdRe, &busNum, &chipSelect)) {
+      // extract dev busNum and chipselect
+      if (!devDirEntry.is_directory() ||
+          !re2::RE2::FullMatch(spiDevId, kSpiDevIdRe, &busNum, &chipSelect)) {
         continue;
       }
-      // Find corresponding SpiDeviceConfig
-      auto spiDeviceConfigItr = std::find_if(
-          spiMasterConfig.spiDeviceConfigs()->begin(),
-          spiMasterConfig.spiDeviceConfigs()->end(),
-          [chipSelect](auto spiDeviceConfig) {
-            return *spiDeviceConfig.chipSelect() == chipSelect;
-          });
-      if (spiDeviceConfigItr == spiMasterConfig.spiDeviceConfigs()->end()) {
+      XLOG(INFO) << fmt::format("Processing SPI device: {}", devDirEntry.path().string());
+
+    // match chipselect
+    auto spiDeviceConfigItr = std::find_if(
+        spiMasterConfig.spiDeviceConfigs()->begin(),
+        spiMasterConfig.spiDeviceConfigs()->end(),
+        [chipSelect](const auto& cfg) {
+          return *cfg.chipSelect() == chipSelect;
+        });
+
+    if (spiDeviceConfigItr == spiMasterConfig.spiDeviceConfigs()->end()) {
+      throw PciSubDeviceRuntimeError(
+          fmt::format(
+              "No SpiDeviceConfig found for chipSelect {} (device: {})",
+              chipSelect,
+              spiDevId),
+          *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
+    }
+    const auto& devConfig = *spiDeviceConfigItr;
+    const auto& devPmUnitName = *devConfig.pmUnitScopedName();
+    auto spiCharDevPath = fmt::format("/dev/spidev{}.{}", busNum, chipSelect);
+
+    // bind char dev if not exist 
+    if (!fs::exists(spiCharDevPath)) {
+      fs::path sysfsDevPath = fs::path("/sys/bus/spi/devices") / spiDevId;
+      if (!fs::exists(sysfsDevPath)) {
         throw PciSubDeviceRuntimeError(
             fmt::format(
-                "Unexpected SpiDevice created at {}. \
-                No matching SpiDeviceConfig defined with ChipSelect {} for SpiDevice {}",
-                childDirEntry.path().string(),
-                chipSelect,
-                *spiDeviceConfigItr->pmUnitScopedName()),
-            *spiDeviceConfigItr->pmUnitScopedName());
+                "SPI sysfs device node {} not found. Cannot bind spidev driver.",
+                sysfsDevPath.string()),
+            devPmUnitName);
       }
-      auto spiCharDevPath = fmt::format("/dev/spidev{}.{}", busNum, chipSelect);
-      if (!fs::exists(spiCharDevPath)) {
-        // For more details on the two commands:
-        // https://github.com/torvalds/linux/blob/master/Documentation/spi/spidev.rst#device-creation-driver-binding
-        // Overriding driver of the SpiDevice so spidev doesn't fail to probe.
-        auto overrideDriver = platformFsUtils_->writeStringToSysfs(
-            "spidev",
-            fs::path("/sys/bus/spi/devices") / spiDevId / "driver_override");
-        if (!overrideDriver) {
-          throw PciSubDeviceRuntimeError(
-              fmt::format(
-                  "Failed overridng SpiDriver spidev to /sys/bus/spi/devices/{}/driver_override "
-                  "for SpiDevice {}",
-                  spiDevId,
-                  *spiDeviceConfigItr->pmUnitScopedName()),
-              *spiDeviceConfigItr->pmUnitScopedName());
-        }
-        // Bind SpiDevice to spidev driver in order to create its char device.
-        auto bindSpiDev = platformFsUtils_->writeStringToSysfs(
-            spiDevId, "/sys/bus/spi/drivers/spidev/bind");
-        if (!bindSpiDev) {
-          throw PciSubDeviceRuntimeError(
-              fmt::format(
-                  "Failed binding SpiDevice {} to /sys/bus/spi/drivers/spidev/bind for SpiDevice {}",
-                  spiDevId,
-                  *spiDeviceConfigItr->pmUnitScopedName()),
-              *spiDeviceConfigItr->pmUnitScopedName());
-        }
-        XLOG(INFO) << fmt::format(
-            "Completed initializing SpiDevice {} as {} for SpiDevice {}",
-            spiDevId,
-            spiCharDevPath,
-            *spiDeviceConfigItr->pmUnitScopedName());
-      } else {
-        XLOG(INFO) << fmt::format(
-            "{} already exists. Skipping binding SpiDevice {} for SpiDevice {}",
-            spiCharDevPath,
-            spiDevId,
-            *spiDeviceConfigItr->pmUnitScopedName());
+
+      // exec spidev driver_override
+      auto driverOverridePath = sysfsDevPath / "driver_override";
+      auto overrideDriver = platformFsUtils_->writeStringToSysfs("spidev", driverOverridePath);
+      if (!overrideDriver) {
+        throw PciSubDeviceRuntimeError(
+            fmt::format(
+                "Failed to write 'spidev' to {}",
+                driverOverridePath.string()),
+            devPmUnitName);
       }
-      spiCharDevPaths[*spiDeviceConfigItr->pmUnitScopedName()] = spiCharDevPath;
+
+      auto bindPath = fs::path("/sys/bus/spi/drivers/spidev/bind");
+      auto bindSpiDev = platformFsUtils_->writeStringToSysfs(spiDevId, bindPath);
+      if (!bindSpiDev) {
+        throw PciSubDeviceRuntimeError(
+            fmt::format(
+                "Failed to bind {} to spidev driver (path: {})",
+                spiDevId,
+                bindPath.string()),
+            devPmUnitName);
+      }
+
+      XLOG(INFO) << fmt::format(
+          "Initialized SPI char device: {} (sysfs: {})",
+          spiCharDevPath,
+          sysfsDevPath.string());
+    } else {
+      XLOG(INFO) << fmt::format(
+          "SPI char device {} already exists. Skipping binding.",
+          spiCharDevPath);
+    }
+
+
+     // wait for char dev to be created
+      if (!checkDeviceReadinessWithTimeout(
+              devPmUnitName,
+              [&]() -> bool { return fs::exists(spiCharDevPath); },
+              fmt::format(
+                  "SPI char device {} not created. Waiting up to {}s",
+                  spiCharDevPath,
+                  kPciWaitSecs.count()),
+              kPciWaitSecs)) {
+        throw PciSubDeviceRuntimeError(
+            fmt::format("SPI char device {} not found after binding", spiCharDevPath),
+            devPmUnitName);
+      }
+
+      // save the spi char device path
+      spiCharDevPaths[devPmUnitName] = spiCharDevPath;
+      XLOG(INFO) << fmt::format(
+          "Added SPI char device mapping: {} → {}",
+          devPmUnitName,
+          spiCharDevPath);
     }
   }
+
   auto expectedSpiDeviceCount = spiMasterConfig.spiDeviceConfigs()->size();
   if (spiCharDevPaths.size() != expectedSpiDeviceCount) {
     throw PciSubDeviceRuntimeError(
