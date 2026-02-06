@@ -1,19 +1,17 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include <boost/filesystem.hpp>
-#include <gmock/gmock.h>
+#include <boost/filesystem/operations.hpp>
 #include <gtest/gtest.h>
+#include <filesystem>
+#include <fstream>
 #include <sstream>
 
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
-#include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/session/Git.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 #include "fboss/cli/fboss2/test/TestableConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
-#include "fboss/cli/fboss2/utils/PortMap.h"
-
-#include <filesystem>
-#include <fstream>
+#include "fboss/cli/fboss2/utils/PortMap.h" // NOLINT(misc-include-cleaner)
 
 namespace fs = std::filesystem;
 
@@ -25,9 +23,8 @@ class CmdConfigSessionDiffTestFixture : public CmdHandlerTestBase {
  public:
   fs::path testHomeDir_;
   fs::path testEtcDir_;
-  fs::path systemConfigPath_;
-  fs::path sessionConfigPath_;
-  fs::path cliConfigDir_;
+  fs::path systemConfigDir_; // /etc/coop (git repo root)
+  fs::path sessionConfigDir_; // ~/.fboss2
 
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
@@ -50,16 +47,19 @@ class CmdConfigSessionDiffTestFixture : public CmdHandlerTestBase {
     fs::create_directories(testEtcDir_);
 
     // Set up paths
-    systemConfigPath_ = testEtcDir_ / "agent.conf";
-    sessionConfigPath_ = testHomeDir_ / ".fboss2" / "agent.conf";
-    cliConfigDir_ = testEtcDir_ / "coop" / "cli";
+    // Structure: systemConfigDir_ = /etc/coop (git repo root)
+    //   - agent.conf (symlink -> cli/agent.conf)
+    //   - cli/agent.conf (actual config file)
+    systemConfigDir_ = testEtcDir_ / "coop";
+    sessionConfigDir_ = testHomeDir_ / ".fboss2";
+    fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
 
     // Create CLI config directory
-    fs::create_directories(cliConfigDir_);
+    fs::create_directories(systemConfigDir_ / "cli");
 
-    // Create a default system config
+    // Create the actual config file at cli/agent.conf
     createTestConfig(
-        systemConfigPath_,
+        cliConfigPath,
         R"({
   "sw": {
     "ports": [
@@ -72,6 +72,14 @@ class CmdConfigSessionDiffTestFixture : public CmdHandlerTestBase {
     ]
   }
 })");
+
+    // Create symlink at /etc/coop/agent.conf -> cli/agent.conf
+    fs::create_symlink("cli/agent.conf", systemConfigDir_ / "agent.conf");
+
+    // Initialize Git repository and create initial commit
+    Git git(systemConfigDir_.string());
+    git.init();
+    git.commit({cliConfigPath.string()}, "Initial commit");
   }
 
   void TearDown() override {
@@ -99,11 +107,13 @@ class CmdConfigSessionDiffTestFixture : public CmdHandlerTestBase {
   }
 
   void initializeTestSession() {
+    fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+
     // Ensure system config exists before initializing session
     // (ConfigSession constructor calls initializeSession which will copy it)
-    if (!fs::exists(systemConfigPath_)) {
+    if (!fs::exists(cliConfigPath)) {
       createTestConfig(
-          systemConfigPath_,
+          cliConfigPath,
           R"({
   "sw": {
     "ports": [
@@ -118,26 +128,25 @@ class CmdConfigSessionDiffTestFixture : public CmdHandlerTestBase {
 })");
     }
 
-    // Ensure the parent directory of session config exists
-    // (initializeSession will try to copy system config to session config)
-    fs::create_directories(sessionConfigPath_.parent_path());
+    // Ensure the session config directory exists
+    fs::create_directories(sessionConfigDir_);
 
     // Initialize ConfigSession singleton with test paths
     // The constructor will automatically call initializeSession()
     TestableConfigSession::setInstance(
         std::make_unique<TestableConfigSession>(
-            sessionConfigPath_.string(),
-            systemConfigPath_.string(),
-            cliConfigDir_.string()));
+            sessionConfigDir_.string(), systemConfigDir_.string()));
   }
 };
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffNoSession) {
+  fs::path sessionConfigPath = sessionConfigDir_ / "agent.conf";
+
   // Initialize the session (which creates the session config file)
   initializeTestSession();
 
   // Then delete the session config file to simulate "no session" case
-  fs::remove(sessionConfigPath_);
+  fs::remove(sessionConfigPath);
 
   auto cmd = CmdConfigSessionDiff();
   utils::RevisionList emptyRevisions(std::vector<std::string>{});
@@ -165,12 +174,14 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffIdenticalConfigs) {
 }
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffDifferentConfigs) {
+  fs::path sessionConfigPath = sessionConfigDir_ / "agent.conf";
+
   initializeTestSession();
 
   // Create session directory and modify the config
-  fs::create_directories(sessionConfigPath_.parent_path());
+  fs::create_directories(sessionConfigDir_);
   createTestConfig(
-      sessionConfigPath_,
+      sessionConfigPath,
       R"({
   "sw": {
     "ports": [
@@ -196,11 +207,12 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffDifferentConfigs) {
 }
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffSessionVsRevision) {
-  initializeTestSession();
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  fs::path sessionConfigPath = sessionConfigDir_ / "agent.conf";
 
-  // Create a revision file
+  // Create a commit with state: 1
   createTestConfig(
-      cliConfigDir_ / "agent-r1.conf",
+      cliConfigPath,
       R"({
   "sw": {
     "ports": [
@@ -213,10 +225,15 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffSessionVsRevision) {
   }
 })");
 
-  // Create session with different content
-  fs::create_directories(sessionConfigPath_.parent_path());
+  Git git(systemConfigDir_.string());
+  std::string commitSha = git.commit({cliConfigPath.string()}, "State 1");
+
+  initializeTestSession();
+
+  // Create session with different content (state: 2)
+  fs::create_directories(sessionConfigDir_);
   createTestConfig(
-      sessionConfigPath_,
+      sessionConfigPath,
       R"({
   "sw": {
     "ports": [
@@ -230,21 +247,23 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffSessionVsRevision) {
 })");
 
   auto cmd = CmdConfigSessionDiff();
-  utils::RevisionList revisions(std::vector<std::string>{"r1"});
+  utils::RevisionList revisions(std::vector<std::string>{commitSha});
 
   auto result = cmd.queryClient(localhost(), revisions);
 
-  // Should show a diff between r1 and session (state changed from 1 to 2)
+  // Should show a diff between the commit and session (state changed from 1 to
+  // 2)
   EXPECT_NE(result.find("-        \"state\": 1"), std::string::npos);
   EXPECT_NE(result.find("+        \"state\": 2"), std::string::npos);
 }
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffTwoRevisions) {
-  initializeTestSession();
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  Git git(systemConfigDir_.string());
 
-  // Create two different revision files
+  // Create first commit with state: 2
   createTestConfig(
-      cliConfigDir_ / "agent-r1.conf",
+      cliConfigPath,
       R"({
   "sw": {
     "ports": [
@@ -256,9 +275,11 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffTwoRevisions) {
     ]
   }
 })");
+  std::string commit1 = git.commit({cliConfigPath.string()}, "Commit 1");
 
+  // Create second commit with description added
   createTestConfig(
-      cliConfigDir_ / "agent-r2.conf",
+      cliConfigPath,
       R"({
   "sw": {
     "ports": [
@@ -271,9 +292,12 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffTwoRevisions) {
     ]
   }
 })");
+  std::string commit2 = git.commit({cliConfigPath.string()}, "Commit 2");
+
+  initializeTestSession();
 
   auto cmd = CmdConfigSessionDiff();
-  utils::RevisionList revisions(std::vector<std::string>{"r1", "r2"});
+  utils::RevisionList revisions(std::vector<std::string>{commit1, commit2});
 
   auto result = cmd.queryClient(localhost(), revisions);
 
@@ -283,11 +307,12 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffTwoRevisions) {
 }
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffWithCurrentKeyword) {
-  initializeTestSession();
+  fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+  Git git(systemConfigDir_.string());
 
-  // Create a revision file
+  // Create a commit with state: 1
   createTestConfig(
-      cliConfigDir_ / "agent-r1.conf",
+      cliConfigPath,
       R"({
   "sw": {
     "ports": [
@@ -299,14 +324,34 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffWithCurrentKeyword) {
     ]
   }
 })");
+  std::string commit1 = git.commit({cliConfigPath.string()}, "State 1");
+
+  // Update system config to state: 2 with speed (this is "current")
+  createTestConfig(
+      cliConfigPath,
+      R"({
+  "sw": {
+    "ports": [
+      {
+        "logicalID": 1,
+        "name": "eth1/1/1",
+        "state": 2,
+        "speed": 100000
+      }
+    ]
+  }
+})");
+  git.commit({cliConfigPath.string()}, "Current state");
+
+  initializeTestSession();
 
   auto cmd = CmdConfigSessionDiff();
-  utils::RevisionList revisions(std::vector<std::string>{"r1", "current"});
+  utils::RevisionList revisions(std::vector<std::string>{commit1, "current"});
 
   auto result = cmd.queryClient(localhost(), revisions);
 
-  // Should show a diff between r1 and current system config (state changed from
-  // 1 to 2, speed added)
+  // Should show a diff between commit1 and current system config (state changed
+  // from 1 to 2, speed added)
   EXPECT_NE(result.find("-        \"state\": 1"), std::string::npos);
   EXPECT_NE(result.find("+        \"state\": 2"), std::string::npos);
   EXPECT_NE(result.find("+        \"speed\": 100000"), std::string::npos);
@@ -316,17 +361,25 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffNonexistentRevision) {
   initializeTestSession();
 
   auto cmd = CmdConfigSessionDiff();
-  utils::RevisionList revisions(std::vector<std::string>{"r999"});
+  // Use a fake SHA that doesn't exist
+  utils::RevisionList revisions(
+      std::vector<std::string>{"0000000000000000000000000000000000000000"});
 
   // Should throw an exception for nonexistent revision
-  EXPECT_THROW(cmd.queryClient(localhost(), revisions), std::invalid_argument);
+  // Git throws runtime_error when the commit doesn't exist
+  EXPECT_THROW(cmd.queryClient(localhost(), revisions), std::runtime_error);
 }
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffTooManyArguments) {
   initializeTestSession();
 
   auto cmd = CmdConfigSessionDiff();
-  utils::RevisionList revisions(std::vector<std::string>{"r1", "r2", "r3"});
+  // Use fake SHAs for the test
+  utils::RevisionList revisions(
+      std::vector<std::string>{
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "cccccccccccccccccccccccccccccccccccccccc"});
 
   // Should throw an exception for too many arguments
   EXPECT_THROW(cmd.queryClient(localhost(), revisions), std::invalid_argument);
