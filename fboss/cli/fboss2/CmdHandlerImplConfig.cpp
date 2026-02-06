@@ -19,6 +19,8 @@
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h"
+#include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
+#include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
@@ -40,5 +42,8 @@ template void
 CmdHandler<CmdConfigSessionCommit, CmdConfigSessionCommitTraits>::run();
 template void
 CmdHandler<CmdConfigSessionDiff, CmdConfigSessionDiffTraits>::run();
+template void CmdHandler<CmdConfigQos, CmdConfigQosTraits>::run();
+template void
+CmdHandler<CmdConfigQosBufferPool, CmdConfigQosBufferPoolTraits>::run();
 
 } // namespace facebook::fboss
