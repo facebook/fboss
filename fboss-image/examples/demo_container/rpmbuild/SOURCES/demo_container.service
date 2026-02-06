@@ -1,0 +1,15 @@
+# /usr/lib/systemd/system/demo_container.service
+[Unit]
+Description=Demo Container
+After=network.target
+
+[Service]
+Type=simple
+Restart=on-failure
+TimeoutStartSec=180s
+TimeoutStopSec=10s
+ExecStart=/usr/bin/docker run --rm --name demo_container -v /var/clock:/output --net none demo_container
+ExecStop=/usr/bin/docker stop demo_container
+
+[Install]
+WantedBy=multi-user.target
