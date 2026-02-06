@@ -182,7 +182,7 @@ class SaiSwitch : public HwSwitch {
       sai_size_t buffer_size,
       const void* buffer,
       uint32_t event_type);
-  void pfcDeadlockNotificationCallback(
+  void pfcDeadlockNotificationCallbackTopHalf(
       uint32_t count,
       const sai_queue_deadlock_notification_data_t* data);
   void vendorSwitchEventNotificationCallback(

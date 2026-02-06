@@ -238,7 +238,7 @@ void __gTamEventCallback(
 void _gPfcDeadlockNotificationCallback(
     uint32_t count,
     const sai_queue_deadlock_notification_data_t* data) {
-  __gSaiIdToSwitch.begin()->second->pfcDeadlockNotificationCallback(
+  __gSaiIdToSwitch.begin()->second->pfcDeadlockNotificationCallbackTopHalf(
       count, data);
 }
 
@@ -5330,7 +5330,7 @@ void SaiSwitch::processFlowletSwitchingConfigChanged(
 #endif
 }
 
-void SaiSwitch::pfcDeadlockNotificationCallback(
+void SaiSwitch::pfcDeadlockNotificationCallbackTopHalf(
     uint32_t count,
     const sai_queue_deadlock_notification_data_t* data) {
   // The handling for PFC deadlock notification is pretty simple and
