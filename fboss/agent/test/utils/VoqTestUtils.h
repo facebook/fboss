@@ -106,5 +106,8 @@ uint8_t getGlobalRcyDefaultQueue();
 int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass);
 
 int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass);
+
+SwitchID getRemoteVoqSwitchId(SwSwitch* sw);
+
 } // namespace utility
 } // namespace facebook::fboss

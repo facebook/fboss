@@ -754,4 +754,15 @@ int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass) {
   return trafficClass;
 }
 
+// Get the remote VOQ switch ID from DSF nodes configuration.
+SwitchID getRemoteVoqSwitchId(SwSwitch* sw) {
+  const auto config = sw->getConfig();
+  const auto dsfNodes = config.dsfNodes();
+  CHECK(!dsfNodes->empty()) << "DSF nodes configuration is empty";
+  // Remote switch Id is the last one added
+  const auto& [switchId, remoteNode] = *dsfNodes->crbegin();
+  CHECK(*remoteNode.type() == cfg::DsfNodeType::INTERFACE_NODE);
+  return SwitchID(switchId);
+}
+
 } // namespace facebook::fboss::utility
