@@ -423,6 +423,7 @@
   "bspKmodsRpmName": "arista_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.17-1",
   "requiredKmodsToLoad": [
+    "spidev",
     "i2c_i801",
     "scd",
     "scd_spi",
