@@ -48,6 +48,9 @@ sai_status_t create_router_interface_fn(
       case SAI_ROUTER_INTERFACE_ATTR_MTU:
         mtu = attr_list[i].value.u32;
         break;
+      case SAI_ROUTER_INTERFACE_ATTR_ADMIN_MPLS_STATE:
+        // Ignore in fake implementation - just accept the attribute
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -99,6 +102,9 @@ sai_status_t set_router_interface_attribute_fn(
     case SAI_ROUTER_INTERFACE_ATTR_MTU:
       ri.mtu = attr->value.u32;
       break;
+    case SAI_ROUTER_INTERFACE_ATTR_ADMIN_MPLS_STATE:
+      // Ignore in fake implementation - just accept the attribute
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -136,6 +142,10 @@ sai_status_t get_router_interface_attribute_fn(
         break;
       case SAI_ROUTER_INTERFACE_ATTR_MTU:
         attr[i].value.u32 = ri.mtu;
+        break;
+      case SAI_ROUTER_INTERFACE_ATTR_ADMIN_MPLS_STATE:
+        // Return default value (false) in fake implementation
+        attr[i].value.booldata = false;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
