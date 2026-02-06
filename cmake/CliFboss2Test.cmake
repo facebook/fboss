@@ -33,14 +33,19 @@ gtest_discover_tests(fboss2_framework_test)
 
 # cmd_test - Command tests from BUCK file
 add_executable(fboss2_cmd_test
+  fboss/cli/fboss2/oss/CmdListConfig.cpp
   fboss/cli/fboss2/test/TestMain.cpp
   fboss/cli/fboss2/test/CmdConfigAppliedInfoTest.cpp
   fboss/cli/fboss2/test/CmdConfigHistoryTest.cpp
   fboss/cli/fboss2/test/CmdConfigInterfaceDescriptionTest.cpp
   fboss/cli/fboss2/test/CmdConfigInterfaceMtuTest.cpp
+  fboss/cli/fboss2/test/CmdConfigInterfaceSwitchportAccessVlanTest.cpp
+  fboss/cli/fboss2/test/CmdConfigQosBufferPoolTest.cpp
   fboss/cli/fboss2/test/CmdConfigReloadTest.cpp
   fboss/cli/fboss2/test/CmdConfigSessionDiffTest.cpp
   fboss/cli/fboss2/test/CmdConfigSessionTest.cpp
+  fboss/cli/fboss2/test/CmdGetPcapTest.cpp
+  fboss/cli/fboss2/test/CmdListConfigTest.cpp
   fboss/cli/fboss2/test/CmdSetPortStateTest.cpp
   fboss/cli/fboss2/test/CmdShowAclTest.cpp
   fboss/cli/fboss2/test/CmdShowAgentSslTest.cpp
@@ -52,7 +57,6 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowL2Test.cpp
   fboss/cli/fboss2/test/CmdShowLldpTest.cpp
   fboss/cli/fboss2/test/CmdShowNdpTest.cpp
-  fboss/cli/fboss2/test/CmdGetPcapTest.cpp
   fboss/cli/fboss2/test/CmdShowAggregatePortTest.cpp
   fboss/cli/fboss2/test/CmdShowCpuPortTest.cpp
   fboss/cli/fboss2/test/CmdShowExampleTest.cpp
