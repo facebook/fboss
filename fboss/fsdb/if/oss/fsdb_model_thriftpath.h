@@ -5695,7 +5695,8 @@ std::pair<strings::interPacketGapBits, Child<::std::int32_t, ::apache::thrift::t
 std::pair<strings::amIdles, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::resetQueueCreditBalance, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::portSwitchId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::serdesCustomCollection, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+std::pair<strings::serdesCustomCollection, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+std::pair<strings::clmEnable, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
@@ -5757,7 +5758,8 @@ std::pair<strings::serdesCustomCollection, Child<::std::string, ::apache::thrift
    std::pair<std::integral_constant<apache::thrift::field_id_t, 61>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 62>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 63>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 64>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 64>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 65>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::portId, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::portName, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -5820,7 +5822,8 @@ std::pair<strings::interPacketGapBits, std::integral_constant<apache::thrift::fi
 std::pair<strings::amIdles, std::integral_constant<apache::thrift::field_id_t, 61>>,
 std::pair<strings::resetQueueCreditBalance, std::integral_constant<apache::thrift::field_id_t, 62>>,
 std::pair<strings::portSwitchId, std::integral_constant<apache::thrift::field_id_t, 63>>,
-std::pair<strings::serdesCustomCollection, std::integral_constant<apache::thrift::field_id_t, 64>>>::template type_of<Name>;
+std::pair<strings::serdesCustomCollection, std::integral_constant<apache::thrift::field_id_t, 64>>,
+std::pair<strings::clmEnable, std::integral_constant<apache::thrift::field_id_t, 65>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -5888,6 +5891,7 @@ std::pair<strings::serdesCustomCollection, std::integral_constant<apache::thrift
     STRUCT_CHILD_GETTERS(resetQueueCreditBalance, 62);
     STRUCT_CHILD_GETTERS(portSwitchId, 63);
     STRUCT_CHILD_GETTERS(serdesCustomCollection, 64);
+    STRUCT_CHILD_GETTERS(clmEnable, 65);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -5953,6 +5957,7 @@ std::pair<strings::serdesCustomCollection, std::integral_constant<apache::thrift
     else if constexpr (__id == 62) { return resetQueueCreditBalance(); }
     else if constexpr (__id == 63) { return portSwitchId(); }
     else if constexpr (__id == 64) { return serdesCustomCollection(); }
+    else if constexpr (__id == 65) { return clmEnable(); }
   }
 
   template <typename T, T... Values>
@@ -17589,7 +17594,8 @@ std::pair<strings::conditionalEntropyRehash, Child<bool, ::apache::thrift::type_
 std::pair<strings::selfHealingECMPLagEnable, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::fecErrorDetectEnable, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::interPacketGapBits, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::amIdles, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+std::pair<strings::amIdles, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<strings::clmEnable, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::facebook::fboss::cfg::PortState, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::PortState>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
@@ -17624,7 +17630,8 @@ std::pair<strings::amIdles, Child<bool, ::apache::thrift::type_class::integral, 
    std::pair<std::integral_constant<apache::thrift::field_id_t, 34>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 35>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 36>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 37>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 37>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 38>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::logicalID, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::state, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -17660,7 +17667,8 @@ std::pair<strings::conditionalEntropyRehash, std::integral_constant<apache::thri
 std::pair<strings::selfHealingECMPLagEnable, std::integral_constant<apache::thrift::field_id_t, 34>>,
 std::pair<strings::fecErrorDetectEnable, std::integral_constant<apache::thrift::field_id_t, 35>>,
 std::pair<strings::interPacketGapBits, std::integral_constant<apache::thrift::field_id_t, 36>>,
-std::pair<strings::amIdles, std::integral_constant<apache::thrift::field_id_t, 37>>>::template type_of<Name>;
+std::pair<strings::amIdles, std::integral_constant<apache::thrift::field_id_t, 37>>,
+std::pair<strings::clmEnable, std::integral_constant<apache::thrift::field_id_t, 38>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -17701,6 +17709,7 @@ std::pair<strings::amIdles, std::integral_constant<apache::thrift::field_id_t, 3
     STRUCT_CHILD_GETTERS(fecErrorDetectEnable, 35);
     STRUCT_CHILD_GETTERS(interPacketGapBits, 36);
     STRUCT_CHILD_GETTERS(amIdles, 37);
+    STRUCT_CHILD_GETTERS(clmEnable, 38);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -17739,6 +17748,7 @@ std::pair<strings::amIdles, std::integral_constant<apache::thrift::field_id_t, 3
     else if constexpr (__id == 35) { return fecErrorDetectEnable(); }
     else if constexpr (__id == 36) { return interPacketGapBits(); }
     else if constexpr (__id == 37) { return amIdles(); }
+    else if constexpr (__id == 38) { return clmEnable(); }
   }
 
   template <typename T, T... Values>
