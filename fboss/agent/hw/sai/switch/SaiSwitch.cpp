@@ -397,6 +397,12 @@ void SaiSwitch::startThreads() {
         });
   }
 #endif
+
+  pfcDeadlockNotificationBottomHalfThread_ =
+      std::make_unique<std::thread>([this]() {
+        initThread("fbossPfcDeadlockNotificationBottomHalfEventBase");
+        pfcDeadlockNotificationBottomHalfEventBase_.loopForever();
+      });
 }
 
 void SaiSwitch::printDiagCmd(const std::string& /*cmd*/) const {
@@ -473,6 +479,15 @@ void SaiSwitch::stopThreads() {
         [this]() { fdbEventBottomHalfEventBase_.terminateLoopSoon(); });
     fdbEventBottomHalfThread_->join();
     fdbEventBottomHalfThread_.reset();
+  }
+
+  if (pfcDeadlockNotificationBottomHalfThread_) {
+    pfcDeadlockNotificationBottomHalfEventBase_
+        .runInFbossEventBaseThreadAndWait([this]() {
+          pfcDeadlockNotificationBottomHalfEventBase_.terminateLoopSoon();
+        });
+    pfcDeadlockNotificationBottomHalfThread_->join();
+    pfcDeadlockNotificationBottomHalfThread_.reset();
   }
 }
 
@@ -5333,11 +5348,19 @@ void SaiSwitch::processFlowletSwitchingConfigChanged(
 void SaiSwitch::pfcDeadlockNotificationCallbackTopHalf(
     uint32_t count,
     const sai_queue_deadlock_notification_data_t* data) {
-  // The handling for PFC deadlock notification is pretty simple and
-  // should just increment a counter at port level for PFC deadlock
-  // detection or recovery. No further actions are expected and do not
-  // expect a callback into SDK. If more processing is needed, we'll
-  // need to switch to a tophalf/bottom half model, avoiding it for now.
+  std::vector<sai_queue_deadlock_notification_data_t> dataVec{};
+  dataVec.reserve(count);
+  std::copy(data, data + count, std::back_inserter(dataVec));
+  pfcDeadlockNotificationBottomHalfEventBase_.runInEventBaseThread(
+      [count, this, dataVec = std::move(dataVec)] {
+        // create a new vector to hold the data and copy the data into it
+        pfcDeadlockNotificationCallbackBottomHalf(count, dataVec.data());
+      });
+}
+
+void SaiSwitch::pfcDeadlockNotificationCallbackBottomHalf(
+    uint32_t count,
+    const sai_queue_deadlock_notification_data_t* data) {
   for (int idx = 0; idx < count; ++idx) {
     auto queueSaiId = static_cast<QueueSaiId>(data[idx].queue_id);
     XLOG(DBG2) << "queue_id " << data[idx].queue_id;

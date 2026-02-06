@@ -185,6 +185,10 @@ class SaiSwitch : public HwSwitch {
   void pfcDeadlockNotificationCallbackTopHalf(
       uint32_t count,
       const sai_queue_deadlock_notification_data_t* data);
+  void pfcDeadlockNotificationCallbackBottomHalf(
+      uint32_t count,
+      const sai_queue_deadlock_notification_data_t* data);
+
   void vendorSwitchEventNotificationCallback(
       sai_size_t bufferSize,
       const void* buffer,
@@ -772,6 +776,9 @@ class SaiSwitch : public HwSwitch {
   FbossEventBase switchAsicSdkHealthNotificationBHEventBase_{
       "SwitchAsicSdkHealthNotificationEventBase"};
 #endif
+  std::unique_ptr<std::thread> pfcDeadlockNotificationBottomHalfThread_;
+  FbossEventBase pfcDeadlockNotificationBottomHalfEventBase_{
+      "PfcDeadlockNotificationBottomHalfEventBase"};
 
   HwResourceStats hwResourceStats_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
