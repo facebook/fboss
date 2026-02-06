@@ -82,6 +82,7 @@
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
+#include "fboss/cli/fboss2/commands/show/running_config/CmdShowRunningConfig.h"
 #include "fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h"
 #include "fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h"
 #include "fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h"
@@ -224,6 +225,12 @@ const CommandTree& kCommandTree() {
        commandHandler<CmdShowRif>,
        validFilterHandler<CmdShowRif>,
        argTypeHandler<CmdShowRifTraits>},
+
+      {"show",
+       "running-config",
+       "Show running configuration from the agent",
+       commandHandler<CmdShowRunningConfig>,
+       argTypeHandler<CmdShowRunningConfigTraits>},
 
       {"show",
        "interface",
