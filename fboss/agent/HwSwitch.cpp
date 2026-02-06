@@ -394,7 +394,24 @@ fsdb::OperDelta HwSwitch::stateChangedTransaction(
         intermediateState);
     this->rollback(reversedDeltas);
     setProgrammedState(goodKnownState);
-    return deltas.front();
+
+    // Return {oldState, newState} indicating nothing is updated in HW
+    //
+    // The behavior in SwSwitch would be no different if either {oldState,
+    // newState} or {newState, oldState} is returned, since
+    // HwSwitchHandler::stateChangedImpl would convert both to oldState.
+    //
+    // {oldState, newState} is chosen since this matches the original
+    // implementation with single delta which just returned the input value
+    std::vector<StateDelta> stateDeltas;
+    stateDeltas.reserve(deltas.size());
+    auto oldState = getProgrammedState();
+    for (const auto& delta : deltas) {
+      stateDeltas.emplace_back(oldState, delta);
+      oldState = stateDeltas.back().newState();
+    }
+    return StateDelta(getProgrammedState(), stateDeltas.back().newState())
+        .getOperDelta();
   }
   return result;
 }
