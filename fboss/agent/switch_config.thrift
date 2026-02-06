@@ -1535,7 +1535,8 @@ enum AsicType {
   ASIC_TYPE_TOMAHAWK6 = 18,
   ASIC_TYPE_AGERA3 = 19,
   ASIC_TYPE_G202X = 20,
-  ASIC_TYPE_FAKE_NO_WARMBOOT = 21,
+  ASIC_TYPE_Q4D = 21,
+  ASIC_TYPE_FAKE_NO_WARMBOOT = 22,
 }
 /**
  * The configuration for an interface
