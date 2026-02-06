@@ -462,7 +462,7 @@ void Utils::printGpio(const Gpio& gpio) {
   struct gpiod_chip* chip = gpiod_chip_open(gpio.path()->c_str());
   for (const auto& line : *gpio.lines()) {
     std::cout << fmt::format(
-        "line {:>3}:   {:<15} -> ", *line.lineIndex(), *line.name());
+        "line {:>2}: {:<15} -> ", *line.lineIndex(), *line.name());
     try {
       std::cout << GpiodLine(chip, *line.lineIndex(), *line.name()).getValue()
                 << std::endl;
@@ -471,7 +471,9 @@ void Utils::printGpio(const Gpio& gpio) {
                 << std::endl;
     }
   }
-  gpiod_chip_close(chip);
+  if (chip) {
+    gpiod_chip_close(chip);
+  }
   std::cout << std::endl;
 }
 
