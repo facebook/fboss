@@ -23,7 +23,6 @@ def execute_build_in_container(
     command: list[str],
     volumes: dict[Path, Path],
     component_name: str,
-    privileged: bool = False,
     working_dir: str | None = None,
     dependency_install_paths: dict[str, Path] | None = None,
 ) -> None:
@@ -34,7 +33,6 @@ def execute_build_in_container(
         command: Command to execute as list
         volumes: Host to container path mappings
         component_name: Component name
-        privileged: Run in privileged mode
         working_dir: Working directory in container
         dependency_install_paths: Dict mapping dependency names to their container mount paths
                                   (e.g., {'kernel': Path('/deps/kernel')})
@@ -66,7 +64,7 @@ def execute_build_in_container(
             image=image_name,
             command=cmd_list,
             volumes=volumes,
-            privileged=privileged,
+            privileged=True,
             working_dir=working_dir,
         )
 

@@ -23,6 +23,7 @@ TARGET_NAMES = ("agent-benchmarks", "forwarding-stack", "platform-stack")
 FORWARDING_BINARIES = [
     "diag_shell_client",
     "fboss2",
+    "fboss2-dev",
     "fboss_hw_agent-sai_impl",
     "fboss_sw_agent",
     "fsdb",
