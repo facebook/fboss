@@ -2,7 +2,7 @@
 [Unit]
 Description=FBOSS Initialization
 DefaultDependencies=no
-Before=platform_manager.service
+After=platform_manager.service
 After=local-fs.target
 
 [Service]
