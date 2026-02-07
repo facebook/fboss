@@ -9,17 +9,38 @@
  */
 
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
+#include "fboss/cli/fboss2/CmdList.h"
+#include "fboss/cli/fboss2/gen-cpp2/cli_types.h"
+#include "fboss/cli/fboss2/utils/AggregateOp.h"
+#include "fboss/cli/fboss2/utils/AggregateUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 #include "thrift/lib/cpp2/protocol/Serializer.h"
 
+#include <fmt/format.h>
+#include <folly/Conv.h>
+#include <folly/Demangle.h>
+#include <folly/ScopeGuard.h>
+#include <folly/Traits.h>
 #include <folly/logging/xlog.h>
+#include <folly/stop_watch.h>
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
+#include <exception>
 #include <future>
 #include <iostream>
+#include <map>
+#include <memory>
+#include <optional>
 #include <queue>
 #include <stdexcept>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 template <typename CmdTypeT>
 void printTabular(
@@ -154,20 +175,10 @@ void printAggregate(
 
 namespace facebook::fboss {
 
-static bool hasRun = false;
-
 template <typename CmdTypeT, typename CmdTypeTraits>
 void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
-  // Parsing library invokes every chained command handler, but we only need
-  // the 'leaf' command handler to be invoked. Thus, after the first (leaf)
-  // command handler is invoked, simply return.
-  // TODO: explore if the parsing library provides a better way to implement
-  // this.
-  if (hasRun) {
-    return;
-  }
-
-  hasRun = true;
+  // Note: The callback wrapper in CmdSubcommands.cpp ensures that only the
+  // leaf command handler is invoked. It checks if get_subcommands() is empty.
   auto extraOptionsEC =
       CmdGlobalOptions::getInstance()->validateNonFilterOptions();
   if (extraOptionsEC != cli::CliOptionResult::EOK) {
@@ -273,11 +284,19 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
     }
   }
 
-  // Collect errors and display at end of execution
+  // Collect errors and display at end of execution, then throw if any failures
+  std::string combinedErrors;
   while (!executionFailures.empty()) {
     auto [host, errStr] = executionFailures.front();
     executionFailures.pop();
     XLOG(ERR) << host << " - Error in command execution: " << errStr;
+    if (!combinedErrors.empty()) {
+      combinedErrors += "; ";
+    }
+    combinedErrors += fmt::format("{}: {}", host, errStr);
+  }
+  if (!combinedErrors.empty()) {
+    throw std::runtime_error(combinedErrors);
   }
 }
 
@@ -312,7 +331,9 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
     runHelper();
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
-    exit(1);
+    // Rethrow so the caller can handle appropriately (e.g., tests can catch and
+    // check exit codes, CLI main() can exit with non-zero status)
+    throw;
   }
 }
 
