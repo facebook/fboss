@@ -115,17 +115,20 @@ fi
 # across container runs
 scratch_root="/build"
 if [ "$need_sai" -eq 1 ]; then
-  common_root="${scratch_root}/forwarding-stack/common"
   build_dir="${scratch_root}/forwarding-stack/${sai_name}"
 else
-  common_root="${scratch_root}/platform-stack/common"
   build_dir="${scratch_root}/platform-stack"
 fi
 mkdir -p "$build_dir"
 
+common_root="${scratch_root}/common"
+
 common_options='--allow-system-packages'
 common_options+=' --scratch-path '$build_dir
 common_options+=' --src-dir .'
+common_options+=' --extra-cmake-defines {'
+common_options+='"RANGE_V3_TESTS":"OFF"'
+common_options+=',"RANGE_V3_PERF":"OFF"}'
 common_options+=' fboss'
 
 # Share download / repo / extracted caches across different types of builds
@@ -193,13 +196,13 @@ fi
 
 # Install system dependencies
 echo "Installing system dependencies..."
-time nice -n 10 ./build/fbcode_builder/getdeps.py install-system-deps \
+time nice -n 10 ./fboss/oss/scripts/run-getdeps.py install-system-deps \
   --recursive \
   ${common_options}
 
 # Build dependencies
 echo "Building FBOSS dependencies..."
-time nice -n 10 ./build/fbcode_builder/getdeps.py build \
+time nice -n 10 ./fboss/oss/scripts/run-getdeps.py build \
   --only-deps \
   ${common_options}
 
@@ -208,7 +211,7 @@ echo "Get deps SUCCESS"
 # Build FBOSS stack
 echo "Building FBOSS ${stack_label} stack..."
 
-time nice -n 10 ./build/fbcode_builder/getdeps.py build \
+time nice -n 10 ./fboss/oss/scripts/run-getdeps.py build \
   --no-deps \
   --build-type "${BUILD_TYPE:-MinSizeRel}" \
   --cmake-target "$cmake_target" \

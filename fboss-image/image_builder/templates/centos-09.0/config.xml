@@ -70,6 +70,7 @@
 
     <packages type="image">
         <!-- Do not install any specific kernel package, those are done in config.sh -->
+        <package name="epel-release"/>
         <package name="syslinux"/>
         <package name="gdisk"/>
         <package name="grub2"/>
@@ -120,7 +121,6 @@
         <package name="python3.12"/>
         <package name="nvme-cli"/>
         <package name="re2"/>
-        <package name="libnl3"/>
         <package name="libsodium"/>
         <package name="double-conversion"/>
         <package name="libdwarf"/>
@@ -129,12 +129,10 @@
         <package name="libgpiod"/>
         <package name="glog"/>
         <package name="python3-pip"/>
-        <package name="python3.12"/>
         <package name="lz4"/>
         <package name="zstd"/>
         <package name="libusbx"/>
         <package name="dmidecode"/>
-        <package name="nvme-cli"/>
         <package name="createrepo"/>
     </packages>
 

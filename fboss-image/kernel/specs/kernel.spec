@@ -88,7 +88,7 @@ Requires: kernel-headers = %{epoch}:%{version}-%{release}
 # Must pass CC= on make command line because Makefile variables override env vars
 KERNEL_CC="${CC:-gcc}"
 
-JOBS="$(nproc)"
+JOBS="${JOBS:-$(($(nproc) * 5 / 4 ))}"
 
 # Build kernel and modules with correct KERNELRELEASE
 # This ensures uname -r returns the full version-release-arch string

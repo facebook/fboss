@@ -329,7 +329,6 @@ class ComponentBuilder:
             command=container_cmd,
             volumes=volumes,
             component_name=self.component_name,
-            privileged=False,
             working_dir=working_dir,
             dependency_install_paths=(
                 dependency_install_paths if dependency_install_paths else None
@@ -339,5 +338,5 @@ class ComponentBuilder:
         return find_artifact_in_dir(
             output_dir=dist_dir,
             pattern=artifact_pattern,
-            component_name=self.component_name.capitalize(),
+            component_name=self.component_name,
         )

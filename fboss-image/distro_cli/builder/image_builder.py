@@ -33,6 +33,7 @@ COMPONENT_ARTIFACT_PATTERNS = {
     "fboss-platform-stack": "fboss-platform-stack-*.tar",
     "fboss-forwarding-stack": "fboss-forwarding-stack-*.tar",
     "bsps": "bsp-*.tar",
+    "other_dependencies": "*.rpm",
 }
 
 
