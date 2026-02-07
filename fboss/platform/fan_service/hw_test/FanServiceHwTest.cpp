@@ -15,10 +15,10 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
+#include "fboss/lib/ThriftServiceUtils.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/fan_service/Bsp.h"
 #include "fboss/platform/fan_service/FanServiceHandler.h"
-#include "fboss/platform/helpers/Init.h"
 
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::fan_service;
@@ -80,7 +80,7 @@ TEST_F(FanServiceHwTest, FanStatusesThrift) {
       std::make_shared<FanServiceHandler>(std::move(controlLogic_));
   apache::thrift::ScopedServerInterfaceThread server(
       fanServiceHandler,
-      facebook::fboss::platform::helpers::createTestThriftServerConfig());
+      facebook::fboss::ThriftServiceUtils::createTestThriftServerConfig());
   auto client = server.newClient<apache::thrift::Client<FanService>>();
 
   FanStatusesResponse resp;
