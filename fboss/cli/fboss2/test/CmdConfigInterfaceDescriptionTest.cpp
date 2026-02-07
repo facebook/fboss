@@ -13,6 +13,7 @@
 
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/session/Git.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 #include "fboss/cli/fboss2/test/TestableConfigSession.h"
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
@@ -45,18 +46,21 @@ class CmdConfigInterfaceDescriptionTestFixture : public CmdHandlerTestBase {
     }
 
     // Create test directories
+    // Structure: systemConfigDir_ = testEtcDir_/coop (git repo root)
+    //   - agent.conf (symlink -> cli/agent.conf)
+    //   - cli/agent.conf (actual config file)
     fs::create_directories(testHomeDir_);
-    fs::create_directories(testEtcDir_ / "coop");
-    fs::create_directories(testEtcDir_ / "coop" / "cli");
+    systemConfigDir_ = testEtcDir_ / "coop";
+    fs::create_directories(systemConfigDir_ / "cli");
 
     // NOLINTNEXTLINE(concurrency-mt-unsafe,misc-include-cleaner)
     setenv("HOME", testHomeDir_.c_str(), 1);
     // NOLINTNEXTLINE(concurrency-mt-unsafe,misc-include-cleaner)
     setenv("USER", "testuser", 1);
 
-    // Create a test system config file as agent-r1.conf in the cli directory
-    fs::path initialRevision = testEtcDir_ / "coop" / "cli" / "agent-r1.conf";
-    createTestConfig(initialRevision, R"({
+    // Create a test system config file at cli/agent.conf
+    fs::path cliConfigPath = systemConfigDir_ / "cli" / "agent.conf";
+    createTestConfig(cliConfigPath, R"({
   "sw": {
     "ports": [
       {
@@ -77,17 +81,19 @@ class CmdConfigInterfaceDescriptionTestFixture : public CmdHandlerTestBase {
   }
 })");
 
-    // Create symlink at agent.conf pointing to agent-r1.conf
-    systemConfigPath_ = testEtcDir_ / "coop" / "agent.conf";
-    fs::create_symlink(initialRevision, systemConfigPath_);
+    // Create symlink at /etc/coop/agent.conf -> cli/agent.conf
+    fs::create_symlink("cli/agent.conf", systemConfigDir_ / "agent.conf");
+
+    // Initialize Git repository and create initial commit
+    Git git(systemConfigDir_.string());
+    git.init();
+    git.commit({cliConfigPath.string()}, "Initial commit");
 
     // Initialize the ConfigSession singleton for all tests
-    fs::path sessionConfig = testHomeDir_ / ".fboss2" / "agent.conf";
+    fs::path sessionDir = testHomeDir_ / ".fboss2";
     TestableConfigSession::setInstance(
         std::make_unique<TestableConfigSession>(
-            sessionConfig.string(),
-            systemConfigPath_.string(),
-            (testEtcDir_ / "coop" / "cli").string()));
+            sessionDir.string(), systemConfigDir_.string()));
   }
 
   void TearDown() override {
@@ -112,7 +118,7 @@ class CmdConfigInterfaceDescriptionTestFixture : public CmdHandlerTestBase {
 
   fs::path testHomeDir_;
   fs::path testEtcDir_;
-  fs::path systemConfigPath_;
+  fs::path systemConfigDir_;
 };
 
 // Test setting description on a single existing interface

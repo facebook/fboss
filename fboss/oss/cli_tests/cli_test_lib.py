@@ -239,3 +239,119 @@ def find_first_eth_interface() -> Interface:
 def commit_config() -> None:
     """Commit the current configuration session."""
     run_cli(["config", "session", "commit"])
+
+
+# Paths for config files
+SYSTEM_CONFIG_PATH = "/etc/coop/agent.conf"
+SESSION_CONFIG_PATH = os.path.expanduser("~/.fboss2/agent.conf")
+
+
+def cleanup_config(
+    modify_config: Callable[[dict[str, Any]], None],
+    description: str = "test configs",
+) -> None:
+    """
+    Common cleanup helper that modifies the config and commits the changes.
+
+    This function:
+    1. Copies the system config to the session config
+    2. Loads the config JSON
+    3. Calls the modify_config callback to modify the sw config
+    4. Writes the modified config back
+    5. Updates metadata for AGENT_RESTART
+    6. Commits the cleanup
+
+    Args:
+        modify_config: A callable that takes the sw config dict and modifies it
+                       in place to remove test-specific configurations.
+        description: A description of what is being cleaned up (for logging).
+    """
+    import shutil
+
+    session_dir = os.path.dirname(SESSION_CONFIG_PATH)
+    metadata_path = os.path.join(session_dir, "cli_metadata.json")
+
+    print("  Copying system config to session config...")
+    os.makedirs(session_dir, exist_ok=True)
+    shutil.copy(SYSTEM_CONFIG_PATH, SESSION_CONFIG_PATH)
+
+    print(f"  Removing {description}...")
+    with open(SESSION_CONFIG_PATH, "r") as f:
+        config = json.load(f)
+
+    sw_config = config.get("sw", {})
+    modify_config(sw_config)
+
+    with open(SESSION_CONFIG_PATH, "w") as f:
+        json.dump(config, f, indent=2)
+
+    # Update metadata to require AGENT_RESTART
+    print("  Updating metadata for AGENT_RESTART...")
+    metadata = {
+        "action": {"WEDGE_AGENT": "AGENT_RESTART"},
+        "commands": [],
+        "base": "",
+    }
+    with open(metadata_path, "w") as f:
+        json.dump(metadata, f, indent=2)
+
+    print("  Committing cleanup...")
+    commit_config()
+
+
+def running_config() -> dict[str, Any]:
+    """
+    Get the running configuration from the FBOSS agent.
+
+    Returns the nested JSON payload, skipping the initial 'localhost' level.
+    This allows direct access to the configuration without needing to iterate
+    over host keys.
+
+    Returns:
+        The configuration dict containing 'sw', 'platform', etc.
+    """
+    data = run_cli(["show", "running-config"])
+
+    # The JSON has a host key (e.g., "localhost") containing a JSON string
+    for host_data_str in data.values():
+        # The value is a JSON string that needs to be parsed
+        if isinstance(host_data_str, str):
+            return json.loads(host_data_str)
+        return host_data_str
+
+    return {}
+
+
+def wait_for_agent_ready(max_wait_seconds: int = 60) -> bool:
+    """
+    Wait for the wedge_agent to be ready after a restart.
+
+    The agent restart typically takes 40-50 seconds. We wait for an initial
+    period and then poll until the agent responds with valid data.
+
+    Args:
+        max_wait_seconds: Maximum time to wait for the agent to be ready.
+
+    Returns:
+        True if the agent is ready, False if timeout.
+    """
+    # Initial delay - agent restart takes significant time
+    # This avoids noisy polling during the restart
+    initial_wait = 30
+    print(f"  Sleeping {initial_wait}s for agent restart...")
+    time.sleep(initial_wait)
+
+    # Now poll until agent is ready or timeout
+    start_time = time.time()
+    remaining = max_wait_seconds - initial_wait
+    while time.time() - start_time < remaining:
+        try:
+            # Try to get the running config - if it works, agent is ready
+            data = run_cli(["show", "running-config"], check=False)
+            # Make sure we got valid data (not empty due to connection issues)
+            if data and any(data.values()):
+                return True
+        except (RuntimeError, json.JSONDecodeError):
+            pass
+        time.sleep(2)
+    return False
