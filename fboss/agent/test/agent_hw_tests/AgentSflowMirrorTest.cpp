@@ -33,12 +33,14 @@
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/MultiPortTrafficTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 DEFINE_int32(sflow_test_rate, 90000, "sflow sampling rate for hw test");
@@ -1418,6 +1420,86 @@ class AgentSflowMirrorTruncateWithSamplesPackingTestV6
     EXPECT_EQ(sflowPacketCount, 1);
     // Verify packing!
     // TODO: Inspect packet for the samples!
+  }
+};
+
+// Test class for sflow mirror with remote system port as destination
+// This tests that sflow packets are correctly sent to a remote system port
+// via the VOQ infrastructure.
+class AgentSflowMirrorRemoteSystemPortTest
+    : public AgentSflowMirrorTruncateTest<folly::IPAddressV6> {
+ public:
+  static constexpr auto kRemotePortId = 401;
+  const SystemPortID kRemoteSysPortId{kRemotePortId};
+  const InterfaceID kRemoteIntfId{kRemotePortId};
+  const folly::IPAddressV6 kRemoteIntfIpV6{"100::1"};
+
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::SFLOWv6_SAMPLING,
+        ProductionFeature::MIRROR_PACKET_TRUNCATION,
+        ProductionFeature::VOQ};
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentSflowMirrorTruncateTest<folly::IPAddressV6>::initialConfig(
+        ensemble);
+    // Add remote interface node to DSF config
+    cfg.dsfNodes() = *utility::addRemoteIntfNodeCfg(*cfg.dsfNodes(), 1);
+    return cfg;
+  }
+
+  // Helper to get port name from port ID
+  std::string getPortName(PortID portId) {
+    auto port = getProgrammedState()->getPorts()->getNodeIf(portId);
+    return port ? port->getName()
+                : folly::sformat("unknown({})", static_cast<int>(portId));
+  }
+
+  // Helper to log port statistics for debugging
+  void logPortStats(const std::string& context, const PortID& portId) {
+    auto portStats = getLatestPortStats(portId);
+    auto portName = getPortName(portId);
+    XLOG(DBG2) << context << " - Port " << portName
+               << " stats: outUnicastPkts=" << *portStats.outUnicastPkts_()
+               << ", inUnicastPkts=" << *portStats.inUnicastPkts_();
+  }
+
+  // Helper to log system port VOQ statistics for debugging
+  void logSysPortStats(const std::string& context, SystemPortID sysPortId) {
+    auto sysPortStats = getLatestSysPortStats(sysPortId);
+    XLOG(DBG2) << context << " - System port " << sysPortId << " VOQ stats:";
+    for (const auto& [queueId, bytes] : *sysPortStats.queueOutBytes_()) {
+      XLOG(DBG2) << "  Queue " << queueId << ": outBytes=" << bytes;
+    }
+  }
+
+  // Set up route for traffic to be forwarded when sent to a specific destIp
+  void setupTrafficRoute(const PortID& egressPort) {
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    // Use a different MAC to avoid looping - add 10 to the last byte
+    auto nbrMac = folly::MacAddress::fromHBO(intfMac.u64HBO() + 10);
+
+    utility::EcmpSetupTargetedPorts6 ecmpHelper{
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), nbrMac};
+
+    const PortDescriptor port(egressPort);
+    RoutePrefixV6 route{folly::IPAddressV6(getTrafficDestinationIp(1)), 128};
+
+    XLOG(DBG2) << "Setting up route for dest IP " << route.network() << "/"
+               << static_cast<int>(route.mask()) << " to egress "
+               << getPortName(egressPort)
+               << " with neighbor MAC: " << nbrMac.toString();
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.resolveNextHops(state, {port});
+    });
+
+    auto routeUpdater = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
   }
 };
 
