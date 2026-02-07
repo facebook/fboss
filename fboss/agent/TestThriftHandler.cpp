@@ -21,9 +21,9 @@ namespace {
 
 const std::set<std::string> kServicesSupportingRestart() {
   static const std::set<std::string> servicesSupportingRestart = {
-      "wedge_agent_test",
-      "fsdb",
-      "qsfp_service",
+      "fboss_sw_agent_test",
+      "fsdb_service_for_testing",
+      "qsfp_service_for_testing",
       "bgp",
   };
 
@@ -78,7 +78,7 @@ void TestThriftHandler::ungracefullyRestartService(
             *serviceName));
   }
 
-  if (*serviceName == "wedge_agent_test") {
+  if (*serviceName == "fboss_sw_agent_test") {
     std::string fileToCreate = "/dev/shm/fboss/warm_boot/cold_boot_once_0";
     auto cmd = folly::to<std::string>(
         "touch ", fileToCreate, " && systemctl restart ", *serviceName);
@@ -94,7 +94,7 @@ void TestThriftHandler::gracefullyRestartServiceWithDelay(
     int32_t delayInSeconds) {
   XLOG(INFO) << __func__;
 
-  if (*serviceName != "wedge_agent_test") {
+  if (*serviceName != "fboss_sw_agent_test") {
     throw std::runtime_error(
         folly::to<std::string>(
             "Failed to restart with delay. Unsupported service: ",
