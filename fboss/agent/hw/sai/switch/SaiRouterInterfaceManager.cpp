@@ -111,13 +111,28 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
         static_cast<uint32_t>(swInterface->getMtu()));
   }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+  // Enable MPLS admin state if supported
+  std::optional<SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState>
+      adminMplsStateAttribute = std::nullopt;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::MPLS)) {
+    adminMplsStateAttribute =
+        SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState(true);
+  }
+#endif
+
   // create the router interface
   SaiVlanRouterInterfaceTraits::CreateAttributes attributes{
       virtualRouterIdAttribute,
       typeAttribute,
       vlanIdAttribute,
       srcMacAttribute,
-      mtuAttribute};
+      mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      ,
+      adminMplsStateAttribute
+#endif
+  };
   SaiVlanRouterInterfaceTraits::AdapterHostKey k{
       virtualRouterIdAttribute,
       vlanIdAttribute,
@@ -178,13 +193,29 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
       swInterface->getType() == cfg::InterfaceType::SYSTEM_PORT
       ? getSystemPortId(swInterface)
       : getPortId(swInterface);
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+  // Enable MPLS admin state if supported
+  std::optional<SaiPortRouterInterfaceTraits::Attributes::AdminMplsState>
+      adminMplsStateAttribute = std::nullopt;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::MPLS)) {
+    adminMplsStateAttribute =
+        SaiPortRouterInterfaceTraits::Attributes::AdminMplsState(true);
+  }
+#endif
+
   // create the router interface
   SaiPortRouterInterfaceTraits::CreateAttributes attributes{
       virtualRouterIdAttribute,
       typeAttribute,
       portIdAttribute,
       srcMacAttribute,
-      mtuAttribute};
+      mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      ,
+      adminMplsStateAttribute
+#endif
+  };
   SaiPortRouterInterfaceTraits::AdapterHostKey k{
       virtualRouterIdAttribute,
       portIdAttribute,
