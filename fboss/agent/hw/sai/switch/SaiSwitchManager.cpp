@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
+#include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
@@ -1328,7 +1329,30 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
         errorStats.dramDataPathPacketError().value_or(0);
   }
 
-  if (switchDropStats.size() || errorDropStats.size()) {
+  // Read switch debug counter stats (L2, L3, Tunnel drops)
+  auto& debugCounterMgr = managerTable_->debugCounterManager();
+  auto switchDebugStatIds = debugCounterMgr.getConfiguredSwitchDebugStatIds();
+  if (switchDebugStatIds.size()) {
+    std::vector<sai_stat_id_t> debugStatsVec(
+        switchDebugStatIds.begin(), switchDebugStatIds.end());
+    switch_->updateStats(debugStatsVec, SAI_STATS_MODE_READ);
+    auto debugStatValues = switch_->getStats(debugStatsVec);
+    for (const auto& [statId, value] : debugStatValues) {
+      if (statId == debugCounterMgr.getL2SwitchDropCounterStatId()) {
+        switchDropStats_.switchL2InDrops() =
+            switchDropStats_.switchL2InDrops().value_or(0) + value;
+      } else if (statId == debugCounterMgr.getL3SwitchDropCounterStatId()) {
+        switchDropStats_.switchL3InDrops() =
+            switchDropStats_.switchL3InDrops().value_or(0) + value;
+      } else if (statId == debugCounterMgr.getTunnelSwitchDropCounterStatId()) {
+        switchDropStats_.switchTunnelInDrops() =
+            switchDropStats_.switchTunnelInDrops().value_or(0) + value;
+      }
+    }
+  }
+
+  if (switchDropStats.size() || errorDropStats.size() ||
+      switchDebugStatIds.size()) {
     platform_->getHwSwitch()->getSwitchStats()->update(switchDropStats_);
   }
   auto switchDramStats = supportedDramStats();

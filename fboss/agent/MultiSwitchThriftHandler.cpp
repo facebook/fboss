@@ -128,6 +128,23 @@ void MultiSwitchThriftHandler::processLinkConnectivity(
   sw_->linkConnectivityChanged(port2ConnectivityDelta);
 }
 
+void MultiSwitchThriftHandler::processLinkDisabledByFirmware(
+    SwitchID switchId,
+    const multiswitch::LinkChangeEvent& linkChangeEvent) {
+  if (linkChangeEvent.linkFwDisableEvent()->portIds()->size() == 0) {
+    return;
+  }
+  XLOG(DBG3) << "Got link disabled by firmware event from switch " << switchId
+             << " for : "
+             << linkChangeEvent.linkFwDisableEvent()->portIds()->size()
+             << " ports";
+
+  std::vector<int32_t> portIds(
+      linkChangeEvent.linkFwDisableEvent()->portIds()->begin(),
+      linkChangeEvent.linkFwDisableEvent()->portIds()->end());
+  sw_->linkAdminStateChangedByFw(portIds);
+}
+
 void MultiSwitchThriftHandler::processSwitchReachabilityChangeEvent(
     SwitchID switchId,
     const multiswitch::SwitchReachabilityChangeEvent&
@@ -172,6 +189,9 @@ MultiSwitchThriftHandler::co_notifyLinkChangeEvent(int64_t switchId) {
                 break;
               case multiswitch::LinkChangeEventType::LINK_CONNECTIVITY:
                 processLinkConnectivity(SwitchID(switchId), *item);
+                break;
+              case multiswitch::LinkChangeEventType::LINK_DISABLED_BY_FIRMWARE:
+                processLinkDisabledByFirmware(SwitchID(switchId), *item);
                 break;
               case multiswitch::LinkChangeEventType::INVALID:
                 XLOG(ERR) << "Invalid link event type";

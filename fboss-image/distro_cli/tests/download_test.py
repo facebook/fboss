@@ -19,7 +19,7 @@ import unittest
 from pathlib import Path
 
 from distro_cli.lib.artifact import ArtifactStore
-from distro_cli.lib.download import HTTP_METADATA_FILENAME, download_artifact
+from distro_cli.lib.download import download_artifact, HTTP_METADATA_FILENAME
 from distro_cli.tests.test_helpers import enter_tempdir, override_artifact_store_dir
 
 

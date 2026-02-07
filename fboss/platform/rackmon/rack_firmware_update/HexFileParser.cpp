@@ -13,7 +13,6 @@
 
 #include <fstream>
 #include <sstream>
-#include <stdexcept>
 
 namespace facebook::fboss::platform::rackmon {
 

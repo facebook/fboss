@@ -3,6 +3,9 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+# Prevent multiple inclusions
+include_guard(GLOBAL)
+
 # distro_cli requires Python 3.10+ with widespread use of union type syntax
 # Save and temporarily override Python3_EXECUTABLE
 if(DEFINED Python3_EXECUTABLE)

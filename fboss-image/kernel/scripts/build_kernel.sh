@@ -27,10 +27,6 @@ CONTAINER_SPECS_DIR="$KERNEL_ROOT/specs"
 CONTAINER_CONFIGS_DIR="$KERNEL_ROOT/configs"
 CONTAINER_SCRIPTS_DIR="$KERNEL_ROOT/scripts"
 
-# Debug: verify sccache config before build
-sccache --stop-server 2>/dev/null || true
-sccache --start-server
-
 # Install kernel build dependencies
 bash "$CONTAINER_SCRIPTS_DIR/setup_kernel_build_deps.sh"
 
@@ -64,7 +60,6 @@ rpmbuild -ba "$CONTAINER_SPECS_DIR/kernel.spec" \
   exit 1
 }
 echo "$(date) Kernel build completed successfully"
-sccache -s
 
 # Copy RPMs to output directory
 cp -r RPMS/* "$OUT_DIR"/ 2>/dev/null

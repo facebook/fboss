@@ -71,10 +71,14 @@ class DataCorralServiceHwTest : public ::testing::Test {
 
  protected:
   DataCorralFruidReadResponse getFruid(bool uncached) {
-    auto client = apache::thrift::makeTestClient(thriftHandler_);
-    DataCorralFruidReadResponse resp;
-    client->sync_getFruid(resp, uncached);
-    return resp;
+    apache::thrift::ScopedServerInterfaceThread server(
+        thriftHandler_,
+        facebook::fboss::platform::helpers::createTestThriftServerConfig());
+    auto client =
+        server.newClient<apache::thrift::Client<DataCorralServiceThrift>>();
+    DataCorralFruidReadResponse response;
+    client->sync_getFruid(response, uncached);
+    return response;
   }
 
   std::shared_ptr<FruPresenceExplorer> fruPresenceExplorer_;
@@ -133,15 +137,6 @@ TEST_F(DataCorralServiceHwTest, getCachedFruid) {
 
 TEST_F(DataCorralServiceHwTest, getUncachedFruid) {
   EXPECT_GT(getFruid(true).fruidData()->size(), 0);
-}
-
-TEST_F(DataCorralServiceHwTest, testThrift) {
-  apache::thrift::ScopedServerInterfaceThread server(thriftHandler_);
-  auto client =
-      server.newClient<apache::thrift::Client<DataCorralServiceThrift>>();
-  DataCorralFruidReadResponse response;
-  client->sync_getFruid(response, false);
-  EXPECT_GT(response.fruidData()->size(), 0);
 }
 
 int main(int argc, char* argv[]) {

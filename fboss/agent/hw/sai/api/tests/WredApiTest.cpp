@@ -32,8 +32,7 @@ class WredApiTest : public ::testing::Test {
       const sai_uint32_t greenDropProbability,
       const sai_ecn_mark_mode_t ecnMarkMode,
       const sai_uint32_t ecnGreenMinThreshold,
-      const sai_uint32_t ecnGreenMaxThreshold,
-      const sai_uint32_t ecnGreenMarkProbability = 100) const {
+      const sai_uint32_t ecnGreenMaxThreshold) const {
     SaiWredTraits::Attributes::GreenEnable greenEnableAttribute{greenEnable};
     SaiWredTraits::Attributes::GreenMinThreshold greenMinThresholdAttribute{
         greenMinThreshold};
@@ -46,8 +45,6 @@ class WredApiTest : public ::testing::Test {
         ecnGreenMinThresholdAttribute{ecnGreenMinThreshold};
     SaiWredTraits::Attributes::EcnGreenMaxThreshold
         ecnGreenMaxThresholdAttribute{ecnGreenMaxThreshold};
-    SaiWredTraits::Attributes::EcnGreenMarkProbability
-        ecnGreenMarkProbabilityAttribute{ecnGreenMarkProbability};
 
     return wredApi->create<SaiWredTraits>(
         {greenEnableAttribute,
@@ -56,8 +53,7 @@ class WredApiTest : public ::testing::Test {
          greenDropProbabilityAttribute,
          ecnMarkModeAttribute,
          ecnGreenMinThresholdAttribute,
-         ecnGreenMaxThresholdAttribute,
-         ecnGreenMarkProbabilityAttribute},
+         ecnGreenMaxThresholdAttribute},
         0);
   }
 

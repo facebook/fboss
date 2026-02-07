@@ -1202,3 +1202,6 @@ if (GITHUB_ACTIONS_BUILD)
     fsdb_all_services
   )
 endif()
+
+# FBOSS Image Builder distro_cli tests
+include(cmake/FbossImageDistroCliTests.cmake)

@@ -579,6 +579,8 @@ class SwSwitch : public HwSwitchCallback {
       const std::map<PortID, bool>& port2IsActive,
       bool fwIsolated,
       const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate) override;
+  void linkAdminStateChangedByFw(
+      const std::vector<int32_t>& fwDisabledPortIds) override;
   void linkConnectivityChanged(
       const std::map<PortID, multiswitch::FabricConnectivityDelta>&
           port2OldAndNewConnectivity) override;

@@ -35,4 +35,5 @@ target_link_libraries(platform_utils
   Folly::folly
   FBThrift::thriftcpp2
   ${RE2}
+  thrift_service_utils
 )

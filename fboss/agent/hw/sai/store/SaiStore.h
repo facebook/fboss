@@ -646,6 +646,7 @@ class SaiStore {
 #endif
       SaiObjectStore<SaiInPortDebugCounterTraits>,
       SaiObjectStore<SaiOutPortDebugCounterTraits>,
+      SaiObjectStore<SaiInSwitchDebugCounterTraits>,
       SaiObjectStore<SaiSystemPortTraits>,
       SaiObjectStore<SaiPortTraits>,
       SaiObjectStore<SaiUdfTraits>,

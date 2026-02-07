@@ -413,6 +413,7 @@ class PhyManager {
   void updatePortStats(
       PortID portID,
       const PimID& pimID,
+      const GlobalXphyID& xphyID,
       phy::ExternalPhy* xphy,
       const PortStatsWLockedPtr& wLockedStats,
       folly::EventBase* pimEvb);

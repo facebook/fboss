@@ -2,6 +2,7 @@
 from typing import Dict, List, Optional, Set
 
 import neteng.fboss.platform_mapping_config.ttypes as pm_types
+from neteng.fboss.platform_mapping_config.ttypes import ChipType
 
 TX = "TX"
 RX = "RX"
@@ -81,13 +82,15 @@ class StaticMapping:
         lane_dict = {}
         for a in self._a_values:
             if (
-                a.chip.core_id == core_id
+                a.chip.chip_type == ChipType.NPU
+                and a.chip.core_id == core_id
                 and direction == TX
                 and a.lane.tx_physical_lane is not None
             ):
                 lane_dict[a.lane.logical_id] = a.lane.tx_physical_lane
             elif (
-                a.chip.core_id == core_id
+                a.chip.chip_type == ChipType.NPU
+                and a.chip.core_id == core_id
                 and direction == RX
                 and a.lane.rx_physical_lane is not None
             ):
@@ -106,7 +109,8 @@ class StaticMapping:
     ) -> Dict[int, pm_types.TxRxLaneInfo]:
         core_ids = []
         for a in self._a_values:
-            core_ids.append(a.chip.core_id)
+            if a.chip.chip_type == ChipType.NPU:
+                core_ids.append(a.chip.core_id)
         core_ids = set(core_ids)
         lane_map = {}
         for core_id in core_ids:
@@ -122,9 +126,17 @@ class StaticMapping:
     ) -> List[int]:
         pn_swap_dict = {}
         for a in self._a_values:
-            if a.chip.core_id == core_id and direction == TX:
+            if (
+                a.chip.chip_type == ChipType.NPU
+                and a.chip.core_id == core_id
+                and direction == TX
+            ):
                 pn_swap_dict[a.lane.logical_id] = 1 if a.lane.tx_polarity_swap else 0
-            elif a.chip.core_id == core_id and direction == RX:
+            elif (
+                a.chip.chip_type == ChipType.NPU
+                and a.chip.core_id == core_id
+                and direction == RX
+            ):
                 pn_swap_dict[a.lane.logical_id] = 1 if a.lane.rx_polarity_swap else 0
             else:
                 continue
@@ -140,7 +152,8 @@ class StaticMapping:
     ) -> Dict[int, pm_types.TxRxLaneInfo]:
         core_ids = []
         for a in self._a_values:
-            core_ids.append(a.chip.core_id)
+            if a.chip.chip_type == ChipType.NPU:
+                core_ids.append(a.chip.core_id)
         core_ids = set(core_ids)
         pn_swap_map = {}
         for core_id in core_ids:

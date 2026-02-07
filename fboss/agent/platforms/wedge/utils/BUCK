@@ -5,5 +5,4 @@ load(
 
 oncall("fboss_agent_push")
 
-bcm_led_utils(
-)
+bcm_led_utils()
