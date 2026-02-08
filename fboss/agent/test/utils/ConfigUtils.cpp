@@ -1133,7 +1133,8 @@ oneL3IntfTwoPortConfig(const SwSwitch* sw, PortID port1, PortID port2) {
       port1,
       port2,
       sw->getPlatformSupportsAddRemovePort(),
-      asic->desiredLoopbackModes());
+      asic->desiredLoopbackModes(),
+      sw->getPlatformType());
 }
 
 cfg::SwitchConfig oneL3IntfTwoPortConfig(
