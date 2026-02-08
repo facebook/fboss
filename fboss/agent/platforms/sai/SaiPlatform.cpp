@@ -994,6 +994,10 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
       std::nullopt, // enable PFC monitoring for the switch
       measureCableLengths, // enable cable propagation delay measurement
+#if defined(SAI_BRCM_PAI_IMPL)
+      std::nullopt, // SyncLock
+      std::nullopt, // SyncUnlock
+#endif
   };
 }
 
