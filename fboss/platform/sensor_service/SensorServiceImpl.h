@@ -38,6 +38,10 @@ class SensorServiceImpl {
   auto static constexpr kReadTotal = "sensor_read.total";
   auto static constexpr kTotalReadFailure = "sensor_read.total.failures";
   auto static constexpr kHasReadFailure = "sensor_read.has.failures";
+  auto static constexpr kAggHasCriticalThresholdViolation =
+      "sensor_read.agg.{}.has.critical_threshold_violation";
+  auto static constexpr kAggHasAlarmThresholdViolation =
+      "sensor_read.agg.{}.has.alarm_threshold_violation";
   auto static constexpr kAsicTemp = "asic_temp";
   auto static constexpr kTotalPower = "TOTAL_POWER";
   auto static constexpr kMaxInputVoltage = "MAX_INPUT_VOLTAGE";
@@ -95,6 +99,8 @@ class SensorServiceImpl {
   void publishDerivedStats(
       const std::string& entity,
       std::optional<float> value);
+
+  void publishAggStats(const std::map<std::string, SensorData>& polledData);
 
   void publishVersionedSensorStats(
       const std::string& pmUnitName,

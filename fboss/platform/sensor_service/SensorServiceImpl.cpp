@@ -12,7 +12,9 @@
 
 #include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
@@ -49,6 +51,13 @@ SensorStatsResult computeSensorStats(
       .criticalViolation = critViolation,
       .alarmViolation = alarmViolation,
   };
+}
+
+std::string sensorTypeName(
+    facebook::fboss::platform::sensor_config::SensorType type) {
+  auto name = apache::thrift::util::enumNameSafe(type);
+  folly::toLowerAscii(name);
+  return name;
 }
 
 } // namespace
@@ -91,7 +100,6 @@ std::map<std::string, SensorData> SensorServiceImpl::getAllSensorData() {
 
 void SensorServiceImpl::fetchSensorData() {
   std::map<std::string, SensorData> polledData;
-  uint readFailures{0};
   XLOG(INFO) << fmt::format(
       "Reading SensorData for {} PMUnits",
       sensorConfig_.pmUnitSensorsList()->size());
@@ -111,7 +119,6 @@ void SensorServiceImpl::fetchSensorData() {
           sensor.compute().to_optional());
       sensorData.slotPath() = *pmUnitSensors.slotPath();
       polledData[sensorName] = sensorData;
-      readFailures += computeSensorStats(sensorData).readFailure;
       publishPerSensorStats(sensorData);
     }
   }
@@ -121,7 +128,6 @@ void SensorServiceImpl::fetchSensorData() {
     auto sensorData = processAsicCmd(sensorConfig_.asicCommand().value());
     const auto& sensorName = *sensorConfig_.asicCommand()->sensorName();
     polledData[sensorName] = sensorData;
-    readFailures += computeSensorStats(sensorData).readFailure;
     publishPerSensorStats(sensorData);
   }
 
@@ -132,13 +138,8 @@ void SensorServiceImpl::fetchSensorData() {
   processInputVoltage(
       polledData, *sensorConfig_.powerConfig()->inputVoltageSensors());
 
-  fb303::fbData->setCounter(kReadTotal, polledData.size());
-  fb303::fbData->setCounter(kTotalReadFailure, readFailures);
-  fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
-  XLOG(INFO) << fmt::format(
-      "Summary: Processed {} Sensors. {} Failures.",
-      polledData.size(),
-      readFailures);
+  publishAggStats(polledData);
+
   polledData_.swap(polledData);
 
   if (FLAGS_publish_stats_to_fsdb) {
@@ -258,6 +259,39 @@ void SensorServiceImpl::publishPerSensorStats(const SensorData& sensorData) {
         fmt::format(kAlarmThresholdViolation, sensorName),
         stats.alarmViolation);
   }
+}
+
+void SensorServiceImpl::publishAggStats(
+    const std::map<std::string, SensorData>& polledData) {
+  std::map<SensorType, std::pair<bool, bool>> violationsBySensorType;
+  int totalReadFailures{0};
+
+  for (const auto& [_, sensorData] : polledData) {
+    auto stats = computeSensorStats(sensorData);
+    auto& [hasCritical, hasAlarm] =
+        violationsBySensorType[*sensorData.sensorType()];
+    hasCritical = hasCritical || stats.criticalViolation;
+    hasAlarm = hasAlarm || stats.alarmViolation;
+    totalReadFailures += stats.readFailure;
+  }
+
+  for (const auto& [sensorType, violations] : violationsBySensorType) {
+    auto typeName = sensorTypeName(sensorType);
+    fb303::fbData->setCounter(
+        fmt::format(kAggHasCriticalThresholdViolation, typeName),
+        violations.first);
+    fb303::fbData->setCounter(
+        fmt::format(kAggHasAlarmThresholdViolation, typeName),
+        violations.second);
+  }
+
+  fb303::fbData->setCounter(kReadTotal, polledData.size());
+  fb303::fbData->setCounter(kTotalReadFailure, totalReadFailures);
+  fb303::fbData->setCounter(kHasReadFailure, totalReadFailures > 0 ? 1 : 0);
+  XLOG(INFO) << fmt::format(
+      "Summary: Processed {} Sensors. {} Failures.",
+      polledData.size(),
+      totalReadFailures);
 }
 
 void SensorServiceImpl::publishDerivedStats(
