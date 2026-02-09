@@ -309,6 +309,7 @@ cpp_library(
         "commands/show/facebook/state/CmdShowStateDrain.cpp",
         "commands/show/facebook/techsupport/CmdShowTechSupport.cpp",
         "commands/show/fsdb/CmdShowFsdbDataCommon.cpp",
+        "commands/show/fsdb/CmdShowFsdbPublishers.cpp",
         "commands/show/fsdb/CmdShowFsdbSubscribers.cpp",
         "commands/show/fsdb/CmdShowFsdbUtils.cpp",
         "commands/show/hwagent/CmdShowHwAgentStatus.cpp",
