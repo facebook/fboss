@@ -416,6 +416,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperStats.h
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.h
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.cpp
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbUtils.cpp
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbUtils.h
   fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperState.h
