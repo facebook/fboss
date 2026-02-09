@@ -109,34 +109,38 @@ TEST_F(SensorServiceImplTest, getSomeSensors) {
   EXPECT_GE(*sensorData[0].timeStamp(), now);
 }
 
-TEST_F(SensorServiceImplTest, processTemperatureWithMockSensors) {
-  // Create a temperature configuration using mock sensors
-  using namespace facebook::fboss::platform::sensor_config;
-  TemperatureConfig tempConfig;
-  tempConfig.name() = "MOCK_TEMP";
-  tempConfig.temperatureSensorNames() = {
-      "MOCK_FRU_SENSOR1", "MOCK_FRU_SENSOR2", "MOCK_FRU_SENSOR3"};
-
-  // Add temperature configuration to the config
-  config_.temperatureConfigs() = {tempConfig};
-
-  // Create a new impl with the updated config
-  impl_ = std::make_shared<SensorServiceImpl>(config_);
-
-  // Fetch sensor data which will trigger processTemperature
+TEST_F(SensorServiceImplTest, publishPerSensorStats) {
+  // Success case
   impl_->fetchSensorData();
+  auto expectedSensors = getMockSensorData();
+  for (const auto& [sensorName, sensorValue] : expectedSensors) {
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadValue, sensorName)),
+        static_cast<int64_t>(sensorValue));
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadFailure, sensorName)),
+        0);
+  }
 
-  // Verify that temperature processing worked by checking the derived stats
-  // The maximum temperature should be from MOCK_FRU_SENSOR2 (11152°C)
-  // which gets truncated to 11152 when published as counter
-  auto derivedTempValue = fb303::fbData->getCounter(
-      fmt::format(SensorServiceImpl::kDerivedValue, "MOCK_TEMP_TEMP"));
-  EXPECT_EQ(derivedTempValue, 11152);
-
-  // Verify no failures occurred (all sensors should be found and have values)
-  auto derivedTempFailure = fb303::fbData->getCounter(
-      fmt::format(SensorServiceImpl::kDerivedFailure, "MOCK_TEMP_TEMP"));
-  EXPECT_EQ(derivedTempFailure, 0);
+  // Failure case: remove sysfs files and re-fetch
+  for (const auto& pmUnitSensors : *config_.pmUnitSensorsList()) {
+    for (const auto& pmSensors : *pmUnitSensors.sensors()) {
+      std::filesystem::remove(*pmSensors.sysfsPath());
+    }
+  }
+  impl_->fetchSensorData();
+  for (const auto& [sensorName, _] : expectedSensors) {
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadValue, sensorName)),
+        0);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadFailure, sensorName)),
+        1);
+  }
 }
 
 } // namespace facebook::fboss
