@@ -328,6 +328,7 @@ cpp_library(
         "commands/show/port/CmdShowPort.cpp",
         "commands/show/port/CmdShowPortQueue.cpp",
         "commands/show/product/CmdShowProduct.cpp",
+        "commands/show/product/CmdShowProductDetails.cpp",
         "commands/show/rif/CmdShowRif.cpp",
         "commands/show/route/utils.cpp",
         "commands/show/systemport/CmdShowSystemPort.cpp",
