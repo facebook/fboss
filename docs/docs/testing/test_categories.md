@@ -51,6 +51,11 @@ feel free to run all tests and work through them however you please.
 - all tests in `sensor_service_hw_test`
 - all tests in `weutil_hw_test`
 
+`run_test.py`:
+```bash
+./bin/run_test.py platform
+```
+
 ### Agent HW Tests
 
 `run_test.py`:
