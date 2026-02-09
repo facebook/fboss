@@ -11,44 +11,62 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
+#include <folly/FileUtil.h>
 #include <folly/Subprocess.h>
-#include <filesystem>
-
-namespace fs = std::filesystem;
 
 namespace facebook::fboss {
 
 namespace {
 
-// Helper function to resolve a revision specifier to a file path
-// Note: Revision format validation is done in RevisionList constructor
-std::string resolveRevisionPath(
+// Helper function to get config content from a revision specifier
+// Returns the content and a label for the revision
+std::pair<std::string, std::string> getRevisionContent(
     const std::string& revision,
-    const std::string& cliConfigDir,
-    const std::string& systemConfigPath) {
+    ConfigSession& session) {
+  auto& git = session.getGit();
+  std::string cliConfigPath = session.getCliConfigPath();
+
   if (revision == "current") {
-    return systemConfigPath;
+    // Read the current live config (via the symlink or directly from cli path)
+    std::string content;
+    if (!folly::readFile(cliConfigPath.c_str(), content)) {
+      throw std::runtime_error(
+          "Failed to read current config from " + cliConfigPath);
+    }
+    return {content, "current live config"};
   }
 
-  // Build the path (revision is already validated to be in "rN" format)
-  std::string revisionPath = cliConfigDir + "/agent-" + revision + ".conf";
-
-  // Check if the file exists
-  if (!fs::exists(revisionPath)) {
-    throw std::invalid_argument(
-        "Revision " + revision + " does not exist at " + revisionPath);
-  }
-
-  return revisionPath;
+  // Resolve the commit SHA and get the content from Git
+  std::string resolvedSha = git.resolveRef(revision);
+  std::string content = git.fileAtRevision(resolvedSha, "cli/agent.conf");
+  return {content, revision.substr(0, 8)};
 }
 
-// Helper function to execute diff and return the result
+// Helper function to execute diff on two strings and return the result
 std::string executeDiff(
-    const std::string& path1,
-    const std::string& path2,
+    const std::string& content1,
+    const std::string& content2,
     const std::string& label1,
     const std::string& label2) {
   try {
+    // Write content to temporary files for diff
+    std::string tmpFile1 = "/tmp/fboss2_diff_1_XXXXXX";
+    std::string tmpFile2 = "/tmp/fboss2_diff_2_XXXXXX";
+
+    int fd1 = mkstemp(tmpFile1.data());
+    int fd2 = mkstemp(tmpFile2.data());
+
+    if (fd1 < 0 || fd2 < 0) {
+      throw std::runtime_error("Failed to create temporary files for diff");
+    }
+
+    // Write content and close files
+    folly::writeFull(fd1, content1.data(), content1.size());
+    folly::writeFull(fd2, content2.data(), content2.size());
+    close(fd1);
+    close(fd2);
+
+    // Run diff
     folly::Subprocess proc(
         std::vector<std::string>{
             "/usr/bin/diff",
@@ -57,12 +75,16 @@ std::string executeDiff(
             label1,
             "--label",
             label2,
-            path1,
-            path2},
+            tmpFile1,
+            tmpFile2},
         folly::Subprocess::Options().pipeStdout().pipeStderr());
 
     auto result = proc.communicate();
     int returnCode = proc.wait().exitStatus();
+
+    // Clean up temp files
+    unlink(tmpFile1.c_str());
+    unlink(tmpFile2.c_str());
 
     // diff returns 0 if files are identical, 1 if different, 2 on error
     if (returnCode == 0) {
@@ -89,7 +111,6 @@ CmdConfigSessionDiffTraits::RetType CmdConfigSessionDiff::queryClient(
 
   std::string systemConfigPath = session.getSystemConfigPath();
   std::string sessionConfigPath = session.getSessionConfigPath();
-  std::string cliConfigDir = session.getCliConfigDir();
 
   // Mode 1: No arguments - diff session vs current live config
   if (revisions.empty()) {
@@ -97,9 +118,21 @@ CmdConfigSessionDiffTraits::RetType CmdConfigSessionDiff::queryClient(
       return "No config session exists. Make a config change first.";
     }
 
+    std::string currentContent;
+    if (!folly::readFile(systemConfigPath.c_str(), currentContent)) {
+      throw std::runtime_error(
+          "Failed to read current config from " + systemConfigPath);
+    }
+
+    std::string sessionContent;
+    if (!folly::readFile(sessionConfigPath.c_str(), sessionContent)) {
+      throw std::runtime_error(
+          "Failed to read session config from " + sessionConfigPath);
+    }
+
     return executeDiff(
-        systemConfigPath,
-        sessionConfigPath,
+        currentContent,
+        sessionContent,
         "current live config",
         "session config");
   }
@@ -110,28 +143,23 @@ CmdConfigSessionDiffTraits::RetType CmdConfigSessionDiff::queryClient(
       return "No config session exists. Make a config change first.";
     }
 
-    std::string revisionPath =
-        resolveRevisionPath(revisions[0], cliConfigDir, systemConfigPath);
-    std::string label =
-        revisions[0] == "current" ? "current live config" : revisions[0];
+    auto [revContent, revLabel] = getRevisionContent(revisions[0], session);
 
-    return executeDiff(
-        revisionPath, sessionConfigPath, label, "session config");
+    std::string sessionContent;
+    if (!folly::readFile(sessionConfigPath.c_str(), sessionContent)) {
+      throw std::runtime_error(
+          "Failed to read session config from " + sessionConfigPath);
+    }
+
+    return executeDiff(revContent, sessionContent, revLabel, "session config");
   }
 
   // Mode 3: Two arguments - diff between two revisions
   if (revisions.size() == 2) {
-    std::string path1 =
-        resolveRevisionPath(revisions[0], cliConfigDir, systemConfigPath);
-    std::string path2 =
-        resolveRevisionPath(revisions[1], cliConfigDir, systemConfigPath);
+    auto [content1, label1] = getRevisionContent(revisions[0], session);
+    auto [content2, label2] = getRevisionContent(revisions[1], session);
 
-    std::string label1 =
-        revisions[0] == "current" ? "current live config" : revisions[0];
-    std::string label2 =
-        revisions[1] == "current" ? "current live config" : revisions[1];
-
-    return executeDiff(path1, path2, label1, label2);
+    return executeDiff(content1, content2, label1, label2);
   }
 
   // More than 2 arguments is an error
