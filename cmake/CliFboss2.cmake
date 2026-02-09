@@ -440,6 +440,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h
   fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.cpp
   fboss/cli/fboss2/commands/show/product/CmdShowProduct.h
+  fboss/cli/fboss2/commands/show/product/CmdShowProduct.cpp
   fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h
   fboss/cli/fboss2/commands/show/route/utils.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h
