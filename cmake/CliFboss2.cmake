@@ -411,6 +411,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringDetails.cpp
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbDataCommon.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbDataCommon.cpp
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperState.h
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperStats.h
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.h

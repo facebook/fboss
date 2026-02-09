@@ -308,6 +308,7 @@ cpp_library(
         "commands/show/facebook/environment/sensor/CmdShowEnvironmentSensor.cpp",
         "commands/show/facebook/state/CmdShowStateDrain.cpp",
         "commands/show/facebook/techsupport/CmdShowTechSupport.cpp",
+        "commands/show/fsdb/CmdShowFsdbDataCommon.cpp",
         "commands/show/fsdb/CmdShowFsdbUtils.cpp",
         "commands/show/hwagent/CmdShowHwAgentStatus.cpp",
         "commands/show/hwobject/CmdShowHwObject.cpp",
@@ -740,6 +741,7 @@ cpp_library(
         "//thrift/lib/cpp2/async:client_buffered_stream",
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
         "//thrift/lib/cpp2/gen:module_types_h",
+        "//thrift/lib/cpp2/op:get",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [
