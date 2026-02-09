@@ -5,6 +5,7 @@
 #include <csignal>
 #include <memory>
 
+#include <folly/Function.h>
 #include <folly/io/async/AsyncSignalHandler.h>
 
 #include "thrift/lib/cpp2/async/AsyncProcessor.h"
@@ -19,6 +20,9 @@ void runThriftService(
     std::shared_ptr<apache::thrift::ServerInterface> handler,
     const std::string& serviceName,
     uint32_t port);
+
+folly::Function<void(apache::thrift::ThriftServer&)>
+createTestThriftServerConfig();
 
 // SignalHandler provides graceful shutdown handling for SIGINT and SIGTERM
 // signals. When either signal is received, it will call stop() on the

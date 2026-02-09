@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<cef0ee217331d2047454e236b3fc913f>>"
+        "@generated SignedSource<<abd9106fed3cc90f8a73d9cbc60e604a>>"
     ],
     "MINIPACK": [
         {
@@ -149,6 +149,13 @@
             "saiVersion": "1.14.0"
         }
     ],
+    "ICECUBE800BC": [
+        {
+            "rolloutType": "PRODUCTION",
+            "asicSdk": "6.5.34",
+            "saiSdk": "14.0.ea_odp"
+        }
+    ],
     "MINIPACK3N": [
         {
             "rolloutType": "PRODUCTION",
@@ -244,9 +251,8 @@
     "TAHANSB800BC": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "6.5.32",
-            "saiSdk": "13.3.0.0_odp",
-            "saiVersion": "1.16.1"
+            "asicSdk": "6.5.34",
+            "saiSdk": "14.0.ea_odp"
         }
     ]
 }

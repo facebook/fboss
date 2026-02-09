@@ -111,6 +111,8 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::ARS:
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
+    case HwAsic::Feature::SAI_SERDES_PRECODING:
+    case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -173,7 +175,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER:
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
-    case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
+    case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     case HwAsic::Feature::RCI_WATERMARK_COUNTER:
     case HwAsic::Feature::DTL_WATERMARK_COUNTER:
     case HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY:
@@ -227,6 +229,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
       return false;
   }
   return false;

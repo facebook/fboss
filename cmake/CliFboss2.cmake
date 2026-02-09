@@ -394,6 +394,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.cpp
   fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h
   fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h
+  fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.cpp
   fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h
   fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.cpp
   fboss/cli/fboss2/commands/show/example/CmdShowExample.h
@@ -405,16 +406,21 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h
   fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.cpp
   fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h
+  fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.cpp
   fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringCounters.h
   fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringCounters.cpp
   fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringDetails.h
   fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringDetails.cpp
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h
+  fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.cpp
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbDataCommon.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbDataCommon.cpp
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperState.h
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperStats.h
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.cpp
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.cpp
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbUtils.cpp
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbUtils.h
   fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperState.h
@@ -435,7 +441,9 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h
   fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.cpp
   fboss/cli/fboss2/commands/show/product/CmdShowProduct.h
+  fboss/cli/fboss2/commands/show/product/CmdShowProduct.cpp
   fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h
+  fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.cpp
   fboss/cli/fboss2/commands/show/route/utils.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h
   fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h

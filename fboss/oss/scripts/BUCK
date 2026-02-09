@@ -1,3 +1,4 @@
+# @lint-ignore FBCODETARGETSFILES Please migrate this to a BUCK file!
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 
 oncall("fboss_distro")

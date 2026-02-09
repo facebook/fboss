@@ -11,6 +11,7 @@
 #include "fboss/agent/test/agent_multinode_tests/TopologyInfo.h"
 
 #include "common/network/NetworkUtil.h"
+#include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/test/agent_multinode_tests/DsfTopologyInfo.h"
 
 namespace {
@@ -54,7 +55,7 @@ TopologyInfo::~TopologyInfo() {}
 
 bool TopologyInfo::isTestDriver(const SwSwitch& sw) const {
   // Multi Node Tests follow this model:
-  //  o One node (SwitchID 0 by convention) is the Test Driver.
+  //  o One node (smallest INTERFACE_NODE switch ID) is the Test Driver.
   //  o Every other node runs a Test wedge_agent.
   //
   // The Test Driver executes this binary and may make Thrift calls to other
@@ -68,14 +69,24 @@ bool TopologyInfo::isTestDriver(const SwSwitch& sw) const {
   //  o test_ctrl.thrift provides additional functionality including ability
   //    to perform disruptive operations that we cannot support in the
   //    roduction e.g. cold booting binaries.
-  auto constexpr kTestDriverSwitchId = 0;
+  auto dsfNodes = getDsfNodesFromConfig();
+  std::optional<int64_t> testDriverSwitchId;
+  for (const auto& [switchId, node] : dsfNodes) {
+    if (*node.type() == cfg::DsfNodeType::INTERFACE_NODE) {
+      testDriverSwitchId = switchId;
+      break;
+    }
+  }
+  if (!testDriverSwitchId.has_value()) {
+    return false;
+  }
 
   bool ret = sw.getSwitchInfoTable().getSwitchIDs().contains(
-      SwitchID(kTestDriverSwitchId));
+      SwitchID(testDriverSwitchId.value()));
 
-  XLOG(DBG2) << "Multi Node Test Driver node: SwitchID " << kTestDriverSwitchId
-             << " is " << (ret ? " part of " : " not part of")
-             << " local switchIDs : "
+  XLOG(DBG2) << "Multi Node Test Driver node: SwitchID "
+             << testDriverSwitchId.value() << " is "
+             << (ret ? " part of " : " not part of") << " local switchIDs : "
              << folly::join(",", sw.getSwitchInfoTable().getSwitchIDs());
   return ret;
 }

@@ -9,11 +9,14 @@
  */
 
 #include "fboss/agent/test/utils/PortTestUtils.h"
-#include <memory>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/lib/CommonUtils.h"
+
+#include <gtest/gtest.h>
+#include <memory>
 
 namespace facebook::fboss::utility {
 cfg::PortSpeed getSpeed(cfg::PortProfileID profile) {
@@ -286,4 +289,18 @@ void resetQueueCreditBalance(
   ensemble->applyNewState(updateResetQueueCreditBalance);
 #endif
 }
+
+void checkPortsAdminState(
+    TestEnsembleIf* ensemble,
+    const std::vector<PortID>& portIds,
+    cfg::PortState portState) {
+  WITH_RETRIES({
+    for (const auto& portId : portIds) {
+      auto port = ensemble->getProgrammedState()->getPorts()->getNodeIf(portId);
+      CHECK(port);
+      EXPECT_EVENTUALLY_TRUE(port->getAdminState() == portState);
+    }
+  });
+}
+
 } // namespace facebook::fboss::utility

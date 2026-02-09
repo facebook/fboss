@@ -1324,6 +1324,12 @@ struct Port {
    * Controls whether AM idles are enabled on the port.
    */
   37: optional bool amIdles;
+
+  /*
+   * Cable Length Measurement (CLM) enable configuration.
+   * Controls whether cable length measurement is enabled on the port.
+   */
+  38: optional bool clmEnable;
 }
 
 enum LacpPortRate {

@@ -23007,6 +23007,3474 @@
           "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
         }
     ],
+    "meru800bia_c0/bcm/asicsdk-6.5.26/6.5.26": [
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        }
+    ],
+    "meru800bia_c0/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        }
+    ],
+    "meru800bia_c0/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        }
+    ],
+    "meru800bia_c0/bcm/asicsdk-6.5.26/6.5.29": [
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        }
+    ],
+    "meru800bia_c0/bcm/asicsdk-6.5.26/6.5.29/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        }
+    ],
+    "meru800bia_c0/bcm/asicsdk-6.5.26/6.5.29/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        }
+    ],
+    "meru800bia_c0/bcm/asicsdk-6.5.29/6.5.29": [
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        }
+    ],
+    "meru800bia_c0/bcm/asicsdk-6.5.29/6.5.29/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        }
+    ],
+    "meru800bia_c0/bcm/asicsdk-6.5.29/6.5.29/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        }
+    ],
+    "meru800bia_c0/bcm/asicsdk-6.5.30/6.5.30": [
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        }
+    ],
+    "meru800bia_c0/bcm/asicsdk-6.5.30/6.5.30/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        }
+    ],
+    "meru800bia_c0/bcm/asicsdk-6.5.30/6.5.30/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-11.7.0.0_odp/11.7.0.0_odp": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-11.7.0.0_odp/11.7.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-11.7.0.0_odp/11.7.0.0_odp/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-13.3.0.0_odp/13.3.0.0_odp": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-13.3.0.0_odp/13.3.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-13.3.0.0_odp/13.3.0.0_odp/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-14.0_ea_odp/14.0_ea_odp": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-14.0_ea_odp/14.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-14.0_ea_odp/14.0_ea_odp/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-8.2.0.0_odp/11.7.0.0_odp": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-8.2.0.0_odp/11.7.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-8.2.0.0_odp/11.7.0.0_odp/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-8.2.0.0_odp/13.3.0.0_odp": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-8.2.0.0_odp/13.3.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-8.2.0.0_odp/13.3.0.0_odp/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
+    "meru800bia_c0/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "AgentEnsembleLacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleLinkTest.verifyIphyFecCounters$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleMacLearningTest.l2EntryFlap.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "CheckInit.AgentEnsembleMacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*DR4_800G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR_L.*FR8_800G.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
+        }
+    ],
     "minipack3ba/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
@@ -25418,6 +28886,9 @@
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
@@ -25456,6 +28927,9 @@
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
         },
         {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
+        },
+        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
@@ -25492,6 +28966,9 @@
         },
         {
           "test_name_regex": "AgentEnsembleOpenBmcUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEnsemblePtpTests.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
@@ -30287,7 +33764,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity"
         }
     ],
-    "morgan800cc/sai/asicsdk-1.42.8/25.5.5210": [
+    "morgan800cc/sai/asicsdk-1.42.8/25.5.4210": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
         },
@@ -30391,7 +33868,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity"
         }
     ],
-    "morgan800cc/sai/asicsdk-1.42.8/25.5.5210/physdk-credo-0.7.2/credo-0.7.2": [
+    "morgan800cc/sai/asicsdk-1.42.8/25.5.4210/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
         },
@@ -30495,7 +33972,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity"
         }
     ],
-    "morgan800cc/sai/asicsdk-1.42.8/25.5.5210/physdk-credo-0.9.0/credo-0.9.0": [
+    "morgan800cc/sai/asicsdk-1.42.8/25.5.4210/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
         },
@@ -31223,7 +34700,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity"
         }
     ],
-    "morgan800cc/sai/asicsdk-25.5.5210/25.5.5210": [
+    "morgan800cc/sai/asicsdk-25.5.4210/25.5.4210": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
         },
@@ -31327,7 +34804,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity"
         }
     ],
-    "morgan800cc/sai/asicsdk-25.5.5210/25.5.5210/physdk-credo-0.7.2/credo-0.7.2": [
+    "morgan800cc/sai/asicsdk-25.5.4210/25.5.4210/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
         },
@@ -31431,7 +34908,7 @@
           "test_name_regex": "warm_boot.Prbs_ASIC_P31_TO_ASIC_P31.prbsSanity"
         }
     ],
-    "morgan800cc/sai/asicsdk-25.5.5210/25.5.5210/physdk-credo-0.9.0/credo-0.9.0": [
+    "morgan800cc/sai/asicsdk-25.5.4210/25.5.4210/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
         },
@@ -41429,7 +44906,7 @@
           "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
         }
     ],
-    "wedge400c/sai/asicsdk-1.42.8/25.5.5210": [
+    "wedge400c/sai/asicsdk-1.42.8/25.5.4210": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
         },
@@ -41470,7 +44947,7 @@
           "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
         }
     ],
-    "wedge400c/sai/asicsdk-1.42.8/25.5.5210/physdk-credo-0.7.2/credo-0.7.2": [
+    "wedge400c/sai/asicsdk-1.42.8/25.5.4210/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
         },
@@ -41511,7 +44988,7 @@
           "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
         }
     ],
-    "wedge400c/sai/asicsdk-1.42.8/25.5.5210/physdk-credo-0.9.0/credo-0.9.0": [
+    "wedge400c/sai/asicsdk-1.42.8/25.5.4210/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
         },
@@ -41798,7 +45275,7 @@
           "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
         }
     ],
-    "wedge400c/sai/asicsdk-25.5.5210/25.5.5210": [
+    "wedge400c/sai/asicsdk-25.5.4210/25.5.4210": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
         },
@@ -41839,7 +45316,7 @@
           "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
         }
     ],
-    "wedge400c/sai/asicsdk-25.5.5210/25.5.5210/physdk-credo-0.7.2/credo-0.7.2": [
+    "wedge400c/sai/asicsdk-25.5.4210/25.5.4210/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
         },
@@ -41880,7 +45357,7 @@
           "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
         }
     ],
-    "wedge400c/sai/asicsdk-25.5.5210/25.5.5210/physdk-credo-0.9.0/credo-0.9.0": [
+    "wedge400c/sai/asicsdk-25.5.4210/25.5.4210/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
         },
@@ -46616,7 +50093,7 @@
           "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
         }
     ],
-    "wedge800cact/sai/asicsdk-1.42.8/25.5.5210": [
+    "wedge800cact/sai/asicsdk-1.42.8/25.5.4210": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
         },
@@ -46675,7 +50152,7 @@
           "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
         }
     ],
-    "wedge800cact/sai/asicsdk-1.42.8/25.5.5210/physdk-credo-0.7.2/credo-0.7.2": [
+    "wedge800cact/sai/asicsdk-1.42.8/25.5.4210/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
         },
@@ -46734,7 +50211,7 @@
           "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
         }
     ],
-    "wedge800cact/sai/asicsdk-1.42.8/25.5.5210/physdk-credo-0.9.0/credo-0.9.0": [
+    "wedge800cact/sai/asicsdk-1.42.8/25.5.4210/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
         },
@@ -47147,7 +50624,7 @@
           "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
         }
     ],
-    "wedge800cact/sai/asicsdk-25.5.5210/25.5.5210": [
+    "wedge800cact/sai/asicsdk-25.5.4210/25.5.4210": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
         },
@@ -47206,7 +50683,7 @@
           "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
         }
     ],
-    "wedge800cact/sai/asicsdk-25.5.5210/25.5.5210/physdk-credo-0.7.2/credo-0.7.2": [
+    "wedge800cact/sai/asicsdk-25.5.4210/25.5.4210/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
         },
@@ -47265,7 +50742,7 @@
           "test_name_regex": "warm_boot.AgentEnsembleMacLearningTest.l2EntryFlap"
         }
     ],
-    "wedge800cact/sai/asicsdk-25.5.5210/25.5.5210/physdk-credo-0.9.0/credo-0.9.0": [
+    "wedge800cact/sai/asicsdk-25.5.4210/25.5.4210/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "AgentEnsembleLinkSanityTestDataPlaneFlood.ptpEnableIsHitless$"
         },

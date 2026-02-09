@@ -150,6 +150,7 @@ typedef enum _sai_port_extensions_attr_t {
   SAI_PORT_ATTR_FABRIC_SYSTEM_PORT,
   SAI_PORT_ATTR_RESET_QUEUE_CREDIT_BALANCE,
   SAI_PORT_ATTR_PFC_MONITOR_DIRECTION,
+  SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE,
 } sai_port_extensions_attr_t;
 
 typedef enum _sai_ingress_priority_group_extensions_attr_t {

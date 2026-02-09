@@ -87,6 +87,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER:
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
+    case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     case HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::ACL_BYTE_COUNTER:
@@ -234,7 +235,9 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
+    case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
       return false;
   }
   return false;

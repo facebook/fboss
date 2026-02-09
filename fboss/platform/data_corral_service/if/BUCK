@@ -19,7 +19,6 @@ thrift_library(
         "//thrift/annotation:java",
         "//thrift/annotation:python",
         "//thrift/annotation:thrift",
-        "//thrift/facebook/erlang:annotations",
     ],
     py3_namespace = "neteng.fboss.platform.data_corral_service",
     thrift_cpp2_options = "json",

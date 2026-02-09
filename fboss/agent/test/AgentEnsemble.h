@@ -55,7 +55,8 @@ class AgentEnsemble : public TestEnsembleIf {
           (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
            HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
            HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
-      bool failHwCallsOnWarmboot = false);
+      const TestEnsembleInitInfo& initInfo = TestEnsembleInitInfo{
+          .failHwCallsOnWarmboot = false});
 
   void startAgent(bool failHwCallsOnWarmboot = false);
 
@@ -160,6 +161,10 @@ class AgentEnsemble : public TestEnsembleIf {
       const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate) override {
     getSw()->linkActiveStateChangedOrFwIsolated(
         port2IsActive, fwIsolated, numActiveFabricPortsAtFwIsolate);
+  }
+  void linkAdminStateChangedByFw(
+      const std::vector<int32_t>& fwDisabledPortIds) override {
+    getSw()->linkAdminStateChangedByFw(fwDisabledPortIds);
   }
   void linkConnectivityChanged(
       const std::map<PortID, multiswitch::FabricConnectivityDelta>&
@@ -437,6 +442,7 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
         (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
          HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
          HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
-    bool failHwCallsOnWarmboot = false);
+    const TestEnsembleInitInfo& initInfo = TestEnsembleInitInfo{
+        .failHwCallsOnWarmboot = false});
 
 } // namespace facebook::fboss

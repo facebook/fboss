@@ -3,7 +3,6 @@
 
 #include <thrift/lib/cpp2/TypeClass.h>
 #include "fboss/agent/lldp/LinkNeighbor.h"
-#include "fboss/agent/lldp/gen-cpp2/lldp_fatal_types.h"
 #include "fboss/agent/lldp/gen-cpp2/lldp_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/thrift_cow/storage/CowStorage.h"

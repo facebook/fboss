@@ -13,20 +13,14 @@ CmdShowAgentFirmwareTraits::RetType CmdShowAgentFirmware::queryClient(
   CmdShowAgentFirmwareTraits::RetType model{};
   std::vector<FirmwareInfo> entries;
 
-  try {
-    auto hwAgentQueryFn =
-        [&entries](
-            apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
-          std::vector<FirmwareInfo> firmwareInfoList;
-          client.sync_getAllHwFirmwareInfo(firmwareInfoList);
-          entries.insert(
-              entries.end(), firmwareInfoList.begin(), firmwareInfoList.end());
-        };
-    utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
-  } catch (const std::exception&) {
-    // TODO remove when Agent with sync_getAllHwFirmwareInfo is rolled out
-    // everywhere.
-  }
+  auto hwAgentQueryFn =
+      [&entries](apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
+        std::vector<FirmwareInfo> firmwareInfoList;
+        client.sync_getAllHwFirmwareInfo(firmwareInfoList);
+        entries.insert(
+            entries.end(), firmwareInfoList.begin(), firmwareInfoList.end());
+      };
+  utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
 
   return createModel(entries);
 }

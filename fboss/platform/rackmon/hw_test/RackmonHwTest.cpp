@@ -28,7 +28,9 @@ RackmonThriftService::RackmonThriftService()
   using namespace facebook::fboss::platform;
 
   server_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-      thriftHandler_, folly::SocketAddress("::1", 5973));
+      thriftHandler_,
+      folly::SocketAddress("::1", 5973),
+      facebook::fboss::platform::helpers::createTestThriftServerConfig());
   // We need to have discovered at least one device in 20s.
   std::this_thread::sleep_for(20s);
 }

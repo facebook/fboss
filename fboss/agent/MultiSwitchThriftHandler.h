@@ -56,6 +56,9 @@ class MultiSwitchThriftHandler
   void processLinkConnectivity(
       SwitchID switchId,
       const multiswitch::LinkChangeEvent& linkChangeEvent);
+  void processLinkDisabledByFirmware(
+      SwitchID switchId,
+      const multiswitch::LinkChangeEvent& linkChangeEvent);
   void processSwitchReachabilityChangeEvent(
       SwitchID switchId,
       const multiswitch::SwitchReachabilityChangeEvent&

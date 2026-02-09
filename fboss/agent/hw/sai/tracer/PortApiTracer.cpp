@@ -128,6 +128,10 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortSerdesMap{
     SAI_ATTR_MAP(PortSerdes, TxFirPost1),
     SAI_ATTR_MAP(PortSerdes, TxFirPost2),
     SAI_ATTR_MAP(PortSerdes, TxFirPost3),
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    SAI_ATTR_MAP(PortSerdes, TxPrecoding),
+    SAI_ATTR_MAP(PortSerdes, RxPrecoding),
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
     SAI_ATTR_MAP(PortSerdes, CustomCollection),
 #endif
@@ -199,6 +203,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, FabricSystemPort)
   SAI_EXT_ATTR_MAP(Port, StaticModuleId)
   SAI_EXT_ATTR_MAP(Port, PfcMonitorDirection)
+  SAI_EXT_ATTR_MAP(Port, CablePropagationDelayMediaType)
 #if defined(BRCM_SAI_SDK_GTE_13_0)
   SAI_EXT_ATTR_MAP(PortSerdes, Dco)
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)

@@ -1,0 +1,16 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "minipack3bta_platform_mapping",
+    srcs = [
+        "Minipack3BTAPlatformMapping.cpp",
+    ],
+    headers = [
+        "Minipack3BTAPlatformMapping.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+)
