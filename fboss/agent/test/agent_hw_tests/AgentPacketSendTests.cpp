@@ -370,7 +370,8 @@ class AgentPacketSendReceiveLagTest : public AgentPacketSendReceiveTest {
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto masterLogicalPortIds = ensemble.masterLogicalPortIds();
+    auto switchId = getCurrentSwitchIdForTesting();
+    auto masterLogicalPortIds = ensemble.masterLogicalPortIds(switchId);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
     auto asic = checkSameAndGetAsic(l3Asics);
     auto cfg = utility::oneL3IntfTwoPortConfig(
@@ -379,7 +380,8 @@ class AgentPacketSendReceiveLagTest : public AgentPacketSendReceiveTest {
         masterLogicalPortIds[0],
         masterLogicalPortIds[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, l3Asics, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, l3Asics, ensemble.isSai());
 
