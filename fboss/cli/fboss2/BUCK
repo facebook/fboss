@@ -292,6 +292,7 @@ cpp_library(
         "commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.cpp",
         "commands/show/fabric/topology/CmdShowFabricTopology.cpp",
         "commands/show/facebook/CmdShowAmIFboss.cpp",
+        "commands/show/facebook/CmdShowMka.cpp",
         "commands/show/facebook/CmdShowUtils.cpp",
         "commands/show/facebook/CmdShowVersionAgent.cpp",
         "commands/show/facebook/CmdShowVersionBgp.cpp",
