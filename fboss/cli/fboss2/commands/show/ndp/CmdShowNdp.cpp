@@ -43,10 +43,9 @@ RetType CmdShowNdp::queryClient(
   client->sync_getNdpTable(entries);
   client->sync_getAllPortInfo(portEntries);
   try {
-    // TODO: Remove try catch once wedge_agent with getDsfNodes API
-    // is rolled out
     client->sync_getDsfNodes(dsfNodes);
   } catch (const std::exception&) {
+    // getDsfNodes is not supported on non-DSF switches (e.g. wedge400)
   }
   return createModel(entries, queriedNdpEntries, portEntries, dsfNodes);
 }
