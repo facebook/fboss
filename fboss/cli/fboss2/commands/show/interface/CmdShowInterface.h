@@ -104,9 +104,9 @@ class CmdShowInterface
 
   RetType createModel(
       const HostInfo& hostInfo,
-      std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries,
+      const std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries,
       std::map<int32_t, facebook::fboss::InterfaceDetail> intfDetails,
-      std::map<int64_t, cfg::DsfNode> dsfNodes,
+      const std::map<int64_t, cfg::DsfNode>& dsfNodes,
       const ObjectArgType& queriedIfs) {
     RetType model;
     std::unordered_set<std::string> queriedSet(
@@ -370,7 +370,7 @@ class CmdShowInterface
     out << outTable << std::endl;
   }
 
-  Table::StyledCell colorStatusCell(std::string status) {
+  Table::StyledCell colorStatusCell(const std::string& status) {
     Table::Style cellStyle = Table::Style::NONE;
     if (status == "up") {
       cellStyle = Table::Style::GOOD;
