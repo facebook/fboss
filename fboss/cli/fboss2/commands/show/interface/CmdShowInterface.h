@@ -323,10 +323,7 @@ class CmdShowInterface
       std::string name = *interface.name();
       std::vector<std::string> prefixes;
 
-      // TODO (jycleung) portType is a new field addition to the interface.
-      // When D63407523 is rolled out to the fleet, remove the name check.
-      if (interface.portType() != cfg::PortType::FABRIC_PORT &&
-          !name.starts_with("fab")) { // Skip addresses for fabric ports
+      if (interface.portType() != cfg::PortType::FABRIC_PORT) {
         for (const auto& prefix : *interface.prefixes()) {
           prefixes.push_back(
               fmt::format("{}/{}", *prefix.ip(), *prefix.prefixLength()));
