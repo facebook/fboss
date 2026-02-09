@@ -285,6 +285,7 @@ cpp_library(
         "commands/show/dsfnodes/CmdShowDsfNodes.cpp",
         "commands/show/example/CmdShowExample.cpp",
         "commands/show/fabric/CmdShowFabric.cpp",
+        "commands/show/fabric/inputbalance/CmdShowFabricInputBalance.cpp",
         "commands/show/fabric/monitoring/CmdShowFabricMonitoringCounters.cpp",
         "commands/show/fabric/monitoring/CmdShowFabricMonitoringDetails.cpp",
         "commands/show/fabric/reachability/CmdShowFabricReachability.cpp",

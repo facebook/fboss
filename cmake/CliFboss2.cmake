@@ -406,6 +406,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h
   fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.cpp
   fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h
+  fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.cpp
   fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringCounters.h
   fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringCounters.cpp
   fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringDetails.h
