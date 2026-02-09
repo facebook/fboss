@@ -139,4 +139,4 @@ Special flags:
 Special flags:
 
 1. `--filter`: FBOSS uses GTEST for its test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
-1. `--type`: an optional flag to run specified platform service test (platform_hw_test, data_corral_service_hw_test, fan_service_hw_test,sensor_service_hw_test, weutil_hw_test, platform_manager_hw_test).
+1. `--type`: an optional flag to run specified platform service test (platform_hw_test, data_corral_service_hw_test, fan_service_hw_test, fw_util_hw_test, sensor_service_hw_test, weutil_hw_test, platform_manager_hw_test).

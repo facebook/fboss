@@ -201,6 +201,7 @@ SUB_ARG_TEST_TYPE = "--type"
 SUB_ARG_PLATFORM_HW_TEST = "platform_hw_test"
 SUB_ARG_DATA_CORRAL_HW_TEST = "data_corral_service_hw_test"
 SUB_ARG_FAN_HW_TEST = "fan_service_hw_test"
+SUB_ARG_FW_UTIL_HW_TEST = "fw_util_hw_test"
 SUB_ARG_SENSOR_HW_TEST = "sensor_service_hw_test"
 SUB_ARG_WEUTIL_HW_TEST = "weutil_hw_test"
 SUB_ARG_PLATFORM_MANAGER_HW_TEST = "platform_manager_hw_test"
@@ -1345,6 +1346,7 @@ class PlatformServicesTestRunner(TestRunner):
         SUB_ARG_PLATFORM_HW_TEST,
         SUB_ARG_DATA_CORRAL_HW_TEST,
         SUB_ARG_FAN_HW_TEST,
+        SUB_ARG_FW_UTIL_HW_TEST,
         SUB_ARG_SENSOR_HW_TEST,
         SUB_ARG_WEUTIL_HW_TEST,
         SUB_ARG_PLATFORM_MANAGER_HW_TEST,
@@ -1373,6 +1375,7 @@ class PlatformServicesTestRunner(TestRunner):
             SUB_ARG_PLATFORM_HW_TEST: "platform_hw_test",
             SUB_ARG_DATA_CORRAL_HW_TEST: "data_corral_service_hw_test",
             SUB_ARG_FAN_HW_TEST: "fan_service_hw_test",
+            SUB_ARG_FW_UTIL_HW_TEST: "fw_util_hw_test",
             SUB_ARG_SENSOR_HW_TEST: "sensor_service_hw_test",
             SUB_ARG_WEUTIL_HW_TEST: "weutil_hw_test",
             SUB_ARG_PLATFORM_MANAGER_HW_TEST: "platform_manager_hw_test",
