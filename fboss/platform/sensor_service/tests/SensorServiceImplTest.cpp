@@ -124,6 +124,37 @@ TEST_F(SensorServiceImplTest, publishPerSensorStats) {
         0);
   }
 
+  // Verify threshold counters are set correctly
+  // MOCK_FRU_SENSOR1: value=0.025, critical=[−40,100], alarm=[−20,85] → no
+  // violation
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(
+              SensorServiceImpl::kCriticalThresholdViolation,
+              "MOCK_FRU_SENSOR1")),
+      0);
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(
+              SensorServiceImpl::kAlarmThresholdViolation, "MOCK_FRU_SENSOR1")),
+      0);
+
+  // MOCK_FRU_SENSOR2: value=11152, critical=[1000,10000] → critical violation
+  // (>10000)
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(
+              SensorServiceImpl::kCriticalThresholdViolation,
+              "MOCK_FRU_SENSOR2")),
+      1);
+
+  // MOCK_FRU_SENSOR3: value=16.875, alarm=[10,14] → alarm violation (>14)
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(
+              SensorServiceImpl::kAlarmThresholdViolation, "MOCK_FRU_SENSOR3")),
+      1);
+
   // Failure case: remove sysfs files and re-fetch
   for (const auto& pmUnitSensors : *config_.pmUnitSensorsList()) {
     for (const auto& pmSensors : *pmUnitSensors.sensors()) {

@@ -31,11 +31,13 @@ class SensorServiceImpl {
  public:
   auto static constexpr kReadFailure = "sensor_read.{}.failure";
   auto static constexpr kReadValue = "sensor_read.{}.value";
+  auto static constexpr kCriticalThresholdViolation =
+      "sensor_read.{}.critical_threshold_violation";
+  auto static constexpr kAlarmThresholdViolation =
+      "sensor_read.{}.alarm_threshold_violation";
   auto static constexpr kReadTotal = "sensor_read.total";
   auto static constexpr kTotalReadFailure = "sensor_read.total.failures";
   auto static constexpr kHasReadFailure = "sensor_read.has.failures";
-  auto static constexpr kCriticalThresholdViolation =
-      "sensor_read.sensor_{}.type_{}.critical_threshold_violation";
   auto static constexpr kAsicTemp = "asic_temp";
   auto static constexpr kTotalPower = "TOTAL_POWER";
   auto static constexpr kMaxInputVoltage = "MAX_INPUT_VOLTAGE";
@@ -88,9 +90,7 @@ class SensorServiceImpl {
       const std::optional<Thresholds>& thresholds,
       const std::optional<std::string>& compute);
 
-  void publishPerSensorStats(
-      const std::string& sensorName,
-      std::optional<float> value);
+  void publishPerSensorStats(const SensorData& sensorData);
 
   void publishDerivedStats(
       const std::string& entity,
