@@ -174,7 +174,6 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
       EXPECT_FALSE(retryable)
           << "Failed to capture PTP packets on port "
           << portDescriptor.phyPortID() << " after multiple retries";
-      break;
     }
   }
 
