@@ -598,6 +598,7 @@ int getWorstCaseAssumedOpticsDelayNS(
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_YUBA:

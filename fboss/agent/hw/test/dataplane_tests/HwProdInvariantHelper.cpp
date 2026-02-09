@@ -178,6 +178,7 @@ void HwProdInvariantHelper::verifySafeDiagCmds() {
     case cfg::AsicType::ASIC_TYPE_RAMON3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
     case cfg::AsicType::ASIC_TYPE_G202X:
       break;
 

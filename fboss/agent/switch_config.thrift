@@ -1542,6 +1542,7 @@ enum AsicType {
   ASIC_TYPE_AGERA3 = 19,
   ASIC_TYPE_G202X = 20,
   ASIC_TYPE_FAKE_NO_WARMBOOT = 21,
+  ASIC_TYPE_TOMAHAWKULTRA1 = 22,
 }
 /**
  * The configuration for an interface
