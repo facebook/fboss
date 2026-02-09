@@ -394,6 +394,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.cpp
   fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h
   fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h
+  fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.cpp
   fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h
   fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.cpp
   fboss/cli/fboss2/commands/show/example/CmdShowExample.h

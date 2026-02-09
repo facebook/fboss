@@ -281,6 +281,7 @@ cpp_library(
         "commands/show/aggregateport/CmdShowAggregatePort.cpp",
         "commands/show/arp/CmdShowArp.cpp",
         "commands/show/cpuport/CmdShowCpuPort.cpp",
+        "commands/show/dsf/subscription/CmdShowDsfSubscription.cpp",
         "commands/show/dsfnodes/CmdShowDsfNodes.cpp",
         "commands/show/example/CmdShowExample.cpp",
         "commands/show/fabric/CmdShowFabric.cpp",
