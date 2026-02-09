@@ -32,7 +32,7 @@ SensorConfig getMockSensorConfig(const std::string& tmpDir) {
   PmSensor mockFruSensor1, mockFruSensor2, mockFruSensor3;
   mockFruSensor1.name() = "MOCK_FRU_SENSOR1";
   mockFruSensor1.compute() = "@/1000";
-  mockFruSensor1.type() = SensorType::TEMPERTURE;
+  mockFruSensor1.type() = SensorType::TEMPERATURE;
   mockFruSensor1.sysfsPath() = tmpDir + "/mock_fru_sensor_1_path:temp1";
   Thresholds thresholds1;
   thresholds1.upperCriticalVal() = 100.0;
