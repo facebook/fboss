@@ -36,17 +36,27 @@ forwarding)
   stack_label="forwarding"
   cmake_target="fboss_forwarding_stack"
   package_target="forwarding-stack"
+  mem_per_core=16 # GB
   ;;
 platform)
   stack_label="platform"
   cmake_target="fboss_platform_services"
   package_target="platform-stack"
+  mem_per_core=7 # GB
   ;;
 *)
   echo "Unsupported stack type: $stack_type (only 'forwarding' and 'platform' are supported)" >&2
   exit 1
   ;;
 esac
+
+gb_per_core=$(free -g | awk '/^Mem:/{print int($2 / '$mem_per_core')}')
+num_cores=$(nproc)
+if [ "$num_cores" -gt "$gb_per_core" ]; then
+  num_jobs="$gb_per_core"
+else
+  num_jobs="$num_cores"
+fi
 
 OUT_DIR=/output
 
@@ -202,6 +212,7 @@ time nice -n 10 ./fboss/oss/scripts/run-getdeps.py build \
   --no-deps \
   --build-type "${BUILD_TYPE:-MinSizeRel}" \
   --cmake-target "$cmake_target" \
+  --num-jobs "${num_jobs}" \
   ${common_options}
 
 echo "${cmake_target} Build SUCCESS"
