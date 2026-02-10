@@ -4,6 +4,13 @@
 # cmake/FooBar.cmake
 
 add_fbthrift_cpp_library(
+  cli_metadata
+  fboss/cli/fboss2/cli_metadata.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   cli_model
   fboss/cli/fboss2/cli.thrift
   OPTIONS
@@ -474,6 +481,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h
   fboss/cli/fboss2/commands/show/rif/CmdShowRif.h
   fboss/cli/fboss2/commands/show/rif/CmdShowRif.cpp
+  fboss/cli/fboss2/commands/show/running_config/CmdShowRunningConfig.cpp
+  fboss/cli/fboss2/commands/show/running_config/CmdShowRunningConfig.h
   fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h
   fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h
   fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.cpp
@@ -595,10 +604,23 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/CmdConfigReload.h
   fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.cpp
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.cpp
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h
+  fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.cpp
+  fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h
+  fboss/cli/fboss2/commands/config/interface/pfc_config/PfcConfigUtils.h
+  fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h
+  fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h
+  fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.cpp
+  fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h
+  fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h
+  fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.cpp
+  fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h
+  fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h
+  fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.cpp
+  fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.cpp
   fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h
@@ -607,8 +629,18 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.cpp
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.cpp
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.cpp
+  fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h
+  fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h
+  fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h
+  fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.cpp
+  fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h
+  fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.cpp
   fboss/cli/fboss2/session/ConfigSession.h
   fboss/cli/fboss2/session/ConfigSession.cpp
+  fboss/cli/fboss2/session/Git.h
+  fboss/cli/fboss2/session/Git.cpp
   fboss/cli/fboss2/utils/InterfaceList.h
   fboss/cli/fboss2/utils/InterfaceList.cpp
   fboss/cli/fboss2/CmdListConfig.cpp
@@ -616,6 +648,7 @@ add_library(fboss2_config_lib
 )
 
 target_link_libraries(fboss2_config_lib
+  cli_metadata
   fboss2_lib
   agent_dir_util
 )
