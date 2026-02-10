@@ -540,6 +540,14 @@ bool ConfigValidator::isValidI2cDeviceConfig(
     XLOG(ERR) << "PmUnitScopedName must not end with an underscore";
     return false;
   }
+  if (*i2cDeviceConfig.isEeprom() &&
+      !i2cDeviceConfig.pmUnitScopedName()->ends_with("_EEPROM")) {
+    XLOGF(
+        ERR,
+        "isEeprom is true but pmUnitScopedName '{}' does not end with '_EEPROM'",
+        *i2cDeviceConfig.pmUnitScopedName());
+    return false;
+  }
   return true;
 }
 
@@ -1392,6 +1400,54 @@ bool ConfigValidator::isValidLogicalEeprom(
           "Platform has logical EEPROMs in PmUnit {}.  This is not allowed. ",
           pmUnitName);
       return false;
+    }
+  }
+
+  constexpr int16_t kEepromSize = 512;
+
+  for (const auto& [location, eeproms] : logicalEeproms) {
+    const auto& [bus, addr] = location;
+
+    // Validate same kernelDeviceName for all EEPROMs at this location
+    for (size_t i = 1; i < eeproms.size(); ++i) {
+      if (eeproms[i].kernelDeviceName != eeproms[0].kernelDeviceName) {
+        XLOG(ERR) << fmt::format(
+            "Logical eeproms {} and {} at (bus: {}, addr: {}) have different "
+            "kernelDeviceNames: {} vs {}",
+            eeproms[0].pmUnitScopedName,
+            eeproms[i].pmUnitScopedName,
+            bus,
+            addr,
+            eeproms[0].kernelDeviceName,
+            eeproms[i].kernelDeviceName);
+        return false;
+      }
+    }
+
+    // Validate no overlapping regions (sort by offset, check adjacent pairs)
+    auto sortedEeproms = eeproms;
+    std::sort(
+        sortedEeproms.begin(),
+        sortedEeproms.end(),
+        [](const auto& a, const auto& b) { return a.offset < b.offset; });
+
+    for (size_t i = 0; i + 1 < sortedEeproms.size(); ++i) {
+      const auto& curr = sortedEeproms[i];
+      const auto& next = sortedEeproms[i + 1];
+      if (curr.offset + kEepromSize > next.offset) {
+        XLOG(ERR) << fmt::format(
+            "Logical eeproms {} and {} at (bus: {}, addr: {}) have "
+            "overlapping regions: [{}, {}) and [{}, {})",
+            curr.pmUnitScopedName,
+            next.pmUnitScopedName,
+            bus,
+            addr,
+            curr.offset,
+            curr.offset + kEepromSize,
+            next.offset,
+            next.offset + kEepromSize);
+        return false;
+      }
     }
   }
   return true;

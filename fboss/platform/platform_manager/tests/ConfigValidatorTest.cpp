@@ -63,6 +63,22 @@ PlatformConfig getBasicConfig() {
   config.chassisEepromDevicePath() = "/[CHASSIS_EEPROM]";
   return config;
 }
+
+I2cDeviceConfig createEepromConfig(
+    const std::string& name,
+    const std::string& bus,
+    const std::string& addr,
+    const std::string& kernelDevName,
+    int16_t offset) {
+  I2cDeviceConfig eeprom;
+  eeprom.pmUnitScopedName() = name;
+  eeprom.busName() = bus;
+  eeprom.address() = addr;
+  eeprom.kernelDeviceName() = kernelDevName;
+  eeprom.isEeprom() = true;
+  eeprom.eepromOffset() = offset;
+  return eeprom;
+}
 } // namespace
 
 TEST(ConfigValidatorTest, PlatformName) {
@@ -1491,13 +1507,7 @@ TEST(ConfigValidatorTest, LogicalEeproms) {
   EXPECT_TRUE(result.empty());
 
   // Test 2: Single EEPROM at a location doesn't count as logical
-  I2cDeviceConfig eeprom1;
-  eeprom1.pmUnitScopedName() = "EEPROM1";
-  eeprom1.busName() = "INCOMING@0";
-  eeprom1.address() = "0x50";
-  eeprom1.kernelDeviceName() = "at24";
-  eeprom1.isEeprom() = true;
-  eeprom1.eepromOffset() = 0;
+  auto eeprom1 = createEepromConfig("EEPROM1", "INCOMING@0", "0x50", "at24", 0);
   pmUnitConfig.i2cDeviceConfigs() = {eeprom1};
 
   result = ConfigValidator().getLogicalEeproms(
@@ -1505,13 +1515,8 @@ TEST(ConfigValidatorTest, LogicalEeproms) {
   EXPECT_TRUE(result.empty());
 
   // Test 3: Multiple EEPROMs at same location are returned as logical EEPROMs
-  I2cDeviceConfig eeprom2;
-  eeprom2.pmUnitScopedName() = "EEPROM2";
-  eeprom2.busName() = "INCOMING@0";
-  eeprom2.address() = "0x50";
-  eeprom2.kernelDeviceName() = "at24";
-  eeprom2.isEeprom() = true;
-  eeprom2.eepromOffset() = 256;
+  auto eeprom2 =
+      createEepromConfig("EEPROM2", "INCOMING@0", "0x50", "at24", 512);
   pmUnitConfig.i2cDeviceConfigs() = {eeprom1, eeprom2};
 
   result = ConfigValidator().getLogicalEeproms(
@@ -1524,7 +1529,7 @@ TEST(ConfigValidatorTest, LogicalEeproms) {
   EXPECT_EQ(result.at(location)[0].pmUnitScopedName, "EEPROM1");
   EXPECT_EQ(result.at(location)[0].offset, 0);
   EXPECT_EQ(result.at(location)[1].pmUnitScopedName, "EEPROM2");
-  EXPECT_EQ(result.at(location)[1].offset, 256);
+  EXPECT_EQ(result.at(location)[1].offset, 512);
 
   // Test 4: Validation fails for non-GLATH05A-64O platforms with logical
   // EEPROMs
@@ -1535,6 +1540,50 @@ TEST(ConfigValidatorTest, LogicalEeproms) {
 
   // Test 5: Validation passes for GLATH05A-64O platform with logical EEPROMs
   config.platformName() = "GLATH05A-64O";
+  EXPECT_TRUE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+
+  config.slotTypeConfigs() = slotTypeConfigs;
+
+  // Test 6: Valid - Non-overlapping regions (offset >= 512 apart)
+  pmUnitConfig.i2cDeviceConfigs() = {
+      createEepromConfig("IDPROM_EEPROM", "INCOMING@0", "0x50", "at24", 0),
+      createEepromConfig("CHASSIS_EEPROM", "INCOMING@0", "0x50", "at24", 512)};
+  EXPECT_TRUE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+
+  // Test 7: Invalid - Overlapping regions (same offset)
+  pmUnitConfig.i2cDeviceConfigs() = {
+      createEepromConfig("IDPROM_EEPROM", "INCOMING@0", "0x50", "at24", 0),
+      createEepromConfig("CHASSIS_EEPROM", "INCOMING@0", "0x50", "at24", 0)};
+  EXPECT_FALSE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+
+  // Test 8: Invalid - Partially overlapping regions
+  pmUnitConfig.i2cDeviceConfigs() = {
+      createEepromConfig("IDPROM_EEPROM", "INCOMING@0", "0x50", "at24", 0),
+      createEepromConfig("CHASSIS_EEPROM", "INCOMING@0", "0x50", "at24", 256)};
+  EXPECT_FALSE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+
+  // Test 9: Invalid - Different kernelDeviceNames for same physical device
+  pmUnitConfig.i2cDeviceConfigs() = {
+      createEepromConfig("IDPROM_EEPROM", "INCOMING@0", "0x50", "at24", 0),
+      createEepromConfig("CHASSIS_EEPROM", "INCOMING@0", "0x50", "at25", 512)};
+  EXPECT_FALSE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+
+  // Test 10: Valid - Different physical devices (different address)
+  pmUnitConfig.i2cDeviceConfigs() = {
+      createEepromConfig("IDPROM_EEPROM", "INCOMING@0", "0x50", "at24", 0),
+      createEepromConfig("CHASSIS_EEPROM", "INCOMING@0", "0x51", "at24", 0)};
+  EXPECT_TRUE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+
+  // Test 11: Valid - Different physical devices (different bus)
+  pmUnitConfig.i2cDeviceConfigs() = {
+      createEepromConfig("IDPROM_EEPROM", "INCOMING@0", "0x50", "at24", 0),
+      createEepromConfig("CHASSIS_EEPROM", "INCOMING@1", "0x50", "at24", 0)};
   EXPECT_TRUE(
       ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
 }
