@@ -1,6 +1,6 @@
-# /usr/lib/systemd/system/wedge_agent.service
+# /usr/lib/systemd/system/fboss_sw_agent.service
 [Unit]
-Description=FBOSS Wedge Agent
+Description=FBOSS SW Agent
 After=platform_manager.service
 After=qsfp_service.service
 After=rc-local.service
@@ -17,16 +17,17 @@ MemorySwapMax=0
 Environment="PATH=/opt/fboss/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 Environment="LD_LIBRARY_PATH=/opt/fboss/lib"
 WorkingDirectory=/opt/fboss
-ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/wedge_agent-sai_impl'
+ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/fboss_sw_agent'
 
 Restart=always
 RestartSec=30
 TimeoutStartSec=180s
+TimeoutStopSec=30s
 
 # Logging to journald
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=wedge_agent
+SyslogIdentifier=fboss_sw_agent
 
 [Install]
 WantedBy=multi-user.target
