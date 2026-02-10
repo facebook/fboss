@@ -281,9 +281,10 @@ class NextHopMapPopulationTest : public ::testing::Test {
 
   // This verifies if the NextHop IDs present in the FIB resolves to the correct
   // set of NextHops in the route. This will resolve the ID to set of NextHops
-  // using resolveNextHopSetFromId and compare it with the NextHopSet present
-  // in the route.
+  // using the FibHelper getNexthops function and compare it with the NextHopSet
+  // present in the route.
   void verifyIDMapsConsistency() {
+    auto state = sw_->getState();
     auto fibInfo = getFibInfo();
     ASSERT_NE(fibInfo, nullptr) << "FibInfo is null";
 
@@ -312,9 +313,9 @@ class NextHopMapPopulationTest : public ::testing::Test {
       ASSERT_TRUE(resolvedSetId.has_value())
           << prefixStr << ": Missing resolvedNextHopSetID";
 
-      // Use resolveNextHopSetFromId to resolve the ID back to NextHops
-      auto resolvedNextHops = fibInfo->resolveNextHopSetFromId(
-          static_cast<NextHopSetId>(*resolvedSetId));
+      // Use FibHelper getNexthops to resolve the ID back to NextHops
+      auto resolvedNextHops =
+          getNextHops(state, static_cast<NextHopSetId>(*resolvedSetId));
 
       // Sort and compare as vectors
       std::sort(resolvedNextHops.begin(), resolvedNextHops.end());
@@ -347,9 +348,9 @@ class NextHopMapPopulationTest : public ::testing::Test {
       ASSERT_TRUE(resolvedSetId.has_value())
           << prefixStr << ": Missing resolvedNextHopSetID";
 
-      // Use resolveNextHopSetFromId to resolve the ID back to NextHops
-      auto resolvedNextHops = fibInfo->resolveNextHopSetFromId(
-          static_cast<NextHopSetId>(*resolvedSetId));
+      // Use FibHelper getNexthops to resolve the ID back to NextHops
+      auto resolvedNextHops =
+          getNextHops(state, static_cast<NextHopSetId>(*resolvedSetId));
 
       // Sort and compare as vectors
       std::sort(resolvedNextHops.begin(), resolvedNextHops.end());
