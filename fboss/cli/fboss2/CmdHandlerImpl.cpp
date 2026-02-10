@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
+// NOLINTBEGIN(misc-include-cleaner)
+// IWYU pragma: begin_keep
 #include "fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
@@ -114,6 +116,7 @@
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
 #include "fboss/cli/fboss2/commands/show/route/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/running_config/CmdShowRunningConfig.h"
 #include "fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h"
 #include "fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h"
 #include "fboss/cli/fboss2/commands/show/systemport/gen-cpp2/model_visitation.h"
@@ -131,6 +134,8 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_visitation.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_visitation.h"
+// NOLINTEND(misc-include-cleaner)
+// IWYU pragma: end_keep
 
 namespace facebook::fboss {
 
@@ -259,6 +264,8 @@ template void CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits>::run();
 template void CmdHandler<CmdStartPcap, CmdStartPcapTraits>::run();
 template void CmdHandler<CmdStopPcap, CmdStopPcapTraits>::run();
 template void CmdHandler<CmdShowRif, CmdShowRifTraits>::run();
+template void
+CmdHandler<CmdShowRunningConfig, CmdShowRunningConfigTraits>::run();
 
 template const ValidAggMapType
 CmdHandler<CmdShowPort, CmdShowPortTraits>::getValidAggs();
