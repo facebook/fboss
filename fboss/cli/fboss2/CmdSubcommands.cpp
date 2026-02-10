@@ -10,12 +10,19 @@
 
 #include "fboss/cli/fboss2/CmdSubcommands.h"
 #include "fboss/cli/fboss2/CmdArgsLists.h"
+#include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 
+#include <CLI/App.hpp>
+#include <fmt/format.h>
 #include <folly/Singleton.h>
+#include <map>
+#include <memory>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace {
 struct singleton_tag_type {};
@@ -231,6 +238,43 @@ CLI::App* CmdSubcommands::addCommand(
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_REVISION_LIST:
           subCmd->add_option(
               "revisions", args, "Revision(s) in the form 'rN' or 'current'");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_BUFFER_POOL_NAME:
+          subCmd->add_option(
+              "buffer_pool_config",
+              args,
+              "<name> <attr> <value> [<attr> <value> ...] where <attr> is one "
+              "of: shared-bytes, headroom-bytes, reserved-bytes");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_VLAN_ID:
+          subCmd->add_option("vlan_id", args, "VLAN ID (1-4094)");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_MAC_AND_PORT:
+          subCmd->add_option(
+              "mac_and_port",
+              args,
+              "MAC address and port name (e.g., AA:BB:CC:DD:EE:FF eth1/1/1)");
+          break;
+        case utils::ObjectArgTypeId::
+            OBJECT_ARG_TYPE_ID_PRIORITY_GROUP_POLICY_NAME:
+          subCmd->add_option(
+              "priority_group_policy_name", args, "Priority group policy name");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PRIORITY_GROUP_ID:
+          subCmd->add_option(
+              "group_config",
+              args,
+              "<group-id> [min-limit-bytes <bytes>] [headroom-limit-bytes <bytes>] "
+              "[resume-offset-bytes <bytes>] [static-limit-bytes <bytes>] "
+              "[scaling-factor <factor>] [buffer-pool-name <name>]");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_SCALING_FACTOR:
+          subCmd->add_option(
+              "scaling_factor",
+              args,
+              "MMU scaling factor (ONE, EIGHT, ONE_128TH, ONE_64TH, ONE_32TH, "
+              "ONE_16TH, ONE_8TH, ONE_QUARTER, ONE_HALF, TWO, FOUR, ONE_32768TH, "
+              "ONE_HUNDRED_TWENTY_EIGHT)");
           break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
