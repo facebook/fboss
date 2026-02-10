@@ -563,7 +563,7 @@ SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
 
 std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
     AttributeCablePropagationDelayMediaType::operator()() {
-#if defined(BRCM_SAI_SDK_GTE_14_0)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE;
 #else
   return std::nullopt;

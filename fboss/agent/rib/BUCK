@@ -87,6 +87,8 @@ cpp_unittest(
         "//fboss/agent/hw/mock:mock",
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/if:mpls-cpp2-types",
+        "//fboss/agent/state:label_forwarding_action",
         "//fboss/agent/state:state",
         "//fboss/agent/test:hw_test_handle",
         "//fboss/agent/test:label_forwarding_utils",

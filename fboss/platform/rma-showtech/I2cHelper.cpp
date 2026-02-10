@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/platform/showtech/I2cHelper.h"
+#include "fboss/platform/rma-showtech/I2cHelper.h"
 #include <fmt/core.h>
 #include <folly/String.h>
 

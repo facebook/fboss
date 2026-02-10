@@ -850,8 +850,6 @@ int doReadReg(
       doReadRegDirect(bus, portNum, offset, length, page);
     }
   } else {
-    // Release the bus access for QSFP service
-    bus->close();
     std::vector<int32_t> idx = zeroBasedPortIds(ports);
     std::map<int32_t, ReadResponse> resp;
     doReadRegViaService(idx, offset, length, page, evb, resp);
@@ -1046,8 +1044,6 @@ int doWriteReg(
       doWriteRegDirect(bus, portNum, offset, page, data);
     }
   } else {
-    // Release the bus access for QSFP service
-    bus->close();
     std::vector<int32_t> idx = zeroBasedPortIds(ports);
     doWriteRegViaService(idx, offset, page, data, evb);
   }
