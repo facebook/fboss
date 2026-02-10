@@ -10,6 +10,12 @@
 
 namespace facebook::fboss::platform::platform_manager {
 
+struct LogicalEeprom {
+  std::string pmUnitScopedName;
+  int16_t offset;
+  std::string kernelDeviceName;
+};
+
 class ConfigValidator {
  public:
   virtual ~ConfigValidator() = default;
@@ -59,6 +65,15 @@ class ConfigValidator {
   bool isValidChassisEepromDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& chassisEepromDevicePath);
+  bool isValidLogicalEeprom(
+      const PlatformConfig& config,
+      const std::string& pmUnitName,
+      const PmUnitConfig& pmUnitConfig);
+  std::map<std::pair<std::string, std::string>, std::vector<LogicalEeprom>>
+  getLogicalEeproms(
+      const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
+      const std::string& slotType,
+      const PmUnitConfig& pmUnitConfig);
 
   // Used by other platform services config validation.
   virtual bool isValidSlotPath(

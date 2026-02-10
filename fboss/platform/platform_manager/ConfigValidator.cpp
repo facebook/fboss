@@ -744,6 +744,10 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     if (!isValidPmUnitConfig(*config.slotTypeConfigs(), pmUnitConfig)) {
       return false;
     }
+
+    if (!isValidLogicalEeprom(config, pmUnitName, pmUnitConfig)) {
+      return false;
+    }
   }
 
   for (const auto& [pmUnitName, versionedPmUnitConfigs] :
@@ -1367,6 +1371,72 @@ void ConfigValidator::buildDeviceNameCache(
   }
 
   deviceNamesBySlotType_ = std::move(cache);
+}
+
+bool ConfigValidator::isValidLogicalEeprom(
+    const PlatformConfig& config,
+    const std::string& pmUnitName,
+    const PmUnitConfig& pmUnitConfig) {
+  auto logicalEeproms = getLogicalEeproms(
+      *config.slotTypeConfigs(),
+      *pmUnitConfig.pluggedInSlotType(),
+      pmUnitConfig);
+  if (!logicalEeproms.empty()) {
+    const auto& allowedPlatforms =
+        platform_manager_validators_constants::PLATFORMS_WITH_LOGICAL_EEPROMS();
+    if (std::find(
+            allowedPlatforms.begin(),
+            allowedPlatforms.end(),
+            *config.platformName()) == allowedPlatforms.end()) {
+      XLOG(ERR) << fmt::format(
+          "Platform has logical EEPROMs in PmUnit {}.  This is not allowed. ",
+          pmUnitName);
+      return false;
+    }
+  }
+  return true;
+}
+
+std::map<std::pair<std::string, std::string>, std::vector<LogicalEeprom>>
+ConfigValidator::getLogicalEeproms(
+    const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
+    const std::string& slotType,
+    const PmUnitConfig& pmUnitConfig) {
+  using EepromLoc = std::pair<std::string, std::string>;
+  std::map<EepromLoc, std::vector<LogicalEeprom>> eepromsByLocation;
+
+  // Add IDPROM if present
+  if (slotTypeConfigs.contains(slotType)) {
+    const auto& slotTypeConfig = slotTypeConfigs.at(slotType);
+    if (slotTypeConfig.idpromConfig()) {
+      const auto& idprom = *slotTypeConfig.idpromConfig();
+      eepromsByLocation[{*idprom.busName(), *idprom.address()}].push_back(
+          LogicalEeprom{
+              "IDPROM", *idprom.offset(), *idprom.kernelDeviceName()});
+    }
+  }
+
+  // Add I2C EEPROM devices
+  for (const auto& i2cDevice : *pmUnitConfig.i2cDeviceConfigs()) {
+    if (!*i2cDevice.isEeprom()) {
+      continue;
+    }
+    int16_t offset = i2cDevice.eepromOffset() ? *i2cDevice.eepromOffset() : 0;
+    eepromsByLocation[{*i2cDevice.busName(), *i2cDevice.address()}].push_back(
+        LogicalEeprom{
+            *i2cDevice.pmUnitScopedName(),
+            offset,
+            *i2cDevice.kernelDeviceName()});
+  }
+
+  // Return only locations with more than one EEPROM (logical EEPROMs)
+  std::map<EepromLoc, std::vector<LogicalEeprom>> result;
+  for (auto& [location, eeproms] : eepromsByLocation) {
+    if (eeproms.size() > 1) {
+      result[location] = std::move(eeproms);
+    }
+  }
+  return result;
 }
 
 } // namespace facebook::fboss::platform::platform_manager

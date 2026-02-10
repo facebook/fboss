@@ -1475,3 +1475,66 @@ TEST(ConfigValidatorTest, PciDeviceConfigWithI2cAdapterBlockConfigs) {
   pciDevConfig.i2cAdapterBlockConfigs() = {validConfig};
   EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
 }
+
+TEST(ConfigValidatorTest, LogicalEeproms) {
+  // Test 1: Empty result when no EEPROMs configured
+  std::map<std::string, SlotTypeConfig> slotTypeConfigs;
+  SlotTypeConfig slotTypeConfig;
+  slotTypeConfig.pmUnitName() = "SCM";
+  slotTypeConfigs["SCM_SLOT"] = slotTypeConfig;
+
+  PmUnitConfig pmUnitConfig;
+  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
+
+  auto result = ConfigValidator().getLogicalEeproms(
+      slotTypeConfigs, "SCM_SLOT", pmUnitConfig);
+  EXPECT_TRUE(result.empty());
+
+  // Test 2: Single EEPROM at a location doesn't count as logical
+  I2cDeviceConfig eeprom1;
+  eeprom1.pmUnitScopedName() = "EEPROM1";
+  eeprom1.busName() = "INCOMING@0";
+  eeprom1.address() = "0x50";
+  eeprom1.kernelDeviceName() = "at24";
+  eeprom1.isEeprom() = true;
+  eeprom1.eepromOffset() = 0;
+  pmUnitConfig.i2cDeviceConfigs() = {eeprom1};
+
+  result = ConfigValidator().getLogicalEeproms(
+      slotTypeConfigs, "SCM_SLOT", pmUnitConfig);
+  EXPECT_TRUE(result.empty());
+
+  // Test 3: Multiple EEPROMs at same location are returned as logical EEPROMs
+  I2cDeviceConfig eeprom2;
+  eeprom2.pmUnitScopedName() = "EEPROM2";
+  eeprom2.busName() = "INCOMING@0";
+  eeprom2.address() = "0x50";
+  eeprom2.kernelDeviceName() = "at24";
+  eeprom2.isEeprom() = true;
+  eeprom2.eepromOffset() = 256;
+  pmUnitConfig.i2cDeviceConfigs() = {eeprom1, eeprom2};
+
+  result = ConfigValidator().getLogicalEeproms(
+      slotTypeConfigs, "SCM_SLOT", pmUnitConfig);
+  EXPECT_EQ(result.size(), 1);
+  auto location =
+      std::make_pair(std::string("INCOMING@0"), std::string("0x50"));
+  EXPECT_TRUE(result.contains(location));
+  EXPECT_EQ(result.at(location).size(), 2);
+  EXPECT_EQ(result.at(location)[0].pmUnitScopedName, "EEPROM1");
+  EXPECT_EQ(result.at(location)[0].offset, 0);
+  EXPECT_EQ(result.at(location)[1].pmUnitScopedName, "EEPROM2");
+  EXPECT_EQ(result.at(location)[1].offset, 256);
+
+  // Test 4: Validation fails for non-GLATH05A-64O platforms with logical
+  // EEPROMs
+  auto config = getBasicConfig();
+  config.platformName() = "MERU800BIA";
+  EXPECT_FALSE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+
+  // Test 5: Validation passes for GLATH05A-64O platform with logical EEPROMs
+  config.platformName() = "GLATH05A-64O";
+  EXPECT_TRUE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+}
