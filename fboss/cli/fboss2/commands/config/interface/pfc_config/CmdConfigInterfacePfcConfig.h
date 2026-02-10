@@ -16,11 +16,9 @@
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/PfcConfigUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
-#include "fboss/cli/fboss2/utils/InterfaceList.h"
+#include "fboss/cli/fboss2/utils/InterfacesConfig.h"
 
 namespace facebook::fboss {
-
-using InterfaceList = utils::InterfaceList;
 
 struct CmdConfigInterfacePfcConfigTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigInterface;
@@ -39,7 +37,7 @@ class CmdConfigInterfacePfcConfig : public CmdHandler<
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const InterfaceList& interfaces,
+      const utils::InterfacesConfig& interfaceConfig,
       const ObjectArgType& config);
 
   void printOutput(const RetType& logMsg);

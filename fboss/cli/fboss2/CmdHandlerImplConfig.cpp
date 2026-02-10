@@ -19,8 +19,6 @@
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
-#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h"
-#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
@@ -55,11 +53,6 @@ template void
 CmdHandler<CmdConfigAppliedInfo, CmdConfigAppliedInfoTraits>::run();
 template void CmdHandler<CmdConfigReload, CmdConfigReloadTraits>::run();
 template void CmdHandler<CmdConfigInterface, CmdConfigInterfaceTraits>::run();
-template void CmdHandler<
-    CmdConfigInterfaceDescription,
-    CmdConfigInterfaceDescriptionTraits>::run();
-template void
-CmdHandler<CmdConfigInterfaceMtu, CmdConfigInterfaceMtuTraits>::run();
 template void CmdHandler<
     CmdConfigInterfaceQueuingPolicy,
     CmdConfigInterfaceQueuingPolicyTraits>::run();

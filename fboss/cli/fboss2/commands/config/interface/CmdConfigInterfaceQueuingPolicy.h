@@ -16,7 +16,7 @@
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
-#include "fboss/cli/fboss2/utils/InterfaceList.h"
+#include "fboss/cli/fboss2/utils/InterfacesConfig.h"
 
 namespace facebook::fboss {
 
@@ -38,7 +38,7 @@ class CmdConfigInterfaceQueuingPolicy
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const utils::InterfaceList& interfaces,
+      const utils::InterfacesConfig& interfaceConfig,
       const ObjectArgType& policyName);
 
   void printOutput(const RetType& logMsg);
