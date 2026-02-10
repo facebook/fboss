@@ -9,7 +9,7 @@ keywords:
 oncall: fboss_oss
 ---
 
-# Distro Image Manifest format
+# Distro Image Manifest Format
 
 ## Manifest Format
 
