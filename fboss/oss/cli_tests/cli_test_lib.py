@@ -239,3 +239,61 @@ def find_first_eth_interface() -> Interface:
 def commit_config() -> None:
     """Commit the current configuration session."""
     run_cli(["config", "session", "commit"])
+
+
+# Paths for config files
+SYSTEM_CONFIG_PATH = "/etc/coop/agent.conf"
+SESSION_CONFIG_PATH = os.path.expanduser("~/.fboss2/agent.conf")
+
+
+def cleanup_config(
+    modify_config: Callable[[dict[str, Any]], None],
+    description: str = "test configs",
+) -> None:
+    """
+    Common cleanup helper that modifies the config and commits the changes.
+
+    This function:
+    1. Copies the system config to the session config
+    2. Loads the config JSON
+    3. Calls the modify_config callback to modify the sw config
+    4. Writes the modified config back
+    5. Updates metadata for AGENT_RESTART
+    6. Commits the cleanup
+
+    Args:
+        modify_config: A callable that takes the sw config dict and modifies it
+                       in place to remove test-specific configurations.
+        description: A description of what is being cleaned up (for logging).
+    """
+    import shutil
+
+    session_dir = os.path.dirname(SESSION_CONFIG_PATH)
+    metadata_path = os.path.join(session_dir, "cli_metadata.json")
+
+    print("  Copying system config to session config...")
+    os.makedirs(session_dir, exist_ok=True)
+    shutil.copy(SYSTEM_CONFIG_PATH, SESSION_CONFIG_PATH)
+
+    print(f"  Removing {description}...")
+    with open(SESSION_CONFIG_PATH, "r") as f:
+        config = json.load(f)
+
+    sw_config = config.get("sw", {})
+    modify_config(sw_config)
+
+    with open(SESSION_CONFIG_PATH, "w") as f:
+        json.dump(config, f, indent=2)
+
+    # Update metadata to require AGENT_RESTART
+    print("  Updating metadata for AGENT_RESTART...")
+    metadata = {
+        "action": {"WEDGE_AGENT": "AGENT_RESTART"},
+        "commands": [],
+        "base": "",
+    }
+    with open(metadata_path, "w") as f:
+        json.dump(metadata, f, indent=2)
+
+    print("  Committing cleanup...")
+    commit_config()
