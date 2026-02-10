@@ -21,28 +21,28 @@ CmdConfigRollbackTraits::RetType CmdConfigRollback::queryClient(
   // Validate arguments
   if (revisions.size() > 1) {
     throw std::invalid_argument(
-        "Too many arguments. Expected 0 or 1 revision specifier.");
+        "Too many arguments. Expected 0 or 1 commit SHA.");
   }
 
   if (!revisions.empty() && revisions[0] == "current") {
     throw std::invalid_argument(
-        "Cannot rollback to 'current'. Please specify a revision number like 'r42'.");
+        "Cannot rollback to 'current'. Please specify a commit SHA.");
   }
 
   try {
-    int newRevision;
+    std::string newCommitSha;
     if (revisions.empty()) {
       // No revision specified - rollback to previous revision
-      newRevision = session.rollback(hostInfo);
+      newCommitSha = session.rollback(hostInfo);
     } else {
-      // Specific revision specified
-      newRevision = session.rollback(hostInfo, revisions[0]);
+      // Specific commit SHA specified
+      newCommitSha = session.rollback(hostInfo, revisions[0]);
     }
-    if (newRevision) {
-      return "Successfully rolled back to r" + std::to_string(newRevision) +
-          " and config reloaded.";
+    if (!newCommitSha.empty()) {
+      return "Successfully rolled back. New commit: " +
+          newCommitSha.substr(0, 8) + ". Config reloaded.";
     } else {
-      return "Failed to create a new revision after rollback.";
+      return "Failed to create a new commit after rollback.";
     }
   } catch (const std::exception& ex) {
     throw std::runtime_error(
