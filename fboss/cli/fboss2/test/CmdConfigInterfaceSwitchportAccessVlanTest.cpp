@@ -19,6 +19,7 @@
 #include "fboss/cli/fboss2/session/Git.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 #include "fboss/cli/fboss2/test/TestableConfigSession.h"
+#include "fboss/cli/fboss2/utils/InterfacesConfig.h"
 #include "fboss/cli/fboss2/utils/PortMap.h" // NOLINT(misc-include-cleaner)
 
 namespace fs = std::filesystem;
@@ -209,9 +210,9 @@ TEST_F(
   auto cmd = CmdConfigInterfaceSwitchportAccessVlan();
   VlanIdValue vlanId({"2001"});
 
-  utils::InterfaceList interfaces({"eth1/1/1", "eth1/2/1"});
+  utils::InterfacesConfig interfaceConfig({"eth1/1/1", "eth1/2/1"});
 
-  auto result = cmd.queryClient(localhost(), interfaces, vlanId);
+  auto result = cmd.queryClient(localhost(), interfaceConfig, vlanId);
 
   EXPECT_THAT(result, HasSubstr("Successfully set access VLAN"));
   EXPECT_THAT(result, HasSubstr("eth1/1/1"));
@@ -239,13 +240,8 @@ TEST_F(
       std::make_unique<TestableConfigSession>(
           sessionConfigDir_.string(), systemConfigDir_.string()));
 
-  auto cmd = CmdConfigInterfaceSwitchportAccessVlan();
-  VlanIdValue vlanId({"100"});
-
-  utils::InterfaceList emptyInterfaces({});
-  EXPECT_THROW(
-      cmd.queryClient(localhost(), emptyInterfaces, vlanId),
-      std::invalid_argument);
+  // InterfacesConfig with empty input throws during construction
+  EXPECT_THROW(utils::InterfacesConfig({}), std::invalid_argument);
 }
 
 } // namespace facebook::fboss

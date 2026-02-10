@@ -15,8 +15,6 @@
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
-#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h"
-#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
@@ -66,18 +64,6 @@ const CommandTree& kConfigCommandTree() {
           commandHandler<CmdConfigInterface>,
           argTypeHandler<CmdConfigInterfaceTraits>,
           {{
-               "description",
-               "Set interface description",
-               commandHandler<CmdConfigInterfaceDescription>,
-               argTypeHandler<CmdConfigInterfaceDescriptionTraits>,
-           },
-           {
-               "mtu",
-               "Set interface MTU",
-               commandHandler<CmdConfigInterfaceMtu>,
-               argTypeHandler<CmdConfigInterfaceMtuTraits>,
-           },
-           {
                "pfc-config",
                "Configure PFC settings for interface",
                commandHandler<CmdConfigInterfacePfcConfig>,

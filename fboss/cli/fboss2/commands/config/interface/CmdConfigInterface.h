@@ -11,28 +11,28 @@
 #pragma once
 
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include "fboss/cli/fboss2/utils/InterfacesConfig.h"
 
 namespace facebook::fboss {
 
 struct CmdConfigInterfaceTraits : public WriteCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
-  using ObjectArgType = std::vector<std::string>;
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_INTERFACES_CONFIG;
+  using ObjectArgType = utils::InterfacesConfig;
   using RetType = std::string;
 };
 
 class CmdConfigInterface
     : public CmdHandler<CmdConfigInterface, CmdConfigInterfaceTraits> {
  public:
-  RetType queryClient(
-      const HostInfo& /* hostInfo */,
-      const ObjectArgType& /* interfaceNames */) {
-    throw std::runtime_error(
-        "Incomplete command, please use one of the subcommands");
-  }
+  using ObjectArgType = CmdConfigInterfaceTraits::ObjectArgType;
+  using RetType = CmdConfigInterfaceTraits::RetType;
 
-  void printOutput(const RetType& /* model */) {}
+  RetType queryClient(
+      const HostInfo& hostInfo,
+      const ObjectArgType& interfaceConfig);
+
+  void printOutput(const RetType& logMsg);
 };
 
 } // namespace facebook::fboss

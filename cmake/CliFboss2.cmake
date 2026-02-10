@@ -631,11 +631,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.cpp
   fboss/cli/fboss2/commands/config/CmdConfigReload.h
   fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.cpp
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.cpp
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h
   fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.cpp
@@ -683,8 +680,10 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/session/ConfigSession.cpp
   fboss/cli/fboss2/session/Git.h
   fboss/cli/fboss2/session/Git.cpp
-  fboss/cli/fboss2/utils/InterfaceList.h
+  fboss/cli/fboss2/utils/InterfacesConfig.cpp
+  fboss/cli/fboss2/utils/InterfacesConfig.h
   fboss/cli/fboss2/utils/InterfaceList.cpp
+  fboss/cli/fboss2/utils/InterfaceList.h
   fboss/cli/fboss2/CmdListConfig.cpp
   fboss/cli/fboss2/CmdHandlerImplConfig.cpp
 )

@@ -19,15 +19,16 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
-#include "fboss/cli/fboss2/utils/InterfaceList.h"
+#include "fboss/cli/fboss2/utils/InterfacesConfig.h"
 
 namespace facebook::fboss {
 
 CmdConfigInterfaceQueuingPolicyTraits::RetType
 CmdConfigInterfaceQueuingPolicy::queryClient(
     const HostInfo& /* hostInfo */,
-    const utils::InterfaceList& interfaces,
+    const utils::InterfacesConfig& interfaceConfig,
     const ObjectArgType& policyNameArg) {
+  const auto& interfaces = interfaceConfig.getInterfaces();
   if (interfaces.empty()) {
     throw std::invalid_argument("No interface name provided");
   }

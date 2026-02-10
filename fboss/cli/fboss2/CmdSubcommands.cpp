@@ -329,6 +329,13 @@ CLI::App* CmdSubcommands::addCommand(
               args,
               "L2 learning mode (hardware|software|disabled)");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_INTERFACES_CONFIG:
+          subCmd->add_option(
+              "interface_config",
+              args,
+              "<port-list> [<attr> <value> ...] where <attr> is one "
+              "of: description, mtu");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;

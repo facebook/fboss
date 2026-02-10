@@ -12,8 +12,7 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
-#include "fboss/cli/fboss2/utils/CmdUtils.h"
-#include "fboss/cli/fboss2/utils/InterfaceList.h"
+#include "fboss/cli/fboss2/utils/InterfacesConfig.h"
 
 namespace facebook::fboss {
 
@@ -32,7 +31,12 @@ class CmdConfigInterfaceSwitchportAccess
  public:
   RetType queryClient(
       const HostInfo& /* hostInfo */,
-      const utils::InterfaceList& /* interfaces */) {
+      const utils::InterfacesConfig& interfaceConfig) {
+    // Get the interfaces from the config (ignoring any attributes)
+    const auto& interfaces = interfaceConfig.getInterfaces();
+    if (interfaces.empty()) {
+      throw std::invalid_argument("No interface name provided");
+    }
     throw std::runtime_error(
         "Incomplete command, please use one of the subcommands");
   }
