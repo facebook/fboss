@@ -27,7 +27,7 @@
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/PfcConfigUtils.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
-#include "fboss/cli/fboss2/utils/InterfaceList.h"
+#include "fboss/cli/fboss2/utils/InterfacesConfig.h"
 
 namespace facebook::fboss {
 
@@ -125,8 +125,9 @@ PfcConfigAttrs::PfcConfigAttrs(std::vector<std::string> v) {
 CmdConfigInterfacePfcConfigTraits::RetType
 CmdConfigInterfacePfcConfig::queryClient(
     const HostInfo& /* hostInfo */,
-    const InterfaceList& interfaces,
+    const utils::InterfacesConfig& interfaceConfig,
     const ObjectArgType& config) {
+  const auto& interfaces = interfaceConfig.getInterfaces();
   for (const utils::Intf& intf : interfaces) {
     cfg::Port* port = intf.getPort();
     if (!port) {

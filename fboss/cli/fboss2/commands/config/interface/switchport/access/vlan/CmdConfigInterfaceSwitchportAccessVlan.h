@@ -13,7 +13,7 @@
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
-#include "fboss/cli/fboss2/utils/InterfaceList.h"
+#include "fboss/cli/fboss2/utils/InterfacesConfig.h"
 
 namespace facebook::fboss {
 
@@ -40,7 +40,7 @@ class CmdConfigInterfaceSwitchportAccessVlan
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const utils::InterfaceList& interfaces,
+      const utils::InterfacesConfig& interfaceConfig,
       const ObjectArgType& vlanId);
 
   void printOutput(const RetType& logMsg);
