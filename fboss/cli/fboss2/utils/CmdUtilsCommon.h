@@ -9,11 +9,19 @@
  */
 #pragma once
 
-#include <CLI/CLI.hpp>
+#include <CLI/App.hpp>
+#include <bits/types/struct_timeval.h>
 #include <folly/IPAddress.h>
 #include <folly/stop_watch.h>
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <optional>
 #include <string>
+#include <tuple>
+#include <utility>
 #include <variant>
+#include <vector>
 
 namespace facebook::fboss::utils {
 
@@ -66,18 +74,30 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_MTU,
   OBJECT_ARG_TYPE_ID_INTERFACE_LIST,
   OBJECT_ARG_TYPE_ID_REVISION_LIST,
+  OBJECT_ARG_TYPE_ID_BUFFER_POOL_NAME,
+  OBJECT_ARG_TYPE_VLAN_ID,
+  OBJECT_ARG_TYPE_MAC_AND_PORT,
+  OBJECT_ARG_TYPE_ID_PRIORITY_GROUP_POLICY_NAME,
+  OBJECT_ARG_TYPE_ID_PRIORITY_GROUP_ID,
+  OBJECT_ARG_TYPE_ID_SCALING_FACTOR,
+  // PFC config argument types
+  OBJECT_ARG_TYPE_ID_PFC_CONFIG_ATTRS,
+  // Queuing policy argument types
+  OBJECT_ARG_TYPE_ID_QUEUING_POLICY_NAME,
+  OBJECT_ARG_TYPE_ID_QUEUE_ID,
 };
 
 template <typename T>
 class BaseObjectArgType {
  public:
-  BaseObjectArgType() {}
-  /* implicit */ BaseObjectArgType(std::vector<T> v) : data_(v) {}
+  BaseObjectArgType() = default;
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  /* implicit */ BaseObjectArgType(std::vector<T> v) : data_(std::move(v)) {}
   using iterator = typename std::vector<T>::iterator;
   using const_iterator = typename std::vector<T>::const_iterator;
   using size_type = typename std::vector<T>::size_type;
 
-  const std::vector<T> data() const {
+  std::vector<T> data() const {
     return data_;
   }
 
@@ -116,8 +136,9 @@ class BaseObjectArgType {
 
 class NoneArgType : public BaseObjectArgType<std::string> {
  public:
+  // NOLINTNEXTLINE(google-explicit-constructor)
   /* implicit */ NoneArgType(std::vector<std::string> v)
-      : BaseObjectArgType(v) {}
+      : BaseObjectArgType(std::move(v)) {}
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
 };
@@ -183,7 +204,7 @@ std::vector<std::string> getHostsFromFile(const std::string& filename);
 // Common util method
 timeval splitFractionalSecondsFromTimer(const long& timer);
 const std::string parseTimeToTimeStamp(const long& timeToParse);
-const std::string formatBandwidth(const float bandwidthBytesPerSecond);
+const std::string formatBandwidth(float bandwidthBytesPerSecond);
 long getEpochFromDuration(const int64_t& duration);
 const std::string getDurationStr(folly::stop_watch<>& watch);
 const std::string getPrettyElapsedTime(const int64_t& start_time);

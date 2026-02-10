@@ -1,0 +1,354 @@
+#!/usr/bin/env python3
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+"""
+End-to-end tests for PFC (Priority Flow Control) CLI commands.
+
+This test covers:
+1. Priority group policy configuration (config qos priority-group-policy)
+2. Per-port PFC configuration (config interface <port> pfc-config)
+
+This test:
+1. Cleans up any existing test config (portPgConfigs, bufferPoolConfigs, port pfc)
+2. Creates a buffer pool (required for priority group config)
+3. Creates a new priority group policy with multiple group IDs
+4. Configures PFC on a test port with tx, rx, watchdog settings
+5. Commits the configuration and verifies it was applied
+6. Cleans up the test config
+"""
+
+import json
+import sys
+from typing import Any
+
+from cli_test_lib import (
+    SYSTEM_CONFIG_PATH,
+    cleanup_config,
+    commit_config,
+    run_cli,
+)
+
+# Test names
+TEST_BUFFER_POOL_NAME = "cli_e2e_test_buffer_pool"
+TEST_POLICY_NAME = "cli_e2e_test_pg_policy"
+TEST_PORT_NAME = "eth1/1/1"
+
+# Buffer pool configuration
+TEST_BUFFER_POOL_CONFIG = {
+    "sharedBytes": 78773528,
+    "headroomBytes": 4405376,
+}
+
+# scalingFactor enum values: ONE_HALF=8, TWO=9
+SCALING_FACTOR_MAP = {"ONE_HALF": 8, "TWO": 9}
+
+# Expected portPgConfigs after test (what we expect in the JSON file)
+EXPECTED_PORT_PG_CONFIGS = {
+    TEST_POLICY_NAME: [
+        {
+            "id": 2,
+            "name": "pg2",
+            "sramScalingFactor": SCALING_FACTOR_MAP["ONE_HALF"],
+            "minLimitBytes": 14478,
+            "headroomLimitBytes": 726440,
+            "resumeOffsetBytes": 9652,
+            "bufferPoolName": TEST_BUFFER_POOL_NAME,
+        },
+        {
+            "id": 6,
+            "name": "pg6",
+            "sramScalingFactor": SCALING_FACTOR_MAP["ONE_HALF"],
+            "minLimitBytes": 4826,
+            "headroomLimitBytes": 726440,
+            "resumeOffsetBytes": 9652,
+            "bufferPoolName": TEST_BUFFER_POOL_NAME,
+        },
+        {
+            "id": 0,
+            "name": "pg0",
+            "sramScalingFactor": SCALING_FACTOR_MAP["TWO"],
+            "minLimitBytes": 4826,
+            "headroomLimitBytes": 0,
+            "resumeOffsetBytes": 9652,
+            "bufferPoolName": TEST_BUFFER_POOL_NAME,
+        },
+        {
+            "id": 7,
+            "name": "pg7",
+            "sramScalingFactor": SCALING_FACTOR_MAP["TWO"],
+            "minLimitBytes": 4826,
+            "headroomLimitBytes": 0,
+            "resumeOffsetBytes": 9652,
+            "bufferPoolName": TEST_BUFFER_POOL_NAME,
+        },
+    ]
+}
+
+# CLI input format (uses string scaling factor names)
+CLI_PG_CONFIGS = [
+    {
+        "id": 2,
+        "scalingFactor": "ONE_HALF",
+        "minLimitBytes": 14478,
+        "headroomLimitBytes": 726440,
+        "resumeOffsetBytes": 9652,
+    },
+    {
+        "id": 6,
+        "scalingFactor": "ONE_HALF",
+        "minLimitBytes": 4826,
+        "headroomLimitBytes": 726440,
+        "resumeOffsetBytes": 9652,
+    },
+    {
+        "id": 0,
+        "scalingFactor": "TWO",
+        "minLimitBytes": 4826,
+        "headroomLimitBytes": 0,
+        "resumeOffsetBytes": 9652,
+    },
+    {
+        "id": 7,
+        "scalingFactor": "TWO",
+        "minLimitBytes": 4826,
+        "headroomLimitBytes": 0,
+        "resumeOffsetBytes": 9652,
+    },
+]
+
+# Per-port PFC configuration (similar to l3_scaleup.conf)
+# recoveryAction enum: NO_DROP=0, DROP=1
+TEST_PORT_PFC_CONFIG = {
+    "tx": True,
+    "rx": True,
+    "portPgConfigName": TEST_POLICY_NAME,
+    "watchdog": {
+        "detectionTimeMsecs": 150,
+        "recoveryTimeMsecs": 1000,
+        "recoveryAction": 0,  # NO_DROP
+    },
+}
+
+
+def configure_buffer_pool(pool_name: str, config: dict) -> None:
+    """Configure a buffer pool with shared and headroom bytes."""
+    base_cmd = ["config", "qos", "buffer-pool", pool_name]
+    run_cli(base_cmd + ["shared-bytes", str(config["sharedBytes"])])
+    run_cli(base_cmd + ["headroom-bytes", str(config["headroomBytes"])])
+
+
+def configure_priority_group(
+    policy_name: str, group_id: int, config: dict, buffer_pool_name: str
+) -> None:
+    """Configure a single priority group with all its attributes (one at a time)."""
+    base_cmd = [
+        "config",
+        "qos",
+        "priority-group-policy",
+        policy_name,
+        "group-id",
+        str(group_id),
+    ]
+
+    # Set each attribute
+    run_cli(base_cmd + ["min-limit-bytes", str(config["minLimitBytes"])])
+    run_cli(base_cmd + ["headroom-limit-bytes", str(config["headroomLimitBytes"])])
+    run_cli(base_cmd + ["resume-offset-bytes", str(config["resumeOffsetBytes"])])
+    run_cli(base_cmd + ["scaling-factor", config["scalingFactor"]])
+    run_cli(base_cmd + ["buffer-pool-name", buffer_pool_name])
+
+
+def configure_priority_group_multi_attr(
+    policy_name: str, group_id: int, config: dict, buffer_pool_name: str
+) -> None:
+    """Configure a single priority group with all attributes in one command."""
+    cmd = [
+        "config",
+        "qos",
+        "priority-group-policy",
+        policy_name,
+        "group-id",
+        str(group_id),
+        "min-limit-bytes",
+        str(config["minLimitBytes"]),
+        "headroom-limit-bytes",
+        str(config["headroomLimitBytes"]),
+        "resume-offset-bytes",
+        str(config["resumeOffsetBytes"]),
+        "scaling-factor",
+        config["scalingFactor"],
+        "buffer-pool-name",
+        buffer_pool_name,
+    ]
+    run_cli(cmd)
+
+
+def configure_port_pfc(port_name: str, config: dict) -> None:
+    """Configure PFC settings on a port.
+
+    Demonstrates both single-attribute and multi-attribute command variants.
+    """
+    base_cmd = ["config", "interface", port_name, "pfc-config"]
+    watchdog = config["watchdog"]
+    recovery_action = "no-drop" if watchdog["recoveryAction"] == 0 else "drop"
+
+    # First, use single-attribute commands for tx, rx, and priority-group-policy
+    print("  Using single-attribute commands for tx, rx, priority-group-policy...")
+    run_cli(base_cmd + ["tx", "enabled" if config["tx"] else "disabled"])
+    run_cli(base_cmd + ["rx", "enabled" if config["rx"] else "disabled"])
+    run_cli(base_cmd + ["priority-group-policy", config["portPgConfigName"]])
+
+    # Then, use a multi-attribute command for all watchdog settings at once
+    print("  Using multi-attribute command for all watchdog settings...")
+    run_cli(
+        base_cmd
+        + [
+            "watchdog-detection-time",
+            str(watchdog["detectionTimeMsecs"]),
+            "watchdog-recovery-time",
+            str(watchdog["recoveryTimeMsecs"]),
+            "watchdog-recovery-action",
+            recovery_action,
+        ]
+    )
+
+
+def cleanup_test_config() -> None:
+    """Remove PFC-related test config: portPgConfigs, bufferPoolConfigs, and port pfc."""
+
+    def modify_config(sw_config: dict[str, Any]) -> None:
+        # Remove global PFC configs
+        sw_config.pop("portPgConfigs", None)
+        sw_config.pop("bufferPoolConfigs", None)
+
+        # Remove per-port PFC config from test port
+        ports = sw_config.get("ports", [])
+        for port in ports:
+            if port.get("name") == TEST_PORT_NAME:
+                port.pop("pfc", None)
+                break
+
+    cleanup_config(modify_config, "PFC-related configs")
+
+
+def main() -> int:
+    print("=" * 70)
+    print("CLI E2E Test: PFC Configuration")
+    print("=" * 70)
+
+    # Step 0: Cleanup any existing test config
+    print("\n[Step 0] Cleaning up any existing test config...")
+    cleanup_test_config()
+    print("  Cleanup complete")
+
+    # Step 1: Configure buffer pool (required for priority group config)
+    print(f"\n[Step 1] Configuring buffer pool '{TEST_BUFFER_POOL_NAME}'...")
+    configure_buffer_pool(TEST_BUFFER_POOL_NAME, TEST_BUFFER_POOL_CONFIG)
+    print("  Buffer pool configured")
+
+    # Step 2: Configure priority groups (using single-attribute commands)
+    print(f"\n[Step 2] Configuring priority group policy '{TEST_POLICY_NAME}'...")
+    print("  Using single-attribute commands for group-ids 2 and 6...")
+    for pg_config in CLI_PG_CONFIGS[:2]:  # First two: group-ids 2 and 6
+        group_id = pg_config["id"]
+        print(f"  Configuring group-id {group_id} (one attribute at a time)...")
+        configure_priority_group(
+            TEST_POLICY_NAME, group_id, pg_config, TEST_BUFFER_POOL_NAME
+        )
+    print("  Using multi-attribute commands for group-ids 0 and 7...")
+    for pg_config in CLI_PG_CONFIGS[2:]:  # Last two: group-ids 0 and 7
+        group_id = pg_config["id"]
+        print(f"  Configuring group-id {group_id} (all attributes at once)...")
+        configure_priority_group_multi_attr(
+            TEST_POLICY_NAME, group_id, pg_config, TEST_BUFFER_POOL_NAME
+        )
+    print("  All priority groups configured")
+
+    # Step 3: Configure per-port PFC
+    print(f"\n[Step 3] Configuring PFC on port '{TEST_PORT_NAME}'...")
+    configure_port_pfc(TEST_PORT_NAME, TEST_PORT_PFC_CONFIG)
+    print("  Port PFC configured")
+
+    # Step 4: Commit the configuration
+    print("\n[Step 4] Committing configuration...")
+    commit_config()
+    print("  Configuration committed successfully")
+
+    # Step 5: Verify configuration by reading /etc/coop/agent.conf
+    print("\n[Step 5] Verifying configuration...")
+    with open(SYSTEM_CONFIG_PATH, "r") as f:
+        config = json.load(f)
+
+    sw_config = config.get("sw", {})
+
+    # Verify buffer pool
+    actual_buffer_pool = sw_config.get("bufferPoolConfigs", {}).get(
+        TEST_BUFFER_POOL_NAME
+    )
+    if actual_buffer_pool != TEST_BUFFER_POOL_CONFIG:
+        print("  ERROR: Buffer pool mismatch")
+        print(f"  Expected: {TEST_BUFFER_POOL_CONFIG}")
+        print(f"  Actual:   {actual_buffer_pool}")
+        return 1
+    print(f"  Buffer pool '{TEST_BUFFER_POOL_NAME}' verified")
+
+    # Verify priority group policy using deep equal
+    actual_pg_configs = sw_config.get("portPgConfigs", {})
+    if TEST_POLICY_NAME not in actual_pg_configs:
+        print(f"  ERROR: Priority group policy '{TEST_POLICY_NAME}' not found")
+        return 1
+
+    # Sort both lists by id for comparison
+    expected_list = sorted(
+        EXPECTED_PORT_PG_CONFIGS[TEST_POLICY_NAME], key=lambda x: x["id"]
+    )
+    actual_list = sorted(actual_pg_configs[TEST_POLICY_NAME], key=lambda x: x["id"])
+
+    if actual_list != expected_list:
+        print("  ERROR: Priority group configs mismatch")
+        print(f"  Expected: {json.dumps(expected_list, indent=2)}")
+        print(f"  Actual:   {json.dumps(actual_list, indent=2)}")
+        return 1
+    print(f"  Priority group policy '{TEST_POLICY_NAME}' verified")
+
+    # Verify per-port PFC config
+    ports = sw_config.get("ports", [])
+    test_port = None
+    for port in ports:
+        if port.get("name") == TEST_PORT_NAME:
+            test_port = port
+            break
+
+    if test_port is None:
+        print(f"  ERROR: Port '{TEST_PORT_NAME}' not found in config")
+        return 1
+
+    actual_pfc = test_port.get("pfc")
+    if actual_pfc is None:
+        print(f"  ERROR: PFC config not found on port '{TEST_PORT_NAME}'")
+        return 1
+
+    if actual_pfc != TEST_PORT_PFC_CONFIG:
+        print("  ERROR: Port PFC config mismatch")
+        print(f"  Expected: {json.dumps(TEST_PORT_PFC_CONFIG, indent=2)}")
+        print(f"  Actual:   {json.dumps(actual_pfc, indent=2)}")
+        return 1
+    print(f"  Port '{TEST_PORT_NAME}' PFC config verified")
+
+    print("\n" + "=" * 70)
+    print("TEST PASSED")
+    print("=" * 70)
+
+    # Step 6: Cleanup test config
+    print("\n[Step 6] Cleaning up test config...")
+    cleanup_test_config()
+    print("  Cleanup complete")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

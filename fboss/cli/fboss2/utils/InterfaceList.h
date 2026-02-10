@@ -10,9 +10,10 @@
 
 #pragma once
 
-#include <memory>
+#include <string>
+#include <utility>
 #include <vector>
-#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 
 namespace facebook::fboss::utils {
@@ -23,7 +24,8 @@ namespace facebook::fboss::utils {
  */
 class Intf {
  public:
-  Intf() : port_(nullptr), interface_(nullptr) {}
+  explicit Intf(std::string name)
+      : name_(std::move(name)), port_(nullptr), interface_(nullptr) {}
 
   /* Get the Port pointer (may be nullptr). */
   cfg::Port* getPort() const {
@@ -45,12 +47,18 @@ class Intf {
     interface_ = interface;
   }
 
+  /* Get the name of this interface. */
+  const std::string& name() const {
+    return name_;
+  }
+
   /* Check if this Intf has either a Port or Interface. */
   bool isValid() const {
     return port_ != nullptr || interface_ != nullptr;
   }
 
  private:
+  std::string name_;
   cfg::Port* port_;
   cfg::Interface* interface_;
 };
@@ -62,6 +70,7 @@ class Intf {
  */
 class InterfaceList : public BaseObjectArgType<Intf> {
  public:
+  // NOLINTNEXTLINE(google-explicit-constructor)
   /* implicit */ InterfaceList(std::vector<std::string> names);
 
   /* Get the original names provided by the user. */
