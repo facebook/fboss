@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/platform/showtech/PsuHelper.h"
+#include "fboss/platform/rma-showtech/PsuHelper.h"
 
 #include <cmath>
 #include <iomanip>

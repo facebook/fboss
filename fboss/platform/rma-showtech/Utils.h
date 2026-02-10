@@ -3,8 +3,8 @@
 #pragma once
 
 #include "fboss/platform/helpers/PlatformUtils.h"
-#include "fboss/platform/showtech/I2cHelper.h"
-#include "fboss/platform/showtech/gen-cpp2/showtech_config_types.h"
+#include "fboss/platform/rma-showtech/I2cHelper.h"
+#include "fboss/platform/rma-showtech/gen-cpp2/showtech_config_types.h"
 
 namespace facebook::fboss::platform {
 
