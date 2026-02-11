@@ -335,6 +335,7 @@ cpp_library(
         "commands/show/product/CmdShowProduct.cpp",
         "commands/show/product/CmdShowProductDetails.cpp",
         "commands/show/rif/CmdShowRif.cpp",
+        "commands/show/route/CmdShowRoute.cpp",
         "commands/show/route/CmdShowRouteSummary.cpp",
         "commands/show/route/utils.cpp",
         "commands/show/systemport/CmdShowSystemPort.cpp",
