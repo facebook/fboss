@@ -821,7 +821,7 @@ class CmisModule : public QsfpModule {
   void setApplicationSelectCode(
       uint8_t apSelCode,
       uint8_t mediaInterfaceCode,
-      uint8_t startHostLane,
+      const TransceiverPortState& state,
       uint8_t numHostLanes,
       uint8_t hostLaneMask);
   void setApplicationSelectCodeAllPorts(

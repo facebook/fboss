@@ -2366,10 +2366,10 @@ void CmisModule::updateQsfpData(bool allPages) {
 void CmisModule::setApplicationSelectCode(
     uint8_t apSelCode,
     uint8_t mediaInterfaceCode,
-    uint8_t startHostLane,
+    const TransceiverPortState& state,
     uint8_t numHostLanes,
     uint8_t hostLaneMask) {
-  uint8_t dataPathId = startHostLane;
+  const uint8_t dataPathId = state.startHostLane;
   uint8_t explicitControl = 0; // Use application dependent settings
   uint8_t newApSelCode = (apSelCode << 4) | (dataPathId << 1) | explicitControl;
   QSFP_LOG(INFO, this) << folly::sformat("newApSelCode: {:#x}", newApSelCode);
@@ -2388,8 +2388,7 @@ void CmisModule::setApplicationSelectCode(
   readCmisField(
       CmisField::ACTIVE_CTRL_ALL_LANES, laneToActiveCtrlFieldVals.data());
 
-  for (uint8_t lane = startHostLane; lane < startHostLane + numHostLanes;
-       lane++) {
+  for (uint8_t lane = dataPathId; lane < dataPathId + numHostLanes; lane++) {
     lanesToRelease.insert(lane);
     applySetForReleaseLanes |= (1 << lane);
     // Get all lanes with the same data path ID as this lane
@@ -2441,8 +2440,7 @@ void CmisModule::setApplicationSelectCode(
 
   std::set<uint8_t> lanesToProgramAppSel;
   std::vector<uint8_t> appSelCode;
-  for (uint8_t lane = startHostLane; lane < startHostLane + numHostLanes;
-       lane++) {
+  for (uint8_t lane = dataPathId; lane < dataPathId + numHostLanes; lane++) {
     // Assign ApSel code to each lane
     QSFP_LOG(INFO, this) << folly::sformat(
         "Configuring lane {:#x} with apsel code {:#x}", lane, newApSelCode);
@@ -2575,7 +2573,7 @@ void CmisModule::programApplicationSelectCode(
         this,
         appSelCode,
         moduleMediaInterfaceCode,
-        state.startHostLane,
+        state,
         numHostLanes,
         hostLaneMask);
   }
