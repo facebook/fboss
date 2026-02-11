@@ -1153,6 +1153,64 @@ void PortManager::setInterfacePrbs(
   }
 }
 
+void PortManager::getSupportedPrbsPolynomials(
+    std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
+    const std::string& portNameStr,
+    phy::PortComponent component) {
+  auto portId = getPortIDByPortNameOrThrow(portNameStr);
+  phy::Side side = prbsComponentToPhySide(component);
+  if (isTransceiverComponent(component)) {
+    auto tcvrIdOpt = getLowestIndexedStaticTransceiverForPort(portId);
+    if (!tcvrIdOpt) {
+      throw FbossError("Can't find transceiver module for port ", portNameStr);
+    }
+    prbsCapabilities =
+        transceiverManager_->getTransceiverPrbsCapabilities(*tcvrIdOpt, side);
+  } else {
+    throw FbossError(
+        "PRBS on ",
+        apache::thrift::util::enumNameSafe(component),
+        " not supported by qsfp_service");
+  }
+}
+
+void PortManager::getInterfacePrbsState(
+    prbs::InterfacePrbsState& prbsState,
+    const std::string& portNameStr,
+    phy::PortComponent component) const {
+  auto portId = getPortIDByPortNameOrThrow(portNameStr);
+  if (isTransceiverComponent(component)) {
+    transceiverManager_->getInterfacePrbsStateTransceiver(
+        prbsState, portId, portNameStr, component);
+  } else {
+    throw FbossError(
+        "getInterfacePrbsState not supported on component ",
+        apache::thrift::util::enumNameSafe(component));
+  }
+}
+
+void PortManager::getAllInterfacePrbsStates(
+    std::map<std::string, prbs::InterfacePrbsState>& prbsStates,
+    phy::PortComponent component) const {
+  const auto& platformPorts = platformMapping_->getPlatformPorts();
+  for (const auto& platformPort : platformPorts) {
+    auto portNameStr = platformPort.second.mapping()->name();
+    try {
+      prbs::InterfacePrbsState prbsState;
+      getInterfacePrbsState(prbsState, *portNameStr, component);
+      prbsStates[*portNameStr] = prbsState;
+    } catch (const std::exception& ex) {
+      // If PRBS is not enabled on this port, return
+      // a default stats / State.
+      auto portIdOpt = getPortIDByPortName(*portNameStr);
+      auto portIdStr = portIdOpt ? folly::to<std::string>(*portIdOpt) : "";
+      SW_PORT_LOG(ERR, prbsLogCategory, *portNameStr, portIdStr)
+          << "Failed to get prbs state with error: " << ex.what();
+      prbsStates[*portNameStr] = prbs::InterfacePrbsState();
+    }
+  }
+}
+
 phy::PrbsStats PortManager::getInterfacePrbsStats(
     const std::string& portNameStr,
     phy::PortComponent component) const {

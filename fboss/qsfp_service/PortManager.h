@@ -299,6 +299,20 @@ class PortManager {
       phy::PortComponent component,
       const prbs::InterfacePrbsState& state);
 
+  void getSupportedPrbsPolynomials(
+      std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
+      const std::string& portName,
+      phy::PortComponent component);
+
+  void getInterfacePrbsState(
+      prbs::InterfacePrbsState& prbsState,
+      const std::string& portName,
+      phy::PortComponent component) const;
+
+  void getAllInterfacePrbsStates(
+      std::map<std::string, prbs::InterfacePrbsState>& prbsStates,
+      phy::PortComponent component) const;
+
   phy::PrbsStats getInterfacePrbsStats(
       const std::string& portName,
       phy::PortComponent component) const;
