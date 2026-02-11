@@ -20,6 +20,8 @@
 #include "fboss/platform/weutil/FbossEepromInterface.h"
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
 
+// Test change, DO NOT MERGE
+
 namespace facebook::fboss::platform::platform_manager {
 namespace {
 constexpr auto kRootSlotPath = "/";
