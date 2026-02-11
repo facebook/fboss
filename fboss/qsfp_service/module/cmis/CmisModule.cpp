@@ -2558,9 +2558,9 @@ void CmisModule::setMaxFecSamplingLocked() {
  * setApplicationSelectCode will be used.
  */
 void CmisModule::programApplicationSelectCode(
-    const std::string& portName,
     uint8_t appSelCode,
     uint8_t moduleMediaInterfaceCode,
+    const std::string& portName,
     uint8_t startHostLane,
     uint8_t numHostLanes,
     std::optional<std::function<void()>> appSelectFunc) {
@@ -2819,9 +2819,9 @@ void CmisModule::setApplicationCodeLocked(
         getInterfaceCodeForAppSel(newAppSelCode, kMediaInterfaceCodeOffset);
 
     programApplicationSelectCode(
-        state.portName,
         newAppSelCode,
         moduleMediaInterfaceCode,
+        state.portName,
         state.startHostLane,
         state.numHostLanes);
     return;
@@ -2862,9 +2862,9 @@ void CmisModule::setApplicationCodeLocked(
 
   // Use programApplicationSelectCode for both cases
   programApplicationSelectCode(
-      state.portName,
       appSelCode,
       moduleMediaInterfaceCode,
+      state.portName,
       state.startHostLane,
       numHostLanes,
       appSelectFunc);

@@ -333,9 +333,9 @@ class CmisModule : public QsfpModule {
    * Otherwise, the default setApplicationSelectCode will be used.
    */
   void programApplicationSelectCode(
-      const std::string& portName,
       uint8_t appSelCode,
       uint8_t moduleMediaInterfaceCode,
+      const std::string& portName,
       uint8_t startHostLane,
       uint8_t numHostLanes,
       std::optional<std::function<void()>> appSelectFunc = std::nullopt);
