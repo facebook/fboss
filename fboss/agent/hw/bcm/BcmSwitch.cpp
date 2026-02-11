@@ -4205,7 +4205,8 @@ void BcmSwitch::disableHotSwap() const {
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-      case cfg::AsicType::ASIC_TYPE_TOMAHAWK6: {
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1: {
         auto rv = bcm_switch_control_set(unit_, bcmSwitchPcieHotSwapDisable, 1);
         bcmCheckError(rv, "Failed to disable hotswap");
       } break;

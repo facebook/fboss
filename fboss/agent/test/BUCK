@@ -79,6 +79,7 @@ cpp_unittest(
     supports_static_listing = False,
     deps = [
         "fbsource//third-party/googletest:gmock",
+        "fbsource//third-party/re2:re2",
         ":hw_test_handle",
         ":label_forwarding_utils",
         ":multiswitch_test_server",
@@ -311,6 +312,7 @@ cpp_library(
         "RouteDistributionGenerator.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         ":ecmp_helper",
         ":resourcelibutil",
         "//fboss/agent:fboss-types",
@@ -320,9 +322,6 @@ cpp_library(
         "//fboss/agent/state:state",
         "//fboss/lib/if:fboss_common-cpp2-types",
         "//folly:network_address",
-    ],
-    exported_external_deps = [
-        "glog",
     ],
 )
 
@@ -776,6 +775,7 @@ cpp_library(
         "//fboss/agent:utils",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_update",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly/gen:base",
     ],
 )

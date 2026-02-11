@@ -249,11 +249,5 @@ variables, run the binaries, and observe the output for each binary:
 cd /opt/fboss
 source ./bin/setup_fboss_env
 
-./bin/platform_hw_test
-./bin/data_corral_service_hw_test
-./bin/fan_service_hw_test
-./bin/fw_util_hw_test
-./bin/platform_manager_hw_test
-./bin/sensor_service_hw_test
-./bin/weutil_hw_test
+./bin/run_test.py platform
 ```

@@ -24,5 +24,7 @@ std::vector<PortID> getHyperPortMembers(
     const std::shared_ptr<SwitchState>& state,
     PortID port);
 
+std::vector<PortID> getHyperPorts(const std::shared_ptr<SwitchState>& state);
+
 } // namespace utility
 } // namespace facebook::fboss

@@ -13,8 +13,8 @@
 
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/helpers/InitCli.h"
-#include "fboss/platform/showtech/Utils.h"
-#include "fboss/platform/showtech/gen-cpp2/showtech_config_types.h"
+#include "fboss/platform/rma-showtech/Utils.h"
+#include "fboss/platform/rma-showtech/gen-cpp2/showtech_config_types.h"
 
 using namespace facebook;
 using namespace facebook::fboss::platform;

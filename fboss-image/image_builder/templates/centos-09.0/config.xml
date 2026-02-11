@@ -115,6 +115,9 @@
         <package name="vim"/>
         <package name="vi"/>
         <package name="btrfs-progs"/>
+        <package name="libnl3"/>
+        <package name="python3.12"/>
+        <package name="nvme-cli"/>
         <package name="re2"/>
         <package name="libsodium"/>
         <package name="double-conversion"/>

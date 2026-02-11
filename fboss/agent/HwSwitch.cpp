@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/TransceiverMap.h"
 #include "fboss/lib/HwWriteBehavior.h"
@@ -289,6 +290,10 @@ void HwSwitch::preRollback(const StateDelta& /*delta*/) noexcept {
       << "Transactions is supported but rollback is implemented on this switch";
 }
 
+void HwSwitch::rollbackPartialRoutes(const StateDelta& /* delta */) noexcept {
+  XLOG(FATAL) << "rollbackPartialRoutes  is not implemented on this switch";
+}
+
 void HwSwitch::rollback(const std::vector<StateDelta>& /* deltas */) noexcept {
   XLOG(FATAL)
       << "Transactions is supported but rollback is implemented on this switch";
@@ -307,6 +312,16 @@ void HwSwitch::setProgrammedState(const std::shared_ptr<SwitchState>& state) {
   auto programmedState = programmedState_.wlock();
   *programmedState = state;
   (*programmedState)->publish();
+}
+
+std::shared_ptr<SwitchState> HwSwitch::getIntermediateState() const {
+  auto intermediateState = intermediateState_.rlock();
+  return *intermediateState;
+}
+
+void HwSwitch::setIntermediateState(const std::shared_ptr<SwitchState>& state) {
+  auto intermediateState = intermediateState_.wlock();
+  *intermediateState = state;
 }
 
 fsdb::OperDelta HwSwitch::stateChanged(
@@ -346,13 +361,57 @@ fsdb::OperDelta HwSwitch::stateChangedTransaction(
   } catch (const FbossError& e) {
     XLOG(WARNING) << " Transaction failed with error : " << *e.message()
                   << " attempting rollback";
-    auto delta = StateDelta(getProgrammedState(), deltas.front());
-    this->preRollback(delta);
-    std::vector<StateDelta> goodStateDeltas;
-    goodStateDeltas.emplace_back(getProgrammedState(), deltas.front());
-    this->rollback(goodStateDeltas);
+
+    // If deltas were of size 10 and delta from 1-5 succeeded and 6th failed,
+    // HwSwitch state would still be goodKnownState but SaiSwitch would have
+    // the routes from 1-5 and the partial applied state from the 6th delta
+    // SaiRouteManager would read from HW to reconstruct FIB and then reverse
+    // apply the deltas to get back to known good state
+    //
+    // To understand next few lines of code
+    // Step 1: If 1-5 succeeded and 6 failed, then 5 is intermediateState and
+    //         5' is HW state. This step resets HW state from 5' -> 5.
+    XLOG(DBG2) << "Partially rollbacking HW routes";
+    auto hwState = this->constructSwitchStateWithFib();
+    auto intermediateState = getIntermediateState();
+    this->rollbackPartialRoutes(StateDelta(hwState, intermediateState));
+
+    // Step 2: 5 is the current HW state. We don't care about 6-10 anymore
+    //         We will generate a reverse state delta which would look like
+    //         [(5, 4), (4, 3), (3, 2), (2, 1)] from original vector
+    auto reversedDeltas = utility::computeReversedDeltas(
+        deltas, getProgrammedState(), getIntermediateState());
+
+    // Steps 3: finally insert the empty to intermediate state delta
+    // empty -> intermediate goes first, basically to reclaim objects after
+    // SaiStore re-init
+    // Refer to SaiSwitch::rollback for more context about using empty
+    // Final vector applied to HW would be
+    // [(empty, 5), (5, 4), (4, 3), (3, 2), (2, 1)]
+    reversedDeltas.emplace(
+        reversedDeltas.begin(),
+        std::make_shared<SwitchState>(),
+        intermediateState);
+    this->rollback(reversedDeltas);
     setProgrammedState(goodKnownState);
-    return deltas.front();
+
+    // Return {oldState, newState} indicating nothing is updated in HW
+    //
+    // The behavior in SwSwitch would be no different if either {oldState,
+    // newState} or {newState, oldState} is returned, since
+    // HwSwitchHandler::stateChangedImpl would convert both to oldState.
+    //
+    // {oldState, newState} is chosen since this matches the original
+    // implementation with single delta which just returned the input value
+    std::vector<StateDelta> stateDeltas;
+    stateDeltas.reserve(deltas.size());
+    auto oldState = getProgrammedState();
+    for (const auto& delta : deltas) {
+      stateDeltas.emplace_back(oldState, delta);
+      oldState = stateDeltas.back().newState();
+    }
+    return StateDelta(getProgrammedState(), stateDeltas.back().newState())
+        .getOperDelta();
   }
   return result;
 }

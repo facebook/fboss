@@ -66,9 +66,9 @@ std::optional<OperMetadata> getChunkMetadata(const SubscriberChunk& chunk) {
   std::optional<OperMetadata> metadata;
   if (chunk.patchGroups()->size() > 0) {
     for (const auto& [key, patchGroup] : *chunk.patchGroups()) {
-      for (const auto& patch : patchGroup) {
+      if (!patchGroup.empty()) {
+        const auto& patch = patchGroup.front();
         metadata = *patch.metadata();
-        break;
       }
     }
   }

@@ -2625,6 +2625,38 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
   }
 }
 
+void SwSwitch::linkAdminStateChangedByFw(
+    const std::vector<int32_t>& fwDisabledPortIds) {
+  auto updateAdminDisableStateFn =
+      [fwDisabledPortIds, this](const std::shared_ptr<SwitchState>& state) {
+        std::shared_ptr<SwitchState> newState(state);
+        for (const auto& portId : fwDisabledPortIds) {
+          // Firmware Admin disable the link and issues callback. While the link
+          // is Admin disabled, since Firmware wants to issue callback quickly,
+          // it does not run the usual Admin disable sequence.
+          // Thus, explicit Admin disable means:
+          //  - FBOSS SwitchState is updated.
+          //  - SAI API call to Admin Disable. SAI implementation can run the
+          //  usual Admin disable sequence then.
+          // Note: this change cannot be persistent, so link will come up as
+          // Admin Enabled post warmboot, and Firmware may disable it again if
+          // the problem persists.
+          XLOG(DBG2) << "Admin Disable link disabled by Firmware: " << portId;
+          auto* port = newState->getPorts()->getNodeIf(portId).get();
+          auto newPort = port->modify(&newState);
+          newPort->setAdminState(cfg::PortState::DISABLED);
+          newPort->addError(PortError::LINK_DISABLED_BY_FIRMWARE);
+        }
+
+        return newState;
+      };
+
+  updateStateNoCoalescing(
+      "Fw Isolate Link Admin Disable Update",
+      std::move(updateAdminDisableStateFn));
+  return;
+}
+
 void SwSwitch::validateSwitchReachabilityInformation(
     const SwitchID& switchId,
     const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo) {
@@ -3631,9 +3663,6 @@ void SwSwitch::updateConfigAppliedInfo() {
 
 bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
   bool isValid = true;
-  bool isEcnProbabilisticMarkingSupported =
-      getHwAsicTable()->isFeatureSupportedOnAllAsic(
-          HwAsic::Feature::ECN_PROBABILISTIC_MARKING);
 
   forEachChanged(
       delta.getAclsDelta(),
@@ -3652,13 +3681,11 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
       delta.getPortsDelta(),
       [&](const shared_ptr<Port>& /* oldport */,
           const shared_ptr<Port>& newport) {
-        isValid = isValid &&
-            newport->hasValidPortQueues(isEcnProbabilisticMarkingSupported);
+        isValid = isValid && newport->hasValidPortQueues();
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<Port>& addport) {
-        isValid = isValid &&
-            addport->hasValidPortQueues(isEcnProbabilisticMarkingSupported);
+        isValid = isValid && addport->hasValidPortQueues();
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<Port>& /* delport */) {});

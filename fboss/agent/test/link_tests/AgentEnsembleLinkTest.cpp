@@ -15,6 +15,7 @@
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/HyperPortTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -87,7 +88,7 @@ void AgentEnsembleLinkTest::SetUp() {
   // Wait for all the cabled ports to link up before finishing the setup
   waitForAllCabledPorts(true, 60, 5s);
   utility::waitForAllTransceiverStates(true, getCabledTranceivers(), 60, 5s);
-  utility::waitForPortStateMachineState(true, getCabledPorts(), 60, 5s);
+  waitForPortStateMachineState(true, 60, 5s);
 
   XLOG(DBG2) << "Multi Switch Link Test setup ready";
 }
@@ -226,6 +227,14 @@ void AgentEnsembleLinkTest::waitForAllCabledPorts(
   waitForLinkStatus(getCabledPorts(), up, retries, msBetweenRetry);
 }
 
+void AgentEnsembleLinkTest::waitForPortStateMachineState(
+    bool up,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
+  utility::waitForPortStateMachineState(
+      up, getQsfpServiceManagedPorts(), retries, msBetweenRetry);
+}
+
 // Initializes the vector that holds the ports that are expected to be cabled.
 // If the expectedLLDPValues in the switch config has an entry, we expect
 // that port to take part in the test
@@ -236,11 +245,19 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
   const auto& platformMapping = getSw()->getPlatformMapping();
   const auto& chips = platformMapping->getChips();
 
+  // Specifically for ports that qsfp_service should track in Port Manager mode.
+  auto managedPortIds =
+      utility::getPortIdsWithTransceiverOrXphy(platformPorts, chips);
+  std::set<PortID> managedPortSet(managedPortIds.begin(), managedPortIds.end());
+
   for (const auto& port : *swConfig.ports()) {
     if (!(*port.expectedLLDPValues()).empty() ||
         !(*port.expectedNeighborReachability()).empty()) {
       auto portID = *port.logicalID();
       cabledPorts_.emplace_back(portID);
+      if (managedPortSet.count(PortID(portID))) {
+        qsfpServiceManagedPorts_.emplace_back(portID);
+      }
       if (*port.portType() == cfg::PortType::FABRIC_PORT) {
         cabledFabricPorts_.emplace_back(portID);
       }
@@ -338,6 +355,14 @@ AgentEnsembleLinkTest::getSingleVlanOrRoutedCabledPorts(
       ecmpPorts.insert(PortDescriptor(port));
     }
   }
+  std::vector<PortDescriptor> hyperPortDescriptors;
+  for (auto hyperPortId : utility::getHyperPorts(getSw()->getState())) {
+    if (getSw()->getState()->getPort(hyperPortId)->isPortUp()) {
+      hyperPortDescriptors.emplace_back(hyperPortId);
+      XLOG(DBG2) << "add hyper port " << hyperPortId << " to ecmp ports";
+    }
+  }
+  ecmpPorts.insert(hyperPortDescriptors.begin(), hyperPortDescriptors.end());
   return ecmpPorts;
 }
 
@@ -363,7 +388,9 @@ void AgentEnsembleLinkTest::programDefaultRoute(
       dstMac,
       RouterID(0),
       false,
-      {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
+      {cfg::PortType::INTERFACE_PORT,
+       cfg::PortType::MANAGEMENT_PORT,
+       cfg::PortType::HYPER_PORT});
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
@@ -395,7 +422,9 @@ void AgentEnsembleLinkTest::createL3DataplaneFlood(
       getSw()->getLocalMac(switchId),
       RouterID(0),
       false,
-      {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
+      {cfg::PortType::INTERFACE_PORT,
+       cfg::PortType::MANAGEMENT_PORT,
+       cfg::PortType::HYPER_PORT});
   if (getSw()->getHwAsicTable()->isFeatureSupported(
           switchId, HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
     programDefaultRouteWithDisableTTLDecrement(ecmpPorts, ecmp6);

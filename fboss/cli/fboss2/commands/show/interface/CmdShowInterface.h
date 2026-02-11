@@ -104,9 +104,9 @@ class CmdShowInterface
 
   RetType createModel(
       const HostInfo& hostInfo,
-      std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries,
+      const std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries,
       std::map<int32_t, facebook::fboss::InterfaceDetail> intfDetails,
-      std::map<int64_t, cfg::DsfNode> dsfNodes,
+      const std::map<int64_t, cfg::DsfNode>& dsfNodes,
       const ObjectArgType& queriedIfs) {
     RetType model;
     std::unordered_set<std::string> queriedSet(
@@ -323,10 +323,7 @@ class CmdShowInterface
       std::string name = *interface.name();
       std::vector<std::string> prefixes;
 
-      // TODO (jycleung) portType is a new field addition to the interface.
-      // When D63407523 is rolled out to the fleet, remove the name check.
-      if (interface.portType() != cfg::PortType::FABRIC_PORT &&
-          !name.starts_with("fab")) { // Skip addresses for fabric ports
+      if (interface.portType() != cfg::PortType::FABRIC_PORT) {
         for (const auto& prefix : *interface.prefixes()) {
           prefixes.push_back(
               fmt::format("{}/{}", *prefix.ip(), *prefix.prefixLength()));
@@ -370,7 +367,7 @@ class CmdShowInterface
     out << outTable << std::endl;
   }
 
-  Table::StyledCell colorStatusCell(std::string status) {
+  Table::StyledCell colorStatusCell(const std::string& status) {
     Table::Style cellStyle = Table::Style::NONE;
     if (status == "up") {
       cellStyle = Table::Style::GOOD;

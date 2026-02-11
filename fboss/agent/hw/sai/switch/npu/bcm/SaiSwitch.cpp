@@ -324,6 +324,11 @@ std::string errorType(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH:
       return "SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH";
 #endif
+#if defined(SAI_VERSION_12_2_0_0_DNX_ODP) || \
+    defined(SAI_VERSION_14_0_EA_DNX_ODP)
+    case SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_LINK_DISABLE:
+      return "SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_LINK_DISABLE";
+#endif
 #if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
     // DDP Errors
     case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_ECC_2B_ERR_INT:
@@ -1008,6 +1013,39 @@ void SaiSwitch::switchEventCallback(
       XLOG(ERR) << " Got soft reset event";
       logEventDetails();
       getSwitchStats()->asicSoftResetError();
+      break;
+#endif
+#if defined(SAI_VERSION_12_2_0_0_DNX_ODP) || \
+    defined(SAI_VERSION_14_0_EA_DNX_ODP)
+    case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_LINK_DISABLE:
+      auto fwDisabledPortId = eventInfo->index;
+      XLOG(ERR) << "Firmware Auto Admin Link Disable callback received: "
+                << " error type: " << errorType(eventInfo->error_type)
+                << " Auto Admin disabled link: "
+                << static_cast<int>(fwDisabledPortId);
+
+      if (eventInfo->error_type ==
+          SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_LINK_DISABLE) {
+        // Link active/inactive callback and Firmware device isolate is
+        // processed by txReadyStatusChangeOrFwIsolateCallbackBottomHalf.
+        // Schedule Firmware link disable callback Bottom half in the same event
+        // base. Serializing this processing in a single thread keeps the logic
+        // simple / less prone to races. Firmware device isolate and Firmware
+        // link disable will be serialized in the Firmware anyway. We always
+        // want to process Firmare link disable, thus unconditionally queue for
+        // processing regardless of txReadyStatusCHangePending_.
+        txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
+            [this, fwDisabledPortId]() mutable {
+              fwDisabledLinksCallbackBottomHalf({fwDisabledPortId});
+            });
+
+      } else {
+        XLOG(ERR)
+            << "Firmware Auto link disable callback received with invalid info"
+            << " error type: " << errorType(eventInfo->error_type)
+            << " Auto Admin disabled link: " << fwDisabledPortId;
+      }
+
       break;
 #endif
   }

@@ -90,17 +90,22 @@ HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
       update.newState,
       hwWriteBehavior);
   auto outDelta = stateUpdateResult.first;
+  // this is the success case where an empty delta is returned
+  // applicable to both SaiSwitch and BcmSwitch
   if (outDelta.changes()->empty()) {
     return {update.newState, stateUpdateResult.second};
   }
-  // outDelta would be combined delta if update fails at first delta
-  // return the old state
+  // multi switch mode returns full delta if cancelled
+  // HwSwitch rollback returns full delta if transaction fails and rollback
+  // succeeds
+  // applicable only to SaiSwitch and multi (absent in BcmSwitch)
   auto inDelta = operDeltaFilter_.filterWithSwitchStateRootPath(
       StateDelta(update.oldState, update.newState).getOperDelta());
   if (inDelta && *inDelta == outDelta) {
     return {update.oldState, stateUpdateResult.second};
   }
   // obtain the state that actually got programmed
+  // applicable only to BcmSwitch
   return {
       StateDelta(update.newState, outDelta).newState(),
       stateUpdateResult.second};

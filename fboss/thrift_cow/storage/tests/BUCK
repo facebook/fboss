@@ -36,6 +36,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "//configerator/structs/neteng/fboss/bgp/if:bgp_attr-cpp2-types",
         "//fboss/agent:agent_stats-cpp2-types",
         "//fboss/agent:switch_state-cpp2-types",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
@@ -47,7 +48,10 @@ cpp_library(
         "//fboss/lib/if:fboss_io_stats-cpp2-types",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/thrift_cow/nodes:serializer",
+        "//folly:base64",
         "//folly:network_address",
+        "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
+        "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
 

@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/platform/showtech/FanImpl.h"
+#include "fboss/platform/rma-showtech/FanImpl.h"
 
 #include <gpiod.h>
 #include <fstream>

@@ -192,3 +192,17 @@ struct BufferPoolFields {
   3: i32 sharedBytes;
   4: optional i32 reservedBytes;
 }
+
+enum DeltaApplicationMode {
+  // Apply the full StateDelta vector
+  APPLY_ALL = 0,
+  // Rollback StateDelta vector at the end after application
+  ROLLBACK = 1,
+  // Rollback StateDelta vector at a specific index
+  ROLLBACK_AT_INDEX = 2,
+}
+
+struct StateDeltaApplication {
+  1: DeltaApplicationMode mode = DeltaApplicationMode.APPLY_ALL;
+  2: optional i32 rollbackIndex;
+}

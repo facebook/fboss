@@ -291,6 +291,7 @@ cpp_binary(
     deps = [
         ":config_utils",
         ":pkg_manager",
+        ":platform_explorer",
         ":platform_manager_handler",
         ":scuba_logger",
         "//fb303:logging",

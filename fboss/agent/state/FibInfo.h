@@ -13,6 +13,7 @@
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/NextHopIdMaps.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
@@ -90,6 +91,12 @@ class FibInfo : public ThriftStructNode<FibInfo, state::FibInfoFields> {
       std::shared_ptr<IdToNextHopIdSetMap> idToNextHopIdSetMap) {
     ref<switch_state_tags::idToNextHopIdSet>() = idToNextHopIdSetMap;
   }
+
+  // Resolve NextHopSetId to NextHops
+  // Takes a NextHopSetId and returns the corresponding NextHops by:
+  // 1. Looking up the set of NextHopIds from IdToNextHopIdSetMap
+  // 2. For each NextHopId, looking up the NextHop from IdToNextHopMap
+  std::vector<NextHop> resolveNextHopSetFromId(NextHopSetId id) const;
 
  private:
   // Inherit constructors required for clone()

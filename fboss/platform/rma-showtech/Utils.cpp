@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/platform/showtech/Utils.h"
+#include "fboss/platform/rma-showtech/Utils.h"
 
 #include <gpiod.h>
 #include <chrono>
@@ -19,8 +19,8 @@
 #include "fboss/lib/GpiodLine.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
-#include "fboss/platform/showtech/FanImpl.h"
-#include "fboss/platform/showtech/PsuHelper.h"
+#include "fboss/platform/rma-showtech/FanImpl.h"
+#include "fboss/platform/rma-showtech/PsuHelper.h"
 
 using namespace facebook::fboss::platform::showtech_config;
 

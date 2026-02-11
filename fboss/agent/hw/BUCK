@@ -118,7 +118,6 @@ cpp_library(
         "//fboss/agent:agent_features",
         "//fboss/agent:async_logger",
         "//fboss/agent:fboss-error",
-        "//fboss/agent:sw_switch_warmboot_helper",
         "//fboss/agent:switch_state-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/state:state",
