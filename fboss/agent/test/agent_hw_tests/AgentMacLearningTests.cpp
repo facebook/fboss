@@ -101,8 +101,8 @@ class AgentMacLearningTest : public AgentHwTest {
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
-        ensemble.masterLogicalPortIds(switchId)[0],
-        ensemble.masterLogicalPortIds(switchId)[1],
+        ensemble.masterLogicalPortIds()[0],
+        ensemble.masterLogicalPortIds()[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
         asic->desiredLoopbackModes(),
         ensemble.getSw()->getPlatformType());
@@ -115,10 +115,6 @@ class AgentMacLearningTest : public AgentHwTest {
 
   static MacAddress kSourceMac2() {
     return MacAddress("02:00:00:00:00:06");
-  }
-
-  std::vector<PortID> masterLogicalPortIds() const {
-    return AgentHwTest::masterLogicalPortIds(getCurrentSwitchIdForTesting());
   }
 
   void sendPkt(MacAddress srcMac = kSourceMac()) {
@@ -432,8 +428,8 @@ class AgentMacSwLearningModeTest : public AgentMacLearningTest {
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
-        ensemble.masterLogicalPortIds(switchId)[0],
-        ensemble.masterLogicalPortIds(switchId)[1],
+        ensemble.masterLogicalPortIds()[0],
+        ensemble.masterLogicalPortIds()[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
         asic->desiredLoopbackModes(),
         ensemble.getSw()->getPlatformType());
@@ -616,7 +612,7 @@ class AgentMacLearningAndMyStationInteractionTest
     auto cfg = utility::onePortPerInterfaceConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
-        ensemble.masterLogicalPortIds(switchId),
+        ensemble.masterLogicalPortIds(),
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
         asic->desiredLoopbackModes(),
         ensemble.getSw()->getPlatformType());
@@ -997,8 +993,8 @@ class AgentMacLearningMacMoveTest : public AgentMacLearningTest {
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
-        ensemble.masterLogicalPortIds(switchId)[0],
-        ensemble.masterLogicalPortIds(switchId)[1],
+        ensemble.masterLogicalPortIds()[0],
+        ensemble.masterLogicalPortIds()[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
         asic->desiredLoopbackModes(),
         ensemble.getSw()->getPlatformType());

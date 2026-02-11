@@ -253,7 +253,7 @@ void AgentEnsemble::applyNewConfig(
 }
 
 std::vector<PortID> AgentEnsemble::masterLogicalPortIds() const {
-  return masterLogicalPortIds_;
+  return masterLogicalPortIds(SwitchID(FLAGS_switch_id_for_testing));
 }
 
 void AgentEnsemble::switchRunStateChanged(SwitchRunState runState) {}
