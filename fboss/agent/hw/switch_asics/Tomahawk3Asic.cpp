@@ -258,7 +258,7 @@ int Tomahawk3Asic::getDefaultNumPortQueues(
 
 std::optional<uint32_t> Tomahawk3Asic::getMaxArsGroups() const {
   if (FLAGS_use_full_dlb_scale) {
-    return 128;
+    return 16;
   } else {
     // CS00012344837, CS00012328553
     return 64;
@@ -266,7 +266,7 @@ std::optional<uint32_t> Tomahawk3Asic::getMaxArsGroups() const {
 }
 
 std::optional<uint32_t> Tomahawk3Asic::getArsBaseIndex() const {
-  return std::nullopt;
+  return getMaxEcmpGroups().value() - 128;
 }
 
 } // namespace facebook::fboss
