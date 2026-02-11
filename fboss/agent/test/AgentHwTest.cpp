@@ -64,6 +64,13 @@ void AgentHwTest::SetUp() {
           XLOG(FATAL) << "Failed to create initial config: " << e.what();
         }
       };
+
+  // Create init info with initial values - tests can override via
+  // overrideTestEnsembleInitInfo
+  TestEnsembleInitInfo initInfo;
+  initInfo.failHwCallsOnWarmboot = failHwCallsOnWarmboot();
+  overrideTestEnsembleInitInfo(initInfo);
+
   agentEnsemble_ = createAgentEnsemble(
       initialConfigFn,
       FLAGS_disable_link_toggler /*disableLinkStateToggler*/,
@@ -73,7 +80,7 @@ void AgentHwTest::SetUp() {
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
        HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
-      failHwCallsOnWarmboot());
+      initInfo);
 }
 
 void AgentHwTest::setCmdLineFlagOverrides() const {

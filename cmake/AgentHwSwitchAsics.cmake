@@ -13,6 +13,7 @@ add_library(switch_asics
   fboss/agent/hw/switch_asics/YubaAsic.cpp
   fboss/agent/hw/switch_asics/HwAsic.cpp
   fboss/agent/hw/switch_asics/HwAsic.h
+  fboss/agent/hw/switch_asics/TomahawkUltra1Asic.cpp
   fboss/agent/hw/switch_asics/Tomahawk6Asic.cpp
   fboss/agent/hw/switch_asics/Tomahawk5Asic.cpp
   fboss/agent/hw/switch_asics/Tomahawk4Asic.cpp
@@ -32,7 +33,7 @@ add_library(switch_asics
 
 target_link_libraries(switch_asics
   agent_features
-  error
+  fboss_error
   fboss_cpp2
   fboss_types
   phy_cpp2

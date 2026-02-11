@@ -230,7 +230,10 @@ bool G202xAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
+    case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
+    case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
       return false;
   }
   return false;

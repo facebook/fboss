@@ -55,7 +55,8 @@ class AgentEnsemble : public TestEnsembleIf {
           (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
            HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
            HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
-      bool failHwCallsOnWarmboot = false);
+      const TestEnsembleInitInfo& initInfo = TestEnsembleInitInfo{
+          .failHwCallsOnWarmboot = false});
 
   void startAgent(bool failHwCallsOnWarmboot = false);
 
@@ -441,6 +442,7 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
         (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
          HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
          HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
-    bool failHwCallsOnWarmboot = false);
+    const TestEnsembleInitInfo& initInfo = TestEnsembleInitInfo{
+        .failHwCallsOnWarmboot = false});
 
 } // namespace facebook::fboss

@@ -28,9 +28,8 @@
             initrd_system="dracut"
             primary="true"
             installiso="true"
-            bootpartition="true"
-            bootfilesystem="ext4"
-            kernelcmdline="nomodeset console=ttyS4,57600n8 quiet rootfstype=btrfs">
+            bootpartition="false"
+            kernelcmdline="nomodeset console=ttyS4,57600n8 biosdevname=0 net.ifnames=0 quiet rootfstype=btrfs">
 
             <bootloader name="grub2" console="serial" serial_line="ttyS4,57600n8"/>
             <size unit="G">16</size>
@@ -40,6 +39,8 @@
                 <oem-unattended>true</oem-unattended>
                 <oem-skip-verify>true</oem-skip-verify>
             </oemconfig>
+        </type>
+        <type image="tbz">
         </type>
     </preferences>
     <users>
@@ -72,7 +73,7 @@
         <package name="gdisk"/>
         <package name="grub2"/>
         <package name="grub2-efi"/>
-        <package name="grub2-efi-modules"/>
+        <package name="grub2-efi-x64-modules"/>
         <package name="plymouth-theme-charge"/>
         <package name="audit"/>
         <package name="dhclient"/>
@@ -114,6 +115,22 @@
         <package name="vim"/>
         <package name="vi"/>
         <package name="btrfs-progs"/>
+        <package name="libnl3"/>
+        <package name="python3.12"/>
+        <package name="nvme-cli"/>
+        <package name="re2"/>
+        <package name="libsodium"/>
+        <package name="double-conversion"/>
+        <package name="libdwarf"/>
+        <package name="libunwind"/>
+        <package name="xxhash-libs"/>
+        <package name="libgpiod"/>
+        <package name="glog"/>
+        <package name="python3-pip"/>
+        <package name="lz4"/>
+        <package name="zstd"/>
+        <package name="libusbx"/>
+        <package name="dmidecode"/>
     </packages>
 
     <packages type="bootstrap">
@@ -125,6 +142,7 @@
         <package name="dracut-live"/>
         <package name="dracut-kiwi-live"/>
         <package name="dracut-kiwi-lib"/>
+        <package name="dracut-config-generic"/>
         <package name="dracut-kiwi-oem-dump"/>
     </packages>
 </image>

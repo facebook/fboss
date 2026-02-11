@@ -140,7 +140,7 @@ std::string ConfigLib::getShowtechConfig(
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-  return configs::showtech.at(getPlatformName(platformName));
+  return configs::rma_showtech.at(getPlatformName(platformName));
 }
 
 } // namespace facebook::fboss::platform

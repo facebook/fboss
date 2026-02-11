@@ -44,14 +44,8 @@
 #include "fboss/agent/hw/bcm/BcmTypes.h"
 #include "fboss/agent/hw/bcm/BcmUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/state/ArpTable.h"
-#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Mirror.h"
-#include "fboss/agent/state/NdpTable.h"
-#include "fboss/agent/state/NeighborEntry.h"
 #include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/PortDescriptor.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
 extern "C" {

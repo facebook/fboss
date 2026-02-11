@@ -71,6 +71,7 @@ cpp_library(
     ],
     compiler_flags = ["-ftemplate-backtrace-limit=0"],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         ":handler",
         "//common/base:build_info",
         "//common/services/cpp:acl_checker_module",
@@ -81,16 +82,16 @@ cpp_library(
         "//fboss/fsdb/common:flags",
         "//fboss/fsdb/common:utils",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/lib:thrift_service_utils",
         "//fboss/lib/restart_tracker:restart_time_tracker",
         "//folly/init:init",
         "//folly/io/async:async_signal_handler",
         "//folly/logging:logging",
         "//thrift/lib/cpp2:server",
-        "//wangle/acceptor:shared_ssl_context_manager",
+        "//wangle/acceptor:acceptor",
     ],
     exported_external_deps = [
         "gflags",
-        "glog",
         ("boost", None, "boost_algorithm"),
     ],
 )

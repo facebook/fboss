@@ -9,8 +9,10 @@
  */
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
-#include <fboss/fsdb/oper/instantiations/FsdbPathConverter.h> // NOLINT(misc-include-cleaner)
+#include <fboss/fsdb/oper/instantiations/FsdbPathConverter.h>
+#include <folly/logging/LogConfig.h>
 #include "folly/Conv.h"
+#include "neteng/netwhoami/lib/cpp/Recover.h"
 
 #include <re2/re2.h>
 #include <string>
@@ -119,6 +121,14 @@ std::string getl2EntryTypeStr(L2EntryType l2EntryType) {
       return "Validated";
     default:
       return "Unknown";
+  }
+}
+
+bool isRunningOnSwitch() {
+  try {
+    return netwhoami::tryRecoverWhoAmI().has_value();
+  } catch (const std::exception&) {
+    return false;
   }
 }
 

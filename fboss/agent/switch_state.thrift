@@ -172,6 +172,8 @@ struct PortFields {
   63: optional i32 portSwitchId;
   // Serdes custom collection JSON string
   64: optional string serdesCustomCollection;
+  // Cable Length Measurement (CLM) enable configuration for this port
+  65: optional bool clmEnable;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields

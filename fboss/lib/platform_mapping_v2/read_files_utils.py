@@ -366,6 +366,8 @@ def read_si_settings(
             if "TX_POST3" in column_names and row[Column.TX_POST3]:
                 tx_setting.post3 = int(row[Column.TX_POST3])
 
+        if "TX_PRECODING" in column_names and row[Column.TX_PRECODING]:
+            tx_setting.precoding = int(row[Column.TX_PRECODING])
         if "TX_DIFF_ENCODER_EN" in column_names and row[Column.TX_DIFF_ENCODER_EN]:
             tx_setting.diffEncoderEn = int(row[Column.TX_DIFF_ENCODER_EN])
         if "TX_DIG_GAIN" in column_names and row[Column.TX_DIG_GAIN]:
@@ -517,6 +519,8 @@ def read_si_settings(
             rx_setting.ffeLmsDynamicGatingEn = int(
                 row[Column.RX_FFE_LMS_DYNAMIC_GATING_EN]
             )
+        if "RX_PRECODING" in column_names and row[Column.RX_PRECODING]:
+            rx_setting.precoding = int(row[Column.RX_PRECODING])
 
         # Handle custom collection attributes.
         tx_custom_collection = {}

@@ -79,3 +79,11 @@ const list<string> PLATFORMS_WITH_IDPROM_CHASSIS_EEPROM = [
   "JANGA800BIC",
   "TAHAN800BC",
 ];
+
+// List of platforms that are allowed to have logical EEPROMs.
+// Logical EEPROMs are formed when multiple EEPROMs in the platform
+// use the same physical EEPROM (bus and address).
+const list<string> PLATFORMS_WITH_LOGICAL_EEPROMS = [
+  "GLATH05A-64O",
+  "BLACKWOLF800BANW",
+];

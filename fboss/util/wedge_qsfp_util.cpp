@@ -52,6 +52,7 @@
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
+#include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
@@ -849,8 +850,6 @@ int doReadReg(
       doReadRegDirect(bus, portNum, offset, length, page);
     }
   } else {
-    // Release the bus access for QSFP service
-    bus->close();
     std::vector<int32_t> idx = zeroBasedPortIds(ports);
     std::map<int32_t, ReadResponse> resp;
     doReadRegViaService(idx, offset, length, page, evb, resp);
@@ -1045,8 +1044,6 @@ int doWriteReg(
       doWriteRegDirect(bus, portNum, offset, page, data);
     }
   } else {
-    // Release the bus access for QSFP service
-    bus->close();
     std::vector<int32_t> idx = zeroBasedPortIds(ports);
     doWriteRegViaService(idx, offset, page, data, evb);
   }
@@ -2743,7 +2740,6 @@ bool setTransceiverLoopback(
     }
     return true;
   }
-  return true;
 }
 
 bool doMiniphotonLoopbackDirect(
@@ -4460,6 +4456,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
                                  .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "minipack3bta") {
+      auto systemContainer = BspGenericSystemContainer<
+                                 Minipack3BTABspPlatformMapping>::getInstance()
+                                 .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
     } else if (FLAGS_platform == "minipack3n") {
       auto systemContainer =
           BspGenericSystemContainer<Minipack3NBspPlatformMapping>::getInstance()
@@ -4560,6 +4562,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
   } else if (mode == PlatformType::PLATFORM_ICETEA800BC) {
     auto systemContainer =
         BspGenericSystemContainer<Icetea800bcBspPlatformMapping>::getInstance()
+            .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
+  } else if (mode == PlatformType::PLATFORM_MINIPACK3BTA) {
+    auto systemContainer =
+        BspGenericSystemContainer<Minipack3BTABspPlatformMapping>::getInstance()
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);

@@ -24,6 +24,7 @@ class SaiPlatform;
 
 using SaiInPortDebugCounter = SaiObject<SaiInPortDebugCounterTraits>;
 using SaiOutPortDebugCounter = SaiObject<SaiOutPortDebugCounterTraits>;
+using SaiInSwitchDebugCounter = SaiObject<SaiInSwitchDebugCounterTraits>;
 
 class SaiDebugCounterManager {
  public:
@@ -49,7 +50,17 @@ class SaiDebugCounterManager {
   sai_stat_id_t getEgressForwardingDropStatId() const {
     return egressForwardingDropCounterStatId_;
   }
+  sai_stat_id_t getL2SwitchDropCounterStatId() const {
+    return l2SwitchDropCounterStatId_;
+  }
+  sai_stat_id_t getL3SwitchDropCounterStatId() const {
+    return l3SwitchDropCounterStatId_;
+  }
+  sai_stat_id_t getTunnelSwitchDropCounterStatId() const {
+    return tunnelSwitchDropCounterStatId_;
+  }
   std::set<sai_stat_id_t> getConfiguredDebugStatIds() const;
+  std::set<sai_stat_id_t> getConfiguredSwitchDebugStatIds() const;
 
  private:
   static sai_stat_id_t kInvalidStatId() {
@@ -60,16 +71,25 @@ class SaiDebugCounterManager {
   void setupAclDropCounter();
   void setupTrapDropCounter();
   void setupEgressForwardingDropCounter();
+  void setupL2SwitchDropCounter();
+  void setupL3SwitchDropCounter();
+  void setupTunnelSwitchDropCounter();
   std::shared_ptr<SaiInPortDebugCounter> portL3BlackHoleCounter_;
   std::shared_ptr<SaiInPortDebugCounter> mplsLookupFailCounter_;
   std::shared_ptr<SaiInPortDebugCounter> aclDropCounter_;
   std::shared_ptr<SaiInPortDebugCounter> trapDropCounter_;
   std::shared_ptr<SaiOutPortDebugCounter> egressForwardingDropCounter_;
+  std::shared_ptr<SaiInSwitchDebugCounter> l2SwitchDropCounter_;
+  std::shared_ptr<SaiInSwitchDebugCounter> l3SwitchDropCounter_;
+  std::shared_ptr<SaiInSwitchDebugCounter> tunnelSwitchDropCounter_;
   sai_stat_id_t portL3BlackHoleCounterStatId_{kInvalidStatId()};
   sai_stat_id_t mplsLookupFailCounterStatId_{kInvalidStatId()};
   sai_stat_id_t aclDropCounterStatId_{kInvalidStatId()};
   sai_stat_id_t trapDropCounterStatId_{kInvalidStatId()};
   sai_stat_id_t egressForwardingDropCounterStatId_{kInvalidStatId()};
+  sai_stat_id_t l2SwitchDropCounterStatId_{kInvalidStatId()};
+  sai_stat_id_t l3SwitchDropCounterStatId_{kInvalidStatId()};
+  sai_stat_id_t tunnelSwitchDropCounterStatId_{kInvalidStatId()};
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
