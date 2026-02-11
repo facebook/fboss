@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <fmt/format.h>
 #include <folly/String.h>
 #include <folly/lang/Assume.h>
@@ -91,5 +93,9 @@ CmdConfigL2LearningModeTraits::RetType CmdConfigL2LearningMode::queryClient(
 void CmdConfigL2LearningMode::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdConfigL2LearningMode, CmdConfigL2LearningModeTraits>::run();
 
 } // namespace facebook::fboss

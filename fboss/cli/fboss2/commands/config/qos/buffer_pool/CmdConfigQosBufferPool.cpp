@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <fmt/format.h>
 #include <folly/Conv.h>
 #include <folly/String.h>
@@ -152,5 +154,9 @@ CmdConfigQosBufferPoolTraits::RetType CmdConfigQosBufferPool::queryClient(
 void CmdConfigQosBufferPool::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdConfigQosBufferPool, CmdConfigQosBufferPoolTraits>::run();
 
 } // namespace facebook::fboss

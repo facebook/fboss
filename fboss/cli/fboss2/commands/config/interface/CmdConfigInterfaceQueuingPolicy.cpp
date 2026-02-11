@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <fmt/format.h>
 #include <folly/String.h>
 #include <iostream>
@@ -74,5 +76,10 @@ void CmdConfigInterfaceQueuingPolicy::printOutput(
     const CmdConfigInterfaceQueuingPolicyTraits::RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<
+    CmdConfigInterfaceQueuingPolicy,
+    CmdConfigInterfaceQueuingPolicyTraits>::run();
 
 } // namespace facebook::fboss

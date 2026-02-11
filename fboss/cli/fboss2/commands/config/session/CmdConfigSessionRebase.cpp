@@ -9,6 +9,9 @@
  */
 
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
+
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <iostream>
 #include <ostream>
 #include "fboss/cli/fboss2/session/ConfigSession.h"
@@ -26,5 +29,9 @@ CmdConfigSessionRebaseTraits::RetType CmdConfigSessionRebase::queryClient(
 void CmdConfigSessionRebase::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdConfigSessionRebase, CmdConfigSessionRebaseTraits>::run();
 
 } // namespace facebook::fboss

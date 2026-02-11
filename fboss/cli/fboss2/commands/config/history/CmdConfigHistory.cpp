@@ -9,6 +9,9 @@
  */
 
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
+
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <ctime>
 #include <sstream>
 #include "fboss/cli/fboss2/session/ConfigSession.h"
@@ -65,5 +68,8 @@ CmdConfigHistoryTraits::RetType CmdConfigHistory::queryClient(
 void CmdConfigHistory::printOutput(const RetType& tableOutput) {
   std::cout << tableOutput << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdConfigHistory, CmdConfigHistoryTraits>::run();
 
 } // namespace facebook::fboss
