@@ -1630,6 +1630,8 @@ void setupMultipleEgressPoolAndQueueConfigs(
     if (std::find(losslessQueueIds.begin(), losslessQueueIds.end(), qid) !=
         losslessQueueIds.end()) {
       queueCfg.bufferPoolName() = kLosslessPoolName;
+      // Use static threshold for lossless queues
+      queueCfg.sharedBytes() = mmuSizeBytes;
     } else {
       queueCfg.bufferPoolName() = kLossyPoolName;
     }
