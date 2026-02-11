@@ -315,6 +315,7 @@ cpp_library(
         "commands/show/facebook/config/CmdShowConfigUtils.cpp",
         "commands/show/facebook/config/CmdShowConfigVersionAgent.cpp",
         "commands/show/facebook/config/CmdShowConfigVersionBgp.cpp",
+        "commands/show/facebook/environment/CmdShowEnvAll.cpp",
         "commands/show/facebook/environment/env_keys.cpp",
         "commands/show/facebook/environment/fan/CmdShowEnvironmentFan.cpp",
         "commands/show/facebook/environment/power/CmdShowEnvironmentPower.cpp",
