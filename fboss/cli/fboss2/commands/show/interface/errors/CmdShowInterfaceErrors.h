@@ -15,9 +15,6 @@
 #include "fboss/cli/fboss2/commands/show/interface/errors/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 
-#include <boost/algorithm/string.hpp>
-#include <unordered_set>
-
 namespace facebook::fboss {
 
 using utils::Table;
@@ -40,81 +37,12 @@ class CmdShowInterfaceErrors
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const std::vector<std::string>& queriedIfs) {
-    RetType countersEntries;
-
-    auto client =
-        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-
-    std::map<int32_t, facebook::fboss::PortInfoThrift> portCounters;
-    client->sync_getAllPortInfo(portCounters);
-
-    return createModel(portCounters, queriedIfs);
-  }
-
+      const std::vector<std::string>& queriedIfs);
   RetType createModel(
-      std::map<int32_t, facebook::fboss::PortInfoThrift> portCounters,
-      const std::vector<std::string>& queriedIfs) {
-    RetType ret;
-
-    std::unordered_set<std::string> queriedSet(
-        queriedIfs.begin(), queriedIfs.end());
-
-    for (const auto& port : portCounters) {
-      auto portInfo = port.second;
-      if (queriedIfs.size() == 0 || queriedSet.count(portInfo.name().value())) {
-        cli::ErrorCounters counter;
-
-        counter.interfaceName() = portInfo.name().value();
-        counter.inputErrors() = folly::copy(
-            portInfo.input().value().errors().value().errors().value());
-        counter.inputDiscards() = folly::copy(
-            portInfo.input().value().errors().value().discards().value());
-        counter.outputErrors() = folly::copy(
-            portInfo.output().value().errors().value().errors().value());
-        counter.outputDiscards() = folly::copy(
-            portInfo.output().value().errors().value().discards().value());
-
-        ret.error_counters()->push_back(counter);
-      }
-    }
-
-    std::sort(
-        ret.error_counters()->begin(),
-        ret.error_counters()->end(),
-        [](cli::ErrorCounters& a, cli::ErrorCounters b) {
-          return a.interfaceName().value() < b.interfaceName().value();
-        });
-
-    return ret;
-  }
-
-  Table::StyledCell stylizeCounterValue(int64_t counterValue) {
-    return counterValue == 0
-        ? Table::StyledCell(std::to_string(counterValue), Table::Style::NONE)
-        : Table::StyledCell(std::to_string(counterValue), Table::Style::ERROR);
-  }
-
-  void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    Table table;
-    table.setHeader(
-        {"Interface Name",
-         "Input Errors",
-         "Input Discards",
-         "Output Errors",
-         "Output Discards"});
-
-    for (const auto& counter : model.error_counters().value()) {
-      table.addRow({
-          counter.interfaceName().value(),
-          stylizeCounterValue(folly::copy(counter.inputErrors().value())),
-          stylizeCounterValue(folly::copy(counter.inputDiscards().value())),
-          stylizeCounterValue(folly::copy(counter.outputErrors().value())),
-          stylizeCounterValue(folly::copy(counter.outputDiscards().value())),
-      });
-    }
-    out << table << std::endl;
-  }
+      const std::map<int32_t, facebook::fboss::PortInfoThrift>& portCounters,
+      const std::vector<std::string>& queriedIfs);
+  Table::StyledCell stylizeCounterValue(int64_t counterValue);
+  void printOutput(const RetType& model, std::ostream& out = std::cout);
 };
 
 } // namespace facebook::fboss

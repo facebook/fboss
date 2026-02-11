@@ -459,6 +459,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
   fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h
+  fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.cpp
   fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h
   fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h
   fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h
