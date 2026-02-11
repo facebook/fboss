@@ -451,6 +451,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.cpp
   fboss/cli/fboss2/commands/show/route/utils.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRoute.h
   fboss/cli/fboss2/commands/show/route/CmdShowRoute.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.cpp
