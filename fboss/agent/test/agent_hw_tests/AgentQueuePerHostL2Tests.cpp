@@ -113,7 +113,9 @@ class AgentQueuePerHostL2Test : public AgentHwTest {
           if (checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
                       ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
               checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-                      ->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+                      ->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+              checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+                      ->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
             /* 1 pkt each for ttl < 128 and ttl >= 128 */
             EXPECT_EVENTUALLY_EQ(pktsOnQueue, 4);
           } else {
