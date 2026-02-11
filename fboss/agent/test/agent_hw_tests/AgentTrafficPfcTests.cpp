@@ -966,6 +966,7 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
           pfcWatchdog.recoveryTimeMsecs() = 1000;
           pfcWatchdog.detectionTimeMsecs() = 198;
           break;
+        case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
@@ -1243,9 +1244,9 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogReset) {
         portId, deadlockCtrBefore, recoveryCtrBefore);
     // Stop PFC trigger
     cleanupPfcDeadlockDetectionTrigger(txOffPortId);
+    waitForPfcDeadlocksToSettle(portId);
     // Reset watchdog
     setupWatchdog({portId}, false /* disable */);
-    waitForPfcDeadlocksToSettle(portId);
   };
 
   auto verify = [&]() {
