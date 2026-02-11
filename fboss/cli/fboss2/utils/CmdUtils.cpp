@@ -15,7 +15,6 @@
 #include "neteng/netwhoami/lib/cpp/Recover.h"
 
 #include <re2/re2.h>
-#include <chrono>
 #include <string>
 
 using namespace std::chrono;
@@ -510,31 +509,27 @@ RevisionList::RevisionList(std::vector<std::string> v) {
       continue;
     }
 
-    // Must be in the form "rN" where N is a positive integer
-    if (revision.empty() || revision[0] != 'r') {
-      throw std::invalid_argument(
-          "Invalid revision specifier: '" + revision +
-          "'. Expected 'rN' or 'current'");
-    }
-
-    // Extract the number part after 'r'
-    std::string revNum = revision.substr(1);
-    if (revNum.empty()) {
-      throw std::invalid_argument(
-          "Invalid revision specifier: '" + revision +
-          "'. Expected 'rN' or 'current'");
-    }
-
-    // Validate that it's all digits
-    for (char c : revNum) {
-      if (!std::isdigit(c)) {
-        throw std::invalid_argument(
-            "Invalid revision number: '" + revision +
-            "'. Expected 'rN' or 'current'");
+    // Accept Git commit SHAs (7-40 hex characters) or short refs
+    // Git SHAs are hexadecimal strings, typically 7-40 characters
+    bool isValidHex = !revision.empty() && revision.length() >= 7;
+    if (isValidHex) {
+      for (char c : revision) {
+        if (!std::isxdigit(c)) {
+          isValidHex = false;
+          break;
+        }
       }
     }
 
-    data_.push_back(revision);
+    if (isValidHex) {
+      data_.push_back(revision);
+      continue;
+    }
+
+    // If not a valid hex SHA, reject it
+    throw std::invalid_argument(
+        "Invalid revision specifier: '" + revision +
+        "'. Expected a Git commit SHA (7+ hex characters) or 'current'");
   }
 }
 
