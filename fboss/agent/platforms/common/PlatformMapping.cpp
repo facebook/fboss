@@ -333,6 +333,26 @@ cfg::Scope PlatformMapping::getPortScope(PortID portID) const {
   return *itPlatformPort->second.mapping()->scope();
 }
 
+std::optional<std::map<int32_t, int32_t>>
+PlatformMapping::getPortDriverPeakingOverrides(
+    PlatformPortProfileConfigMatcher matcher) const {
+  auto overrideFactor = matcher.getPortConfigOverrideFactorIf();
+  if (!overrideFactor) {
+    return std::nullopt;
+  }
+  // Check whether there's an override
+  for (const auto& portConfigOverride : portConfigOverrides_) {
+    if (!portConfigOverride.driverPeaking().has_value()) {
+      // The override does not have driver peaking. Skip
+      continue;
+    }
+    if (matcher.matchOverrideWithFactor(*portConfigOverride.factor())) {
+      return *portConfigOverride.driverPeaking();
+    }
+  }
+  return std::nullopt;
+}
+
 std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
     PlatformPortProfileConfigMatcher matcher) const {
   std::optional<phy::DataPlanePhyChip> chip;

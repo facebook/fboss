@@ -818,6 +818,12 @@ class CmisModule : public QsfpModule {
   bool fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4AlarmData(VdmPerfMonitorStats& vdmStats);
 
+  void applyHostControlledInputEquilizerTx(uint8_t lane, uint8_t value);
+
+  uint8_t setExplicitControl(
+      const TransceiverPortState& state,
+      const uint8_t laneMask);
+
   void setApplicationSelectCode(
       uint8_t apSelCode,
       uint8_t mediaInterfaceCode,

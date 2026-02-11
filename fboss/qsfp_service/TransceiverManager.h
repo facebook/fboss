@@ -943,6 +943,15 @@ class TransceiverManager {
   void setForceRemoveTransceiver(TransceiverID tcvrID);
 
   /*
+   * If there are portConfigOverrides in the platform mapping, return
+   * the Driver Peaking values for a given port ID.
+   */
+  std::optional<std::map<uint8_t, uint8_t>> getDriverPeakingOverrides(
+      TransceiverID tcvrId,
+      cfg::PortProfileID profile,
+      size_t numberOfLanes);
+
+  /*
    * This is the private class to capture all information a
    * TransceiverStateMachine needs
    * A Synchronized state_machine to keep track of the state

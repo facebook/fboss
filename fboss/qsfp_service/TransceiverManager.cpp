@@ -1554,6 +1554,63 @@ bool TransceiverManager::isTransceiverPortStateSupported(
 }
 
 /*
+ * Return the DriverPeaking values per lane for a given port in a transceiver,
+ * if the portConfigOverrides exist and matches the PortID, PortProfileID, and
+ * Transceiver Vendor.
+ */
+std::optional<std::map<uint8_t, uint8_t>>
+TransceiverManager::getDriverPeakingOverrides(
+    TransceiverID tcvrId,
+    cfg::PortProfileID profile,
+    size_t numberOfLanes) {
+  auto lockedTransceivers = transceivers_.rlock();
+  auto tcvrIt = lockedTransceivers->find(tcvrId);
+  if (tcvrIt == lockedTransceivers->end()) {
+    return std::nullopt;
+  }
+
+  const auto info = tcvrIt->second->getTransceiverInfo();
+  auto factor = buildPlatformPortConfigOverrideFactor(info);
+
+  // Get all the driver peaking for all the ports in the transceiver
+  // that match the profile. Add them to the TransceiverPortState.
+  // This is because in CmisModule we may program the AppSel at once
+  // for all the ports that match the profile, and we want the overrides
+  // then.
+  auto portIds = platformMapping_->getSwPortListFromTransceiverId(tcvrId);
+  bool overridesFound = false;
+  std::map<uint8_t, uint8_t> driverPeakings;
+  for (const auto& port : portIds) {
+    PlatformPortProfileConfigMatcher matcher(profile, port, factor);
+    auto driverPeakingOpt =
+        platformMapping_->getPortDriverPeakingOverrides(matcher);
+    if (!driverPeakingOpt) {
+      continue;
+    }
+    if (driverPeakingOpt->size() != numberOfLanes) {
+      XLOG(ERR)
+          << "Warning: Driver Peaking overrides do not match the number of lanes: transceiver "
+          << tcvrId << " port " << port << ". Not overriding";
+      continue;
+    }
+    overridesFound = true;
+    // Thrift does not support an array of uint8_t, so we need to convert to
+    // vector<uint8_t>. The value applied to CMIS per spec is 4 bits per lane.
+    for (const auto& [lane, driverPeakingValue] : *driverPeakingOpt) {
+      driverPeakings.insert(
+          std::make_pair(
+              static_cast<uint8_t>(lane),
+              static_cast<uint8_t>(driverPeakingValue)));
+    }
+  }
+
+  if (!overridesFound) {
+    return std::nullopt;
+  }
+  return driverPeakings;
+}
+
+/*
  * getOpticalChannelConfig - Retrieve optical channel configuration for a
  * transceiver
  *
@@ -1671,6 +1728,8 @@ void TransceiverManager::programTransceiver(
     portState.speed = speed;
     portState.numHostLanes = tcvrHostLanes.size();
     portState.opticalChannelConfig = opticalChannelConfig;
+    portState.driverPeaking =
+        getDriverPeakingOverrides(id, portProfile, tcvrHostLanes.size());
     programTcvrState.ports.emplace(*portName, portState);
   }
 

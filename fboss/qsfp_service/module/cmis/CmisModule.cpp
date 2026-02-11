@@ -427,6 +427,18 @@ static CmisFieldMultiplier qsfpMultiplier = {
     {CmisField::LENGTH_COPPER, 0.1},
 };
 
+static const std::unordered_map<int, std::pair<uint8_t, CmisField>>
+    laneToInputEqTxField = {
+        {0, {0, CmisField::INPUT_EQ_TX_1_2}},
+        {1, {4, CmisField::INPUT_EQ_TX_1_2}},
+        {2, {0, CmisField::INPUT_EQ_TX_3_4}},
+        {3, {4, CmisField::INPUT_EQ_TX_3_4}},
+        {4, {0, CmisField::INPUT_EQ_TX_5_6}},
+        {5, {4, CmisField::INPUT_EQ_TX_5_6}},
+        {6, {0, CmisField::INPUT_EQ_TX_7_8}},
+        {7, {4, CmisField::INPUT_EQ_TX_7_8}},
+};
+
 // A map of programmable FEC sampling pct per Module Media type.
 static const std::unordered_map<MediaInterfaceCode, uint8_t>
     kMaxProgFecSamplingSupportedMap_ = {
@@ -2361,6 +2373,87 @@ void CmisModule::updateQsfpData(bool allPages) {
 }
 
 /*
+ * applyHostControlledInputEquilizerTx
+ * Sets the InputEquilizerTx value for a given lane.
+ */
+void CmisModule::applyHostControlledInputEquilizerTx(
+    uint8_t lane,
+    uint8_t value) {
+  auto itr = laneToInputEqTxField.find(lane);
+  if (itr == laneToInputEqTxField.end()) {
+    QSFP_LOG(WARN, this) << folly::sformat(
+        "Warning: lane {:#d} is out of range for InputEqTx map", lane);
+    return;
+  }
+  const auto& [shift, field] = itr->second;
+  // only 4 bits are applicable.
+  uint8_t valueToApply = value & 0xF;
+  if (valueToApply != value) {
+    QSFP_LOG(WARN, this) << folly::sformat(
+        "Warning: Value applied {:#d} is out of range for InputEqTx 4 bits",
+        value);
+    return;
+  }
+  valueToApply = valueToApply << shift;
+  // Read field first. Apply the value for the lane, then write it back
+  uint8_t currentVal = 0;
+  readCmisField(field, &currentVal);
+  // Zero out the correct nibble
+  currentVal &= ~(0xF << shift);
+  // apply current value
+  currentVal |= valueToApply;
+  writeCmisField(field, &currentVal);
+}
+
+/*
+ * setExplicitControl
+ *
+ * Sets the HostControlledInputEquilizerTx based on driverPeaking values in
+ * TransceiverPortState. Returns 0x1 when the explicit control is set.
+ */
+
+uint8_t CmisModule::setExplicitControl(
+    const TransceiverPortState& state,
+    const uint8_t laneMask) {
+  uint8_t retVal = 0;
+  // For now, this is only applicable to LPO
+  if (!isLpoModule()) {
+    return retVal;
+  }
+  auto driverPeaking = state.driverPeaking;
+  if (!driverPeaking) {
+    QSFP_LOG(WARN, this) << "Warning: Driver peaking not set for LPO Module";
+    return retVal;
+  }
+
+  std::vector<uint8_t> lanes;
+  for (uint8_t lane = 0; lane < 8; ++lane) {
+    if (laneMask & (1 << lane)) {
+      lanes.push_back(lane);
+    }
+  }
+
+  if (driverPeaking->size() < lanes.size()) {
+    QSFP_LOG(WARN, this) << folly::sformat(
+        "Warning: Driver peaking override count {:#d} is smaller than Lane count {:#d}",
+        driverPeaking->size(),
+        lanes.size());
+    return retVal;
+  }
+  for (const auto& lane : lanes) {
+    auto itr = driverPeaking->find(lane);
+    if (itr == driverPeaking->end()) {
+      QSFP_LOG(WARN, this) << folly::sformat(
+          "Warning: Driver peaking override for lane {:#d} is missing", lane);
+      continue;
+    }
+    retVal = 0x1;
+    applyHostControlledInputEquilizerTx(lane, itr->second);
+  }
+  return retVal;
+}
+
+/*
  * setApplicationSelectCode
  *
  * Set the Application code to the optics for just one software port. If it
@@ -2428,7 +2521,10 @@ void CmisModule::setApplicationSelectCode(
     }
   }
 
-  const uint8_t explicitControl = 0; // Use application dependent settings
+  const uint8_t lanesToProgram =
+      laneMask(dataPathId, dataPathId + numHostLanes);
+  // Use application dependent settings
+  const uint8_t explicitControl = setExplicitControl(state, lanesToProgram);
   const uint8_t newApSelCode = (apSelCode << APP_SEL_BITSHIFT) |
       (dataPathId << DATA_PATH_ID_BITSHIFT) | explicitControl;
   QSFP_LOG(INFO, this) << folly::sformat("newApSelCode: {:#x}", newApSelCode);
@@ -2507,8 +2603,12 @@ void CmisModule::setApplicationSelectCodeAllPorts(
         for (auto currApLane = lane;
              currApLane < lane + laneCapability.value().hostLaneCount;
              currApLane++) {
+          const uint8_t lanesToProgram =
+              laneMask(lane, lane + laneCapability.value().hostLaneCount);
+          const uint8_t explicitControl =
+              setExplicitControl(state, lanesToProgram);
           stageSet0Config[currApLane] = currApSelCode << APP_SEL_BITSHIFT |
-              (lane << DATA_PATH_ID_BITSHIFT);
+              (lane << DATA_PATH_ID_BITSHIFT) | explicitControl;
         }
         lane += laneCapability.value().hostLaneCount;
       } else {
