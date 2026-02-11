@@ -422,7 +422,8 @@
         81,
         82,
         84,
-        86
+        86,
+        99
     ],
     "yuba": [
         2,
@@ -895,7 +896,8 @@
         "ARS_FLOWLET",
         "ARS_SPRAY",
         "STATIC_PG_SHARED_LIMIT",
-        "CLASS_ID_FOR_NEIGHBOR"
+        "CLASS_ID_FOR_NEIGHBOR",
+        "VIRTUAL_ARS_GROUP"
     ],
     "yuba": [
         "CPU_RX_TX",
