@@ -22,6 +22,8 @@
 
 // Change 1, DO NOT MERGE
 
+// Change 2, DO NOT MERGE
+
 namespace facebook::fboss::platform::platform_manager {
 namespace {
 constexpr auto kRootSlotPath = "/";
