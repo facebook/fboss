@@ -2374,9 +2374,6 @@ void CmisModule::setApplicationSelectCode(
     uint8_t numHostLanes,
     uint8_t hostLaneMask) {
   const uint8_t dataPathId = state.startHostLane;
-  uint8_t explicitControl = 0; // Use application dependent settings
-  uint8_t newApSelCode = (apSelCode << 4) | (dataPathId << 1) | explicitControl;
-  QSFP_LOG(INFO, this) << folly::sformat("newApSelCode: {:#x}", newApSelCode);
 
   // We can't use numHostLanes() to get the hostLaneCount here since
   // that function relies on the configured application select but at
@@ -2430,6 +2427,11 @@ void CmisModule::setApplicationSelectCode(
       }
     }
   }
+
+  const uint8_t explicitControl = 0; // Use application dependent settings
+  const uint8_t newApSelCode = (apSelCode << APP_SEL_BITSHIFT) |
+      (dataPathId << DATA_PATH_ID_BITSHIFT) | explicitControl;
+  QSFP_LOG(INFO, this) << folly::sformat("newApSelCode: {:#x}", newApSelCode);
 
   // First release the lanes if they are already part of any datapath
   std::vector<uint8_t> zeroApSelCode(lanesToRelease.size(), 0);
