@@ -30,6 +30,20 @@ const std::set<std::string> kServicesSupportingRestart() {
   return servicesSupportingRestart;
 }
 
+// The systemd service name differs from the actual binary/process name.
+// pkill matches against the process name, so we need to map service names
+// to the actual binary names.
+const std::map<std::string, std::string>& kServiceToProcessName() {
+  static const std::map<std::string, std::string> serviceToProcessName = {
+      {"fboss_sw_agent_test", "fboss_sw_agent_test"},
+      {"fsdb_service_for_testing", "fsdb"},
+      {"qsfp_service_for_testing", "qsfp_service"},
+      {"bgp", "bgp"},
+  };
+
+  return serviceToProcessName;
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -78,15 +92,32 @@ void TestThriftHandler::ungracefullyRestartService(
             *serviceName));
   }
 
+  auto it = kServiceToProcessName().find(*serviceName);
+  if (it == kServiceToProcessName().end()) {
+    throw std::runtime_error(
+        folly::to<std::string>(
+            "No process name mapping for service: ", *serviceName));
+  }
+
+  // pkill -9 followed by systemctl restart: pkill alone won't restart the
+  // service since the systemd unit has Restart=no.
+  // Use ';' (not '&&') so that if pkill kills the current process
+  // (e.g. agent), the orphaned shell still executes systemctl restart.
+  std::string cmd;
   if (*serviceName == "fboss_sw_agent_test") {
     std::string fileToCreate = "/dev/shm/fboss/warm_boot/cold_boot_once_0";
-    auto cmd = folly::to<std::string>(
-        "touch ", fileToCreate, " && systemctl restart ", *serviceName);
-    runShellCmd(cmd);
+    cmd = folly::to<std::string>(
+        "pkill -9 ",
+        it->second,
+        " ; touch ",
+        fileToCreate,
+        " ; systemctl restart ",
+        *serviceName);
   } else {
-    auto cmd = folly::to<std::string>("pkill -9 ", *serviceName);
-    runShellCmd(cmd);
+    cmd = folly::to<std::string>(
+        "pkill -9 ", it->second, " ; systemctl restart ", *serviceName);
   }
+  runShellCmd(cmd);
 }
 
 void TestThriftHandler::gracefullyRestartServiceWithDelay(
