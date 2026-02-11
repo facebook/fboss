@@ -477,6 +477,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/interface/capabilities/CmdShowInterfaceCapabilities.h
   fboss/cli/fboss2/commands/show/interface/capabilities/CmdShowInterfaceCapabilities.cpp
   fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h
+  fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.cpp
   fboss/cli/fboss2/commands/show/interface/prbs/CmdShowInterfacePrbs.h
   fboss/cli/fboss2/commands/show/interface/prbs/capabilities/CmdShowInterfacePrbsCapabilities.h
   fboss/cli/fboss2/commands/show/interface/prbs/state/CmdShowInterfacePrbsState.h

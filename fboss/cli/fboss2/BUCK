@@ -323,6 +323,7 @@ cpp_library(
         "commands/show/interface/capabilities/CmdShowInterfaceCapabilities.cpp",
         "commands/show/interface/counters/CmdShowInterfaceCounters.cpp",
         "commands/show/interface/errors/CmdShowInterfaceErrors.cpp",
+        "commands/show/interface/status/CmdShowInterfaceStatus.cpp",
         "commands/show/l2/CmdShowL2.cpp",
         "commands/show/lldp/CmdShowLldp.cpp",
         "commands/show/mac/CmdShowMacAddrToBlock.cpp",
