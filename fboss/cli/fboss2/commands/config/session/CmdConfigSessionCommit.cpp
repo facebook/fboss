@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <fmt/format.h>
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
@@ -43,5 +45,9 @@ CmdConfigSessionCommitTraits::RetType CmdConfigSessionCommit::queryClient(
 void CmdConfigSessionCommit::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdConfigSessionCommit, CmdConfigSessionCommitTraits>::run();
 
 } // namespace facebook::fboss

@@ -10,7 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
 
-#include <folly/Conv.h>
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
 namespace facebook::fboss {
@@ -51,5 +52,10 @@ void CmdConfigInterfaceSwitchportAccessVlan::printOutput(
     const CmdConfigInterfaceSwitchportAccessVlanTraits::RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<
+    CmdConfigInterfaceSwitchportAccessVlan,
+    CmdConfigInterfaceSwitchportAccessVlanTraits>::run();
 
 } // namespace facebook::fboss

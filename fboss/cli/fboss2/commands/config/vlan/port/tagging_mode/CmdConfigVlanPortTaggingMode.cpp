@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <fmt/format.h>
 #include <algorithm>
 #include "fboss/cli/fboss2/session/ConfigSession.h"
@@ -106,5 +108,10 @@ CmdConfigVlanPortTaggingMode::queryClient(
 void CmdConfigVlanPortTaggingMode::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<
+    CmdConfigVlanPortTaggingMode,
+    CmdConfigVlanPortTaggingModeTraits>::run();
 
 } // namespace facebook::fboss

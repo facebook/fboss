@@ -9,6 +9,9 @@
  */
 
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
+
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
 #include <folly/FileUtil.h>
@@ -173,5 +176,9 @@ void CmdConfigSessionDiff::printOutput(const RetType& diffOutput) {
     std::cout << std::endl;
   }
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdConfigSessionDiff, CmdConfigSessionDiffTraits>::run();
 
 } // namespace facebook::fboss
