@@ -825,7 +825,7 @@ neteng::fboss::bgp::thrift::TBgpPath BgpRibMapDataGenerator::createBgpPath(
       twoByteAsn.sub_type() = 4;
       twoByteAsn.asn() = 65000 + (i % 100);
       twoByteAsn.value() = 1000000 + ((entryIndex + pathIndex) % 1000000);
-      extCommUnion.two_byte_asn_ref() = twoByteAsn;
+      extCommUnion.two_byte_asn() = twoByteAsn;
       extComm.u() = extCommUnion;
       extCommunities.push_back(extComm);
     }
