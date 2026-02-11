@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/state/StateUtils.h"
+#include <unordered_set>
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -53,6 +54,13 @@ folly::MacAddress getMacForFirstInterfaceWithPorts(
   return getInterfaceMac(state, intfID);
 }
 
+folly::MacAddress getMacForFirstInterfaceWithPorts(
+    const std::shared_ptr<SwitchState>& state,
+    SwitchID switchId) {
+  auto intfID = firstInterfaceIDWithPorts(state, switchId);
+  return getInterfaceMac(state, intfID);
+}
+
 InterfaceID firstInterfaceIDWithPorts(
     const std::shared_ptr<SwitchState>& state) {
   const auto& intfMap = state->getInterfaces()->cbegin()->second;
@@ -64,6 +72,22 @@ InterfaceID firstInterfaceIDWithPorts(
     return InterfaceID(intfID);
   }
   throw FbossError("No interface found in state");
+}
+
+InterfaceID firstInterfaceIDWithPorts(
+    const std::shared_ptr<SwitchState>& state,
+    SwitchID switchId) {
+  if (auto intfMap = state->getInterfaces()->getMapNodeIf(
+          HwSwitchMatcher(std::unordered_set<SwitchID>{switchId}))) {
+    for (const auto& [intfID, intf] : std::as_const(*intfMap)) {
+      if (intf->isVirtual()) {
+        // virtual interfaces do not have associated ports
+        continue;
+      }
+      return InterfaceID(intfID);
+    }
+  }
+  throw FbossError("No interface found in state for switch ", switchId);
 }
 
 std::vector<folly::IPAddress> getIntfAddrs(
