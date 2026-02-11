@@ -322,6 +322,7 @@ cpp_library(
         "commands/show/host/CmdShowHost.cpp",
         "commands/show/hwagent/CmdShowHwAgentStatus.cpp",
         "commands/show/hwobject/CmdShowHwObject.cpp",
+        "commands/show/interface/CmdShowInterface.cpp",
         "commands/show/interface/capabilities/CmdShowInterfaceCapabilities.cpp",
         "commands/show/interface/counters/CmdShowInterfaceCounters.cpp",
         "commands/show/interface/errors/CmdShowInterfaceErrors.cpp",

@@ -464,6 +464,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h
   fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.cpp
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
+  fboss/cli/fboss2/commands/show/interface/CmdShowInterface.cpp
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
   fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h
   fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.cpp
