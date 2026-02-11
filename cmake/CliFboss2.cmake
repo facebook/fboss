@@ -448,6 +448,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.cpp
   fboss/cli/fboss2/commands/show/route/utils.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.cpp
   fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h
   fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h
   fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.cpp
