@@ -2560,11 +2560,10 @@ void CmisModule::setMaxFecSamplingLocked() {
 void CmisModule::programApplicationSelectCode(
     uint8_t appSelCode,
     uint8_t moduleMediaInterfaceCode,
-    const std::string& portName,
-    uint8_t startHostLane,
+    const TransceiverPortState& state,
     uint8_t numHostLanes,
     std::optional<std::function<void()>> appSelectFunc) {
-  uint8_t hostLaneMask = laneMask(startHostLane, numHostLanes);
+  uint8_t hostLaneMask = laneMask(state.startHostLane, numHostLanes);
 
   // Use provided function or create default one
   if (!appSelectFunc) {
@@ -2576,12 +2575,12 @@ void CmisModule::programApplicationSelectCode(
         this,
         appSelCode,
         moduleMediaInterfaceCode,
-        startHostLane,
+        state.startHostLane,
         numHostLanes,
         hostLaneMask);
   }
 
-  resetDataPathWithFunc(portName, appSelectFunc, hostLaneMask);
+  resetDataPathWithFunc(state.portName, appSelectFunc, hostLaneMask);
 
   datapathResetPendingMask_ &= ~hostLaneMask;
 
@@ -2595,7 +2594,7 @@ void CmisModule::programApplicationSelectCode(
 
   // Check if the config has been applied correctly or not
   // TODO: This is a failure scenario. We should Fail somehow !
-  if (!checkLaneConfigError(startHostLane, numHostLanes)) {
+  if (!checkLaneConfigError(state.startHostLane, numHostLanes)) {
     QSFP_LOG(ERR, this) << folly::sformat(
         "application {:#x} could not be set", moduleMediaInterfaceCode);
   }
@@ -2819,11 +2818,7 @@ void CmisModule::setApplicationCodeLocked(
         getInterfaceCodeForAppSel(newAppSelCode, kMediaInterfaceCodeOffset);
 
     programApplicationSelectCode(
-        newAppSelCode,
-        moduleMediaInterfaceCode,
-        state.portName,
-        state.startHostLane,
-        state.numHostLanes);
+        newAppSelCode, moduleMediaInterfaceCode, state, state.numHostLanes);
     return;
   }
 
@@ -2862,12 +2857,7 @@ void CmisModule::setApplicationCodeLocked(
 
   // Use programApplicationSelectCode for both cases
   programApplicationSelectCode(
-      appSelCode,
-      moduleMediaInterfaceCode,
-      state.portName,
-      state.startHostLane,
-      numHostLanes,
-      appSelectFunc);
+      appSelCode, moduleMediaInterfaceCode, state, numHostLanes, appSelectFunc);
 }
 
 /*

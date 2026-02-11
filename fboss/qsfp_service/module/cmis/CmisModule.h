@@ -335,8 +335,7 @@ class CmisModule : public QsfpModule {
   void programApplicationSelectCode(
       uint8_t appSelCode,
       uint8_t moduleMediaInterfaceCode,
-      const std::string& portName,
-      uint8_t startHostLane,
+      const TransceiverPortState& state,
       uint8_t numHostLanes,
       std::optional<std::function<void()>> appSelectFunc = std::nullopt);
 
