@@ -327,6 +327,7 @@ cpp_library(
         "commands/show/mac/CmdShowMacAddrToBlock.cpp",
         "commands/show/mac/CmdShowMacDetails.cpp",
         "commands/show/mirror/CmdShowMirror.cpp",
+        "commands/show/mpls/CmdShowMplsRoute.cpp",
         "commands/show/ndp/CmdShowNdp.cpp",
         "commands/show/port/CmdShowPort.cpp",
         "commands/show/port/CmdShowPortQueue.cpp",
