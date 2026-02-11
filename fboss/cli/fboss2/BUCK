@@ -357,6 +357,7 @@ cpp_library(
         "commands/show/route/CmdShowRouteDetails.cpp",
         "commands/show/route/CmdShowRouteSummary.cpp",
         "commands/show/route/utils.cpp",
+        "commands/show/sdk/dump/CmdShowSdkDump.cpp",
         "commands/show/systemport/CmdShowSystemPort.cpp",
         "commands/show/teflow/CmdShowTeFlow.cpp",
         "commands/show/transceiver/CmdShowTransceiver.cpp",
