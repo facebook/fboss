@@ -326,6 +326,7 @@ cpp_library(
         "commands/show/facebook/environment/temperature/CmdShowEnvironmentTemp.cpp",
         "commands/show/facebook/state/CmdShowStateDrain.cpp",
         "commands/show/facebook/techsupport/CmdShowTechSupport.cpp",
+        "commands/show/facebook/vip/overview/CmdShowVipsOverview.cpp",
         "commands/show/flowlet/CmdShowFlowlet.cpp",
         "commands/show/fsdb/CmdShowFsdbDataCommon.cpp",
         "commands/show/fsdb/CmdShowFsdbPublishers.cpp",
