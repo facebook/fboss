@@ -36,6 +36,11 @@ DEFINE_bool(
     false,
     "Flag to enable setting max FEC sampling for module");
 
+DEFINE_bool(
+    enable_explicit_control,
+    false,
+    "Flag to explicit control to module values overridden for specific vendors");
+
 namespace {
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
@@ -2416,6 +2421,9 @@ uint8_t CmisModule::setExplicitControl(
     const TransceiverPortState& state,
     const uint8_t laneMask) {
   uint8_t retVal = 0;
+  if (!FLAGS_enable_explicit_control) {
+    return retVal;
+  }
   // For now, this is only applicable to LPO
   if (!isLpoModule()) {
     return retVal;
