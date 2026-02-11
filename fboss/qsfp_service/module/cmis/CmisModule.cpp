@@ -2784,15 +2784,12 @@ CmisModule::getAppSelCodeForSpeed(
  * other lanes of the module also.
  */
 void CmisModule::setApplicationCodeLocked(
-    const std::string& portName,
-    cfg::PortSpeed speed,
-    uint8_t startHostLane,
-    uint8_t numHostLanesForPort,
+    const TransceiverPortState& state,
     uint8_t newAppSelCode) {
   QSFP_LOG(INFO, this) << folly::sformat(
       "Trying to set application code for speed {} on startHostLane {}",
-      apache::thrift::util::enumNameSafe(speed),
-      startHostLane);
+      apache::thrift::util::enumNameSafe(state.speed),
+      state.startHostLane);
 
   // For tunable optics, directly program the AppSel code from config
   if (isTunableOptics()) {
@@ -2802,13 +2799,13 @@ void CmisModule::setApplicationCodeLocked(
 
     QSFP_LOG(INFO, this) << folly::sformat(
         "Direct AppSelCode programming for speed {} on startHostLane {} newAppSelCode {}",
-        apache::thrift::util::enumNameSafe(speed),
-        startHostLane,
+        apache::thrift::util::enumNameSafe(state.speed),
+        state.startHostLane,
         newAppSelCode);
 
     // Check if current AppSel matches the desired one
-    uint8_t currentAppSelCode = getCurrentAppSelCode(startHostLane);
-    auto& dpState = portDatapathStates_[portName];
+    uint8_t currentAppSelCode = getCurrentAppSelCode(state.startHostLane);
+    auto& dpState = portDatapathStates_[state.portName];
     auto& initTimers = dpState.initTimers;
     if (currentAppSelCode == newAppSelCode &&
         (initTimers.progStartTimer.time_since_epoch().count() == 0)) {
@@ -2822,17 +2819,17 @@ void CmisModule::setApplicationCodeLocked(
         getInterfaceCodeForAppSel(newAppSelCode, kMediaInterfaceCodeOffset);
 
     programApplicationSelectCode(
-        portName,
+        state.portName,
         newAppSelCode,
         moduleMediaInterfaceCode,
-        startHostLane,
-        numHostLanesForPort);
+        state.startHostLane,
+        state.numHostLanes);
     return;
   }
 
   // For non-tunable optics, discover the AppSel code based on capabilities
   auto capability = getAppSelCodeForSpeed(
-      portName, speed, startHostLane, numHostLanesForPort);
+      state.portName, state.speed, state.startHostLane, state.numHostLanes);
 
   // If nullopt, means current config already matches, nothing to do
   if (!capability) {
@@ -2850,24 +2847,25 @@ void CmisModule::setApplicationCodeLocked(
   std::optional<std::function<void()>> appSelectFunc = std::nullopt;
 
   if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
-      !isRequestValidMultiportSpeedConfig(speed, startHostLane, numHostLanes)) {
+      !isRequestValidMultiportSpeedConfig(
+          state.speed, state.startHostLane, numHostLanes)) {
     QSFP_LOG(INFO, this) << "Programming App sel on ALL lanes";
-    uint8_t hostLaneMask = laneMask(startHostLane, numHostLanes);
+    uint8_t hostLaneMask = laneMask(state.startHostLane, numHostLanes);
     appSelectFunc = std::bind(
         &CmisModule::setApplicationSelectCodeAllPorts,
         this,
-        speed,
-        startHostLane,
+        state.speed,
+        state.startHostLane,
         numHostLanes,
         hostLaneMask);
   }
 
   // Use programApplicationSelectCode for both cases
   programApplicationSelectCode(
-      portName,
+      state.portName,
       appSelCode,
       moduleMediaInterfaceCode,
-      startHostLane,
+      state.startHostLane,
       numHostLanes,
       appSelectFunc);
 }
@@ -3148,15 +3146,12 @@ bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
 
 void CmisModule::customizeTransceiverLocked(
     const TransceiverPortState& portState) {
-  auto& portName = portState.portName;
-  auto speed = portState.speed;
-  auto startHostLane = portState.startHostLane;
-  auto numHostLanes = portState.numHostLanes;
   QSFP_LOG(INFO, this) << folly::sformat(
-      "customizeTransceiverLocked: PortName {}, Speed {}, StartHostLane {}",
-      portName,
-      apache::thrift::util::enumNameSafe(speed),
-      startHostLane);
+      "customizeTransceiverLocked: PortName {}, Speed {}, StartHostLane {}, NumHostLanes{}",
+      portState.portName,
+      apache::thrift::util::enumNameSafe(portState.speed),
+      portState.startHostLane,
+      portState.numHostLanes);
   /*
    * This must be called with a lock held on qsfpModuleMutex_
    */
@@ -3172,7 +3167,7 @@ void CmisModule::customizeTransceiverLocked(
 
     if (isTunableOptics()) {
       if (portState.opticalChannelConfig.has_value()) {
-        auto& dpState = portDatapathStates_[portName];
+        auto& dpState = portDatapathStates_[portState.portName];
         auto& initTimers = dpState.initTimers;
         // If dp-initialization start timer is not set, invoke
         // programTunableModule
@@ -3187,7 +3182,7 @@ void CmisModule::customizeTransceiverLocked(
       }
     }
 
-    if (speed != cfg::PortSpeed::DEFAULT) {
+    if (portState.speed != cfg::PortSpeed::DEFAULT) {
       if (isTunableOptics()) {
         const auto& chanConfig = portState.opticalChannelConfig;
         if (!chanConfig.has_value() ||
@@ -3197,18 +3192,16 @@ void CmisModule::customizeTransceiverLocked(
               "Tunable optics requires optical channel config with appSelCode for speed configuration");
         }
         auto newAppSelCode = *chanConfig.value().appSelCode();
-        setApplicationCodeLocked(
-            portName, speed, startHostLane, numHostLanes, newAppSelCode);
+        setApplicationCodeLocked(portState, newAppSelCode);
       } else {
-        setApplicationCodeLocked(
-            portName, speed, startHostLane, numHostLanes, kInvalidApplication);
+        setApplicationCodeLocked(portState, kInvalidApplication);
       }
     }
 
     // For 200G-FR4 module operating in 2x50G mode, disable squelch on all lanes
     // so that each lanes can operate independently
     if (getModuleMediaInterface() == MediaInterfaceCode::FR4_200G &&
-        speed == cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG) {
+        portState.speed == cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG) {
       uint8_t squelchDisableValue = 0xF;
       writeCmisField(CmisField::TX_SQUELCH_DISABLE, &squelchDisableValue);
       writeCmisField(CmisField::RX_SQUELCH_DISABLE, &squelchDisableValue);

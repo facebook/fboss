@@ -308,10 +308,7 @@ class CmisModule : public QsfpModule {
    * if newAppSelCode is provided, use that directly instead of deriving
    */
   void setApplicationCodeLocked(
-      const std::string& portName,
-      cfg::PortSpeed speed,
-      uint8_t startHostLane,
-      uint8_t numHostLanesForPort,
+      const TransceiverPortState& portState,
       uint8_t newAppSelCode);
 
   /*
