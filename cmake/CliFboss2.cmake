@@ -484,6 +484,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.h
   fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.cpp
   fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h
+  fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.cpp
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.cpp
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h

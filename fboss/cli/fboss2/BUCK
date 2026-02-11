@@ -335,6 +335,7 @@ cpp_library(
         "commands/show/route/CmdShowRouteSummary.cpp",
         "commands/show/route/utils.cpp",
         "commands/show/systemport/CmdShowSystemPort.cpp",
+        "commands/show/teflow/CmdShowTeFlow.cpp",
         "commands/show/transceiver/CmdShowTransceiver.cpp",
         "facebook/CmdHandlerImpl.cpp",
         "facebook/CmdList.cpp",
