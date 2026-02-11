@@ -318,6 +318,7 @@ cpp_library(
         "commands/show/fsdb/CmdShowFsdbPublishers.cpp",
         "commands/show/fsdb/CmdShowFsdbSubscribers.cpp",
         "commands/show/fsdb/CmdShowFsdbUtils.cpp",
+        "commands/show/host/CmdShowHost.cpp",
         "commands/show/hwagent/CmdShowHwAgentStatus.cpp",
         "commands/show/hwobject/CmdShowHwObject.cpp",
         "commands/show/interface/capabilities/CmdShowInterfaceCapabilities.cpp",

@@ -428,6 +428,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperState.h
   fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperStats.h
   fboss/cli/fboss2/commands/show/host/CmdShowHost.h
+  fboss/cli/fboss2/commands/show/host/CmdShowHost.cpp
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.cpp
   fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h
