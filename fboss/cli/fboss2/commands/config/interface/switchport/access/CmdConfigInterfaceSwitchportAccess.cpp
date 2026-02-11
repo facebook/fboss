@@ -8,23 +8,15 @@
  *
  */
 
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/CmdConfigProtocolBgp.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 namespace facebook::fboss {
 
-CmdConfigProtocolBgpTraits::RetType CmdConfigProtocolBgp::queryClient(
-    const HostInfo& /* hostInfo */) {
-  return "BGP protocol configuration. Use subcommands: global, neighbor";
-}
-
-void CmdConfigProtocolBgp::printOutput(const RetType& output) {
-  std::cout << output << std::endl;
-}
-
 // Explicit template instantiation
-template void
-CmdHandler<CmdConfigProtocolBgp, CmdConfigProtocolBgpTraits>::run();
+template void CmdHandler<
+    CmdConfigInterfaceSwitchportAccess,
+    CmdConfigInterfaceSwitchportAccessTraits>::run();
 
 } // namespace facebook::fboss

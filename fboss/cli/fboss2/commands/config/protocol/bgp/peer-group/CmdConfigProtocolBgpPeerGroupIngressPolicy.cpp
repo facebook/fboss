@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupIngressPolicy.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <fmt/core.h>
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.h"
 
@@ -50,5 +52,10 @@ void CmdConfigProtocolBgpPeerGroupIngressPolicy::printOutput(
     const RetType& output) {
   std::cout << output << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<
+    CmdConfigProtocolBgpPeerGroupIngressPolicy,
+    CmdConfigProtocolBgpPeerGroupIngressPolicyTraits>::run();
 
 } // namespace facebook::fboss

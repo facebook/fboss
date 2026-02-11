@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPassive.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <fmt/core.h>
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.h"
 
@@ -49,5 +51,10 @@ CmdConfigProtocolBgpPeerPassive::queryClient(
 void CmdConfigProtocolBgpPeerPassive::printOutput(const RetType& output) {
   std::cout << output << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<
+    CmdConfigProtocolBgpPeerPassive,
+    CmdConfigProtocolBgpPeerPassiveTraits>::run();
 
 } // namespace facebook::fboss
