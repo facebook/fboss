@@ -305,6 +305,7 @@ cpp_library(
         "commands/show/facebook/CmdShowVersionRackmon.cpp",
         "commands/show/facebook/CmdShowVersionSDK.cpp",
         "commands/show/facebook/CmdShowVersionSensorService.cpp",
+        "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyCps.cpp",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyUtils.cpp",
         "commands/show/facebook/bgp/stats/CmdShowBgpStatsEntries.cpp",
         "commands/show/facebook/bgp/stats/CmdShowBgpStatsPolicy.cpp",
