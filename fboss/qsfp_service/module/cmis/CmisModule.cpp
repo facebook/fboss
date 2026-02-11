@@ -2465,18 +2465,17 @@ void CmisModule::setApplicationSelectCode(
  * valid configuration for all the lanes
  */
 void CmisModule::setApplicationSelectCodeAllPorts(
-    cfg::PortSpeed speed,
-    uint8_t startHostLane,
+    const TransceiverPortState& state,
     uint8_t numHostLanes,
     uint8_t hostLaneMask) {
   std::vector<uint8_t> laneProgramValues;
   if (isAecModule()) {
     laneProgramValues =
         CmisHelper::getValidMultiportSpeedConfig<ActiveCuHostInterfaceCode>(
-            speed,
-            startHostLane,
+            state.speed,
+            state.startHostLane,
             numHostLanes,
-            laneMask(startHostLane, numHostLanes),
+            laneMask(state.startHostLane, numHostLanes),
             getNameString(),
             moduleCapabilities_,
             CmisHelper::getActiveValidSpeedCombinations(),
@@ -2484,10 +2483,10 @@ void CmisModule::setApplicationSelectCodeAllPorts(
   } else {
     laneProgramValues =
         CmisHelper::getValidMultiportSpeedConfig<SMFMediaInterfaceCode>(
-            speed,
-            startHostLane,
+            state.speed,
+            state.startHostLane,
             numHostLanes,
-            laneMask(startHostLane, numHostLanes),
+            laneMask(state.startHostLane, numHostLanes),
             getNameString(),
             moduleCapabilities_,
             CmisHelper::getSmfValidSpeedCombinations(),
@@ -2847,8 +2846,7 @@ void CmisModule::setApplicationCodeLocked(
     appSelectFunc = std::bind(
         &CmisModule::setApplicationSelectCodeAllPorts,
         this,
-        state.speed,
-        state.startHostLane,
+        state,
         numHostLanes,
         hostLaneMask);
   }

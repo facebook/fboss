@@ -825,8 +825,7 @@ class CmisModule : public QsfpModule {
       uint8_t numHostLanes,
       uint8_t hostLaneMask);
   void setApplicationSelectCodeAllPorts(
-      cfg::PortSpeed speed,
-      uint8_t startHostLane,
+      const TransceiverPortState& state,
       uint8_t numHostLanes,
       uint8_t hostLaneMask);
 
