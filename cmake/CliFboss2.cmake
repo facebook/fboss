@@ -411,6 +411,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringCounters.cpp
   fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringDetails.h
   fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringDetails.cpp
+  fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h
+  fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.cpp
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.cpp
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbDataCommon.h
