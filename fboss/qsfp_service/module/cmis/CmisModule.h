@@ -254,7 +254,8 @@ class CmisModule : public QsfpModule {
    * Perform transceiver customization
    * This must be called with a lock held on qsfpModuleMutex_
    */
-  void customizeTransceiverLocked(TransceiverPortState& portState) override;
+  void customizeTransceiverLocked(
+      const TransceiverPortState& portState) override;
 
   /*
    * Returns whether customization is supported at all.

@@ -3146,7 +3146,8 @@ bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
   return false;
 }
 
-void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
+void CmisModule::customizeTransceiverLocked(
+    const TransceiverPortState& portState) {
   auto& portName = portState.portName;
   auto speed = portState.speed;
   auto startHostLane = portState.startHostLane;
