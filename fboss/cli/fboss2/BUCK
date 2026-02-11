@@ -308,6 +308,7 @@ cpp_library(
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyUtils.cpp",
         "commands/show/facebook/config/CmdShowConfigHistoryAgent.cpp",
         "commands/show/facebook/config/CmdShowConfigHistoryBgp.cpp",
+        "commands/show/facebook/config/CmdShowConfigPatchersAgent.cpp",
         "commands/show/facebook/config/CmdShowConfigRunningAgent.cpp",
         "commands/show/facebook/config/CmdShowConfigRunningBgp.cpp",
         "commands/show/facebook/config/CmdShowConfigUtils.cpp",
