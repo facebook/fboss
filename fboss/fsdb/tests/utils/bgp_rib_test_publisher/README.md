@@ -5,13 +5,13 @@ A test publisher utility that writes BGP RIB data to FSDB. Used for testing FSDB
 ## Build
 
 ```bash
-buck2 build fbcode//fboss/fsdb/tests/utils/bgp_rib_test_publisher:bgp_rib_test_publisher_bin
+buck2 build fbcode//fboss/fsdb/tests/utils/bgp_rib_test_publisher:bgp_rib_test_publisher
 ```
 
 ## Usage
 
 ```bash
-bgp_rib_test_publisher_bin \
+bgp_rib_test_publisher \
   --routes="2001:db8:1::/48,2001:db8:2::/48" \
   --next-hops="2001:db8:ffff::1,2001:db8:ffff::2" &
 PID=$!
@@ -40,7 +40,7 @@ Uses `folly::AsyncSignalHandler` with `EventBase::loopForever()` — no polling 
 ### Example: publish, withdraw, and exit
 
 ```bash
-bgp_rib_test_publisher_bin \
+bgp_rib_test_publisher \
   --routes="2001:db8:1::/48" \
   --next-hops="2001:db8:ffff::1" &
 PID=$!
@@ -55,7 +55,7 @@ kill -USR1 $PID
 ### Example: withdraw and republish
 
 ```bash
-bgp_rib_test_publisher_bin \
+bgp_rib_test_publisher \
   --routes="2001:db8:1::/48,2001:db8:2::/48" \
   --next-hops="2001:db8:ffff::1,2001:db8:ffff::2" &
 PID=$!

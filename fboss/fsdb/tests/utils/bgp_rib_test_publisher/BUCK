@@ -4,7 +4,7 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 oncall("fboss_agent_push")
 
 cpp_library(
-    name = "bgp_rib_test_publisher",
+    name = "bgp_rib_test_publisher_lib",
     srcs = ["BgpRibTestPublisher.cpp"],
     headers = ["BgpRibTestPublisher.h"],
     exported_deps = [
@@ -18,10 +18,10 @@ cpp_library(
 )
 
 cpp_binary(
-    name = "bgp_rib_test_publisher_bin",
+    name = "bgp_rib_test_publisher",
     srcs = ["main.cpp"],
     deps = [
-        ":bgp_rib_test_publisher",
+        ":bgp_rib_test_publisher_lib",
         "//fboss/fsdb/common:flags",
         "//folly:string",
         "//folly/init:init",
