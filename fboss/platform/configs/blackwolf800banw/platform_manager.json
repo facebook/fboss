@@ -1033,7 +1033,15 @@
               "deviceName": "i2c_master",
               "csrOffsetCalc": "0x8000 + ({adapterIndex} - {startAdapterIndex})*0x80",
               "startAdapterIndex": 0,
-              "numAdapters": 10,
+              "numAdapters": 2,
+              "numBusesPerAdapter": 6
+            },
+            {
+              "pmUnitScopedNamePrefix": "SMB_I2C_MASTER",
+              "deviceName": "i2c_master",
+              "csrOffsetCalc": "0x8100 + ({adapterIndex} - {startAdapterIndex})*0x80",
+              "startAdapterIndex": 2,
+              "numAdapters": 8,
               "numBusesPerAdapter": 8
             }
           ],
