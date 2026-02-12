@@ -246,7 +246,7 @@ cpp_library(
         "//fboss/platform/platform_hw_test:platform_hw_test",
         "//fboss/platform/platform_manager:platform_manager",
         "//fboss/platform/platform_manager/hw_test:platform_manager_hw_test",
-        "//fboss/platform/platform_manager/tests/...",
+        "//fboss/platform/platform_manager/tests:config_utils_test",
     ],
     exported_deps = [
         ":config_validator",
