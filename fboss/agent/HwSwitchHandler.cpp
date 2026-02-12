@@ -123,9 +123,14 @@ HwSwitchStateOperUpdateResult HwSwitchHandler::stateChangedImpl(
     const std::shared_ptr<SwitchState>& oldState,
     const std::shared_ptr<SwitchState>& newState,
     const HwWriteBehavior& hwWriteBehavior,
-    const std::optional<
-        StateDeltaApplication>& /* deltaApplicationBehavior */) {
-  return stateChanged(deltas, transaction, oldState, newState, hwWriteBehavior);
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
+  return stateChanged(
+      deltas,
+      transaction,
+      oldState,
+      newState,
+      hwWriteBehavior,
+      deltaApplicationBehavior);
 }
 
 fsdb::OperDelta HwSwitchHandler::getFullSyncOperDelta(

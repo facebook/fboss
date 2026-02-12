@@ -66,12 +66,11 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
     const StateDelta& delta,
     bool transaction,
     const HwWriteBehavior& hwWriteBehavior,
-    const std::optional<StateDeltaApplication>&
-        deltaApplicationBehaviorBehavior) {
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   std::vector<StateDelta> deltas;
   deltas.emplace_back(delta.oldState(), delta.newState());
   return stateChanged(
-      deltas, transaction, hwWriteBehavior, deltaApplicationBehaviorBehavior);
+      deltas, transaction, hwWriteBehavior, deltaApplicationBehavior);
 }
 
 std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(

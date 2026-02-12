@@ -92,7 +92,9 @@ class HwSwitchHandler {
       bool transaction,
       const std::shared_ptr<SwitchState>& oldState,
       const std::shared_ptr<SwitchState>& newState,
-      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE) = 0;
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt) = 0;
 
   virtual std::map<PortID, FabricEndpoint> getFabricConnectivity() const = 0;
 

@@ -88,7 +88,9 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
       bool transaction,
       const std::shared_ptr<SwitchState>& oldState,
       const std::shared_ptr<SwitchState>& newState,
-      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE) override;
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt) override;
 
   bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const override;
