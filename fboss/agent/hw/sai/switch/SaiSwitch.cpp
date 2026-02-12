@@ -4909,43 +4909,58 @@ void SaiSwitch::dumpDebugState(const std::string& path) const {
   saiCheckError(sai_dbg_generate_dump(path.c_str()));
 }
 
+std::string SaiSwitch::listCachedObjectsLocked(
+    const std::vector<sai_object_type_t>& objects,
+    const SaiStore* store,
+    const FineGrainedLockPolicy& policy) const {
+  std::string output;
+  std::for_each(
+      objects.begin(), objects.end(), [&output, &policy, store](auto objType) {
+        auto lock = policy.lock();
+        output += store->storeStr(objType);
+      });
+  return output;
+}
+
 std::string SaiSwitch::listObjectsLocked(
     const std::vector<sai_object_type_t>& objects,
     bool cached,
     const FineGrainedLockPolicy& policy) const {
+  if (cached) {
+    return listCachedObjectsLocked(objects, saiStore_.get(), policy);
+  }
   auto lock = policy.lock();
   const SaiStore* store = saiStore_.get();
   std::unique_ptr<SaiStore> directToHwStore;
-  if (!cached) {
-    directToHwStore = std::make_unique<SaiStore>(getSaiSwitchId());
-    auto json = toFollyDynamicLocked(lock);
-    std::unique_ptr<folly::dynamic> adapterKeysJson;
-    std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
+  directToHwStore = std::make_unique<SaiStore>(getSaiSwitchId());
+  auto json = toFollyDynamicLocked(lock);
+  std::unique_ptr<folly::dynamic> adapterKeysJson;
+  std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
 
-    /* We're making a change to ensure that the listObjectsLocked functionality
-     * remains unchanged for Credo 0.7.2, We added
-     * HwAsic::Feature::OBJECT_KEY_CACHE support for Credo Asic But for 0.7.2,
-     * we want to avoid loading the adapterKeysJson file, and keep the
-     * functionality as it was before.
-     */
-    bool useAdapterKeysJson =
-        platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE);
+  /* We're making a change to ensure that the listObjectsLocked functionality
+   * remains unchanged for Credo 0.7.2, We added
+   * HwAsic::Feature::OBJECT_KEY_CACHE support for Credo Asic But for 0.7.2,
+   * we want to avoid loading the adapterKeysJson file, and keep the
+   * functionality as it was before.
+   */
+  bool useAdapterKeysJson =
+      platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE);
 #ifndef CREDO_SDK_0_9_0
-    if (getPlatform()->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
-      useAdapterKeysJson = false;
-    }
+  if (getPlatform()->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
+    useAdapterKeysJson = false;
+  }
 #endif
 
-    if (useAdapterKeysJson) {
-      adapterKeysJson = std::make_unique<folly::dynamic>(json[kAdapterKeys]);
-    }
-    adapterKeys2AdapterHostKeysJson =
-        std::make_unique<folly::dynamic>(json[kAdapterKey2AdapterHostKey]);
-    directToHwStore->reload(
-        adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get(), objects);
-    store = directToHwStore.get();
+  if (useAdapterKeysJson) {
+    adapterKeysJson = std::make_unique<folly::dynamic>(json[kAdapterKeys]);
   }
+  adapterKeys2AdapterHostKeysJson =
+      std::make_unique<folly::dynamic>(json[kAdapterKey2AdapterHostKey]);
+  directToHwStore->reload(
+      adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get(), objects);
+  store = directToHwStore.get();
+
   return store->storeStr(objects);
 }
 

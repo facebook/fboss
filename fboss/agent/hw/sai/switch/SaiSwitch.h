@@ -316,6 +316,10 @@ class SaiSwitch : public HwSwitch {
       const std::vector<sai_object_type_t>& objects,
       bool cached,
       const FineGrainedLockPolicy& policy) const;
+  std::string listCachedObjectsLocked(
+      const std::vector<sai_object_type_t>& objects,
+      const SaiStore* store,
+      const FineGrainedLockPolicy& policy) const;
   void listManagedObjectsLocked(
       std::string& output,
       const std::lock_guard<std::mutex>& lock) const;
