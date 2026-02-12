@@ -4930,7 +4930,6 @@ std::string SaiSwitch::listObjectsLocked(
     return listCachedObjectsLocked(objects, saiStore_.get(), policy);
   }
   auto lock = policy.lock();
-  const SaiStore* store = saiStore_.get();
   std::unique_ptr<SaiStore> directToHwStore;
   directToHwStore = std::make_unique<SaiStore>(getSaiSwitchId());
   auto json = toFollyDynamicLocked(lock);
@@ -4959,9 +4958,8 @@ std::string SaiSwitch::listObjectsLocked(
       std::make_unique<folly::dynamic>(json[kAdapterKey2AdapterHostKey]);
   directToHwStore->reload(
       adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get(), objects);
-  store = directToHwStore.get();
 
-  return store->storeStr(objects);
+  return directToHwStore->storeStr(objects);
 }
 
 std::string SaiSwitch::listObjects(
