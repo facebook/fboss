@@ -4104,6 +4104,29 @@ bool SaiSwitch::isValidStateUpdateLocked(
     throw FbossError("Switch settings cannot be removed from SwitchState");
   }
 
+  // Only single watchdog recovery action is supported.
+  // TODO - Add support for per port watchdog recovery action
+  std::shared_ptr<Port> firstPort;
+  std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction{};
+  for (const auto& portMap : std::as_const(*delta.newState()->getPorts())) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      if (port.second->getPfc().has_value() &&
+          port.second->getPfc()->watchdog().has_value()) {
+        auto pfcWd = port.second->getPfc()->watchdog().value();
+        if (!recoveryAction.has_value()) {
+          recoveryAction = *pfcWd.recoveryAction();
+          firstPort = port.second;
+        } else if (*recoveryAction != *pfcWd.recoveryAction()) {
+          // Error: All ports should have the same recovery action configured
+          XLOG(ERR) << "PFC watchdog deadlock recovery action on "
+                    << port.second->getName() << " conflicting with "
+                    << firstPort->getName();
+          isValid = false;
+        }
+      }
+    }
+  }
+
   DeltaFunctions::forEachChanged(
       delta.getSwitchSettingsDelta(),
       [&](const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
@@ -4169,30 +4192,6 @@ bool SaiSwitch::isValidStateUpdateLocked(
       }
 
   );
-
-  // Only single watchdog recovery action is supported.
-  // TODO - Add support for per port watchdog recovery action
-  std::shared_ptr<Port> firstPort;
-  std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction{};
-  for (const auto& portMap : std::as_const(*delta.newState()->getPorts())) {
-    for (const auto& port : std::as_const(*portMap.second)) {
-      if (port.second->getPfc().has_value() &&
-          port.second->getPfc()->watchdog().has_value()) {
-        auto pfcWd = port.second->getPfc()->watchdog().value();
-        if (!recoveryAction.has_value()) {
-          recoveryAction = *pfcWd.recoveryAction();
-          firstPort = port.second;
-        } else if (*recoveryAction != *pfcWd.recoveryAction()) {
-          // Error: All ports should have the same recovery action configured
-          XLOG(ERR) << "PFC watchdog deadlock recovery action on "
-                    << port.second->getName() << " conflicting with "
-                    << firstPort->getName();
-          isValid = false;
-        }
-      }
-    }
-  }
-
   return isValid;
 }
 
