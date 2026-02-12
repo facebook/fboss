@@ -454,4 +454,176 @@ std::vector<sai_uint32_t> getSerdesAttrFromHw(
 
 } // namespace
 
+PhyPortConfig SaiPhyRetimer::getConfigOnePort(
+    const std::vector<LaneID>& sysLanes,
+    const std::vector<LaneID>& lineLanes,
+    bool readFromHw) {
+  if (!platform_) {
+    throw FbossError("Platform is null for xphyID=", xphyID_);
+  }
+  auto* saiSwitch = static_cast<SaiSwitch*>(platform_->getHwSwitch());
+  if (!saiSwitch) {
+    throw FbossError("SaiSwitch is null for xphyID=", xphyID_);
+  }
+
+  auto* saiStore = saiSwitch->getSaiStore();
+  auto& portStore = saiStore->get<SaiPortTraits>();
+  auto& serdesStore = saiStore->get<SaiPortSerdesTraits>();
+
+  auto sysSaiLanes = toLaneVector(sysLanes);
+  auto lineSaiLanes = toLaneVector(lineLanes);
+
+  auto sysPort = portStore.get(SaiPortTraits::AdapterHostKey{sysSaiLanes});
+  if (!sysPort) {
+    throw FbossError(
+        "System port not found for xphyID=",
+        xphyID_,
+        ", lanes=[",
+        formatLanes(sysSaiLanes),
+        "]");
+  }
+
+  auto linePort = portStore.get(SaiPortTraits::AdapterHostKey{lineSaiLanes});
+  if (!linePort) {
+    throw FbossError(
+        "Line port not found for xphyID=",
+        xphyID_,
+        ", lanes=[",
+        formatLanes(lineSaiLanes),
+        "]");
+  }
+
+  cfg::PortSpeed sysSpeed, lineSpeed;
+  if (readFromHw) {
+    sysSpeed = static_cast<cfg::PortSpeed>(
+        SaiApiTable::getInstance()->portApi().getAttribute(
+            sysPort->adapterKey(), SaiPortTraits::Attributes::Speed{}));
+    lineSpeed = static_cast<cfg::PortSpeed>(
+        SaiApiTable::getInstance()->portApi().getAttribute(
+            linePort->adapterKey(), SaiPortTraits::Attributes::Speed{}));
+  } else {
+    sysSpeed = static_cast<cfg::PortSpeed>(
+        GET_ATTR(Port, Speed, sysPort->attributes()));
+    lineSpeed = static_cast<cfg::PortSpeed>(
+        GET_ATTR(Port, Speed, linePort->attributes()));
+  }
+
+  CHECK(sysSpeed == lineSpeed)
+      << "System/line speed mismatch: " << static_cast<int>(sysSpeed) << " vs "
+      << static_cast<int>(lineSpeed);
+
+  PhyPortConfig config;
+  config.profile.speed = sysSpeed;
+
+  // Helper to build PhySideConfig (lane configs with TX settings)
+  auto buildPhySideConfig =
+      [&serdesStore, readFromHw](
+          std::shared_ptr<SaiObject<SaiPortTraits>> portObj,
+          const std::vector<uint32_t>& lanes) -> PhySideConfig {
+    PhySideConfig side;
+
+    auto serdes = serdesStore.get(
+        SaiPortSerdesTraits::AdapterHostKey{portObj->adapterKey()});
+
+    std::vector<sai_uint32_t> txPre1, txPre2, txPre3, txMain, txPost1, txPost2,
+        txPost3;
+    if (serdes) {
+      if (readFromHw) {
+        auto serdesSaiId = serdes->adapterKey();
+        size_t numLanes = lanes.size();
+        txPre1 = getSerdesAttrFromHw(
+            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_PRE1, numLanes);
+        txPre2 = getSerdesAttrFromHw(
+            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_PRE2, numLanes);
+        txPre3 = getSerdesAttrFromHw(
+            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_PRE3, numLanes);
+        txMain = getSerdesAttrFromHw(
+            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_MAIN, numLanes);
+        txPost1 = getSerdesAttrFromHw(
+            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_POST1, numLanes);
+        txPost2 = getSerdesAttrFromHw(
+            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_POST2, numLanes);
+        txPost3 = getSerdesAttrFromHw(
+            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_POST3, numLanes);
+      } else {
+        const auto& attrs = serdes->attributes();
+        txPre1 = extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPre1>(
+            attrs);
+        txPre2 = extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPre2>(
+            attrs);
+        txPre3 = extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPre3>(
+            attrs);
+        txMain = extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirMain>(
+            attrs);
+        txPost1 =
+            extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPost1>(
+                attrs);
+        txPost2 =
+            extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPost2>(
+                attrs);
+        txPost3 =
+            extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPost3>(
+                attrs);
+      }
+    }
+
+    for (size_t i = 0; i < lanes.size(); ++i) {
+      LaneConfig laneConfig;
+      if (auto tx = buildTxSettings(
+              i, txPre1, txPre2, txPre3, txMain, txPost1, txPost2, txPost3)) {
+        laneConfig.tx = *tx;
+      }
+      side.lanes[LaneID(lanes[i])] = laneConfig;
+    }
+    return side;
+  };
+
+  config.config.system = buildPhySideConfig(sysPort, sysSaiLanes);
+  config.config.line = buildPhySideConfig(linePort, lineSaiLanes);
+
+  // Helper to build ProfileSideConfig (FEC, numLanes, modulation)
+  auto buildProfileSideConfig =
+      [&config, readFromHw](
+          std::shared_ptr<SaiObject<SaiPortTraits>> portObj,
+          cfg::PortSpeed speed) -> ProfileSideConfig {
+    ProfileSideConfig side;
+
+    sai_port_fec_mode_t fecValue;
+    size_t numLanes;
+
+    if (readFromHw) {
+      fecValue = static_cast<sai_port_fec_mode_t>(
+          SaiApiTable::getInstance()->portApi().getAttribute(
+              portObj->adapterKey(), SaiPortTraits::Attributes::FecMode{}));
+      auto expectedLanes =
+          GET_ATTR(Port, HwLaneList, portObj->adapterHostKey());
+      std::vector<uint32_t> hwLanes(expectedLanes.size());
+      hwLanes = SaiApiTable::getInstance()->portApi().getAttribute(
+          portObj->adapterKey(),
+          SaiPortTraits::Attributes::HwLaneList{hwLanes});
+      numLanes = hwLanes.size();
+    } else {
+      fecValue = getSaiFecFromPort(portObj->attributes());
+      numLanes = GET_ATTR(Port, HwLaneList, portObj->adapterHostKey()).size();
+    }
+
+    side.fec() = getFecMode(fecValue, config.profile.speed);
+    side.numLanes() = numLanes;
+    side.modulation() = getModulation(speed, numLanes);
+
+    return side;
+  };
+
+  config.profile.system = buildProfileSideConfig(sysPort, sysSpeed);
+  config.profile.line = buildProfileSideConfig(linePort, lineSpeed);
+
+  XLOG(DBG2) << "getConfigOnePort" << (readFromHw ? "FromHw" : "")
+             << " completed: speed="
+             << apache::thrift::util::enumNameSafe(config.profile.speed)
+             << ", sys.lanes=" << config.profile.system.numLanes().value()
+             << ", line.lanes=" << config.profile.line.numLanes().value();
+
+  return config;
+}
+
 } // namespace facebook::fboss::phy
