@@ -429,6 +429,7 @@ set(core_libs
   dsfnode_utils
   hw_switch_thrift_client_table
   file_based_warmboot_utils
+  validate_state_update
 )
 
 target_link_libraries(core ${core_libs})

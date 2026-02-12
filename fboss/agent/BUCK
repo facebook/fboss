@@ -991,6 +991,7 @@ cpp_library(
         ":switchinfo_utils",
         ":tx_packet_utils",
         ":utils",
+        ":validate_state_update",
         ":voq_utils",
         "//common/fbwhoami:fb_who_am_i",
         "//common/network:util",
@@ -2146,6 +2147,7 @@ cpp_library(
         "ValidateStateUpdate.cpp",
     ],
     exported_deps = [
+        "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
     ],
 )
