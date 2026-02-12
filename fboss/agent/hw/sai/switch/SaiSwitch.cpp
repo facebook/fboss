@@ -342,7 +342,7 @@ HwInitResult SaiSwitch::initImpl(
     if (bootType_ != BootType::WARM_BOOT) {
       std::vector<StateDelta> deltas;
       deltas.emplace_back(std::make_shared<SwitchState>(), ret.switchState);
-      stateChangedImpl(deltas);
+      stateChangedImpl(deltas, std::nullopt);
     }
   }
   return ret;
@@ -1038,7 +1038,9 @@ void SaiSwitch::processChangedAndAddedRoutesDelta(
 }
 
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
-    const std::vector<StateDelta>& deltas) {
+    const std::vector<StateDelta>& deltas,
+    const std::optional<
+        StateDeltaApplication>& /* deltaApplicationBehavior */) {
   FineGrainedLockPolicy lockPolicy(saiSwitchMutex_);
 
   // This is unlikely to happen but if it does, return current state

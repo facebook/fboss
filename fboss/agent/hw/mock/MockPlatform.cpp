@@ -56,7 +56,7 @@ MockPlatform::MockPlatform(
       agentDirUtil_(new AgentDirectoryUtil(
           tmpDir_.path().string() + "/volatile",
           tmpDir_.path().string() + "/persist")) {
-  ON_CALL(*hw_, stateChangedImpl(_))
+  ON_CALL(*hw_, stateChangedImpl(_, _))
       .WillByDefault(
           WithArg<0>(Invoke([=](const std::vector<StateDelta>& deltas) {
             return deltas.back().newState();

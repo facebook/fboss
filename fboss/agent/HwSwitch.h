@@ -166,7 +166,8 @@ class HwSwitch {
           std::nullopt);
 
   virtual std::shared_ptr<SwitchState> stateChangedImpl(
-      const std::vector<StateDelta>& delta) = 0;
+      const std::vector<StateDelta>& delta,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior) = 0;
 
   virtual std::shared_ptr<SwitchState> stateChangedTransaction(
       const std::vector<StateDelta>& deltas,

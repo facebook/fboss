@@ -96,7 +96,9 @@ class SaiSwitch : public HwSwitch {
   }
 
   std::shared_ptr<SwitchState> stateChangedImpl(
-      const std::vector<StateDelta>& deltas) override;
+      const std::vector<StateDelta>& deltas,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior)
+      override;
 
   bool isValidStateUpdate(const StateDelta& delta) const override;
 

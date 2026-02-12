@@ -432,13 +432,13 @@ RoutePrefixV6 makePrefixV6(std::string str);
  * usage:
  *  EXPECT_STATE_UPDATE(sw)
  */
-#define EXPECT_STATE_UPDATE(sw) EXPECT_HW_CALL(sw, stateChangedImpl(_));
+#define EXPECT_STATE_UPDATE(sw) EXPECT_HW_CALL(sw, stateChangedImpl(_, _));
 
 #define EXPECT_STATE_UPDATE_TIMES(sw, times) \
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(times);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(times);
 
 #define EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, times) \
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(::testing::AtLeast(times));
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(::testing::AtLeast(times));
 
 /**
  * Templatized version of Matching function for Tx/Rx packet.

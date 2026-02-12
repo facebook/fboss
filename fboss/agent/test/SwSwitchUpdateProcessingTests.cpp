@@ -59,12 +59,12 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
     if (handle->getHwSwitch()->transactionsSupported()) {
       return setStateChangedTransactionReturn(updateFn);
     }
-    EXPECT_HW_CALL(sw, stateChangedImpl(_))
+    EXPECT_HW_CALL(sw, stateChangedImpl(_, _))
         .WillRepeatedly(::testing::WithArg<0>(::testing::Invoke(updateFn)));
   }
 
   void setStateChangedTransactionReturn(const updateFunc& updateFn) {
-    EXPECT_HW_CALL(sw, stateChangedImpl(_))
+    EXPECT_HW_CALL(sw, stateChangedImpl(_, _))
         .WillRepeatedly(::testing::WithArg<0>(::testing::Invoke(updateFn)));
   }
 
@@ -156,7 +156,7 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdateAtEnd) {
 
   auto stateChangedImplCalls = 1 + (transactionsSupported ? 0 : 1);
   auto stateChangedTransactionCalls = transactionsSupported ? 1 : 0;
-  EXPECT_HW_CALL(sw, stateChangedImpl(_))
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _))
       .Times(stateChangedImplCalls + stateChangedTransactionCalls);
   auto nonHwFailureProtectedUpdateStateUpdateFn =
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -207,7 +207,7 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdateAtStart) {
   bool transactionsSupported = handle->getHwSwitch()->transactionsSupported();
   auto stateChangedImplCalls = 1 + (transactionsSupported ? 0 : 1);
   auto stateChangedTransactionCalls = transactionsSupported ? 1 : 0;
-  EXPECT_HW_CALL(sw, stateChangedImpl(_))
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _))
       .Times(stateChangedImplCalls + stateChangedTransactionCalls);
   auto protectedStateUpdateFn = [=](const std::shared_ptr<SwitchState>& state) {
     EXPECT_EQ(state, startState);
@@ -257,7 +257,7 @@ TEST_P(
         deltas.front().oldState()->toThrift() ==
         expectedDelta.oldState()->toThrift();
   };
-  EXPECT_HW_CALL(sw, stateChangedImpl(testing::Truly(isEqual)));
+  EXPECT_HW_CALL(sw, stateChangedImpl(testing::Truly(isEqual), _));
   sw->updateState("Accept update", stateUpdateFn);
   waitForStateUpdates(sw);
 }

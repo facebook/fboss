@@ -861,7 +861,9 @@ class BcmSwitch : public BcmSwitchIf {
   //
   // Lock has to be performed in the function.
   std::shared_ptr<SwitchState> stateChangedImpl(
-      const std::vector<StateDelta>& delta) override;
+      const std::vector<StateDelta>& delta,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior)
+      override;
   std::shared_ptr<SwitchState> stateChangedImplLocked(
       const StateDelta& delta,
       const std::lock_guard<std::mutex>& lock);

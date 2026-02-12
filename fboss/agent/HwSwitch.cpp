@@ -328,7 +328,7 @@ void HwSwitch::setIntermediateState(const std::shared_ptr<SwitchState>& state) {
 fsdb::OperDelta HwSwitch::stateChanged(
     const std::vector<fsdb::OperDelta>& deltas,
     const HwWriteBehaviorRAII& /* behavior */,
-    const std::optional<StateDeltaApplication>& /* deltaApplication */) {
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   std::vector<StateDelta> stateDeltas;
   stateDeltas.reserve(deltas.size());
   auto oldState = getProgrammedState();
@@ -336,7 +336,7 @@ fsdb::OperDelta HwSwitch::stateChanged(
     stateDeltas.emplace_back(oldState, delta);
     oldState = stateDeltas.back().newState();
   }
-  auto state = stateChangedImpl(stateDeltas);
+  auto state = stateChangedImpl(stateDeltas, deltaApplicationBehavior);
   setProgrammedState(state);
   CHECK(!stateDeltas.empty());
   if (getProgrammedState() == stateDeltas.back().newState()) {

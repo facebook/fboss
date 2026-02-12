@@ -1502,7 +1502,9 @@ void BcmSwitch::processMacTableChanges(const StateDelta& stateDelta) {
 }
 
 std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
-    const std::vector<StateDelta>& deltas) {
+    const std::vector<StateDelta>& deltas,
+    const std::optional<
+        StateDeltaApplication>& /* deltaApplicationBehavior */) {
   // This is unlikely to happen but if it does, return current state
   if (deltas.size() == 0) {
     return getProgrammedState();
