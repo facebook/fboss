@@ -10,7 +10,7 @@
 
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 
-#include "common/network/AddressUtil.h"
+#include "fboss/agent/AddressUtil.h"
 
 namespace facebook::fboss {
 

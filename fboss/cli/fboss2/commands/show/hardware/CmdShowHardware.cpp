@@ -13,7 +13,9 @@
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "fboss/cli/fboss2/utils/clients/BmcClient.h"
 #include "folly/json/json.h"
+#ifndef IS_OSS
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
+#endif
 
 #include <boost/algorithm/string.hpp>
 
@@ -31,17 +33,21 @@ CmdShowHardware::RetType CmdShowHardware::queryClient(
   auto bmc = utils::createClient<BmcClient>(hostInfo);
   auto wedgeClient =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+#ifndef IS_OSS
   auto bgpClient = utils::createClient<apache::thrift::Client<
       facebook::neteng::fboss::bgp::thrift::TBgpService>>(hostInfo);
+#endif
 
   // Product info helps us make some decisions when there need to be per
   // platform treatment of certain outputs
   wedgeClient->sync_getProductInfo(product_info);
   std::string product = product_info.product().value();
 
+#ifndef IS_OSS
   // AliveSince calls use the inherited FB303 counters
   std::int64_t bgpAliveSince = bgpClient->sync_aliveSince();
   entries["BGPDUptime"] = utils::getPrettyElapsedTime(bgpAliveSince);
+#endif
 
   std::int64_t wedgeAliveSince = wedgeClient->sync_aliveSince();
   entries["WedgeAgentUptime"] = utils::getPrettyElapsedTime(wedgeAliveSince);
@@ -73,11 +79,13 @@ CmdShowHardware::RetType CmdShowHardware::createModel(
   } else {
     ret.ctrlUptime() = "DOWN";
   }
+#ifndef IS_OSS
   if (data.find("BGPDUptime") != data.items().end()) {
     ret.bgpdUptime() = data["BGPDUptime"].asString();
   } else {
     ret.bgpdUptime() = "CRASHED";
   }
+#endif
   // Process PIMs for platforms that have PIMS
   if (auto pimInfo = data.find("PIMINFO"); pimInfo != data.items().end()) {
     for (const auto& [pim, pimdata] : pimInfo->second.items()) {
@@ -215,8 +223,10 @@ void CmdShowHardware::printOutput(const RetType& model, std::ostream& out) {
   }
 
   out << table << std::endl;
-  out << "BGPD Uptime: " + model.ctrlUptime().value() << std::endl;
-  out << "Wedge Agent Uptime: " + model.bgpdUptime().value() << std::endl;
+#ifndef IS_OSS
+  out << "BGPD Uptime: " + model.bgpdUptime().value() << std::endl;
+#endif
+  out << "Wedge Agent Uptime: " + model.ctrlUptime().value() << std::endl;
 }
 
 } // namespace facebook::fboss

@@ -89,6 +89,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_hardware_model
+  fboss/cli/fboss2/commands/show/hardware/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_host_model
   fboss/cli/fboss2/commands/show/host/model.thrift
   OPTIONS
@@ -559,6 +566,7 @@ target_link_libraries(fboss2_lib
   show_fabric_reachability_model
   show_fabric_inputbalance_model
   show_fabric_monitoring_model
+  show_hardware_model
   show_host_model
   show_lldp_model
   show_mirror_model
