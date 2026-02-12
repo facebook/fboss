@@ -10,6 +10,7 @@ cpp_library(
         "//fboss/fsdb/client:fsdb_pub_sub",
         "//fboss/fsdb/client:fsdb_syncer",
         "//fboss/fsdb/if:fsdb_model",
+        "//folly:network_address",
         "//folly/logging:logging",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
     ],

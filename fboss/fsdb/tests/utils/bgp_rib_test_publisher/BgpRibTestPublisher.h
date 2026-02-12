@@ -64,6 +64,35 @@ class BgpRibTestPublisher {
     return publishedPrefixes_;
   }
 
+  // Test data helpers
+
+  /**
+   * Create a test TRibEntry with minimal required fields
+   * @param prefix IPv6 prefix string (e.g., "2001:db8::/32")
+   * @param nextHop Next hop address (e.g., "2001:db8:ffff::1")
+   * @param localPref Local preference value (default: 100)
+   * @param asPath AS path as vector of ASNs (default: {65001, 65002})
+   * @return Populated TRibEntry suitable for FSDB publishing
+   */
+  static bgp_thrift::TRibEntry createTestRibEntry(
+      const std::string& prefix,
+      const std::string& nextHop,
+      int32_t localPref = 100,
+      const std::vector<int32_t>& asPath = {65001, 65002});
+
+  /**
+   * Create a batch of test RIB entries
+   * @param numRoutes Number of routes to generate
+   * @param prefixBase Base prefix (routes will be generated as
+   * prefixBase:N::/64)
+   * @param nextHopBase Base next hop address
+   * @return Map of prefix string to TRibEntry
+   */
+  static std::map<std::string, bgp_thrift::TRibEntry> createTestRibMap(
+      int numRoutes,
+      const std::string& prefixBase = "2001:db8:",
+      const std::string& nextHopBase = "2001:db8:ffff::");
+
  private:
   std::unique_ptr<FsdbPubSubManager> fsdbPubSubMgr_;
   std::unique_ptr<FsdbSyncManager<BgpData, true /* EnablePatchAPIs */>>
