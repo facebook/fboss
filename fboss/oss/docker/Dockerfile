@@ -99,4 +99,7 @@ RUN if [ "$USERNAME" != "root" ] && [ "$USER_UID" != "0" ]; then \
     chown -R $USERNAME /var/FBOSS; \
     fi
 
+# Support sudo in a privileged container
+RUN chmod 600 /etc/shadow
+
 USER ${USERNAME}
