@@ -161,7 +161,9 @@ class HwSwitch {
   std::shared_ptr<SwitchState> stateChanged(
       const std::vector<StateDelta>& deltas,
       const HwWriteBehaviorRAII& behavior =
-          HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
+          HwWriteBehaviorRAII(HwWriteBehavior::WRITE),
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
 
   virtual std::shared_ptr<SwitchState> stateChangedImpl(
       const std::vector<StateDelta>& delta) = 0;
@@ -169,7 +171,9 @@ class HwSwitch {
   virtual std::shared_ptr<SwitchState> stateChangedTransaction(
       const std::vector<StateDelta>& deltas,
       const HwWriteBehaviorRAII& behavior =
-          HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
+          HwWriteBehaviorRAII(HwWriteBehavior::WRITE),
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
   virtual void preRollback(const StateDelta& delta) noexcept;
   virtual void rollbackPartialRoutes(const StateDelta& delta) noexcept;
   virtual void rollback(const std::vector<StateDelta>& deltas) noexcept;
@@ -404,11 +408,15 @@ class HwSwitch {
   fsdb::OperDelta stateChanged(
       const std::vector<fsdb::OperDelta>& deltas,
       const HwWriteBehaviorRAII& behavior =
-          HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
+          HwWriteBehaviorRAII(HwWriteBehavior::WRITE),
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
   fsdb::OperDelta stateChangedTransaction(
       const std::vector<fsdb::OperDelta>& deltas,
       const HwWriteBehaviorRAII& behavior =
-          HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
+          HwWriteBehaviorRAII(HwWriteBehavior::WRITE),
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
 
   void ensureConfigured(folly::StringPiece function) const;
   void ensureVoqOrFabric(folly::StringPiece function) const;

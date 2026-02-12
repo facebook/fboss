@@ -61,7 +61,7 @@ MockPlatform::MockPlatform(
           WithArg<0>(Invoke([=](const std::vector<StateDelta>& deltas) {
             return deltas.back().newState();
           })));
-  ON_CALL(*hw_, stateChangedTransaction(_, _))
+  ON_CALL(*hw_, stateChangedTransaction(_, _, _))
       .WillByDefault(
           WithArg<0>(Invoke([=](const std::vector<StateDelta>& deltas) {
             return deltas.back().newState();

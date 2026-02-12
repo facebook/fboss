@@ -269,7 +269,8 @@ void HwSwitch::gracefulExit() {
 
 std::shared_ptr<SwitchState> HwSwitch::stateChangedTransaction(
     const std::vector<StateDelta>& deltas,
-    const HwWriteBehaviorRAII& behavior) {
+    const HwWriteBehaviorRAII& behavior,
+    const std::optional<StateDeltaApplication>& /* deltaApplication */) {
   std::vector<fsdb::OperDelta> operDeltas;
   std::transform(
       deltas.begin(),
@@ -326,7 +327,8 @@ void HwSwitch::setIntermediateState(const std::shared_ptr<SwitchState>& state) {
 
 fsdb::OperDelta HwSwitch::stateChanged(
     const std::vector<fsdb::OperDelta>& deltas,
-    const HwWriteBehaviorRAII& /*behavior*/) {
+    const HwWriteBehaviorRAII& /* behavior */,
+    const std::optional<StateDeltaApplication>& /* deltaApplication */) {
   std::vector<StateDelta> stateDeltas;
   stateDeltas.reserve(deltas.size());
   auto oldState = getProgrammedState();
@@ -350,14 +352,15 @@ fsdb::OperDelta HwSwitch::stateChanged(
 
 fsdb::OperDelta HwSwitch::stateChangedTransaction(
     const std::vector<fsdb::OperDelta>& deltas,
-    const HwWriteBehaviorRAII& /*behavior*/) {
+    const HwWriteBehaviorRAII& behavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   if (!transactionsSupported()) {
     throw FbossError("Transactions not supported on this switch");
   }
   auto goodKnownState = getProgrammedState();
   fsdb::OperDelta result{};
   try {
-    result = stateChanged(deltas);
+    result = stateChanged(deltas, behavior, deltaApplicationBehavior);
   } catch (const FbossError& e) {
     XLOG(WARNING) << " Transaction failed with error : " << *e.message()
                   << " attempting rollback";
