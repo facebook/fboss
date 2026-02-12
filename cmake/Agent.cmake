@@ -876,3 +876,12 @@ target_link_libraries(test_utils
   common_file_utils
   Folly::folly
 )
+
+
+add_library(validate_state_update
+  fboss/agent/ValidateStateUpdate.cpp
+)
+
+target_link_libraries(validate_state_update
+  state
+)

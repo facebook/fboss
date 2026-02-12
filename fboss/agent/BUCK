@@ -2140,6 +2140,16 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "validate_state_update",
+    srcs = [
+        "ValidateStateUpdate.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent/state:state",
+    ],
+)
+
 export_file(name = "Main.cpp")
 
 sai_main_all()
