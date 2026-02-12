@@ -56,6 +56,11 @@ bool AgentArsBase::isChenab(const AgentEnsemble& ensemble) const {
   return (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB);
 }
 
+bool AgentArsBase::isTH3(const AgentEnsemble& ensemble) const {
+  auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+  return (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3);
+}
+
 std::string AgentArsBase::getAclName(
     AclType aclType,
     bool enableAlternateArsMembers) const {

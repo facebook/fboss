@@ -91,6 +91,7 @@ class AgentArsBase : public AgentHwTest {
       cfg::SwitchingMode switchingMode) const;
   uint32_t getMaxArsGroups() const;
   bool isChenab(const AgentEnsemble& ensemble) const;
+  bool isTH3(const AgentEnsemble& ensemble) const;
 
  protected:
   cfg::AclActionType aclActionType_{cfg::AclActionType::PERMIT};
