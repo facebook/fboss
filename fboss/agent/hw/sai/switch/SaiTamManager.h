@@ -23,14 +23,6 @@ using SaiTamEventAgingGroup = SaiObject<SaiTamEventAgingGroupTraits>;
 using SaiTamEvent = SaiObject<SaiTamEventTraits>;
 using SaiTam = SaiObject<SaiTamTraits>;
 
-namespace tam {
-// Use event ID 1 for all the MoD ingress drop type events following the SAI
-// example.
-constexpr uint32_t kModSwitchEventId{1};
-// Set the device ID to 0 explicitly following the SAI example.
-constexpr uint32_t kModDeviceId{0};
-} // namespace tam
-
 struct SaiTamHandle {
   std::shared_ptr<SaiTamReport> report;
   std::shared_ptr<SaiTamEventAction> action;
@@ -71,54 +63,12 @@ class SaiTamManager {
   }
 
  private:
-  std::string getDestMacWithOverride(const std::string& defaultMac) const;
-
-  std::shared_ptr<SaiTamReport> createTamReport(
-      sai_tam_report_type_t reportType);
-
-  std::shared_ptr<SaiTamEventAction> createTamAction(sai_object_id_t reportId);
-
-  std::shared_ptr<SaiTamTransport> createTamTransport(
-      const std::shared_ptr<MirrorOnDropReport>& report,
-      const std::string& destMac,
-      sai_tam_transport_type_t transportType);
-
-  std::shared_ptr<SaiTamCollector> createTamCollector(
-      const std::shared_ptr<MirrorOnDropReport>& report,
-      sai_object_id_t transportId,
-      std::optional<uint16_t> truncateSize);
-
-  std::shared_ptr<SaiTam> createTam(
-      const std::vector<sai_object_id_t>& eventIds,
-      const std::vector<sai_int32_t>& bindpoints);
-
-  void bindTam(sai_object_id_t tamId, const PortID& portId);
-
-  void storeTamHandle(
-      const std::string& reportId,
-      std::shared_ptr<SaiTamReport> report,
-      std::shared_ptr<SaiTamEventAction> action,
-      std::shared_ptr<SaiTamTransport> transport,
-      std::shared_ptr<SaiTamCollector> collector,
-      const std::vector<std::shared_ptr<SaiTamEvent>>& events,
-      std::shared_ptr<SaiTam> tam,
-      const PortID& portId
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-      ,
-      std::vector<std::shared_ptr<SaiTamEventAgingGroup>> agingGroups = {}
-#endif
-  );
-
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   folly::F14FastMap<std::string, std::unique_ptr<SaiTamHandle>> tamHandles_;
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   void addDnxMirrorOnDropReport(
-      const std::shared_ptr<MirrorOnDropReport>& report);
-#endif
-#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
-  void addXgsMirrorOnDropReport(
       const std::shared_ptr<MirrorOnDropReport>& report);
 #endif
 };

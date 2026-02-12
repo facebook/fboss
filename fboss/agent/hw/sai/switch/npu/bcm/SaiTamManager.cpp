@@ -8,23 +8,17 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 extern "C" {
 #ifndef IS_OSS_BRCM_SAI
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 #include <experimental/saiexperimentaltameventaginggroup.h>
-#endif
 #include <experimental/saitamextensions.h>
 #else
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 #include <saiexperimentaltameventaginggroup.h>
-#endif
 #include <saitamextensions.h>
 #endif
 }
-#endif
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 namespace {
 using facebook::fboss::FbossError;
 using facebook::fboss::cfg::MirrorOnDropAgingGroup;
@@ -181,6 +175,7 @@ std::vector<sai_object_id_t> getPortTamIds(
   return portTamIds;
 }
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 void bindTamObjectToSwitchAndPort(
     SaiManagerTable* managerTable,
     folly::F14FastMap<std::string, std::unique_ptr<SaiTamHandle>>& tamHandles,
@@ -193,6 +188,7 @@ void bindTamObjectToSwitchAndPort(
   XLOG(INFO) << "Binding TAM object " << tamId << " to switch";
   managerTable->switchManager().setTamObject(getSwitchTamIds(tamHandles));
 }
+#endif
 
 void unbindTamObjectFromSwitchAndPort(
     SaiManagerTable* managerTable,
@@ -215,108 +211,14 @@ SaiTamManager::SaiTamManager(
     SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
-std::string SaiTamManager::getDestMacWithOverride(
-    const std::string& defaultMac) const {
-  if (!FLAGS_mod_dest_mac_override.empty()) {
-    XLOG(INFO) << "MirrorOnDrop dest MAC overridden to "
-               << FLAGS_mod_dest_mac_override;
-    return FLAGS_mod_dest_mac_override;
-  }
-  return defaultMac;
-}
-
-std::shared_ptr<SaiTamReport> SaiTamManager::createTamReport(
-    sai_tam_report_type_t reportType) {
-  auto& reportStore = saiStore_->get<SaiTamReportTraits>();
-  auto reportTraits = SaiTamReportTraits::CreateAttributes{reportType};
-  return reportStore.setObject(reportTraits, reportTraits);
-}
-
-std::shared_ptr<SaiTamEventAction> SaiTamManager::createTamAction(
-    sai_object_id_t reportId) {
-  auto& actionStore = saiStore_->get<SaiTamEventActionTraits>();
-  auto actionTraits = SaiTamEventActionTraits::CreateAttributes{reportId};
-  return actionStore.setObject(actionTraits, actionTraits);
-}
-
-std::shared_ptr<SaiTamTransport> SaiTamManager::createTamTransport(
-    const std::shared_ptr<MirrorOnDropReport>& report,
-    const std::string& destMac,
-    sai_tam_transport_type_t transportType) {
-  auto& transportStore = saiStore_->get<SaiTamTransportTraits>();
-  auto transportTraits = SaiTamTransportTraits::AdapterHostKey{
-      transportType,
-      report->getLocalSrcPort(),
-      report->getCollectorPort(),
-      report->getMtu(),
-      folly::MacAddress(report->getSwitchMac()),
-      folly::MacAddress(destMac),
-  };
-  return transportStore.setObject(transportTraits, transportTraits);
-}
-
-std::shared_ptr<SaiTamCollector> SaiTamManager::createTamCollector(
-    const std::shared_ptr<MirrorOnDropReport>& report,
-    sai_object_id_t transportId,
-    std::optional<uint16_t> truncateSize) {
-  auto& collectorStore = saiStore_->get<SaiTamCollectorTraits>();
-  auto collectorTraits = SaiTamCollectorTraits::CreateAttributes{
-      report->getLocalSrcIp(),
-      report->getCollectorIp(),
-      truncateSize,
-      transportId,
-      report->getDscp(),
-  };
-  return collectorStore.setObject(collectorTraits, collectorTraits);
-}
-
-std::shared_ptr<SaiTam> SaiTamManager::createTam(
-    const std::vector<sai_object_id_t>& eventIds,
-    const std::vector<sai_int32_t>& bindpoints) {
-  SaiTamTraits::CreateAttributes tamTraits;
-  std::get<SaiTamTraits::Attributes::EventObjectList>(tamTraits) = eventIds;
-  std::get<SaiTamTraits::Attributes::TamBindPointList>(tamTraits) = bindpoints;
-  auto& tamStore = saiStore_->get<SaiTamTraits>();
-  return tamStore.setObject(tamTraits, tamTraits);
-}
-
-void SaiTamManager::bindTam(sai_object_id_t tamId, const PortID& portId) {
-  bindTamObjectToSwitchAndPort(managerTable_, tamHandles_, tamId, portId);
-}
-
-void SaiTamManager::storeTamHandle(
-    const std::string& reportId,
-    std::shared_ptr<SaiTamReport> report,
-    std::shared_ptr<SaiTamEventAction> action,
-    std::shared_ptr<SaiTamTransport> transport,
-    std::shared_ptr<SaiTamCollector> collector,
-    const std::vector<std::shared_ptr<SaiTamEvent>>& events,
-    std::shared_ptr<SaiTam> tam,
-    const PortID& portId
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-    ,
-    std::vector<std::shared_ptr<SaiTamEventAgingGroup>> agingGroups
-#endif
-) {
-  auto tamHandle = std::make_unique<SaiTamHandle>();
-  tamHandle->report = std::move(report);
-  tamHandle->action = std::move(action);
-  tamHandle->transport = std::move(transport);
-  tamHandle->collector = std::move(collector);
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-  tamHandle->agingGroups = std::move(agingGroups);
-#endif
-  tamHandle->events = events;
-  tamHandle->tam = std::move(tam);
-  tamHandle->portId = portId;
-  tamHandle->managerTable = managerTable_;
-  tamHandles_.emplace(reportId, std::move(tamHandle));
-}
-
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 void SaiTamManager::addDnxMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& report) {
-  std::string destMac = getDestMacWithOverride(report->getFirstInterfaceMac());
+  std::string destMac = report->getFirstInterfaceMac();
+  if (!FLAGS_mod_dest_mac_override.empty()) {
+    destMac = FLAGS_mod_dest_mac_override;
+    XLOG(INFO) << "MirrorOnDrop dest MAC overridden to " << destMac;
+  }
   XLOG(INFO) << "Creating MirrorOnDropReport " << report->getID()
              << " srcIp=" << report->getLocalSrcIp().str()
              << " srcPort=" << report->getLocalSrcPort()
@@ -324,20 +226,44 @@ void SaiTamManager::addDnxMirrorOnDropReport(
              << " collectorPort=" << report->getCollectorPort()
              << " srcMac=" << report->getSwitchMac() << " dstMac=" << destMac;
 
-  auto reportObj = createTamReport(
-      static_cast<sai_tam_report_type_t>(SAI_TAM_REPORT_TYPE_MOD_OVER_UDP));
-  auto action = createTamAction(reportObj->adapterKey());
-  auto transport = createTamTransport(
-      report,
-      destMac,
-      static_cast<sai_tam_transport_type_t>(SAI_TAM_TRANSPORT_TYPE_PORT));
-  auto collector = createTamCollector(
-      report, transport->adapterKey(), report->getTruncateSize());
+  // Create report
+  auto& reportStore = saiStore_->get<SaiTamReportTraits>();
+  auto reportTraits =
+      SaiTamReportTraits::CreateAttributes{SAI_TAM_REPORT_TYPE_MOD_OVER_UDP};
+  auto reportObj = reportStore.setObject(reportTraits, reportTraits);
+
+  // Create action
+  auto& actionStore = saiStore_->get<SaiTamEventActionTraits>();
+  auto actionTraits =
+      SaiTamEventActionTraits::CreateAttributes{reportObj->adapterKey()};
+  auto action = actionStore.setObject(actionTraits, actionTraits);
+
+  // Create transport
+  auto& transportStore = saiStore_->get<SaiTamTransportTraits>();
+  auto transportTraits = SaiTamTransportTraits::AdapterHostKey{
+      SAI_TAM_TRANSPORT_TYPE_PORT,
+      report->getLocalSrcPort(),
+      report->getCollectorPort(),
+      report->getMtu(),
+      folly::MacAddress(report->getSwitchMac()),
+      folly::MacAddress(destMac),
+  };
+  auto transport = transportStore.setObject(transportTraits, transportTraits);
+
+  // Create collector
+  auto& collectorStore = saiStore_->get<SaiTamCollectorTraits>();
+  auto collectorTraits = SaiTamCollectorTraits::CreateAttributes{
+      report->getLocalSrcIp(),
+      report->getCollectorIp(),
+      report->getTruncateSize(),
+      transport->adapterKey(),
+      report->getDscp(),
+  };
+  auto collector = collectorStore.setObject(collectorTraits, collectorTraits);
 
   std::vector<std::shared_ptr<SaiTamEventAgingGroup>> agingGroups;
   std::vector<std::shared_ptr<SaiTamEvent>> events;
   std::vector<sai_object_id_t> eventIds;
-
   for (const auto& [eventId, eventCfg] : report->getModEventToConfigMap()) {
     auto reasons = getMirrorOnDropReasonsFromAggregation(
         *eventCfg.dropReasonAggregations());
@@ -388,97 +314,34 @@ void SaiTamManager::addDnxMirrorOnDropReport(
                << event->adapterKey() << " and aging group " << agingGroupKey;
   }
 
+  // Create tam
   std::vector<sai_int32_t> bindpoints = {
       SAI_TAM_BIND_POINT_TYPE_SWITCH, SAI_TAM_BIND_POINT_TYPE_PORT};
-  auto tam = createTam(eventIds, bindpoints);
-  storeTamHandle(
-      report->getID(),
-      reportObj,
-      action,
-      transport,
-      collector,
-      events,
-      tam,
-      report->getMirrorPortId(),
-      agingGroups);
-  bindTam(tam->adapterKey(), report->getMirrorPortId());
+  SaiTamTraits::CreateAttributes tamTraits;
+  std::get<SaiTamTraits::Attributes::EventObjectList>(tamTraits) = eventIds;
+  std::get<SaiTamTraits::Attributes::TamBindPointList>(tamTraits) = bindpoints;
+  auto& tamStore = saiStore_->get<SaiTamTraits>();
+  auto tam = tamStore.setObject(tamTraits, tamTraits);
+
+  auto tamHandle = std::make_unique<SaiTamHandle>();
+  tamHandle->report = reportObj;
+  tamHandle->action = action;
+  tamHandle->transport = transport;
+  tamHandle->collector = collector;
+  tamHandle->agingGroups = agingGroups;
+  tamHandle->events = events;
+  tamHandle->tam = tam;
+  tamHandle->portId = report->getMirrorPortId();
+  tamHandles_.emplace(report->getID(), std::move(tamHandle));
+
+  bindTamObjectToSwitchAndPort(
+      managerTable_, tamHandles_, tam->adapterKey(), report->getMirrorPortId());
 }
 #endif
-
-#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
-void SaiTamManager::addXgsMirrorOnDropReport(
-    const std::shared_ptr<MirrorOnDropReport>& report) {
-  std::string destMac = getDestMacWithOverride(report->getFirstInterfaceMac());
-  XLOG(INFO) << "Creating XGS MirrorOnDropReport " << report->getID()
-             << " srcIp=" << report->getLocalSrcIp().str()
-             << " srcPort=" << report->getLocalSrcPort()
-             << " collectorIp=" << report->getCollectorIp().str()
-             << " collectorPort=" << report->getCollectorPort()
-             << " srcMac=" << report->getSwitchMac() << " dstMac=" << destMac;
-
-  auto reportObj = createTamReport(SAI_TAM_REPORT_TYPE_IPFIX);
-  auto action = createTamAction(reportObj->adapterKey());
-  auto transport = createTamTransport(
-      report,
-      destMac,
-      static_cast<sai_tam_transport_type_t>(SAI_TAM_TRANSPORT_TYPE_PORT));
-  auto collector =
-      createTamCollector(report, transport->adapterKey(), std::nullopt);
-
-  std::vector<std::shared_ptr<SaiTamEvent>> events;
-  std::vector<sai_object_id_t> eventIds;
-
-  // For XGS, we use ingress packet drop type instead of MMU drop types
-  std::vector<sai_int32_t> ingressDropTypes = {
-      SAI_PACKET_DROP_TYPE_INGRESS_ALL};
-  std::vector<sai_object_id_t> actions{action->adapterKey()};
-  std::vector<sai_object_id_t> collectors{collector->adapterKey()};
-
-  // Currently use only one switch event ID for all the drop type events.
-  SaiTamEventTraits::CreateAttributes eventTraits;
-  std::get<SaiTamEventTraits::Attributes::Type>(eventTraits) =
-      SAI_TAM_EVENT_TYPE_PACKET_DROP;
-  std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventId>>(
-      eventTraits) = tam::kModSwitchEventId;
-  std::get<std::optional<SaiTamEventTraits::Attributes::DeviceId>>(
-      eventTraits) = tam::kModDeviceId;
-  std::get<std::optional<SaiTamEventTraits::Attributes::PacketDropTypeIngress>>(
-      eventTraits) = ingressDropTypes;
-  std::get<SaiTamEventTraits::Attributes::ActionList>(eventTraits) = actions;
-  std::get<
-      std::optional<SaiTamEventTraits::Attributes::ExtensionsCollectorList>>(
-      eventTraits) = collectors;
-
-  auto& eventStore = saiStore_->get<SaiTamEventTraits>();
-  auto event = eventStore.setObject(eventTraits, eventTraits);
-  events.push_back(event);
-  eventIds.push_back(event->adapterKey());
-  XLOG(INFO) << "Created event ID " << tam::kModSwitchEventId
-             << " with tam event " << event->adapterKey()
-             << " for all ingress drop types.";
-
-  std::vector<sai_int32_t> bindpoints = {
-      SAI_TAM_BIND_POINT_TYPE_SWITCH, SAI_TAM_BIND_POINT_TYPE_PORT};
-  auto tam = createTam(eventIds, bindpoints);
-  storeTamHandle(
-      report->getID(),
-      reportObj,
-      action,
-      transport,
-      collector,
-      events,
-      tam,
-      report->getMirrorPortId());
-  bindTam(tam->adapterKey(), report->getMirrorPortId());
-}
-#endif
-
 void SaiTamManager::addMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& report) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   addDnxMirrorOnDropReport(report);
-#elif defined(BRCM_SAI_SDK_XGS_GTE_13_0)
-  addXgsMirrorOnDropReport(report);
 #endif
 }
 
@@ -488,10 +351,12 @@ void SaiTamManager::removeMirrorOnDropReport(
   auto handle = std::move(tamHandles_[report->getID()]);
   tamHandles_.erase(report->getID());
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+  // Unbind the TAM object from port and switch before letting it destruct.
   unbindTamObjectFromSwitchAndPort(
-      managerTable_, tamHandles_, handle->tam->adapterKey(), handle->portId);
-#endif
+      managerTable_,
+      tamHandles_,
+      handle->tam->adapterKey(),
+      report->getMirrorPortId());
 }
 
 void SaiTamManager::changeMirrorOnDropReport(

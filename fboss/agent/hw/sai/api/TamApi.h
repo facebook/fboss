@@ -31,8 +31,7 @@ struct SaiTamCollectorTraits {
     using TruncateSize = SaiAttribute<
         EnumType,
         SAI_TAM_COLLECTOR_ATTR_TRUNCATE_SIZE,
-        sai_uint16_t,
-        StdNullOptDefault<sai_uint32_t>>;
+        sai_uint16_t>;
     using Transport = SaiAttribute<
         EnumType,
         SAI_TAM_COLLECTOR_ATTR_TRANSPORT,
