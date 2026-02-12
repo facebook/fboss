@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
     scubaLogger.emplace(*config.platformName(), dataStore.value());
 
     PkgManager pkgManager(config);
-    pkgManager.processAll();
+    pkgManager.processAll(FLAGS_enable_pkg_mgmnt, FLAGS_reload_kmods);
     PlatformExplorer platformExplorer(
         config, dataStore.value(), scubaLogger.value());
     platformExplorer.explore();

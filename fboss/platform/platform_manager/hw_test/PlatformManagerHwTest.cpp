@@ -103,7 +103,7 @@ class PlatformManagerHwTest : public ::testing::Test {
   }
   void explorationOk() {
     auto startTime = std::chrono::system_clock::now();
-    pkgManager_.processAll();
+    pkgManager_.processAll(FLAGS_enable_pkg_mgmnt, FLAGS_reload_kmods);
     platformExplorer_.explore();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(
         std::chrono::system_clock::now() - startTime);
