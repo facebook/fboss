@@ -11,15 +11,29 @@
 #include "fboss/lib/phy/SaiPhyRetimer.h"
 
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <fmt/format.h>
 
 namespace facebook::fboss::phy {
 
 namespace {
+
+FecMode getFecMode(sai_port_fec_mode_t fec, cfg::PortSpeed /* speed */) {
+  if (fec == SAI_PORT_FEC_MODE_NONE) {
+    return FecMode::NONE;
+  }
+  throw FbossError(
+      "Unsupported FEC mode: ",
+      static_cast<int>(fec),
+      ". Only SAI_PORT_FEC_MODE_NONE is supported for now");
+}
 /*
  * This is a static function for reading a Phy register. This function will be
  * passed to the SAI layer. The SAI driver will use this function to read a
@@ -309,5 +323,135 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
       std::nullopt, // enable cable propagation delay measurement
   };
 }
+
+namespace {
+
+// Convert LaneID vector to uint32_t vector for SAI
+std::vector<uint32_t> toLaneVector(const std::vector<LaneID>& lanes) {
+  std::vector<uint32_t> saiLanes;
+  saiLanes.reserve(lanes.size());
+  for (auto lane : lanes) {
+    saiLanes.push_back(lane);
+  }
+  return saiLanes;
+}
+
+// Format lane vector as string for logging
+std::string formatLanes(const std::vector<uint32_t>& lanes) {
+  return fmt::format("{}", fmt::join(lanes, " "));
+}
+
+// Extract optional vector attribute from serdes
+template <typename AttrType>
+std::vector<sai_uint32_t> extractSerdesAttr(
+    const SaiPortSerdesTraits::CreateAttributes& attrs) {
+  const auto& opt = std::get<std::optional<AttrType>>(attrs);
+  if (opt.has_value()) {
+    return opt.value().value();
+  }
+  return {};
+}
+
+// Build TxSettings for a specific lane index from serdes TX values
+std::optional<TxSettings> buildTxSettings(
+    size_t laneIdx,
+    const std::vector<sai_uint32_t>& txPre1,
+    const std::vector<sai_uint32_t>& txPre2,
+    const std::vector<sai_uint32_t>& txPre3,
+    const std::vector<sai_uint32_t>& txMain,
+    const std::vector<sai_uint32_t>& txPost1,
+    const std::vector<sai_uint32_t>& txPost2,
+    const std::vector<sai_uint32_t>& txPost3) {
+  TxSettings tx;
+  // Initialize all fields to 0
+  tx.pre() = 0;
+  tx.pre2() = 0;
+  tx.pre3() = 0;
+  tx.main() = 0;
+  tx.post() = 0;
+  tx.post2() = 0;
+  tx.post3() = 0;
+
+  // Fill with actual values from serdes
+  if (laneIdx < txPre1.size()) {
+    tx.pre() = static_cast<int16_t>(txPre1[laneIdx]);
+  }
+  if (laneIdx < txPre2.size()) {
+    tx.pre2() = static_cast<int16_t>(txPre2[laneIdx]);
+  }
+  if (laneIdx < txPre3.size()) {
+    tx.pre3() = static_cast<int16_t>(txPre3[laneIdx]);
+  }
+  if (laneIdx < txMain.size()) {
+    tx.main() = static_cast<int16_t>(txMain[laneIdx]);
+  }
+  if (laneIdx < txPost1.size()) {
+    tx.post() = static_cast<int16_t>(txPost1[laneIdx]);
+  }
+  if (laneIdx < txPost2.size()) {
+    tx.post2() = static_cast<int16_t>(txPost2[laneIdx]);
+  }
+  if (laneIdx < txPost3.size()) {
+    tx.post3() = static_cast<int16_t>(txPost3[laneIdx]);
+  }
+  return tx;
+}
+
+// Get FEC mode from port attributes, defaulting to NONE if not set
+sai_port_fec_mode_t getSaiFecFromPort(
+    const SaiPortTraits::CreateAttributes& attrs) {
+  const auto& fecOpt =
+      std::get<std::optional<SaiPortTraits::Attributes::FecMode>>(attrs);
+  if (fecOpt.has_value()) {
+    return static_cast<sai_port_fec_mode_t>(fecOpt.value().value());
+  }
+  return SAI_PORT_FEC_MODE_NONE;
+}
+
+IpModulation getModulation(cfg::PortSpeed speed, size_t numLanes) {
+  auto perLaneSpeed = static_cast<int>(speed) / numLanes;
+  return (perLaneSpeed >= 50000) ? IpModulation::PAM4 : IpModulation::NRZ;
+}
+
+// Helper to get serdes TX attributes directly from SAI hardware
+std::vector<sai_uint32_t> getSerdesAttrFromHw(
+    const PortSerdesSaiId& serdesSaiId,
+    sai_port_serdes_attr_t attrId,
+    size_t numLanes) {
+  std::vector<sai_uint32_t> result(numLanes);
+  try {
+    switch (attrId) {
+      case SAI_PORT_SERDES_ATTR_TX_FIR_PRE1:
+        return SaiApiTable::getInstance()->portApi().getAttribute(
+            serdesSaiId, SaiPortSerdesTraits::Attributes::TxFirPre1{result});
+      case SAI_PORT_SERDES_ATTR_TX_FIR_PRE2:
+        return SaiApiTable::getInstance()->portApi().getAttribute(
+            serdesSaiId, SaiPortSerdesTraits::Attributes::TxFirPre2{result});
+      case SAI_PORT_SERDES_ATTR_TX_FIR_PRE3:
+        return SaiApiTable::getInstance()->portApi().getAttribute(
+            serdesSaiId, SaiPortSerdesTraits::Attributes::TxFirPre3{result});
+      case SAI_PORT_SERDES_ATTR_TX_FIR_MAIN:
+        return SaiApiTable::getInstance()->portApi().getAttribute(
+            serdesSaiId, SaiPortSerdesTraits::Attributes::TxFirMain{result});
+      case SAI_PORT_SERDES_ATTR_TX_FIR_POST1:
+        return SaiApiTable::getInstance()->portApi().getAttribute(
+            serdesSaiId, SaiPortSerdesTraits::Attributes::TxFirPost1{result});
+      case SAI_PORT_SERDES_ATTR_TX_FIR_POST2:
+        return SaiApiTable::getInstance()->portApi().getAttribute(
+            serdesSaiId, SaiPortSerdesTraits::Attributes::TxFirPost2{result});
+      case SAI_PORT_SERDES_ATTR_TX_FIR_POST3:
+        return SaiApiTable::getInstance()->portApi().getAttribute(
+            serdesSaiId, SaiPortSerdesTraits::Attributes::TxFirPost3{result});
+      default:
+        return {};
+    }
+  } catch (const SaiApiError& e) {
+    XLOG(DBG3) << "Failed to get serdes attribute " << attrId
+               << " from HW: " << e.what();
+    return {};
+  }
+}
+
+} // namespace
 
 } // namespace facebook::fboss::phy
