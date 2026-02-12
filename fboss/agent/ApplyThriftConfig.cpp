@@ -6069,34 +6069,20 @@ ThriftConfigApplier::updateMirrorOnDropReports() {
 std::shared_ptr<MirrorOnDropReport>
 ThriftConfigApplier::createMirrorOnDropReport(
     const cfg::MirrorOnDropReport* config) {
-  const HwAsic* asic = checkSameAndGetAsic(hwAsicTable_->getL3Asics());
-  cfg::AsicType asicType = asic->getAsicType();
+  auto asicType =
+      checkSameAndGetAsic(hwAsicTable_->getL3Asics())->getAsicType();
 
-  folly::IPAddress localSrcIp;
-  auto collectorIp = folly::IPAddress(*config->collectorIp());
-  if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
-    auto switchId = getAnyVoqSwitchId();
-    if (!switchId.has_value()) {
-      throw FbossError("No VOQ switchId found");
-    }
-    auto systemPortId = getInbandSystemPortID(new_, *switchId);
-
-    // Find an IP address of the switch.
-    localSrcIp = collectorIp.isV4()
-        ? folly::IPAddress(getSwitchIntfIP(new_, InterfaceID(systemPortId)))
-        : folly::IPAddress(getSwitchIntfIPv6(new_, InterfaceID(systemPortId)));
-  } else {
-    // Use an optional from the MirrorDestination mirrorPort
-    // -> MirrorTunnel tunnel -> string srcIp
-    if (!config->mirrorPort().has_value() ||
-        !config->mirrorPort()->tunnel().has_value() ||
-        !config->mirrorPort()->tunnel()->srcIp().has_value()) {
-      throw FbossError(
-          "mirrorOnDropReports requires a mirrorPort with a tunnel that also "
-          "specifies a srcIp");
-    }
-    localSrcIp = folly::IPAddress(*config->mirrorPort()->tunnel()->srcIp());
+  auto switchId = getAnyVoqSwitchId();
+  if (!switchId.has_value()) {
+    throw FbossError("No VOQ switchId found");
   }
+  auto systemPortId = getInbandSystemPortID(new_, *switchId);
+
+  // Find an IP address of the switch.
+  auto collectorIp = folly::IPAddress(*config->collectorIp());
+  auto localSrcIp = collectorIp.isV4()
+      ? folly::IPAddress(getSwitchIntfIP(new_, InterfaceID(systemPortId)))
+      : folly::IPAddress(getSwitchIntfIPv6(new_, InterfaceID(systemPortId)));
 
   // Determine the mirror recirculation port.
   std::optional<PortID> mirrorPortId;
