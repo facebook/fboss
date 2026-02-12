@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 
+# Force CMake reconfiguration to pick up changes in cmake/FbossImageDistroCliTests.cmake
 include(functions.cmake)
 
 option(WITH_ASAN "Turn ON address sanitizer build options" OFF)
@@ -1034,7 +1035,7 @@ add_dependencies(fboss_platform_services
   fixmyfboss
   # Unit Tests
   platform_config_lib_config_lib_test
-  platform_manager_device_path_resolver_test
+  # NH TODO platform_manager_device_path_resolver_test
   platform_manager_platform_explorer_test
   platform_data_corral_sw_test
   platform_manager_utils_test
@@ -1082,6 +1083,31 @@ add_dependencies(fboss2_targets
   fboss2_framework_test
   fboss2-dev
 )
+
+if (SAI_IMPL OR BUILD_SAI_FAKE)
+  add_custom_target(fboss_forwarding_stack)
+  # Common forwarding services
+  add_dependencies(fboss_forwarding_stack
+    diag_shell_client
+    fboss2
+    fboss2-dev
+    fsdb
+    qsfp_service
+    wedge_qsfp_util
+  )
+
+  if (BUILD_SAI_FAKE)
+    add_dependencies(fboss_forwarding_stack
+      fboss_fake_agent_targets
+    )
+  else()
+    add_dependencies(fboss_forwarding_stack
+      fboss_hw_agent-sai_impl
+      fboss_sw_agent
+      wedge_agent-sai_impl
+    )
+  endif()
+endif()
 
 add_custom_target(fboss_other_services)
 add_dependencies(fboss_other_services

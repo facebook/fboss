@@ -9,7 +9,7 @@
 
 import logging
 
-from lib.cli import validate_path
+from distro_cli.lib.cli import validate_path
 
 logger = logging.getLogger("fboss-image")
 

@@ -9,16 +9,16 @@
 
 from pathlib import Path
 
-from lib.builder import ImageBuilder
-from lib.cli import validate_path
-from lib.manifest import ImageManifest
+from distro_cli.builder.image_builder import ImageBuilder
+from distro_cli.lib.cli import validate_path
+from distro_cli.lib.manifest import ImageManifest
 
 
 def build_command(args):
     """Build FBOSS image or components"""
     manifest_path = Path(args.manifest)
     manifest_obj = ImageManifest(manifest_path)
-    builder = ImageBuilder(manifest_obj)
+    builder = ImageBuilder(manifest_obj, args.kiwi_ng_debug)
 
     if args.components:
         builder.build_components(list(args.components))
@@ -43,6 +43,13 @@ def setup_build_command(cli):
             (
                 "components",
                 {"nargs": "*", "help": "Specific components to build (default: all)"},
+            ),
+            (
+                "--kiwi-ng-debug",
+                {
+                    "action": "store_true",
+                    "help": "Enable debug flag to see kiwi-ng build output (default: no)",
+                },
             ),
         ],
     )

@@ -18,7 +18,8 @@ import time
 import unittest
 from pathlib import Path
 
-from distro_cli.lib.download import download_artifact, HTTP_METADATA_FILENAME
+from distro_cli.lib.artifact import ArtifactStore
+from distro_cli.lib.download import HTTP_METADATA_FILENAME, download_artifact
 from distro_cli.tests.test_helpers import enter_tempdir, override_artifact_store_dir
 
 
@@ -63,6 +64,32 @@ class TestDownloadArtifact(unittest.TestCase):
         # Verify metadata contains mtime
         metadata = json.loads(meta_files[0].read_text())
         self.assertIn("mtime", metadata)
+
+    def test_download_file_url_does_not_move_source_file(self):
+        """Test that downloading file:// URL does not move the source file.
+
+        The artifact store should only move a temporary copy created by
+        download_artifact(), leaving the original manifest file in place.
+        """
+        source_file = self.temp_dir / "source.txt"
+        source_file.write_text("file content")
+
+        url = f"file://{source_file}"
+        store = ArtifactStore()
+        store_key = "test-file-url-does-not-move-source"
+
+        def fetch_fn(cached_data, cached_meta):
+            return download_artifact(url, self.manifest_dir, cached_data, cached_meta)
+
+        data_files, meta_files = store.get(store_key, fetch_fn)
+
+        # The original source file must remain at its original location.
+        self.assertTrue(source_file.exists())
+        # The stored data file should be a different path (a copied temp file).
+        self.assertEqual(len(data_files), 1)
+        self.assertNotEqual(data_files[0], source_file)
+        self.assertTrue(data_files[0].exists())
+        self.assertEqual(data_files[0].read_text(), "file content")
 
     def test_download_file_url_mtime_caching(self):
         """Test that file:// URLs use mtime for cache detection."""

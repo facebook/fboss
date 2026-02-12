@@ -92,6 +92,9 @@ RUN pip install -r /tmp/requirements-dev.txt && rm /tmp/requirements-dev.txt
 # Configure sudoers to allow wheel group passwordless sudo
 RUN echo "%wheel ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
+# Support sudo in a privileged container
+RUN chmod 600 /etc/shadow
+
 # Create user if USERNAME is not root
 RUN if [ "$USERNAME" != "root" ] && [ "$USER_UID" != "0" ]; then \
     groupadd -g $USER_GID $USERNAME && \
