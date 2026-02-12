@@ -15,6 +15,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <optional>
 
 #include <folly/Range.h>
 #include <folly/String.h>
@@ -31,8 +32,11 @@ class FunctionStateUpdate : public StateUpdate {
   FunctionStateUpdate(
       folly::StringPiece name,
       StateUpdateFn fn,
-      int flags = kDefaultBehaviorFlags)
-      : StateUpdate(name, flags), function_(fn) {}
+      int flags = kDefaultBehaviorFlags,
+      std::optional<StateDeltaApplication> deltaApplicationBehavior =
+          std::nullopt)
+      : StateUpdate(name, flags, std::move(deltaApplicationBehavior)),
+        function_(fn) {}
 
   std::shared_ptr<SwitchState> applyUpdate(
       const std::shared_ptr<SwitchState>& origState) override {
@@ -102,8 +106,12 @@ class BlockingStateUpdate : public StateUpdate {
       folly::StringPiece name,
       StateUpdateFn fn,
       std::shared_ptr<BlockingUpdateResult> result,
-      int flags = kDefaultBehaviorFlags)
-      : StateUpdate(name, flags), function_(fn), result_(result) {}
+      int flags = kDefaultBehaviorFlags,
+      std::optional<StateDeltaApplication> deltaApplicationBehavior =
+          std::nullopt)
+      : StateUpdate(name, flags, std::move(deltaApplicationBehavior)),
+        function_(fn),
+        result_(result) {}
 
   std::shared_ptr<SwitchState> applyUpdate(
       const std::shared_ptr<SwitchState>& origState) override {
