@@ -673,7 +673,7 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
       stateDeltaLogger_->logStateDelta(
           minAlpmStateDelta, "Setup min ALPM state");
     }
-    stateChanged(minAlpmStateDelta, false);
+    stateChanged(minAlpmStateDelta, false, std::nullopt);
   }
 
   if (stateDeltaLogger_ && FLAGS_enable_state_delta_logging) {
@@ -1728,26 +1728,33 @@ void SwSwitch::updateStateNoCoalescing(StringPiece name, StateUpdateFn fn) {
 
 void SwSwitch::updateStateBlocking(folly::StringPiece name, StateUpdateFn fn) {
   auto behaviorFlags = static_cast<int>(StateUpdate::BehaviorFlags::NONE);
-  updateStateBlockingImpl(name, fn, behaviorFlags);
+  updateStateBlockingImpl(name, fn, behaviorFlags, std::nullopt);
 }
 
 void SwSwitch::updateStateWithHwFailureProtection(
     folly::StringPiece name,
-    StateUpdateFn fn) {
+    StateUpdateFn fn,
+    std::optional<StateDeltaApplication> deltaApplicationBehavior) {
   int stateUpdateBehavior =
       static_cast<int>(StateUpdate::BehaviorFlags::NON_COALESCING) |
       static_cast<int>(StateUpdate::BehaviorFlags::HW_FAILURE_PROTECTION);
 
-  updateStateBlockingImpl(name, fn, stateUpdateBehavior);
+  updateStateBlockingImpl(
+      name, fn, stateUpdateBehavior, deltaApplicationBehavior);
 }
 
 void SwSwitch::updateStateBlockingImpl(
     folly::StringPiece name,
     StateUpdateFn fn,
-    int stateUpdateBehavior) {
+    int stateUpdateBehavior,
+    std::optional<StateDeltaApplication> deltaApplicationBehavior) {
   auto result = std::make_shared<BlockingUpdateResult>();
   auto update = make_unique<BlockingStateUpdate>(
-      name, std::move(fn), result, stateUpdateBehavior);
+      name,
+      std::move(fn),
+      result,
+      stateUpdateBehavior,
+      std::move(deltaApplicationBehavior));
   if (updateState(std::move(update))) {
     result->wait();
   }
@@ -1811,6 +1818,12 @@ void SwSwitch::handlePendingUpdates() {
     CHECK(isNonCoalescing)
         << " Hw Failure protected updates should be non coalescing";
   }
+  auto deltaApplicationBehavior =
+      updates.begin()->getDeltaApplicationBehavior();
+  if (deltaApplicationBehavior.has_value()) {
+    CHECK(isNonCoalescing)
+        << " Delta application behavior only applies to non coalescing updates";
+  }
 
   // This function should never be called with valid updates while we don't have
   // a valid switch state
@@ -1857,8 +1870,11 @@ void SwSwitch::handlePendingUpdates() {
     auto isTransaction = updates.begin()->hwFailureProtected() &&
         multiHwSwitchHandler_->transactionsSupported();
     // There was some change during these state updates
-    std::tie(newAppliedState, newDesiredState) =
-        applyUpdate(oldAppliedState, newDesiredState, isTransaction);
+    std::tie(newAppliedState, newDesiredState) = applyUpdate(
+        oldAppliedState,
+        newDesiredState,
+        isTransaction,
+        deltaApplicationBehavior);
     if (newDesiredState != newAppliedState) {
       /*
        * Send newAppliedState to EcmpResourceManager and Shel Manager to
@@ -1954,7 +1970,8 @@ std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>
 SwSwitch::applyUpdate(
     const shared_ptr<SwitchState>& oldState,
     const shared_ptr<SwitchState>& newState,
-    bool isTransaction) {
+    bool isTransaction,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   // Check that we are starting from what has been already applied
   DCHECK_EQ(oldState, getAppliedState());
   auto newDesiredState = newState;
@@ -2028,7 +2045,8 @@ SwSwitch::applyUpdate(
   // undesirable.  So far I don't think this brief discrepancy should cause
   // major issues.
   try {
-    newAppliedState = stateChanged(deltas, isTransaction);
+    newAppliedState =
+        stateChanged(deltas, isTransaction, deltaApplicationBehavior);
   } catch (const std::exception& ex) {
     // Notify the hw_ of the crash so it can execute any device specific
     // tasks before we fatal. An example would be to dump the current hw
@@ -3849,13 +3867,15 @@ void SwSwitch::sentNeighborSolicitation(
 
 std::shared_ptr<SwitchState> SwSwitch::stateChanged(
     const StateDelta& delta,
-    bool transaction) const {
+    bool transaction,
+    const std::optional<StateDeltaApplication>& /* deltaApplication */) const {
   return multiHwSwitchHandler_->stateChanged(delta, transaction);
 }
 
 std::shared_ptr<SwitchState> SwSwitch::stateChanged(
     const std::vector<StateDelta>& deltas,
-    bool transaction) const {
+    bool transaction,
+    const std::optional<StateDeltaApplication>& /* deltaApplication */) const {
   return multiHwSwitchHandler_->stateChanged(deltas, transaction);
 }
 
