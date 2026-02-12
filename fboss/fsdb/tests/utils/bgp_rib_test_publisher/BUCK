@@ -23,6 +23,7 @@ cpp_binary(
     deps = [
         ":bgp_rib_test_publisher",
         "//fboss/fsdb/common:flags",
+        "//folly:string",
         "//folly/init:init",
         "//folly/io/async:async_base",
         "//folly/io/async:async_signal_handler",

@@ -12,19 +12,19 @@ buck2 build fbcode//fboss/fsdb/tests/utils/bgp_rib_test_publisher:bgp_rib_test_p
 
 ```bash
 bgp_rib_test_publisher_bin \
-  --num_routes=10 \
-  --prefix_base="2001:db8:" \
-  --nexthop_base="2001:db8:ffff::" &
+  --routes="2001:db8:1::/48,2001:db8:2::/48" \
+  --next-hops="2001:db8:ffff::1,2001:db8:ffff::2" &
 PID=$!
 ```
 
 ### Flags
 
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--num_routes` | Number of synthetic routes to generate | `10` |
-| `--prefix_base` | Base prefix for synthetic routes | `2001:db8:` |
-| `--nexthop_base` | Base nexthop for synthetic routes | `2001:db8:ffff::` |
+| Flag | Description | Required |
+|------|-------------|----------|
+| `--routes` | Comma-separated list of prefixes to publish | Yes |
+| `--next-hops` | Comma-separated list of next hops (1:1 with `--routes`) | Yes |
+
+Both flags are required and must have the same number of entries.
 
 ## Signal Handling
 
@@ -40,7 +40,9 @@ Uses `folly::AsyncSignalHandler` with `EventBase::loopForever()` — no polling 
 ### Example: publish, withdraw, and exit
 
 ```bash
-bgp_rib_test_publisher_bin --num_routes=5 &
+bgp_rib_test_publisher_bin \
+  --routes="2001:db8:1::/48" \
+  --next-hops="2001:db8:ffff::1" &
 PID=$!
 
 # Verify routes published
@@ -53,7 +55,9 @@ kill -USR1 $PID
 ### Example: withdraw and republish
 
 ```bash
-bgp_rib_test_publisher_bin --num_routes=5 &
+bgp_rib_test_publisher_bin \
+  --routes="2001:db8:1::/48,2001:db8:2::/48" \
+  --next-hops="2001:db8:ffff::1,2001:db8:ffff::2" &
 PID=$!
 
 # Withdraw routes but keep running
