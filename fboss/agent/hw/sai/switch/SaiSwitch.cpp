@@ -4912,7 +4912,8 @@ void SaiSwitch::dumpDebugState(const std::string& path) const {
 std::string SaiSwitch::listObjectsLocked(
     const std::vector<sai_object_type_t>& objects,
     bool cached,
-    const std::lock_guard<std::mutex>& lock) const {
+    const FineGrainedLockPolicy& policy) const {
+  auto lock = policy.lock();
   const SaiStore* store = saiStore_.get();
   std::unique_ptr<SaiStore> directToHwStore;
   if (!cached) {
@@ -5069,10 +5070,10 @@ std::string SaiSwitch::listObjects(
         break;
     }
   }
-  std::lock_guard<std::mutex> lk(saiSwitchMutex_);
-  auto output = listObjectsLocked(objTypes, cached, lk);
+  FineGrainedLockPolicy policy(saiSwitchMutex_);
+  auto output = listObjectsLocked(objTypes, cached, policy);
   if (listManagedObjects) {
-    listManagedObjectsLocked(output, lk);
+    listManagedObjectsLocked(output, policy.lock());
   }
   return output;
 }

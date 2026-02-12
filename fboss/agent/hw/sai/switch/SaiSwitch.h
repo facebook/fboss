@@ -40,7 +40,7 @@ namespace facebook::fboss {
 
 struct ConcurrentIndices;
 class SaiStore;
-
+class FineGrainedLockPolicy;
 /*
  * This is equivalent to sai_fdb_event_notification_data_t. Copy only the
  * necessary FDB event attributes from sai_fdb_event_notification_data_t.
@@ -315,7 +315,7 @@ class SaiSwitch : public HwSwitch {
   std::string listObjectsLocked(
       const std::vector<sai_object_type_t>& objects,
       bool cached,
-      const std::lock_guard<std::mutex>& lock) const;
+      const FineGrainedLockPolicy& policy) const;
   void listManagedObjectsLocked(
       std::string& output,
       const std::lock_guard<std::mutex>& lock) const;
