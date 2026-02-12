@@ -20,6 +20,41 @@ DEFINE_string(
 
 using namespace facebook::fboss::fsdb::test;
 
+class SignalHandler : public folly::AsyncSignalHandler {
+ public:
+  SignalHandler(
+      folly::EventBase* evb,
+      BgpRibTestPublisher& publisher,
+      const std::map<std::string, bgp_thrift::TRibEntry>& routes)
+      : folly::AsyncSignalHandler(evb),
+        evb_(evb),
+        publisher_(publisher),
+        routesToPublish_(routes) {}
+
+  void signalReceived(int signum) noexcept override {
+    if (signum == SIGUSR1) {
+      XLOG(INFO) << "Received SIGUSR1: withdrawing routes and exiting";
+      publisher_.withdrawAllRoutes();
+      evb_->terminateLoopSoon();
+    } else if (signum == SIGUSR2) {
+      XLOG(INFO) << "Received SIGUSR2: withdrawing routes, keeping running";
+      publisher_.withdrawAllRoutes();
+    } else if (signum == SIGHUP) {
+      XLOG(INFO) << "Received SIGHUP: republishing routes";
+      publisher_.publishRibMap(routesToPublish_);
+      XLOG(INFO) << "Republished " << routesToPublish_.size() << " routes";
+    } else if (signum == SIGINT || signum == SIGTERM) {
+      XLOG(INFO) << "Received SIGINT/SIGTERM: graceful shutdown";
+      evb_->terminateLoopSoon();
+    }
+  }
+
+ private:
+  folly::EventBase* evb_;
+  BgpRibTestPublisher& publisher_;
+  const std::map<std::string, bgp_thrift::TRibEntry>& routesToPublish_;
+};
+
 int main(int argc, char** argv) {
   FLAGS_publish_state_to_fsdb = true;
 
@@ -28,19 +63,33 @@ int main(int argc, char** argv) {
   BgpRibTestPublisher publisher("bgp-rib-test-publisher");
   publisher.start();
 
-  auto ribMap = BgpRibTestPublisher::createTestRibMap(
+  auto routesToPublish = BgpRibTestPublisher::createTestRibMap(
       FLAGS_num_routes, FLAGS_prefix_base, FLAGS_nexthop_base);
-  publisher.publishRibMap(ribMap);
+  publisher.publishRibMap(routesToPublish);
   XLOG(INFO) << "Published " << FLAGS_num_routes << " routes";
 
-  XLOG(INFO) << "Publisher running. PID: " << getpid();
-  XLOG(INFO) << "Send SIGINT/SIGTERM to stop.";
-
   folly::EventBase evb;
-  folly::CallbackAsyncSignalHandler cbHandler(
-      &evb, [&evb](int) { evb.terminateLoopSoon(); });
-  cbHandler.registerSignalHandler(SIGINT);
-  cbHandler.registerSignalHandler(SIGTERM);
+
+  SignalHandler sigHandler(&evb, publisher, routesToPublish);
+  sigHandler.registerSignalHandler(SIGUSR1);
+  sigHandler.registerSignalHandler(SIGUSR2);
+  sigHandler.registerSignalHandler(SIGHUP);
+  sigHandler.registerSignalHandler(SIGINT);
+  sigHandler.registerSignalHandler(SIGTERM);
+
+  XLOG(INFO) << "";
+  XLOG(INFO) << "========================================";
+  XLOG(INFO) << "Publisher running. PID: " << getpid();
+  XLOG(INFO) << "========================================";
+  XLOG(INFO) << "Signal handlers:";
+  XLOG(INFO) << "  SIGUSR1 (kill -USR1 " << getpid()
+             << ") - Withdraw routes and exit";
+  XLOG(INFO) << "  SIGUSR2 (kill -USR2 " << getpid()
+             << ") - Withdraw routes, keep running";
+  XLOG(INFO) << "  SIGHUP  (kill -HUP " << getpid() << ") - Republish routes";
+  XLOG(INFO) << "  SIGINT/SIGTERM - Graceful shutdown (no withdrawal)";
+  XLOG(INFO) << "========================================";
+  XLOG(INFO) << "";
 
   evb.loopForever();
 
