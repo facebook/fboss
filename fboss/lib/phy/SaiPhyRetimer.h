@@ -98,8 +98,9 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
 
   PhyPortConfig getConfigOnePort(
       const std::vector<LaneID>& sysLanes,
-      const std::vector<LaneID>& lineLanes) override {
-    // TODO: Implement getConfigOnePort for statt collection
+      const std::vector<LaneID>& lineLanes,
+      bool readFromHw = false) override {
+    // TODO: Implement getConfigOnePort for stats collection
     return PhyPortConfig{};
   }
 
