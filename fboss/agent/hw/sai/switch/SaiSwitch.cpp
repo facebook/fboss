@@ -4945,11 +4945,7 @@ std::string SaiSwitch::listObjectsLocked(
         adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get(), objects);
     store = directToHwStore.get();
   }
-  std::string output;
-  std::for_each(objects.begin(), objects.end(), [&output, store](auto objType) {
-    output += store->storeStr(objType);
-  });
-  return output;
+  return store->storeStr(objects);
 }
 
 std::string SaiSwitch::listObjects(

@@ -179,6 +179,16 @@ std::string SaiStore::storeStr(sai_object_type_t objType) const {
   return output;
 }
 
+std::string SaiStore::storeStr(
+    const std::vector<sai_object_type_t>& objTypes) const {
+  std::string output;
+  std::for_each(
+      objTypes.begin(), objTypes.end(), [&output, this](auto objType) {
+        output += storeStr(objType);
+      });
+  return output;
+}
+
 void SaiStore::checkUnexpectedUnclaimedWarmbootHandles() const {
   bool hasUnexpectedUnclaimedWarmbootHandles = false;
   tupleForEach(

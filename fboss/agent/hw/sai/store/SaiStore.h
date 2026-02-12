@@ -604,6 +604,7 @@ class SaiStore {
   }
 
   std::string storeStr(sai_object_type_t objType) const;
+  std::string storeStr(const std::vector<sai_object_type_t>& objTypes) const;
   folly::dynamic adapterKeysFollyDynamic() const;
 
   void exitForWarmBoot();
