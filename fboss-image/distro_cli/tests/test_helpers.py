@@ -35,9 +35,9 @@ def ensure_test_docker_image():
 
 @contextmanager
 def enter_tempdir(prefix: str = "test_") -> Generator[Path, None, None]:
-    """Create a temporary directory that works in both Bazel and non-Bazel test environments.
+    """Create a temporary directory that works in sandbox environments.
 
-    When TEST_TMPDIR environment variable is set (e.g., in Bazel sandboxed tests), creates
+    When TEST_TMPDIR environment variable is set (e.g., in sandbox tests), creates
     the temporary directory under TEST_TMPDIR which is guaranteed to be writable.
     Otherwise, uses the system's default temporary directory.
 
