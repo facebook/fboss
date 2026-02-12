@@ -740,6 +740,9 @@ class TransceiverManager {
 
   std::map<std::string, FirmwareUpgradeData> triggerAllOpticsFwUpgrade();
 
+  std::map<std::string, FirmwareUpgradeData> triggerOpticsFwUpgrade(
+      const std::vector<std::string>& interfaces);
+
   // portName to MediaInterfaceCode map
   void getPortMediaInterface(
       std::map<std::string, MediaInterfaceCode>& portMediaInterface);
@@ -1197,6 +1200,8 @@ class TransceiverManager {
       snapshotManagers_;
 
   void updateSnapshots();
+
+  void ensureFwUpgradeAllowed() const;
 
   friend class TransceiverStateMachineTest;
 };

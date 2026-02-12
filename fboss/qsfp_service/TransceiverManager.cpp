@@ -552,9 +552,7 @@ TransceiverManager::getPortsRequiringOpticsFwUpgrade() const {
   return ports;
 }
 
-std::map<std::string, FirmwareUpgradeData>
-TransceiverManager::triggerAllOpticsFwUpgrade() {
-  std::map<std::string, FirmwareUpgradeData> ports;
+void TransceiverManager::ensureFwUpgradeAllowed() const {
   if (!isFullyInitialized()) {
     throw FbossError("Service is still initializing...");
   }
@@ -564,20 +562,47 @@ TransceiverManager::triggerAllOpticsFwUpgrade() {
   if (!FLAGS_firmware_upgrade_supported) {
     throw FbossError("Firmware upgrade is not supported...");
   }
+}
+
+std::map<std::string, FirmwareUpgradeData>
+TransceiverManager::triggerAllOpticsFwUpgrade() {
+  ensureFwUpgradeAllowed();
+  std::map<std::string, FirmwareUpgradeData> ports;
   auto portsForFwUpgrade = getPortsRequiringOpticsFwUpgrade();
+
+  std::vector<std::string> interfaces;
+  interfaces.reserve(portsForFwUpgrade.size());
+  for (const auto& [portName, _] : portsForFwUpgrade) {
+    interfaces.push_back(portName);
+  }
+  return triggerOpticsFwUpgrade(interfaces);
+}
+
+std::map<std::string, FirmwareUpgradeData>
+TransceiverManager::triggerOpticsFwUpgrade(
+    const std::vector<std::string>& interfaces) {
+  ensureFwUpgradeAllowed();
+  auto portsForFwUpgrade = getPortsRequiringOpticsFwUpgrade();
+  std::map<std::string, FirmwareUpgradeData> portsSelectedForUpgrade;
   auto tcvrsToUpgradeWLock = tcvrsForFwUpgrade.wlock();
 
-  for (const auto& [portName, _] : portsForFwUpgrade) {
+  for (const auto& portName : interfaces) {
+    if (portsForFwUpgrade.find(portName) == portsForFwUpgrade.end()) {
+      XLOG(ERR) << "Port " << portName << " does not require firmware upgrade";
+      continue;
+    }
     if (portNameToModule_.find(portName) != portNameToModule_.end()) {
       auto tcvrID = TransceiverID(portNameToModule_[portName]);
       XLOG(INFO)
           << FirmwareUpgradeAlert()
-          << "Selected for firmware upgrade through triggerAllOpticsFwUpgrade cli"
+          << "Selected for firmware upgrade through triggerOpticsFwUpgrade function"
           << TransceiverParam(tcvrID) << PortParam(portName);
       tcvrsToUpgradeWLock->insert(TransceiverID(portNameToModule_[portName]));
+
+      portsSelectedForUpgrade[portName] = portsForFwUpgrade[portName];
     }
   }
-  return portsForFwUpgrade;
+  return portsSelectedForUpgrade;
 }
 
 bool TransceiverManager::firmwareUpgradeRequired(TransceiverID id) {
