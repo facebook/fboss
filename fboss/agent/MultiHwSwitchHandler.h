@@ -61,15 +61,15 @@ class MultiHwSwitchHandler {
       const StateDelta& delta,
       bool transaction,
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
-      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
-          std::nullopt);
+      const std::optional<StateDeltaApplication>&
+          deltaApplicationBehaviorBehavior = std::nullopt);
 
   std::shared_ptr<SwitchState> stateChanged(
       const std::vector<StateDelta>& deltas,
       bool transaction,
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
-      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
-          std::nullopt);
+      const std::optional<StateDeltaApplication>&
+          deltaApplicationBehaviorBehavior = std::nullopt);
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size);
 
@@ -129,12 +129,16 @@ class MultiHwSwitchHandler {
   folly::Future<HwSwitchStateUpdateResult> stateChanged(
       SwitchID switchId,
       const HwSwitchStateUpdate& update,
-      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
 
   std::map<SwitchID, HwSwitchStateUpdateResult> stateChanged(
       const std::map<SwitchID, const std::vector<StateDelta>&>& deltas,
       bool transaction,
-      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
 
   std::map<SwitchID, HwSwitchStateUpdateResult> getStateUpdateResult(
       const std::vector<SwitchID>& switchIds,

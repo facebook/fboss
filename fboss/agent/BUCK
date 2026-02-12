@@ -1500,6 +1500,7 @@ cpp_library(
         ":load_agent_config",
         ":switch_config-cpp2-types",
         ":utils",
+        "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:multiswitch_ctrl-cpp2-services",
         "//fboss/agent/state:state",
         "//fboss/lib:hw_write_behavior",
