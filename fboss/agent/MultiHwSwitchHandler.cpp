@@ -65,16 +65,19 @@ void MultiHwSwitchHandler::stop() {
 std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
     const StateDelta& delta,
     bool transaction,
-    const HwWriteBehavior& hwWriteBehavior) {
+    const HwWriteBehavior& hwWriteBehavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   std::vector<StateDelta> deltas;
   deltas.emplace_back(delta.oldState(), delta.newState());
-  return stateChanged(deltas, transaction, hwWriteBehavior);
+  return stateChanged(
+      deltas, transaction, hwWriteBehavior, deltaApplicationBehavior);
 }
 
 std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
     const std::vector<StateDelta>& deltas,
     bool transaction,
-    const HwWriteBehavior& hwWriteBehavior) {
+    const HwWriteBehavior& hwWriteBehavior,
+    const std::optional<StateDeltaApplication>& /* deltaApplication */) {
   std::map<SwitchID, const std::vector<StateDelta>&> deltasMap;
   std::shared_ptr<SwitchState> newState{nullptr};
   bool updateFailed{false};

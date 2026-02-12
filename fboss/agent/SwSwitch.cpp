@@ -3868,15 +3868,19 @@ void SwSwitch::sentNeighborSolicitation(
 std::shared_ptr<SwitchState> SwSwitch::stateChanged(
     const StateDelta& delta,
     bool transaction,
-    const std::optional<StateDeltaApplication>& /* deltaApplication */) const {
-  return multiHwSwitchHandler_->stateChanged(delta, transaction);
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior)
+    const {
+  return multiHwSwitchHandler_->stateChanged(
+      delta, transaction, HwWriteBehavior::WRITE, deltaApplicationBehavior);
 }
 
 std::shared_ptr<SwitchState> SwSwitch::stateChanged(
     const std::vector<StateDelta>& deltas,
     bool transaction,
-    const std::optional<StateDeltaApplication>& /* deltaApplication */) const {
-  return multiHwSwitchHandler_->stateChanged(deltas, transaction);
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior)
+    const {
+  return multiHwSwitchHandler_->stateChanged(
+      deltas, transaction, HwWriteBehavior::WRITE, deltaApplicationBehavior);
 }
 
 std::shared_ptr<SwitchState> SwSwitch::modifyTransceivers(
