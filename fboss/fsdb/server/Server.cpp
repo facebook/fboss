@@ -6,7 +6,6 @@
 #include <glog/logging.h>
 
 #include <folly/init/Init.h>
-#include <folly/io/async/AsyncSignalHandler.h>
 
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/server/FsdbConfig.h"
