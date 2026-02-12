@@ -137,6 +137,13 @@ void QsfpServiceHandler::triggerAllOpticsFwUpgrade(
   ports = tcvrManager_->triggerAllOpticsFwUpgrade();
 }
 
+void QsfpServiceHandler::triggerOpticsFwUpgrade(
+    std::map<std::string, FirmwareUpgradeData>& ports,
+    std::unique_ptr<std::vector<std::string>> interfaces) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  ports = tcvrManager_->triggerOpticsFwUpgrade(*interfaces);
+}
+
 void QsfpServiceHandler::getPortTransceiverIDs(
     std::map<std::string, std::vector<int32_t>>& portTransceiverIds) {
   auto log = LOG_THRIFT_CALL(INFO);
