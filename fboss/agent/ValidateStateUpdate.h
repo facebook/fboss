@@ -5,5 +5,6 @@
 namespace facebook::fboss {
 class StateDelta;
 
-bool isStateUpdateValid(const StateDelta& delta);
+bool isStateUpdateValidCommon(const StateDelta& delta);
+bool isStateUpdateValidMultiSwitch(const StateDelta& delta);
 } // namespace facebook::fboss

@@ -10,7 +10,7 @@ using facebook::fboss::DeltaFunctions::forEachChanged;
 using std::shared_ptr;
 
 namespace facebook::fboss {
-bool isStateUpdateValid(const StateDelta& delta) {
+bool isStateUpdateValidCommon(const StateDelta& delta) {
   bool isValid = true;
 
   forEachChanged(
@@ -59,5 +59,10 @@ bool isStateUpdateValid(const StateDelta& delta) {
     isValid = false;
   }
   return isValid;
+}
+
+bool isStateUpdateValidMultiSwitch(const StateDelta& delta) {
+  // TODO(pshaikh): Add validation for multi switch
+  return true;
 }
 } // namespace facebook::fboss

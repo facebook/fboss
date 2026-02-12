@@ -3663,12 +3663,13 @@ void SwSwitch::updateConfigAppliedInfo() {
 }
 
 bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
-  auto isValid = isStateUpdateValid(delta);
+  auto isValid = isStateUpdateValidCommon(delta);
   if (isValid) {
     if (isRunModeMonolithic()) {
       isValid = getMonolithicHwSwitchHandler()->isValidStateUpdate(delta);
     } else {
       // TODO - implement state update validation for multiswitch
+      isValid = isStateUpdateValidMultiSwitch(delta);
     }
   }
 
