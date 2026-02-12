@@ -1,0 +1,16 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "bgp_rib_test_publisher",
+    srcs = ["BgpRibTestPublisher.cpp"],
+    headers = ["BgpRibTestPublisher.h"],
+    exported_deps = [
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/client:fsdb_syncer",
+        "//fboss/fsdb/if:fsdb_model",
+        "//folly/logging:logging",
+        "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
+    ],
+)
