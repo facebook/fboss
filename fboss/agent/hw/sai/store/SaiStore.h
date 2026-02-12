@@ -586,7 +586,8 @@ class SaiStore {
    */
   void reload(
       const folly::dynamic* adapterKeys = nullptr,
-      const folly::dynamic* adapterKeys2AdapterHostKey = nullptr);
+      const folly::dynamic* adapterKeys2AdapterHostKey = nullptr,
+      const std::vector<sai_object_type_t>& objTypes = {});
 
   /*
    *

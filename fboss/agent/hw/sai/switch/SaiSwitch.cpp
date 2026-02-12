@@ -4942,7 +4942,7 @@ std::string SaiSwitch::listObjectsLocked(
     adapterKeys2AdapterHostKeysJson =
         std::make_unique<folly::dynamic>(json[kAdapterKey2AdapterHostKey]);
     directToHwStore->reload(
-        adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get());
+        adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get(), objects);
     store = directToHwStore.get();
   }
   std::string output;
