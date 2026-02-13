@@ -14,7 +14,6 @@
 #include <folly/FileUtil.h>
 #include <folly/testing/TestUtil.h>
 #include <fstream>
-#include <unordered_set>
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 
