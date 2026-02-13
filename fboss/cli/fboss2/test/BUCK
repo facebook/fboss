@@ -70,6 +70,7 @@ cpp_unittest(
         "CmdConfigInterfaceTest.cpp",
         "CmdConfigQosBufferPoolTest.cpp",
         "CmdConfigReloadTest.cpp",
+        "CmdConfigSessionClearTest.cpp",
         "CmdConfigSessionDiffTest.cpp",
         "CmdConfigSessionTest.cpp",
         "CmdConfigVlanPortTaggingModeTest.cpp",

@@ -324,6 +324,19 @@ void ConfigSession::setInstance(std::unique_ptr<ConfigSession> newInstance) {
   getInstancePtr() = std::move(newInstance);
 }
 
+// Static path getters - can be called without creating a session instance
+std::string ConfigSession::getSessionDir() {
+  return getHomeDirectory() + "/.fboss2";
+}
+
+std::string ConfigSession::getSessionConfigPathStatic() {
+  return getSessionDir() + "/agent.conf";
+}
+
+std::string ConfigSession::getSessionMetadataPathStatic() {
+  return getSessionDir() + "/cli_metadata.json";
+}
+
 std::string ConfigSession::getSessionConfigPath() const {
   return sessionConfigDir_ + "/agent.conf";
 }
