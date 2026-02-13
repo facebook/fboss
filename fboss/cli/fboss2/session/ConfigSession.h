@@ -94,6 +94,13 @@ class ConfigSession {
   // If no session exists, copies /etc/coop/agent.conf to ~/.fboss2/agent.conf
   static ConfigSession& getInstance();
 
+  // Static path getters - can be called without creating a session instance.
+  // These are useful for checking if session files exist without triggering
+  // session initialization.
+  static std::string getSessionDir();
+  static std::string getSessionConfigPathStatic();
+  static std::string getSessionMetadataPathStatic();
+
   // Get the path to the session config file (~/.fboss2/agent.conf)
   std::string getSessionConfigPath() const;
 

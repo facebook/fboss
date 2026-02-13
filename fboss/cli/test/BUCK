@@ -21,6 +21,7 @@ cpp_binary(
         "ConfigInterfaceDescriptionTest.cpp",
         "ConfigInterfaceMtuTest.cpp",
         "ConfigQosPolicyMapTest.cpp",
+        "ConfigSessionClearTest.cpp",
     ],
     deps = [
         "fbsource//third-party/googletest:gtest",
