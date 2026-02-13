@@ -248,7 +248,9 @@ void mark(RestartEvent event) {
 
 void stop() {
   auto tracker = impl_.lock();
-  (*tracker).reset();
+  if (*tracker) {
+    (*tracker).reset();
+  }
 }
 
 } // namespace restart_time
