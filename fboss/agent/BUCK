@@ -2149,6 +2149,7 @@ cpp_library(
         "ValidateStateUpdate.cpp",
     ],
     exported_deps = [
+        ":fboss-error",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
     ],

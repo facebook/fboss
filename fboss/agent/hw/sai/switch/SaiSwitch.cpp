@@ -13,6 +13,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LockPolicy.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/ValidateStateUpdate.h"
 #include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
@@ -4112,58 +4113,7 @@ void SaiSwitch::unregisterCallbacksLocked(
 bool SaiSwitch::isValidStateUpdateLocked(
     const std::lock_guard<std::mutex>& /* lock */,
     const StateDelta& delta) const {
-  auto globalQosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
-  auto isValid = true;
-  if (globalQosDelta.getNew()) {
-    auto& newPolicy = globalQosDelta.getNew();
-    bool hasDscpMap =
-        newPolicy->getDscpMap()->get<switch_state_tags::from>()->size() > 0;
-    auto pcpMap = newPolicy->getPcpMap();
-    bool hasPcpMap = pcpMap.has_value() && !pcpMap->empty();
-    bool hasTcToQueue = newPolicy->getTrafficClassToQueueId()->size() > 0;
-
-    if ((!hasDscpMap && !hasPcpMap) || !hasTcToQueue) {
-      XLOG(ERR)
-          << " Either DSCP to TC or PCP to TC map, along with TC to Queue map, must be provided in valid qos policies";
-      return false;
-    }
-    /*
-     * Not adding a check for expMap even though we don't support
-     * MPLS QoS yet. Unfortunately, SwSwitch implicitly sets a exp map
-     * even if the config doesn't have one. So no point in warning/failing
-     * on what could be just system generated behavior.
-     * TODO: see if we can stop doing this at SwSwitch layre
-     */
-  }
-
-  if (delta.oldState()->getSwitchSettings()->size() &&
-      delta.newState()->getSwitchSettings()->empty()) {
-    throw FbossError("Switch settings cannot be removed from SwitchState");
-  }
-
-  // Only single watchdog recovery action is supported.
-  // TODO - Add support for per port watchdog recovery action
-  std::shared_ptr<Port> firstPort;
-  std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction{};
-  for (const auto& portMap : std::as_const(*delta.newState()->getPorts())) {
-    for (const auto& port : std::as_const(*portMap.second)) {
-      if (port.second->getPfc().has_value() &&
-          port.second->getPfc()->watchdog().has_value()) {
-        auto pfcWd = port.second->getPfc()->watchdog().value();
-        if (!recoveryAction.has_value()) {
-          recoveryAction = *pfcWd.recoveryAction();
-          firstPort = port.second;
-        } else if (*recoveryAction != *pfcWd.recoveryAction()) {
-          // Error: All ports should have the same recovery action configured
-          XLOG(ERR) << "PFC watchdog deadlock recovery action on "
-                    << port.second->getName() << " conflicting with "
-                    << firstPort->getName();
-          isValid = false;
-        }
-      }
-    }
-  }
-
+  auto isValid = isStateUpdateValidMultiSwitch(delta);
   DeltaFunctions::forEachChanged(
       delta.getSwitchSettingsDelta(),
       [&](const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
