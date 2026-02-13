@@ -409,6 +409,10 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
   using InnerMap = typename Traits::InnerMap;
   using InnerNode = typename InnerMap::Traits::Node;
 
+  static auto kNodeName() {
+    return apache::thrift::op::get_class_name_v<typename InnerNode::ThriftType>;
+  }
+
   void addNode(
       std::shared_ptr<InnerNode> node,
       const HwSwitchMatcher& matcher) {
@@ -438,8 +442,8 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
       if (mitr->second->remove(key)) {
         return;
       }
-    }
-    throw FbossError("Node to remove not found: ", key);
+    };
+    throw FbossError("Node ", kNodeName(), " to remove not found: ", key);
   }
 
   void removeNode(std::shared_ptr<InnerNode> node) {
@@ -461,7 +465,7 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
       const typename InnerMap::Traits::KeyType& key) const {
     auto node = getNodeIf(key);
     if (!node) {
-      throw FbossError("Node to get not found: ", key);
+      throw FbossError("Node ", kNodeName(), " to get not found: ", key);
     }
     return node;
   }
@@ -474,7 +478,8 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
         return std::make_pair(nitr->second, HwSwitchMatcher(mnitr->first));
       }
     }
-    throw FbossError("Node and scope to get not found: ", key);
+    throw FbossError(
+        "Node ", kNodeName(), " and scope to get not found: ", key);
   }
 
   size_t numNodes() const {
