@@ -2,9 +2,14 @@
 
 #include <gtest/gtest.h>
 
+#include <fmt/format.h>
+#include <folly/hash/Hash.h>
 #include <folly/testing/TestUtil.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/MockConfigLib.h"
+#include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/helpers/MockPlatformFsUtils.h"
 #include "fboss/platform/helpers/PlatformNameLib.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
 
@@ -41,6 +46,15 @@ const std::string kTestConfigJson = R"({
   },
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]"
 })";
+
+std::string computeExpectedHash() {
+  PlatformConfig config;
+  apache::thrift::SimpleJSONSerializer::deserialize<PlatformConfig>(
+      kTestConfigJson, config);
+  auto configJson =
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(config);
+  return fmt::format("{:016x}", folly::hasher<std::string>{}(configJson));
+}
 } // namespace
 
 class MockPlatformNameLib : public helpers::PlatformNameLib {
@@ -54,6 +68,7 @@ class ConfigUtilsTest : public ::testing::Test {
   void SetUp() override {
     mockConfigLib_ = std::make_shared<MockConfigLib>();
     mockPlatformNameLib_ = std::make_shared<MockPlatformNameLib>();
+    mockPlatformFsUtils_ = std::make_shared<MockPlatformFsUtils>();
   }
 
   void setupMocksForGetConfig() {
@@ -65,11 +80,13 @@ class ConfigUtilsTest : public ::testing::Test {
 
   std::shared_ptr<MockConfigLib> mockConfigLib_;
   std::shared_ptr<MockPlatformNameLib> mockPlatformNameLib_;
+  std::shared_ptr<MockPlatformFsUtils> mockPlatformFsUtils_;
 };
 
 TEST_F(ConfigUtilsTest, GetConfigReturnsValidConfig) {
   setupMocksForGetConfig();
-  ConfigUtils configUtils(mockConfigLib_, mockPlatformNameLib_);
+  ConfigUtils configUtils(
+      mockConfigLib_, mockPlatformNameLib_, mockPlatformFsUtils_);
 
   auto config = configUtils.getConfig();
 
@@ -78,7 +95,8 @@ TEST_F(ConfigUtilsTest, GetConfigReturnsValidConfig) {
 }
 
 TEST_F(ConfigUtilsTest, GetConfigCachesResult) {
-  ConfigUtils configUtils(mockConfigLib_, mockPlatformNameLib_);
+  ConfigUtils configUtils(
+      mockConfigLib_, mockPlatformNameLib_, mockPlatformFsUtils_);
 
   // Expect the mocks to be called only once due to caching
   EXPECT_CALL(*mockPlatformNameLib_, getPlatformNameFromBios(_))
@@ -104,7 +122,8 @@ TEST_F(ConfigUtilsTest, GetConfigVerifiesPlatformName) {
   ON_CALL(*mockConfigLib_, getPlatformManagerConfig(_))
       .WillByDefault(Return(kTestConfigJson));
 
-  ConfigUtils configUtils(mockConfigLib_, mockPlatformNameLib_);
+  ConfigUtils configUtils(
+      mockConfigLib_, mockPlatformNameLib_, mockPlatformFsUtils_);
   EXPECT_NO_THROW(configUtils.getConfig());
 
   // Failure case: platform names mismatch
@@ -115,8 +134,104 @@ TEST_F(ConfigUtilsTest, GetConfigVerifiesPlatformName) {
   ON_CALL(*mockConfigLib2, getPlatformManagerConfig(_))
       .WillByDefault(Return(kTestConfigJson));
 
-  ConfigUtils configUtils2(mockConfigLib2, mockPlatformNameLib2);
+  ConfigUtils configUtils2(
+      mockConfigLib2, mockPlatformNameLib2, mockPlatformFsUtils_);
   EXPECT_THROW(configUtils2.getConfig(), std::runtime_error);
+}
+
+// NOTE: This test verifies temporary backward-compatibility behavior.
+// When no stored config hash exists (first run after this change), we return
+// false to avoid triggering kmod reloads. This aligns with existing service
+// behavior. Once all units have the config hash file, this behavior will change
+// to trigger kmod reloading when the config hash file is missing.
+// See ConfigUtils.cpp hasConfigChanged() for implementation details.
+TEST_F(ConfigUtilsTest, HasConfigChangedReturnsFalseWhenNoStoredHash) {
+  setupMocksForGetConfig();
+  ON_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
+      .WillByDefault(Return(std::nullopt));
+
+  ConfigUtils configUtils(
+      mockConfigLib_, mockPlatformNameLib_, mockPlatformFsUtils_);
+
+  EXPECT_FALSE(configUtils.hasConfigChanged());
+}
+
+TEST_F(ConfigUtilsTest, HasConfigChangedReturnsFalseWhenHashMatches) {
+  setupMocksForGetConfig();
+
+  // Mock getStringFileContent with path-specific matchers
+  ON_CALL(
+      *mockPlatformFsUtils_,
+      getStringFileContent(std::filesystem::path(ConfigUtils::kConfigHashFile)))
+      .WillByDefault(Return(computeExpectedHash()));
+
+  ConfigUtils configUtils(
+      mockConfigLib_, mockPlatformNameLib_, mockPlatformFsUtils_);
+
+  EXPECT_FALSE(configUtils.hasConfigChanged());
+}
+
+TEST_F(ConfigUtilsTest, HasConfigChangedReturnsTrueWhenHashDiffers) {
+  setupMocksForGetConfig();
+  ON_CALL(
+      *mockPlatformFsUtils_,
+      getStringFileContent(std::filesystem::path(ConfigUtils::kConfigHashFile)))
+      .WillByDefault(Return("differenthash12345"));
+  ON_CALL(
+      *mockPlatformFsUtils_,
+      getStringFileContent(std::filesystem::path(ConfigUtils::kBuildInfoFile)))
+      .WillByDefault(Return("old_build_info"));
+
+  ConfigUtils configUtils(
+      mockConfigLib_, mockPlatformNameLib_, mockPlatformFsUtils_);
+
+  EXPECT_TRUE(configUtils.hasConfigChanged());
+}
+
+TEST_F(ConfigUtilsTest, StoreConfigHashWritesFiles) {
+  setupMocksForGetConfig();
+  ON_CALL(*mockPlatformFsUtils_, createDirectories(_))
+      .WillByDefault(Return(true));
+  ON_CALL(*mockPlatformFsUtils_, writeStringToFile(_, _, _, _))
+      .WillByDefault(Return(true));
+
+  // Capture the content written to each file
+  std::string writtenHash;
+  std::string writtenBuildInfo;
+  EXPECT_CALL(
+      *mockPlatformFsUtils_,
+      writeStringToFile(
+          _, std::filesystem::path(ConfigUtils::kConfigHashFile), _, _))
+      .WillOnce(DoAll(SaveArg<0>(&writtenHash), Return(true)));
+  EXPECT_CALL(
+      *mockPlatformFsUtils_,
+      writeStringToFile(
+          _, std::filesystem::path(ConfigUtils::kBuildInfoFile), _, _))
+      .WillOnce(DoAll(SaveArg<0>(&writtenBuildInfo), Return(true)));
+
+  ConfigUtils configUtils(
+      mockConfigLib_, mockPlatformNameLib_, mockPlatformFsUtils_);
+  configUtils.storeConfigHash();
+
+  // Verify hash matches exactly (with trailing newline)
+  EXPECT_EQ(writtenHash, computeExpectedHash() + "\n");
+
+  // Verify build info matches exactly (with trailing newline)
+  EXPECT_EQ(writtenBuildInfo, helpers::getBuildSummary() + "\n");
+}
+
+TEST_F(ConfigUtilsTest, StoreConfigHashHandlesDirectoryCreationFailure) {
+  setupMocksForGetConfig();
+  ON_CALL(*mockPlatformFsUtils_, createDirectories(_))
+      .WillByDefault(Return(false));
+
+  EXPECT_CALL(*mockPlatformFsUtils_, writeStringToFile(_, _, _, _)).Times(0);
+
+  ConfigUtils configUtils(
+      mockConfigLib_, mockPlatformNameLib_, mockPlatformFsUtils_);
+
+  // Verify the function handles failure gracefully without throwing
+  EXPECT_NO_THROW(configUtils.storeConfigHash());
 }
 
 } // namespace facebook::fboss::platform::platform_manager

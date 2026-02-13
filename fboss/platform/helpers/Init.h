@@ -15,6 +15,10 @@ namespace facebook::fboss::platform::helpers {
 
 void init(int* argc, char*** argv);
 
+// Returns a summary of build info: author, package version, revision,
+// upstream revision, and build time.
+std::string getBuildSummary();
+
 void runThriftService(
     std::shared_ptr<apache::thrift::ThriftServer> server,
     std::shared_ptr<apache::thrift::ServerInterface> handler,
