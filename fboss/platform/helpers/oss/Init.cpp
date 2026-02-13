@@ -43,10 +43,4 @@ void runThriftService(
   server->serve();
 }
 
-folly::Function<void(apache::thrift::ThriftServer&)>
-createTestThriftServerConfig() {
-  return [](apache::thrift::ThriftServer& server) {
-    facebook::fboss::ThriftServiceUtils::setPreferredEventBaseBackend(server);
-  };
-}
 } // namespace facebook::fboss::platform::helpers

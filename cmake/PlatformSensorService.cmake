@@ -110,6 +110,7 @@ add_executable(sensor_service_hw_test
 
 target_link_libraries(sensor_service_hw_test
   sensor_service_lib
+  thrift_service_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

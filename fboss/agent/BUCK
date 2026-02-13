@@ -1046,6 +1046,7 @@ cpp_library(
         "//fboss/lib:hw_write_behavior",
         "//fboss/lib:radix_tree",
         "//fboss/lib:thread_heartbeat",
+        "//fboss/lib:thrift_service_utils",
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/lib/link_snapshots:async_filewriter_factory",
         "//fboss/lib/phy:phy-cpp2-types",

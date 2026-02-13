@@ -25,9 +25,6 @@ void runThriftService(
     const std::string& serviceName,
     uint32_t port);
 
-folly::Function<void(apache::thrift::ThriftServer&)>
-createTestThriftServerConfig();
-
 // SignalHandler provides graceful shutdown handling for SIGINT and SIGTERM
 // signals. When either signal is received, it will call stop() on the
 // associated ThriftServer to initiate graceful shutdown.
