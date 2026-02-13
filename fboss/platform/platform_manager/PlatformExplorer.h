@@ -23,7 +23,11 @@ namespace facebook::fboss::platform::platform_manager {
 class PlatformExplorer {
  public:
   // Maximum allowed setup time for platform exploration.
-  static constexpr std::chrono::seconds kMaxSetupTime{48};
+  // Platform-specific thresholds are used for platforms with longer exploration
+  // times; kMaxSetupTime is the default for all other platforms.
+  static constexpr std::chrono::seconds kMaxSetupTime{40};
+  static constexpr std::chrono::seconds kMaxSetupTimeMeru800{50};
+  static constexpr std::chrono::seconds kMaxSetupTimeMorgan800CC{75};
 
   // Regex patterns for matching fw_ver format.
   auto static constexpr kFwVerXYPatternStr = R"((\d{1,3})\.(\d{1,3}))";
