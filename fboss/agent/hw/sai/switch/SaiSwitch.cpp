@@ -4113,7 +4113,11 @@ void SaiSwitch::unregisterCallbacksLocked(
 bool SaiSwitch::isValidStateUpdateLocked(
     const std::lock_guard<std::mutex>& /* lock */,
     const StateDelta& delta) const {
-  auto isValid = isStateUpdateValidMultiSwitch(delta);
+  auto isValid = isStateUpdateValidMultiSwitch(
+      delta,
+      platform_->scopeResolver(),
+      getSwitchID(),
+      getPlatform()->getAsic());
   DeltaFunctions::forEachChanged(
       delta.getSwitchSettingsDelta(),
       [&](const std::shared_ptr<SwitchSettings>& oldSwitchSettings,

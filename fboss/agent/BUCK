@@ -2150,6 +2150,9 @@ cpp_library(
     ],
     exported_deps = [
         ":fboss-error",
+        ":fboss-types",
+        ":switchid_scope_resolver",
+        "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
     ],

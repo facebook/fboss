@@ -886,4 +886,5 @@ add_library(validate_state_update
 target_link_libraries(validate_state_update
   state
   fboss_error
+  switchid_scope_resolver
 )

@@ -3,6 +3,8 @@
 #include "fboss/agent/ValidateStateUpdate.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -62,7 +64,10 @@ bool isStateUpdateValidCommon(const StateDelta& delta) {
   return isValid;
 }
 
-bool isStateUpdateValidMultiSwitch(const StateDelta& delta) {
+bool isStateUpdateValidMultiSwitch(
+    const StateDelta& delta,
+    const SwitchIdScopeResolver* /*resolver*/,
+    const std::map<SwitchID, const HwAsic*>& /*hwAsics*/) {
   auto globalQosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
   auto isValid = true;
   if (globalQosDelta.getNew()) {
@@ -116,4 +121,13 @@ bool isStateUpdateValidMultiSwitch(const StateDelta& delta) {
   }
   return isValid;
 }
+
+bool isStateUpdateValidMultiSwitch(
+    const StateDelta& delta,
+    const SwitchIdScopeResolver* resolver,
+    SwitchID switchID,
+    const HwAsic* asic) {
+  return isStateUpdateValidMultiSwitch(delta, resolver, {{switchID, asic}});
+}
+
 } // namespace facebook::fboss

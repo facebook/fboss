@@ -3687,7 +3687,8 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
       isValid = getMonolithicHwSwitchHandler()->isValidStateUpdate(delta);
     } else {
       // TODO - implement state update validation for multiswitch
-      isValid = isStateUpdateValidMultiSwitch(delta);
+      isValid = isStateUpdateValidMultiSwitch(
+          delta, getScopeResolver(), getHwAsicTable()->getHwAsics());
     }
   }
 
