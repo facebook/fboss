@@ -496,10 +496,14 @@ void PlatformExplorer::exploreI2cDevices(
         auto i2cDevicePath = i2cExplorer_.getDeviceI2cPath(busNum, devAddr);
         try {
           auto eepromPath = i2cDevicePath + "/eeprom";
+          auto eepromOffset = 0;
+          if (i2cDeviceConfig.eepromOffset()) {
+            eepromOffset = (*i2cDeviceConfig.eepromOffset());
+          }
           dataStore_.updateEepromContents(
               Utils().createDevicePath(
                   slotPath, *i2cDeviceConfig.pmUnitScopedName()),
-              FbossEepromInterface(eepromPath, 0));
+              FbossEepromInterface(eepromPath, eepromOffset));
           if (devicePath == *platformConfig_.chassisEepromDevicePath()) {
             const auto& eepromContents =
                 dataStore_.getEepromContents(devicePath);
