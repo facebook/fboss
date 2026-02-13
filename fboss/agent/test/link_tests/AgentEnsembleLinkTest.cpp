@@ -2,6 +2,7 @@
 
 #include <folly/String.h>
 #include <folly/Subprocess.h>
+#include <folly/system/EnvUtil.h>
 #include <gflags/gflags.h>
 
 #include <thrift/lib/cpp2/protocol/DebugProtocol.h>
@@ -794,6 +795,12 @@ int agentEnsembleLinkTestMain(
   kArgc = argc;
   kArgv = argv;
   initAgentEnsembleTest(argc, argv, initPlatformFn, streamType);
+  auto env = folly::experimental::EnvironmentState::fromCurrentEnvironment();
+  std::vector<std::string> environment;
+  for (const auto& [key, value] : *env) {
+    environment.emplace_back(folly::to<std::string>(key, "=", value));
+  }
+  XLOG(INFO) << "Environment Variables: " << folly::join(" ", environment);
   return RUN_ALL_TESTS();
 }
 
