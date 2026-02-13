@@ -4143,19 +4143,6 @@ bool SaiSwitch::isValidStateUpdateLocked(
     return false;
   }
 
-  DeltaFunctions::forEachChanged(
-      delta.getMirrorsDelta(),
-      [&](const std::shared_ptr<Mirror>& /* oldMirror */,
-          const std::shared_ptr<Mirror>& newMirror) {
-        if (newMirror->getTruncate() &&
-            !getPlatform()->getAsic()->isSupported(
-                HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
-          XLOG(ERR)
-              << "Mirror packet truncation is not supported on this platform";
-          isValid = false;
-        }
-      });
-
   auto qualifiersSupported =
       managerTable_->aclTableManager().getSupportedQualifierSet(
           cfg::AclStage::INGRESS);

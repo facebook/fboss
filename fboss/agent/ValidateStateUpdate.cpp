@@ -66,8 +66,8 @@ bool isStateUpdateValidCommon(const StateDelta& delta) {
 
 bool isStateUpdateValidMultiSwitch(
     const StateDelta& delta,
-    const SwitchIdScopeResolver* /*resolver*/,
-    const std::map<SwitchID, const HwAsic*>& /*hwAsics*/) {
+    const SwitchIdScopeResolver* resolver,
+    const std::map<SwitchID, const HwAsic*>& hwAsics) {
   auto globalQosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
   auto isValid = true;
   if (globalQosDelta.getNew()) {
@@ -119,6 +119,35 @@ bool isStateUpdateValidMultiSwitch(
       }
     }
   }
+
+  DeltaFunctions::forEachChanged(
+      delta.getMirrorsDelta(),
+      [&](const std::shared_ptr<Mirror>& /* oldMirror */,
+          const std::shared_ptr<Mirror>& newMirror) {
+        if (!newMirror->getTruncate()) {
+          // the loop mainly verifies truncate
+          return LoopAction::CONTINUE;
+        }
+        auto scope = resolver->scope(newMirror);
+        for (auto switchId : scope.switchIds()) {
+          auto itr = hwAsics.find(switchId);
+          if (itr == hwAsics.end()) {
+            XLOG(ERR) << "ASIC not found for the switch " << switchId;
+            isValid = false;
+            return LoopAction::BREAK;
+          }
+          if (!itr->second->isSupported(
+                  HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
+            XLOG(ERR)
+                << "Mirror packet truncation is not supported on the switch "
+                << switchId;
+            isValid = false;
+            return LoopAction::BREAK;
+          }
+        }
+        return LoopAction::CONTINUE;
+      });
+
   return isValid;
 }
 
