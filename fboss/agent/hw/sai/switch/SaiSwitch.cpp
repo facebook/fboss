@@ -1037,16 +1037,46 @@ void SaiSwitch::processChangedAndAddedRoutesDelta(
   }
 }
 
+// Determine rollback index based on deltaApplicationBehavior
+std::optional<int> getRollbackIndexFromDeltaApplicationBehavior(
+    const std::vector<StateDelta>& deltas,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
+  std::optional<int> rollbackIndex = std::nullopt;
+  if (deltaApplicationBehavior.has_value()) {
+    const auto& app = deltaApplicationBehavior.value();
+    switch (*app.mode()) {
+      case DeltaApplicationMode::APPLY_ALL:
+        // Normal mode - no rollback
+        break;
+      case DeltaApplicationMode::ROLLBACK:
+        // Rollback at the end - use last delta index
+        rollbackIndex = static_cast<int>(deltas.size()) - 1;
+        break;
+      case DeltaApplicationMode::ROLLBACK_AT_INDEX:
+        // Rollback at specific index
+        if (app.rollbackIndex().has_value()) {
+          rollbackIndex = *app.rollbackIndex();
+        }
+        break;
+      default:
+        break;
+    }
+  }
+  return rollbackIndex;
+}
+
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
     const std::vector<StateDelta>& deltas,
-    const std::optional<
-        StateDeltaApplication>& /* deltaApplicationBehavior */) {
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   FineGrainedLockPolicy lockPolicy(saiSwitchMutex_);
 
   // This is unlikely to happen but if it does, return current state
   if (deltas.size() == 0) {
     return getProgrammedState();
   }
+
+  auto rollbackIndex = getRollbackIndexFromDeltaApplicationBehavior(
+      deltas, deltaApplicationBehavior);
   setIntermediateState(getProgrammedState());
   int count = 0;
   std::shared_ptr<SwitchState> appliedState{nullptr};
@@ -1058,6 +1088,13 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       XLOG(DBG2) << "Failed to apply " << count << " delta in  "
                  << deltas.size() << " deltas";
       return appliedState;
+    }
+    if (rollbackIndex.has_value() && rollbackIndex.value() == count) {
+      throw FbossError(
+          "Forced rollback for testing, size: ",
+          deltas.size(),
+          " at index: ",
+          count);
     }
     // Save the current delta that applied cleanly
     setIntermediateState(appliedState);
