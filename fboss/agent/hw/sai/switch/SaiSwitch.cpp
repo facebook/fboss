@@ -4906,12 +4906,6 @@ std::string SaiSwitch::listObjectsLocked(
   if (cached) {
     return listCachedObjectsLocked(objects, saiStore_.get(), policy);
   }
-  auto lock = policy.lock();
-  std::unique_ptr<SaiStore> directToHwStore;
-  directToHwStore = std::make_unique<SaiStore>(getSaiSwitchId());
-  auto json = toFollyDynamicLocked(lock);
-  std::unique_ptr<folly::dynamic> adapterKeysJson;
-  std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
 
   /* We're making a change to ensure that the listObjectsLocked functionality
    * remains unchanged for Credo 0.7.2, We added
@@ -4928,14 +4922,25 @@ std::string SaiSwitch::listObjectsLocked(
   }
 #endif
 
-  if (useAdapterKeysJson) {
-    adapterKeysJson = std::make_unique<folly::dynamic>(json[kAdapterKeys]);
-  }
-  adapterKeys2AdapterHostKeysJson =
-      std::make_unique<folly::dynamic>(json[kAdapterKey2AdapterHostKey]);
-  directToHwStore->reload(
-      adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get(), objects);
+  auto reconstructStore = [this, objects, useAdapterKeysJson](
+                              const std::lock_guard<std::mutex>& lock) {
+    std::unique_ptr<SaiStore> directToHwStore{};
 
+    directToHwStore = std::make_unique<SaiStore>(getSaiSwitchId());
+    auto json = toFollyDynamicLocked(lock);
+    std::unique_ptr<folly::dynamic> adapterKeysJson;
+    if (useAdapterKeysJson) {
+      adapterKeysJson = std::make_unique<folly::dynamic>(json[kAdapterKeys]);
+    }
+
+    std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson =
+        std::make_unique<folly::dynamic>(json[kAdapterKey2AdapterHostKey]);
+    directToHwStore->reload(
+        adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get(), objects);
+    return directToHwStore;
+  };
+
+  auto directToHwStore = reconstructStore(policy.lock());
   return directToHwStore->storeStr(objects);
 }
 
