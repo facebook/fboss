@@ -15,6 +15,15 @@ thrift_library(
     thrift_srcs = {"cli.thrift": []},
 )
 
+thrift_library(
+    name = "cli_metadata",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {"cli_metadata.thrift": []},
+)
+
 # NOTE: all of the actual command tree is managed inside CmdList.cpp
 # CmdList.h defines the data structure
 cpp_library(
@@ -844,6 +853,7 @@ cpp_library(
         "commands/config/history/CmdConfigHistory.cpp",
         "commands/config/interface/CmdConfigInterfaceDescription.cpp",
         "commands/config/interface/CmdConfigInterfaceMtu.cpp",
+        "commands/config/qos/buffer_pool/CmdConfigQosBufferPool.cpp",
         "commands/config/rollback/CmdConfigRollback.cpp",
         "commands/config/session/CmdConfigSessionCommit.cpp",
         "commands/config/session/CmdConfigSessionDiff.cpp",
@@ -857,6 +867,8 @@ cpp_library(
         "commands/config/interface/CmdConfigInterface.h",
         "commands/config/interface/CmdConfigInterfaceDescription.h",
         "commands/config/interface/CmdConfigInterfaceMtu.h",
+        "commands/config/qos/CmdConfigQos.h",
+        "commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h",
         "commands/config/rollback/CmdConfigRollback.h",
         "commands/config/session/CmdConfigSessionCommit.h",
         "commands/config/session/CmdConfigSessionDiff.h",
@@ -867,6 +879,7 @@ cpp_library(
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/glog:glog",
         "fbsource//third-party/re2:re2",
+        ":cli_metadata-cpp2-types",
         ":cmd-common-utils",
         ":cmd-handler",
         ":fboss2-lib",
