@@ -322,7 +322,7 @@ class SaiSwitch : public HwSwitch {
       const FineGrainedLockPolicy& policy) const;
   void listManagedObjectsLocked(
       std::string& output,
-      const std::lock_guard<std::mutex>& lock) const;
+      const FineGrainedLockPolicy& policy) const;
   void switchRunStateChangedImpl(SwitchRunState newState) override;
 
   TeFlowStats getTeFlowStats() const override;

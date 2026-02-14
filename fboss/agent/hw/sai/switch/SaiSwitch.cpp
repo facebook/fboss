@@ -5068,19 +5068,24 @@ std::string SaiSwitch::listObjects(
   FineGrainedLockPolicy policy(saiSwitchMutex_);
   auto output = listObjectsLocked(objTypes, cached, policy);
   if (listManagedObjects) {
-    listManagedObjectsLocked(output, policy.lock());
+    listManagedObjectsLocked(output, policy);
   }
   return output;
 }
 
 void SaiSwitch::listManagedObjectsLocked(
     std::string& output,
-    const std::lock_guard<std::mutex>& /*lock*/) const {
+    const FineGrainedLockPolicy& policy) const {
+  auto listObjectsLocked = [&output](
+                               const auto& objectMgr,
+                               const std::lock_guard<std::mutex>& /*lock*/) {
+    output += objectMgr.listManagedObjects();
+  };
   output += "\nmanaged sai objects\n";
-  output += managerTable_->fdbManager().listManagedObjects();
-  output += managerTable_->neighborManager().listManagedObjects();
-  output += managerTable_->nextHopManager().listManagedObjects();
-  output += managerTable_->nextHopGroupManager().listManagedObjects();
+  listObjectsLocked(managerTable_->fdbManager(), policy.lock());
+  listObjectsLocked(managerTable_->neighborManager(), policy.lock());
+  listObjectsLocked(managerTable_->nextHopManager(), policy.lock());
+  listObjectsLocked(managerTable_->nextHopGroupManager(), policy.lock());
 }
 
 uint32_t SaiSwitch::generateDeterministicSeed(
