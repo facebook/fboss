@@ -25,8 +25,11 @@ constexpr auto kPciWaitSecs =
     std::chrono::seconds(10); // T235561085 - Change back to 5 when root cause
                               // of iob creation delay is fixed
 constexpr auto kPciDeviceCreationTimeoutThreshold = std::chrono::seconds(1);
+constexpr auto kPciDeviceCreationSlowThreshold = std::chrono::seconds(5);
 const std::string kPciDeviceCreationTimeoutCounter =
     "pci_explorer.pci_device_creation_timeout";
+const std::string kPciDeviceCreationSlowCounter =
+    "pci_explorer.pci_device_creation_slow";
 
 // Wrapper function that tracks device readiness timing and increments fb303
 // counter when device creation takes longer than the threshold
@@ -49,6 +52,14 @@ bool checkDeviceReadinessWithTimeout(
         kPciDeviceCreationTimeoutThreshold.count());
     facebook::fb303::fbData->incrementCounter(
         kPciDeviceCreationTimeoutCounter, 1);
+  }
+  if (elapsed > kPciDeviceCreationSlowThreshold) {
+    XLOG(WARNING) << fmt::format(
+        "Device {} creation took {}s, which exceeds slow threshold of {}s. Incrementing slow counter.",
+        pciSubDeviceName,
+        std::chrono::duration_cast<std::chrono::seconds>(elapsed).count(),
+        kPciDeviceCreationSlowThreshold.count());
+    facebook::fb303::fbData->incrementCounter(kPciDeviceCreationSlowCounter, 1);
   }
 
   return result;
