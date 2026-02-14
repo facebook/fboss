@@ -534,6 +534,9 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
    * - Verify all transceivers are upgraded
    */
 
+  // Allow all optics using the same EVB to be upgraded in this test
+  gflags::SetCommandLineOptionWithMode(
+      "max_concurrent_evb_fw_upgrade", "8", gflags::SET_FLAGS_DEFAULT);
   long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
 
   auto tcvrsToTest = transceiversToTest();
