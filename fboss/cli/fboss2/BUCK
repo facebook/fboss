@@ -220,6 +220,8 @@ cpp_library(
 cpp_library(
     name = "commands-show-bgp",
     headers = [
+        "commands/clear/facebook/bgp/profiler/CmdClearBgpProfiler.h",
+        "commands/set/facebook/bgp/profiler/CmdSetBgpProfilerFilter.h",
         "commands/show/facebook/bgp/CmdShowBgpInitializationEvents.h",
         "commands/show/facebook/bgp/CmdShowBgpOriginatedRoutes.h",
         "commands/show/facebook/bgp/changelist/CmdShowBgpChangelist.h",
@@ -233,6 +235,7 @@ cpp_library(
         "commands/show/facebook/bgp/neighbors/received/BgpNeighborsReceivedPrePolicy.h",
         "commands/show/facebook/bgp/neighbors/received/BgpNeighborsReceivedRejected.h",
         "commands/show/facebook/bgp/neighbors/session_id/CmdBgpNeighborsSessionId.h",
+        "commands/show/facebook/bgp/profiler/CmdShowBgpProfiler.h",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicy.h",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyCps.h",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyCrf.h",
@@ -255,6 +258,8 @@ cpp_library(
         "commands/show/facebook/bgp/table/CmdShowBgpTableFbnet.h",
         "commands/show/facebook/bgp/table/CmdShowBgpTableMoreSpecifics.h",
         "commands/show/facebook/bgp/table/CmdShowBgpTablePrefix.h",
+        "commands/start/facebook/bgp/profiler/CmdStartBgpProfiler.h",
+        "commands/stop/facebook/bgp/profiler/CmdStopBgpProfiler.h",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
