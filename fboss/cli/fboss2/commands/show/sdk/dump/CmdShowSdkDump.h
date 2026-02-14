@@ -10,12 +10,8 @@
 
 #pragma once
 
-#include <boost/algorithm/string.hpp>
 #include <folly/testing/TestUtil.h>
-#include <fstream>
-#include <unordered_set>
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/utils/Table.h"
 
 namespace facebook::fboss {
 
@@ -32,42 +28,8 @@ class CmdShowQsfpSdkDump
   using RetType = CmdShowQsfpSdkDumpTraits::RetType;
   std::unique_ptr<folly::test::TemporaryFile> tempSdkFile;
 
-  RetType queryClient(const HostInfo& hostInfo) {
-    auto client =
-        utils::createClient<facebook::fboss::QsfpServiceAsyncClient>(hostInfo);
-
-    if (!tempSdkFile.get()) {
-      // Creating exception safe unique file which will get removed on exiting
-      // scope for unique pointer
-      tempSdkFile = std::make_unique<folly::test::TemporaryFile>(
-          folly::StringPiece() /* namePrefix */,
-          folly::fs::path() /* dir */,
-          folly::test::TemporaryFile::Scope::UNLINK_ON_DESTRUCTION /* scope */);
-    }
-
-    bool rc = client->sync_getSdkState(tempSdkFile->path().string());
-    return rc;
-  }
-
-  void printOutput(const RetType& rc, std::ostream& out = std::cout) {
-    std::ifstream sdkDumpStream;
-    std::string outputLine;
-
-    if (!rc) {
-      out << "Getting SDK state failed" << std::endl;
-      return;
-    }
-    out << "Printing SDK state:" << std::endl;
-
-    // Read the temp file with SDK dump
-    if (!folly::readFile(tempSdkFile->path().string().c_str(), outputLine)) {
-      out << "Reading temp file " << tempSdkFile->path().string() << " failed"
-          << std::endl;
-      return;
-    }
-    // Print temp file
-    out << outputLine << std::endl;
-  }
+  RetType queryClient(const HostInfo& hostInfo);
+  void printOutput(const RetType& rc, std::ostream& out = std::cout);
 };
 
 struct CmdShowAgentSdkDumpTraits : public ReadCommandTraits {
@@ -83,20 +45,8 @@ class CmdShowAgentSdkDump
   using RetType = CmdShowAgentSdkDumpTraits::RetType;
   std::unique_ptr<folly::test::TemporaryFile> tempSdkFile;
 
-  RetType queryClient(const HostInfo& hostInfo) {
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    std::string debugDump{};
-    client->sync_getHwDebugDump(debugDump);
-    return debugDump;
-  }
-
-  void printOutput(const RetType& rc, std::ostream& out = std::cout) {
-    std::ifstream sdkDumpStream;
-    std::string outputLine;
-
-    out << "Printing Agent SDK state:" << std::endl;
-    out << rc;
-  }
+  RetType queryClient(const HostInfo& hostInfo);
+  void printOutput(const RetType& rc, std::ostream& out = std::cout);
 };
+
 } // namespace facebook::fboss

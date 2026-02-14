@@ -239,11 +239,25 @@ cpp_library(
     srcs = [
         "ConfigUtils.cpp",
     ],
+    # Prevent other libraries from depending on this one. This is to prevent
+    # BIOS access from other binaries. Only platform_manager should read from
+    # BIOS to determine platform name and populate cache file.
+    visibility = [
+        "//fboss/platform/platform_hw_test:platform_hw_test",
+        "//fboss/platform/platform_manager:platform_manager",
+        "//fboss/platform/platform_manager/hw_test:platform_manager_hw_test",
+        "//fboss/platform/platform_manager/tests:config_utils_test",
+    ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":config_validator",
         ":platform_manager_config-cpp2-types",
         "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_name_lib",
+        "//folly:string",
+        "//folly/hash:hash",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
@@ -291,6 +305,7 @@ cpp_binary(
     deps = [
         ":config_utils",
         ":pkg_manager",
+        ":platform_explorer",
         ":platform_manager_handler",
         ":scuba_logger",
         "//fb303:logging",

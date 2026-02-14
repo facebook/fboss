@@ -11,6 +11,7 @@ cpp_binary(
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         "//fb303:service_data",
+        "//fboss/lib:thrift_service_utils",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/data_corral_service:core",
         "//fboss/platform/data_corral_service:led_management",

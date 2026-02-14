@@ -1324,6 +1324,12 @@ struct Port {
    * Controls whether AM idles are enabled on the port.
    */
   37: optional bool amIdles;
+
+  /*
+   * Cable Length Measurement (CLM) enable configuration.
+   * Controls whether cable length measurement is enabled on the port.
+   */
+  38: optional bool clmEnable;
 }
 
 enum LacpPortRate {
@@ -1536,6 +1542,7 @@ enum AsicType {
   ASIC_TYPE_AGERA3 = 19,
   ASIC_TYPE_G202X = 20,
   ASIC_TYPE_FAKE_NO_WARMBOOT = 21,
+  ASIC_TYPE_TOMAHAWKULTRA1 = 22,
 }
 /**
  * The configuration for an interface

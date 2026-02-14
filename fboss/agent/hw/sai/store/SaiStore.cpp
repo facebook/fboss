@@ -24,9 +24,11 @@ void SaiStore::setSwitchId(sai_object_id_t switchId) {
 
 void SaiStore::reload(
     const folly::dynamic* adapterKeysJson,
-    const folly::dynamic* adapterKeys2AdapterHostKeyJson) {
+    const folly::dynamic* adapterKeys2AdapterHostKeyJson,
+    const std::vector<sai_object_type_t>& objTypes) {
   tupleForEach(
-      [adapterKeysJson, adapterKeys2AdapterHostKeyJson](auto& store) {
+      [adapterKeysJson, adapterKeys2AdapterHostKeyJson, &objTypes](
+          auto& store) {
         using ObjectTraits =
             typename std::decay_t<decltype(store)>::ObjectTraits;
         const folly::dynamic* adapterKeys = adapterKeysJson
@@ -35,6 +37,14 @@ void SaiStore::reload(
         const folly::dynamic* adapterHostKeys = adapterKeys2AdapterHostKeyJson
             ? adapterKeys2AdapterHostKeyJson->get_ptr(store.objectTypeName())
             : nullptr;
+
+        if (!objTypes.empty() &&
+            std::find(
+                objTypes.begin(), objTypes.end(), ObjectTraits::ObjectType) ==
+                objTypes.end()) {
+          // reloading only for the specified object types
+          return;
+        }
         // Refer to D75845886 for details
         // In the adapterKey2AdapterHostKey map in warm boot file,
         // Pre D75845886, adapterHostKey for nhop-group is a simple list of
@@ -166,6 +176,16 @@ std::string SaiStore::storeStr(sai_object_type_t objType) const {
   if (!output.size()) {
     throw FbossError("Object type {}, not found ", objType);
   }
+  return output;
+}
+
+std::string SaiStore::storeStr(
+    const std::vector<sai_object_type_t>& objTypes) const {
+  std::string output;
+  std::for_each(
+      objTypes.begin(), objTypes.end(), [&output, this](auto objType) {
+        output += storeStr(objType);
+      });
   return output;
 }
 

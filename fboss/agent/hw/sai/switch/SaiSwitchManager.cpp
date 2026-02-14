@@ -1637,6 +1637,11 @@ bool SaiSwitchManager::isPtpTcEnabled() const {
   return ptpTcEnabled;
 }
 
+bool SaiSwitchManager::isMeasureCableLengthEnabled() const {
+  return GET_OPT_ATTR(
+      Switch, CablePropagationDelayMeasurement, switch_->attributes());
+}
+
 void SaiSwitchManager::setPfcWatchdogTimerGranularity(
     int pfcWatchdogTimerGranularityMsec) {
 #if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_11_0)

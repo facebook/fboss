@@ -37,7 +37,5 @@ void StatsPublisher::bumpHighVccPort(std::string& /* portName */) {}
 // static
 void StatsPublisher::initPerPortFb303Stats(
     std::set<std::string>& /* portNames */) {}
-// static
-void StatsPublisher::initPerPimFb303Stats(const PimID& /* pimID */) {}
 } // namespace fboss
 } // namespace facebook

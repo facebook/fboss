@@ -24,6 +24,7 @@ target_link_libraries(fsdb_test_server
   fsdb_oper_cpp2
   Folly::folly
   FBThrift::thriftcpp2
+  thrift_service_utils
 )
 
 add_library(fsdb_test_subscriber

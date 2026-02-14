@@ -98,6 +98,9 @@ class PlatformMapping {
       PlatformPortProfileConfigMatcher matcher,
       phy::Side side) const;
 
+  // Get the DriverPeaking overrides for a port if it exists
+  std::optional<std::map<int32_t, int32_t>> getPortDriverPeakingOverrides(
+      PlatformPortProfileConfigMatcher matcher) const;
   // Match the PinConfig for a PlatformPortProfileConfigMatcher
   std::vector<phy::PinConfig> getPortIphyPinConfigs(
       PlatformPortProfileConfigMatcher matcher) const;

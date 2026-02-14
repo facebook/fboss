@@ -2,6 +2,7 @@
 
 #include <folly/String.h>
 #include <folly/Subprocess.h>
+#include <folly/system/EnvUtil.h>
 #include <gflags/gflags.h>
 
 #include <thrift/lib/cpp2/protocol/DebugProtocol.h>
@@ -15,6 +16,7 @@
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/HyperPortTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -354,6 +356,14 @@ AgentEnsembleLinkTest::getSingleVlanOrRoutedCabledPorts(
       ecmpPorts.insert(PortDescriptor(port));
     }
   }
+  std::vector<PortDescriptor> hyperPortDescriptors;
+  for (auto hyperPortId : utility::getHyperPorts(getSw()->getState())) {
+    if (getSw()->getState()->getPort(hyperPortId)->isPortUp()) {
+      hyperPortDescriptors.emplace_back(hyperPortId);
+      XLOG(DBG2) << "add hyper port " << hyperPortId << " to ecmp ports";
+    }
+  }
+  ecmpPorts.insert(hyperPortDescriptors.begin(), hyperPortDescriptors.end());
   return ecmpPorts;
 }
 
@@ -379,7 +389,9 @@ void AgentEnsembleLinkTest::programDefaultRoute(
       dstMac,
       RouterID(0),
       false,
-      {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
+      {cfg::PortType::INTERFACE_PORT,
+       cfg::PortType::MANAGEMENT_PORT,
+       cfg::PortType::HYPER_PORT});
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
@@ -411,7 +423,9 @@ void AgentEnsembleLinkTest::createL3DataplaneFlood(
       getSw()->getLocalMac(switchId),
       RouterID(0),
       false,
-      {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
+      {cfg::PortType::INTERFACE_PORT,
+       cfg::PortType::MANAGEMENT_PORT,
+       cfg::PortType::HYPER_PORT});
   if (getSw()->getHwAsicTable()->isFeatureSupported(
           switchId, HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
     programDefaultRouteWithDisableTTLDecrement(ecmpPorts, ecmp6);
@@ -781,6 +795,12 @@ int agentEnsembleLinkTestMain(
   kArgc = argc;
   kArgv = argv;
   initAgentEnsembleTest(argc, argv, initPlatformFn, streamType);
+  auto env = folly::experimental::EnvironmentState::fromCurrentEnvironment();
+  std::vector<std::string> environment;
+  for (const auto& [key, value] : *env) {
+    environment.emplace_back(folly::to<std::string>(key, "=", value));
+  }
+  XLOG(INFO) << "Environment Variables: " << folly::join(" ", environment);
   return RUN_ALL_TESTS();
 }
 

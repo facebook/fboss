@@ -10,36 +10,8 @@ void fsdb_stats_storage(
     test_data::RoleSelector selector,
     bool enableHybridStorage) {
   auto factory = test_data::FsdbStatsDataFactory(selector);
-  std::vector<int64_t> memoryMeasurements;
-
-  for (unsigned i = 0; i < iters; i++) {
-    // Use memory-aware helper that reports via UserCounters
-    auto memoryUsage =
-        bm_storage_helper<test_data::FsdbStatsDataFactory::RootT>(
-            factory, enableHybridStorage);
-    if (memoryUsage > 0) {
-      memoryMeasurements.push_back(memoryUsage);
-    }
-  }
-
-  // Calculate and report metrics via UserCounters
-  if (!memoryMeasurements.empty()) {
-    int64_t sum = 0;
-    int64_t maxMem =
-        *std::max_element(memoryMeasurements.begin(), memoryMeasurements.end());
-
-    for (int64_t mem : memoryMeasurements) {
-      sum += mem;
-    }
-
-    int64_t avgMem = sum / static_cast<int64_t>(memoryMeasurements.size());
-
-    // Report metrics - these will appear as columns in benchmark output
-    counters["avg_memory_KB"] =
-        folly::UserMetric(static_cast<double>(avgMem) / 1024.0);
-    counters["max_memory_KB"] =
-        folly::UserMetric(static_cast<double>(maxMem) / 1024.0);
-  }
+  bm_storage_metrics_helper<test_data::FsdbStatsDataFactory::RootT>(
+      factory, counters, iters, selector, enableHybridStorage);
 }
 
 BENCHMARK_COUNTERS_NAME_PARAM(

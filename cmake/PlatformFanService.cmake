@@ -98,6 +98,7 @@ add_executable(fan_service_hw_test
 
 target_link_libraries(fan_service_hw_test
   fan_service_lib
+  thrift_service_utils
   Folly::folly
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}

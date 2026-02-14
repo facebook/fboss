@@ -307,4 +307,10 @@ enum CmisField {
   RX_CONTROL_MAIN_LANE_23 = 454,
   RX_CONTROL_MAIN_LANE_45 = 455,
   RX_CONTROL_MAIN_LANE_67 = 456,
+
+  # Page 10 Input Equilizer settig
+  INPUT_EQ_TX_1_2 = 457,
+  INPUT_EQ_TX_3_4 = 458,
+  INPUT_EQ_TX_5_6 = 459,
+  INPUT_EQ_TX_7_8 = 460,
 }

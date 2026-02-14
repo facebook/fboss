@@ -125,14 +125,12 @@ cfg::SwitchConfig AgentVoqSwitchFabricLinkMonitoringTest::initialConfig(
   auto switchId = l3Asics[0]->getSwitchId();
   CHECK(switchId.has_value()) << "Switch ID not set on ASIC";
   config.switchSettings()->switchId() = static_cast<int64_t>(*switchId);
+  config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
 
   config.switchSettings()->fabricLinkMonitoringSystemPortOffset() =
       kFabricLinkMonitoringSystemPortOffset;
 
   addFabricLinkMonitoringDsfNodes(config, ensemble);
-
-  utility::populatePortExpectedNeighborsToSelf(
-      ensemble.masterLogicalPortIds(), config);
 
   return config;
 }
@@ -149,21 +147,21 @@ void AgentVoqSwitchFabricLinkMonitoringTest::setCmdLineFlagOverrides() const {
 void AgentVoqSwitchFabricLinkMonitoringTest::addFabricLinkMonitoringDsfNodes(
     cfg::SwitchConfig& config,
     const AgentEnsemble& ensemble) const {
-  auto l3Asics = ensemble.getL3Asics();
-  CHECK(!l3Asics.empty()) << "No L3 ASICs found in ensemble";
-  auto asic = l3Asics[0];
-  auto asicType = asic->getAsicType();
-  auto platformType = ensemble.getSw()->getPlatformType();
+  // Hardcode fabric platform and ASIC
+  auto asicType = cfg::AsicType::ASIC_TYPE_RAMON3;
+  auto fabricPlatformType = PlatformType::PLATFORM_MERU800BFA;
 
   // Create 40 fabric switches starting at switch ID 512
   // Fabric switch IDs are 4 apart: 512, 516, 520, ..., 668
   for (int i = 0; i < kNumFabricSwitches; i++) {
-    addFabricDsfNode(config, getFabricSwitchId(i), 1, platformType, asicType);
+    addFabricDsfNode(
+        config, getFabricSwitchId(i), 1, fabricPlatformType, asicType);
   }
 
   // Configure expected neighbor reachability for each fabric port
-  // Each remote fabric switch is reachable over 4 consecutive fabric ports
-  // Remote port names follow the pattern fab1/1/1, fab1/1/2, fab1/1/3, fab1/1/4
+  // Each remote fabric switch is reachable over 4 consecutive fabric
+  // ports. Remote port names follow the pattern fab1/1/1, fab1/1/2,
+  // fab1/1/3, fab1/1/4
   auto fabricPorts = ensemble.masterLogicalFabricPortIds();
   int fabricPortIndex = 0;
   for (auto& portCfg : *config.ports()) {

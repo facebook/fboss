@@ -12,6 +12,7 @@
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
+#include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
@@ -102,6 +103,15 @@ template <>
 std::shared_ptr<MontblancSystemContainer>
 MontblancSystemContainer::getInstance() {
   return _montblancSystemContainer.try_get();
+}
+
+using Minipack3BTASystemContainer =
+    BspGenericSystemContainer<Minipack3BTABspPlatformMapping>;
+folly::Singleton<Minipack3BTASystemContainer> _minipack3btaSystemContainer;
+template <>
+std::shared_ptr<Minipack3BTASystemContainer>
+Minipack3BTASystemContainer::getInstance() {
+  return _minipack3btaSystemContainer.try_get();
 }
 
 using Minipack3NSystemContainer =

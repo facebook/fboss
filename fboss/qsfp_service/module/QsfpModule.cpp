@@ -1188,7 +1188,8 @@ void QsfpModule::customizeTransceiver(TransceiverPortState& portState) {
   }
 }
 
-void QsfpModule::customizeTransceiverLocked(TransceiverPortState& portState) {
+void QsfpModule::customizeTransceiverLocked(
+    const TransceiverPortState& portState) {
   auto& portName = portState.portName;
   auto speed = portState.speed;
   auto startHostLane = portState.startHostLane;

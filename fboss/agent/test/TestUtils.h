@@ -54,14 +54,15 @@ class MockMultiSwitchHwSwitchHandler : public MultiSwitchHwSwitchHandler {
   MOCK_METHOD2(
       stateChanged,
       std::shared_ptr<SwitchState>(const StateDelta&, bool));
-  MOCK_METHOD5(
+  MOCK_METHOD6(
       stateChanged,
       std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>(
           const std::vector<fsdb::OperDelta>&,
           bool,
           const std::shared_ptr<SwitchState>&,
           const std::shared_ptr<SwitchState>&,
-          const HwWriteBehavior&));
+          const HwWriteBehavior&,
+          const std::optional<StateDeltaApplication>&));
 };
 
 template <cfg::SwitchType type, bool enableIntfNbrTable, int count = 1>
@@ -431,13 +432,13 @@ RoutePrefixV6 makePrefixV6(std::string str);
  * usage:
  *  EXPECT_STATE_UPDATE(sw)
  */
-#define EXPECT_STATE_UPDATE(sw) EXPECT_HW_CALL(sw, stateChangedImpl(_));
+#define EXPECT_STATE_UPDATE(sw) EXPECT_HW_CALL(sw, stateChangedImpl(_, _));
 
 #define EXPECT_STATE_UPDATE_TIMES(sw, times) \
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(times);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(times);
 
 #define EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, times) \
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(::testing::AtLeast(times));
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(::testing::AtLeast(times));
 
 /**
  * Templatized version of Matching function for Tx/Rx packet.

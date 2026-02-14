@@ -41,6 +41,7 @@ TEST(ConfigLibTest, Basic) {
   EXPECT_NO_THROW(ConfigLib().getFanServiceConfig(kMorgan800cc));
   EXPECT_NO_THROW(ConfigLib().getFanServiceConfig(kJanga800bic));
   EXPECT_NO_THROW(ConfigLib().getFanServiceConfig(kTahan800bc));
+  EXPECT_NO_THROW(ConfigLib().getFanServiceConfig(kBlackwolf800banw));
   EXPECT_NO_THROW(ConfigLib().getFanServiceConfig(kSample));
   EXPECT_THROW(
       ConfigLib().getFanServiceConfig(kNonExistentPlatform),

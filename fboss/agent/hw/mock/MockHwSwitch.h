@@ -32,14 +32,17 @@ class MockHwSwitch : public HwSwitch {
   explicit MockHwSwitch(MockPlatform* platform);
 
   MOCK_METHOD3(initImpl, HwInitResult(Callback*, BootType, bool));
-  MOCK_METHOD1(
-      stateChangedImpl,
-      std::shared_ptr<SwitchState>(const std::vector<StateDelta>& deltas));
   MOCK_METHOD2(
+      stateChangedImpl,
+      std::shared_ptr<SwitchState>(
+          const std::vector<StateDelta>& deltas,
+          const std::optional<StateDeltaApplication>&));
+  MOCK_METHOD3(
       stateChangedTransaction,
       std::shared_ptr<SwitchState>(
           const std::vector<StateDelta>& deltas,
-          const HwWriteBehaviorRAII&));
+          const HwWriteBehaviorRAII&,
+          const std::optional<StateDeltaApplication>&));
   MOCK_CONST_METHOD0(reconstructSwitchState, std::shared_ptr<SwitchState>());
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const override;
