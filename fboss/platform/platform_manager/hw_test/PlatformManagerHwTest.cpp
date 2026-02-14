@@ -7,10 +7,12 @@
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
+#include "fboss/lib/ThriftServiceUtils.h"
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
 #include "fboss/platform/platform_manager/ExplorationErrors.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
+#include "fboss/platform/platform_manager/PlatformExplorer.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
 #include "fboss/platform/platform_manager/ScubaLogger.h"
 
@@ -87,7 +89,7 @@ class PlatformManagerHwTest : public ::testing::Test {
         platformExplorer_, ds.value(), platformConfig_);
     server_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
         thriftHandler_,
-        facebook::fboss::platform::helpers::createTestThriftServerConfig());
+        facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
     pmClient_ =
         server_->newClient<apache::thrift::Client<PlatformManagerService>>();
   }
@@ -101,11 +103,22 @@ class PlatformManagerHwTest : public ::testing::Test {
     return platformExplorer_.updatedPmStatuses_;
   }
   void explorationOk() {
-    auto now = std::chrono::duration_cast<std::chrono::seconds>(
-                   std::chrono::system_clock::now().time_since_epoch())
-                   .count();
-    pkgManager_.processAll();
+    auto startTime = std::chrono::system_clock::now();
+    pkgManager_.processAll(FLAGS_enable_pkg_mgmnt, FLAGS_reload_kmods);
     platformExplorer_.explore();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now() - startTime);
+    auto platformName = platformConfig_.platformName().value();
+    auto maxSetupTime = PlatformExplorer::kMaxSetupTime;
+    if (platformName == "MORGAN800CC") {
+      maxSetupTime = PlatformExplorer::kMaxSetupTimeMorgan800CC;
+    } else if (platformName == "MERU800BFA" || platformName == "MERU800BIA") {
+      maxSetupTime = PlatformExplorer::kMaxSetupTimeMeru800;
+    }
+    EXPECT_LE(duration, maxSetupTime) << fmt::format(
+        "Exploration time {}s exceeded maximum allowed {}s",
+        duration.count(),
+        maxSetupTime.count());
     auto pmStatus = getPmStatus();
     EXPECT_TRUE(
         *pmStatus.explorationStatus() == ExplorationStatus::SUCCEEDED ||
@@ -115,7 +128,11 @@ class PlatformManagerHwTest : public ::testing::Test {
                "Ended with unexpected exploration status {}",
                apache::thrift::util::enumNameSafe(
                    *pmStatus.explorationStatus()));
-    EXPECT_GE(*pmStatus.lastExplorationTime(), now);
+    EXPECT_GE(
+        *pmStatus.lastExplorationTime(),
+        std::chrono::duration_cast<std::chrono::seconds>(
+            startTime.time_since_epoch())
+            .count());
   }
 
   PlatformConfig platformConfig_{ConfigUtils().getConfig()};

@@ -406,6 +406,7 @@ struct FirmwareStatus {
   2: optional i32 fwFault;
   3: optional string dspFwVer;
   4: optional string buildRev;
+  5: optional i32 buildNumber;
 }
 
 struct MediaLaneSettings {

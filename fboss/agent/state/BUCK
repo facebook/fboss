@@ -147,6 +147,7 @@ cpp_library(
         "//fboss/agent:packet",
         "//fboss/agent:platform_config-cpp2-types",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:switch_state-cpp2-reflection",
         "//fboss/agent:switch_state-cpp2-types",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
@@ -216,6 +217,7 @@ cpp_library(
         "StateUpdateHelpers.h",
     ],
     exported_deps = [
+        "//fboss/agent/if:common-cpp2-types",
         "//folly:fbstring",
         "//folly:intrusive_list",
         "//folly:range",

@@ -813,6 +813,9 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_PFC_MONITOR_DIRECTION:
       port.pfcMonitorDirection = attr->value.s32;
       break;
+    case SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE:
+      port.cablePropagationDelayMediaType = attr->value.s32;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -1205,6 +1208,9 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_PFC_MONITOR_DIRECTION:
         attr[i].value.s32 = port.pfcMonitorDirection;
+        break;
+      case SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE:
+        attr[i].value.s32 = port.cablePropagationDelayMediaType;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

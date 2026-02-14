@@ -13,10 +13,6 @@
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/capabilities/gen-cpp2/model_types.h"
-#include "fboss/cli/fboss2/utils/Table.h"
-
-#include <boost/algorithm/string.hpp>
-#include <unordered_set>
 
 namespace facebook::fboss {
 
@@ -39,48 +35,12 @@ class CmdShowInterfaceCapabilities : public CmdHandler<
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const std::vector<std::string>& queriedIfs) {
-    auto client =
-        utils::createClient<facebook::fboss::QsfpServiceAsyncClient>(hostInfo);
-
-    std::map<std::string, std::vector<cfg::PortProfileID>> portProfiles;
-    client->sync_getAllPortSupportedProfiles(portProfiles, true);
-
-    return createModel(portProfiles, queriedIfs);
-  }
-
+      const std::vector<std::string>& queriedIfs);
   RetType createModel(
       const std::map<std::string, std::vector<cfg::PortProfileID>>&
           portProfiles,
-      const std::vector<std::string>& queriedIfs) {
-    RetType model;
-
-    if (queriedIfs.empty()) {
-      model.portProfiles() = portProfiles;
-    } else {
-      for (auto& interface : queriedIfs) {
-        if (portProfiles.find(interface) != portProfiles.end()) {
-          model.portProfiles()[interface] = portProfiles.at(interface);
-        }
-      }
-    }
-
-    return model;
-  }
-
-  void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    Table table;
-    table.setHeader({"Interface", "Profiles"});
-
-    for (auto& [portName, profileList] : model.portProfiles().value()) {
-      std::string profileListStr;
-      for (auto& profile : profileList) {
-        profileListStr +=
-            apache::thrift::util::enumNameSafe(profile) + "\n               ";
-      }
-      table.addRow({portName, profileListStr});
-    }
-    out << table << std::endl;
-  }
+      const std::vector<std::string>& queriedIfs);
+  void printOutput(const RetType& model, std::ostream& out = std::cout);
 };
+
 } // namespace facebook::fboss

@@ -740,6 +740,9 @@ class TransceiverManager {
 
   std::map<std::string, FirmwareUpgradeData> triggerAllOpticsFwUpgrade();
 
+  std::map<std::string, FirmwareUpgradeData> triggerOpticsFwUpgrade(
+      const std::vector<std::string>& interfaces);
+
   // portName to MediaInterfaceCode map
   void getPortMediaInterface(
       std::map<std::string, MediaInterfaceCode>& portMediaInterface);
@@ -941,6 +944,15 @@ class TransceiverManager {
       const BlockingStateUpdateResultList& results);
 
   void setForceRemoveTransceiver(TransceiverID tcvrID);
+
+  /*
+   * If there are portConfigOverrides in the platform mapping, return
+   * the Driver Peaking values for a given port ID.
+   */
+  std::optional<std::map<uint8_t, uint8_t>> getDriverPeakingOverrides(
+      TransceiverID tcvrId,
+      cfg::PortProfileID profile,
+      size_t numberOfLanes);
 
   /*
    * This is the private class to capture all information a
@@ -1188,6 +1200,8 @@ class TransceiverManager {
       snapshotManagers_;
 
   void updateSnapshots();
+
+  void ensureFwUpgradeAllowed() const;
 
   friend class TransceiverStateMachineTest;
 };

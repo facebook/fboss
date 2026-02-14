@@ -112,6 +112,7 @@ struct FakePort {
   sai_uint32_t staticModuleId{};
   bool resetQueueCreditBalance{false};
   sai_int32_t pfcMonitorDirection{0};
+  sai_int32_t cablePropagationDelayMediaType{0};
 };
 
 struct FakePortSerdes {

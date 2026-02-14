@@ -429,6 +429,7 @@ set(core_libs
   dsfnode_utils
   hw_switch_thrift_client_table
   file_based_warmboot_utils
+  validate_state_update
 )
 
 target_link_libraries(core ${core_libs})
@@ -875,4 +876,15 @@ target_link_libraries(test_utils
   load_agent_config
   common_file_utils
   Folly::folly
+)
+
+
+add_library(validate_state_update
+  fboss/agent/ValidateStateUpdate.cpp
+)
+
+target_link_libraries(validate_state_update
+  state
+  fboss_error
+  switchid_scope_resolver
 )

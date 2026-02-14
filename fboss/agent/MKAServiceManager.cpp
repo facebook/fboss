@@ -21,6 +21,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/lib/ThriftServiceUtils.h"
 
 DEFINE_double(
     mka_reconnect_timer,
@@ -48,7 +49,10 @@ MKAServiceManager::MKAServiceManager(SwSwitch* sw) : swSwitch_(sw) {
       FLAGS_mka_reconnect_timer);
   stream_->setPacketAcceptor(this);
   serverThread_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-      stream_, "::1", FLAGS_fboss_mka_port);
+      stream_,
+      "::1",
+      FLAGS_fboss_mka_port,
+      ThriftServiceUtils::createThriftServerConfig());
   stream_->connectClient(FLAGS_mka_service_port);
 }
 

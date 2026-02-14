@@ -9,11 +9,8 @@
  */
 
 #include "fboss/agent/hw/sai/tracer/ArsProfileApiTracer.h"
-#include <typeindex>
-#include <utility>
 
 #include "fboss/agent/hw/sai/api/ArsProfileApi.h"
-#include "fboss/agent/hw/sai/tracer/Utils.h"
 
 using folly::to;
 

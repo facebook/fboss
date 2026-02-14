@@ -292,6 +292,11 @@ SaiPortTraits::Attributes::AttributePfcMonitorDirection::operator()() {
   return SAI_PORT_ATTR_PFC_MONITOR_DIRECTION;
 }
 
+std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
+    AttributeCablePropagationDelayMediaType::operator()() {
+  return SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE;
+}
+
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
   return std::nullopt;

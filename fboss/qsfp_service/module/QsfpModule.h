@@ -375,7 +375,8 @@ class QsfpModule : public Transceiver {
    * Default speed is set to DEFAULT - this will prevent any speed specific
    * settings from being applied
    */
-  virtual void customizeTransceiverLocked(TransceiverPortState& portState) = 0;
+  virtual void customizeTransceiverLocked(
+      const TransceiverPortState& portState) = 0;
 
   /*
    * If the current power state is not same as desired one then change it and

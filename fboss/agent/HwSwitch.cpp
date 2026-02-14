@@ -269,7 +269,8 @@ void HwSwitch::gracefulExit() {
 
 std::shared_ptr<SwitchState> HwSwitch::stateChangedTransaction(
     const std::vector<StateDelta>& deltas,
-    const HwWriteBehaviorRAII& behavior) {
+    const HwWriteBehaviorRAII& behavior,
+    const std::optional<StateDeltaApplication>& /* deltaApplication */) {
   std::vector<fsdb::OperDelta> operDeltas;
   std::transform(
       deltas.begin(),
@@ -326,7 +327,8 @@ void HwSwitch::setIntermediateState(const std::shared_ptr<SwitchState>& state) {
 
 fsdb::OperDelta HwSwitch::stateChanged(
     const std::vector<fsdb::OperDelta>& deltas,
-    const HwWriteBehaviorRAII& /*behavior*/) {
+    const HwWriteBehaviorRAII& /* behavior */,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   std::vector<StateDelta> stateDeltas;
   stateDeltas.reserve(deltas.size());
   auto oldState = getProgrammedState();
@@ -334,7 +336,7 @@ fsdb::OperDelta HwSwitch::stateChanged(
     stateDeltas.emplace_back(oldState, delta);
     oldState = stateDeltas.back().newState();
   }
-  auto state = stateChangedImpl(stateDeltas);
+  auto state = stateChangedImpl(stateDeltas, deltaApplicationBehavior);
   setProgrammedState(state);
   CHECK(!stateDeltas.empty());
   if (getProgrammedState() == stateDeltas.back().newState()) {
@@ -350,14 +352,15 @@ fsdb::OperDelta HwSwitch::stateChanged(
 
 fsdb::OperDelta HwSwitch::stateChangedTransaction(
     const std::vector<fsdb::OperDelta>& deltas,
-    const HwWriteBehaviorRAII& /*behavior*/) {
+    const HwWriteBehaviorRAII& behavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   if (!transactionsSupported()) {
     throw FbossError("Transactions not supported on this switch");
   }
   auto goodKnownState = getProgrammedState();
   fsdb::OperDelta result{};
   try {
-    result = stateChanged(deltas);
+    result = stateChanged(deltas, behavior, deltaApplicationBehavior);
   } catch (const FbossError& e) {
     XLOG(WARNING) << " Transaction failed with error : " << *e.message()
                   << " attempting rollback";
@@ -394,7 +397,24 @@ fsdb::OperDelta HwSwitch::stateChangedTransaction(
         intermediateState);
     this->rollback(reversedDeltas);
     setProgrammedState(goodKnownState);
-    return deltas.front();
+
+    // Return {oldState, newState} indicating nothing is updated in HW
+    //
+    // The behavior in SwSwitch would be no different if either {oldState,
+    // newState} or {newState, oldState} is returned, since
+    // HwSwitchHandler::stateChangedImpl would convert both to oldState.
+    //
+    // {oldState, newState} is chosen since this matches the original
+    // implementation with single delta which just returned the input value
+    std::vector<StateDelta> stateDeltas;
+    stateDeltas.reserve(deltas.size());
+    auto oldState = getProgrammedState();
+    for (const auto& delta : deltas) {
+      stateDeltas.emplace_back(oldState, delta);
+      oldState = stateDeltas.back().newState();
+    }
+    return StateDelta(getProgrammedState(), stateDeltas.back().newState())
+        .getOperDelta();
   }
   return result;
 }

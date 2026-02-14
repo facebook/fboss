@@ -213,3 +213,10 @@ store_unittest(
         "UdfStoreTest.cpp",
     ],
 )
+
+store_unittest(
+    name = "store_reload_test",
+    srcs = [
+        "SaiStoreReloadTest.cpp",
+    ],
+)

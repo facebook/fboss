@@ -660,6 +660,16 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           platform_->getInterfaceType(transmitterTech, speed)) {
     interfaceType = saiInterfaceType.value();
   }
+  std::optional<sai_port_media_type_t> propagationDelayMediaType;
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  if (managerTable_->switchManager().isMeasureCableLengthEnabled()) {
+    if (swPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER ||
+        swPort->getPortType() == cfg::PortType::INTERFACE_PORT) {
+      propagationDelayMediaType =
+          utility::getSaiCablePropagationDelayMediaType(transmitterTech);
+    }
+  }
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   std::optional<SaiPortTraits::Attributes::InterFrameGap> interFrameGap;
   if (platform_->getAsic()->isSupported(HwAsic::Feature::MACSEC) &&
@@ -885,6 +895,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // QosTcAndColorToDot1pMap
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
+        std::nullopt, // CablePropagationDelayMediaType
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -981,6 +992,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosTcAndColorToDot1pMap
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
+      propagationDelayMediaType, // CablePropagationDelayMediaType
   };
 }
 

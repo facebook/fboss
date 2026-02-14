@@ -36,6 +36,11 @@ DEFINE_bool(
     false,
     "Flag to enable setting max FEC sampling for module");
 
+DEFINE_bool(
+    enable_explicit_control,
+    false,
+    "Flag to explicit control to module values overridden for specific vendors");
+
 namespace {
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
@@ -230,6 +235,10 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::APP_SEL_LANE_6, {CmisPages::PAGE10, 150, 1}},
     {CmisField::APP_SEL_LANE_7, {CmisPages::PAGE10, 151, 1}},
     {CmisField::APP_SEL_LANE_8, {CmisPages::PAGE10, 152, 1}},
+    {CmisField::INPUT_EQ_TX_1_2, {CmisPages::PAGE10, 156, 1}},
+    {CmisField::INPUT_EQ_TX_3_4, {CmisPages::PAGE10, 157, 1}},
+    {CmisField::INPUT_EQ_TX_5_6, {CmisPages::PAGE10, 158, 1}},
+    {CmisField::INPUT_EQ_TX_7_8, {CmisPages::PAGE10, 159, 1}},
     {CmisField::RX_CONTROL_PRE_CURSOR, {CmisPages::PAGE10, 162, 4}},
     {CmisField::RX_CONTROL_PRE_CURSOR_LANE_01, {CmisPages::PAGE10, 162, 1}},
     {CmisField::RX_CONTROL_PRE_CURSOR_LANE_23, {CmisPages::PAGE10, 163, 1}},
@@ -421,6 +430,18 @@ static CmisFieldMultiplier qsfpMultiplier = {
     {CmisField::LENGTH_OM3, 2},
     {CmisField::LENGTH_OM2, 1},
     {CmisField::LENGTH_COPPER, 0.1},
+};
+
+static const std::unordered_map<int, std::pair<uint8_t, CmisField>>
+    laneToInputEqTxField = {
+        {0, {0, CmisField::INPUT_EQ_TX_1_2}},
+        {1, {4, CmisField::INPUT_EQ_TX_1_2}},
+        {2, {0, CmisField::INPUT_EQ_TX_3_4}},
+        {3, {4, CmisField::INPUT_EQ_TX_3_4}},
+        {4, {0, CmisField::INPUT_EQ_TX_5_6}},
+        {5, {4, CmisField::INPUT_EQ_TX_5_6}},
+        {6, {0, CmisField::INPUT_EQ_TX_7_8}},
+        {7, {4, CmisField::INPUT_EQ_TX_7_8}},
 };
 
 // A map of programmable FEC sampling pct per Module Media type.
@@ -2357,6 +2378,90 @@ void CmisModule::updateQsfpData(bool allPages) {
 }
 
 /*
+ * applyHostControlledInputEquilizerTx
+ * Sets the InputEquilizerTx value for a given lane.
+ */
+void CmisModule::applyHostControlledInputEquilizerTx(
+    uint8_t lane,
+    uint8_t value) {
+  auto itr = laneToInputEqTxField.find(lane);
+  if (itr == laneToInputEqTxField.end()) {
+    QSFP_LOG(WARN, this) << folly::sformat(
+        "Warning: lane {:#d} is out of range for InputEqTx map", lane);
+    return;
+  }
+  const auto& [shift, field] = itr->second;
+  // only 4 bits are applicable.
+  uint8_t valueToApply = value & 0xF;
+  if (valueToApply != value) {
+    QSFP_LOG(WARN, this) << folly::sformat(
+        "Warning: Value applied {:#d} is out of range for InputEqTx 4 bits",
+        value);
+    return;
+  }
+  valueToApply = valueToApply << shift;
+  // Read field first. Apply the value for the lane, then write it back
+  uint8_t currentVal = 0;
+  readCmisField(field, &currentVal);
+  // Zero out the correct nibble
+  currentVal &= ~(0xF << shift);
+  // apply current value
+  currentVal |= valueToApply;
+  writeCmisField(field, &currentVal);
+}
+
+/*
+ * setExplicitControl
+ *
+ * Sets the HostControlledInputEquilizerTx based on driverPeaking values in
+ * TransceiverPortState. Returns 0x1 when the explicit control is set.
+ */
+
+uint8_t CmisModule::setExplicitControl(
+    const TransceiverPortState& state,
+    const uint8_t laneMask) {
+  uint8_t retVal = 0;
+  if (!FLAGS_enable_explicit_control) {
+    return retVal;
+  }
+  // For now, this is only applicable to LPO
+  if (!isLpoModule()) {
+    return retVal;
+  }
+  auto driverPeaking = state.driverPeaking;
+  if (!driverPeaking) {
+    QSFP_LOG(WARN, this) << "Warning: Driver peaking not set for LPO Module";
+    return retVal;
+  }
+
+  std::vector<uint8_t> lanes;
+  for (uint8_t lane = 0; lane < 8; ++lane) {
+    if (laneMask & (1 << lane)) {
+      lanes.push_back(lane);
+    }
+  }
+
+  if (driverPeaking->size() < lanes.size()) {
+    QSFP_LOG(WARN, this) << folly::sformat(
+        "Warning: Driver peaking override count {:#d} is smaller than Lane count {:#d}",
+        driverPeaking->size(),
+        lanes.size());
+    return retVal;
+  }
+  for (const auto& lane : lanes) {
+    auto itr = driverPeaking->find(lane);
+    if (itr == driverPeaking->end()) {
+      QSFP_LOG(WARN, this) << folly::sformat(
+          "Warning: Driver peaking override for lane {:#d} is missing", lane);
+      continue;
+    }
+    retVal = 0x1;
+    applyHostControlledInputEquilizerTx(lane, itr->second);
+  }
+  return retVal;
+}
+
+/*
  * setApplicationSelectCode
  *
  * Set the Application code to the optics for just one software port. If it
@@ -2366,13 +2471,10 @@ void CmisModule::updateQsfpData(bool allPages) {
 void CmisModule::setApplicationSelectCode(
     uint8_t apSelCode,
     uint8_t mediaInterfaceCode,
-    uint8_t startHostLane,
+    const TransceiverPortState& state,
     uint8_t numHostLanes,
     uint8_t hostLaneMask) {
-  uint8_t dataPathId = startHostLane;
-  uint8_t explicitControl = 0; // Use application dependent settings
-  uint8_t newApSelCode = (apSelCode << 4) | (dataPathId << 1) | explicitControl;
-  QSFP_LOG(INFO, this) << folly::sformat("newApSelCode: {:#x}", newApSelCode);
+  const uint8_t dataPathId = state.startHostLane;
 
   // We can't use numHostLanes() to get the hostLaneCount here since
   // that function relies on the configured application select but at
@@ -2388,8 +2490,7 @@ void CmisModule::setApplicationSelectCode(
   readCmisField(
       CmisField::ACTIVE_CTRL_ALL_LANES, laneToActiveCtrlFieldVals.data());
 
-  for (uint8_t lane = startHostLane; lane < startHostLane + numHostLanes;
-       lane++) {
+  for (uint8_t lane = dataPathId; lane < dataPathId + numHostLanes; lane++) {
     lanesToRelease.insert(lane);
     applySetForReleaseLanes |= (1 << lane);
     // Get all lanes with the same data path ID as this lane
@@ -2428,6 +2529,14 @@ void CmisModule::setApplicationSelectCode(
     }
   }
 
+  const uint8_t lanesToProgram =
+      laneMask(dataPathId, dataPathId + numHostLanes);
+  // Use application dependent settings
+  const uint8_t explicitControl = setExplicitControl(state, lanesToProgram);
+  const uint8_t newApSelCode = (apSelCode << APP_SEL_BITSHIFT) |
+      (dataPathId << DATA_PATH_ID_BITSHIFT) | explicitControl;
+  QSFP_LOG(INFO, this) << folly::sformat("newApSelCode: {:#x}", newApSelCode);
+
   // First release the lanes if they are already part of any datapath
   std::vector<uint8_t> zeroApSelCode(lanesToRelease.size(), 0);
   for (auto it = lanesToRelease.begin(); it != lanesToRelease.end(); it++) {
@@ -2441,8 +2550,7 @@ void CmisModule::setApplicationSelectCode(
 
   std::set<uint8_t> lanesToProgramAppSel;
   std::vector<uint8_t> appSelCode;
-  for (uint8_t lane = startHostLane; lane < startHostLane + numHostLanes;
-       lane++) {
+  for (uint8_t lane = dataPathId; lane < dataPathId + numHostLanes; lane++) {
     // Assign ApSel code to each lane
     QSFP_LOG(INFO, this) << folly::sformat(
         "Configuring lane {:#x} with apsel code {:#x}", lane, newApSelCode);
@@ -2467,18 +2575,17 @@ void CmisModule::setApplicationSelectCode(
  * valid configuration for all the lanes
  */
 void CmisModule::setApplicationSelectCodeAllPorts(
-    cfg::PortSpeed speed,
-    uint8_t startHostLane,
+    const TransceiverPortState& state,
     uint8_t numHostLanes,
     uint8_t hostLaneMask) {
   std::vector<uint8_t> laneProgramValues;
   if (isAecModule()) {
     laneProgramValues =
         CmisHelper::getValidMultiportSpeedConfig<ActiveCuHostInterfaceCode>(
-            speed,
-            startHostLane,
+            state.speed,
+            state.startHostLane,
             numHostLanes,
-            laneMask(startHostLane, numHostLanes),
+            laneMask(state.startHostLane, numHostLanes),
             getNameString(),
             moduleCapabilities_,
             CmisHelper::getActiveValidSpeedCombinations(),
@@ -2486,10 +2593,10 @@ void CmisModule::setApplicationSelectCodeAllPorts(
   } else {
     laneProgramValues =
         CmisHelper::getValidMultiportSpeedConfig<SMFMediaInterfaceCode>(
-            speed,
-            startHostLane,
+            state.speed,
+            state.startHostLane,
             numHostLanes,
-            laneMask(startHostLane, numHostLanes),
+            laneMask(state.startHostLane, numHostLanes),
             getNameString(),
             moduleCapabilities_,
             CmisHelper::getSmfValidSpeedCombinations(),
@@ -2504,8 +2611,12 @@ void CmisModule::setApplicationSelectCodeAllPorts(
         for (auto currApLane = lane;
              currApLane < lane + laneCapability.value().hostLaneCount;
              currApLane++) {
+          const uint8_t lanesToProgram =
+              laneMask(lane, lane + laneCapability.value().hostLaneCount);
+          const uint8_t explicitControl =
+              setExplicitControl(state, lanesToProgram);
           stageSet0Config[currApLane] = currApSelCode << APP_SEL_BITSHIFT |
-              (lane << DATA_PATH_ID_BITSHIFT);
+              (lane << DATA_PATH_ID_BITSHIFT) | explicitControl;
         }
         lane += laneCapability.value().hostLaneCount;
       } else {
@@ -2558,13 +2669,12 @@ void CmisModule::setMaxFecSamplingLocked() {
  * setApplicationSelectCode will be used.
  */
 void CmisModule::programApplicationSelectCode(
-    const std::string& portName,
     uint8_t appSelCode,
     uint8_t moduleMediaInterfaceCode,
-    uint8_t startHostLane,
+    const TransceiverPortState& state,
     uint8_t numHostLanes,
     std::optional<std::function<void()>> appSelectFunc) {
-  uint8_t hostLaneMask = laneMask(startHostLane, numHostLanes);
+  uint8_t hostLaneMask = laneMask(state.startHostLane, numHostLanes);
 
   // Use provided function or create default one
   if (!appSelectFunc) {
@@ -2576,12 +2686,12 @@ void CmisModule::programApplicationSelectCode(
         this,
         appSelCode,
         moduleMediaInterfaceCode,
-        startHostLane,
+        state,
         numHostLanes,
         hostLaneMask);
   }
 
-  resetDataPathWithFunc(portName, appSelectFunc, hostLaneMask);
+  resetDataPathWithFunc(state.portName, appSelectFunc, hostLaneMask);
 
   datapathResetPendingMask_ &= ~hostLaneMask;
 
@@ -2595,7 +2705,7 @@ void CmisModule::programApplicationSelectCode(
 
   // Check if the config has been applied correctly or not
   // TODO: This is a failure scenario. We should Fail somehow !
-  if (!checkLaneConfigError(startHostLane, numHostLanes)) {
+  if (!checkLaneConfigError(state.startHostLane, numHostLanes)) {
     QSFP_LOG(ERR, this) << folly::sformat(
         "application {:#x} could not be set", moduleMediaInterfaceCode);
   }
@@ -2784,15 +2894,12 @@ CmisModule::getAppSelCodeForSpeed(
  * other lanes of the module also.
  */
 void CmisModule::setApplicationCodeLocked(
-    const std::string& portName,
-    cfg::PortSpeed speed,
-    uint8_t startHostLane,
-    uint8_t numHostLanesForPort,
+    const TransceiverPortState& state,
     uint8_t newAppSelCode) {
   QSFP_LOG(INFO, this) << folly::sformat(
       "Trying to set application code for speed {} on startHostLane {}",
-      apache::thrift::util::enumNameSafe(speed),
-      startHostLane);
+      apache::thrift::util::enumNameSafe(state.speed),
+      state.startHostLane);
 
   // For tunable optics, directly program the AppSel code from config
   if (isTunableOptics()) {
@@ -2802,13 +2909,13 @@ void CmisModule::setApplicationCodeLocked(
 
     QSFP_LOG(INFO, this) << folly::sformat(
         "Direct AppSelCode programming for speed {} on startHostLane {} newAppSelCode {}",
-        apache::thrift::util::enumNameSafe(speed),
-        startHostLane,
+        apache::thrift::util::enumNameSafe(state.speed),
+        state.startHostLane,
         newAppSelCode);
 
     // Check if current AppSel matches the desired one
-    uint8_t currentAppSelCode = getCurrentAppSelCode(startHostLane);
-    auto& dpState = portDatapathStates_[portName];
+    uint8_t currentAppSelCode = getCurrentAppSelCode(state.startHostLane);
+    auto& dpState = portDatapathStates_[state.portName];
     auto& initTimers = dpState.initTimers;
     if (currentAppSelCode == newAppSelCode &&
         (initTimers.progStartTimer.time_since_epoch().count() == 0)) {
@@ -2822,17 +2929,13 @@ void CmisModule::setApplicationCodeLocked(
         getInterfaceCodeForAppSel(newAppSelCode, kMediaInterfaceCodeOffset);
 
     programApplicationSelectCode(
-        portName,
-        newAppSelCode,
-        moduleMediaInterfaceCode,
-        startHostLane,
-        numHostLanesForPort);
+        newAppSelCode, moduleMediaInterfaceCode, state, state.numHostLanes);
     return;
   }
 
   // For non-tunable optics, discover the AppSel code based on capabilities
   auto capability = getAppSelCodeForSpeed(
-      portName, speed, startHostLane, numHostLanesForPort);
+      state.portName, state.speed, state.startHostLane, state.numHostLanes);
 
   // If nullopt, means current config already matches, nothing to do
   if (!capability) {
@@ -2850,26 +2953,21 @@ void CmisModule::setApplicationCodeLocked(
   std::optional<std::function<void()>> appSelectFunc = std::nullopt;
 
   if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
-      !isRequestValidMultiportSpeedConfig(speed, startHostLane, numHostLanes)) {
+      !isRequestValidMultiportSpeedConfig(
+          state.speed, state.startHostLane, numHostLanes)) {
     QSFP_LOG(INFO, this) << "Programming App sel on ALL lanes";
-    uint8_t hostLaneMask = laneMask(startHostLane, numHostLanes);
+    uint8_t hostLaneMask = laneMask(state.startHostLane, numHostLanes);
     appSelectFunc = std::bind(
         &CmisModule::setApplicationSelectCodeAllPorts,
         this,
-        speed,
-        startHostLane,
+        state,
         numHostLanes,
         hostLaneMask);
   }
 
   // Use programApplicationSelectCode for both cases
   programApplicationSelectCode(
-      portName,
-      appSelCode,
-      moduleMediaInterfaceCode,
-      startHostLane,
-      numHostLanes,
-      appSelectFunc);
+      appSelCode, moduleMediaInterfaceCode, state, numHostLanes, appSelectFunc);
 }
 
 /*
@@ -3146,16 +3244,14 @@ bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
   return false;
 }
 
-void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
-  auto& portName = portState.portName;
-  auto speed = portState.speed;
-  auto startHostLane = portState.startHostLane;
-  auto numHostLanes = portState.numHostLanes;
+void CmisModule::customizeTransceiverLocked(
+    const TransceiverPortState& portState) {
   QSFP_LOG(INFO, this) << folly::sformat(
-      "customizeTransceiverLocked: PortName {}, Speed {}, StartHostLane {}",
-      portName,
-      apache::thrift::util::enumNameSafe(speed),
-      startHostLane);
+      "customizeTransceiverLocked: PortName {}, Speed {}, StartHostLane {}, NumHostLanes{}",
+      portState.portName,
+      apache::thrift::util::enumNameSafe(portState.speed),
+      portState.startHostLane,
+      portState.numHostLanes);
   /*
    * This must be called with a lock held on qsfpModuleMutex_
    */
@@ -3171,7 +3267,7 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
 
     if (isTunableOptics()) {
       if (portState.opticalChannelConfig.has_value()) {
-        auto& dpState = portDatapathStates_[portName];
+        auto& dpState = portDatapathStates_[portState.portName];
         auto& initTimers = dpState.initTimers;
         // If dp-initialization start timer is not set, invoke
         // programTunableModule
@@ -3186,7 +3282,7 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
       }
     }
 
-    if (speed != cfg::PortSpeed::DEFAULT) {
+    if (portState.speed != cfg::PortSpeed::DEFAULT) {
       if (isTunableOptics()) {
         const auto& chanConfig = portState.opticalChannelConfig;
         if (!chanConfig.has_value() ||
@@ -3196,18 +3292,16 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
               "Tunable optics requires optical channel config with appSelCode for speed configuration");
         }
         auto newAppSelCode = *chanConfig.value().appSelCode();
-        setApplicationCodeLocked(
-            portName, speed, startHostLane, numHostLanes, newAppSelCode);
+        setApplicationCodeLocked(portState, newAppSelCode);
       } else {
-        setApplicationCodeLocked(
-            portName, speed, startHostLane, numHostLanes, kInvalidApplication);
+        setApplicationCodeLocked(portState, kInvalidApplication);
       }
     }
 
     // For 200G-FR4 module operating in 2x50G mode, disable squelch on all lanes
     // so that each lanes can operate independently
     if (getModuleMediaInterface() == MediaInterfaceCode::FR4_200G &&
-        speed == cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG) {
+        portState.speed == cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG) {
       uint8_t squelchDisableValue = 0xF;
       writeCmisField(CmisField::TX_SQUELCH_DISABLE, &squelchDisableValue);
       writeCmisField(CmisField::RX_SQUELCH_DISABLE, &squelchDisableValue);

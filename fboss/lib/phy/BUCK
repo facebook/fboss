@@ -64,6 +64,9 @@ thrift_library(
         "serde",
     ],
     thrift_srcs = {"prbs.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -90,6 +93,9 @@ thrift_library(
         "serde",
     ],
     thrift_srcs = {"link.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 cpp_library(
@@ -142,6 +148,7 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/lib/config:fboss_config_utils",
+        "//fboss/lib/fpga:multi_pim_container",
         "//fboss/lib/link_snapshots:async_filewriter_factory",
         "//fboss/mdio:mdio",
         "//fboss/mka_service/if:mka_structs-cpp2-types",

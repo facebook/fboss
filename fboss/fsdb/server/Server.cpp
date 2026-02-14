@@ -1,4 +1,5 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
+#include "fboss/fsdb/server/Server.h"
 
 #include <boost/algorithm/string/join.hpp>
 #include <gflags/gflags.h>
@@ -6,12 +7,11 @@
 
 #include <folly/init/Init.h>
 
-#include <folly/io/async/AsyncSignalHandler.h>
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/server/FsdbConfig.h"
-#include "fboss/fsdb/server/Server.h"
 #include "fboss/fsdb/server/ServiceHandler.h"
 #include "fboss/fsdb/server/ThriftAcceptor.h"
+#include "fboss/lib/ThriftServiceUtils.h"
 
 using namespace std::chrono_literals; // @donotremove
 
@@ -125,6 +125,8 @@ std::shared_ptr<apache::thrift::ThriftServer> createThriftServer(
     std::shared_ptr<FsdbConfig> fsdbConfig,
     std::shared_ptr<ServiceHandler> handler) {
   auto server = std::make_shared<apache::thrift::ThriftServer>();
+  ThriftServiceUtils::setPreferredEventBaseBackend(*server);
+
   server->setInterface(handler);
   std::vector<folly::SocketAddress> addresses;
   for (auto port :

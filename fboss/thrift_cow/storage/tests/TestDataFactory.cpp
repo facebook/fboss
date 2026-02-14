@@ -3,6 +3,7 @@
 #include "fboss/thrift_cow/storage/tests/TestDataFactory.h"
 #include <fmt/format.h>
 #include <folly/IPAddress.h>
+#include <folly/base64.h>
 
 #include "fboss/thrift_cow/nodes/Serializer.h"
 
@@ -14,6 +15,9 @@
 
 // Include StateGenerator for remote system ports and interfaces
 #include "fboss/fsdb/benchmarks/StateGenerator.h"
+
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+#include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 
 namespace facebook::fboss::test_data {
 
@@ -602,6 +606,262 @@ AgentStatsScale FsdbStatsDataFactory::getRoleScale(RoleSelector role) {
   }
 
   return {1, 1, 1};
+}
+
+// BgpRibMapDataGenerator implementation
+TaggedOperState BgpRibMapDataGenerator::getStateUpdate(
+    int /* unused */,
+    bool /* unused */) {
+  TaggedOperState state;
+  OperState chunk;
+  std::vector<std::string> basePath;
+  chunk.protocol() = protocol_;
+
+  auto fsdbRoot = buildFsdbOperStateRoot();
+
+  chunk.contents() = facebook::fboss::thrift_cow::serialize<
+      apache::thrift::type_class::structure>(protocol_, fsdbRoot);
+
+  state.state() = std::move(chunk);
+  state.path()->path() = std::move(basePath);
+  return state;
+}
+
+fsdb::FsdbOperStateRoot BgpRibMapDataGenerator::buildFsdbOperStateRoot() {
+  fsdb::FsdbOperStateRoot root;
+
+  root.agent() = fsdb::AgentData{};
+  root.bgp() = buildBgpData();
+  root.openr() = fsdb::OpenrData{};
+
+  return root;
+}
+
+BgpRibMapScale BgpRibMapDataGenerator::getScale(RoleSelector role) {
+  static const std::map<RoleSelector, BgpRibMapScale> roleScales = {
+      // Role, ribV4EntryCount, ribV6EntryCount, bestPathsPerEntry,
+      // communitiesPerPath, asPathSegments, extCommunitiesPerPath
+      {RSW, {317, 754, 4, 13, 2, 0}},
+      {FSW, {555, 901, 24, 14, 1, 0}},
+      {FA, {8890, 14221, 10, 12, 1, 1}},
+      // Default fallback
+      {Minimal, {5, 5, 1, 5, 1, 0}},
+      {MaxScale, {10000, 15000, 10, 12, 2, 1}},
+  };
+
+  auto it = roleScales.find(role);
+  if (it == roleScales.end()) {
+    // default to Minimal
+    it = roleScales.find(Minimal);
+  }
+  return it->second;
+}
+
+fsdb::BgpData BgpRibMapDataGenerator::buildBgpData() {
+  fsdb::BgpData bgpData;
+  BgpRibMapScale scale = getScale(selector_);
+
+  std::map<std::string, TRibEntry> ribMap;
+
+  // Generate IPv4 RIB entries
+  for (int i = 0; i < scale.ribV4EntryCount; i++) {
+    TRibEntry entry = buildTRibEntry(scale, i, false);
+    std::string prefixKey = createPrefixKey(*entry.prefix());
+    ribMap[prefixKey] = std::move(entry);
+  }
+
+  // Generate IPv6 RIB entries
+  for (int i = 0; i < scale.ribV6EntryCount; i++) {
+    TRibEntry entry = buildTRibEntry(scale, i, true);
+    std::string prefixKey = createPrefixKey(*entry.prefix());
+    ribMap[prefixKey] = std::move(entry);
+  }
+
+  bgpData.ribMap() = std::move(ribMap);
+  return bgpData;
+}
+
+TRibEntry BgpRibMapDataGenerator::buildTRibEntry(
+    const BgpRibMapScale& scale,
+    int index,
+    bool isV6) {
+  TRibEntry entry;
+
+  auto prefix = createPrefix(index, isV6);
+  entry.prefix() = prefix;
+
+  // Generate paths map with "best" group
+  std::vector<neteng::fboss::bgp::thrift::TBgpPath> bestPaths;
+  for (int j = 0; j < scale.bestPathsPerEntry; j++) {
+    auto path = createBgpPath(
+        index,
+        j,
+        scale.communitiesPerPath,
+        scale.asPathSegments,
+        scale.extCommunitiesPerPath);
+    bestPaths.emplace_back(std::move(path));
+  }
+
+  std::map<std::string, std::vector<neteng::fboss::bgp::thrift::TBgpPath>>
+      pathsMap;
+  pathsMap["best"] = std::move(bestPaths);
+
+  // Set best_group
+  entry.best_group() = "best";
+
+  // Set best_next_hop (use first path's next_hop)
+  if (!pathsMap["best"].empty()) {
+    *entry.best_next_hop() = *pathsMap["best"][0].next_hop();
+  }
+
+  entry.paths() = std::move(pathsMap);
+
+  // Create prefix key string
+  std::string prefixKey = createPrefixKey(prefix);
+
+  return entry;
+}
+
+facebook::neteng::fboss::bgp_attr::TIpPrefix
+BgpRibMapDataGenerator::createPrefix(int index, bool isV6) {
+  facebook::neteng::fboss::bgp_attr::TIpPrefix prefix;
+
+  if (isV6) {
+    // IPv6 prefix
+    prefix.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV6;
+    int hex3 = (index / 512) % 256;
+    int hex4 = index % 256;
+    std::string prefixStr = fmt::format("2401:db00:{:x}:{:x}::/64", hex3, hex4);
+    auto network = folly::IPAddress::createNetwork(prefixStr);
+    auto bytes = network.first.asV6().toByteArray();
+    std::string encoded = folly::base64Encode(
+        std::string_view(
+            reinterpret_cast<const char*>(bytes.data()), bytes.size()));
+    prefix.prefix_bin() = encoded;
+    prefix.num_bits() = 64;
+  } else {
+    // IPv4 prefix
+    prefix.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV4;
+    int octet2 = (index / 256) % 256;
+    int octet3 = index % 256;
+    std::string prefixStr = fmt::format("10.{}.{}.0/24", octet2, octet3);
+    auto network = folly::IPAddress::createNetwork(prefixStr);
+    auto bytes = network.first.asV4().toByteArray();
+    std::string encoded = folly::base64Encode(
+        std::string_view(
+            reinterpret_cast<const char*>(bytes.data()), bytes.size()));
+    prefix.prefix_bin() = encoded;
+    prefix.num_bits() = 24;
+  }
+
+  return prefix;
+}
+
+neteng::fboss::bgp::thrift::TBgpPath BgpRibMapDataGenerator::createBgpPath(
+    int entryIndex,
+    int pathIndex,
+    int numCommunities,
+    int numAsPathSegments,
+    int numExtCommunities) {
+  neteng::fboss::bgp::thrift::TBgpPath path;
+
+  // Create next_hop
+  facebook::neteng::fboss::bgp_attr::TIpPrefix nextHop;
+  nextHop.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV6;
+  std::string nextHopStr =
+      fmt::format("fe80::{:x}:{:x}", entryIndex % 65536, pathIndex % 65536);
+  auto nextHopAddr = folly::IPAddress(nextHopStr);
+  auto bytes = nextHopAddr.asV6().toByteArray();
+  std::string encoded = folly::base64Encode(
+      std::string_view(
+          reinterpret_cast<const char*>(bytes.data()), bytes.size()));
+  nextHop.prefix_bin() = encoded;
+  nextHop.num_bits() = 128;
+  path.next_hop() = nextHop;
+
+  // Create AS path
+  facebook::neteng::fboss::bgp_attr::TAsPath asPath;
+  for (int i = 0; i < numAsPathSegments; i++) {
+    facebook::neteng::fboss::bgp_attr::TAsPathSeg segment;
+    segment.seg_type() =
+        facebook::neteng::fboss::bgp_attr::TAsPathSegType::AS_SEQUENCE;
+
+    // Add 2-3 ASNs per segment
+    int numAsns = 2 + (pathIndex % 2);
+    std::vector<int32_t> asns;
+    std::vector<int64_t> asns_4_byte;
+    for (int j = 0; j < numAsns; j++) {
+      int32_t asn = 65000 + ((entryIndex + pathIndex + i + j) % 1000);
+      asns.push_back(asn);
+      asns_4_byte.push_back(asn);
+    }
+    segment.asns() = asns;
+    segment.asns_4_byte() = asns_4_byte;
+    asPath.push_back(segment);
+  }
+  path.as_path() = asPath;
+
+  // Create communities
+  std::vector<facebook::neteng::fboss::bgp_attr::TBgpCommunity> communities;
+  for (int i = 0; i < numCommunities; i++) {
+    facebook::neteng::fboss::bgp_attr::TBgpCommunity community;
+    int16_t asn = 65400 + (i % 100);
+    int16_t value = 100 + ((entryIndex + pathIndex + i) % 200);
+    community.asn() = asn;
+    community.value() = value;
+    community.community() = (static_cast<int32_t>(asn) << 16) | value;
+    communities.push_back(community);
+  }
+  path.communities() = communities;
+
+  // Create extended communities
+  if (numExtCommunities > 0) {
+    std::vector<neteng::fboss::bgp::thrift::TBgpExtCommunity> extCommunities;
+    for (int i = 0; i < numExtCommunities; i++) {
+      neteng::fboss::bgp::thrift::TBgpExtCommunity extComm;
+      neteng::fboss::bgp::thrift::TBgpExtCommUnion extCommUnion;
+      neteng::fboss::bgp::thrift::TBgpTwoByteAsnExtComm twoByteAsn;
+      twoByteAsn.type() = 64;
+      twoByteAsn.sub_type() = 4;
+      twoByteAsn.asn() = 65000 + (i % 100);
+      twoByteAsn.value() = 1000000 + ((entryIndex + pathIndex) % 1000000);
+      extCommUnion.two_byte_asn() = twoByteAsn;
+      extComm.u() = extCommUnion;
+      extCommunities.push_back(extComm);
+    }
+    path.extCommunities() = extCommunities;
+  }
+
+  // Set other path attributes
+  path.cluster_list() = std::vector<int64_t>{}; // Empty for most paths
+  path.local_pref() = 100;
+  path.router_id() = 3232235777 + (entryIndex % 1000); // ~192.0.2.1 range
+  path.origin() = 0; // IGP
+  path.peer_id() = nextHop;
+  path.bestpath_filter_descr() = "";
+  path.last_modified_time() = 1700000000000000LL + (entryIndex * 1000);
+
+  // Mark first path as best
+  if (pathIndex == 0) {
+    path.is_best_path() = true;
+  }
+
+  return path;
+}
+
+std::string BgpRibMapDataGenerator::createPrefixKey(
+    const facebook::neteng::fboss::bgp_attr::TIpPrefix& prefix) {
+  auto decoded = folly::base64Decode(*prefix.prefix_bin());
+  auto addrResult = folly::IPAddress::tryFromBinary(
+      folly::ByteRange(
+          reinterpret_cast<const unsigned char*>(decoded.data()),
+          decoded.size()));
+  if (addrResult.hasValue()) {
+    auto& addr = addrResult.value();
+    int numBits = *prefix.num_bits();
+    return addr.str() + "/" + std::to_string(numBits);
+  }
+  return "unknown_prefix";
 }
 
 } // namespace facebook::fboss::test_data

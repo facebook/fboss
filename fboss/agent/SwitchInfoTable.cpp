@@ -1,7 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/SwitchInfoTable.h"
-#include "fboss/agent/SwSwitch.h"
 
 #include "fboss/agent/FbossError.h"
 

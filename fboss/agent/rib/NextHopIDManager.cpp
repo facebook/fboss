@@ -316,7 +316,11 @@ void NextHopIDManager::reconstructFromFib(
           processNhopSetId(NextHopSetID(*setIdOpt));
         }
 
-        // TODO: Process normalizedResolvedNextHopID
+        // Process normalizedResolvedNextHopSetID
+        if (auto normalizedSetIdOpt =
+                fwdInfo.getNormalizedResolvedNextHopSetID()) {
+          processNhopSetId(NextHopSetID(*normalizedSetIdOpt));
+        }
       }
     };
 
