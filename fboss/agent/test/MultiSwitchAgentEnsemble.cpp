@@ -70,6 +70,9 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
 void MultiSwitchAgentEnsemble::ensureHwSwitchConnected(SwitchID switchId) {
   auto switchIndex =
       getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+  XLOG(DBG2) << "ensureHwSwitchConnected switchId: "
+             << static_cast<int64_t>(switchId)
+             << " switchIndex: " << switchIndex;
   WITH_RETRIES({
     std::map<int16_t, HwAgentEventSyncStatus> statusMap;
     getSw()->stats()->getHwAgentStatus(statusMap);
