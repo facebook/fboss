@@ -607,6 +607,7 @@ target_link_libraries(switchid_scope_resolver
   hwswitch_matcher
   state
   switchinfo_utils
+  Folly::folly
 )
 
 add_library(hwagent

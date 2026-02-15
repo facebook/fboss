@@ -1461,6 +1461,8 @@ cpp_library(
         ":hwswitch_matcher",
         ":switchinfo_utils",
         "//fboss/agent/state:state",
+        "//folly:string",
+        "//folly/logging:logging",
     ],
     exported_external_deps = [
         ("boost", None, "boost_container"),
