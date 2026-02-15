@@ -548,6 +548,13 @@ bool ConfigValidator::isValidI2cDeviceConfig(
         *i2cDeviceConfig.pmUnitScopedName());
     return false;
   }
+  if (i2cDeviceConfig.eepromOffset() && !*i2cDeviceConfig.isEeprom()) {
+    XLOGF(
+        ERR,
+        "eepromOffset defined while isEeprom is not true for {}",
+        *i2cDeviceConfig.pmUnitScopedName());
+    return false;
+  }
   return true;
 }
 
