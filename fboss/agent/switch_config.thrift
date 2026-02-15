@@ -1891,6 +1891,7 @@ struct SwitchInfo {
    */
   13: optional i32 minLinksPerDeviceToRemainInVOQDomain;
   14: optional i32 minLinksPerDeviceToJoinVOQDomain;
+  15: SystemPortRanges localSystemPortRanges;
 }
 
 /*
