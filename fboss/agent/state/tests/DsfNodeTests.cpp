@@ -274,3 +274,11 @@ TEST(DsfNode, systemPortRanges) {
   EXPECT_FALSE(sysPortRanges.empty());
   EXPECT_EQ(sysPortRanges.size(), 1);
 }
+
+TEST(DsfNode, localSystemPortRanges) {
+  auto dsfNode = makeDsfNode();
+  auto localSysPortRanges =
+      *dsfNode->getLocalSystemPortRanges().systemPortRanges();
+  EXPECT_FALSE(localSysPortRanges.empty());
+  EXPECT_EQ(localSysPortRanges.size(), 1);
+}

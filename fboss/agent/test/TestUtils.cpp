@@ -503,6 +503,8 @@ cfg::DsfNode makeDsfNodeCfg(
     dsfNodeCfg.localSystemPortOffset() = *sysPortRange.minimum();
     dsfNodeCfg.globalSystemPortOffset() = *sysPortRange.minimum();
     dsfNodeCfg.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
+    dsfNodeCfg.localSystemPortRanges()->systemPortRanges()->push_back(
+        sysPortRange);
     dsfNodeCfg.inbandPortId() = kSingleStageInbandPortId;
   }
   dsfNodeCfg.asicType() = asicType;
