@@ -17,6 +17,9 @@
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
 #include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
@@ -56,6 +59,25 @@ const CommandTree& kConfigCommandTree() {
                "Set interface MTU",
                commandHandler<CmdConfigInterfaceMtu>,
                argTypeHandler<CmdConfigInterfaceMtuTraits>,
+           },
+           {
+               "switchport",
+               "Configure switchport settings",
+               commandHandler<CmdConfigInterfaceSwitchport>,
+               argTypeHandler<CmdConfigInterfaceSwitchportTraits>,
+               {{
+                   "access",
+                   "Configure access mode settings",
+                   commandHandler<CmdConfigInterfaceSwitchportAccess>,
+                   argTypeHandler<CmdConfigInterfaceSwitchportAccessTraits>,
+                   {{
+                       "vlan",
+                       "Set access VLAN (ingressVlan) for the interface",
+                       commandHandler<CmdConfigInterfaceSwitchportAccessVlan>,
+                       argTypeHandler<
+                           CmdConfigInterfaceSwitchportAccessVlanTraits>,
+                   }},
+               }},
            }},
       },
 
