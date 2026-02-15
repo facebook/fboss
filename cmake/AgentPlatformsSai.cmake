@@ -91,6 +91,7 @@ add_library(sai_platform ${SAI_PLATFORM_SRC})
 target_link_libraries(sai_platform
   handler
   dsfnode_utils
+  Folly::folly
   product_info
   sai_switch
   thrift_handler

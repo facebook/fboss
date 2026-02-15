@@ -10,6 +10,8 @@
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include <folly/String.h>
+
 #include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
@@ -472,7 +474,9 @@ SaiPlatform::findPortIDAndProfiles(
       "platform port not found ",
       (PortID)portSaiId,
       " speed: ",
-      static_cast<int>(speed));
+      static_cast<int>(speed),
+      ", lanes ",
+      folly::join(",", lanes));
 }
 
 std::vector<SaiPlatformPort*> SaiPlatform::getPortsWithTransceiverID(
