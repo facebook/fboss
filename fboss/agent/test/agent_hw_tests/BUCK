@@ -102,6 +102,7 @@ cpp_library(
     ],
     headers = [
         "AgentArsBase.h",
+        "AgentHwTestConstants.h",
         "AgentVoqSwitchFabricLinkMonitoringTests.h",
     ],
     link_whole = True,
