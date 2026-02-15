@@ -888,7 +888,7 @@ defaultIngressCpuAclsForSai(
     // metadata qualifiers are in post ingress stage
     addHighPriAclForMyIPNetworkControl(
         hwAsic,
-        cfg::ToCpuAction::TRAP,
+        cfg::ToCpuAction::COPY,
         getCoppHighPriQueueId(hwAsic),
         acls,
         true /*isSai*/);
