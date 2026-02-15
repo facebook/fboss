@@ -157,6 +157,8 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(SystemPortID sysPortId) const {
   for (const auto& [id, info] : switchIdToSwitchInfo_) {
     if (withinRange(*info.systemPortRanges(), sysPortId)) {
       return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(id)}));
+    } else if (withinRange(*info.localSystemPortRanges(), sysPortId)) {
+      return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(id)}));
     }
   }
   // This is a non local sys port. So it maps to all local voq switchIds
