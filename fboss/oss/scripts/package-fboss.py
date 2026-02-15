@@ -149,6 +149,9 @@ class PackageFboss:
         hw_sanity_test_configs_path = os.path.join(
             self.git_path, "fboss/oss/hw_sanity_tests"
         )
+        hw_benchmark_tests_path = os.path.join(
+            self.git_path, "fboss/oss/hw_benchmark_tests"
+        )
         print(f"Copying {hw_test_configs_path} to {tmp_dir_name}")
         shutil.copytree(
             "fboss/oss/hw_test_configs",
@@ -168,6 +171,11 @@ class PackageFboss:
         shutil.copytree(
             "fboss/oss/hw_sanity_tests",
             os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_sanity_tests"),
+        )
+        print(f"Copying {hw_benchmark_tests_path} to {tmp_dir_name}")
+        shutil.copytree(
+            "fboss/oss/hw_benchmark_tests",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_benchmark_tests"),
         )
 
     def _copy_production_features(self, tmp_dir_name):
