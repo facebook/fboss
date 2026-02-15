@@ -299,15 +299,32 @@ bool MultiHwSwitchHandler::sendPacketSwitchedSync(
 }
 
 bool MultiHwSwitchHandler::sendPacketSwitchedAsync(
-    std::unique_ptr<TxPacket> pkt) noexcept {
+    std::unique_ptr<TxPacket> pkt,
+    std::optional<SwitchID> switchId) noexcept {
   CHECK_GE(hwSwitchSyncers_.size(), 1);
-  // use first available connected switch to send pkt
-  for (auto& hwSwitchHandler : hwSwitchSyncers_) {
-    if (isHwSwitchConnected(hwSwitchHandler.first)) {
-      return hwSwitchHandler.second->sendPacketSwitchedAsync(std::move(pkt));
+  if (switchId) {
+    auto iter = hwSwitchSyncers_.find(*switchId);
+    if (iter == hwSwitchSyncers_.end()) {
+      XLOG(ERR) << " hw switch syncer for switch id " << *switchId
+                << " not found";
+      return false;
     }
+    if (isHwSwitchConnected(iter->first)) {
+      return iter->second->sendPacketSwitchedAsync(std::move(pkt));
+    }
+    XLOG(WARNING) << "HwSwitch " << *switchId
+                  << " is not connected, dropping packet";
+    return false;
+  } else {
+    // use first available connected switch to send pkt
+    for (auto& hwSwitchHandler : hwSwitchSyncers_) {
+      if (isHwSwitchConnected(hwSwitchHandler.first)) {
+        return hwSwitchHandler.second->sendPacketSwitchedAsync(std::move(pkt));
+      }
+    }
+    XLOG(WARNING) << "No connected HwSwitch found, dropping packet";
+    return false;
   }
-  return false;
 }
 
 bool MultiHwSwitchHandler::sendPacketOutOfPortSyncForPktType(
