@@ -13,6 +13,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
@@ -238,10 +239,10 @@ class AgentDscpMarkingTest : public AgentHwTest {
           vlanId,
           srcMac, // src mac
           intfMac, // dst mac
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::3"), // src ip
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), // dst ip
-          l4SrcPort.has_value() ? l4SrcPort.value() : 8000,
-          l4DstPort.has_value() ? l4DstPort.value() : 8001,
+          folly::IPAddressV6(kTestSrcIpV6), // src ip
+          folly::IPAddressV6(kTestDstIpV6), // dst ip
+          l4SrcPort.has_value() ? l4SrcPort.value() : kTestSrcPort,
+          l4DstPort.has_value() ? l4DstPort.value() : kTestDstPort,
           dscp << 2, // shifted by 2 bits for ECN
           255 // ttl
       );
@@ -251,10 +252,10 @@ class AgentDscpMarkingTest : public AgentHwTest {
           vlanId,
           srcMac, // src mac
           intfMac, // dst mac
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::3"), // src ip
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), // dst ip
-          l4SrcPort.has_value() ? l4SrcPort.value() : 8000,
-          l4DstPort.has_value() ? l4DstPort.value() : 8001,
+          folly::IPAddressV6(kTestSrcIpV6), // src ip
+          folly::IPAddressV6(kTestDstIpV6), // dst ip
+          l4SrcPort.has_value() ? l4SrcPort.value() : kTestSrcPort,
+          l4DstPort.has_value() ? l4DstPort.value() : kTestDstPort,
           dscp << 2, // shifted by 2 bits for ECN
           255 // ttl
       );
