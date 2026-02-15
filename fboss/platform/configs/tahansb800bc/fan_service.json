@@ -4,7 +4,7 @@
   "pwmBoostOnNoQsfpAfterInSec": 0,
   "pwmBoostValue": 100,
   "pwmTransitionValue": 50,
-  "pwmLowerThreshold": 25,
+  "pwmLowerThreshold": 30,
   "pwmUpperThreshold": 100,
   "watchdog": {
     "sysfsPath": "/run/devmap/watchdogs/FAN_WATCHDOG",
@@ -25,9 +25,9 @@
         "kp": 2,
         "ki": 0.6,
         "kd": 0,
-        "setPoint": 95,
-        "posHysteresis": 2,
-        "negHysteresis": 0
+        "setPoint": 90,
+        "posHysteresis": 3,
+        "negHysteresis": 3
       }
     },
     {
@@ -37,12 +37,12 @@
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
-        "kp": 2,
+        "kp": 9,
         "ki": 0.6,
         "kd": 0,
-        "setPoint": 102,
-        "posHysteresis": 3,
-        "negHysteresis": 3
+        "setPoint": 104,
+        "posHysteresis": 1,
+        "negHysteresis": 1
       }
     },
     {
@@ -52,55 +52,12 @@
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
-        "kp": 2,
+        "kp": 8,
         "ki": 0.6,
         "kd": 0,
-        "setPoint": 102,
-        "posHysteresis": 3,
-        "negHysteresis": 3
-      }
-    },
-    {
-      "sensorName": "MCB_U61_MCB_COME_INLET_TSENSOR",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "30": 50,
-        "35": 60,
-        "37": 65,
-        "42": 70
-      },
-      "normalDownTable": {
-        "28": 50,
-        "33": 60,
-        "35": 65,
-        "40": 70
-      },
-      "failUpTable": {
-        "30": 60,
-        "35": 70,
-        "37": 75,
-        "42": 80
-      },
-      "failDownTable": {
-        "28": 60,
-        "33": 70,
-        "35": 75,
-        "40": 80
-      },
-      "twoRotorsFailUpTable": {
-        "30": 70,
-        "35": 80,
-        "37": 85,
-        "42": 90
-      },
-      "twoRotorsFailDownTable": {
-        "28": 70,
-        "33": 80,
-        "35": 85,
-        "40": 90
+        "setPoint": 104,
+        "posHysteresis": 1,
+        "negHysteresis": 1
       }
     },
     {
@@ -110,40 +67,40 @@
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
-        "30": 50,
-        "35": 60,
-        "37": 65,
-        "42": 70
+        "23": 30,
+        "28": 35,
+        "33": 40,
+        "38": 45
       },
       "normalDownTable": {
-        "28": 50,
-        "33": 60,
-        "35": 65,
-        "40": 70
+        "21": 30,
+        "26": 35,
+        "31": 40,
+        "36": 45
       },
       "failUpTable": {
-        "30": 60,
-        "35": 70,
-        "37": 75,
-        "42": 80
-      },
-      "failDownTable": {
+        "23": 50,
         "28": 60,
         "33": 70,
-        "35": 75,
-        "40": 80
+        "38": 80
+      },
+      "failDownTable": {
+        "21": 50,
+        "26": 60,
+        "31": 70,
+        "36": 80
       },
       "twoRotorsFailUpTable": {
-        "30": 70,
-        "35": 80,
-        "37": 85,
-        "42": 90
+        "23": 100,
+        "28": 100,
+        "33": 100,
+        "38": 100
       },
       "twoRotorsFailDownTable": {
-        "28": 70,
-        "33": 80,
-        "35": 85,
-        "40": 90
+        "21": 100,
+        "26": 100,
+        "31": 100,
+        "36": 100
       }
     }
   ],
@@ -245,7 +202,6 @@
         "NETLAKE_U1_CPU_UNCORE_TEMP",
         "MCB_PS108_XP12R0V_PB1_TEMPARTURES",
         "MCB_PS109_XP12R0V_PB2_TEMPARTURES",
-        "MCB_U61_MCB_COME_INLET_TSENSOR",
         "MCB_U62_PB_INLET_TSENSOR"
       ],
       "fanNames": [
