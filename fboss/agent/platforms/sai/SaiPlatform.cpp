@@ -458,10 +458,16 @@ SaiPlatform::findPortIDAndProfiles(
     std::vector<uint32_t> lanes,
     PortSaiId portSaiId) const {
   std::vector<cfg::PortProfileID> matchingProfiles;
+
   for (const auto& portMapping : portMapping_) {
     const auto& platformPort = portMapping.second;
     auto profiles = platformPort->getAllProfileIDsForSpeed(speed);
     for (auto profileID : profiles) {
+      XLOG(DBG5) << "portID: " << portMapping.first
+                 << " profileID : " << static_cast<int>(profileID)
+                 << " expected: " << static_cast<int>(speed)
+                 << " lanes: " << folly::join(",", lanes) << " got lanes: "
+                 << folly::join(",", platformPort->getHwPortLanes(profileID));
       if (platformPort->getHwPortLanes(profileID) == lanes) {
         matchingProfiles.push_back(profileID);
       }
