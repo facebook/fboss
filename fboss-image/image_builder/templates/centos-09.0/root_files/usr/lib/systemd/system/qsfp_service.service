@@ -1,0 +1,33 @@
+# /usr/lib/systemd/system/qsfp_service.service
+[Unit]
+Description=FBOSS QSFP Service
+After=platform_manager.service
+After=rc-local.service
+Wants=fboss_init.service
+After=fboss_init.service
+StartLimitIntervalSec=600
+StartLimitBurst=5
+
+[Service]
+Type=notify
+LimitNOFILE=10000000
+LimitCORE=32G
+MemoryMax=3.75G
+MemorySwapMax=0
+
+Environment="PATH=/opt/fboss/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+Environment="LD_LIBRARY_PATH=/opt/fboss/lib"
+WorkingDirectory=/opt/fboss
+ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/qsfp_service'
+
+Restart=always
+RestartSec=30
+TimeoutStartSec=180s
+
+# Logging to journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=qsfp_service
+
+[Install]
+WantedBy=multi-user.target
