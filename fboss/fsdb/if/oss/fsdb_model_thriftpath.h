@@ -11636,7 +11636,8 @@ std::pair<strings::globalSystemPortOffset, Child<::std::int32_t, ::apache::thrif
 std::pair<strings::systemPortRanges, ChildThriftPath<::facebook::fboss::cfg::SystemPortRanges, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::inbandPortId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::scheduling, Child<::facebook::fboss::cfg::QueueScheduling, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::QueueScheduling>>>,
-std::pair<strings::schedulingParam, ChildThriftPath<::facebook::fboss::cfg::SchedulingParam, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<strings::schedulingParam, ChildThriftPath<::facebook::fboss::cfg::SchedulingParam, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<strings::localSystemPortRanges, ChildThriftPath<::facebook::fboss::cfg::SystemPortRanges, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::facebook::fboss::cfg::DsfNodeType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::DsfNodeType>>>,
@@ -11652,7 +11653,8 @@ std::pair<strings::schedulingParam, ChildThriftPath<::facebook::fboss::cfg::Sche
    std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, ChildThriftPath<::facebook::fboss::cfg::SystemPortRanges, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 14>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 15>, Child<::facebook::fboss::cfg::QueueScheduling, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::QueueScheduling>>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 16>, ChildThriftPath<::facebook::fboss::cfg::SchedulingParam, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 16>, ChildThriftPath<::facebook::fboss::cfg::SchedulingParam, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 17>, ChildThriftPath<::facebook::fboss::cfg::SystemPortRanges, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::name, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::switchId, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -11669,7 +11671,8 @@ std::pair<strings::globalSystemPortOffset, std::integral_constant<apache::thrift
 std::pair<strings::systemPortRanges, std::integral_constant<apache::thrift::field_id_t, 13>>,
 std::pair<strings::inbandPortId, std::integral_constant<apache::thrift::field_id_t, 14>>,
 std::pair<strings::scheduling, std::integral_constant<apache::thrift::field_id_t, 15>>,
-std::pair<strings::schedulingParam, std::integral_constant<apache::thrift::field_id_t, 16>>>::template type_of<Name>;
+std::pair<strings::schedulingParam, std::integral_constant<apache::thrift::field_id_t, 16>>,
+std::pair<strings::localSystemPortRanges, std::integral_constant<apache::thrift::field_id_t, 17>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -11691,6 +11694,7 @@ std::pair<strings::schedulingParam, std::integral_constant<apache::thrift::field
     STRUCT_CHILD_GETTERS(inbandPortId, 14);
     STRUCT_CHILD_GETTERS(scheduling, 15);
     STRUCT_CHILD_GETTERS(schedulingParam, 16);
+    STRUCT_CHILD_GETTERS(localSystemPortRanges, 17);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -11710,6 +11714,7 @@ std::pair<strings::schedulingParam, std::integral_constant<apache::thrift::field
     else if constexpr (__id == 14) { return inbandPortId(); }
     else if constexpr (__id == 15) { return scheduling(); }
     else if constexpr (__id == 16) { return schedulingParam(); }
+    else if constexpr (__id == 17) { return localSystemPortRanges(); }
   }
 
   template <typename T, T... Values>

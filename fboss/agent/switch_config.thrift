@@ -2112,6 +2112,7 @@ struct DsfNode {
   // Offset from where to start local system port
   // ID allocation from
   12: optional i32 globalSystemPortOffset;
+  // Global system port ranges
   13: SystemPortRanges systemPortRanges;
   // Inband port ID - port used by this DSF node
   // for inband communication. This must be known
@@ -2123,6 +2124,7 @@ struct DsfNode {
   // If strict priority, using spPriority
   // If weighted round robin, use wrrWeight
   16: optional SchedulingParam schedulingParam;
+  17: SystemPortRanges localSystemPortRanges;
 }
 
 /**
