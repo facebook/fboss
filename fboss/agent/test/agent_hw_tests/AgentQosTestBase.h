@@ -8,6 +8,8 @@
  *
  */
 
+#pragma once
+
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
