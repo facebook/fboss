@@ -379,4 +379,32 @@ TYPED_TEST(AgentMPLSTest, Swap) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentMPLSTest, Pop) {
+  auto setup = [=, this]() {
+    this->setup();
+    // pop and lookup 1101
+    this->addRoute(
+        LabelID(1101),
+        this->getPortDescriptor(0),
+        {},
+        LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
+    // setup route for 2001::, dest ip under label 1101
+    this->addRoute(
+        folly::IPAddressV6("2001::"), 128, this->getPortDescriptor(0));
+  };
+  auto verify = [=, this]() {
+    auto outPktsBefore = utility::getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalInterfacePortIds()[0]));
+    // send mpls packet with label and let it pop
+    this->sendMplsPacket(1101, this->masterLogicalInterfacePortIds()[1]);
+    // ip packet should be forwarded as per route for 2001::/128
+    WITH_RETRIES({
+      auto outPktsAfter = utility::getPortOutPkts(
+          this->getLatestPortStats(this->masterLogicalInterfacePortIds()[0]));
+      EXPECT_EVENTUALLY_EQ((outPktsAfter - outPktsBefore), 1);
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
