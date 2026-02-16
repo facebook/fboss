@@ -17,8 +17,12 @@
 #include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/state/AclEntry.h"
+#include "fboss/agent/state/AclTable.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
+#include "fboss/agent/state/MatchAction.h"
 #include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
@@ -300,6 +304,67 @@ class AgentMPLSTest : public AgentHwTest {
     XLOG(DBG2) << "sending packet: ";
     XLOG(DBG2) << PktUtil::hexDump(pkt->buf());
     getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), from);
+  }
+
+  void getNexthops(
+      const std::vector<std::pair<PortDescriptor, InterfaceID>>& portIntfs,
+      const std::vector<LabelForwardingAction::LabelStack>& stacks,
+      RouteNextHopSet& nhops) {
+    int idx = 0;
+    for (auto portIntf : portIntfs) {
+      nhops.emplace(ResolvedNextHop(
+          getEcmpHelper()->ip(portIntf.first),
+          portIntf.second,
+          UCMP_DEFAULT_WEIGHT,
+          LabelForwardingAction(
+              LabelForwardingAction::LabelForwardingType::PUSH,
+              stacks[idx++])));
+    }
+  }
+
+  void addRedirectToNexthopAcl(
+      const std::string& aclName,
+      uint32_t ingressVlanId,
+      const std::string& dstPrefix,
+      const std::vector<std::string>& redirectNexthopIps,
+      const std::vector<std::pair<PortDescriptor, InterfaceID>>& portIntfs,
+      const std::vector<LabelForwardingAction::LabelStack>& stacks) {
+    RouteNextHopSet recursiveNexthops;
+    getNexthops(portIntfs, stacks, recursiveNexthops);
+    boost::container::flat_set<PortDescriptor> ports;
+    for (auto portIntf : portIntfs) {
+      ports.emplace(portIntf.first);
+    }
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>& state) {
+          std::shared_ptr<SwitchState> newState;
+          if (ports.size() > 0) {
+            newState = getEcmpHelper()->resolveNextHops(state, ports);
+          } else {
+            newState = state->clone();
+          }
+          auto newAcl = std::make_shared<AclEntry>(
+              AclTable::kDataplaneAclMaxPriority, aclName);
+          newAcl->setDstIp(
+              folly::IPAddress::tryCreateNetwork(dstPrefix).value());
+          newAcl->setVlanID(ingressVlanId);
+          auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();
+          for (auto nhIp : redirectNexthopIps) {
+            cfg::RedirectNextHop nhop;
+            nhop.ip() = nhIp;
+            cfgRedirectToNextHop.redirectNextHops()->push_back(nhop);
+          }
+          auto redirectToNextHop = MatchAction::RedirectToNextHopAction();
+          redirectToNextHop.first = cfgRedirectToNextHop;
+          redirectToNextHop.second = recursiveNexthops;
+          MatchAction action = MatchAction();
+          action.setRedirectToNextHop(redirectToNextHop);
+          newAcl->setAclAction(action);
+          auto acls = newState->getAcls()->modify(&newState);
+          acls->addNode(newAcl, scopeResolver().scope(newAcl));
+          return newState;
+        },
+        "add redirect to nexthop ACL");
   }
 
   void setup() {
@@ -607,6 +672,51 @@ TYPED_TEST(AgentMPLSTest, MplsMatchPktsNottrapped) {
     });
   };
 
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentMPLSTest, AclRedirectToNexthop) {
+  auto setup = [=, this]() {
+    this->setup();
+    std::string dstIp{"2401::201:ab00"};
+    uint8_t mask = 120;
+    this->addRoute(
+        folly::IPAddressV6(dstIp),
+        mask,
+        this->getPortDescriptor(0),
+        {101, 102});
+    std::string dstPrefix{fmt::format("{}/{}", dstIp, mask)};
+    // We are using port 1 as ingress port. Which has ingress vlan_id
+    // kBaseVlanId + 1
+    uint32_t ingressVlan = utility::kBaseVlanId + 1;
+    auto config = this->initialConfig(*this->getAgentEnsemble());
+    std::vector<std::pair<PortDescriptor, InterfaceID>> portIntfs{
+        std::make_pair(
+            this->getPortDescriptor(0),
+            InterfaceID(*config.interfaces()[0].intfID()))};
+    this->addRedirectToNexthopAcl(
+        kAclName, ingressVlan, dstPrefix, {"1000::1"}, portIntfs, {{201, 202}});
+  };
+  auto verify = [=, this]() {
+    // Use different labels from that of the rib route to verify that the
+    // redirect ACL is in effect
+    auto expectedMplsHdr = MPLSHdr({
+        MPLSHdr::Label{202, 5, 0, 254},
+        MPLSHdr::Label{201, 5, 1, 254},
+    });
+    [[maybe_unused]] auto verifier = this->getPacketVerifier(expectedMplsHdr);
+    auto outPktsBefore = utility::getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalInterfacePortIds()[0]));
+    this->sendL3Packet(
+        folly::IPAddressV6("2401::201:ab01"),
+        this->masterLogicalInterfacePortIds()[1],
+        DSCP(16));
+    WITH_RETRIES({
+      auto outPktsAfter = utility::getPortOutPkts(
+          this->getLatestPortStats(this->masterLogicalInterfacePortIds()[0]));
+      EXPECT_EVENTUALLY_EQ((outPktsAfter - outPktsBefore), 1);
+    });
+  };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
