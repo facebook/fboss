@@ -1,0 +1,293 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include <folly/IPAddressV6.h>
+#include <folly/io/Cursor.h>
+
+#include <folly/logging/xlog.h>
+#include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/packet/EthFrame.h"
+#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/state/LabelForwardingEntry.h"
+#include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/state/StateUtils.h"
+#include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/PortStatsTestUtils.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
+#include "fboss/agent/types.h"
+#include "fboss/lib/CommonUtils.h"
+
+#include <gtest/gtest.h>
+#include <memory>
+
+namespace {
+using TestTypes =
+    ::testing::Types<facebook::fboss::PortID, facebook::fboss::AggregatePortID>;
+} // namespace
+
+namespace facebook::fboss {
+
+template <typename PortType>
+class AgentMPLSTest : public AgentHwTest {
+  struct AgentPacketVerifier {
+    AgentPacketVerifier(
+        SwSwitch* sw,
+        bool srcPortQualifierSupported,
+        MPLSHdr hdr)
+        : sw_(sw),
+          srcPortQualifierSupported_(srcPortQualifierSupported),
+          expectedHdr_(hdr) {
+      if (!srcPortQualifierSupported_) {
+        return;
+      }
+      snooper_ = std::make_unique<utility::SwSwitchPacketSnooper>(
+          sw_, "mpls-verifier");
+    }
+
+    AgentPacketVerifier(AgentPacketVerifier&& other) noexcept
+        : sw_(other.sw_),
+          srcPortQualifierSupported_(other.srcPortQualifierSupported_),
+          snooper_(std::move(other.snooper_)),
+          expectedHdr_(other.expectedHdr_) {
+      other.srcPortQualifierSupported_ = false;
+    }
+    AgentPacketVerifier& operator=(AgentPacketVerifier&&) = delete;
+    AgentPacketVerifier(const AgentPacketVerifier&) = delete;
+    AgentPacketVerifier& operator=(const AgentPacketVerifier&) = delete;
+
+    ~AgentPacketVerifier() {
+      if (!srcPortQualifierSupported_) {
+        return;
+      }
+      auto pktBuf = snooper_->waitForPacket(10);
+      if (pktBuf && *pktBuf) {
+        folly::io::Cursor cursor((*pktBuf).get());
+        utility::EthFrame frame(cursor);
+        auto mplsPayLoad = frame.mplsPayLoad();
+        EXPECT_TRUE(mplsPayLoad.has_value());
+        if (mplsPayLoad) {
+          EXPECT_EQ(mplsPayLoad->header(), expectedHdr_);
+        }
+      } else {
+        ADD_FAILURE() << "No packet received for MPLS verification";
+      }
+    }
+
+    SwSwitch* sw_;
+    bool srcPortQualifierSupported_;
+    std::unique_ptr<utility::SwSwitchPacketSnooper> snooper_;
+    MPLSHdr expectedHdr_;
+  };
+
+ protected:
+  void SetUp() override {
+    AgentHwTest::SetUp();
+  }
+
+  utility::EcmpSetupTargetedPorts6* getEcmpHelper() {
+    if (!ecmpHelper_) {
+      ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
+          getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    }
+    return ecmpHelper_.get();
+  }
+
+  PortDescriptor getPortDescriptor(int index) {
+    if constexpr (std::is_same_v<PortType, PortID>) {
+      return PortDescriptor(masterLogicalInterfacePortIds()[index]);
+    } else {
+      return PortDescriptor(AggregatePortID(index + 1));
+    }
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto l3Asics = ensemble.getL3Asics();
+    auto asic = checkSameAndGetAsic(l3Asics);
+    auto masterLogicalPorts = ensemble.masterLogicalPortIds();
+    auto config = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+
+    if constexpr (std::is_same_v<PortType, AggregatePortID>) {
+      utility::addAggPort(1, {masterLogicalPorts[0]}, &config);
+      utility::addAggPort(2, {masterLogicalPorts[1]}, &config);
+      utility::addAggPort(3, {masterLogicalPorts[2]}, &config);
+    }
+    cfg::QosMap qosMap;
+    for (auto tc = 0; tc < 8; tc++) {
+      // setup ingress qos map for dscp
+      cfg::DscpQosMap dscpMap;
+      *dscpMap.internalTrafficClass() = tc;
+      for (auto dscp = 0; dscp < 8; dscp++) {
+        dscpMap.fromDscpToTrafficClass()->push_back(8 * tc + dscp);
+      }
+
+      // setup egress qos map for tc
+      cfg::ExpQosMap expMap;
+      *expMap.internalTrafficClass() = tc;
+      expMap.fromExpToTrafficClass()->push_back(tc);
+      expMap.fromTrafficClassToExp() = 7 - tc;
+
+      qosMap.dscpMaps()->push_back(dscpMap);
+      qosMap.expMaps()->push_back(expMap);
+      qosMap.trafficClassToQueueId()->emplace(tc, tc);
+    }
+    config.qosPolicies()->resize(1);
+    *config.qosPolicies()[0].name() = "qp";
+    config.qosPolicies()[0].qosMap() = qosMap;
+
+    cfg::TrafficPolicyConfig policy;
+    policy.defaultQosPolicy() = "qp";
+    config.dataPlaneTrafficPolicy() = policy;
+
+    utility::setDefaultCpuTrafficPolicyConfig(
+        config, l3Asics, ensemble.isSai());
+    utility::addCpuQueueConfig(config, l3Asics, ensemble.isSai());
+
+    utility::addTrapPacketAcl(asic, &config, masterLogicalPorts[0]);
+    return config;
+  }
+
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::MPLS};
+  }
+
+  void addRoute(
+      folly::IPAddressV6 prefix,
+      uint8_t mask,
+      PortDescriptor port,
+      LabelForwardingAction::LabelStack stack = {}) {
+    applyNewState(
+        [this, &port](const std::shared_ptr<SwitchState>& state) {
+          return getEcmpHelper()->resolveNextHops(state, {port});
+        },
+        "resolve nexthops");
+
+    if (stack.empty()) {
+      getEcmpHelper()->programRoutes(
+          getAgentEnsemble()->getRouteUpdaterWrapper(),
+          {port},
+          {RoutePrefixV6{prefix, mask}});
+    } else {
+      getEcmpHelper()->programIp2MplsRoutes(
+          getAgentEnsemble()->getRouteUpdaterWrapper(),
+          {port},
+          {{port, std::move(stack)}},
+          {RoutePrefixV6{prefix, mask}});
+    }
+  }
+
+  void sendL3Packet(
+      folly::IPAddressV6 dst,
+      PortID from,
+      std::optional<DSCP> dscp = std::nullopt) {
+    CHECK(getEcmpHelper());
+    auto vlan = getVlanIDForTx();
+    if (!vlan) {
+      throw FbossError("VLAN id unavailable for test");
+    }
+    auto vlanId = *vlan;
+
+    // construct eth hdr
+    const auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+
+    EthHdr::VlanTags_t vlans{
+        VlanTag(vlanId, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN))};
+
+    EthHdr eth{intfMac, intfMac, std::move(vlans), 0x86DD};
+    // construct l3 hdr
+    IPv6Hdr ip6{folly::IPAddressV6("1::10"), dst};
+    ip6.nextHeader = 17; /* udp payload */
+    if (dscp) {
+      ip6.trafficClass = (dscp.value() << 2); // last two bits are ECN
+    }
+    UDPHeader udp(4049, 4050, 1);
+    utility::UDPDatagram datagram(udp, {0xff});
+    auto pkt = utility::EthFrame(
+                   eth, utility::IPPacket<folly::IPAddressV6>(ip6, datagram))
+                   .getTxPacket([sw = getSw()](uint32_t size) {
+                     return sw->allocatePacket(size);
+                   });
+    XLOG(DBG2) << "sending packet: ";
+    XLOG(DBG2) << PktUtil::hexDump(pkt->buf());
+    // send pkt on src port, let it loop back in switch and be l3 switched
+    getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), from);
+  }
+
+  void setup() {
+    if constexpr (std::is_same_v<PortType, AggregatePortID>) {
+      applyNewState(
+          [](const std::shared_ptr<SwitchState>& state) {
+            return utility::enableTrunkPorts(state);
+          },
+          "enable trunk ports");
+    }
+  }
+
+  AgentPacketVerifier getPacketVerifier(MPLSHdr hdr) {
+    return AgentPacketVerifier(
+        getSw(),
+        isSupportedOnAllAsics(
+            HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER),
+        hdr);
+  }
+
+  std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
+};
+
+TYPED_TEST_SUITE(AgentMPLSTest, TestTypes);
+
+TYPED_TEST(AgentMPLSTest, Push) {
+  auto setup = [=, this]() {
+    this->setup();
+    // setup ip2mpls route to 2401::201:ab00/120 through
+    // port 0 w/ stack {101, 102}
+    this->addRoute(
+        folly::IPAddressV6("2401::201:ab00"),
+        120,
+        this->getPortDescriptor(0),
+        {101, 102});
+  };
+  auto verify = [=, this]() {
+    auto expectedMplsHdr = MPLSHdr({
+        MPLSHdr::Label{102, 5, 0, 254}, // exp = 5 for tc = 2
+        MPLSHdr::Label{101, 5, 1, 254}, // exp = 5 for tc = 2
+    });
+    [[maybe_unused]] auto verifier = this->getPacketVerifier(expectedMplsHdr);
+
+    auto outPktsBefore = utility::getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalInterfacePortIds()[0]));
+
+    // generate the packet entering port 1
+    this->sendL3Packet(
+        folly::IPAddressV6("2401::201:ab01"),
+        this->masterLogicalInterfacePortIds()[1],
+        DSCP(16)); // tc = 2 for dscp = 16
+
+    WITH_RETRIES({
+      auto outPktsAfter = utility::getPortOutPkts(
+          this->getLatestPortStats(this->masterLogicalInterfacePortIds()[0]));
+      EXPECT_EVENTUALLY_EQ((outPktsAfter - outPktsBefore), 1);
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+} // namespace facebook::fboss

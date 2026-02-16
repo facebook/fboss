@@ -50,6 +50,7 @@ cpp_library(
         "AgentL4PortBlackholingTests.cpp",
         "AgentLoadBalancerTests.cpp",
         "AgentLoopBackTests.cpp",
+        "AgentMPLSTests.cpp",
         "AgentMacLearningAndNeighborResolutionTests.cpp",
         "AgentMacLearningTests.cpp",
         "AgentMemoryUsageTests.cpp",
