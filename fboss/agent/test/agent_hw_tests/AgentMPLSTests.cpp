@@ -24,6 +24,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
@@ -554,6 +555,34 @@ TYPED_TEST(AgentMPLSTest, ExpiringTTL) {
     this->sendMplsPktAndVerifyTrappedCpuQueue(
         utility::kCoppLowPriQueueId, 1101, 1, 1, 1);
   };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentMPLSTest, MplsNoMatchPktsToLowPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    auto portStatsBefore =
+        this->getLatestPortStats(this->masterLogicalInterfacePortIds()[1]);
+    auto statBefore = *portStatsBefore.inLabelMissDiscards_();
+
+    this->sendMplsPktAndVerifyTrappedCpuQueue(utility::kCoppLowPriQueueId);
+
+    WITH_RETRIES({
+      auto portStatsAfter =
+          this->getLatestPortStats(this->masterLogicalInterfacePortIds()[1]);
+      auto statAfter = *portStatsAfter.inLabelMissDiscards_();
+
+      EXPECT_EVENTUALLY_EQ(statBefore + 1, statAfter);
+      EXPECT_EQ(
+          portStatsAfter.inDiscardsRaw_(), portStatsBefore.inDiscardsRaw_());
+      EXPECT_EQ(
+          portStatsAfter.inDstNullDiscards_(),
+          portStatsBefore.inDstNullDiscards_());
+      EXPECT_EQ(portStatsAfter.inDiscards_(), portStatsBefore.inDiscards_());
+    });
+  };
+
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
