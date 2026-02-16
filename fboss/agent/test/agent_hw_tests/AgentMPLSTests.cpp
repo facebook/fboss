@@ -720,4 +720,41 @@ TYPED_TEST(AgentMPLSTest, AclRedirectToNexthop) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentMPLSTest, AclRedirectToNexthopDrop) {
+  // Packets must be dropped if there are no resolved nexthops
+  // in the redirect ACL entry
+  auto setup = [=, this]() {
+    this->setup();
+    std::string dstIp{"2401::201:ab00"};
+    uint8_t mask = 120;
+    this->addRoute(
+        folly::IPAddressV6(dstIp),
+        mask,
+        this->getPortDescriptor(0),
+        {101, 102});
+    std::string dstPrefix{fmt::format("{}/{}", dstIp, mask)};
+    // We are using port 1 as ingress port. Which has ingress vlan_id
+    // kBaseVlanId + 1
+    uint32_t ingressVlan = utility::kBaseVlanId + 1;
+    std::vector<std::pair<PortDescriptor, InterfaceID>> portIntfs;
+    this->addRedirectToNexthopAcl(
+        kAclName, ingressVlan, dstPrefix, {"1000::1"}, portIntfs, {});
+  };
+  auto verify = [=, this]() {
+    auto outPktsBefore = utility::getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalInterfacePortIds()[0]));
+    this->sendL3Packet(
+        folly::IPAddressV6("2401::201:ab01"),
+        this->masterLogicalInterfacePortIds()[1],
+        DSCP(16));
+    WITH_RETRIES({
+      auto outPktsAfter = utility::getPortOutPkts(
+          this->getLatestPortStats(this->masterLogicalInterfacePortIds()[0]));
+      // Packet drop expected
+      EXPECT_EVENTUALLY_EQ(outPktsAfter, outPktsBefore);
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
