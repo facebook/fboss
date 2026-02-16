@@ -35,6 +35,9 @@
 #include <memory>
 
 namespace {
+const facebook::fboss::Label kTopLabel{1101};
+constexpr auto kGetQueueOutPktsRetryTimes = 5;
+const std::string kAclName = "acl0";
 using TestTypes =
     ::testing::Types<facebook::fboss::PortID, facebook::fboss::AggregatePortID>;
 } // namespace
@@ -170,6 +173,26 @@ class AgentMPLSTest : public AgentHwTest {
   }
 
   void addRoute(
+      LabelID label,
+      PortDescriptor port,
+      LabelForwardingAction::LabelStack stack = {},
+      LabelForwardingAction::LabelForwardingType type =
+          LabelForwardingAction::LabelForwardingType::SWAP) {
+    applyNewState(
+        [this, &port](const std::shared_ptr<SwitchState>& state) {
+          return getEcmpHelper()->resolveNextHops(state, {port});
+        },
+        "resolve nexthops");
+
+    getEcmpHelper()->programMplsRoutes(
+        getAgentEnsemble()->getRouteUpdaterWrapper(),
+        {port},
+        {{port, std::move(stack)}},
+        {label},
+        type);
+  }
+
+  void addRoute(
       folly::IPAddressV6 prefix,
       uint8_t mask,
       PortDescriptor port,
@@ -231,6 +254,43 @@ class AgentMPLSTest : public AgentHwTest {
     getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), from);
   }
 
+  void sendMplsPacket(
+      uint32_t topLabel,
+      PortID from,
+      std::optional<EXP> exp = std::nullopt,
+      uint8_t ttl = 128,
+      folly::IPAddressV6 dstIp = folly::IPAddressV6("2001::")) {
+    const auto srcMac = utility::kLocalCpuMac();
+    const auto dstMac = utility::kLocalCpuMac(); /* for l3 switching */
+
+    auto vlan = getVlanIDForTx();
+    if (!vlan) {
+      throw FbossError("VLAN id unavailable for test");
+    }
+    auto vlanId = *vlan;
+
+    uint8_t tc = exp.has_value() ? static_cast<uint8_t>(exp.value()) : 0;
+    MPLSHdr::Label mplsLabel{topLabel, tc, true, ttl};
+
+    auto srcIp = folly::IPAddressV6(("1001::"));
+
+    auto frame = utility::getEthFrame(
+        srcMac,
+        dstMac,
+        {mplsLabel},
+        srcIp,
+        dstIp,
+        10000,
+        20000,
+        VlanID(vlanId));
+
+    auto pkt = frame.getTxPacket(
+        [sw = getSw()](uint32_t size) { return sw->allocatePacket(size); });
+    XLOG(DBG2) << "sending packet: ";
+    XLOG(DBG2) << PktUtil::hexDump(pkt->buf());
+    getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), from);
+  }
+
   void setup() {
     if constexpr (std::is_same_v<PortType, AggregatePortID>) {
       applyNewState(
@@ -280,6 +340,35 @@ TYPED_TEST(AgentMPLSTest, Push) {
         folly::IPAddressV6("2401::201:ab01"),
         this->masterLogicalInterfacePortIds()[1],
         DSCP(16)); // tc = 2 for dscp = 16
+
+    WITH_RETRIES({
+      auto outPktsAfter = utility::getPortOutPkts(
+          this->getLatestPortStats(this->masterLogicalInterfacePortIds()[0]));
+      EXPECT_EVENTUALLY_EQ((outPktsAfter - outPktsBefore), 1);
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentMPLSTest, Swap) {
+  auto setup = [=, this]() {
+    this->setup();
+    this->addRoute(LabelID(1101), this->getPortDescriptor(0), {11});
+  };
+  auto verify = [=, this]() {
+    auto expectedMplsHdr = MPLSHdr({
+        MPLSHdr::Label{11, 2, true, 127}, // exp is remarked to 2
+    });
+    [[maybe_unused]] auto verifier = this->getPacketVerifier(expectedMplsHdr);
+
+    auto outPktsBefore = utility::getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalInterfacePortIds()[0]));
+
+    // generate the packet entering port 1
+    this->sendMplsPacket(
+        1101,
+        this->masterLogicalInterfacePortIds()[1],
+        EXP(5)); // send packet with exp 5
 
     WITH_RETRIES({
       auto outPktsAfter = utility::getPortOutPkts(
