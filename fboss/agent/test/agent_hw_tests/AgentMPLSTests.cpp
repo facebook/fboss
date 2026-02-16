@@ -757,4 +757,50 @@ TYPED_TEST(AgentMPLSTest, AclRedirectToNexthopDrop) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+// Verify that redirect does not happen when ACL qualifiers do not match
+TYPED_TEST(AgentMPLSTest, AclRedirectToNexthopMismatch) {
+  auto setup = [=, this]() {
+    this->setup();
+    std::string dstIp{"2401::201:ab00"};
+    uint8_t mask = 120;
+    this->addRoute(
+        folly::IPAddressV6(dstIp),
+        mask,
+        this->getPortDescriptor(0),
+        {101, 102});
+    std::string dstPrefix{fmt::format("{}/{}", dstIp, mask)};
+    auto config = this->initialConfig(*this->getAgentEnsemble());
+    std::vector<std::pair<PortDescriptor, InterfaceID>> portIntfs{
+        std::make_pair(
+            this->getPortDescriptor(0),
+            InterfaceID(*config.interfaces()[0].intfID()))};
+    // Use VLAN ID qualifier value that does not match the actual
+    // ingress vlan.
+    uint32_t ingressVlan = utility::kBaseVlanId + 100;
+    this->addRedirectToNexthopAcl(
+        kAclName, ingressVlan, dstPrefix, {"1000::1"}, portIntfs, {{201, 202}});
+  };
+  auto verify = [=, this]() {
+    auto expectedMplsHdr = MPLSHdr({
+        MPLSHdr::Label{102, 5, 0, 254},
+        MPLSHdr::Label{101, 5, 1, 254},
+    });
+    // Since ACL qualifiers do not match packet fields, packet must
+    // exit via RIB route nexthops
+    [[maybe_unused]] auto verifier = this->getPacketVerifier(expectedMplsHdr);
+    auto outPktsBefore = utility::getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalInterfacePortIds()[0]));
+    this->sendL3Packet(
+        folly::IPAddressV6("2401::201:ab01"),
+        this->masterLogicalInterfacePortIds()[1],
+        DSCP(16));
+    WITH_RETRIES({
+      auto outPktsAfter = utility::getPortOutPkts(
+          this->getLatestPortStats(this->masterLogicalInterfacePortIds()[0]));
+      EXPECT_EVENTUALLY_EQ((outPktsAfter - outPktsBefore), 1);
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
