@@ -803,4 +803,50 @@ TYPED_TEST(AgentMPLSTest, AclRedirectToNexthopMismatch) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+// Test ACL redirect to an ECMP nexthop
+TYPED_TEST(AgentMPLSTest, AclRedirectToNexthopMultipleNexthops) {
+  auto setup = [=, this]() {
+    this->setup();
+    std::string dstIp{"2401::201:ab00"};
+    uint8_t mask = 120;
+    std::string dstPrefix{fmt::format("{}/{}", dstIp, mask)};
+    // We are using port 2 as ingress port. Which has ingress vlan_id
+    // kBaseVlanId + 2
+    uint32_t ingressVlan = utility::kBaseVlanId + 2;
+    auto config = this->initialConfig(*this->getAgentEnsemble());
+    std::vector<std::pair<PortDescriptor, InterfaceID>> portIntfs{
+        std::make_pair(
+            this->getPortDescriptor(0),
+            InterfaceID(*config.interfaces()[0].intfID())),
+        std::make_pair(
+            this->getPortDescriptor(1),
+            InterfaceID(*config.interfaces()[1].intfID())),
+    };
+    this->addRedirectToNexthopAcl(
+        kAclName,
+        ingressVlan,
+        dstPrefix,
+        {"1000::1"},
+        portIntfs,
+        {{201, 202}, {301, 302}});
+  };
+  auto verify = [=, this]() {
+    std::vector<PortID> ports{
+        this->masterLogicalInterfacePortIds()[0],
+        this->masterLogicalInterfacePortIds()[1]};
+    auto outPktsBefore =
+        utility::getPortOutPkts(this->getLatestPortStats(ports));
+    this->sendL3Packet(
+        folly::IPAddressV6("2401::201:ab01"),
+        this->masterLogicalInterfacePortIds()[2],
+        DSCP(16));
+    WITH_RETRIES({
+      auto outPktsAfter =
+          utility::getPortOutPkts(this->getLatestPortStats(ports));
+      EXPECT_EVENTUALLY_EQ((outPktsAfter - outPktsBefore), 1);
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
