@@ -311,6 +311,34 @@ class AgentMPLSTest : public AgentHwTest {
     }
   }
 
+  void sendMplsPktAndVerifyTrappedCpuQueue(
+      int queueId,
+      int label = 1101,
+      const int numPktsToSend = 1,
+      const int expectedPktDelta = 1,
+      uint8_t ttl = 128) {
+    auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
+        getSw(),
+        switchIdForPort(masterLogicalInterfacePortIds()[0]),
+        queueId,
+        0 /* retryTimes */,
+        0 /* expectedNumPkts */);
+    for (int i = 0; i < numPktsToSend; i++) {
+      sendMplsPacket(label, masterLogicalInterfacePortIds()[1], EXP(5), ttl);
+    }
+    WITH_RETRIES({
+      auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
+          getSw(),
+          switchIdForPort(masterLogicalInterfacePortIds()[0]),
+          queueId,
+          kGetQueueOutPktsRetryTimes,
+          beforeOutPkts + numPktsToSend);
+      XLOG(DBG0) << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+                 << ", after pkts:" << afterOutPkts;
+      EXPECT_EVENTUALLY_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+    });
+  }
+
   AgentPacketVerifier getPacketVerifier(MPLSHdr hdr) {
     return AgentPacketVerifier(
         getSw(),
@@ -513,6 +541,18 @@ TYPED_TEST(AgentMPLSTest, punt2Cpu) {
 
     auto mplsPayLoad = frame.mplsPayLoad();
     ASSERT_TRUE(mplsPayLoad.has_value());
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentMPLSTest, ExpiringTTL) {
+  auto setup = [=, this]() {
+    this->setup();
+    this->addRoute(LabelID(1101), this->getPortDescriptor(0), {11});
+  };
+  auto verify = [=, this]() {
+    this->sendMplsPktAndVerifyTrappedCpuQueue(
+        utility::kCoppLowPriQueueId, 1101, 1, 1, 1);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
