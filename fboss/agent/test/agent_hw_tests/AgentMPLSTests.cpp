@@ -432,4 +432,48 @@ TYPED_TEST(AgentMPLSTest, Php) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentMPLSTest, Pop2Cpu) {
+  auto setup = [=, this]() {
+    this->setup();
+    // pop and lookup 1101
+    this->addRoute(
+        LabelID(1101),
+        this->getPortDescriptor(0),
+        {},
+        LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
+  };
+  auto verify = [=, this]() {
+    utility::SwSwitchPacketSnooper snooper(this->getSw(), "pop2cpu-verifier");
+
+    // send mpls packet with label and let it pop
+    this->sendMplsPacket(
+        1101,
+        this->masterLogicalInterfacePortIds()[1],
+        EXP(0),
+        128,
+        folly::IPAddressV6("1::0"));
+    // ip packet should be punted to cpu after Pop
+    auto pktBuf = snooper.waitForPacket(10);
+    ASSERT_TRUE(pktBuf.has_value());
+    ASSERT_TRUE(*pktBuf);
+
+    folly::io::Cursor cursor((*pktBuf).get());
+    utility::EthFrame frame(cursor);
+
+    auto mplsPayLoad = frame.mplsPayLoad();
+    ASSERT_FALSE(mplsPayLoad.has_value());
+
+    auto v6PayLoad = frame.v6PayLoad();
+    ASSERT_TRUE(v6PayLoad.has_value());
+
+    auto udpPayload = v6PayLoad->udpPayload();
+    ASSERT_TRUE(udpPayload.has_value());
+
+    auto hdr = v6PayLoad->header();
+    EXPECT_EQ(hdr.srcAddr, folly::IPAddress("1001::"));
+    EXPECT_EQ(hdr.dstAddr, folly::IPAddress("1::0"));
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
