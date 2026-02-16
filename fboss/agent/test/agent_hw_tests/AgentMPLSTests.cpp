@@ -586,4 +586,28 @@ TYPED_TEST(AgentMPLSTest, MplsNoMatchPktsToLowPriQ) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentMPLSTest, MplsMatchPktsNottrapped) {
+  auto setup = [=, this]() {
+    this->setup();
+    this->addRoute(LabelID(1101), this->getPortDescriptor(0), {11});
+  };
+
+  auto verify = [=, this]() {
+    const auto& mplsNoMatchCounter = utility::getMplsDestNoMatchCounterName();
+    auto statBefore =
+        utility::getAclInOutPackets(this->getSw(), mplsNoMatchCounter);
+
+    this->sendMplsPktAndVerifyTrappedCpuQueue(
+        utility::kCoppLowPriQueueId, 1101, 1 /* To send*/, 0 /* expected*/);
+
+    WITH_RETRIES({
+      auto statAfter =
+          utility::getAclInOutPackets(this->getSw(), mplsNoMatchCounter);
+      EXPECT_EVENTUALLY_EQ(statBefore, statAfter);
+    });
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
