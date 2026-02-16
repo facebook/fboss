@@ -407,4 +407,29 @@ TYPED_TEST(AgentMPLSTest, Pop) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentMPLSTest, Php) {
+  auto setup = [=, this]() {
+    this->setup();
+    // php to exit out of port 0
+    this->addRoute(
+        LabelID(1101),
+        this->getPortDescriptor(0),
+        {},
+        LabelForwardingAction::LabelForwardingType::PHP);
+  };
+  auto verify = [=, this]() {
+    auto outPktsBefore = utility::getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalInterfacePortIds()[0]));
+    // send mpls packet with label and let it forward with php
+    this->sendMplsPacket(1101, this->masterLogicalInterfacePortIds()[1]);
+    // ip packet should be forwarded through port 0
+    WITH_RETRIES({
+      auto outPktsAfter = utility::getPortOutPkts(
+          this->getLatestPortStats(this->masterLogicalInterfacePortIds()[0]));
+      EXPECT_EVENTUALLY_EQ((outPktsAfter - outPktsBefore), 1);
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
