@@ -19,6 +19,7 @@
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
 #include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -215,6 +216,15 @@ class AgentMPLSTest : public AgentHwTest {
           {{port, std::move(stack)}},
           {RoutePrefixV6{prefix, mask}});
     }
+  }
+
+  void addRoute(LabelID label, LabelNextHopEntry& nexthop) {
+    auto updater = getAgentEnsemble()->getRouteUpdaterWrapper();
+    MplsRoute route;
+    route.topLabel() = label;
+    route.nextHops() = util::fromRouteNextHopSet(nexthop.getNextHopSet());
+    updater->addRoute(ClientID::BGPD, route);
+    updater->program();
   }
 
   void sendL3Packet(
@@ -472,6 +482,37 @@ TYPED_TEST(AgentMPLSTest, Pop2Cpu) {
     auto hdr = v6PayLoad->header();
     EXPECT_EQ(hdr.srcAddr, folly::IPAddress("1001::"));
     EXPECT_EQ(hdr.dstAddr, folly::IPAddress("1::0"));
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentMPLSTest, punt2Cpu) {
+  auto setup = [=, this]() {
+    this->setup();
+    LabelNextHopEntry nexthop{
+        LabelNextHopEntry::Action::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE};
+    this->addRoute(LabelID(1101), nexthop);
+  };
+  auto verify = [=, this]() {
+    utility::SwSwitchPacketSnooper snooper(this->getSw(), "punt2cpu-verifier");
+
+    // send mpls packet with label
+    this->sendMplsPacket(
+        1101,
+        this->masterLogicalInterfacePortIds()[1],
+        EXP(0),
+        128,
+        folly::IPAddressV6("1::0"));
+    // mpls packet should be punted to cpu
+    auto pktBuf = snooper.waitForPacket(10);
+    ASSERT_TRUE(pktBuf.has_value());
+    ASSERT_TRUE(*pktBuf);
+
+    folly::io::Cursor cursor((*pktBuf).get());
+    utility::EthFrame frame(cursor);
+
+    auto mplsPayLoad = frame.mplsPayLoad();
+    ASSERT_TRUE(mplsPayLoad.has_value());
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
