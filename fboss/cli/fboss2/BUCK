@@ -836,7 +836,9 @@ cli.metadata(
     name = "cli-fboss2",
     binary_name = "fboss2",
     criticality = cli.criticality(
+        critical_subcommands = [],
         level = cli.level.TIER_0,
+        reason = "Manages FBOSS network switch agents for configuration, monitoring, and troubleshooting of datacenter network switches",
     ),
     description = "FBOSS agent management frontend.",
     executable = ":fboss2",
