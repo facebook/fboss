@@ -10,12 +10,19 @@
 
 #include "fboss/cli/fboss2/CmdSubcommands.h"
 #include "fboss/cli/fboss2/CmdArgsLists.h"
+#include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 
+#include <CLI/App.hpp>
+#include <fmt/format.h>
 #include <folly/Singleton.h>
+#include <map>
+#include <memory>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace {
 struct singleton_tag_type {};
@@ -63,7 +70,15 @@ CLI::App* CmdSubcommands::addCommand(
   }
   auto* subCmd = app.add_subcommand(cmd.name, cmd.help);
   if (auto& commandHandler = cmd.commandHandler) {
-    subCmd->callback(*commandHandler);
+    // Wrap the handler to only execute if this is the leaf command
+    // (i.e., no subcommands were parsed). This is needed because CLI11
+    // invokes callbacks for all commands in the chain, but we only want
+    // the target leaf command to execute.
+    subCmd->callback([commandHandler, subCmd]() {
+      if (subCmd->get_subcommands().empty()) {
+        (*commandHandler)();
+      }
+    });
 
     if (auto& localOptionsHandler = cmd.localOptionsHandler) {
       auto& localOptionMap =
@@ -238,6 +253,88 @@ CLI::App* CmdSubcommands::addCommand(
               args,
               "<name> <attr> <value> [<attr> <value> ...] where <attr> is one "
               "of: shared-bytes, headroom-bytes, reserved-bytes");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_VLAN_ID:
+          subCmd->add_option("vlan_id", args, "VLAN ID (1-4094)");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_MAC_AND_PORT:
+          subCmd->add_option(
+              "mac_and_port",
+              args,
+              "MAC address and port name (e.g., AA:BB:CC:DD:EE:FF eth1/1/1)");
+          break;
+        case utils::ObjectArgTypeId::
+            OBJECT_ARG_TYPE_ID_PRIORITY_GROUP_POLICY_NAME:
+          subCmd->add_option(
+              "priority_group_policy_name", args, "Priority group policy name");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PRIORITY_GROUP_ID:
+          subCmd->add_option(
+              "group_config",
+              args,
+              "<group-id> [min-limit-bytes <bytes>] [headroom-limit-bytes <bytes>] "
+              "[resume-offset-bytes <bytes>] [static-limit-bytes <bytes>] "
+              "[scaling-factor <factor>] [buffer-pool-name <name>]");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_SCALING_FACTOR:
+          subCmd->add_option(
+              "scaling_factor",
+              args,
+              "MMU scaling factor (ONE, EIGHT, ONE_128TH, ONE_64TH, ONE_32TH, "
+              "ONE_16TH, ONE_8TH, ONE_QUARTER, ONE_HALF, TWO, FOUR, ONE_32768TH, "
+              "ONE_HUNDRED_TWENTY_EIGHT)");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PFC_CONFIG_ATTRS:
+          subCmd->add_option(
+              "pfc_config_attrs",
+              args,
+              "<attr> <value> [<attr> <value> ...] where <attr> is one of: "
+              "rx, tx, rx-duration, tx-duration, priority-group-policy, "
+              "watchdog-detection-time, watchdog-recovery-action, "
+              "watchdog-recovery-time");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QUEUING_POLICY_NAME:
+          subCmd->add_option(
+              "queuing_policy_name", args, "Queuing policy name");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QUEUE_ID:
+          subCmd->add_option(
+              "queue_config",
+              args,
+              "Queue ID followed by key-value pairs: <queue-id> <attr> <value> "
+              "[<attr> <value> ...] where <attr> is one of: reserved-bytes, "
+              "shared-bytes, weight, scaling-factor, scheduling, stream-type, "
+              "buffer-pool-name, active-queue-management");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QOS_POLICY_NAME:
+          subCmd->add_option("qos_policy_name", args, "QoS policy name");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QOS_MAP_ENTRY:
+          subCmd->add_option(
+              "map_entry",
+              args,
+              "<map-type> ... where map-type is one of: "
+              "tc-to-queue, pfc-pri-to-queue, tc-to-pg, pfc-pri-to-pg, "
+              "dscp, mpls-exp, dot1p, traffic-class");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PORT_AND_TAGGING_MODE:
+          subCmd->add_option(
+              "port_and_tagging_mode",
+              args,
+              "Port name and tagging mode (e.g., eth1/1/1 tagged|untagged)");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_L2_LEARNING_MODE:
+          subCmd->add_option(
+              "learning_mode",
+              args,
+              "L2 learning mode (hardware|software|disabled)");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_INTERFACES_CONFIG:
+          subCmd->add_option(
+              "interface_config",
+              args,
+              "<port-list> [<attr> <value> ...] where <attr> is one "
+              "of: description, mtu");
           break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:

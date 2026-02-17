@@ -8,14 +8,13 @@
  *
  */
 
-#include <CLI/CLI.hpp>
-#include "fboss/cli/fboss2/CmdGlobalOptions.h"
-#include "fboss/cli/fboss2/CmdSubcommands.h"
+#include <CLI/App.hpp>
+#include "fboss/cli/fboss2/CliAppInit.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 
 #include <folly/init/Init.h>
 #include <folly/logging/Init.h>
-#include <folly/logging/xlog.h>
+#include <exception>
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG0; default:async=true");
 
@@ -27,25 +26,15 @@ int cliMain(int argc, char* argv[]) {
 
   CLI::App app{"FBOSS CLI"};
 
-  app.require_subcommand();
-
-  /*
-   * initialize available global options for CLI
-   */
-  CmdGlobalOptions::getInstance()->init(app);
-
-  /*
-   * initialize/build CLI command token trees
-   *
-   * NOTE: kCommandTree/kAdditionalCommandTree/kSpecialCommands will be linked
-   * from elsewhere to make `CmdSubcommands` an independent lib.
-   */
-  CmdSubcommands::getInstance()->init(
-      app, kCommandTree(), kAdditionalCommandTree(), kSpecialCommands());
-
+  utils::initApp(app);
   utils::postAppInit(argc, argv, app);
 
-  CLI11_PARSE(app, argc, argv);
+  try {
+    CLI11_PARSE(app, argc, argv);
+  } catch (const std::exception& /* e */) {
+    // Errors are already printed to stderr by CmdHandler::run()
+    return 1;
+  }
 
   return 0;
 }

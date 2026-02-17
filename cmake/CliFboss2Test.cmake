@@ -33,15 +33,22 @@ gtest_discover_tests(fboss2_framework_test)
 
 # cmd_test - Command tests from BUCK file
 add_executable(fboss2_cmd_test
+  fboss/cli/fboss2/oss/CmdListConfig.cpp
   fboss/cli/fboss2/test/TestMain.cpp
   fboss/cli/fboss2/test/CmdConfigAppliedInfoTest.cpp
   fboss/cli/fboss2/test/CmdConfigHistoryTest.cpp
-  fboss/cli/fboss2/test/CmdConfigInterfaceDescriptionTest.cpp
-  fboss/cli/fboss2/test/CmdConfigInterfaceMtuTest.cpp
+  fboss/cli/fboss2/test/CmdConfigInterfaceSwitchportAccessVlanTest.cpp
+  fboss/cli/fboss2/test/CmdConfigL2LearningModeTest.cpp
+  fboss/cli/fboss2/test/CmdConfigInterfaceTest.cpp
   fboss/cli/fboss2/test/CmdConfigQosBufferPoolTest.cpp
   fboss/cli/fboss2/test/CmdConfigReloadTest.cpp
+  fboss/cli/fboss2/test/CmdConfigSessionClearTest.cpp
   fboss/cli/fboss2/test/CmdConfigSessionDiffTest.cpp
   fboss/cli/fboss2/test/CmdConfigSessionTest.cpp
+  fboss/cli/fboss2/test/CmdConfigVlanPortTaggingModeTest.cpp
+  fboss/cli/fboss2/test/CmdConfigVlanStaticMacTest.cpp
+  fboss/cli/fboss2/test/CmdGetPcapTest.cpp
+  fboss/cli/fboss2/test/CmdListConfigTest.cpp
   fboss/cli/fboss2/test/CmdSetPortStateTest.cpp
   fboss/cli/fboss2/test/CmdShowAclTest.cpp
   fboss/cli/fboss2/test/CmdShowAgentSslTest.cpp
@@ -53,7 +60,6 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowL2Test.cpp
   fboss/cli/fboss2/test/CmdShowLldpTest.cpp
   fboss/cli/fboss2/test/CmdShowNdpTest.cpp
-  fboss/cli/fboss2/test/CmdGetPcapTest.cpp
   fboss/cli/fboss2/test/CmdShowAggregatePortTest.cpp
   fboss/cli/fboss2/test/CmdShowCpuPortTest.cpp
   fboss/cli/fboss2/test/CmdShowExampleTest.cpp
@@ -70,10 +76,12 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowProductTest.cpp
   fboss/cli/fboss2/test/CmdShowRouteDetailsTest.cpp
   fboss/cli/fboss2/test/CmdShowRouteSummaryTest.cpp
+  fboss/cli/fboss2/test/CmdShowRunningConfigTest.cpp
   fboss/cli/fboss2/test/CmdShowTeFlowTest.cpp
   # fboss/cli/fboss2/test/CmdShowTransceiverTest.cpp - excluded (depends on configerator bgp namespace)
   fboss/cli/fboss2/test/CmdStartPcapTest.cpp
   fboss/cli/fboss2/test/CmdStopPcapTest.cpp
+  fboss/cli/fboss2/test/GitTest.cpp
   fboss/cli/fboss2/test/PortMapTest.cpp
 )
 
@@ -105,4 +113,36 @@ target_link_libraries(thrift_latency_test
   thrift_service_utils
   Folly::folly
   FBThrift::thriftcpp2
+)
+
+# cli_test - CLI E2E test binary
+#
+# CLI tests are platform/SAI independent - they test the CLI binary which
+# communicates with the agent via Thrift, without running the actual fboss2-dev
+# binary.
+add_executable(cli_test
+  fboss/cli/fboss2/oss/CmdListConfig.cpp
+  fboss/cli/test/CliTest.cpp
+  fboss/cli/test/ConfigInterfaceDescriptionTest.cpp
+  fboss/cli/test/ConfigInterfaceMtuTest.cpp
+  fboss/cli/test/ConfigQosPolicyMapTest.cpp
+  fboss/cli/test/ConfigSessionClearTest.cpp
+)
+
+target_link_libraries(cli_test
+  fboss2_lib
+  fboss2_config_lib
+  thrift_service_utils
+  CLI11::CLI11
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+  Folly::folly
+  Folly::folly_test_util
+  FBThrift::thriftcpp2
+  gflags
+  fmt::fmt
+)
+
+target_include_directories(cli_test PUBLIC
+  ${CMAKE_SOURCE_DIR}
 )
