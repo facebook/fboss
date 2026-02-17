@@ -100,7 +100,6 @@ cpp_library(
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//folly:string",
-        "//folly/coro:blocking_wait",
         "//folly/io/async:async_base",
         "//folly/io/async:async_ssl_socket",
         "//folly/io/async:ssl_options",

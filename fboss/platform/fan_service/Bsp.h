@@ -9,7 +9,6 @@
 
 #include <cstdint>
 
-#include <folly/coro/BlockingWait.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/system/Shell.h>
 
@@ -42,8 +41,6 @@ class Bsp {
   virtual bool checkIfInitialSensorDataRead() const;
   bool getEmergencyState() const;
   virtual float readSysfs(const std::string& path) const;
-  static apache::thrift::RpcOptions getRpcOptions();
-
   FsdbSensorSubscriber* fsdbSensorSubscriber() {
     return fsdbSensorSubscriber_.get();
   }
@@ -72,7 +69,6 @@ class Bsp {
 
   // Private Attributes
   int sensordThriftPort_{5970};
-  int qsfpSvcThriftPort_{5910};
   int agentTempThriftPort_{5972};
   bool initialSensorDataRead_{false};
   std::optional<int> watchdogFd_;
