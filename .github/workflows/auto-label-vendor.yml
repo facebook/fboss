@@ -1,0 +1,56 @@
+name: Auto Label by Vendor Name
+
+on:
+  pull_request_target:
+    types: [opened, edited]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  label-by-company:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const title = context.payload.pull_request.title;
+            const prNumber = context.issue.number;
+            const { owner, repo } = context.repo;
+
+            // Predefined valid company names (lowercase for matching)
+            const validCompanies = [
+              'accton',
+              'celestica',
+              'nexthop',
+              'arista',
+              'cisco',
+              'nvidia',
+            ];
+
+            // Extract company name from first [...]
+            const match = title.match(/^\[([^\]]+)\]/);
+            if (!match) {
+              core.info('No [CompanyName] found in PR title, skipping');
+              return;
+            }
+
+            const companyName = match[1].trim();
+            const companyLower = companyName.toLowerCase();
+            core.info(`Extracted company name: "${companyName}"`);
+
+            if (!validCompanies.includes(companyLower)) {
+              core.warning(
+                `"${companyName}" is not a recognized company. ` +
+                `Valid companies: ${validCompanies.join(', ')}`
+              );
+              return;
+            }
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: prNumber,
+              labels: [companyLower]
+            });
+            core.info(`Added label: "${companyLower}"`);
