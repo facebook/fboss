@@ -277,4 +277,8 @@ std::optional<uint32_t> Tomahawk6Asic::getMaxArsGroups() const {
 std::optional<uint32_t> Tomahawk6Asic::getArsBaseIndex() const {
   return getMaxEcmpGroups().value() - 128;
 }
+
+std::optional<uint32_t> Tomahawk6Asic::getMaxArsWidth() const {
+  return FLAGS_enable_th6_ars_scale_mode ? 256 : 64;
+}
 } // namespace facebook::fboss

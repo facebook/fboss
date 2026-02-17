@@ -334,4 +334,8 @@ std::optional<uint32_t> Tomahawk4Asic::getArsBaseIndex() const {
   return getMaxEcmpGroups().value() - getMaxArsGroups().value();
 }
 
+std::optional<uint32_t> Tomahawk4Asic::getMaxArsWidth() const {
+  return 64;
+}
+
 } // namespace facebook::fboss

@@ -290,4 +290,8 @@ std::optional<uint32_t> Tomahawk5Asic::getArsBaseIndex() const {
   // So setting default start index as 3840
   return getMaxEcmpGroups().value() - 256;
 }
+
+std::optional<uint32_t> Tomahawk5Asic::getMaxArsWidth() const {
+  return 64;
+}
 } // namespace facebook::fboss

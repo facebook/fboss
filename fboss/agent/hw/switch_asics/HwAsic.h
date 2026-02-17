@@ -619,6 +619,9 @@ class HwAsic {
 
   virtual std::optional<uint32_t> getMaxArsGroups() const = 0;
   virtual std::optional<uint32_t> getArsBaseIndex() const = 0;
+  virtual std::optional<uint32_t> getMaxArsWidth() const {
+    return std::nullopt;
+  }
   // TODO(zecheng): Define more specific limits for v4/v6 routes with different
   // mask lengths
   virtual std::optional<uint32_t> getMaxRoutes() const {
