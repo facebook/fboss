@@ -79,7 +79,7 @@
           "pmUnitScopedName": "BLACKHAWK_CPLD"
         },
         {
-          "busName": "SCD_SMBUS1@0",
+          "busName": "SCD_SMBUS_1@0",
           "address": "0x4d",
           "kernelDeviceName": "max6581",
           "pmUnitScopedName": "SC_BOARD_TEMP_MAX6581"
@@ -91,19 +91,19 @@
           "pmUnitScopedName": "SC_POS_UCD90320"
         },
         {
-          "busName": "SCD_SMBUS1@5",
+          "busName": "SCD_SMBUS_1@5",
           "address": "0x40",
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "SC_TH3_CORE_IR35223"
         },
         {
-          "busName": "SCD_SMBUS1@6",
+          "busName": "SCD_SMBUS_1@6",
           "address": "0x41",
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "SC_TH3_ANLG_IR35223"
         },
         {
-          "busName": "SCD_SMBUS1@7",
+          "busName": "SCD_SMBUS_1@7",
           "address": "0x42",
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "SC_QSFPDD_IR35223"
@@ -113,7 +113,7 @@
         "RACKMON_SLOT@0": {
           "slotType": "RACKMON_SLOT",
           "outgoingI2cBusNames": [
-            "SCD_SMBUS1@4"
+            "SCD_SMBUS_1@4"
           ]
         },
         "FAN_SLOT@0": {
@@ -174,7 +174,7 @@
         "PEM_SLOT@0": {
           "slotType": "PEM_SLOT",
           "outgoingI2cBusNames": [
-            "SCD_SMBUS1@3"
+            "SCD_SMBUS_1@3"
           ]
         }
       },
