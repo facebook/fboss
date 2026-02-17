@@ -210,6 +210,8 @@ void PlatformProductInfo::initMode() {
         modelName.find("Icecube800banw") == 0 ||
         modelName.find("ICECUBE800BANW") == 0) {
       type_ = PlatformType::PLATFORM_ICECUBE800BANW;
+    } else if (modelName.find("J4Sim") == 0 || modelName.find("J4SIM") == 0) {
+      type_ = PlatformType::PLATFORM_J4SIM;
     } else {
       throw FbossError("invalid model name " + modelName);
     }
@@ -290,6 +292,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_LADAKH800BCLS;
     } else if (FLAGS_mode == "icecube800banw") {
       type_ = PlatformType::PLATFORM_ICECUBE800BANW;
+    } else if (FLAGS_mode == "j4sim") {
+      type_ = PlatformType::PLATFORM_J4SIM;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }
