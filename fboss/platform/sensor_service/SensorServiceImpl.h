@@ -42,7 +42,6 @@ class SensorServiceImpl {
       "sensor_read.agg.{}.has.critical_threshold_violation";
   auto static constexpr kAggHasAlarmThresholdViolation =
       "sensor_read.agg.{}.has.alarm_threshold_violation";
-  auto static constexpr kAsicTemp = "asic_temp";
   auto static constexpr kTotalPower = "TOTAL_POWER";
   auto static constexpr kMaxInputVoltage = "MAX_INPUT_VOLTAGE";
   auto static constexpr kInputPowerType = "INPUT_POWER_TYPE";
