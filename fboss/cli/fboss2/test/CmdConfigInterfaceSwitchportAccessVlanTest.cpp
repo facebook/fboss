@@ -56,7 +56,7 @@ class CmdConfigInterfaceSwitchportAccessVlanTestFixture
     setenv("HOME", testHomeDir_.c_str(), 1);
     setenv("USER", "testuser", 1);
 
-    // Create a test system config file with ports
+    // Create a test system config file with ports and vlanPorts
     fs::path initialRevision = testEtcDir_ / "coop" / "cli" / "agent-r1.conf";
     createTestConfig(initialRevision, R"({
   "sw": {
@@ -74,6 +74,20 @@ class CmdConfigInterfaceSwitchportAccessVlanTestFixture
         "state": 2,
         "speed": 100000,
         "ingressVlan": 1
+      }
+    ],
+    "vlanPorts": [
+      {
+        "vlanID": 1,
+        "logicalPort": 1,
+        "spanningTreeState": 2,
+        "emitTags": false
+      },
+      {
+        "vlanID": 1,
+        "logicalPort": 2,
+        "spanningTreeState": 2,
+        "emitTags": false
       }
     ]
   }
@@ -219,6 +233,14 @@ TEST_F(
   for (const auto& port : ports) {
     if (*port.name() == "eth1/1/1" || *port.name() == "eth1/2/1") {
       EXPECT_EQ(*port.ingressVlan(), 2001);
+    }
+  }
+
+  // Verify the vlanPorts entries were also updated
+  auto& vlanPorts = *switchConfig.vlanPorts();
+  for (const auto& vlanPort : vlanPorts) {
+    if (*vlanPort.logicalPort() == 1 || *vlanPort.logicalPort() == 2) {
+      EXPECT_EQ(*vlanPort.vlanID(), 2001);
     }
   }
 }

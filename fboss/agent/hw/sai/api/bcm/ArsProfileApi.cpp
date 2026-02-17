@@ -80,6 +80,15 @@ std::optional<sai_attr_id_t> SaiArsProfileTraits::Attributes::
   return std::nullopt;
 #endif
 }
+
+std::optional<sai_attr_id_t>
+SaiArsProfileTraits::Attributes::AttributeEcmpMemberCount::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_14_0) && defined(BRCM_SAI_SDK_XGS)
+  return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_MEMBER_COUNT;
+#else
+  return std::nullopt;
+#endif
+}
 #endif
 
 } // namespace facebook::fboss

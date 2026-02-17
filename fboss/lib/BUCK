@@ -9,12 +9,10 @@ cpp_library(
         "RadixTree-inl.h",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         "//folly:conv",
         "//folly:memory",
         "//folly:network_address",
-    ],
-    exported_external_deps = [
-        "glog",
     ],
 )
 
@@ -37,13 +35,13 @@ cpp_library(
         "PhysicalMemory.h",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         "//folly:file",
         "//folly:format",
         "//folly/logging:logging",
     ],
     exported_external_deps = [
         "boost",
-        "glog",
         ("glibc", None, "rt"),
     ],
 )
@@ -183,8 +181,8 @@ cpp_library(
     headers = [
         "ExponentialBackoff.h",
     ],
-    exported_external_deps = [
-        "glog",
+    exported_deps = [
+        "fbsource//third-party/glog:glog",
     ],
 )
 
@@ -197,6 +195,7 @@ cpp_library(
         "PhysicalMemory.h",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         "//folly:file",
         "//folly:format",
         "//folly:scope_guard",
@@ -207,7 +206,6 @@ cpp_library(
     exported_external_deps = [
         "boost",
         "gflags",
-        "glog",
     ],
 )
 
@@ -379,6 +377,7 @@ cpp_library(
         "ThriftServiceUtils.h",
     ],
     exported_deps = [
+        "//folly:function",
         "//thrift/lib/cpp2:server",
     ],
 )
@@ -392,9 +391,11 @@ cpp_library(
         "ThriftServiceUtils.h",
     ],
     exported_deps = [
+        "//folly:function",
         "//folly/executors:io_thread_pool_executor",
         "//folly/io/async:epoll",
         "//folly/io/async:epoll_backend",
+        "//folly/logging:logging",
         "//folly/system:hardware_concurrency",
         "//thrift/lib/cpp2:server",
     ],

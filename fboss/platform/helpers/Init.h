@@ -5,6 +5,7 @@
 #include <csignal>
 #include <memory>
 
+#include <folly/Function.h>
 #include <folly/io/async/AsyncSignalHandler.h>
 
 #include "thrift/lib/cpp2/async/AsyncProcessor.h"
@@ -13,6 +14,10 @@
 namespace facebook::fboss::platform::helpers {
 
 void init(int* argc, char*** argv);
+
+// Returns a summary of build info: author, package version, revision,
+// upstream revision, and build time.
+std::string getBuildSummary();
 
 void runThriftService(
     std::shared_ptr<apache::thrift::ThriftServer> server,

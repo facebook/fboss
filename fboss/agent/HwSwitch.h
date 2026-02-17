@@ -161,16 +161,22 @@ class HwSwitch {
   std::shared_ptr<SwitchState> stateChanged(
       const std::vector<StateDelta>& deltas,
       const HwWriteBehaviorRAII& behavior =
-          HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
+          HwWriteBehaviorRAII(HwWriteBehavior::WRITE),
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
 
   virtual std::shared_ptr<SwitchState> stateChangedImpl(
-      const std::vector<StateDelta>& delta) = 0;
+      const std::vector<StateDelta>& delta,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior) = 0;
 
   virtual std::shared_ptr<SwitchState> stateChangedTransaction(
       const std::vector<StateDelta>& deltas,
       const HwWriteBehaviorRAII& behavior =
-          HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
+          HwWriteBehaviorRAII(HwWriteBehavior::WRITE),
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
   virtual void preRollback(const StateDelta& delta) noexcept;
+  virtual void rollbackPartialRoutes(const StateDelta& delta) noexcept;
   virtual void rollback(const std::vector<StateDelta>& deltas) noexcept;
   virtual std::shared_ptr<SwitchState> constructSwitchStateWithFib() noexcept;
 
@@ -399,14 +405,19 @@ class HwSwitch {
       folly::MacAddress mac) const = 0;
 
   std::shared_ptr<SwitchState> getProgrammedState() const;
+  std::shared_ptr<SwitchState> getIntermediateState() const;
   fsdb::OperDelta stateChanged(
       const std::vector<fsdb::OperDelta>& deltas,
       const HwWriteBehaviorRAII& behavior =
-          HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
+          HwWriteBehaviorRAII(HwWriteBehavior::WRITE),
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
   fsdb::OperDelta stateChangedTransaction(
       const std::vector<fsdb::OperDelta>& deltas,
       const HwWriteBehaviorRAII& behavior =
-          HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
+          HwWriteBehaviorRAII(HwWriteBehavior::WRITE),
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
 
   void ensureConfigured(folly::StringPiece function) const;
   void ensureVoqOrFabric(folly::StringPiece function) const;
@@ -436,6 +447,7 @@ class HwSwitch {
 
  protected:
   void setProgrammedState(const std::shared_ptr<SwitchState>& state);
+  void setIntermediateState(const std::shared_ptr<SwitchState>& state);
 
  private:
   HwInitResult initLightImpl(Callback* callback, bool failHwCallsOnWarmboot);
@@ -476,6 +488,7 @@ class HwSwitch {
   std::optional<int64_t> switchId_;
 
   folly::Synchronized<std::shared_ptr<SwitchState>> programmedState_;
+  folly::Synchronized<std::shared_ptr<SwitchState>> intermediateState_;
 
   // Collecting phy Info is currently inefficient on some platforms. Instead of
   // collecting them every second, tune down the frequency to only collect once

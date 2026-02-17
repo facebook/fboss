@@ -53,7 +53,7 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     bool disableLinkStateToggler,
     AgentEnsemblePlatformConfigFn platformConfigFn,
     uint32_t featuresDesired,
-    bool failHwCallsOnWarmboot) {
+    const TestEnsembleInitInfo& initInfo) {
   // Set multi switch flag to true for MultiSwitchAgentEnsemble
   FLAGS_multi_switch = true;
   std::unique_ptr<AgentEnsemble> ensemble =
@@ -63,13 +63,16 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
       disableLinkStateToggler,
       platformConfigFn,
       featuresDesired,
-      failHwCallsOnWarmboot);
+      initInfo);
   return ensemble;
 }
 
 void MultiSwitchAgentEnsemble::ensureHwSwitchConnected(SwitchID switchId) {
   auto switchIndex =
       getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+  XLOG(DBG2) << "ensureHwSwitchConnected switchId: "
+             << static_cast<int64_t>(switchId)
+             << " switchIndex: " << switchIndex;
   WITH_RETRIES({
     std::map<int16_t, HwAgentEventSyncStatus> statusMap;
     getSw()->stats()->getHwAgentStatus(statusMap);

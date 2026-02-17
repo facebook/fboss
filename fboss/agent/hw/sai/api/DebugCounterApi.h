@@ -95,6 +95,8 @@ using SaiInPortDebugCounterTraits =
     SaiDebugCounterTraitsT<SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS>;
 using SaiOutPortDebugCounterTraits =
     SaiDebugCounterTraitsT<SAI_DEBUG_COUNTER_TYPE_PORT_OUT_DROP_REASONS>;
+using SaiInSwitchDebugCounterTraits =
+    SaiDebugCounterTraitsT<SAI_DEBUG_COUNTER_TYPE_SWITCH_IN_DROP_REASONS>;
 
 template <>
 struct SaiObjectHasConditionalAttributes<SaiInPortDebugCounterTraits>
@@ -102,10 +104,14 @@ struct SaiObjectHasConditionalAttributes<SaiInPortDebugCounterTraits>
 template <>
 struct SaiObjectHasConditionalAttributes<SaiOutPortDebugCounterTraits>
     : public std::true_type {};
+template <>
+struct SaiObjectHasConditionalAttributes<SaiInSwitchDebugCounterTraits>
+    : public std::true_type {};
 
 using SaiDebugCounterTraits = ConditionObjectTraits<
     SaiInPortDebugCounterTraits,
-    SaiOutPortDebugCounterTraits>;
+    SaiOutPortDebugCounterTraits,
+    SaiInSwitchDebugCounterTraits>;
 
 SAI_ATTRIBUTE_NAME(InPortDebugCounter, Index)
 SAI_ATTRIBUTE_NAME(InPortDebugCounter, Type)

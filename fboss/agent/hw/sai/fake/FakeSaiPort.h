@@ -112,6 +112,7 @@ struct FakePort {
   sai_uint32_t staticModuleId{};
   bool resetQueueCreditBalance{false};
   sai_int32_t pfcMonitorDirection{0};
+  sai_int32_t cablePropagationDelayMediaType{0};
 };
 
 struct FakePortSerdes {
@@ -166,6 +167,8 @@ struct FakePortSerdes {
   std::vector<int32_t> rxInstgEnableScan;
   std::vector<int32_t> rxFfeLengthBitmap;
   std::vector<int32_t> rxFfeLmsDynamicGatingEn;
+  std::vector<int32_t> txPrecoding;
+  std::vector<int32_t> rxPrecoding;
   std::string serdesCustomCollection;
 };
 

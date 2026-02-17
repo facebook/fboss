@@ -20,6 +20,7 @@
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
+#include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
@@ -140,6 +141,11 @@ std::unique_ptr<WedgeManager> createWedgeManager(
       return createBspWedgeManager<
           Icetea800bcBspPlatformMapping,
           PlatformType::PLATFORM_ICETEA800BC>(
+          platformMapping, qsfpServiceThreads);
+    case PlatformType::PLATFORM_MINIPACK3BTA:
+      return createBspWedgeManager<
+          Minipack3BTABspPlatformMapping,
+          PlatformType::PLATFORM_MINIPACK3BTA>(
           platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_MINIPACK3N:
       return createBspWedgeManager<

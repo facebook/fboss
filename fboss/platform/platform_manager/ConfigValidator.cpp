@@ -540,6 +540,21 @@ bool ConfigValidator::isValidI2cDeviceConfig(
     XLOG(ERR) << "PmUnitScopedName must not end with an underscore";
     return false;
   }
+  if (*i2cDeviceConfig.isEeprom() &&
+      !i2cDeviceConfig.pmUnitScopedName()->ends_with("_EEPROM")) {
+    XLOGF(
+        ERR,
+        "isEeprom is true but pmUnitScopedName '{}' does not end with '_EEPROM'",
+        *i2cDeviceConfig.pmUnitScopedName());
+    return false;
+  }
+  if (i2cDeviceConfig.eepromOffset() && !*i2cDeviceConfig.isEeprom()) {
+    XLOGF(
+        ERR,
+        "eepromOffset defined while isEeprom is not true for {}",
+        *i2cDeviceConfig.pmUnitScopedName());
+    return false;
+  }
   return true;
 }
 
@@ -742,6 +757,10 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     }
 
     if (!isValidPmUnitConfig(*config.slotTypeConfigs(), pmUnitConfig)) {
+      return false;
+    }
+
+    if (!isValidLogicalEeprom(config, pmUnitName, pmUnitConfig)) {
       return false;
     }
   }
@@ -1357,7 +1376,7 @@ void ConfigValidator::buildDeviceNameCache(
 
       for (const auto& i2cAdapterConfig :
            Utils::createI2cAdapterConfigs(pciConfig)) {
-        addFromFpgaIpBlock(slotType, *i2cAdapterConfig.fpgaIpBlockConfig());
+        addI2cAdapterNames(slotType, i2cAdapterConfig);
       }
 
       for (const auto& mdioBusConfig : Utils::createMdioBusConfigs(pciConfig)) {
@@ -1367,6 +1386,120 @@ void ConfigValidator::buildDeviceNameCache(
   }
 
   deviceNamesBySlotType_ = std::move(cache);
+}
+
+bool ConfigValidator::isValidLogicalEeprom(
+    const PlatformConfig& config,
+    const std::string& pmUnitName,
+    const PmUnitConfig& pmUnitConfig) {
+  auto logicalEeproms = getLogicalEeproms(
+      *config.slotTypeConfigs(),
+      *pmUnitConfig.pluggedInSlotType(),
+      pmUnitConfig);
+  if (!logicalEeproms.empty()) {
+    const auto& allowedPlatforms =
+        platform_manager_validators_constants::PLATFORMS_WITH_LOGICAL_EEPROMS();
+    if (std::find(
+            allowedPlatforms.begin(),
+            allowedPlatforms.end(),
+            *config.platformName()) == allowedPlatforms.end()) {
+      XLOG(ERR) << fmt::format(
+          "Platform has logical EEPROMs in PmUnit {}.  This is not allowed. ",
+          pmUnitName);
+      return false;
+    }
+  }
+
+  constexpr int16_t kEepromSize = 512;
+
+  for (const auto& [location, eeproms] : logicalEeproms) {
+    const auto& [bus, addr] = location;
+
+    // Validate same kernelDeviceName for all EEPROMs at this location
+    for (size_t i = 1; i < eeproms.size(); ++i) {
+      if (eeproms[i].kernelDeviceName != eeproms[0].kernelDeviceName) {
+        XLOG(ERR) << fmt::format(
+            "Logical eeproms {} and {} at (bus: {}, addr: {}) have different "
+            "kernelDeviceNames: {} vs {}",
+            eeproms[0].pmUnitScopedName,
+            eeproms[i].pmUnitScopedName,
+            bus,
+            addr,
+            eeproms[0].kernelDeviceName,
+            eeproms[i].kernelDeviceName);
+        return false;
+      }
+    }
+
+    // Validate no overlapping regions (sort by offset, check adjacent pairs)
+    auto sortedEeproms = eeproms;
+    std::sort(
+        sortedEeproms.begin(),
+        sortedEeproms.end(),
+        [](const auto& a, const auto& b) { return a.offset < b.offset; });
+
+    for (size_t i = 0; i + 1 < sortedEeproms.size(); ++i) {
+      const auto& curr = sortedEeproms[i];
+      const auto& next = sortedEeproms[i + 1];
+      if (curr.offset + kEepromSize > next.offset) {
+        XLOG(ERR) << fmt::format(
+            "Logical eeproms {} and {} at (bus: {}, addr: {}) have "
+            "overlapping regions: [{}, {}) and [{}, {})",
+            curr.pmUnitScopedName,
+            next.pmUnitScopedName,
+            bus,
+            addr,
+            curr.offset,
+            curr.offset + kEepromSize,
+            next.offset,
+            next.offset + kEepromSize);
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+std::map<std::pair<std::string, std::string>, std::vector<LogicalEeprom>>
+ConfigValidator::getLogicalEeproms(
+    const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
+    const std::string& slotType,
+    const PmUnitConfig& pmUnitConfig) {
+  using EepromLoc = std::pair<std::string, std::string>;
+  std::map<EepromLoc, std::vector<LogicalEeprom>> eepromsByLocation;
+
+  // Add IDPROM if present
+  if (slotTypeConfigs.contains(slotType)) {
+    const auto& slotTypeConfig = slotTypeConfigs.at(slotType);
+    if (slotTypeConfig.idpromConfig()) {
+      const auto& idprom = *slotTypeConfig.idpromConfig();
+      eepromsByLocation[{*idprom.busName(), *idprom.address()}].push_back(
+          LogicalEeprom{
+              "IDPROM", *idprom.offset(), *idprom.kernelDeviceName()});
+    }
+  }
+
+  // Add I2C EEPROM devices
+  for (const auto& i2cDevice : *pmUnitConfig.i2cDeviceConfigs()) {
+    if (!*i2cDevice.isEeprom()) {
+      continue;
+    }
+    int16_t offset = i2cDevice.eepromOffset() ? *i2cDevice.eepromOffset() : 0;
+    eepromsByLocation[{*i2cDevice.busName(), *i2cDevice.address()}].push_back(
+        LogicalEeprom{
+            *i2cDevice.pmUnitScopedName(),
+            offset,
+            *i2cDevice.kernelDeviceName()});
+  }
+
+  // Return only locations with more than one EEPROM (logical EEPROMs)
+  std::map<EepromLoc, std::vector<LogicalEeprom>> result;
+  for (auto& [location, eeproms] : eepromsByLocation) {
+    if (eeproms.size() > 1) {
+      result[location] = std::move(eeproms);
+    }
+  }
+  return result;
 }
 
 } // namespace facebook::fboss::platform::platform_manager

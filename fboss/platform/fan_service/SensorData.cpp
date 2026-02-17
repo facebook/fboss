@@ -41,7 +41,7 @@ std::optional<OpticEntry> SensorData::getOpticEntry(
 
 void SensorData::updateOpticEntry(
     const std::string& name,
-    const std::vector<std::pair<std::string, float>>& data,
+    const std::map<std::string, std::vector<OpticData>>& data,
     uint64_t qsfpServiceTimeStamp) {
   if (opticEntries_.find(name) == opticEntries_.end()) {
     opticEntries_[name] = OpticEntry();

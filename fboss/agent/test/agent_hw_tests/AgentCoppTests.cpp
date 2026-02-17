@@ -21,6 +21,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
@@ -59,7 +60,7 @@ const auto kDhcpV6AllRoutersIp = folly::IPAddressV6("ff02::1:2");
 const auto kDhcpV6McastMacAddress = folly::MacAddress("33:33:00:01:00:02");
 const auto kDhcpV6ServerGlobalUnicastAddress =
     folly::IPAddressV6("2401:db00:eef0:a67::1");
-const auto kRandomIP = folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
+const auto kRandomIP = folly::IPAddressV6(facebook::fboss::kTestDstIpV6);
 const auto kGlobalRateLimit = 1.5 * 1024 * 1024;
 
 using TestTypes =

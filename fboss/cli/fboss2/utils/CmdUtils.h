@@ -33,6 +33,12 @@
 
 namespace facebook::fboss::utils {
 
+// Returns true if the CLI is running locally on an FBOSS switch,
+// false if running on a dev server.
+// This is determined by checking for the presence of /etc/netwhoami,
+// which is only present on FBOSS switches.
+bool isRunningOnSwitch();
+
 class CommunityList : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ CommunityList(std::vector<std::string> v)

@@ -93,7 +93,7 @@ bool HwQsfpEnsemble::isXphyPlatform() const {
 
 bool HwQsfpEnsemble::isSaiPlatform() const {
   static const std::set<PlatformType> saiPlatforms = {
-      PlatformType::PLATFORM_ELBERT};
+      PlatformType::PLATFORM_ELBERT, PlatformType::PLATFORM_LADAKH800BCLS};
 
   return saiPlatforms.find(getWedgeManager()->getPlatformType()) !=
       saiPlatforms.end();

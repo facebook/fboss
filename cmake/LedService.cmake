@@ -39,7 +39,7 @@ add_library(led_config
 )
 
 target_link_libraries(led_config
-  error
+  fboss_error
   led_config_cpp2
   Folly::folly
   FBThrift::thriftcpp2
@@ -67,6 +67,7 @@ add_library(led_manager_lib
   fboss/led_service/Meru800biaLedManager.cpp
   fboss/led_service/Meru800bfaLedManager.cpp
   fboss/led_service/Morgan800ccLedManager.cpp
+  fboss/led_service/Minipack3BTALedManager.cpp
   fboss/led_service/Minipack3NLedManager.cpp
   fboss/led_service/Janga800bicLedManager.cpp
   fboss/led_service/Tahan800bcLedManager.cpp
@@ -100,6 +101,7 @@ target_link_libraries(led_manager_lib
   fuji_platform_mapping
   janga800bic_platform_mapping
   minipack_platform_mapping
+  minipack3bta_platform_mapping
   minipack3n_platform_mapping
   montblanc_platform_mapping
   icecube800bc_platform_mapping

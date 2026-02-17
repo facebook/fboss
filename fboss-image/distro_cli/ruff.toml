@@ -22,8 +22,17 @@ select = [
     "RUF", # ruff-specific
 ]
 
+ignore = [
+    "B904",  # Allow raising exceptions without 'from' for cleaner error messages
+    "PLR0913",  # Allow more than 8 arguments to be specified
+]
+
 [lint.per-file-ignores]
-# Tests need to modify sys.path before importing local modules
 # Tests may have unused mock arguments (ARG002)
-"tests/*.py" = ["E402", "ARG002"]
-"*/tests/*.py" = ["E402", "ARG002"]
+# Tests may use open() instead of Path.open() for simplicity (PTH123)
+"tests/*.py" = ["ARG002", "PTH123"]
+"*/tests/*.py" = ["ARG002", "PTH123"]
+
+[lint.pylint]
+# Allow more arguments for builder/execute functions
+max-args = 8

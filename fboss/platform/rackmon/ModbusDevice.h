@@ -87,7 +87,6 @@ class ModbusDevice {
   std::vector<RegisterStoreSpan> reloadPlan_{};
   mutable std::shared_mutex infoMutex_{};
   std::vector<ModbusSpecialHandler> specialHandlers_{};
-  bool setBaudEnabled_ = true;
   const RegisterMap& registerMap_;
   std::atomic<bool> singleShotReload_{true};
   std::atomic<bool> exclusiveMode_{false};

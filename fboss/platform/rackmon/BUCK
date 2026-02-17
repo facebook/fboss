@@ -20,13 +20,11 @@ cpp_library(
         "RackmonThriftHandler.h",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         ":core",
         ":rackmon_pls",
         "//fb303:service_data",
         "//fboss/platform/rackmon/if:rackmonsvc-cpp2-services",
-    ],
-    exported_external_deps = [
-        "glog",
     ],
 )
 
@@ -108,8 +106,10 @@ cpp_library(
     headers = [
         "RackmonPlsManager.h",
     ],
+    exported_deps = [
+        "fbsource//third-party/glog:glog",
+    ],
     exported_external_deps = [
-        "glog",
         "nlohmann_json",
         ("libgpiod", None, "gpiod"),
     ],

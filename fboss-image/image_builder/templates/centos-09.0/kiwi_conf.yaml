@@ -1,0 +1,3 @@
+# Compress in parallel
+xz:
+  - options: '--threads=0'

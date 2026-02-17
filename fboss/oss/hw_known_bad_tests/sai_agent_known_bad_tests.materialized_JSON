@@ -3629,6 +3629,9 @@
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
+          "test_name_regex": ".*AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
         },
         {
@@ -3965,6 +3968,9 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": ".*AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -7028,6 +7034,9 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": ".*AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         }
     ],
     "brcm/13.0_ea_odp/13.0_ea_odp/tomahawk5/multi_switch": [
@@ -7360,6 +7369,9 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": ".*AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -10432,6 +10444,9 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": ".*AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5/multi_switch": [
@@ -10764,6 +10779,9 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": ".*AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -12709,6 +12727,12 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorAddressFamilySwitchingTest.*$"
         }
     ],
     "brcm/14.0_ea_odp/14.0_ea_odp/tomahawk6/multi_switch": [
@@ -13050,6 +13074,12 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorAddressFamilySwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -16695,7 +16725,7 @@
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
         }
     ],
-    "leaba/25.5.5210/25.5.5210/gibraltar/mono": [
+    "leaba/25.5.4210/25.5.4210/gibraltar/mono": [
         {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
@@ -16826,7 +16856,7 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         }
     ],
-    "leaba/25.5.5210/25.5.5210/gibraltar/multi_switch": [
+    "leaba/25.5.4210/25.5.4210/gibraltar/multi_switch": [
         {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
@@ -16960,7 +16990,7 @@
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
         }
     ],
-    "leaba/25.5.5210/25.5.5210/graphene200/mono": [
+    "leaba/25.5.4210/25.5.4210/graphene200/mono": [
         {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
@@ -17151,7 +17181,7 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         }
     ],
-    "leaba/25.5.5210/25.5.5210/graphene200/multi_switch": [
+    "leaba/25.5.4210/25.5.4210/graphene200/multi_switch": [
         {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },

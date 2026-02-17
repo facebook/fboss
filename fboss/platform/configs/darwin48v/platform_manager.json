@@ -31,80 +31,81 @@
       "pluggedInSlotType": "SMB_SLOT",
       "i2cDeviceConfigs": [
         {
-          "busName": "ROOK_SMBUS0@0",
+          "busName": "ROOK_SMBUS_0@0",
           "address": "0x4c",
           "kernelDeviceName": "bp4a_max6658",
           "pmUnitScopedName": "CPU_BOARD_TEMP_MAX6658"
         },
         {
-          "busName": "ROOK_SMBUS3@2",
+          "busName": "ROOK_SMBUS_3@2",
           "address": "0x48",
           "kernelDeviceName": "lm73",
           "pmUnitScopedName": "CPU_FP_TEMP_LM73"
         },
         {
-          "busName": "ROOK_SMBUS0@2",
+          "busName": "ROOK_SMBUS_0@2",
           "address": "0x21",
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "CPU_MPS1_PMBUS"
         },
         {
-          "busName": "ROOK_SMBUS0@2",
+          "busName": "ROOK_SMBUS_0@2",
           "address": "0x27",
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "CPU_MPS2_PMBUS"
         },
         {
-          "busName": "ROOK_SMBUS0@1",
+          "busName": "ROOK_SMBUS_0@1",
           "address": "0x4e",
           "kernelDeviceName": "ucd90160",
           "pmUnitScopedName": "CPU_POS_UCD90160"
         },
         {
-          "busName": "ROOK_SMBUS3@0",
+          "busName": "ROOK_SMBUS_3@0",
           "address": "0x60",
           "kernelDeviceName": "tehama_cpld",
           "pmUnitScopedName": "FAN_CPLD"
         },
         {
-          "busName": "ROOK_SMBUS2@0",
+          "busName": "ROOK_SMBUS_2@0",
           "address": "0x23",
           "kernelDeviceName": "blackhawk_cpld",
           "pmUnitScopedName": "BLACKHAWK_CPLD"
         },
         {
-          "busName": "ROOK_SMBUS2@0",
+          "busName": "ROOK_SMBUS_2@0",
           "address": "0x50",
           "kernelDeviceName": "24c16",
           "pmUnitScopedName": "CHASSIS_EEPROM",
-          "isEeprom": true
+          "isEeprom": true,
+          "eepromOffset": 1536
         },
         {
-          "busName": "SCD_SMBUS1@0",
+          "busName": "SCD_SMBUS_1@0",
           "address": "0x4d",
           "kernelDeviceName": "max6581",
           "pmUnitScopedName": "SC_BOARD_TEMP_MAX6581"
         },
         {
-          "busName": "ROOK_SMBUS2@2",
+          "busName": "ROOK_SMBUS_2@2",
           "address": "0x11",
           "kernelDeviceName": "ucd90320",
           "pmUnitScopedName": "SC_POS_UCD90320"
         },
         {
-          "busName": "SCD_SMBUS1@5",
+          "busName": "SCD_SMBUS_1@5",
           "address": "0x40",
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "SC_TH3_CORE_IR35223"
         },
         {
-          "busName": "SCD_SMBUS1@6",
+          "busName": "SCD_SMBUS_1@6",
           "address": "0x41",
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "SC_TH3_ANLG_IR35223"
         },
         {
-          "busName": "SCD_SMBUS1@7",
+          "busName": "SCD_SMBUS_1@7",
           "address": "0x42",
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "SC_QSFPDD_IR35223"
@@ -114,7 +115,7 @@
         "RACKMON_SLOT@0": {
           "slotType": "RACKMON_SLOT",
           "outgoingI2cBusNames": [
-            "SCD_SMBUS1@4"
+            "SCD_SMBUS_1@4"
           ]
         },
         "FAN_SLOT@0": {
@@ -182,7 +183,7 @@
             }
           },
           "outgoingI2cBusNames": [
-            "SCD_SMBUS1@3"
+            "SCD_SMBUS_1@3"
           ]
         }
       },
@@ -193,38 +194,14 @@
           "deviceId": "0x6f76",
           "subSystemVendorId": "0x0000",
           "subSystemDeviceId": "0x0000",
-          "i2cAdapterConfigs": [
+          "i2cAdapterBlockConfigs": [
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "ROOK_SMBUS0",
-                "deviceName": "i2c_master",
-                "csrOffset": "0x8000"
-              },
-              "numberOfAdapters": 4
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "ROOK_SMBUS1",
-                "deviceName": "i2c_master",
-                "csrOffset": "0x8080"
-              },
-              "numberOfAdapters": 4
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "ROOK_SMBUS2",
-                "deviceName": "i2c_master",
-                "csrOffset": "0x8100"
-              },
-              "numberOfAdapters": 4
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "ROOK_SMBUS3",
-                "deviceName": "i2c_master",
-                "csrOffset": "0x8180"
-              },
-              "numberOfAdapters": 4
+              "pmUnitScopedNamePrefix": "ROOK_SMBUS",
+              "deviceName": "i2c_master",
+              "csrOffsetCalc": "0x8000 + ({adapterIndex} - {startAdapterIndex})*0x80",
+              "startAdapterIndex": 0,
+              "numAdapters": 4,
+              "numBusesPerAdapter": 4
             }
           ],
           "spiMasterConfigs": [],
@@ -243,30 +220,22 @@
           "deviceId": "0x0001",
           "subSystemVendorId": "0x3475",
           "subSystemDeviceId": "0x0002",
-          "i2cAdapterConfigs": [
+          "i2cAdapterBlockConfigs": [
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SCD_SMBUS0",
-                "deviceName": "i2c_master",
-                "csrOffset": "0x8000"
-              },
-              "numberOfAdapters": 8
+              "pmUnitScopedNamePrefix": "SCD_SMBUS",
+              "deviceName": "i2c_master",
+              "csrOffsetCalc": "0x8000 + ({adapterIndex} - {startAdapterIndex})*0x80",
+              "startAdapterIndex": 0,
+              "numAdapters": 2,
+              "numBusesPerAdapter": 8
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SCD_SMBUS1",
-                "deviceName": "i2c_master",
-                "csrOffset": "0x8080"
-              },
-              "numberOfAdapters": 8
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SCD_SMBUS6",
-                "deviceName": "i2c_master",
-                "csrOffset": "0x8300"
-              },
-              "numberOfAdapters": 8
+              "pmUnitScopedNamePrefix": "SCD_SMBUS",
+              "deviceName": "i2c_master",
+              "csrOffsetCalc": "0x8300 + ({adapterIndex} - {startAdapterIndex})*0x80",
+              "startAdapterIndex": 6,
+              "numAdapters": 1,
+              "numBusesPerAdapter": 8
             }
           ],
           "spiMasterConfigs": [
@@ -387,46 +356,46 @@
     "/run/devmap/fpgas/SCD_FPGA": "/[SCD_FPGA]",
     "/run/devmap/fpgas/SCD_FPGA_INFO_ROM": "/[SCD_FPGA_INFO_ROM]",
     "/run/devmap/inforoms/SCD_FPGA_INFO_ROM": "/[SCD_FPGA_INFO_ROM]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS0_CH0": "/[ROOK_SMBUS0@0]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS0_CH1": "/[ROOK_SMBUS0@1]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS0_CH2": "/[ROOK_SMBUS0@2]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS0_CH3": "/[ROOK_SMBUS0@3]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS1_CH0": "/[ROOK_SMBUS1@0]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS1_CH1": "/[ROOK_SMBUS1@1]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS1_CH2": "/[ROOK_SMBUS1@2]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS1_CH3": "/[ROOK_SMBUS1@3]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS2_CH0": "/[ROOK_SMBUS2@0]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS2_CH1": "/[ROOK_SMBUS2@1]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS2_CH2": "/[ROOK_SMBUS2@2]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS2_CH3": "/[ROOK_SMBUS2@3]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS3_CH0": "/[ROOK_SMBUS3@0]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS3_CH1": "/[ROOK_SMBUS3@1]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS3_CH2": "/[ROOK_SMBUS3@2]",
-    "/run/devmap/i2c-busses/ROOK_SMBUS3_CH3": "/[ROOK_SMBUS3@3]",
-    "/run/devmap/i2c-busses/SCD_SMBUS0_CH0": "/[SCD_SMBUS0@0]",
-    "/run/devmap/i2c-busses/SCD_SMBUS0_CH1": "/[SCD_SMBUS0@1]",
-    "/run/devmap/i2c-busses/SCD_SMBUS0_CH2": "/[SCD_SMBUS0@2]",
-    "/run/devmap/i2c-busses/SCD_SMBUS0_CH3": "/[SCD_SMBUS0@3]",
-    "/run/devmap/i2c-busses/SCD_SMBUS0_CH4": "/[SCD_SMBUS0@4]",
-    "/run/devmap/i2c-busses/SCD_SMBUS0_CH5": "/[SCD_SMBUS0@5]",
-    "/run/devmap/i2c-busses/SCD_SMBUS0_CH6": "/[SCD_SMBUS0@6]",
-    "/run/devmap/i2c-busses/SCD_SMBUS0_CH7": "/[SCD_SMBUS0@7]",
-    "/run/devmap/i2c-busses/SCD_SMBUS1_CH0": "/[SCD_SMBUS1@0]",
-    "/run/devmap/i2c-busses/SCD_SMBUS1_CH1": "/[SCD_SMBUS1@1]",
-    "/run/devmap/i2c-busses/SCD_SMBUS1_CH2": "/[SCD_SMBUS1@2]",
-    "/run/devmap/i2c-busses/SCD_SMBUS1_CH3": "/[SCD_SMBUS1@3]",
-    "/run/devmap/i2c-busses/SCD_SMBUS1_CH4": "/[SCD_SMBUS1@4]",
-    "/run/devmap/i2c-busses/SCD_SMBUS1_CH5": "/[SCD_SMBUS1@5]",
-    "/run/devmap/i2c-busses/SCD_SMBUS1_CH6": "/[SCD_SMBUS1@6]",
-    "/run/devmap/i2c-busses/SCD_SMBUS1_CH7": "/[SCD_SMBUS1@7]",
-    "/run/devmap/i2c-busses/SCD_SMBUS6_CH0": "/[SCD_SMBUS6@0]",
-    "/run/devmap/i2c-busses/SCD_SMBUS6_CH1": "/[SCD_SMBUS6@1]",
-    "/run/devmap/i2c-busses/SCD_SMBUS6_CH2": "/[SCD_SMBUS6@2]",
-    "/run/devmap/i2c-busses/SCD_SMBUS6_CH3": "/[SCD_SMBUS6@3]",
-    "/run/devmap/i2c-busses/SCD_SMBUS6_CH4": "/[SCD_SMBUS6@4]",
-    "/run/devmap/i2c-busses/SCD_SMBUS6_CH5": "/[SCD_SMBUS6@5]",
-    "/run/devmap/i2c-busses/SCD_SMBUS6_CH6": "/[SCD_SMBUS6@6]",
-    "/run/devmap/i2c-busses/SCD_SMBUS6_CH7": "/[SCD_SMBUS6@7]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS0_CH0": "/[ROOK_SMBUS_0@0]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS0_CH1": "/[ROOK_SMBUS_0@1]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS0_CH2": "/[ROOK_SMBUS_0@2]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS0_CH3": "/[ROOK_SMBUS_0@3]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS1_CH0": "/[ROOK_SMBUS_1@0]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS1_CH1": "/[ROOK_SMBUS_1@1]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS1_CH2": "/[ROOK_SMBUS_1@2]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS1_CH3": "/[ROOK_SMBUS_1@3]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS2_CH0": "/[ROOK_SMBUS_2@0]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS2_CH1": "/[ROOK_SMBUS_2@1]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS2_CH2": "/[ROOK_SMBUS_2@2]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS2_CH3": "/[ROOK_SMBUS_2@3]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS3_CH0": "/[ROOK_SMBUS_3@0]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS3_CH1": "/[ROOK_SMBUS_3@1]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS3_CH2": "/[ROOK_SMBUS_3@2]",
+    "/run/devmap/i2c-busses/ROOK_SMBUS3_CH3": "/[ROOK_SMBUS_3@3]",
+    "/run/devmap/i2c-busses/SCD_SMBUS0_CH0": "/[SCD_SMBUS_0@0]",
+    "/run/devmap/i2c-busses/SCD_SMBUS0_CH1": "/[SCD_SMBUS_0@1]",
+    "/run/devmap/i2c-busses/SCD_SMBUS0_CH2": "/[SCD_SMBUS_0@2]",
+    "/run/devmap/i2c-busses/SCD_SMBUS0_CH3": "/[SCD_SMBUS_0@3]",
+    "/run/devmap/i2c-busses/SCD_SMBUS0_CH4": "/[SCD_SMBUS_0@4]",
+    "/run/devmap/i2c-busses/SCD_SMBUS0_CH5": "/[SCD_SMBUS_0@5]",
+    "/run/devmap/i2c-busses/SCD_SMBUS0_CH6": "/[SCD_SMBUS_0@6]",
+    "/run/devmap/i2c-busses/SCD_SMBUS0_CH7": "/[SCD_SMBUS_0@7]",
+    "/run/devmap/i2c-busses/SCD_SMBUS1_CH0": "/[SCD_SMBUS_1@0]",
+    "/run/devmap/i2c-busses/SCD_SMBUS1_CH1": "/[SCD_SMBUS_1@1]",
+    "/run/devmap/i2c-busses/SCD_SMBUS1_CH2": "/[SCD_SMBUS_1@2]",
+    "/run/devmap/i2c-busses/SCD_SMBUS1_CH3": "/[SCD_SMBUS_1@3]",
+    "/run/devmap/i2c-busses/SCD_SMBUS1_CH4": "/[SCD_SMBUS_1@4]",
+    "/run/devmap/i2c-busses/SCD_SMBUS1_CH5": "/[SCD_SMBUS_1@5]",
+    "/run/devmap/i2c-busses/SCD_SMBUS1_CH6": "/[SCD_SMBUS_1@6]",
+    "/run/devmap/i2c-busses/SCD_SMBUS1_CH7": "/[SCD_SMBUS_1@7]",
+    "/run/devmap/i2c-busses/SCD_SMBUS6_CH0": "/[SCD_SMBUS_6@0]",
+    "/run/devmap/i2c-busses/SCD_SMBUS6_CH1": "/[SCD_SMBUS_6@1]",
+    "/run/devmap/i2c-busses/SCD_SMBUS6_CH2": "/[SCD_SMBUS_6@2]",
+    "/run/devmap/i2c-busses/SCD_SMBUS6_CH3": "/[SCD_SMBUS_6@3]",
+    "/run/devmap/i2c-busses/SCD_SMBUS6_CH4": "/[SCD_SMBUS_6@4]",
+    "/run/devmap/i2c-busses/SCD_SMBUS6_CH5": "/[SCD_SMBUS_6@5]",
+    "/run/devmap/i2c-busses/SCD_SMBUS6_CH6": "/[SCD_SMBUS_6@6]",
+    "/run/devmap/i2c-busses/SCD_SMBUS6_CH7": "/[SCD_SMBUS_6@7]",
     "/run/devmap/sensors/CPU_BOARD_TEMP_MAX6658": "/[CPU_BOARD_TEMP_MAX6658]",
     "/run/devmap/sensors/CPU_FP_TEMP_LM73": "/[CPU_FP_TEMP_LM73]",
     "/run/devmap/sensors/CPU_MPS1_PMBUS": "/[CPU_MPS1_PMBUS]",
@@ -447,7 +416,6 @@
     "/run/devmap/eeproms/RACKMON_EEPROM": "/RACKMON_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/FS_FAN_SLG4F4527": "/RACKMON_SLOT@0/[FS_FAN_SLG4F4527]",
     "/run/devmap/gpiochips/RACKMON_PLS": "/RACKMON_SLOT@0/[RACKMON_PLS]",
-    "/run/devmap/eeproms/FANSPINNER_EEPROM": "/RACKMON_SLOT@0/[FANSPINNER_EEPROM]",
     "/run/devmap/sensors/PSU_PMBUS": "/PSU_SLOT@0/[PSU_PMBUS]"
   },
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",

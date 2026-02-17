@@ -27,6 +27,7 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -145,10 +146,10 @@ class AgentHighFrequencyStatsTest : public AgentHwTest {
               utility::MacAddressGenerator().get(
                   intfMac.u64HBO() + 1) /*srcMac*/,
               intfMac /*dstMac*/,
-              folly::IPAddressV6("2620:0:1cfe:face:b00c::3") /*srcIp*/,
+              folly::IPAddressV6(kTestSrcIpV6) /*srcIp*/,
               dstIp,
-              8000 /*srcPort*/,
-              8001 /*dstPort*/,
+              kTestSrcPort /*srcPort*/,
+              kTestDstPort /*dstPort*/,
               static_cast<uint8_t>(dscpsIt->second.at(0) << 2) /*dscp*/,
               255 /*hopLimit*/,
               std::vector<uint8_t>(payloadSize, 0xff) /*payload*/));

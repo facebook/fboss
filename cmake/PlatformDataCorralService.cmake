@@ -70,6 +70,7 @@ add_executable(data_corral_service_hw_test
 
 target_link_libraries(data_corral_service_hw_test
   data_corral_service_lib
+  thrift_service_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

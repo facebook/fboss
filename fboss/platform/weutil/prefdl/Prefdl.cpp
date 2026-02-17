@@ -3,7 +3,6 @@
 #include "fboss/platform/weutil/prefdl/Prefdl.h"
 #include <folly/Conv.h>
 #include <fstream>
-#include <iostream>
 
 namespace facebook::fboss::platform {
 
@@ -34,15 +33,6 @@ void PrefdlBase::parseData() {
   while (parseTlvField() && !strStream_.eof()) {
   }
   checkCrc();
-}
-
-void PrefdlBase::printData() {
-  if (fields_.empty()) {
-    parseData();
-  }
-  for (auto key : fields_) {
-    std::cout << key << ": " << dict_[key] << std::endl;
-  }
 }
 
 std::string PrefdlBase::getField(const std::string& fieldName) {

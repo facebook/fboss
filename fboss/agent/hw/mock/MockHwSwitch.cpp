@@ -62,14 +62,19 @@ MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
             delete pkt;
             return true;
           });
-  ON_CALL(*this, stateChangedImpl(_))
-      .WillByDefault(Invoke([](const std::vector<StateDelta>& deltas) {
-        return deltas.back().newState();
-      }));
-  ON_CALL(*this, stateChangedTransaction(_, _))
+  ON_CALL(*this, stateChangedImpl(_, _))
       .WillByDefault(Invoke(
           [](const std::vector<StateDelta>& deltas,
-             const HwWriteBehaviorRAII&) { return deltas.back().newState(); }));
+             const std::optional<StateDeltaApplication>& /* deltaApp */) {
+            return deltas.back().newState();
+          }));
+  ON_CALL(*this, stateChangedTransaction(_, _, _))
+      .WillByDefault(Invoke(
+          [](const std::vector<StateDelta>& deltas,
+             const HwWriteBehaviorRAII& /* behavior */,
+             const std::optional<StateDeltaApplication>& /* deltaApp */) {
+            return deltas.back().newState();
+          }));
   if (FLAGS_enable_hw_update_protection) {
     ON_CALL(*this, transactionsSupported()).WillByDefault(Return(true));
   } else {

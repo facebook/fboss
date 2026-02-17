@@ -1,0 +1,3307 @@
+{
+  "defaultCommandLineArgs": {
+    "firmware_upgrade_on_coldboot": "true",
+    "firmware_upgrade_on_link_down": "false",
+    "firmware_upgrade_on_tcvr_insert": "true",
+    "firmware_upgrade_supported": "true",
+    "mode": "ladakh800bcls",
+    "port_manager_mode": "true",
+    "publish_state_to_fsdb": "true",
+    "publish_stats_to_fsdb": "true",
+    "remediation_enabled": "false",
+    "subscribe_to_state_from_fsdb": "true"
+  },
+  "transceiverConfigOverrides": [
+    
+  ],
+  "qsfpTestConfig": {
+    "cabledPortPairs": [
+      {
+        "aPortName": "eth1/3/1",
+        "zPortName": "eth1/6/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/3/2",
+        "zPortName": "eth1/6/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/3/3",
+        "zPortName": "eth1/6/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/3/4",
+        "zPortName": "eth1/6/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/3/5",
+        "zPortName": "eth1/6/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/3/6",
+        "zPortName": "eth1/6/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/3/7",
+        "zPortName": "eth1/6/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/3/8",
+        "zPortName": "eth1/6/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/4/1",
+        "zPortName": "eth1/4/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/4/2",
+        "zPortName": "eth1/4/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/4/3",
+        "zPortName": "eth1/4/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/4/4",
+        "zPortName": "eth1/4/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/5/1",
+        "zPortName": "eth1/61/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/5/2",
+        "zPortName": "eth1/61/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/5/3",
+        "zPortName": "eth1/61/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/5/4",
+        "zPortName": "eth1/61/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/5/5",
+        "zPortName": "eth1/61/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/5/6",
+        "zPortName": "eth1/61/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/5/7",
+        "zPortName": "eth1/61/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/5/8",
+        "zPortName": "eth1/61/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/8/1",
+        "zPortName": "eth1/8/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/8/2",
+        "zPortName": "eth1/8/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/8/3",
+        "zPortName": "eth1/8/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/8/4",
+        "zPortName": "eth1/8/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/8/5",
+        "zPortName": "eth1/8/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/8/6",
+        "zPortName": "eth1/8/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/8/7",
+        "zPortName": "eth1/8/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/8/8",
+        "zPortName": "eth1/8/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/9/1",
+        "zPortName": "eth1/9/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/9/2",
+        "zPortName": "eth1/9/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/9/3",
+        "zPortName": "eth1/9/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/9/4",
+        "zPortName": "eth1/9/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/10/1",
+        "zPortName": "eth1/7/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/10/2",
+        "zPortName": "eth1/7/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/10/3",
+        "zPortName": "eth1/7/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/10/4",
+        "zPortName": "eth1/7/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/10/5",
+        "zPortName": "eth1/7/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/10/6",
+        "zPortName": "eth1/7/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/10/7",
+        "zPortName": "eth1/7/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/10/8",
+        "zPortName": "eth1/7/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/11/1",
+        "zPortName": "eth1/15/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/11/2",
+        "zPortName": "eth1/15/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/11/3",
+        "zPortName": "eth1/15/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/11/4",
+        "zPortName": "eth1/15/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/11/5",
+        "zPortName": "eth1/15/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/11/6",
+        "zPortName": "eth1/15/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/11/7",
+        "zPortName": "eth1/15/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/11/8",
+        "zPortName": "eth1/15/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/12/1",
+        "zPortName": "eth1/17/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/12/2",
+        "zPortName": "eth1/17/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/12/3",
+        "zPortName": "eth1/17/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/12/4",
+        "zPortName": "eth1/17/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/12/5",
+        "zPortName": "eth1/17/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/12/6",
+        "zPortName": "eth1/17/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/12/7",
+        "zPortName": "eth1/17/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/12/8",
+        "zPortName": "eth1/17/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/13/1",
+        "zPortName": "eth1/13/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/13/2",
+        "zPortName": "eth1/13/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/13/3",
+        "zPortName": "eth1/13/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/13/4",
+        "zPortName": "eth1/13/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/13/5",
+        "zPortName": "eth1/13/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/13/6",
+        "zPortName": "eth1/13/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/13/7",
+        "zPortName": "eth1/13/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/13/8",
+        "zPortName": "eth1/13/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/14/1",
+        "zPortName": "eth1/18/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/14/2",
+        "zPortName": "eth1/18/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/14/3",
+        "zPortName": "eth1/18/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/14/4",
+        "zPortName": "eth1/18/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/14/5",
+        "zPortName": "eth1/18/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/14/6",
+        "zPortName": "eth1/18/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/14/7",
+        "zPortName": "eth1/18/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/14/8",
+        "zPortName": "eth1/18/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/16/1",
+        "zPortName": "eth1/16/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/16/2",
+        "zPortName": "eth1/16/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/16/3",
+        "zPortName": "eth1/16/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/16/4",
+        "zPortName": "eth1/16/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/16/5",
+        "zPortName": "eth1/16/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/16/6",
+        "zPortName": "eth1/16/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/16/7",
+        "zPortName": "eth1/16/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/16/8",
+        "zPortName": "eth1/16/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/23/1",
+        "zPortName": "eth1/26/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/23/2",
+        "zPortName": "eth1/26/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/23/3",
+        "zPortName": "eth1/26/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/23/4",
+        "zPortName": "eth1/26/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/23/5",
+        "zPortName": "eth1/26/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/23/6",
+        "zPortName": "eth1/26/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/23/7",
+        "zPortName": "eth1/26/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/23/8",
+        "zPortName": "eth1/26/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/24/1",
+        "zPortName": "eth1/24/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/24/2",
+        "zPortName": "eth1/24/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/24/3",
+        "zPortName": "eth1/24/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/24/4",
+        "zPortName": "eth1/24/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/24/5",
+        "zPortName": "eth1/24/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/24/6",
+        "zPortName": "eth1/24/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/24/7",
+        "zPortName": "eth1/24/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/24/8",
+        "zPortName": "eth1/24/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/25/1",
+        "zPortName": "eth1/25/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/25/2",
+        "zPortName": "eth1/25/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/25/3",
+        "zPortName": "eth1/25/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/25/4",
+        "zPortName": "eth1/25/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/27/1",
+        "zPortName": "eth1/31/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/27/2",
+        "zPortName": "eth1/31/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/27/3",
+        "zPortName": "eth1/31/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/27/4",
+        "zPortName": "eth1/31/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/27/5",
+        "zPortName": "eth1/31/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/27/6",
+        "zPortName": "eth1/31/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/27/7",
+        "zPortName": "eth1/31/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/27/8",
+        "zPortName": "eth1/31/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/28/1",
+        "zPortName": "eth1/33/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/28/2",
+        "zPortName": "eth1/33/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/28/3",
+        "zPortName": "eth1/33/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/28/4",
+        "zPortName": "eth1/33/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/28/5",
+        "zPortName": "eth1/33/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/28/6",
+        "zPortName": "eth1/33/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/28/7",
+        "zPortName": "eth1/33/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/28/8",
+        "zPortName": "eth1/33/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/29/1",
+        "zPortName": "eth1/85/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/29/2",
+        "zPortName": "eth1/85/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/29/3",
+        "zPortName": "eth1/85/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/29/4",
+        "zPortName": "eth1/85/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/29/5",
+        "zPortName": "eth1/85/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/29/6",
+        "zPortName": "eth1/85/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/29/7",
+        "zPortName": "eth1/85/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/29/8",
+        "zPortName": "eth1/85/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/30/1",
+        "zPortName": "eth1/34/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/30/2",
+        "zPortName": "eth1/34/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/30/3",
+        "zPortName": "eth1/34/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/30/4",
+        "zPortName": "eth1/34/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/30/5",
+        "zPortName": "eth1/34/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/30/6",
+        "zPortName": "eth1/34/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/30/7",
+        "zPortName": "eth1/34/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/30/8",
+        "zPortName": "eth1/34/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/32/1",
+        "zPortName": "eth1/82/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/32/2",
+        "zPortName": "eth1/82/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/32/3",
+        "zPortName": "eth1/82/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/32/4",
+        "zPortName": "eth1/82/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/32/5",
+        "zPortName": "eth1/82/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/32/6",
+        "zPortName": "eth1/82/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/32/7",
+        "zPortName": "eth1/82/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/32/8",
+        "zPortName": "eth1/82/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/35/1",
+        "zPortName": "eth1/38/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/35/2",
+        "zPortName": "eth1/38/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/35/3",
+        "zPortName": "eth1/38/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/35/4",
+        "zPortName": "eth1/38/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/35/5",
+        "zPortName": "eth1/38/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/35/6",
+        "zPortName": "eth1/38/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/35/7",
+        "zPortName": "eth1/38/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/35/8",
+        "zPortName": "eth1/38/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/36/1",
+        "zPortName": "eth1/36/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/36/2",
+        "zPortName": "eth1/36/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/36/3",
+        "zPortName": "eth1/36/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/36/4",
+        "zPortName": "eth1/36/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/37/1",
+        "zPortName": "eth1/81/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/37/2",
+        "zPortName": "eth1/81/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/37/3",
+        "zPortName": "eth1/81/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/37/4",
+        "zPortName": "eth1/81/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/39/1",
+        "zPortName": "eth1/79/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/39/2",
+        "zPortName": "eth1/79/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/39/3",
+        "zPortName": "eth1/79/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/39/4",
+        "zPortName": "eth1/79/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/39/5",
+        "zPortName": "eth1/79/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/39/6",
+        "zPortName": "eth1/79/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/39/7",
+        "zPortName": "eth1/79/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/39/8",
+        "zPortName": "eth1/79/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/40/1",
+        "zPortName": "eth1/80/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/40/2",
+        "zPortName": "eth1/80/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/40/3",
+        "zPortName": "eth1/80/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/40/4",
+        "zPortName": "eth1/80/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/40/5",
+        "zPortName": "eth1/80/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/40/6",
+        "zPortName": "eth1/80/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/40/7",
+        "zPortName": "eth1/80/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/40/8",
+        "zPortName": "eth1/80/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/41/1",
+        "zPortName": "eth1/81/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/41/2",
+        "zPortName": "eth1/81/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/41/3",
+        "zPortName": "eth1/81/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/41/4",
+        "zPortName": "eth1/81/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/42/1",
+        "zPortName": "eth1/77/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/42/2",
+        "zPortName": "eth1/77/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/42/3",
+        "zPortName": "eth1/77/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/42/4",
+        "zPortName": "eth1/77/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/42/5",
+        "zPortName": "eth1/77/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/42/6",
+        "zPortName": "eth1/77/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/42/7",
+        "zPortName": "eth1/77/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/42/8",
+        "zPortName": "eth1/77/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/43/1",
+        "zPortName": "eth1/92/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/43/2",
+        "zPortName": "eth1/92/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/43/3",
+        "zPortName": "eth1/92/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/43/4",
+        "zPortName": "eth1/92/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/43/5",
+        "zPortName": "eth1/92/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/43/6",
+        "zPortName": "eth1/92/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/43/7",
+        "zPortName": "eth1/92/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/43/8",
+        "zPortName": "eth1/92/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/44/1",
+        "zPortName": "eth1/94/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/44/2",
+        "zPortName": "eth1/94/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/44/3",
+        "zPortName": "eth1/94/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/44/4",
+        "zPortName": "eth1/94/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/44/5",
+        "zPortName": "eth1/94/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/44/6",
+        "zPortName": "eth1/94/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/44/7",
+        "zPortName": "eth1/94/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/44/8",
+        "zPortName": "eth1/94/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/45/1",
+        "zPortName": "eth1/91/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/45/2",
+        "zPortName": "eth1/91/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/45/3",
+        "zPortName": "eth1/91/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/45/4",
+        "zPortName": "eth1/91/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/45/5",
+        "zPortName": "eth1/91/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/45/6",
+        "zPortName": "eth1/91/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/45/7",
+        "zPortName": "eth1/91/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/45/8",
+        "zPortName": "eth1/91/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/46/1",
+        "zPortName": "eth1/46/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/46/2",
+        "zPortName": "eth1/46/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/46/3",
+        "zPortName": "eth1/46/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/46/4",
+        "zPortName": "eth1/46/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/46/5",
+        "zPortName": "eth1/46/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/46/6",
+        "zPortName": "eth1/46/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/46/7",
+        "zPortName": "eth1/46/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/46/8",
+        "zPortName": "eth1/46/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/47/1",
+        "zPortName": "eth1/93/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/47/2",
+        "zPortName": "eth1/93/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/47/3",
+        "zPortName": "eth1/93/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/47/4",
+        "zPortName": "eth1/93/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/47/5",
+        "zPortName": "eth1/93/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/47/6",
+        "zPortName": "eth1/93/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/47/7",
+        "zPortName": "eth1/93/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/47/8",
+        "zPortName": "eth1/93/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/48/1",
+        "zPortName": "eth1/49/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/48/2",
+        "zPortName": "eth1/49/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/48/3",
+        "zPortName": "eth1/49/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/48/4",
+        "zPortName": "eth1/49/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/48/5",
+        "zPortName": "eth1/49/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/48/6",
+        "zPortName": "eth1/49/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/48/7",
+        "zPortName": "eth1/49/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/48/8",
+        "zPortName": "eth1/49/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/50/1",
+        "zPortName": "eth1/50/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/50/3",
+        "zPortName": "eth1/50/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/50/5",
+        "zPortName": "eth1/50/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/50/7",
+        "zPortName": "eth1/50/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/51/1",
+        "zPortName": "eth1/58/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/51/2",
+        "zPortName": "eth1/58/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/51/3",
+        "zPortName": "eth1/58/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/51/4",
+        "zPortName": "eth1/58/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/51/5",
+        "zPortName": "eth1/58/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/51/6",
+        "zPortName": "eth1/58/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/51/7",
+        "zPortName": "eth1/58/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/51/8",
+        "zPortName": "eth1/58/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/52/1",
+        "zPortName": "eth1/56/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/52/2",
+        "zPortName": "eth1/56/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/52/3",
+        "zPortName": "eth1/56/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/52/4",
+        "zPortName": "eth1/56/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/52/5",
+        "zPortName": "eth1/56/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/52/6",
+        "zPortName": "eth1/56/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/52/7",
+        "zPortName": "eth1/56/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/52/8",
+        "zPortName": "eth1/56/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/53/1",
+        "zPortName": "eth1/57/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/53/2",
+        "zPortName": "eth1/57/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/53/3",
+        "zPortName": "eth1/57/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/53/4",
+        "zPortName": "eth1/57/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/53/5",
+        "zPortName": "eth1/57/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/53/6",
+        "zPortName": "eth1/57/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/53/7",
+        "zPortName": "eth1/57/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/53/8",
+        "zPortName": "eth1/57/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/54/1",
+        "zPortName": "eth1/54/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/54/2",
+        "zPortName": "eth1/54/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/54/3",
+        "zPortName": "eth1/54/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/54/4",
+        "zPortName": "eth1/54/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/54/5",
+        "zPortName": "eth1/54/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/54/6",
+        "zPortName": "eth1/54/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/54/7",
+        "zPortName": "eth1/54/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/54/8",
+        "zPortName": "eth1/54/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/55/1",
+        "zPortName": "eth1/55/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/55/2",
+        "zPortName": "eth1/55/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/55/3",
+        "zPortName": "eth1/55/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/55/4",
+        "zPortName": "eth1/55/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/55/5",
+        "zPortName": "eth1/55/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/55/6",
+        "zPortName": "eth1/55/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/55/7",
+        "zPortName": "eth1/55/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/55/8",
+        "zPortName": "eth1/55/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/59/1",
+        "zPortName": "eth1/63/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/59/2",
+        "zPortName": "eth1/63/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/59/3",
+        "zPortName": "eth1/63/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/59/4",
+        "zPortName": "eth1/63/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/59/5",
+        "zPortName": "eth1/63/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/59/6",
+        "zPortName": "eth1/63/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/59/7",
+        "zPortName": "eth1/63/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/59/8",
+        "zPortName": "eth1/63/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/60/1",
+        "zPortName": "eth1/65/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/60/2",
+        "zPortName": "eth1/65/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/60/3",
+        "zPortName": "eth1/65/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/60/4",
+        "zPortName": "eth1/65/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/60/5",
+        "zPortName": "eth1/65/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/60/6",
+        "zPortName": "eth1/65/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/60/7",
+        "zPortName": "eth1/65/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/60/8",
+        "zPortName": "eth1/65/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/62/1",
+        "zPortName": "eth1/66/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/62/2",
+        "zPortName": "eth1/66/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/62/3",
+        "zPortName": "eth1/66/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/62/4",
+        "zPortName": "eth1/66/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/62/5",
+        "zPortName": "eth1/66/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/62/6",
+        "zPortName": "eth1/66/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/62/7",
+        "zPortName": "eth1/66/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/62/8",
+        "zPortName": "eth1/66/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/64/1",
+        "zPortName": "eth1/64/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/64/2",
+        "zPortName": "eth1/64/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/64/3",
+        "zPortName": "eth1/64/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/64/4",
+        "zPortName": "eth1/64/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/64/5",
+        "zPortName": "eth1/64/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/64/6",
+        "zPortName": "eth1/64/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/64/7",
+        "zPortName": "eth1/64/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/64/8",
+        "zPortName": "eth1/64/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/67/1",
+        "zPortName": "eth1/71/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/67/2",
+        "zPortName": "eth1/71/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/67/3",
+        "zPortName": "eth1/71/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/67/4",
+        "zPortName": "eth1/71/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/67/5",
+        "zPortName": "eth1/71/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/67/6",
+        "zPortName": "eth1/71/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/67/7",
+        "zPortName": "eth1/71/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/67/8",
+        "zPortName": "eth1/71/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/68/1",
+        "zPortName": "eth1/73/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/68/2",
+        "zPortName": "eth1/73/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/68/3",
+        "zPortName": "eth1/73/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/68/4",
+        "zPortName": "eth1/73/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/68/5",
+        "zPortName": "eth1/73/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/68/6",
+        "zPortName": "eth1/73/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/68/7",
+        "zPortName": "eth1/73/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/68/8",
+        "zPortName": "eth1/73/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/69/1",
+        "zPortName": "eth1/69/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/69/2",
+        "zPortName": "eth1/69/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/69/3",
+        "zPortName": "eth1/69/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/69/4",
+        "zPortName": "eth1/69/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/69/5",
+        "zPortName": "eth1/69/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/69/6",
+        "zPortName": "eth1/69/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/69/7",
+        "zPortName": "eth1/69/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/69/8",
+        "zPortName": "eth1/69/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/70/1",
+        "zPortName": "eth1/74/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/70/2",
+        "zPortName": "eth1/74/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/70/3",
+        "zPortName": "eth1/74/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/70/4",
+        "zPortName": "eth1/74/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/70/5",
+        "zPortName": "eth1/74/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/70/6",
+        "zPortName": "eth1/74/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/70/7",
+        "zPortName": "eth1/74/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/70/8",
+        "zPortName": "eth1/74/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/75/1",
+        "zPortName": "eth1/78/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/75/2",
+        "zPortName": "eth1/78/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/75/3",
+        "zPortName": "eth1/78/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/75/4",
+        "zPortName": "eth1/78/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/75/5",
+        "zPortName": "eth1/78/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/75/6",
+        "zPortName": "eth1/78/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/75/7",
+        "zPortName": "eth1/78/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/75/8",
+        "zPortName": "eth1/78/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/76/1",
+        "zPortName": "eth1/76/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/76/2",
+        "zPortName": "eth1/76/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/76/3",
+        "zPortName": "eth1/76/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/76/4",
+        "zPortName": "eth1/76/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/83/1",
+        "zPortName": "eth1/87/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/83/2",
+        "zPortName": "eth1/87/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/83/3",
+        "zPortName": "eth1/87/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/83/4",
+        "zPortName": "eth1/87/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/83/5",
+        "zPortName": "eth1/87/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/83/6",
+        "zPortName": "eth1/87/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/83/7",
+        "zPortName": "eth1/87/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/83/8",
+        "zPortName": "eth1/87/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/84/1",
+        "zPortName": "eth1/89/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/84/2",
+        "zPortName": "eth1/89/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/84/3",
+        "zPortName": "eth1/89/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/84/4",
+        "zPortName": "eth1/89/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/84/5",
+        "zPortName": "eth1/89/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/84/6",
+        "zPortName": "eth1/89/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/84/7",
+        "zPortName": "eth1/89/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/84/8",
+        "zPortName": "eth1/89/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/86/1",
+        "zPortName": "eth1/90/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/86/2",
+        "zPortName": "eth1/90/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/86/3",
+        "zPortName": "eth1/90/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/86/4",
+        "zPortName": "eth1/90/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/86/5",
+        "zPortName": "eth1/90/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/86/6",
+        "zPortName": "eth1/90/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/86/7",
+        "zPortName": "eth1/90/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/86/8",
+        "zPortName": "eth1/90/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/95/1",
+        "zPortName": "eth1/98/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/95/2",
+        "zPortName": "eth1/98/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/95/3",
+        "zPortName": "eth1/98/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/95/4",
+        "zPortName": "eth1/98/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/95/5",
+        "zPortName": "eth1/98/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/95/6",
+        "zPortName": "eth1/98/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/95/7",
+        "zPortName": "eth1/98/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/95/8",
+        "zPortName": "eth1/98/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/97/1",
+        "zPortName": "eth1/97/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/97/2",
+        "zPortName": "eth1/97/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/97/3",
+        "zPortName": "eth1/97/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/97/4",
+        "zPortName": "eth1/97/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/100/1",
+        "zPortName": "eth1/105/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/100/2",
+        "zPortName": "eth1/105/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/100/3",
+        "zPortName": "eth1/105/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/100/4",
+        "zPortName": "eth1/105/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/100/5",
+        "zPortName": "eth1/105/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/100/6",
+        "zPortName": "eth1/105/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/100/7",
+        "zPortName": "eth1/105/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/100/8",
+        "zPortName": "eth1/105/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/101/1",
+        "zPortName": "eth1/101/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/101/2",
+        "zPortName": "eth1/101/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/101/3",
+        "zPortName": "eth1/101/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/101/4",
+        "zPortName": "eth1/101/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/101/5",
+        "zPortName": "eth1/101/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/101/6",
+        "zPortName": "eth1/101/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/101/7",
+        "zPortName": "eth1/101/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/101/8",
+        "zPortName": "eth1/101/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/102/1",
+        "zPortName": "eth1/106/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/102/2",
+        "zPortName": "eth1/106/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/102/3",
+        "zPortName": "eth1/106/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/102/4",
+        "zPortName": "eth1/106/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/102/5",
+        "zPortName": "eth1/106/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/102/6",
+        "zPortName": "eth1/106/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/102/7",
+        "zPortName": "eth1/106/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/102/8",
+        "zPortName": "eth1/106/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/103/1",
+        "zPortName": "eth1/99/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/103/2",
+        "zPortName": "eth1/99/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/103/3",
+        "zPortName": "eth1/99/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/103/4",
+        "zPortName": "eth1/99/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/103/5",
+        "zPortName": "eth1/99/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/103/6",
+        "zPortName": "eth1/99/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/103/7",
+        "zPortName": "eth1/99/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/103/8",
+        "zPortName": "eth1/99/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/104/1",
+        "zPortName": "eth1/96/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/104/2",
+        "zPortName": "eth1/96/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/104/3",
+        "zPortName": "eth1/96/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/104/4",
+        "zPortName": "eth1/96/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/104/5",
+        "zPortName": "eth1/96/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/104/6",
+        "zPortName": "eth1/96/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/104/7",
+        "zPortName": "eth1/96/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/104/8",
+        "zPortName": "eth1/96/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/107/1",
+        "zPortName": "eth1/107/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/107/3",
+        "zPortName": "eth1/107/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/107/5",
+        "zPortName": "eth1/107/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/107/7",
+        "zPortName": "eth1/107/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/108/1",
+        "zPortName": "eth1/109/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/108/2",
+        "zPortName": "eth1/109/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/108/3",
+        "zPortName": "eth1/109/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/108/4",
+        "zPortName": "eth1/109/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/108/5",
+        "zPortName": "eth1/109/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/108/6",
+        "zPortName": "eth1/109/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/108/7",
+        "zPortName": "eth1/109/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/108/8",
+        "zPortName": "eth1/109/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/110/1",
+        "zPortName": "eth1/110/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/110/2",
+        "zPortName": "eth1/110/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/110/3",
+        "zPortName": "eth1/110/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/110/4",
+        "zPortName": "eth1/110/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/110/5",
+        "zPortName": "eth1/110/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/110/6",
+        "zPortName": "eth1/110/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/110/7",
+        "zPortName": "eth1/110/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/110/8",
+        "zPortName": "eth1/110/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/111/1",
+        "zPortName": "eth1/111/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/111/2",
+        "zPortName": "eth1/111/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/111/3",
+        "zPortName": "eth1/111/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/111/4",
+        "zPortName": "eth1/111/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/111/5",
+        "zPortName": "eth1/111/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/111/6",
+        "zPortName": "eth1/111/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/111/7",
+        "zPortName": "eth1/111/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/111/8",
+        "zPortName": "eth1/111/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/112/1",
+        "zPortName": "eth1/113/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/112/2",
+        "zPortName": "eth1/113/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/112/3",
+        "zPortName": "eth1/113/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/112/4",
+        "zPortName": "eth1/113/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/112/5",
+        "zPortName": "eth1/113/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/112/6",
+        "zPortName": "eth1/113/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/112/7",
+        "zPortName": "eth1/113/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/112/8",
+        "zPortName": "eth1/113/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/114/1",
+        "zPortName": "eth1/114/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/114/3",
+        "zPortName": "eth1/114/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/114/5",
+        "zPortName": "eth1/114/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/114/7",
+        "zPortName": "eth1/114/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/115/1",
+        "zPortName": "eth1/115/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/115/3",
+        "zPortName": "eth1/115/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/115/5",
+        "zPortName": "eth1/115/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/115/7",
+        "zPortName": "eth1/115/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/116/1",
+        "zPortName": "eth1/117/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/116/2",
+        "zPortName": "eth1/117/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/116/3",
+        "zPortName": "eth1/117/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/116/4",
+        "zPortName": "eth1/117/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/116/5",
+        "zPortName": "eth1/117/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/116/6",
+        "zPortName": "eth1/117/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/116/7",
+        "zPortName": "eth1/117/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/116/8",
+        "zPortName": "eth1/117/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/118/1",
+        "zPortName": "eth1/118/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/118/2",
+        "zPortName": "eth1/118/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/118/3",
+        "zPortName": "eth1/118/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/118/4",
+        "zPortName": "eth1/118/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/118/5",
+        "zPortName": "eth1/118/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/118/6",
+        "zPortName": "eth1/118/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/118/7",
+        "zPortName": "eth1/118/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/118/8",
+        "zPortName": "eth1/118/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/119/1",
+        "zPortName": "eth1/119/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/119/2",
+        "zPortName": "eth1/119/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/119/3",
+        "zPortName": "eth1/119/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/119/4",
+        "zPortName": "eth1/119/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/119/5",
+        "zPortName": "eth1/119/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/119/6",
+        "zPortName": "eth1/119/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/119/7",
+        "zPortName": "eth1/119/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/119/8",
+        "zPortName": "eth1/119/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/120/1",
+        "zPortName": "eth1/121/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/120/2",
+        "zPortName": "eth1/121/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/120/3",
+        "zPortName": "eth1/121/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/120/4",
+        "zPortName": "eth1/121/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/120/5",
+        "zPortName": "eth1/121/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/120/6",
+        "zPortName": "eth1/121/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/120/7",
+        "zPortName": "eth1/121/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/120/8",
+        "zPortName": "eth1/121/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/122/1",
+        "zPortName": "eth1/122/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/122/3",
+        "zPortName": "eth1/122/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/122/5",
+        "zPortName": "eth1/122/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/122/7",
+        "zPortName": "eth1/122/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/123/1",
+        "zPortName": "eth1/22/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/123/2",
+        "zPortName": "eth1/22/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/123/3",
+        "zPortName": "eth1/22/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/123/4",
+        "zPortName": "eth1/22/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/123/5",
+        "zPortName": "eth1/22/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/123/6",
+        "zPortName": "eth1/22/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/123/7",
+        "zPortName": "eth1/22/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/123/8",
+        "zPortName": "eth1/22/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/124/1",
+        "zPortName": "eth1/20/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/124/2",
+        "zPortName": "eth1/20/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/124/3",
+        "zPortName": "eth1/20/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/124/4",
+        "zPortName": "eth1/20/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/124/5",
+        "zPortName": "eth1/20/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/124/6",
+        "zPortName": "eth1/20/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/124/7",
+        "zPortName": "eth1/20/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/124/8",
+        "zPortName": "eth1/20/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/125/1",
+        "zPortName": "eth1/21/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/125/2",
+        "zPortName": "eth1/21/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/125/3",
+        "zPortName": "eth1/21/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/125/4",
+        "zPortName": "eth1/21/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/125/5",
+        "zPortName": "eth1/21/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/125/6",
+        "zPortName": "eth1/21/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/125/7",
+        "zPortName": "eth1/21/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/125/8",
+        "zPortName": "eth1/21/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/126/1",
+        "zPortName": "eth1/19/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/126/2",
+        "zPortName": "eth1/19/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/126/3",
+        "zPortName": "eth1/19/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/126/4",
+        "zPortName": "eth1/19/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/126/5",
+        "zPortName": "eth1/19/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/126/6",
+        "zPortName": "eth1/19/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/126/7",
+        "zPortName": "eth1/19/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/126/8",
+        "zPortName": "eth1/19/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/127/1",
+        "zPortName": "eth1/130/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/127/2",
+        "zPortName": "eth1/130/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/127/3",
+        "zPortName": "eth1/130/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/127/4",
+        "zPortName": "eth1/130/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/127/5",
+        "zPortName": "eth1/130/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/127/6",
+        "zPortName": "eth1/130/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/127/7",
+        "zPortName": "eth1/130/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/127/8",
+        "zPortName": "eth1/130/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/128/1",
+        "zPortName": "eth1/128/1",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/128/2",
+        "zPortName": "eth1/128/2",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/128/3",
+        "zPortName": "eth1/128/3",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/128/4",
+        "zPortName": "eth1/128/4",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/128/5",
+        "zPortName": "eth1/128/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/128/6",
+        "zPortName": "eth1/128/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/128/7",
+        "zPortName": "eth1/128/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/128/8",
+        "zPortName": "eth1/128/8",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/129/1",
+        "zPortName": "eth1/129/5",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/129/2",
+        "zPortName": "eth1/129/6",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/129/3",
+        "zPortName": "eth1/129/7",
+        "profileID": 59
+      },
+      {
+        "aPortName": "eth1/129/4",
+        "zPortName": "eth1/129/8",
+        "profileID": 59
+      }
+    ]
+  },
+  "transceiverFirmwareVersions": {
+    "versionsMap": {
+      "DP08SFP8-ZRB-29B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.30"
+            }
+          ]
+      },
+      "EOLO-138HG-5H-1B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-138HG-5H-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-138HG-5H-3B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-138HG-5H-3T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-138HG-5H-B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-138HG-5H-T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-13T-5H-1B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.2"
+            }
+          ]
+      },
+      "EOLO-13T-5H-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.2"
+            }
+          ]
+      },
+      "EOLO-13T-5H-SDR1": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.2"
+            }
+          ]
+      },
+      "EOLO-168HG-02-1B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.12"
+            }
+          ]
+      },
+      "EOLO-168HG-02-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.12"
+            }
+          ]
+      },
+      "EOLO-168HG-02-9B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.12"
+            }
+          ]
+      },
+      "EOLO-168HG-02-9T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.12"
+            }
+          ]
+      },
+      "EOLO-168HG-10-1B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.0"
+            }
+          ]
+      },
+      "EOLO-168HG-10-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.0"
+            }
+          ]
+      },
+      "EOLO-168HG-10-2B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.0"
+            }
+          ]
+      },
+      "EOLO-168HG-10-2T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.0"
+            }
+          ]
+      },
+      "EOLO-168HG-5H-4B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.4"
+            }
+          ]
+      },
+      "EOLO-168HG-5H-4T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.4"
+            }
+          ]
+      },
+      "EOLO-168HG-5H-8B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.4"
+            }
+          ]
+      },
+      "EOLO-168HG-5H-8T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.4"
+            }
+          ]
+      },
+      "FTCD4313E2PCL-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.19"
+            }
+          ]
+      },
+      "FTCD4313E2PCLFBC": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "FTCD4313E2PCLFBE": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "FTCE2707E1PCB-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.11"
+            }
+          ]
+      },
+      "FTCE4717E1PCB-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.17"
+            }
+          ]
+      },
+      "FTCE4717E1PCBFB1": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.17"
+            }
+          ]
+      },
+      "FTCE4717E1PCBFB3": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.17"
+            }
+          ]
+      },
+      "FTCF2519E3PCA-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.5"
+            }
+          ]
+      },
+      "QDD-400G-XDR4": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "14.3"
+            },
+            {
+              "fwType": 2,
+              "version": "209.7"
+            }
+          ]
+      },
+      "SPQ28E28FOCOAFB1": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "0.b"
+            }
+          ]
+      },
+      "SPTSHP3CLCK2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.1"
+            }
+          ]
+      },
+      "SPTSHP3CLCKS": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "T-DQ4CNT-NF2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "234.147"
+            }
+          ]
+      },
+      "T-DQ4CNT-NFB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "234.147"
+            }
+          ]
+      },
+      "T-DQ4CNT-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "234.147"
+            }
+          ]
+      },
+      "T-FX4FNT-HF4": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HF5": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HF9": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      },
+      "T-FX4FNT-HFE": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      },
+      "T-FX4FNT-HFP": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HFS": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HFU": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      },
+      "T-FX4FNT-HFV": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      },
+      "T-OH8CNH-NFB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "36.197"
+            }
+          ]
+      },
+      "T-OH8CNH-NFL": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "36.197"
+            }
+          ]
+      },
+      "T-OH8CNH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "36.197"
+            }
+          ]
+      },
+      "T-OL8CNH-NFL": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNL-NFL": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNL-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNL-NFY": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNT-NF2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "103.137"
+            }
+          ]
+      },
+      "T-OL8CNT-NFB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "103.137"
+            }
+          ]
+      },
+      "T-OL8CNT-NFL": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "103.137"
+            }
+          ]
+      },
+      "T-OL8CNT-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "103.137"
+            }
+          ]
+      },
+      "T-RH8ENH-N00": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "86.147"
+            }
+          ]
+      },
+      "T-RH8ENH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "86.147"
+            }
+          ]
+      }
+    }
+  },
+  "transceiverI2cLogging": {
+    "writeLog": true,
+    "readLog": true,
+    "disableOnFail": false,
+    "bufferSlots": 20480
+  }
+}

@@ -310,12 +310,14 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
 
     /*
     Because of upstream kernel issues, we have to manually read the
-    SCM EEPROM for the Meru800BFA/BIA platforms. It is read directly
-    with ioctl and written to the /run/devmap file.
-    See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
+    SCM EEPROM for the Meru800BFA/BIA & Icecube800banw platforms. It is read
+    directly with ioctl and written to the /run/devmap file. See:
+    https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
     */
     if ((platformConfig_.platformName().value() == "MERU800BFA" ||
-         platformConfig_.platformName().value() == "MERU800BIA") &&
+         platformConfig_.platformName().value() == "MERU800BIA" ||
+         platformConfig_.platformName().value() == "ICECUBE800BANW" ||
+         platformConfig_.platformName().value() == "BLACKWOLF800BANW") &&
         (!(idpromConfig.busName()->starts_with("INCOMING")) &&
          *idpromConfig.address() == "0x50")) {
       try {
@@ -494,10 +496,11 @@ void PlatformExplorer::exploreI2cDevices(
         auto i2cDevicePath = i2cExplorer_.getDeviceI2cPath(busNum, devAddr);
         try {
           auto eepromPath = i2cDevicePath + "/eeprom";
+          auto eepromOffset = i2cDeviceConfig.eepromOffset().value_or(0);
           dataStore_.updateEepromContents(
               Utils().createDevicePath(
                   slotPath, *i2cDeviceConfig.pmUnitScopedName()),
-              FbossEepromInterface(eepromPath, 0));
+              FbossEepromInterface(eepromPath, eepromOffset));
           if (devicePath == *platformConfig_.chassisEepromDevicePath()) {
             const auto& eepromContents =
                 dataStore_.getEepromContents(devicePath);

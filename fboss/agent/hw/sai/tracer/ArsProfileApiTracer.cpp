@@ -9,11 +9,8 @@
  */
 
 #include "fboss/agent/hw/sai/tracer/ArsProfileApiTracer.h"
-#include <typeindex>
-#include <utility>
 
 #include "fboss/agent/hw/sai/api/ArsProfileApi.h"
-#include "fboss/agent/hw/sai/tracer/Utils.h"
 
 using folly::to;
 
@@ -54,6 +51,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(ArsProfile, ArsAlternateMembersRouteMetaData);
   SAI_EXT_ATTR_MAP(ArsProfile, ArsRouteMetaDataMask);
   SAI_EXT_ATTR_MAP(ArsProfile, ArsPrimaryMembersRouteMetaData);
+  SAI_EXT_ATTR_MAP(ArsProfile, EcmpMemberCount);
 #endif
 }
 #endif // SAI_API_VERSION >= SAI_VERSION(1, 14, 0)

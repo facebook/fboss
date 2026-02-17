@@ -59,6 +59,13 @@ struct SaiArsTraits {
         SAI_ARS_ATTR_ALTERNATE_PATH_BIAS,
         sai_uint32_t,
         StdNullOptDefault<sai_uint32_t>>;
+    struct AttributeNextHopGroupType {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using NextHopGroupType = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeNextHopGroupType,
+        SaiIntDefault<sai_int32_t>>;
   };
 
   using AdapterKey = ArsSaiId;
@@ -68,11 +75,19 @@ struct SaiArsTraits {
       std::optional<Attributes::MaxFlows>,
       std::optional<Attributes::PrimaryPathQualityThreshold>,
       std::optional<Attributes::AlternatePathCost>,
-      std::optional<Attributes::AlternatePathBias>>;
+      std::optional<Attributes::AlternatePathBias>,
+      std::optional<Attributes::NextHopGroupType>>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+#if defined(BRCM_SAI_SDK_GTE_14_0)
+  using AdapterHostKey = std::tuple<
+      std::optional<Attributes::AlternatePathCost>,
+      std::optional<Attributes::AlternatePathBias>,
+      std::optional<Attributes::NextHopGroupType>>;
+#else
   using AdapterHostKey = std::tuple<
       std::optional<Attributes::AlternatePathCost>,
       std::optional<Attributes::AlternatePathBias>>;
+#endif
 #else
   using AdapterHostKey = std::monostate;
 #endif
@@ -84,15 +99,28 @@ SAI_ATTRIBUTE_NAME(Ars, MaxFlows)
 SAI_ATTRIBUTE_NAME(Ars, PrimaryPathQualityThreshold)
 SAI_ATTRIBUTE_NAME(Ars, AlternatePathCost)
 SAI_ATTRIBUTE_NAME(Ars, AlternatePathBias)
+SAI_ATTRIBUTE_NAME(Ars, NextHopGroupType)
 
 inline SaiArsTraits::AdapterHostKey getAdapterHostKey(
     const SaiArsTraits::CreateAttributes& createAttributes) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+#if defined(BRCM_SAI_SDK_GTE_14_0)
+  return SaiArsTraits::AdapterHostKey{
+      std::get<std::optional<SaiArsTraits::Attributes::AlternatePathCost>>(
+          createAttributes),
+      std::get<std::optional<SaiArsTraits::Attributes::AlternatePathBias>>(
+          createAttributes),
+      std::get<std::optional<SaiArsTraits::Attributes::NextHopGroupType>>(
+          createAttributes)
+
+  };
+#else
   return SaiArsTraits::AdapterHostKey{
       std::get<std::optional<SaiArsTraits::Attributes::AlternatePathCost>>(
           createAttributes),
       std::get<std::optional<SaiArsTraits::Attributes::AlternatePathBias>>(
           createAttributes)};
+#endif
 #else
   return SaiArsTraits::AdapterHostKey{};
 #endif

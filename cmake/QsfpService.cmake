@@ -10,6 +10,7 @@ add_library(qsfp_stats
 
 target_link_libraries(qsfp_stats
   fboss_types
+  transceiver_cpp2
   transceiver_manager
   Folly::folly
 )
@@ -48,7 +49,7 @@ add_library(qsfp_config
 )
 
 target_link_libraries(qsfp_config
-  error
+  fboss_error
   qsfp_config_cpp2
   Folly::folly
   FBThrift::thriftcpp2
@@ -138,6 +139,16 @@ add_library(icetea800bc_bsp
 )
 
 target_link_libraries(icetea800bc_bsp
+  bsp_platform_mapping
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
+add_library(minipack3bta_bsp
+  fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.cpp
+)
+
+target_link_libraries(minipack3bta_bsp
   bsp_platform_mapping
   bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
@@ -255,6 +266,7 @@ target_link_libraries(qsfp_bsp_core
   montblanc_bsp
   icecube800bc_bsp
   icetea800bc_bsp
+  minipack3bta_bsp
   minipack3n_bsp
   morgan800cc_bsp
   janga800bic_bsp

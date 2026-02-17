@@ -307,11 +307,10 @@ void SwitchApi::registerSwitchEventCallback(
     //   callback.
 
     // Register switch events
-    // TODO:
-    //   SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_LINK_DISABLE is available for 12.2
-    //   only. Once it is available for 14.4, adjust this condition to GET_12_2.
-    //   We don't plan to roll out this feature for 11.7.
-#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+    // SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_LINK_DISABLE is available for
+    // 12.2 and 14.x only.
+#if defined(SAI_VERSION_12_2_0_0_DNX_ODP) || \
+    defined(SAI_VERSION_14_0_EA_DNX_ODP)
     std::array<uint32_t, 13> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
         SAI_SWITCH_EVENT_TYPE_STABLE_FULL,

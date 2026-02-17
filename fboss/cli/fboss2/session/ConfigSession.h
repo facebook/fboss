@@ -102,10 +102,9 @@ class ConfigSession {
   // Result of a commit operation
   struct CommitResult {
     int revision; // The revision number that was committed
-    cli::ConfigActionLevel actionLevel; // The action level that was required
-    // Note: configReloaded can be inferred from actionLevel:
-    // - HITLESS: config was reloaded via reloadConfig()
-    // - AGENT_RESTART: agent was restarted via systemd
+    // Maps each service to the action level that was applied during commit.
+    // Services not in this map had no action taken.
+    std::map<cli::ServiceType, cli::ConfigActionLevel> actions;
   };
 
   // Atomically commit the session to /etc/coop/cli/agent-rN.conf,
@@ -132,12 +131,10 @@ class ConfigSession {
   const utils::PortMap& getPortMap() const;
 
   // Save the configuration back to the session file.
-  // If actionLevel is provided, also updates the required action level
-  // for the specified agent (if the new level is higher than the current one).
+  // Also updates the required action level for the specified service
+  // (if the new level is higher than the current one).
   // This combines saving the config and updating its associated metadata.
-  void saveConfig(
-      std::optional<cli::ConfigActionLevel> actionLevel = std::nullopt,
-      cli::AgentType agent = cli::AgentType::WEDGE_AGENT);
+  void saveConfig(cli::ServiceType service, cli::ConfigActionLevel actionLevel);
 
   // Extract revision number from a filename or path like "agent-r42.conf"
   // Returns -1 if the filename doesn't match the expected pattern
@@ -145,21 +142,20 @@ class ConfigSession {
 
   // Update the required action level for the current session.
   // Tracks the highest action level across all config commands.
-  // Higher action levels take precedence (AGENT_RESTART > HITLESS).
-  // The agent parameter specifies which agent this action level applies to.
-  // Currently only WEDGE_AGENT is supported; future agents will be added.
+  // Higher action levels take precedence (AGENT_COLDBOOT > AGENT_WARMBOOT >
+  // HITLESS).
   void updateRequiredAction(
-      cli::ConfigActionLevel actionLevel,
-      cli::AgentType agent = cli::AgentType::WEDGE_AGENT);
+      cli::ServiceType service,
+      cli::ConfigActionLevel actionLevel);
 
   // Get the current required action level for the session
-  // The agent parameter specifies which agent to get the action level for.
-  cli::ConfigActionLevel getRequiredAction(
-      cli::AgentType agent = cli::AgentType::WEDGE_AGENT) const;
+  cli::ConfigActionLevel getRequiredAction(cli::ServiceType service) const;
 
   // Reset the required action level to HITLESS (called after successful commit)
-  // The agent parameter specifies which agent to reset the action level for.
-  void resetRequiredAction(cli::AgentType agent = cli::AgentType::WEDGE_AGENT);
+  void resetRequiredAction(cli::ServiceType service);
+
+  // Get the systemd service name for a service type
+  static std::string getServiceName(cli::ServiceType service);
 
  protected:
   // Constructor for testing with custom paths
@@ -183,9 +179,9 @@ class ConfigSession {
   bool configLoaded_ = false;
 
   // Track the highest action level required for pending config changes per
-  // agent. Persisted to disk so it survives across CLI invocations within a
+  // service. Persisted to disk so it survives across CLI invocations within a
   // session.
-  std::map<cli::AgentType, cli::ConfigActionLevel> requiredActions_;
+  std::map<cli::ServiceType, cli::ConfigActionLevel> requiredActions_;
 
   // Path to the metadata file (e.g., ~/.fboss2/metadata)
   std::string getMetadataPath() const;
@@ -194,11 +190,21 @@ class ConfigSession {
   void loadActionLevel();
   void saveActionLevel();
 
-  // Restart an agent via systemd and wait for it to be active
-  void restartAgent(cli::AgentType agent);
+  // Restart a service via systemd and wait for it to be active
+  // For AGENT_WARMBOOT, does a simple restart.
+  // For AGENT_COLDBOOT, creates cold_boot_once files before restarting.
+  void restartService(cli::ServiceType service, cli::ConfigActionLevel level);
 
-  // Get the systemd service name for an agent
-  static std::string getServiceName(cli::AgentType agent);
+  // Reload config for a service without restart (for HITLESS changes).
+  // Each service type has its own reload mechanism.
+  void reloadServiceConfig(cli::ServiceType service, const HostInfo& hostInfo);
+
+  // Apply actions (restart or reload) to all services based on their action
+  // levels. For WARMBOOT/COLDBOOT, restarts the service. For HITLESS, reloads
+  // the config.
+  void applyServiceActions(
+      const std::map<cli::ServiceType, cli::ConfigActionLevel>& actions,
+      const HostInfo& hostInfo);
 
   // Initialize the session (creates session config file if it doesn't exist)
   void initializeSession();

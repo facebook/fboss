@@ -2,9 +2,11 @@
 
 #include "fboss/platform/fan_service/Bsp.h"
 
-#include <fstream>
+#include <ctime>
 #include <string>
 
+#include <fmt/chrono.h>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <folly/system/ThreadName.h>
 
@@ -161,18 +163,19 @@ bool Bsp::writeToWatchdog(const std::string& value) {
   return res;
 }
 
-std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
+std::map<std::string, std::vector<OpticData>> Bsp::processOpticEntries(
     const Optic& opticsGroup,
     uint64_t& currentQsfpSvcTimestamp,
     const std::map<int32_t, TransceiverInfo>& transceiverInfoMap) {
-  std::vector<std::pair<std::string, float>> data{};
+  std::map<std::string, std::vector<OpticData>> data{};
+  std::vector<int32_t> txvrsIdsWithNoData;
+
   for (const auto& [xvrId, transceiverInfo] : transceiverInfoMap) {
     const TcvrState& tcvrState = *transceiverInfo.tcvrState();
     const TcvrStats& tcvrStats = *transceiverInfo.tcvrStats();
 
     if (!tcvrStats.sensor()) {
-      XLOG(ERR) << fmt::format(
-          "Transceiver id {} has no sensor data. Ignoring.", xvrId);
+      txvrsIdsWithNoData.push_back(xvrId);
       continue;
     }
 
@@ -234,10 +237,31 @@ std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
             "Transceiver id {} has unsupported media type {}. Ignoring.",
             xvrId,
             int(mediaInterfaceCode));
-        break;
+        continue;
     }
-    data.emplace_back(opticType, temp);
+    data[opticType].push_back(OpticData{xvrId, temp});
   }
+
+  if (!txvrsIdsWithNoData.empty()) {
+    XLOG(INFO) << fmt::format(
+        "Transceivers with no data (ignored): {}",
+        folly::join(", ", txvrsIdsWithNoData));
+  }
+  if (!data.empty()) {
+    for (const auto& [opticType, transceivers] : data) {
+      std::vector<std::string> tempStrings;
+      tempStrings.reserve(transceivers.size());
+      for (const auto& opticData : transceivers) {
+        tempStrings.push_back(
+            fmt::format("{}({:.1f}C)", opticData.txvrId, opticData.temp));
+      }
+      XLOG(INFO) << fmt::format(
+          "Transceivers with data [{}]: {}",
+          opticType,
+          folly::join(", ", tempStrings));
+    }
+  }
+
   return data;
 }
 
@@ -296,10 +320,14 @@ void Bsp::getOpticsDataFromQsfpSvc(
     pSensorData->updateOpticEntry(
         *opticsGroup.opticName(), data, currentQsfpSvcTimestamp);
   }
+  auto qsfpTimestamp = static_cast<time_t>(currentQsfpSvcTimestamp);
+  std::tm qsfpTm{};
+  localtime_r(&qsfpTimestamp, &qsfpTm);
   XLOG(INFO) << fmt::format(
-      "Got optics data from Qsfp. Data Size: {}. QsfpSvcTimestamp: {}",
+      "Got optics data from Qsfp. OpticTypes: {}. QsfpSvcTimestamp: {} ({:%Y-%m-%d %H:%M:%S})",
       data.size(),
-      currentQsfpSvcTimestamp);
+      currentQsfpSvcTimestamp,
+      qsfpTm);
 }
 
 void Bsp::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
@@ -389,11 +417,15 @@ void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
     if (sensorData.value() && sensorData.timeStamp()) {
       pSensorData->updateSensorEntry(
           *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
+      auto timestamp = static_cast<time_t>(*sensorData.timeStamp());
+      std::tm sensorTm{};
+      localtime_r(&timestamp, &sensorTm);
       XLOG(DBG1) << fmt::format(
-          "Storing sensor {} with value {} timestamp {}",
+          "Storing sensor {} with value {} timestamp {} ({:%Y-%m-%d %H:%M:%S})",
           *sensorData.name(),
           *sensorData.value(),
-          *sensorData.timeStamp());
+          *sensorData.timeStamp(),
+          sensorTm);
     }
   }
   XLOG(INFO) << fmt::format(
@@ -403,7 +435,6 @@ void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
 
 float Bsp::readSysfs(const std::string& path) const {
   float retVal;
-  std::ifstream juicejuice(path);
   std::string buf = facebook::fboss::readSysfs(path);
   try {
     retVal = std::stof(buf);

@@ -315,6 +315,11 @@ DEFINE_bool(
     false,
     "This flag is used to enable ecmp resource manager feature");
 
+DEFINE_bool(
+    enable_nexthop_id_manager,
+    false,
+    "Enable NextHop ID allocation and management for routes");
+
 DEFINE_int32(
     ecmp_resource_manager_make_before_break_buffer,
     2,
@@ -448,6 +453,8 @@ DEFINE_string(
     thrift_switch_state_file,
     "thrift_switch_state",
     "File for dumping switch state in serialized thrift format on exit");
+
+DEFINE_bool(enable_th6_ars_scale_mode, false, "Enable ARS scale mode");
 
 DEFINE_bool(
     qsfp_port_manager_mode,

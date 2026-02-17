@@ -37,6 +37,9 @@ sai_port_media_type_t getSaiPortMediaType(
     TransmitterTechnology transmitterTech,
     cfg::PortSpeed speed);
 
+sai_port_media_type_t getSaiCablePropagationDelayMediaType(
+    TransmitterTechnology transmitterTech);
+
 sai_port_media_type_t getSaiPortMediaFromInterfaceType(
     phy::InterfaceType interfaceType);
 

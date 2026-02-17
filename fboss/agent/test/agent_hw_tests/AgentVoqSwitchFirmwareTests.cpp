@@ -145,7 +145,6 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
       std::string out;
       getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
       XLOG(INFO) << "force_isolate output: " << out;
-      getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
     }
   }
   void getIsolate() {
@@ -156,7 +155,6 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
       std::string out;
       getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
       XLOG(INFO) << "get_isolate output: " << out;
-      getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
     }
   }
   void forceCrash(int delay = 1) {
@@ -181,7 +179,6 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
       std::string out;
       getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
       XLOG(INFO) << "force link admin disable output: " << out;
-      getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
     }
   }
   /*
@@ -216,6 +213,21 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     }
 
     return switchIdToSdkRegDumpFile;
+  }
+
+  bool expectFabricPortsActivePostIsolate() {
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      auto sdkMajorVersionStr = getSdkMajorVersion(switchId);
+      auto sdkMajorVersionNum = std::stoi(sdkMajorVersionStr);
+      XLOG(DBG2) << "SDK major version number is " << sdkMajorVersionNum
+                 << " for switch ID " << switchId;
+      if (sdkMajorVersionNum >= 14) {
+        // For SDKs starting from 14.x, fabric ports would be in INACTIVE
+        // state after isolation (this is the correct behavior)
+        return false;
+      }
+    }
+    return true;
   }
 
   void assertFirmwareInfo(
@@ -387,7 +399,7 @@ TYPED_TEST(AgentVoqSwitchIsolationFirmwareTest, forceIsolate) {
     utility::checkFabricPortsActiveState(
         this->getAgentEnsemble(),
         this->masterLogicalFabricPortIds(),
-        true /* expect active*/);
+        this->expectFabricPortsActivePostIsolate());
     this->assertFirmwareInfo(
         FirmwareOpStatus::STOPPED, FirmwareFuncStatus::ISOLATED);
   };
@@ -432,7 +444,7 @@ TYPED_TEST(AgentVoqSwitchIsolationFirmwareTest, forceLinkAdminDisable) {
     utility::checkFabricPortsActiveState(
         this->getAgentEnsemble(),
         this->masterLogicalFabricPortIds(),
-        true /* expect active */);
+        this->expectFabricPortsActivePostIsolate());
     ASSERT_TRUE(!this->masterLogicalFabricPortIds().empty());
     this->forceLinkAdminDisable(this->masterLogicalFabricPortIds()[0]);
   };
@@ -494,7 +506,7 @@ TYPED_TEST(
     utility::checkFabricPortsActiveState(
         this->getAgentEnsemble(),
         this->masterLogicalFabricPortIds(),
-        true /* expect active*/);
+        this->expectFabricPortsActivePostIsolate());
   };
   this->verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
 }
@@ -610,7 +622,7 @@ TYPED_TEST(AgentVoqSwitchIsolationFirmwareUpgradeDownGrade, firmwareChange) {
       utility::checkFabricPortsActiveState(
           this->getAgentEnsemble(),
           this->masterLogicalFabricPortIds(),
-          true /* expect active*/);
+          this->expectFabricPortsActivePostIsolate());
     }
   };
 

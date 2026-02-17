@@ -41,8 +41,7 @@
     }
   },
   "i2cAdaptersFromCpu": [
-    "SMBus I801 adapter at 5000",
-    "SMBus iSMT adapter at 20fffa7b000"
+    "SMBus I801 adapter at 5000"
   ],
   "versionedPmUnitConfigs": {
     "NETLAKE": [
@@ -114,258 +113,20 @@
           "deviceId": "0x0011",
           "subSystemVendorId": "0x10ee",
           "subSystemDeviceId": "0x0007",
-          "i2cAdapterConfigs": [
+          "i2cAdapterBlockConfigs": [
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_1",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4000"
-              }
+              "pmUnitScopedNamePrefix": "MCB_IOB_I2C_MASTER",
+              "deviceName": "iob_i2c_master",
+              "csrOffsetCalc": "0x4000 + ({adapterIndex} - {startAdapterIndex})*0x100",
+              "startAdapterIndex": 1,
+              "numAdapters": 28
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_2",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4100"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_3",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4200"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_4",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4300"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_5",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4400"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_6",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4500"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_7",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4600"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_8",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4700"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_9",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4800"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_10",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4900"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_11",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4a00"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_12",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4b00"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_13",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4c00"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_14",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4d00"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_15",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4e00"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_16",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x4f00"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_17",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x5000"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_18",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x5100"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_19",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x5200"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_20",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x5300"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_21",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x5400"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_22",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x5500"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_23",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x5600"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_24",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x5700"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_25",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x5800"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_26",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x5900"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_27",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x5a00"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_28",
-                "deviceName": "iob_i2c_master",
-                "csrOffset": "0x5b00"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_I2C_MASTER_1",
-                "deviceName": "dom1_i2c_master",
-                "csrOffset": "0x42000"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_I2C_MASTER_2",
-                "deviceName": "dom1_i2c_master",
-                "csrOffset": "0x42100"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_I2C_MASTER_3",
-                "deviceName": "dom1_i2c_master",
-                "csrOffset": "0x42200"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_I2C_MASTER_4",
-                "deviceName": "dom1_i2c_master",
-                "csrOffset": "0x42300"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_I2C_MASTER_5",
-                "deviceName": "dom1_i2c_master",
-                "csrOffset": "0x42400"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_I2C_MASTER_6",
-                "deviceName": "dom1_i2c_master",
-                "csrOffset": "0x42500"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_I2C_MASTER_7",
-                "deviceName": "dom1_i2c_master",
-                "csrOffset": "0x42600"
-              }
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_I2C_MASTER_8",
-                "deviceName": "dom1_i2c_master",
-                "csrOffset": "0x42700"
-              }
+              "pmUnitScopedNamePrefix": "MCB_DOM_I2C_MASTER",
+              "deviceName": "dom1_i2c_master",
+              "csrOffsetCalc": "0x42000 + ({adapterIndex} - {startAdapterIndex})*0x100",
+              "startAdapterIndex": 1,
+              "numAdapters": 8
             }
           ],
           "gpioChipConfigs": [

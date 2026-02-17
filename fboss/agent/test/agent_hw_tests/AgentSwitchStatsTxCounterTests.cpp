@@ -4,6 +4,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -43,10 +44,10 @@ std::unique_ptr<TxPacket> AgentSwitchStatsTxCounterTest::createL3Packet() {
       vlanId,
       intfMac,
       intfMac,
-      folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-      folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
-      8000,
-      8001);
+      folly::IPAddressV6(kTestSrcIpV6),
+      folly::IPAddressV6(kTestDstIpV6),
+      kTestSrcPort,
+      kTestDstPort);
 }
 
 void AgentSwitchStatsTxCounterTest::sendPacketOutOfPortAsyncAndVerifyStat(

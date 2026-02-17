@@ -7,6 +7,7 @@
 #include "fboss/agent/state/StateUpdateHelpers.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <set>
 #include <vector>
@@ -17,6 +18,17 @@ class SwitchState;
 class SwitchIdScopeResolver;
 class RouteUpdateWrapper;
 class LinkStateToggler;
+
+/*
+ * TestEnsembleInitInfo - Common structure for HwTest and AgentHwTest.
+ * This struct is used to pass initialization parameters to the test ensemble.
+ * Tests can override getTestEnsembleInitInfo() to provide custom values.
+ */
+struct TestEnsembleInitInfo {
+  std::optional<TransceiverInfo> overrideTransceiverInfo;
+  std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes;
+  bool failHwCallsOnWarmboot{false};
+};
 
 class TestEnsembleIf : public HwSwitchCallback {
  public:

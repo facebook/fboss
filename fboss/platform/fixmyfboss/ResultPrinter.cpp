@@ -146,18 +146,6 @@ std::string ResultPrinter::indent(const std::string& text, int level) {
   return oss.str();
 }
 
-std::string ResultPrinter::getStatusColor(platform_checks::CheckStatus status) {
-  switch (status) {
-    case platform_checks::CheckStatus::OK:
-      return COLOR_GREEN;
-    case platform_checks::CheckStatus::PROBLEM:
-      return COLOR_RED;
-    case platform_checks::CheckStatus::ERROR:
-      return COLOR_ORANGE;
-  }
-  return COLOR_RESET;
-}
-
 std::string ResultPrinter::getStatusBackgroundColor(
     platform_checks::CheckStatus status) {
   switch (status) {

@@ -544,6 +544,15 @@ void SaiPortManager::attributesFromSaiStore(
         attributes,
         SaiPortTraits::Attributes::DisableTtlDecrement{});
   }
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  // FabricSystemPort is only applicable for fabric ports
+  if (GET_ATTR(Port, Type, attributes) == SAI_PORT_TYPE_FABRIC) {
+    getAndSetAttribute(
+        port->attributes(),
+        attributes,
+        SaiPortTraits::Attributes::FabricSystemPort{});
+  }
+#endif
 }
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
@@ -651,6 +660,16 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           platform_->getInterfaceType(transmitterTech, speed)) {
     interfaceType = saiInterfaceType.value();
   }
+  std::optional<sai_port_media_type_t> propagationDelayMediaType;
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  if (managerTable_->switchManager().isMeasureCableLengthEnabled()) {
+    if (swPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER ||
+        swPort->getPortType() == cfg::PortType::INTERFACE_PORT) {
+      propagationDelayMediaType =
+          utility::getSaiCablePropagationDelayMediaType(transmitterTech);
+    }
+  }
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   std::optional<SaiPortTraits::Attributes::InterFrameGap> interFrameGap;
   if (platform_->getAsic()->isSupported(HwAsic::Feature::MACSEC) &&
@@ -876,6 +895,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // QosTcAndColorToDot1pMap
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
+        std::nullopt, // CablePropagationDelayMediaType
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -972,6 +992,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosTcAndColorToDot1pMap
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
+      propagationDelayMediaType, // CablePropagationDelayMediaType
   };
 }
 
@@ -1158,6 +1179,35 @@ void SaiPortManager::programSerdes(
       rxReach = getSaiRxReach(rxReachVals);
       SaiApiTable::getInstance()->portApi().setAttribute(
           portHandle->serdes->adapterKey(), rxReach);
+    }
+  }
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    SaiPortSerdesTraits::Attributes::RxPrecoding::ValueType rxPrecoding;
+    SaiPortSerdesTraits::Attributes::TxPrecoding::ValueType txPrecoding;
+    for (const auto& pinConfig : swPort->getPinConfigs()) {
+      if (auto rx = pinConfig.rx()) {
+        if (auto precoding = rx->precoding()) {
+          rxPrecoding.push_back(precoding.value());
+        }
+      }
+      if (auto tx = pinConfig.tx()) {
+        if (auto precoding = tx->precoding()) {
+          txPrecoding.push_back(precoding.value());
+        }
+      }
+    }
+    if (!rxPrecoding.empty()) {
+      SaiPortSerdesTraits::Attributes::RxPrecoding rxPrecodingAttr{rxPrecoding};
+      SaiApiTable::getInstance()->portApi().setAttribute(
+          portHandle->serdes->adapterKey(), rxPrecodingAttr);
+    }
+    if (!txPrecoding.empty()) {
+      SaiPortSerdesTraits::Attributes::TxPrecoding txPrecodingAttr{txPrecoding};
+      SaiApiTable::getInstance()->portApi().setAttribute(
+          portHandle->serdes->adapterKey(), txPrecodingAttr);
     }
   }
 #endif

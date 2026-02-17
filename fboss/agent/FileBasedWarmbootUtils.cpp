@@ -11,7 +11,6 @@
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/AgentDirectoryUtil.h"
-#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -46,8 +45,6 @@ bool checkForceColdBootFlag(const AgentDirectoryUtil* directoryUtil) {
 bool checkCanWarmBootFlag(const AgentDirectoryUtil* directoryUtil) {
   bool canWarmBoot =
       removeFile(directoryUtil->getSwSwitchCanWarmBootFile(), true /*log*/);
-  canWarmBoot =
-      canWarmBoot || checkFileExists(getWarmBootFlagLegacy(directoryUtil));
   return canWarmBoot;
 }
 

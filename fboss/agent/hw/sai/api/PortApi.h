@@ -551,6 +551,13 @@ struct SaiPortTraits {
         sai_int32_t,
         AttributePfcMonitorDirection,
         SaiIntDefault<sai_int32_t>>;
+    struct AttributeCablePropagationDelayMediaType {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CablePropagationDelayMediaType = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeCablePropagationDelayMediaType,
+        SaiIntDefault<sai_int32_t>>;
   };
   using AdapterKey = PortSaiId;
 
@@ -677,7 +684,8 @@ struct SaiPortTraits {
       std::optional<Attributes::QosDot1pToTcMap>,
       std::optional<Attributes::QosTcAndColorToDot1pMap>,
       std::optional<Attributes::QosIngressBufferProfileList>,
-      std::optional<Attributes::QosEgressBufferProfileList>>;
+      std::optional<Attributes::QosEgressBufferProfileList>,
+      std::optional<Attributes::CablePropagationDelayMediaType>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -854,6 +862,7 @@ SAI_ATTRIBUTE_NAME(Port, PgDropStatus)
 SAI_ATTRIBUTE_NAME(Port, IsHyperPortMember)
 SAI_ATTRIBUTE_NAME(Port, HyperPortMemberList)
 SAI_ATTRIBUTE_NAME(Port, PfcMonitorDirection)
+SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMediaType)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)
@@ -914,6 +923,16 @@ struct SaiPortSerdesTraits {
         SAI_PORT_SERDES_ATTR_TX_FIR_POST3,
         std::vector<sai_uint32_t>,
         SaiU32ListDefault>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    using TxPrecoding = SaiAttribute<
+        EnumType,
+        SAI_PORT_SERDES_ATTR_TX_PRECODING,
+        std::vector<sai_int32_t>>;
+    using RxPrecoding = SaiAttribute<
+        EnumType,
+        SAI_PORT_SERDES_ATTR_RX_PRECODING,
+        std::vector<sai_int32_t>>;
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
     using CustomCollection = SaiAttribute<
         EnumType,
@@ -1322,6 +1341,10 @@ SAI_ATTRIBUTE_NAME(PortSerdes, TxFirMain);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost1);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost2);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost3);
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+SAI_ATTRIBUTE_NAME(PortSerdes, TxPrecoding);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxPrecoding);
+#endif
 SAI_ATTRIBUTE_NAME(PortSerdes, TxLutMode);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxCtleCode);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxDspMode);

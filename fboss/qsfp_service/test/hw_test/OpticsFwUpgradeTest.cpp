@@ -516,4 +516,150 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
+  /*
+   * This test verifies that triggerOpticsFwUpgrade and
+   * triggerAllOpticsFwUpgrade functions work correctly.
+   * ------------------------------------------------------------------------
+   * Coldboot Setup:
+   * - Create a new QSFP config with qsfpConfig.transceiverFirmwareVersions =
+   *   qsfpConfig.qsfpTestConfig.firmwareForUpgradeTest
+   * - Load the new config to make optics eligible for firmware upgrade
+   * - If there are more than 1 optics requiring upgrade, use
+   *   triggerOpticsFwUpgrade to upgrade 2 interfaces and verify they are
+   * upgraded
+   * ------------------------------------------------------------------------
+   * Warmboot Verify:
+   * - Use triggerAllOpticsFwUpgrade to upgrade all transceivers
+   * - Verify all transceivers are upgraded
+   */
+
+  // Allow all optics using the same EVB to be upgraded in this test
+  gflags::SetCommandLineOptionWithMode(
+      "max_concurrent_evb_fw_upgrade", "8", gflags::SET_FLAGS_DEFAULT);
+  long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
+
+  auto tcvrsToTest = transceiversToTest();
+
+  auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+  auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
+
+  auto setup = [&]() {
+    qsfpServiceHandler->refreshStateMachines();
+
+    auto qsfpCfg = wedgeMgr->getQsfpConfig()->thrift;
+    qsfpCfg.transceiverFirmwareVersions() =
+        *qsfpCfg.qsfpTestConfig()->firmwareForUpgradeTest();
+    std::string newCfgStr =
+        apache::thrift::SimpleJSONSerializer::serialize<std::string>(qsfpCfg);
+    auto newQsfpCfg = QsfpConfig::fromRawConfig(newCfgStr);
+    folly::test::TemporaryDirectory tmpDir = folly::test::TemporaryDirectory();
+    std::string newCfgPath =
+        tmpDir.path().string() + "/optics_upgrade_test_config";
+    newQsfpCfg->dumpConfig(newCfgPath);
+    FLAGS_qsfp_config = newCfgPath;
+    wedgeMgr->loadConfig();
+
+    qsfpServiceHandler->refreshStateMachines();
+    auto portsForFwUpgrade = wedgeMgr->getPortsRequiringOpticsFwUpgrade();
+
+    EXPECT_FALSE(portsForFwUpgrade.empty())
+        << "No modules requiring firmware upgrade";
+
+    if (!portsForFwUpgrade.empty()) {
+      std::vector<std::string> interfacesToUpgrade;
+      size_t maxToUpgrade = std::min(portsForFwUpgrade.size(), size_t(2));
+      for (const auto& [portToUpgrade, _] : portsForFwUpgrade) {
+        interfacesToUpgrade.push_back(portToUpgrade);
+        if (interfacesToUpgrade.size() >= maxToUpgrade) {
+          break;
+        }
+      }
+
+      XLOG(INFO) << "Triggering firmware upgrade for interfaces: "
+                 << folly::join(",", interfacesToUpgrade);
+
+      std::map<std::string, FirmwareUpgradeData> upgradedPorts;
+      qsfpServiceHandler->triggerOpticsFwUpgrade(
+          upgradedPorts,
+          std::make_unique<std::vector<std::string>>(interfacesToUpgrade));
+
+      EXPECT_EQ(upgradedPorts.size(), maxToUpgrade)
+          << "Expected " << maxToUpgrade << " ports to be selected for upgrade";
+
+      const auto& portNameToModule = wedgeMgr->getPortNameToModuleMap();
+      WITH_RETRIES_N_TIMED(
+          10 /* retries */,
+          std::chrono::milliseconds(10000) /* msBetweenRetry */,
+          {
+            qsfpServiceHandler->refreshStateMachines();
+            for (const auto& portName : interfacesToUpgrade) {
+              auto tcvrID = TransceiverID(portNameToModule.at(portName));
+              auto tcvrInfo = wedgeMgr->getTransceiverInfo(tcvrID);
+              auto& tcvrState = *tcvrInfo.tcvrState();
+              EXPECT_EVENTUALLY_FALSE(*tcvrState.fwUpgradeInProgress());
+            }
+          });
+
+      std::vector<int32_t> upgradedTcvrIds;
+      upgradedTcvrIds.reserve(interfacesToUpgrade.size());
+      for (const auto& portName : interfacesToUpgrade) {
+        upgradedTcvrIds.push_back(portNameToModule.at(portName));
+      }
+      CHECK(verifyUpgrade(
+          true /* upgradeExpected */,
+          initDoneTimestampSec /* upgradeSinceTsSec */,
+          upgradedTcvrIds /* tcvrs */))
+          << "Upgrade expected for selected interfaces";
+    }
+  };
+
+  auto verify = [&, tcvrsToTest]() {
+    if (didWarmBoot()) {
+      qsfpServiceHandler->refreshStateMachines();
+      auto portsForFwUpgrade = wedgeMgr->getPortsRequiringOpticsFwUpgrade();
+
+      if (!portsForFwUpgrade.empty()) {
+        XLOG(INFO)
+            << "Triggering firmware upgrade for all transceivers via triggerAllOpticsFwUpgrade";
+
+        long verifyStartTimestampSec = facebook::WallClockUtil::NowInSecFast();
+
+        std::map<std::string, FirmwareUpgradeData> upgradedPorts;
+        qsfpServiceHandler->triggerAllOpticsFwUpgrade(upgradedPorts);
+
+        EXPECT_FALSE(upgradedPorts.empty())
+            << "Expected some ports to be selected for upgrade";
+
+        const auto& portNameToModule = wedgeMgr->getPortNameToModuleMap();
+        WITH_RETRIES_N_TIMED(
+            10 /* retries */,
+            std::chrono::milliseconds(10000) /* msBetweenRetry */,
+            {
+              qsfpServiceHandler->refreshStateMachines();
+              for (auto tcvrID : tcvrsToTest) {
+                auto tcvrInfo =
+                    wedgeMgr->getTransceiverInfo(TransceiverID(tcvrID));
+                auto& tcvrState = *tcvrInfo.tcvrState();
+                EXPECT_EVENTUALLY_FALSE(*tcvrState.fwUpgradeInProgress());
+              }
+            });
+
+        std::vector<int32_t> allUpgradedTcvrIds;
+        allUpgradedTcvrIds.reserve(upgradedPorts.size());
+        for (const auto& [upgradePortName, _] : upgradedPorts) {
+          allUpgradedTcvrIds.push_back(portNameToModule.at(upgradePortName));
+        }
+        CHECK(verifyUpgrade(
+            true /* upgradeExpected */,
+            verifyStartTimestampSec,
+            allUpgradedTcvrIds /* tcvrs */))
+            << "Upgrade expected for all transceivers via triggerAllOpticsFwUpgrade";
+      }
+    }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

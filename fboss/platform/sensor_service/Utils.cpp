@@ -138,7 +138,7 @@ std::optional<std::string> Utils::getPciAddress(
     const std::string& deviceId) {
   std::optional<std::string> sbdf;
   for (const auto& dirEntry : fs::directory_iterator("/sys/bus/pci/devices")) {
-    std::string vendor, device, subSystemVendor, subSystemDevice;
+    std::string vendor, device;
     auto deviceFilePath = dirEntry.path() / "device";
     auto vendorFilePath = dirEntry.path() / "vendor";
     if (!folly::readFile(vendorFilePath.c_str(), vendor)) {

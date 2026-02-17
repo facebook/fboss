@@ -4,6 +4,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/MultiPortTrafficTestUtils.h"
@@ -71,10 +72,10 @@ class AgentTrafficPauseTest : public AgentHwTest {
         vlanId,
         srcMac,
         intfMac,
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+        folly::IPAddressV6(kTestSrcIpV6),
         destIpv6Addr,
-        8000,
-        8001,
+        kTestSrcPort,
+        kTestDstPort,
         dscp << 2,
         255,
         std::vector<uint8_t>(2000, 0xff));

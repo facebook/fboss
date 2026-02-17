@@ -150,6 +150,7 @@ typedef enum _sai_port_extensions_attr_t {
   SAI_PORT_ATTR_FABRIC_SYSTEM_PORT,
   SAI_PORT_ATTR_RESET_QUEUE_CREDIT_BALANCE,
   SAI_PORT_ATTR_PFC_MONITOR_DIRECTION,
+  SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE,
 } sai_port_extensions_attr_t;
 
 typedef enum _sai_ingress_priority_group_extensions_attr_t {
@@ -169,7 +170,17 @@ typedef enum _sai_ars_profile_extensions_attr_t {
   SAI_ARS_PROFILE_ATTR_ROUTE_ARS_ALTERNATE_MEMBERS_META_DATA,
   SAI_ARS_PROFILE_ATTR_ROUTE_ARS_META_DATA_MASK,
   SAI_ARS_PROFILE_ATTR_ROUTE_ARS_PRIMARY_MEMBERS_META_DATA,
+  SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_MEMBER_COUNT,
 } sai_ars_profile_extensions_attr_t;
+
+typedef enum _sai_ars_extensions_attr_t {
+  SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE = SAI_ARS_ATTR_CUSTOM_RANGE_START,
+} sai_ars_extensions_attr_t;
+
+typedef enum _sai_ars_next_hop_group_type_t {
+  SAI_ARS_NEXT_HOP_GROUP_TYPE_REGULAR,
+  SAI_ARS_NEXT_HOP_GROUP_TYPE_VIRTUAL
+} sai_ars_next_hop_group_type_t;
 
 typedef enum _sai_acl_entry_extensions_attr_t {
   SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL =

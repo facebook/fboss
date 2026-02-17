@@ -533,6 +533,24 @@ class AgentBalancedInputModeTest : public AgentFabricSwitchTest {
     return config;
   }
 
+  /*
+   * Override init info for HwAsicTable creation with fabric level 2.
+   * This ensures that HwAsic is created with DUAL_STAGE_L2 fabric node role
+   * instead of the default SINGLE_STAGE_L1.
+   */
+  void overrideTestEnsembleInitInfo(
+      TestEnsembleInitInfo& initInfo) const override {
+    // Read dsfNodes from input config and set fabric level to 2 for all nodes
+    // so that HwAsicTable derives the correct FabricNodeRole (DUAL_STAGE_L2).
+    auto inputAgentConfig = AgentConfig::fromFile(FLAGS_config)->thrift;
+    auto dsfNodes = *inputAgentConfig.sw()->dsfNodes();
+    CHECK(!dsfNodes.empty()) << "dsfNodes must not be empty";
+    for (auto& [_, dsfNode] : dsfNodes) {
+      dsfNode.fabricLevel() = 2; // Set to L2 (SDSW)
+    }
+    initInfo.overrideDsfNodes = std::move(dsfNodes);
+  }
+
  private:
   void setCmdLineFlagOverrides() const override {
     AgentFabricSwitchTest::setCmdLineFlagOverrides();
