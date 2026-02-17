@@ -21,10 +21,17 @@ bool isStateUpdateValidCommon(const StateDelta& delta) {
       [&](const shared_ptr<AclEntry>& /* oldAcl */,
           const shared_ptr<AclEntry>& newAcl) {
         isValid = isValid && newAcl->hasMatcher();
+        if (!isValid) {
+          XLOG(ERR) << "Changed acl " << newAcl->getID() << " has no matcher";
+        }
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<AclEntry>& addAcl) {
         isValid = isValid && addAcl->hasMatcher();
+        if (!isValid) {
+          XLOG(ERR) << "Newly added acl " << addAcl->getID()
+                    << " has no matcher";
+        }
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<AclEntry>& /* delAcl */) {});
@@ -34,10 +41,19 @@ bool isStateUpdateValidCommon(const StateDelta& delta) {
       [&](const shared_ptr<Port>& /* oldport */,
           const shared_ptr<Port>& newport) {
         isValid = isValid && newport->hasValidPortQueues();
+        if (!isValid) {
+          XLOG(ERR) << "Changed port " << newport->getID()
+                    << " has invalid queues";
+        }
+
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<Port>& addport) {
         isValid = isValid && addport->hasValidPortQueues();
+        if (!isValid) {
+          XLOG(ERR) << "Newly added port " << addport->getID()
+                    << " has invalid queues";
+        }
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<Port>& /* delport */) {});
