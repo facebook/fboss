@@ -45,6 +45,7 @@ class ArsApiTest : public ::testing::Test {
             primaryPathQualityThresholdAttribute,
             alternatePathCostAttribute,
             alternatePathBiasAttribute,
+            std::nullopt, // NextHopGroupType
         },
         0);
   }
