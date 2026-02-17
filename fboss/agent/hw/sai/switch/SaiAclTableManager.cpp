@@ -1291,6 +1291,12 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             aclActionDisableArsForwarding =
                 SaiAclEntryTraits::Attributes::ActionDisableArsForwarding{
                     false};
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+            if (FLAGS_enable_th6_ars_scale_mode) {
+              aclActionL3SwitchCancel =
+                  SaiAclEntryTraits::Attributes::ActionL3SwitchCancel{true};
+            }
+#endif
 #endif
           } break;
           case cfg::FlowletAction::DISABLE:
