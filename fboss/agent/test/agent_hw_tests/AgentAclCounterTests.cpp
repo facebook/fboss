@@ -14,6 +14,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -255,7 +256,7 @@ class AgentAclCounterTest : public AgentHwTest {
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
-    int l4DstPort = kL4DstPort();
+    int l4DstPort = kTestDstPort;
     if (aclType == AclType::L4_DST_PORT) {
       l4DstPort = kL4DstPort2();
     }
@@ -267,7 +268,7 @@ class AgentAclCounterTest : public AgentHwTest {
                                                        intfMac, // dst mac
                                                        kSrcIP(),
                                                        kDstIP(),
-                                                       kL4SrcPort(),
+                                                       kTestSrcPort,
                                                        l4DstPort,
                                                        0,
                                                        ttl)
@@ -278,7 +279,7 @@ class AgentAclCounterTest : public AgentHwTest {
                                                        intfMac, // dst mac
                                                        kSrcIP(),
                                                        kDstIP(),
-                                                       kL4SrcPort(),
+                                                       kTestSrcPort,
                                                        l4DstPort,
                                                        0,
                                                        ttl);
@@ -303,14 +304,6 @@ class AgentAclCounterTest : public AgentHwTest {
 
   folly::IPAddressV6 kDstIP() {
     return folly::IPAddressV6("2620:0:1cfe:face:b00c::10");
-  }
-
-  int kL4SrcPort() const {
-    return 8000;
-  }
-
-  int kL4DstPort() const {
-    return 8001;
   }
 
   int kL4DstPort2() const {
