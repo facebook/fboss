@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/switch_asics/Tomahawk6Asic.h"
+#include "fboss/agent/AgentFeatures.h"
 
 namespace facebook::fboss {
 
@@ -268,11 +269,12 @@ Tomahawk6Asic::desiredLoopbackModes() const {
 }
 
 std::optional<uint32_t> Tomahawk6Asic::getMaxArsGroups() const {
-  // TODO: old TH4 number, update if necessary
-  return 128;
+  return FLAGS_enable_th6_ars_scale_mode ? 256 : 128;
 }
 
+// virtual groups size do not change the DLB object usage.
+// set start index based on max non virtual dlb groups
 std::optional<uint32_t> Tomahawk6Asic::getArsBaseIndex() const {
-  return std::nullopt;
+  return getMaxEcmpGroups().value() - 128;
 }
 } // namespace facebook::fboss
