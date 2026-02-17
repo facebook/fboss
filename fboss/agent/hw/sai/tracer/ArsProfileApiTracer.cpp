@@ -51,6 +51,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(ArsProfile, ArsAlternateMembersRouteMetaData);
   SAI_EXT_ATTR_MAP(ArsProfile, ArsRouteMetaDataMask);
   SAI_EXT_ATTR_MAP(ArsProfile, ArsPrimaryMembersRouteMetaData);
+  SAI_EXT_ATTR_MAP(ArsProfile, EcmpMemberCount);
 #endif
 }
 #endif // SAI_API_VERSION >= SAI_VERSION(1, 14, 0)

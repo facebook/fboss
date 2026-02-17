@@ -170,6 +170,7 @@ typedef enum _sai_ars_profile_extensions_attr_t {
   SAI_ARS_PROFILE_ATTR_ROUTE_ARS_ALTERNATE_MEMBERS_META_DATA,
   SAI_ARS_PROFILE_ATTR_ROUTE_ARS_META_DATA_MASK,
   SAI_ARS_PROFILE_ATTR_ROUTE_ARS_PRIMARY_MEMBERS_META_DATA,
+  SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_MEMBER_COUNT,
 } sai_ars_profile_extensions_attr_t;
 
 typedef enum _sai_acl_entry_extensions_attr_t {
