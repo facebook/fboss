@@ -90,6 +90,7 @@ set(SAI_API_SRC
 
 if (SAI_TAJO_IMPL)
   list(APPEND SAI_API_SRC
+    fboss/agent/hw/sai/api/tajo/ArsApi.cpp
     fboss/agent/hw/sai/api/tajo/ArsProfileApi.cpp
     fboss/agent/hw/sai/api/tajo/PortApi.cpp
     fboss/agent/hw/sai/api/tajo/TamApi.cpp
@@ -109,6 +110,7 @@ if (SAI_TAJO_IMPL)
   message(STATUS "Found SAI_IMPL_DIR: ${SAI_IMPL_DIR}")
 elseif (SAI_BRCM_IMPL)
   list(APPEND SAI_API_SRC
+    fboss/agent/hw/sai/api/bcm/ArsApi.cpp
     fboss/agent/hw/sai/api/bcm/ArsProfileApi.cpp
     fboss/agent/hw/sai/api/bcm/PortApi.cpp
     fboss/agent/hw/sai/api/bcm/TamApi.cpp
@@ -128,6 +130,7 @@ elseif (SAI_BRCM_IMPL)
   message(STATUS "Found SAI_IMPL_DIR: ${SAI_IMPL_DIR}")
 elseif (CHENAB_SAI_SDK)
   list(APPEND SAI_API_SRC
+    fboss/agent/hw/sai/api/oss/ArsApi.cpp
     fboss/agent/hw/sai/api/oss/ArsProfileApi.cpp
     fboss/agent/hw/sai/api/oss/PortApi.cpp
     fboss/agent/hw/sai/api/oss/TamApi.cpp
@@ -148,6 +151,7 @@ elseif (CHENAB_SAI_SDK)
 elseif (SAI_BRCM_PAI_IMPL)
   list(APPEND SAI_API_SRC
     fboss/agent/hw/sai/api/oss/AclApi.cpp
+    fboss/agent/hw/sai/api/oss/ArsApi.cpp
     fboss/agent/hw/sai/api/oss/ArsProfileApi.cpp
     fboss/agent/hw/sai/api/oss/DebugCounterApi.cpp
     fboss/agent/hw/sai/api/oss/NextHopGroupApi.cpp

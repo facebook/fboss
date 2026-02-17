@@ -59,6 +59,13 @@ struct SaiArsTraits {
         SAI_ARS_ATTR_ALTERNATE_PATH_BIAS,
         sai_uint32_t,
         StdNullOptDefault<sai_uint32_t>>;
+    struct AttributeNextHopGroupType {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using NextHopGroupType = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeNextHopGroupType,
+        SaiIntDefault<sai_int32_t>>;
   };
 
   using AdapterKey = ArsSaiId;
@@ -84,6 +91,7 @@ SAI_ATTRIBUTE_NAME(Ars, MaxFlows)
 SAI_ATTRIBUTE_NAME(Ars, PrimaryPathQualityThreshold)
 SAI_ATTRIBUTE_NAME(Ars, AlternatePathCost)
 SAI_ATTRIBUTE_NAME(Ars, AlternatePathBias)
+SAI_ATTRIBUTE_NAME(Ars, NextHopGroupType)
 
 inline SaiArsTraits::AdapterHostKey getAdapterHostKey(
     const SaiArsTraits::CreateAttributes& createAttributes) {
