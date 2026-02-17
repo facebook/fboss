@@ -13,6 +13,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -45,10 +46,10 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
         vlanId,
         srcMac, // src mac
         intfMac, // dst mac
-        kSrcIP(),
+        folly::IPAddressV6("2620:0:1cfe:face:b00c::1"),
         kDstIP(),
-        8000, // l4 src port
-        8001, // l4 dst port
+        kTestSrcPort, // l4 src port
+        kTestDstPort, // l4 dst port
         dscp << 2, // Trailing 2 bits are for ECN
         ttl);
 
@@ -63,10 +64,6 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
     } else {
       getSw()->sendPacketSwitchedAsync(std::move(txPacket));
     }
-  }
-
-  folly::IPAddressV6 kSrcIP() {
-    return folly::IPAddressV6("2620:0:1cfe:face:b00c::1");
   }
 
   folly::IPAddressV6 kDstIP() {
