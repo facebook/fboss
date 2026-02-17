@@ -1,12 +1,13 @@
 {
   "defaultCommandLineArgs": {
+    "cdb_command_timeout_usec": "60000000",
     "firmware_upgrade_on_coldboot": "true",
     "firmware_upgrade_on_link_down": "false",
     "firmware_upgrade_on_tcvr_insert": "true",
     "firmware_upgrade_supported": "true",
-    "mode": "meru800bia",
-    "remediation_enabled": "false",
-    "set_max_fec_sampling": "true"
+    "mode": "icetea800bc",
+    "port_manager_mode": "true",
+    "remediation_enabled": "false"
   },
   "transceiverConfigOverrides": [
     
@@ -14,234 +15,164 @@
   "qsfpTestConfig": {
     "cabledPortPairs": [
       {
-        "aPortName": "eth1/11/1",
-        "zPortName": "eth1/15/1",
-        "profileID": 38
+        "aPortName": "eth1/1/1",
+        "zPortName": "eth1/2/1",
+        "profileID": 52
       },
       {
-        "aPortName": "eth1/11/5",
-        "zPortName": "eth1/15/5",
-        "profileID": 38
+        "aPortName": "eth1/1/5",
+        "zPortName": "eth1/2/5",
+        "profileID": 52
       },
       {
-        "aPortName": "eth1/21/1",
-        "zPortName": "eth1/24/1",
-        "profileID": 38
+        "aPortName": "eth1/3/1",
+        "zPortName": "eth1/4/1",
+        "profileID": 51
       },
       {
-        "aPortName": "eth1/21/5",
-        "zPortName": "eth1/24/5",
-        "profileID": 38
+        "aPortName": "eth1/3/5",
+        "zPortName": "eth1/4/5",
+        "profileID": 51
       },
       {
-        "aPortName": "eth1/22/1",
-        "zPortName": "eth1/23/1",
-        "profileID": 39
+        "aPortName": "eth1/3/3",
+        "zPortName": "eth1/4/3",
+        "profileID": 51
       },
       {
-        "aPortName": "fab1/1/1",
-        "zPortName": "fab1/4/1",
-        "profileID": 42
+        "aPortName": "eth1/3/7",
+        "zPortName": "eth1/4/7",
+        "profileID": 51
       },
       {
-        "aPortName": "fab1/1/2",
-        "zPortName": "fab1/4/2",
-        "profileID": 42
+        "aPortName": "eth1/13/1",
+        "zPortName": "eth1/14/1",
+        "profileID": 52
       },
       {
-        "aPortName": "fab1/1/3",
-        "zPortName": "fab1/4/3",
-        "profileID": 42
+        "aPortName": "eth1/13/5",
+        "zPortName": "eth1/14/5",
+        "profileID": 52
       },
       {
-        "aPortName": "fab1/1/4",
-        "zPortName": "fab1/4/4",
-        "profileID": 42
+        "aPortName": "eth1/15/1",
+        "zPortName": "eth1/16/1",
+        "profileID": 51
       },
       {
-        "aPortName": "fab1/1/5",
-        "zPortName": "fab1/4/5",
-        "profileID": 42
+        "aPortName": "eth1/15/5",
+        "zPortName": "eth1/16/5",
+        "profileID": 51
       },
       {
-        "aPortName": "fab1/1/6",
-        "zPortName": "fab1/4/6",
-        "profileID": 42
+        "aPortName": "eth1/15/3",
+        "zPortName": "eth1/16/3",
+        "profileID": 51
       },
       {
-        "aPortName": "fab1/1/7",
-        "zPortName": "fab1/4/7",
-        "profileID": 42
+        "aPortName": "eth1/15/7",
+        "zPortName": "eth1/16/7",
+        "profileID": 51
       },
       {
-        "aPortName": "fab1/1/8",
-        "zPortName": "fab1/4/8",
-        "profileID": 42
+        "aPortName": "eth1/17/1",
+        "zPortName": "eth1/18/1",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/2/1",
-        "zPortName": "fab1/5/1",
-        "profileID": 42
+        "aPortName": "eth1/17/5",
+        "zPortName": "eth1/18/5",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/2/2",
-        "zPortName": "fab1/5/2",
-        "profileID": 42
+        "aPortName": "eth1/17/2",
+        "zPortName": "eth1/18/2",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/2/3",
-        "zPortName": "fab1/5/3",
-        "profileID": 42
+        "aPortName": "eth1/17/6",
+        "zPortName": "eth1/18/6",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/2/4",
-        "zPortName": "fab1/5/4",
-        "profileID": 42
+        "aPortName": "eth1/17/3",
+        "zPortName": "eth1/18/3",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/2/5",
-        "zPortName": "fab1/5/5",
-        "profileID": 42
+        "aPortName": "eth1/17/7",
+        "zPortName": "eth1/18/7",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/2/6",
-        "zPortName": "fab1/5/6",
-        "profileID": 42
+        "aPortName": "eth1/17/4",
+        "zPortName": "eth1/18/4",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/2/7",
-        "zPortName": "fab1/5/7",
-        "profileID": 42
+        "aPortName": "eth1/17/8",
+        "zPortName": "eth1/18/8",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/2/8",
-        "zPortName": "fab1/5/8",
-        "profileID": 42
+        "aPortName": "eth1/19/1",
+        "zPortName": "eth1/20/1",
+        "profileID": 52
       },
       {
-        "aPortName": "fab1/30/1",
-        "zPortName": "fab1/33/1",
-        "profileID": 42
+        "aPortName": "eth1/19/5",
+        "zPortName": "eth1/20/5",
+        "profileID": 52
       },
       {
-        "aPortName": "fab1/30/2",
-        "zPortName": "fab1/33/2",
-        "profileID": 42
+        "aPortName": "eth1/29/1",
+        "zPortName": "eth1/30/1",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/30/3",
-        "zPortName": "fab1/33/3",
-        "profileID": 42
+        "aPortName": "eth1/29/5",
+        "zPortName": "eth1/30/5",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/30/4",
-        "zPortName": "fab1/33/4",
-        "profileID": 42
+        "aPortName": "eth1/29/2",
+        "zPortName": "eth1/30/2",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/30/5",
-        "zPortName": "fab1/33/5",
-        "profileID": 42
+        "aPortName": "eth1/29/6",
+        "zPortName": "eth1/30/6",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/30/6",
-        "zPortName": "fab1/33/6",
-        "profileID": 42
+        "aPortName": "eth1/29/3",
+        "zPortName": "eth1/30/3",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/30/7",
-        "zPortName": "fab1/33/7",
-        "profileID": 42
+        "aPortName": "eth1/29/7",
+        "zPortName": "eth1/30/7",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/30/8",
-        "zPortName": "fab1/33/8",
-        "profileID": 42
+        "aPortName": "eth1/29/4",
+        "zPortName": "eth1/30/4",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/29/1",
-        "zPortName": "fab1/32/1",
-        "profileID": 42
+        "aPortName": "eth1/29/8",
+        "zPortName": "eth1/30/8",
+        "profileID": 53
       },
       {
-        "aPortName": "fab1/29/2",
-        "zPortName": "fab1/32/2",
-        "profileID": 42
+        "aPortName": "eth1/31/1",
+        "zPortName": "eth1/32/1",
+        "profileID": 52
       },
       {
-        "aPortName": "fab1/29/3",
-        "zPortName": "fab1/32/3",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/29/4",
-        "zPortName": "fab1/32/4",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/29/5",
-        "zPortName": "fab1/32/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/29/6",
-        "zPortName": "fab1/32/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/29/7",
-        "zPortName": "fab1/32/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/29/8",
-        "zPortName": "fab1/32/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/31/1",
-        "zPortName": "fab1/34/1",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/31/2",
-        "zPortName": "fab1/34/2",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/31/3",
-        "zPortName": "fab1/34/3",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/31/4",
-        "zPortName": "fab1/34/4",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/31/5",
-        "zPortName": "fab1/34/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/31/6",
-        "zPortName": "fab1/34/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/31/7",
-        "zPortName": "fab1/34/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/31/8",
-        "zPortName": "fab1/34/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "eth1/39/1",
-        "zPortName": "eth1/39/1",
-        "profileID": 23
+        "aPortName": "eth1/31/5",
+        "zPortName": "eth1/32/5",
+        "profileID": 52
       }
     ]
   },

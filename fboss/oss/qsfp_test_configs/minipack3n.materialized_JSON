@@ -121,6 +121,14 @@
   },
   "transceiverFirmwareVersions": {
     "versionsMap": {
+      "DP08SFP8-ZRB-29B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.30"
+            }
+          ]
+      },
       "EOLO-138HG-5H-1B": {
           "versions": [
             {
@@ -169,11 +177,19 @@
             }
           ]
       },
+      "EOLO-13T-5H-1B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.2"
+            }
+          ]
+      },
       "EOLO-13T-5H-1T": {
           "versions": [
             {
               "fwType": 1,
-              "version": "3.1"
+              "version": "3.2"
             }
           ]
       },
@@ -181,7 +197,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.1"
+              "version": "3.2"
             }
           ]
       },
@@ -317,7 +333,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "1.16"
+              "version": "1.17"
             }
           ]
       },
@@ -325,7 +341,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "1.16"
+              "version": "1.17"
             }
           ]
       },
@@ -333,7 +349,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "1.16"
+              "version": "1.17"
             }
           ]
       },
@@ -341,7 +357,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "2.4"
+              "version": "2.5"
             }
           ]
       },
@@ -354,6 +370,14 @@
             {
               "fwType": 2,
               "version": "209.7"
+            }
+          ]
+      },
+      "SPQ28E28FOCOAFB1": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "0.b"
             }
           ]
       },
@@ -561,7 +585,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "86.245"
+              "version": "86.147"
             }
           ]
       },
@@ -569,7 +593,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "86.245"
+              "version": "86.147"
             }
           ]
       }
