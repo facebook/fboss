@@ -4137,12 +4137,6 @@ bool SaiSwitch::isValidStateUpdateLocked(
         }
       });
 
-  if (delta.newState()->getMirrors()->numNodes() >
-      getPlatform()->getAsic()->getMaxMirrors()) {
-    XLOG(ERR) << "Number of mirrors configured is high on this platform";
-    return false;
-  }
-
   auto qualifiersSupported =
       managerTable_->aclTableManager().getSupportedQualifierSet(
           cfg::AclStage::INGRESS);

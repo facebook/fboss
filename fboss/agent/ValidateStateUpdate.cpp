@@ -148,6 +148,33 @@ bool isStateUpdateValidMultiSwitch(
         return LoopAction::CONTINUE;
       });
 
+  std::map<SwitchID, uint32_t> switchId2Mirrors;
+  for (const auto& [matcherStr, mirrors] :
+       std::as_const(*(delta.newState()->getMirrors()))) {
+    if (!isValid) {
+      break;
+    }
+    HwSwitchMatcher matcher(matcherStr);
+    for (const auto& switchId : matcher.switchIds()) {
+      if (switchId2Mirrors.find(switchId) == switchId2Mirrors.end()) {
+        switchId2Mirrors[switchId] = 0;
+      }
+      switchId2Mirrors[switchId] += mirrors->size();
+      auto itr = hwAsics.find(switchId);
+      if (itr == hwAsics.end()) {
+        XLOG(ERR) << "ASIC not found for the switch " << switchId;
+        isValid = false;
+      }
+      if (itr->second->getMaxMirrors() < switchId2Mirrors[switchId]) {
+        XLOG(ERR) << "Number of mirrors configured "
+                  << switchId2Mirrors[switchId]
+                  << " is higher on  platform for switch " << switchId
+                  << " than the max supported " << itr->second->getMaxMirrors();
+        isValid = false;
+      }
+    }
+  }
+
   return isValid;
 }
 
