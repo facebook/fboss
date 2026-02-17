@@ -1391,7 +1391,7 @@
   "chassisEepromDevicePath": "/SMB_SLOT@0/[CHASSIS_EEPROM]",
   "numXcvrs": 68,
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.18-1",
+  "bspKmodsRpmVersion": "0.7.19-1",
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",
