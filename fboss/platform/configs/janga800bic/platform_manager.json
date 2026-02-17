@@ -49,8 +49,7 @@
     }
   },
   "i2cAdaptersFromCpu": [
-    "SMBus I801 adapter at 5000",
-    "SMBus iSMT adapter at 20fffa7b000"
+    "SMBus I801 adapter at 5000"
   ],
   "versionedPmUnitConfigs": {
     "NETLAKE": [
