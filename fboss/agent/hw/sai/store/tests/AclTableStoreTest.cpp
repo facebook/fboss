@@ -261,13 +261,22 @@ class AclTableStoreTest : public SaiStoreTest {
             true, // neighbor meta
             true, // ethertype
             true, // outer vlan id
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
             true, // bth opcode
+#endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
             true, // ipv6 next header
+#endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
             kUdfGroupId(), // udf group 0
             kUdfGroupId() + 1, // udf group 1
             kUdfGroupId() + 2, // udf group 2
             kUdfGroupId() + 3, // udf group 3
             kUdfGroupId() + 4, // udf group 4
+#endif
         },
         0);
   }
@@ -304,12 +313,19 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU16(this->kEtherType()),
             AclEntryFieldU16(this->kOuterVlanId()),
             AclEntryFieldU8(this->kBthOpcode()),
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
             AclEntryFieldU8(this->kIpv6NextHeader()),
+#endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
             AclEntryFieldU8List(this->kUdfGroupData()),
             AclEntryFieldU8List(this->kUdfGroupData()),
             AclEntryFieldU8List(this->kUdfGroupData()),
             AclEntryFieldU8List(this->kUdfGroupData()),
             AclEntryFieldU8List(this->kUdfGroupData()),
+#endif
             AclEntryActionU32(this->kPacketAction()),
             AclEntryActionSaiObjectIdT(this->kCounter()),
             AclEntryActionU8(this->kSetTC()),
@@ -317,7 +333,9 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryActionSaiObjectIdList(this->kMirrorIngress()),
             AclEntryActionSaiObjectIdList(this->kMirrorEgress()),
             AclEntryActionSaiObjectIdT(this->kMacsecFlow()),
+#if !defined(TAJO_SDK)
             AclEntryActionSaiObjectIdT(this->kSetUserTrap()),
+#endif
             AclEntryActionSaiObjectIdT(this->kSetArsObject()),
             AclEntryActionBool(this->kDisableArsForwarding()),
             AclEntryActionU32(this->kHashAlgorithm()),
@@ -448,13 +466,22 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // neighbor meta
       true, // ethertype
       true, // outer vlan id
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       true, // bth opcode
+#endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
       true, // ipv6 next header
+#endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
       kUdfGroupId(), // udf group 0
       kUdfGroupId() + 1, // udf group 1
       kUdfGroupId() + 2, // udf group 2
       kUdfGroupId() + 3, // udf group 3
       kUdfGroupId() + 4, // udf group 4
+#endif
   };
 
   SaiAclTableTraits::AdapterHostKey k{
@@ -498,12 +525,19 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kEtherType(),
       this->kOuterVlanId(),
       this->kBthOpcode(),
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
       this->kIpv6NextHeader(),
+#endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
       this->kUdfGroupData(),
       this->kUdfGroupData(),
       this->kUdfGroupData(),
       this->kUdfGroupData(),
       this->kUdfGroupData(),
+#endif
       this->kPacketAction(),
       this->kCounter(),
       this->kSetTC(),
@@ -511,7 +545,9 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kMirrorIngress(),
       this->kMirrorEgress(),
       this->kMacsecFlow(),
+#if !defined(TAJO_SDK)
       this->kSetUserTrap(),
+#endif
       this->kSetArsObject(),
       this->kDisableArsForwarding(),
       this->kHashAlgorithm(),

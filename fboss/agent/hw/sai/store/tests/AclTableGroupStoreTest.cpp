@@ -68,13 +68,22 @@ class AclTableGroupStoreTest : public SaiStoreTest {
             true, // neighbor meta
             true, // ether type
             true, // outer vlan id
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
             true, // bth opcode
+#endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
             true, // ipv6 next header
+#endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
             0, // udf group 0
             1, // udf group 1
             2, // udf group 2
             3, // udf group 3
             4, // udf group 4
+#endif
         },
         0);
   }
