@@ -238,6 +238,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::VIRTUAL_ARS_GROUP:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
       return false;
   }

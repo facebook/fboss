@@ -467,6 +467,9 @@ class HwAsic {
     SAI_SERDES_RX_REACH,
     ECN_PROBABILISTIC_MARKING,
     SAI_SERDES_PRECODING,
+    // Feature for platforms that can create wide DLB groups and
+    // also increase DLB table scale by combining multiple DLBs
+    VIRTUAL_ARS_GROUP,
   };
 
   enum class AsicMode {

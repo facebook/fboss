@@ -247,6 +247,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
+    case HwAsic::Feature::VIRTUAL_ARS_GROUP:
       return false;
   }
   return false;
@@ -287,11 +288,11 @@ int Tomahawk4Asic::getStationID(int intfId) const {
 
 int Tomahawk4Asic::getNumLanesPerPhysicalPort() const {
   /*
-    In each Blackhawk7 core, there are 4 phyiscal ports and (up to) 4 logical
-    ports but 8 physical lanes. Therefore, when calculating the physical_port of
-    bcm_port_resource_t when using flexing port logic, we need to use
-    numLanesPerPhysicalPort to divide physical lanes, which is learned from
-    PlatformMapping.
+    In each Blackhawk7 core, there are 4 phyiscal ports and (up to) 4
+    logical ports but 8 physical lanes. Therefore, when calculating the
+    physical_port of bcm_port_resource_t when using flexing port logic, we
+    need to use numLanesPerPhysicalPort to divide physical lanes, which is
+    learned from PlatformMapping.
   */
   return 2;
 }
