@@ -138,7 +138,8 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
 
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
     if (platform_->getAsic()->isSupported(
-            HwAsic::Feature::ARS_ALTERNATE_MEMBERS)) {
+            HwAsic::Feature::ARS_ALTERNATE_MEMBERS) ||
+        platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_L3_SWITCH_CANCEL);
     }
 #endif
