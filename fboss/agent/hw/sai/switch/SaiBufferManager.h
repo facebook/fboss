@@ -116,6 +116,8 @@ class SaiBufferManager {
       int reservedSizeBytes);
   void setupBufferPool(const PortQueue& queue);
   void setupBufferPool(const state::PortPgFields& portPgConfig);
+  void setupIngressEgressBufferPoolWithReservedSize(
+      uint64_t totalReservedBufferSize);
 
  private:
   void loadCpuPortEgressBufferPool();
@@ -165,7 +167,8 @@ class SaiBufferManager {
       const std::optional<BufferPoolFields>& ingressPgCfg = std::nullopt);
   void createOrUpdateIngressEgressBufferPool(
       uint64_t poolSize,
-      std::optional<int32_t> newXoffSize);
+      std::optional<int32_t> newXoffSize,
+      std::optional<uint64_t> reservedBufferSize = std::nullopt);
   SaiBufferPoolHandle* getEgressBufferPoolHandle(
       const PortQueue& queue,
       cfg::PortType type) const;
@@ -185,6 +188,8 @@ class SaiBufferManager {
       egressBufferPoolHandle_;
   std::unique_ptr<SaiBufferPoolHandle> ingressBufferPoolHandle_;
   std::unique_ptr<SaiBufferPoolHandle> ingressEgressBufferPoolHandle_;
+  uint64_t aggregatedReservedBytes_{
+      0}; // Track total reserved bytes from all queues
   UnorderedRefMap<SaiBufferProfileTraits::AdapterHostKey, SaiBufferProfile>
       bufferProfiles_;
   uint64_t deviceWatermarkBytes_{0};

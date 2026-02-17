@@ -258,7 +258,8 @@ void SaiBufferManager::setupEgressBufferPool(
       SAI_BUFFER_POOL_TYPE_EGRESS,
       poolSize,
       SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC,
-      xoffSize};
+      xoffSize,
+      std::nullopt}; // ReservedBufferSize
   SaiBufferPoolTraits::AdapterHostKey k = tupleProjection<
       SaiBufferPoolTraits::CreateAttributes,
       SaiBufferPoolTraits::AdapterHostKey>(attributes);
@@ -326,7 +327,11 @@ void SaiBufferManager::setupIngressBufferPool(
       ? SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC
       : SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC;
   SaiBufferPoolTraits::CreateAttributes attributes{
-      SAI_BUFFER_POOL_TYPE_INGRESS, poolSize, thresholdMode, xoffSize};
+      SAI_BUFFER_POOL_TYPE_INGRESS,
+      poolSize,
+      thresholdMode,
+      xoffSize,
+      std::nullopt}; // ReservedBufferSize
   SaiBufferPoolTraits::AdapterHostKey k = tupleProjection<
       SaiBufferPoolTraits::CreateAttributes,
       SaiBufferPoolTraits::AdapterHostKey>(attributes);
@@ -336,18 +341,95 @@ void SaiBufferManager::setupIngressBufferPool(
 
 void SaiBufferManager::createOrUpdateIngressEgressBufferPool(
     uint64_t poolSize,
-    std::optional<int32_t> newXoffSize) {
+    std::optional<int32_t> newXoffSize,
+    std::optional<uint64_t> reservedBufferSize) {
   std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
   if (newXoffSize.has_value()) {
     xoffSize = *newXoffSize;
   }
+  std::optional<SaiBufferPoolTraits::Attributes::ReservedBufferSize>
+      reservedBufferSizeAttr;
+  if (reservedBufferSize.has_value()) {
+    reservedBufferSizeAttr = *reservedBufferSize;
+  }
   XLOG(DBG2) << "Pool size: " << poolSize
-             << ", Xoff size: " << (newXoffSize.has_value() ? *newXoffSize : 0);
+             << ", Xoff size: " << (newXoffSize.has_value() ? *newXoffSize : 0)
+             << ", Reserved buffer size: "
+             << (reservedBufferSize.has_value() ? *reservedBufferSize : 0);
+
+  auto asic = platform_->getAsic();
+  auto asicVendor = asic->getAsicVendor();
+
+  // For Tajo vendor ASICs (EBRO/GR2, YUBA, GARONNE),
+  // SAI_BUFFER_POOL_TYPE_BOTH is not supported. Create separate INGRESS
+  // and EGRESS pools instead.
+  if (asicVendor == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+    XLOG(DBG2)
+        << "Tajo ASIC detected (vendor=" << static_cast<int>(asicVendor)
+        << "). Creating separate INGRESS and EGRESS pools instead of BOTH pool.";
+
+    auto& store = saiStore_->get<SaiBufferPoolTraits>();
+
+    // Create INGRESS pool (no reserved buffer size for ingress on Tajo)
+    if (!ingressBufferPoolHandle_) {
+      ingressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
+      SaiBufferPoolTraits::Attributes::ThresholdMode thresholdMode =
+          SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC;
+      SaiBufferPoolTraits::CreateAttributes ingressAttributes{
+          SAI_BUFFER_POOL_TYPE_INGRESS,
+          poolSize,
+          thresholdMode,
+          xoffSize,
+          std::nullopt}; // No reserved buffer size for ingress
+      SaiBufferPoolTraits::AdapterHostKey ingressKey = tupleProjection<
+          SaiBufferPoolTraits::CreateAttributes,
+          SaiBufferPoolTraits::AdapterHostKey>(ingressAttributes);
+      ingressBufferPoolHandle_->bufferPool =
+          store.setObject(ingressKey, ingressAttributes);
+      XLOG(DBG2) << "Created INGRESS buffer pool with size: " << poolSize
+                 << ", reserved buffer size: 0 (not set for ingress)";
+    }
+
+    // Create EGRESS pool (with 12MB reserved buffer size for Tajo)
+    auto bufferPoolName = kDefaultEgressBufferPoolName;
+    if (egressBufferPoolHandle_.find(bufferPoolName) ==
+        egressBufferPoolHandle_.end()) {
+      // Set 12MB reserved buffer size for egress pool on Tajo
+      constexpr uint64_t kReservedBufferSize12MB = 12 * 1024 * 1024; // 12MB
+      std::optional<SaiBufferPoolTraits::Attributes::ReservedBufferSize>
+          egressReservedBufferSizeAttr = kReservedBufferSize12MB;
+      SaiBufferPoolTraits::CreateAttributes egressAttributes{
+          SAI_BUFFER_POOL_TYPE_EGRESS,
+          poolSize,
+          SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC,
+          std::nullopt, // XoffSize (not used for egress)
+          egressReservedBufferSizeAttr}; // 12MB reserved buffer size for egress
+      SaiBufferPoolTraits::AdapterHostKey egressKey = tupleProjection<
+          SaiBufferPoolTraits::CreateAttributes,
+          SaiBufferPoolTraits::AdapterHostKey>(egressAttributes);
+      auto bufferPoolHandle = std::make_unique<SaiBufferPoolHandle>();
+      bufferPoolHandle->bufferPool =
+          store.setObject(egressKey, egressAttributes);
+      egressBufferPoolHandle_[bufferPoolName] = std::move(bufferPoolHandle);
+      XLOG(DBG2) << "Created EGRESS buffer pool with size: " << poolSize
+                 << ", reserved buffer size: 12MB (for Tajo ASIC)";
+    }
+
+    // For Tajo, do NOT set ingressEgressBufferPoolHandle_ because we have
+    // separate pools. getEgressBufferPoolHandle() will correctly look up the
+    // egress pool from egressBufferPoolHandle_ map. Setting
+    // ingressEgressBufferPoolHandle_ would cause getEgressBufferPoolHandle() to
+    // return the wrong pool.
+    return;
+  }
+
+  // For other ASICs, use the original BOTH pool approach
   SaiBufferPoolTraits::CreateAttributes attributes{
       SAI_BUFFER_POOL_TYPE_BOTH,
       poolSize,
       SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC,
-      xoffSize};
+      xoffSize,
+      reservedBufferSizeAttr};
 
   auto& store = saiStore_->get<SaiBufferPoolTraits>();
   if (!ingressEgressBufferPoolHandle_) {
@@ -381,8 +463,18 @@ void SaiBufferManager::setupIngressEgressBufferPool(
     // not available for use, a note on the same from Broadcom is captured
     // in CS00012297372. The size returned is per core and hence multiplying
     // with number of cores to get the whole buffer pool size.
-    poolSize = getSwitchEgressPoolAvailableSize(platform_) *
-        platform_->getAsic()->getNumCores();
+    // For Tajo vendor ASICs (EBRO/GR2, YUBA, GARONNE),
+    // the EgressPoolAvailableSize attribute is not supported, so use
+    // getMaxEgressPoolBytes() which returns the total pool size directly.
+    auto asic = platform_->getAsic();
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+      // getMaxEgressPoolBytes() returns total pool size for Tajo
+      // (EBRO/YUBA/GARONNE)
+      poolSize = getMaxEgressPoolBytes(platform_);
+    } else {
+      poolSize = getSwitchEgressPoolAvailableSize(platform_) *
+          platform_->getAsic()->getNumCores();
+    }
   }
   std::optional<int32_t> newXoffSize;
   if (bufferPoolCfg && bufferPoolCfg->headroomBytes().has_value() &&
@@ -402,8 +494,50 @@ void SaiBufferManager::setupIngressEgressBufferPool(
           platform_->getAsic()->getNumMemoryBuffers();
     }
   }
+  // Extract reserved buffer size from config to use extended attribute
+  // This avoids recalculating pool thresholds when profiles with reserved
+  // bytes are attached
+  std::optional<uint64_t> reservedBufferSize;
+  if (bufferPoolCfg && bufferPoolCfg->reservedBytes().has_value()) {
+    // Multiply by number of memory buffers to get total reserved size
+    reservedBufferSize = *bufferPoolCfg->reservedBytes() *
+        platform_->getAsic()->getNumMemoryBuffers();
+  } else if (ingressEgressBufferPoolHandle_) {
+    // Preserve existing reserved buffer size if pool already exists and
+    // no new reserved size is provided in config
+    auto existingReservedBufferSize = std::get<
+        std::optional<SaiBufferPoolTraits::Attributes::ReservedBufferSize>>(
+        ingressEgressBufferPoolHandle_->bufferPool->attributes());
+    if (existingReservedBufferSize.has_value()) {
+      reservedBufferSize = existingReservedBufferSize.value().value();
+    }
+  } else {
+    // For Tajo vendor ASICs (EBRO/GR2, YUBA, GARONNE),
+    // set default 12MB reserved buffer size when creating pool for first time
+    // This is required to avoid INVALID PARAMETER errors on these ASICs
+    auto asic = platform_->getAsic();
+    auto asicVendor = asic->getAsicVendor();
+    XLOG(DBG2) << "Checking ASIC vendor for reserved buffer size. Vendor: "
+               << static_cast<int>(asicVendor);
+    if (asicVendor == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+      // For Tajo, reserved buffer size is only set on EGRESS pool (12MB), not
+      // on INGRESS So we don't set it here - it will be set in
+      // createOrUpdateIngressEgressBufferPool() when creating the separate
+      // pools
+      XLOG(DBG2)
+          << "Tajo ASIC detected (vendor=" << static_cast<int>(asicVendor)
+          << "). Reserved buffer size will be set only on EGRESS pool (12MB), not on INGRESS.";
+      // Don't set reservedBufferSize here - it will be handled in
+      // createOrUpdateIngressEgressBufferPool
+    } else {
+      XLOG(DBG2) << "ASIC vendor is not Tajo (vendor="
+                 << static_cast<int>(asicVendor)
+                 << "), not setting default reserved buffer size";
+    }
+  }
   if (!ingressEgressBufferPoolHandle_) {
-    createOrUpdateIngressEgressBufferPool(poolSize, newXoffSize);
+    createOrUpdateIngressEgressBufferPool(
+        poolSize, newXoffSize, reservedBufferSize);
   } else if (newXoffSize.has_value()) {
     // XoffSize might have to be set separately as it is part of
     // ingress config alone
@@ -412,11 +546,108 @@ void SaiBufferManager::setupIngressEgressBufferPool(
             ingressEgressBufferPoolHandle_->bufferPool->attributes());
     if (!oldXoffSize.has_value() ||
         (oldXoffSize.value() != newXoffSize.value())) {
-      createOrUpdateIngressEgressBufferPool(poolSize, newXoffSize);
+      createOrUpdateIngressEgressBufferPool(
+          poolSize, newXoffSize, reservedBufferSize);
+    }
+  } else if (reservedBufferSize.has_value()) {
+    // Reserved buffer size might have changed, update the pool
+    auto oldReservedBufferSize = std::get<
+        std::optional<SaiBufferPoolTraits::Attributes::ReservedBufferSize>>(
+        ingressEgressBufferPoolHandle_->bufferPool->attributes());
+    if (!oldReservedBufferSize.has_value() ||
+        (oldReservedBufferSize.value().value() != reservedBufferSize.value())) {
+      createOrUpdateIngressEgressBufferPool(
+          poolSize, newXoffSize, reservedBufferSize);
     }
   }
   if (bufferPoolName.has_value()) {
     ingressEgressBufferPoolHandle_->bufferPoolName = *bufferPoolName;
+  }
+}
+
+void SaiBufferManager::setupIngressEgressBufferPoolWithReservedSize(
+    uint64_t totalReservedBufferSize) {
+  // Aggregate reserved bytes from all ports (buffer pool is shared)
+  // Note: Currently not used in calculation (always uses 12MB), but tracked for
+  // future use
+  aggregatedReservedBytes_ += totalReservedBufferSize;
+
+  // Calculate pool size (same logic as setupIngressEgressBufferPool)
+  auto asic = platform_->getAsic();
+  uint64_t poolSize{0};
+  if (FLAGS_ingress_egress_buffer_pool_size) {
+    poolSize = FLAGS_ingress_egress_buffer_pool_size * asic->getNumCores();
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      poolSize = roundup(poolSize, asic->getPacketBufferUnitSize());
+    }
+  } else {
+    // For Tajo vendor ASICs (EBRO/GR2, YUBA, GARONNE),
+    // the EgressPoolAvailableSize attribute is not supported, so use
+    // getMaxEgressPoolBytes() which returns the total pool size directly.
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+      // getMaxEgressPoolBytes() returns total pool size for Tajo
+      // (EBRO/YUBA/GARONNE)
+      poolSize = getMaxEgressPoolBytes(platform_);
+    } else {
+      poolSize =
+          getSwitchEgressPoolAvailableSize(platform_) * asic->getNumCores();
+    }
+  }
+
+  // Set reserved buffer size for extended attribute
+  // For Tajo ASICs, reserved buffer size (12MB) is only set on EGRESS pool in
+  // createOrUpdateIngressEgressBufferPool() For non-Tajo ASICs, leave unchanged
+  // (no reserved buffer size modifications)
+  auto asicVendor = asic->getAsicVendor();
+  std::optional<uint64_t> reservedBufferSize;
+  if (asicVendor == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+    // For Tajo, reserved buffer is only on EGRESS pool, not passed here
+    // The createOrUpdateIngressEgressBufferPool() will handle it separately
+    reservedBufferSize = std::nullopt; // Not set here for Tajo
+    XLOG(DBG2)
+        << "Tajo ASIC: Reserved buffer size (12MB) will be set only on EGRESS pool";
+  } else {
+    // For non-Tajo ASICs, do not set reserved buffer size (leave unchanged)
+    reservedBufferSize = std::nullopt;
+  }
+
+  if (!ingressEgressBufferPoolHandle_) {
+    createOrUpdateIngressEgressBufferPool(
+        poolSize, std::nullopt, reservedBufferSize);
+  } else {
+    // For Tajo, reserved buffer is only on EGRESS pool
+    // Ensure EGRESS pool exists with 12MB reserved buffer size
+    if (asicVendor == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+      auto bufferPoolName = kDefaultEgressBufferPoolName;
+      // Ensure EGRESS pool exists with 12MB reserved buffer size
+      // This handles the case where
+      // setupIngressEgressBufferPoolWithReservedSize() is called after
+      // setupIngressEgressBufferPool(), or if EGRESS pool doesn't exist yet
+      if (egressBufferPoolHandle_.find(bufferPoolName) ==
+          egressBufferPoolHandle_.end()) {
+        // EGRESS pool doesn't exist, create it with 12MB
+        createOrUpdateIngressEgressBufferPool(
+            poolSize, std::nullopt, std::nullopt);
+      } else {
+        // EGRESS pool exists, verify it has 12MB reserved buffer size
+        auto& egressPoolHandle = egressBufferPoolHandle_[bufferPoolName];
+        auto existingReservedBufferSize = std::get<
+            std::optional<SaiBufferPoolTraits::Attributes::ReservedBufferSize>>(
+            egressPoolHandle->bufferPool->attributes());
+        constexpr uint64_t kReservedBufferSize12MB = 12 * 1024 * 1024; // 12MB
+        if (!existingReservedBufferSize.has_value() ||
+            (existingReservedBufferSize.value().value() !=
+             kReservedBufferSize12MB)) {
+          // EGRESS pool exists but doesn't have 12MB, recreate it
+          XLOG(DBG2)
+              << "EGRESS pool exists but doesn't have 12MB reserved buffer size. Recreating it.";
+          createOrUpdateIngressEgressBufferPool(
+              poolSize, std::nullopt, std::nullopt);
+        }
+      }
+    }
+    // For non-Tajo ASICs, if pool already exists, leave it unchanged (no
+    // modifications)
   }
 }
 

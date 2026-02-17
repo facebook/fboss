@@ -1241,6 +1241,30 @@ void SaiPortManager::processPortBufferPoolConfigs(
   // Process port queue configs for egress buffer pools
   const auto& portQueues = swPort->getPortQueues();
   if (portQueues) {
+    // First pass: Aggregate reserved bytes from all queues to use extended
+    // attribute. This avoids SDK threshold recalculation when profiles with
+    // reserved bytes are attached (performance optimization for SDK 25.5+).
+    uint64_t totalReservedBytes = 0;
+    for (const auto& portQueue : *portQueues) {
+      if (portQueue->getReservedBytes().has_value()) {
+        totalReservedBytes += portQueue->getReservedBytes().value();
+      }
+    }
+
+    // If we have reserved bytes, set up the buffer pool with extended
+    // attribute before processing queues. This avoids SDK threshold
+    // recalculation when profiles with reserved bytes are attached
+    // (performance optimization for SDK 25.5+).
+    if (totalReservedBytes > 0 &&
+        platform_->getAsic()->isSupported(
+            HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL)) {
+      // Pass reserved bytes (will be aggregated and multiplied by
+      // numMemoryBuffers inside the function)
+      managerTable_->bufferManager()
+          .setupIngressEgressBufferPoolWithReservedSize(totalReservedBytes);
+    }
+
+    // Second pass: Process queues normally (creates buffer profiles)
     for (const auto& portQueue : *portQueues) {
       // Handle egress buffer pool creation
       managerTable_->bufferManager().setupBufferPool(*portQueue);
