@@ -1,19 +1,10 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include "Rackmon.h"
 #include <nlohmann/json.hpp>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include "Log.h"
-
-#if (defined(__llvm__) && (__clang_major__ < 9)) || \
-    (!defined(__llvm__) && (__GNUC__ < 8))
-#include <experimental/filesystem>
-namespace std {
-namespace filesystem = experimental::filesystem;
-}
-#else
-#include <filesystem>
-#endif
 
 using nlohmann::json;
 using namespace std::literals;
@@ -364,15 +355,6 @@ std::vector<ModbusDeviceInfo> Rackmon::listDevices() const {
       std::back_inserter(devices),
       [](auto& kv) { return kv.second->getInfo(); });
   return devices;
-}
-
-void Rackmon::getRawData(std::vector<ModbusDeviceRawData>& data) const {
-  data.clear();
-  std::shared_lock lock(devicesMutex_);
-  std::transform(
-      devices_.begin(), devices_.end(), std::back_inserter(data), [](auto& kv) {
-        return kv.second->getRawData();
-      });
 }
 
 void Rackmon::getValueData(
