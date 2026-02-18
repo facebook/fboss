@@ -1,0 +1,188 @@
+{
+  "platformName": "J4SIM",
+  "rootPmUnitName": "SCM",
+  "rootSlotType": "SCM_SLOT",
+  "slotTypeConfigs": {
+    "SCM_SLOT": {
+      "numOutgoingI2cBuses": 0,
+      "idpromConfig": {
+        "busName": "SMBus I801 adapter at 1000",
+        "address": "0x50",
+        "kernelDeviceName": "24c512",
+        "offset": 15360
+      },
+      "pmUnitName": "SCM"
+    },
+    "SMB_SLOT": {
+      "numOutgoingI2cBuses": 5,
+      "idpromConfig": {
+        "busName": "INCOMING@1",
+        "address": "0x50",
+        "kernelDeviceName": "24c512",
+        "offset": 15360
+      },
+      "pmUnitName": "SMB"
+    },
+    "PSU_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "pmUnitName": "PSU"
+    },
+    "FAN_SLOT": {
+      "numOutgoingI2cBuses": 0,
+      "pmUnitName": "FAN"
+    }
+  },
+  "pmUnitConfigs": {
+    "SCM": {
+      "pluggedInSlotType": "SCM_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "SCM_I2C_MASTER_0@0",
+          "address": "0x40",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "SCM_MPS_PMBUS"
+        }
+      ],
+      "outgoingSlotConfigs": {
+        "SMB_SLOT@0": {
+          "slotType": "SMB_SLOT",
+          "outgoingI2cBusNames": [
+            "SCM_I2C_MASTER_0@0",
+            "SCM_I2C_MASTER_1@0",
+            "SCM_I2C_MASTER_1@1",
+            "SCM_I2C_MASTER_1@2",
+            "SCM_I2C_MASTER_1@3"
+          ]
+        }
+      },
+      "pciDeviceConfigs": [
+        {
+          "pmUnitScopedName": "SCM_FPGA",
+          "vendorId": "0x3475",
+          "deviceId": "0x0001",
+          "subSystemVendorId": "0x3475",
+          "subSystemDeviceId": "0x0008",
+          "i2cAdapterBlockConfigs": [
+            {
+              "pmUnitScopedNamePrefix": "SCM_I2C_MASTER",
+              "deviceName": "i2c_master",
+              "csrOffsetCalc": "0x8000 + ({adapterIndex} - {startAdapterIndex})*0x80",
+              "startAdapterIndex": 0,
+              "numAdapters": 2,
+              "numBusesPerAdapter": 8
+            }
+          ],
+          "spiMasterConfigs": [],
+          "infoRomConfigs": [
+            {
+              "pmUnitScopedName": "SCM_FPGA_INFO_ROM",
+              "deviceName": "fpga_info_iob",
+              "csrOffset": "0x100"
+            }
+          ],
+          "miscCtrlConfigs": [
+            {
+              "pmUnitScopedName": "SCM_ADC",
+              "deviceName": "adc",
+              "csrOffset": "0x7300"
+            }
+          ]
+        }
+      ],
+      "embeddedSensorConfigs": [
+        {
+          "pmUnitScopedName": "CPU_CORE_TEMP",
+          "sysfsPath": "/sys/bus/platform/devices/coretemp.0"
+        },
+        {
+          "pmUnitScopedName": "NVME_TEMP",
+          "sysfsPath": "/sys/class/nvme/nvme0"
+        }
+      ]
+    },
+    "SMB": {
+      "pluggedInSlotType": "SMB_SLOT",
+      "i2cDeviceConfigs": [],
+      "outgoingSlotConfigs": {},
+      "pciDeviceConfigs": [
+        {
+          "pmUnitScopedName": "SMB_FPGA",
+          "vendorId": "0x3475",
+          "deviceId": "0x0001",
+          "subSystemVendorId": "0x3475",
+          "subSystemDeviceId": "0x0015",
+          "i2cAdapterBlockConfigs": [],
+          "spiMasterConfigs": [],
+          "ledCtrlBlockConfigs": [
+            {
+              "pmUnitScopedNamePrefix": "OSFP",
+              "deviceName": "port_led",
+              "csrOffsetCalc": "0x6100 + ({portNum} - {startPort})*0x20 + ({ledNum} - 1)*0x10",
+              "numPorts": 64,
+              "ledPerPort": 2,
+              "startPort": 1
+            },
+            {
+              "pmUnitScopedNamePrefix": "QSFP",
+              "deviceName": "port_led",
+              "csrOffsetCalc": "0x6900 + ({portNum} - {startPort})*0x10 + ({ledNum} - 1)*0x10",
+              "numPorts": 4,
+              "ledPerPort": 1,
+              "startPort": 65
+            }
+          ],
+          "xcvrCtrlBlockConfigs": [
+            {
+              "pmUnitScopedNamePrefix": "OSFP",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0xa010 + ({portNum} - {startPort})*0x10",
+              "numPorts": 64,
+              "startPort": 1
+            },
+            {
+              "pmUnitScopedNamePrefix": "QSFP",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0xa410 + ({portNum} - {startPort})*0x10",
+              "numPorts": 4,
+              "startPort": 65
+            }
+          ],
+          "infoRomConfigs": []
+        }
+      ]
+    },
+    "PSU": {
+      "pluggedInSlotType": "PSU_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x58",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "PSU_PMBUS"
+        }
+      ],
+      "outgoingSlotConfigs": {},
+      "pciDeviceConfigs": []
+    },
+    "FAN": {
+      "pluggedInSlotType": "FAN_SLOT",
+      "i2cDeviceConfigs": [],
+      "outgoingSlotConfigs": {},
+      "pciDeviceConfigs": []
+    }
+  },
+  "i2cAdaptersFromCpu": [
+    "SMBus I801 adapter at 1000"
+  ],
+  "symbolicLinkToDevicePath": {},
+  "chassisEepromDevicePath": "/SMB_SLOT@0/[IDPROM]",
+  "numXcvrs": 68,
+  "bspKmodsRpmName": "arista_bsp_kmods",
+  "bspKmodsRpmVersion": "0.7.17-1",
+  "requiredKmodsToLoad": [
+    "spidev",
+    "i2c_i801",
+    "scd",
+    "ledtrig_timer"
+  ]
+}
