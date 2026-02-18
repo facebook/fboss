@@ -368,6 +368,100 @@ systemctl stop fboss_sw_agent
 gdb --args /path/to/debug/fboss_sw_agent --minloglevel=0
 ```
 
+## Logging Control
+
+FBOSS agents and tests support various logging flags to control verbosity and enable detailed debugging output.
+
+### Agent Logging Flags
+
+```bash
+# General logging level (glog levels)
+--minloglevel=0      # 0=INFO, 1=WARNING, 2=ERROR, 3=FATAL
+
+# FBOSS-specific verbose logging
+--logging DBG0       # Minimal debug logging
+--logging DBG1       # Basic debug logging
+--logging DBG2       # Moderate debug logging
+--logging DBG5       # Detailed debug logging
+--logging DBG9       # Maximum debug logging (very verbose)
+
+# Example: Run agent with detailed logging
+systemctl stop fboss_hw_agent@0
+/opt/fboss/bin/fboss_hw_agent \
+  --switchIndex=0 \
+  --minloglevel=0 \
+  --logging DBG5
+```
+
+### SAI Logging Control
+
+For SAI-based platforms, you can enable SAI adapter logging:
+
+```bash
+# Enable SAI logging at different levels
+--enable_sai_log NOTICE   # Basic SAI events
+--enable_sai_log INFO     # Informational SAI messages
+--enable_sai_log DEBUG    # Detailed SAI debugging (verbose)
+
+# Combine with FBOSS logging for comprehensive debugging
+/opt/fboss/bin/fboss_hw_agent \
+  --switchIndex=0 \
+  --minloglevel=0 \
+  --logging DBG9 \
+  --enable_sai_log DEBUG
+```
+
+**SAI Log Levels:**
+- `CRITICAL`: Only critical errors
+- `ERROR`: Error conditions
+- `WARN`: Warning conditions
+- `NOTICE`: Normal but significant conditions
+- `INFO`: Informational messages
+- `DEBUG`: Detailed debug information (generates significant log volume)
+
+### Test Logging
+
+When running hardware tests or unit tests:
+
+```bash
+# Run test with detailed logging
+./sai_test-sai_impl-<version> \
+  --gtest_filter=YourTestName \
+  --logging DBG9 \
+  --enable_sai_log DEBUG
+
+# Redirect logs to file for analysis
+./sai_test-sai_impl-<version> \
+  --gtest_filter=YourTestName \
+  --logging DBG9 \
+  --enable_sai_log DEBUG \
+  2>&1 | tee test_output.log
+```
+
+### Persistent Logging Configuration
+
+To enable detailed logging permanently for a service, edit the systemd service file:
+
+```bash
+# Edit service file
+systemctl edit fboss_hw_agent@0
+
+# Add logging flags to ExecStart:
+[Service]
+ExecStart=
+ExecStart=/opt/fboss/bin/fboss_hw_agent \
+  --switchIndex=0 \
+  --minloglevel=0 \
+  --logging DBG5 \
+  --enable_sai_log INFO
+
+# Reload and restart
+systemctl daemon-reload
+systemctl restart fboss_hw_agent@0
+```
+
+**Note:** High logging levels (DBG9, SAI DEBUG) generate significant log volume and may impact performance. Use them only for active debugging and reduce verbosity for production use.
+
 ## GDB Debugging
 
 ### Attaching to Running Process
@@ -404,6 +498,46 @@ coredumpctl debug fboss_sw_agent
 # (gdb) thread apply all bt full
 # (gdb) info registers
 # (gdb) disassemble
+```
+
+### Debugging Tests with GDB
+
+When debugging unit tests or hardware tests with GDB, use these GTest flags for better debugging experience:
+
+```bash
+# Run test under gdb with break on failure
+gdb --args /path/to/test_binary \
+  --gtest_break_on_failure \
+  --gtest_catch_exceptions=0 \
+  --gtest_filter=YourTestName
+
+# Inside gdb:
+# (gdb) run
+# Test will break at the exact point of failure
+```
+
+**GTest Debug Flags:**
+
+- `--gtest_break_on_failure`: Automatically breaks into the debugger when a test assertion fails. This allows you to inspect the exact state at the point of failure without manually setting breakpoints.
+
+- `--gtest_catch_exceptions=0`: Disables GTest's exception catching, allowing exceptions to propagate to the debugger. This is useful when debugging crashes or unexpected exceptions, as the debugger will stop at the throw point rather than GTest's exception handler.
+
+**Example debugging a hardware test:**
+
+```bash
+# Debug a specific hardware test
+gdb --args ./sai_test-sai_impl-<version> \
+  --gtest_break_on_failure \
+  --gtest_catch_exceptions=0 \
+  --gtest_filter=HwVlanTest.VlanApplyConfig \
+  --flexports \
+  --fruid_filepath /path/to/fruid.json \
+  --config /path/to/agent.conf
+
+# Inside gdb, set breakpoints if needed:
+# (gdb) break SomeFunction
+# (gdb) run
+# Test will break at assertion failure or exception
 ```
 
 ## Common Troubleshooting Scenarios
