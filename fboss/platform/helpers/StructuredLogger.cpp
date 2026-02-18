@@ -81,4 +81,12 @@ void StructuredLogger::setTags(
   }
 }
 
+void StructuredLogger::addFwTags(
+    const std::unordered_map<std::string, std::string>& firmwareVersions) {
+  for (const auto& [deviceName, firmwareVersion] : firmwareVersions) {
+    persistentTags_[fmt::format("firmware_version_{}", deviceName)] =
+        firmwareVersion;
+  }
+}
+
 } // namespace facebook::fboss::platform::helpers

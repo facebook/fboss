@@ -1,5 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <unordered_map>
+
 #include <fb303/ServiceData.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -22,7 +24,7 @@ class ExplorationSummaryTest : public testing::Test {
 };
 
 TEST_F(ExplorationSummaryTest, GoodExploration) {
-  EXPECT_EQ(summary_.summarize(), ExplorationStatus::SUCCEEDED);
+  EXPECT_EQ(summary_.summarize({}, {}), ExplorationStatus::SUCCEEDED);
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(ExplorationSummary::kTotalFailures),
       0);
@@ -52,7 +54,8 @@ TEST_F(ExplorationSummaryTest, ExplorationWithExpectedErrors) {
       "/PSU_SLOT@2/[PSU_EEPROM]",
       "expect");
   EXPECT_EQ(
-      summary_.summarize(), ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS);
+      summary_.summarize({}, {}),
+      ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS);
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(ExplorationSummary::kTotalFailures),
       0);
@@ -75,7 +78,7 @@ TEST_F(ExplorationSummaryTest, ExplorationWithOnlyErrors) {
       ExplorationErrorType::I2C_DEVICE_EXPLORE, "/[MCB_MUX_B]", "fail");
   summary_.addError(
       ExplorationErrorType::I2C_DEVICE_EXPLORE, "/[NVME]", "fail");
-  EXPECT_EQ(summary_.summarize(), ExplorationStatus::FAILED);
+  EXPECT_EQ(summary_.summarize({}, {}), ExplorationStatus::FAILED);
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(ExplorationSummary::kTotalFailures),
       3);
@@ -110,7 +113,7 @@ TEST_F(ExplorationSummaryTest, ExplorationWithMixedErrors) {
       ExplorationErrorType::I2C_DEVICE_EXPLORE, "/[MCB_MUX_A]", "fail");
   summary_.addError(
       ExplorationErrorType::I2C_DEVICE_EXPLORE, "/[MCB_MUX_B]", "fail");
-  EXPECT_EQ(summary_.summarize(), ExplorationStatus::FAILED);
+  EXPECT_EQ(summary_.summarize({}, {}), ExplorationStatus::FAILED);
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(ExplorationSummary::kTotalFailures),
       2);
@@ -128,4 +131,43 @@ TEST_F(ExplorationSummaryTest, ExplorationWithMixedErrors) {
       EXPECT_EQ(facebook::fb303::fbData->getCounter(key), 0);
     }
   }
+}
+
+TEST_F(ExplorationSummaryTest, SummarizeWithVersionFields) {
+  // Set up firmware and hardware version maps to test structured logging
+  std::unordered_map<std::string, std::string> firmwareVersions = {
+      {"bios", "1.2.3"},
+      {"cpld", "4.5.6"},
+      {"fpga", "7.8.9"},
+  };
+  std::unordered_map<std::string, std::string> hardwareVersions = {
+      {"board_rev", "v2"},
+      {"chassis_type", "wedge400"},
+  };
+
+  // Test with successful exploration
+  EXPECT_EQ(
+      summary_.summarize(firmwareVersions, hardwareVersions),
+      ExplorationStatus::SUCCEEDED);
+}
+
+TEST_F(ExplorationSummaryTest, SummarizeWithVersionFieldsAndErrors) {
+  // Set up firmware and hardware version maps
+  std::unordered_map<std::string, std::string> firmwareVersions = {
+      {"bios", "1.0.0"},
+      {"bmc", "2.0.0"},
+  };
+  std::unordered_map<std::string, std::string> hardwareVersions = {
+      {"platform", "montblanc"},
+  };
+
+  // Add an unexpected error to test logging with version fields
+  summary_.addError(
+      ExplorationErrorType::I2C_DEVICE_EXPLORE,
+      "/[SENSOR_1]",
+      "I2C read failed");
+
+  EXPECT_EQ(
+      summary_.summarize(firmwareVersions, hardwareVersions),
+      ExplorationStatus::FAILED);
 }

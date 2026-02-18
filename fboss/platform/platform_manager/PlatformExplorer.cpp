@@ -170,7 +170,8 @@ void PlatformExplorer::explore() {
   XLOG(INFO) << "Publishing hardware version of the unit ...";
   publishHardwareVersions();
 
-  auto explorationStatus = explorationSummary_.summarize();
+  auto explorationStatus = explorationSummary_.summarize(
+      dataStore_.getFirmwareVersions(), dataStore_.getHardwareVersions());
   updatePmStatus(createPmStatus(
       explorationStatus,
       std::chrono::duration_cast<std::chrono::seconds>(

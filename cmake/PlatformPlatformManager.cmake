@@ -164,6 +164,7 @@ target_link_libraries(platform_manager_platform_explorer
   weutil_fboss_eeprom_interface
   ioctl_smbus_eeprom_reader
   Folly::folly
+  structured_logger
 )
 
 add_library(platform_manager_config_validator
@@ -228,6 +229,7 @@ target_link_libraries(platform_manager
   ${SYSTEMD}
   gpiod_line
   range-v3
+  structured_logger
 )
 
 install(TARGETS platform_manager)

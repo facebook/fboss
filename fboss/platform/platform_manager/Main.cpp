@@ -10,6 +10,7 @@
 #include <systemd/sd-daemon.h>
 
 #include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/helpers/StructuredLogger.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
 #include "fboss/platform/platform_manager/PlatformExplorer.h"
@@ -125,6 +126,12 @@ int main(int argc, char** argv) {
     XLOG(INFO) << "================ STOPPED PLATFORM BINARY ================";
     return 0;
   } catch (const std::exception& ex) {
+    helpers::StructuredLogger structuredLogger("platform_manager");
+    if (dataStore.has_value()) {
+      structuredLogger.addFwTags(dataStore->getFirmwareVersions());
+      structuredLogger.setTags(dataStore->getHardwareVersions());
+    }
+    structuredLogger.logAlert("unexpected_crash", ex.what());
     XLOG(FATAL) << "Platform Manager crashed with unexpected exception: "
                 << ex.what();
     return 1;

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "fboss/platform/platform_manager/ExplorationErrors.h"
@@ -33,8 +34,11 @@ class ExplorationSummary {
       const std::string& errorMessage);
   // 1. Prints the exploration summary.
   // 2. Publish relevant data to ODS.
+  // 3. Log status to structured logger.
   // Return final exploration status.
-  ExplorationStatus summarize();
+  ExplorationStatus summarize(
+      const std::unordered_map<std::string, std::string>& firmwareVersions,
+      const std::unordered_map<std::string, std::string>& hardwareVersions);
   std::map<std::string, std::vector<ExplorationError>> getFailedDevices();
 
  private:

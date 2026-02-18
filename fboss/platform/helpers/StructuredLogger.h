@@ -41,6 +41,13 @@ class StructuredLogger {
    */
   void setTags(const std::unordered_map<std::string, std::string>& tags);
 
+  /**
+   * Add firmware version tags from the device name -> version map.
+   * Each entry becomes a tag with key "firmware_version_{deviceName}".
+   */
+  void addFwTags(
+      const std::unordered_map<std::string, std::string>& firmwareVersions);
+
  private:
   std::string formatTags(
       const std::string& event,

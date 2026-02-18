@@ -194,6 +194,7 @@ cpp_library(
         "//fb303:service_data",
         "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_utils",
+        "//fboss/platform/helpers:structured_logger",
         "//fboss/platform/weutil:fboss_eeprom_lib",
         "//fboss/platform/weutil:ioctl_smbus_eeprom_reader",
         "//folly:file_util",
@@ -294,6 +295,7 @@ cpp_binary(
         "//fb303:logging",
         "//fb303:service_data",
         "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:structured_logger",
     ],
     external_deps = [("systemd", None, "systemd")],
 )
