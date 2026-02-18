@@ -490,16 +490,16 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
 
 TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
   auto setup = [this]() {
-    this->setup(kEcmpWidth);
+    this->setup(kWideEcmpWidth);
     generateApplyConfig(AclType::FLOWLET);
   };
 
   auto verify = [this]() {
     auto verifyCounts = [this](int destPort, bool bumpOnHit) {
       // gather stats for all ECMP members
-      int pktsBefore[kEcmpWidth];
+      int pktsBefore[kWideEcmpWidth];
       int pktsBeforeTotal = 0;
-      for (int i = 0; i < kEcmpWidth; i++) {
+      for (int i = 0; i < kWideEcmpWidth; i++) {
         auto ecmpEgressPort = helper_->ecmpPortDescriptorAt(i).phyPortID();
         pktsBefore[i] =
             *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts_();
@@ -525,9 +525,9 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
         auto aclPktCountAfter = utility::getAclInOutPackets(
             getSw(), getCounterName(AclType::FLOWLET));
 
-        int pktsAfter[kEcmpWidth];
+        int pktsAfter[kWideEcmpWidth];
         int pktsAfterTotal = 0;
-        for (int i = 0; i < kEcmpWidth; i++) {
+        for (int i = 0; i < kWideEcmpWidth; i++) {
           auto ecmpEgressPort = helper_->ecmpPortDescriptorAt(i).phyPortID();
           pktsAfter[i] =
               *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts_();
@@ -553,12 +553,12 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
           // also verify traffic is not load-balanced, implying,
           // 3 out of the 4 egress ports should have 0 count
           int zeroCount = 0;
-          for (int i = 0; i < kEcmpWidth; i++) {
+          for (int i = 0; i < kWideEcmpWidth; i++) {
             if (pktsAfter[i] - pktsBefore[i] == 0) {
               zeroCount++;
             }
           }
-          EXPECT_EVENTUALLY_EQ(kEcmpWidth - 1, zeroCount);
+          EXPECT_EVENTUALLY_EQ(kWideEcmpWidth - 1, zeroCount);
         }
       });
     };

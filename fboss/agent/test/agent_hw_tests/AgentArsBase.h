@@ -12,6 +12,7 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 
 #include <folly/IPAddress.h>
 #include <optional>
@@ -95,7 +96,6 @@ class AgentArsBase : public AgentHwTest {
 
  protected:
   cfg::AclActionType aclActionType_{cfg::AclActionType::PERMIT};
-  static inline constexpr auto kEcmpWidth = 4;
   static inline constexpr auto kOutQueue = 6;
   static inline constexpr auto kDscp = 30;
   static inline constexpr auto kSflowMirrorName = "sflow_mirror";
