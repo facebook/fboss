@@ -380,7 +380,8 @@ class AgentPacketSendReceiveLagTest : public AgentPacketSendReceiveTest {
         masterLogicalPortIds[0],
         masterLogicalPortIds[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, l3Asics, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, l3Asics, ensemble.isSai());
 
