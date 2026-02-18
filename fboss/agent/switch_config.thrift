@@ -2262,6 +2262,8 @@ struct FlowletSwitchingConfig {
   15: optional i32 alternatePathCost;
   // alternate path bias
   16: optional i32 alternatePathBias;
+  // minimum width for ARS virtual group
+  17: optional i32 minWidthForArsVirtualGroup;
 }
 
 /*
