@@ -16,6 +16,7 @@
 #include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 
 #include "fboss/agent/AsicUtils.h"
+
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -117,7 +118,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
           getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
           RouterID(0));
-      resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+      resolveNeighborAndProgramRoutes(ecmpHelper, kDefaultEcmpWidth);
       // Add the DSCP remarking ACLs
       auto newCfg{initialConfig(*getAgentEnsemble())};
       auto l3Asics = getAgentEnsemble()->getL3Asics();
@@ -272,14 +273,13 @@ class AgentDscpMarkingTest : public AgentHwTest {
           getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
           RouterID(0));
-      auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
+      auto outPort =
+          ecmpHelper.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
     } else {
       getSw()->sendPacketSwitchedAsync(std::move(txPacket));
     }
   }
-
-  static inline constexpr auto kEcmpWidth = 1;
 };
 
 // Verify that the DSCP unmarked traffic to specific L4 src/dst ports that
