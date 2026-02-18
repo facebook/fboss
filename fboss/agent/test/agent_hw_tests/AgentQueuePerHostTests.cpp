@@ -13,6 +13,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 
 #include "fboss/agent/test/TestUtils.h"
@@ -499,7 +500,8 @@ class AgentQueuePerHostTest : public AgentHwTest {
     if (frontPanel) {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(), getSw()->needL2EntryForNeighbor());
-      auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
+      auto outPort =
+          ecmpHelper.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
     } else {
       getSw()->sendPacketSwitchedAsync(std::move(txPacket));
@@ -508,7 +510,6 @@ class AgentQueuePerHostTest : public AgentHwTest {
     return txPacketSize;
   }
 
-  static inline constexpr auto kEcmpWidth = 1;
   const VlanID kVlanID{utility::kBaseVlanId};
   const InterfaceID kIntfID{utility::kBaseVlanId};
 };
