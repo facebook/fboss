@@ -1,0 +1,2 @@
+#!/bin/bash
+exec /usr/local/lib/fboss_cmd_find.sh sensor_service_client "$@"
