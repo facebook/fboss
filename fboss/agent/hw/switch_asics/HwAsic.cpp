@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/switch_asics/G202xAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
+#include "fboss/agent/hw/switch_asics/Jericho4Asic.h"
 #include "fboss/agent/hw/switch_asics/MockAsic.h"
 #include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
 #include "fboss/agent/hw/switch_asics/RamonAsic.h"
@@ -120,6 +121,8 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
       return std::make_unique<Jericho2Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
       return std::make_unique<Jericho3Asic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
+      return std::make_unique<Jericho4Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_RAMON:
       return std::make_unique<RamonAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_RAMON3:
