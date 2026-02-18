@@ -7,6 +7,7 @@
 #include "fboss/platform/fan_service/PidLogic.h"
 #include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_types.h"
+#include "fboss/platform/helpers/StructuredLogger.h"
 
 namespace facebook::fboss::platform::fan_service {
 
@@ -56,6 +57,7 @@ class ControlLogic {
 
  private:
   const FanServiceConfig config_;
+  helpers::StructuredLogger structuredLogger_;
   OvertempCondition overtempCondition_;
   std::vector<std::string> overtempWatchList_;
   std::shared_ptr<Bsp> pBsp_;
@@ -91,5 +93,6 @@ class ControlLogic {
   std::map<std::string /* sensorName */, std::unique_ptr<PidLogicBase>>
       pidLogics_;
   std::shared_ptr<SensorData> pSensorData_{nullptr};
+  bool boostMode_{false};
 };
 } // namespace facebook::fboss::platform::fan_service

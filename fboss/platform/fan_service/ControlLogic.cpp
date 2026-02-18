@@ -54,7 +54,7 @@ std::optional<T> getConfigOpticData(
 namespace facebook::fboss::platform::fan_service {
 
 ControlLogic::ControlLogic(FanServiceConfig config, std::shared_ptr<Bsp> bsp)
-    : config_(config), pBsp_(bsp) {
+    : config_(std::move(config)), structuredLogger_("fan_service"), pBsp_(bsp) {
   pSensorData_ = std::make_shared<SensorData>();
 
   setupPidLogics();
@@ -452,6 +452,13 @@ bool ControlLogic::programFan(
         *fan.fanName(),
         fanPwm,
         pwmRawValue);
+    structuredLogger_.logAlert(
+        "fan_pwm_write_failure",
+        fmt::format("Failed to program {} with PWM {}", *fan.fanName(), fanPwm),
+        {{"zone_name", *zone.zoneName()},
+         {"fan_name", *fan.fanName()},
+         {"pwm_value", std::to_string(fanPwm)},
+         {"pwm_raw_value", std::to_string(pwmRawValue)}});
   }
 
   return !writeSuccess;
@@ -624,6 +631,10 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   }
   if (overtempCondition_.checkIfOvertemp()) {
     XLOG(ERR) << fmt::format("Running shutdown command");
+    structuredLogger_.logAlert(
+        "emergency_shutdown",
+        "System overtemp detected, running shutdown command",
+        {{}});
     pBsp_->emergencyShutdown(true);
   }
 
@@ -631,31 +642,40 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   uint64_t secondsSinceLastOpticsUpdate =
       pBsp_->getCurrentTime() - pSensor_->getLastQsfpSvcTime();
   bool missingOpticsUpdate{false}, fanFailures{false}, sensorFailures{false};
+  std::string boostModeReason;
   if ((*config_.pwmBoostOnNoQsfpAfterInSec() != 0) &&
       (secondsSinceLastOpticsUpdate >= *config_.pwmBoostOnNoQsfpAfterInSec())) {
     missingOpticsUpdate = true;
-    XLOG(INFO) << fmt::format(
+    boostModeReason = fmt::format(
         "Boost mode enabled for optics update missing for {}s",
         secondsSinceLastOpticsUpdate);
+    XLOG(INFO) << boostModeReason;
   }
   if ((*config_.pwmBoostOnNumDeadFan() != 0) &&
       (numFanFailed_ >= *config_.pwmBoostOnNumDeadFan())) {
     fanFailures = true;
-    XLOG(INFO) << fmt::format(
-        "Boost mode enabled for {} fan failures", numFanFailed_);
+    boostModeReason =
+        fmt::format("Boost mode enabled for {} fan failures", numFanFailed_);
+    XLOG(INFO) << boostModeReason;
   }
   if ((*config_.pwmBoostOnNumDeadSensor() != 0) &&
       (numSensorFailed_ >= *config_.pwmBoostOnNumDeadSensor())) {
     sensorFailures = true;
-    XLOG(INFO) << fmt::format(
+    boostModeReason = fmt::format(
         "Boost mode enabled for {} sensor failures", numSensorFailed_);
+    XLOG(INFO) << boostModeReason;
   }
-  bool boostMode = (missingOpticsUpdate || fanFailures || sensorFailures);
+  bool previousBoostMode = boostMode_;
+  boostMode_ = (missingOpticsUpdate || fanFailures || sensorFailures);
+  if (boostMode_ && !previousBoostMode) {
+    structuredLogger_.logEvent(
+        "boost_mode_activated", {{"reason", boostModeReason}});
+  }
 
   // STEP 5: Calculate and program fan PWMs
   fanStatuses_.withWLock([&](auto& fanStatuses) {
     for (const auto& zone : *config_.zones()) {
-      int16_t zonePwm = calculateZonePwm(zone, boostMode);
+      int16_t zonePwm = calculateZonePwm(zone, boostMode_);
       for (const auto& fan : *config_.fans()) {
         if (std::find(
                 zone.fanNames()->begin(),
