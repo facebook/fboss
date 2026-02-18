@@ -1301,7 +1301,6 @@ cpp_library(
     srcs = [
         "HwSwitch.cpp",
         "HwSwitchRouteUpdateWrapper.cpp",
-        "facebook/HwSwitch.cpp",
     ],
     exported_deps = [
         "fbsource//third-party/re2:re2",
