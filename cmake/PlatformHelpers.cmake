@@ -37,3 +37,13 @@ target_link_libraries(platform_utils
   ${RE2}
   thrift_service_utils
 )
+
+add_library(structured_logger
+  fboss/platform/helpers/StructuredLogger.cpp
+)
+
+target_link_libraries(structured_logger
+  fmt::fmt
+  platform_name_lib
+  Folly::folly
+)
