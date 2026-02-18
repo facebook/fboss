@@ -191,6 +191,24 @@ class FlowletSwitchingConfig : public ThriftStructNode<
     return std::nullopt;
   }
 
+  void setMinWidthForArsVirtualGroup(
+      const std::optional<int32_t>& minWidthForArsVirtualGroup) {
+    if (minWidthForArsVirtualGroup) {
+      set<switch_config_tags::minWidthForArsVirtualGroup>(
+          *minWidthForArsVirtualGroup);
+    } else {
+      ref<switch_config_tags::minWidthForArsVirtualGroup>().reset();
+    }
+  }
+
+  std::optional<int32_t> getMinWidthForArsVirtualGroup() const {
+    if (auto minWidthForArsVirtualGroup =
+            get<switch_config_tags::minWidthForArsVirtualGroup>()) {
+      return minWidthForArsVirtualGroup->cref();
+    }
+    return std::nullopt;
+  }
+
   FlowletSwitchingConfig* modify(std::shared_ptr<SwitchState>* state);
 
  private:

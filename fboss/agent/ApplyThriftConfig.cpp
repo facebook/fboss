@@ -4795,6 +4795,10 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
     newFlowletSwitchingConfig->setAlternatePathBias(
         *config.alternatePathBias());
   }
+  if (config.minWidthForArsVirtualGroup()) {
+    newFlowletSwitchingConfig->setMinWidthForArsVirtualGroup(
+        *config.minWidthForArsVirtualGroup());
+  }
   return newFlowletSwitchingConfig;
 }
 
