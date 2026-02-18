@@ -68,7 +68,8 @@ class Agent2QueueToOlympicQoSTest : public AgentHwTest {
     if (frontPanel) {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(), getSw()->needL2EntryForNeighbor());
-      auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
+      auto outPort =
+          ecmpHelper.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
       getAgentEnsemble()->getSw()->sendPacketOutOfPortAsync(
           std::move(txPacket), outPort);
     } else {
@@ -107,7 +108,7 @@ class Agent2QueueToOlympicQoSTest : public AgentHwTest {
       auto portId = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
       auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
       auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
-      resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+      resolveNeighborAndProgramRoutes(ecmpHelper, kDefaultEcmpWidth);
       auto newCfg{initialConfig(*getAgentEnsemble())};
       auto streamType =
           *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
@@ -144,7 +145,6 @@ class Agent2QueueToOlympicQoSTest : public AgentHwTest {
 
     verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
   }
-  static inline constexpr auto kEcmpWidth = 1;
 };
 
 TEST_F(Agent2QueueToOlympicQoSTest, verifyDscpToQueueMapping) {
