@@ -10,6 +10,7 @@
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
+
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
@@ -33,7 +34,7 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
   void setupHelper() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
-    resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+    resolveNeighborAndProgramRoutes(ecmpHelper, kDefaultEcmpWidth);
   }
 
   void sendPacket(bool frontPanel, int16_t dscp, uint8_t ttl = 64) {
@@ -59,7 +60,8 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
     if (frontPanel) {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(), getSw()->needL2EntryForNeighbor());
-      auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
+      auto outPort =
+          ecmpHelper.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
     } else {
       getSw()->sendPacketSwitchedAsync(std::move(txPacket));
@@ -103,7 +105,6 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
     return masterLogicalInterfacePortIds()[0];
   }
 
-  static inline constexpr auto kEcmpWidth = 1;
   const VlanID kVlanID{utility::kBaseVlanId};
   const InterfaceID kIntfID{utility::kBaseVlanId};
 };
