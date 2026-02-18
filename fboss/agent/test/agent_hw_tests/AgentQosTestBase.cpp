@@ -19,7 +19,7 @@ void AgentQosTestBase::verifyDscpQueueMapping(
   auto setup = [=, this]() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
-    resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+    resolveNeighborAndProgramRoutes(ecmpHelper, kDefaultEcmpWidth);
   };
 
   auto verify = [=, this]() {
@@ -68,7 +68,8 @@ void AgentQosTestBase::sendPacket(uint8_t dscp, bool frontPanel) {
   if (frontPanel) {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
-    auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
+    auto outPort =
+        ecmpHelper.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
     getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
   } else {
     getSw()->sendPacketSwitchedAsync(std::move(txPacket));
