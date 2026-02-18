@@ -3558,10 +3558,9 @@ void doCdbCommand(DirectI2cInfo i2cInfo, unsigned int module) {
  * Get the VDM Performance Monitoring stats from qsfp_service ad display the
  * values
  */
-bool printVdmInfoViaService(unsigned int port) {
+bool printVdmInfoViaService(unsigned int port, folly::EventBase& evb) {
   printf("Displaying VDM info for module %d via service:", port);
 
-  folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
   std::vector<int32_t> portList;
   unsigned int zeroBasedPortId = port - 1;
   portList.push_back(zeroBasedPortId);
@@ -3851,10 +3850,13 @@ bool printVdmInfoDirect(DirectI2cInfo i2cInfo, unsigned int port) {
  * Get and print the VDM performance monitoring diagsnostic data either
  * directly from hardware or through qsfp_service
  */
-bool printVdmInfo(DirectI2cInfo i2cInfo, unsigned int port) {
+bool printVdmInfo(
+    DirectI2cInfo i2cInfo,
+    unsigned int port,
+    folly::EventBase& evb) {
   if (!FLAGS_direct_i2c) {
     if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
-      return printVdmInfoViaService(port);
+      return printVdmInfoViaService(port, evb);
     } else {
       printf("Qsfp service is not active, pl provide --direct_i2c option\n");
       return false;
