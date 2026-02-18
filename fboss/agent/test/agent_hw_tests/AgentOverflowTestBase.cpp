@@ -4,6 +4,7 @@
 
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/EcmpDataPlaneTestUtil.h"
@@ -13,7 +14,6 @@
 
 namespace {
 constexpr auto kTxRxThresholdMs = 10000;
-constexpr auto kEcmpWidth = 4;
 } // namespace
 
 namespace facebook::fboss {
@@ -29,7 +29,7 @@ void AgentOverflowTestBase::SetUp() {
       ecmpPortDesc.emplace_back(port);
     }
     ecmpHelper->programRoutesVecHelper(
-        ecmpPortDesc, std::vector<NextHopWeight>(kEcmpWidth, 1));
+        ecmpPortDesc, std::vector<NextHopWeight>(kWideEcmpWidth, 1));
   }
 }
 
@@ -112,7 +112,7 @@ PortID AgentOverflowTestBase::getDownlinkPort() {
   return utility::getAllUplinkDownlinkPorts(
              getSw()->getPlatformType(),
              getSw()->getConfig(),
-             kEcmpWidth,
+             kWideEcmpWidth,
              /* TODO: For RTSW invariant enable mmu lossless */
              false /* mmu_lossless*/)
       .second[0];
@@ -123,7 +123,7 @@ std::vector<PortID> AgentOverflowTestBase::getUplinkPorts() {
   return utility::getAllUplinkDownlinkPorts(
              getSw()->getPlatformType(),
              getSw()->getConfig(),
-             kEcmpWidth,
+             kWideEcmpWidth,
              /* TODO: For RTSW invariant enable mmu lossless */
              false /* mmu_lossless*/)
       .first;
@@ -139,7 +139,7 @@ void AgentOverflowTestBase::verifyInvariants() {
   for (const auto& port : getUplinkPorts()) {
     ecmpPortDesc.emplace_back(port);
   }
-  utility::verifyLoadBalance(getSw(), kEcmpWidth, ecmpPortDesc);
+  utility::verifyLoadBalance(getSw(), kWideEcmpWidth, ecmpPortDesc);
   utility::verifyDscpToQueueMapping(getSw(), getUplinkPorts());
 }
 } // namespace facebook::fboss
