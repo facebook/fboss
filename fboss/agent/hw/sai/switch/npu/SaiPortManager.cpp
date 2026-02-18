@@ -126,6 +126,9 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
         counterIds.emplace_back(SAI_PORT_STAT_IF_IN_LINK_DOWN_CELL_DROP);
       }
 #endif
+// TODO(daiweix): enable fabricControlRx|TxPacketStats after resolving
+// CS00012448723
+#if !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
       if (platform_->getAsic()->isSupported(
               HwAsic::Feature::FABRIC_LINK_MONITORING)) {
         counterIds.insert(
@@ -137,6 +140,7 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
             SaiPortTraits::fabricControlTxPacketStats().begin(),
             SaiPortTraits::fabricControlTxPacketStats().end());
       }
+#endif
       return counterIds;
     }
     if (getPortType(port) == cfg::PortType::RECYCLE_PORT) {
