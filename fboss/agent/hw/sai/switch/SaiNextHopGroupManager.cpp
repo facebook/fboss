@@ -302,6 +302,11 @@ void SaiNextHopGroupManager::setPrimaryArsSwitchingMode(
   primaryArsMode_ = switchingMode;
 }
 
+void SaiNextHopGroupManager::setMinWidthForArsVirtualGroup(
+    std::optional<int32_t> minWidthForArsVirtualGroup) {
+  minWidthForArsVirtualGroup_ = minWidthForArsVirtualGroup;
+}
+
 std::string SaiNextHopGroupManager::listManagedObjects() const {
   std::set<std::string> outputs{};
   for (auto entry : handles_) {

@@ -5275,6 +5275,8 @@ void SaiSwitch::processFlowletSwitchingConfigAdded(
     XLOG(DBG2) << "Flowlet switching config is added";
     nextHopGroupManager.setPrimaryArsSwitchingMode(
         newFlowletConfig->getSwitchingMode());
+    nextHopGroupManager.setMinWidthForArsVirtualGroup(
+        newFlowletConfig->getMinWidthForArsVirtualGroup());
     // create the ARS profile object and attach to switch
     arsProfileManager.addArsProfile(newFlowletConfig);
     auto arsProfileHandlePtr = arsProfileManager.getArsProfileHandle();
@@ -5322,6 +5324,8 @@ void SaiSwitch::processFlowletSwitchingConfigChanged(
       // FlowletSwitchingConfig has both ARS_PROFILE and ARS info
       nextHopGroupManager.setPrimaryArsSwitchingMode(
           newFlowletConfig->getSwitchingMode());
+      nextHopGroupManager.setMinWidthForArsVirtualGroup(
+          newFlowletConfig->getMinWidthForArsVirtualGroup());
       arsProfileManager.changeArsProfile(oldFlowletConfig, newFlowletConfig);
       arsManager.changeArs(oldFlowletConfig, newFlowletConfig);
     }
@@ -5334,6 +5338,7 @@ void SaiSwitch::processFlowletSwitchingConfigChanged(
     switchManager.resetArsProfile();
     arsProfileManager.removeArsProfile(oldFlowletConfig);
     nextHopGroupManager.setPrimaryArsSwitchingMode(std::nullopt);
+    nextHopGroupManager.setMinWidthForArsVirtualGroup(std::nullopt);
   }
 #endif
 }
