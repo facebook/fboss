@@ -18,6 +18,7 @@ thrift_library(
     thrift_srcs = {"bsp_platform_mapping.thrift": []},
     deps = [
         "//fboss/lib/led:led_mapping",
+        "//thrift/annotation:thrift",
     ],
 )
 
