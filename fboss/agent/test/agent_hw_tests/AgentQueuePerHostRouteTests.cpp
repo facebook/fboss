@@ -13,6 +13,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
@@ -75,11 +76,10 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
   }
 
   void addRoutes(const std::vector<RoutePrefix<AddrT>>& routePrefixes) {
-    auto kEcmpWidth = 1;
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor(), kRouterID());
     auto wrapper = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&wrapper, kEcmpWidth, routePrefixes);
+    ecmpHelper.programRoutes(&wrapper, kDefaultEcmpWidth, routePrefixes);
   }
 
   void resolveNeighborAndVerifyClassID(
