@@ -1587,3 +1587,26 @@ TEST(ConfigValidatorTest, LogicalEeproms) {
   EXPECT_TRUE(
       ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
 }
+
+TEST(ConfigValidatorTest, NoOpticsConfigForDarwinPlatforms) {
+  PlatformConfig config;
+  config.platformName() = "DARWIN";
+  EXPECT_TRUE(ConfigValidator().isValidPlatformWithoutPmOptics(config));
+
+  config.numXcvrs() = 32;
+  EXPECT_FALSE(ConfigValidator().isValidPlatformWithoutPmOptics(config));
+  config.numXcvrs() = 0;
+
+  auto pciDev = getValidPciDeviceConfig();
+  pciDev.xcvrCtrlBlockConfigs() = {XcvrCtrlBlockConfig{}};
+  pciDev.ledCtrlBlockConfigs() = {LedCtrlBlockConfig{}};
+  PmUnitConfig pmUnitConfig;
+  pmUnitConfig.pciDeviceConfigs() = {pciDev};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  EXPECT_FALSE(ConfigValidator().isValidPlatformWithoutPmOptics(config));
+
+  config.pmUnitConfigs() = {};
+  config.symbolicLinkToDevicePath() = {
+      {"/run/devmap/xcvrs/xcvr_1", "/[XCVR_1]"}};
+  EXPECT_FALSE(ConfigValidator().isValidPlatformWithoutPmOptics(config));
+}

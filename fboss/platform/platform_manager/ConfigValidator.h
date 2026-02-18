@@ -69,6 +69,7 @@ class ConfigValidator {
       const PlatformConfig& config,
       const std::string& pmUnitName,
       const PmUnitConfig& pmUnitConfig);
+  bool isValidPlatformWithoutPmOptics(const PlatformConfig& config);
   std::map<std::pair<std::string, std::string>, std::vector<LogicalEeprom>>
   getLogicalEeproms(
       const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,

@@ -679,6 +679,37 @@ bool ConfigValidator::isValidDeviceName(
   return false;
 }
 
+bool ConfigValidator::isValidPlatformWithoutPmOptics(
+    const PlatformConfig& config) {
+  const auto& platforms =
+      platform_manager_validators_constants::PLATFORMS_WITHOUT_PM_OPTICS();
+  if (std::find(platforms.begin(), platforms.end(), *config.platformName()) ==
+      platforms.end()) {
+    return true;
+  }
+  auto fail = [&](std::string_view reason) {
+    XLOGF(ERR, "Platform {}: {}", *config.platformName(), reason);
+    return false;
+  };
+  if (*config.numXcvrs() != 0) {
+    return fail("must not have numXcvrs set");
+  }
+  for (const auto& [_, pmUnitCfg] : *config.pmUnitConfigs()) {
+    for (const auto& pciDev : *pmUnitCfg.pciDeviceConfigs()) {
+      if (!pciDev.xcvrCtrlBlockConfigs()->empty() ||
+          !pciDev.ledCtrlBlockConfigs()->empty()) {
+        return fail("must not have xcvr/led block configs");
+      }
+    }
+  }
+  for (const auto& [symlink, _] : *config.symbolicLinkToDevicePath()) {
+    if (symlink.starts_with("/run/devmap/xcvrs/")) {
+      return fail("must not have xcvr symlinks");
+    }
+  }
+  return true;
+}
+
 bool ConfigValidator::isValid(const PlatformConfig& config) {
   XLOG(INFO) << "Validating platform_manager config";
 
@@ -697,6 +728,10 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
         ERR,
         "Platform name must be in uppercase; {} contains lowercase characters",
         *config.platformName());
+    return false;
+  }
+
+  if (!isValidPlatformWithoutPmOptics(config)) {
     return false;
   }
 
