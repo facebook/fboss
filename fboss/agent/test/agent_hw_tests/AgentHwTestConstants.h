@@ -21,4 +21,10 @@ inline constexpr auto kTestDstIpV6 = "2620:0:1cfe:face:b00c::4";
 inline constexpr int kTestSrcPort = 8000;
 inline constexpr int kTestDstPort = 8001;
 
+// Default ECMP width for single next-hop tests
+inline constexpr auto kDefaultEcmpWidth = 1;
+
+// Wide ECMP width for multi-path tests (load balancing, overflow, etc.)
+inline constexpr auto kWideEcmpWidth = 4;
+
 } // namespace facebook::fboss
