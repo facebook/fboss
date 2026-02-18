@@ -169,7 +169,7 @@ void AgentOlympicQosSchedulerTest::verifySingleWRRAndSP(
 
         XLOG(DBG2) << "program routes";
         auto wrapper = getSw()->getRouteUpdater();
-        ecmpHelper6.programRoutes(&wrapper, kEcmpWidthForTest);
+        ecmpHelper6.programRoutes(&wrapper, kDefaultEcmpWidth);
       }
     }
   };
@@ -211,7 +211,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
       getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
 
   auto setup = [=, this]() {
-    resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+    resolveNeighborAndProgramRoutes(ecmpHelper6, kDefaultEcmpWidth);
   };
 
   auto verify = [=, this]() {
@@ -285,7 +285,7 @@ void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicToOlympicV2() {
       getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
 
   auto setup = [=, this]() {
-    resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+    resolveNeighborAndProgramRoutes(ecmpHelper6, kDefaultEcmpWidth);
   };
 
   auto verify = [=, this]() {
@@ -335,7 +335,7 @@ void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
       getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
 
   auto setup = [=, this]() {
-    resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+    resolveNeighborAndProgramRoutes(ecmpHelper6, kDefaultEcmpWidth);
   };
 
   auto verify = [=, this]() {

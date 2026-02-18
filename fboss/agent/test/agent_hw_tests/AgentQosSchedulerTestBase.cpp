@@ -44,7 +44,7 @@ void AgentQosSchedulerTestBase::sendUdpPkt(uint8_t dscpVal, bool frontPanel) {
   if (frontPanel) {
     getSw()->sendPacketOutOfPortAsync(
         createUdpPkt(dscpVal),
-        ecmpHelper6.ecmpPortDescriptorAt(kEcmpWidthForTest).phyPortID());
+        ecmpHelper6.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID());
   } else {
     getSw()->sendPacketSwitchedAsync(createUdpPkt(dscpVal));
   }
@@ -61,7 +61,7 @@ void AgentQosSchedulerTestBase::sendUdpPkts(
 
 void AgentQosSchedulerTestBase::_setup(
     const utility::EcmpSetupAnyNPorts6& ecmpHelper6) {
-  resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+  resolveNeighborAndProgramRoutes(ecmpHelper6, kDefaultEcmpWidth);
   utility::ttlDecrementHandlingForLoopbackTraffic(
       getAgentEnsemble(), ecmpHelper6.getRouterId(), ecmpHelper6.nhop(0));
 }
