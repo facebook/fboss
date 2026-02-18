@@ -340,7 +340,7 @@
             "minAlarmVal": 3.135,
             "lowerCriticalVal": 2.97
           },
-          "compute": "(8/5)*@/1000"
+          "compute": "(5/3)*@/1000"
         },
         {
           "name": "MCB_U33_XP3R3V_FCB",
@@ -352,7 +352,7 @@
             "minAlarmVal": 3.135,
             "lowerCriticalVal": 2.97
           },
-          "compute": "(8/5)*@/1000"
+          "compute": "(5/3)*@/1000"
         },
         {
           "name": "MCB_U33_XP1R8V_IOB",
@@ -388,13 +388,13 @@
             "minAlarmVal": 3.135,
             "lowerCriticalVal": 2.97
           },
-          "compute": "(8/5)*@/1000"
+          "compute": "(5/3)*@/1000"
         },
         {
           "name": "MCB_U41_HSC_PIN",
           "sysfsPath": "/run/devmap/sensors/MCB_VOLTAGE_MONITOR6/power1_input",
           "type": 0,
-          "compute": "(3/5)*@/1000000"
+          "compute": "(6/5)*@/1000000"
         },
         {
           "name": "MCB_U41_HSC_VIN",
@@ -412,7 +412,7 @@
           "name": "MCB_U41_HSC_IOUT",
           "sysfsPath": "/run/devmap/sensors/MCB_VOLTAGE_MONITOR6/curr1_input",
           "type": 2,
-          "compute": "(3/5)*@/1000"
+          "compute": "(6/5)*@/1000"
         },
         {
           "name": "MCB_U41_HSC_TEMP",
@@ -1126,7 +1126,7 @@
             "minAlarmVal": 3.135,
             "lowerCriticalVal": 2.97
           },
-          "compute": "(8/5)*@/1000"
+          "compute": "(5/3)*@/1000"
         },
         {
           "name": "SMB_U63_XP1R8V_CLK",
