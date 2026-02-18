@@ -29,7 +29,7 @@
 # Includes HW abstraction, state management, routing, and packet I/O.
 # Path: fboss/agent/
 # ──────────────────────────────────────────────────────────────────────
-/fboss/agent/                           @shri-khare @nivinl @phshaikh @rvantipalli @jasmeetbagga @daiwei1983 @zechengh09 @msomasundaran @ashutoshgrewal
+/fboss/agent/                           @shri-khare @phshaikh @jasmeetbagga @daiwei1983 @zechengh09 @msomasundaran @ashutoshgrewal
 
 # ──────────────────────────────────────────────────────────────────────
 # QSFP Service — manages QSFP/OSFP optical transceiver modules.
@@ -65,7 +65,7 @@
 # Provides a pub-sub interface for structured switch state data.
 # Path: fboss/fsdb/
 # ──────────────────────────────────────────────────────────────────────
-/fboss/fsdb/                            @elangovan911-meta
+/fboss/fsdb/                            @KevinYakar
 
 # ──────────────────────────────────────────────────────────────────────
 # LED Service — controls front-panel LED indicators on switch platforms.
