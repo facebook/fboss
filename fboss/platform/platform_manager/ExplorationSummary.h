@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "fboss/platform/platform_manager/ExplorationErrors.h"
-#include "fboss/platform/platform_manager/ScubaLogger.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_service_types.h"
 
 namespace facebook::fboss::platform::platform_manager {
@@ -21,9 +20,7 @@ class ExplorationSummary {
   constexpr static auto kExplorationFailByType =
       "platform_explorer.exploration_fail.{}";
 
-  explicit ExplorationSummary(
-      const PlatformConfig& config,
-      ScubaLogger& scubaLogger);
+  explicit ExplorationSummary(const PlatformConfig& config);
   virtual ~ExplorationSummary() = default;
   void addError(
       ExplorationErrorType errorType,
@@ -42,13 +39,11 @@ class ExplorationSummary {
 
  private:
   const PlatformConfig& platformConfig_;
-  ScubaLogger& scubaLogger_;
   uint nExpectedErrs_{0}, nErrs_{0};
   std::map<std::string, std::vector<ExplorationError>> devicePathToErrors_{},
       devicePathToExpectedErrors_{};
 
   void print(ExplorationStatus finalStatus);
   void publishCounters(ExplorationStatus finalStatus);
-  void publishToScuba(ExplorationStatus finalStatus);
 };
 } // namespace facebook::fboss::platform::platform_manager

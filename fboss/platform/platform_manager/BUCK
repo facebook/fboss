@@ -190,7 +190,6 @@ cpp_library(
         ":platform_manager_config-cpp2-types",
         ":platform_manager_service-cpp2-types",
         ":presence_checker",
-        ":scuba_logger",
         ":utils",
         "//fb303:service_data",
         "//fboss/platform/helpers:platform_fs_utils",
@@ -199,21 +198,6 @@ cpp_library(
         "//fboss/platform/weutil:ioctl_smbus_eeprom_reader",
         "//folly:file_util",
         "//folly/logging:logging",
-    ],
-)
-
-cpp_library(
-    name = "scuba_logger",
-    srcs = [
-        "ScubaLogger.cpp",
-    ],
-    exported_deps = [
-        ":data_store",
-        ":platform_manager_config-cpp2-types",
-        "//common/network:util",
-        "//folly/json:dynamic",
-        "//folly/logging:logging",
-        "//scribe/client:scribe_client_no_sr",
     ],
 )
 
@@ -307,7 +291,6 @@ cpp_binary(
         ":pkg_manager",
         ":platform_explorer",
         ":platform_manager_handler",
-        ":scuba_logger",
         "//fb303:logging",
         "//fb303:service_data",
         "//fboss/platform/helpers:init",

@@ -11,21 +11,14 @@ using namespace facebook::fboss::platform::platform_manager;
 
 class MockExplorationSummaryTest : public ExplorationSummary {
  public:
-  MockExplorationSummaryTest(
-      const PlatformConfig& config,
-      ScubaLogger& scubaLogger)
-      : ExplorationSummary(config, scubaLogger) {}
+  explicit MockExplorationSummaryTest(const PlatformConfig& config)
+      : ExplorationSummary(config) {}
 };
 
 class ExplorationSummaryTest : public testing::Test {
  public:
   PlatformConfig platformConfig_;
-  DataStore dataStore_{platformConfig_};
-  ScubaLogger scubaLogger_{*platformConfig_.platformName(), dataStore_};
-  MockExplorationSummaryTest summary_{
-      platformConfig_,
-      scubaLogger_,
-  };
+  MockExplorationSummaryTest summary_{platformConfig_};
 };
 
 TEST_F(ExplorationSummaryTest, GoodExploration) {

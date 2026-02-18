@@ -5,15 +5,12 @@
 #include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
 
-#include "fboss/platform/platform_manager/ScubaLogger.h"
 #include "fboss/platform/platform_manager/Utils.h"
 
 namespace facebook::fboss::platform::platform_manager {
 
-ExplorationSummary::ExplorationSummary(
-    const PlatformConfig& config,
-    ScubaLogger& scubaLogger)
-    : platformConfig_(config), scubaLogger_(scubaLogger) {}
+ExplorationSummary::ExplorationSummary(const PlatformConfig& config)
+    : platformConfig_(config) {}
 
 void ExplorationSummary::addError(
     ExplorationErrorType errorType,
@@ -88,23 +85,6 @@ void ExplorationSummary::publishCounters(ExplorationStatus finalStatus) {
   }
 }
 
-void ExplorationSummary::publishToScuba(ExplorationStatus finalStatus) {
-  // Log individual errors
-  for (const auto& [devicePath, explorationErrors] : devicePathToErrors_) {
-    for (const auto& error : explorationErrors) {
-      scubaLogger_.log(
-          *error.errorType(),
-          {
-              {"device_path", devicePath},
-              {"error_message", *error.message()},
-              {"exploration_status",
-               apache::thrift::util::enumNameSafe(finalStatus)},
-          });
-      XLOG(INFO) << "Logged Platform Manager error to Scuba: " << devicePath;
-    }
-  }
-}
-
 ExplorationStatus ExplorationSummary::summarize() {
   ExplorationStatus finalStatus = ExplorationStatus::FAILED;
   if (devicePathToErrors_.empty() && devicePathToExpectedErrors_.empty()) {
@@ -115,7 +95,6 @@ ExplorationStatus ExplorationSummary::summarize() {
   // Exploration summary reporting.
   print(finalStatus);
   publishCounters(finalStatus);
-  publishToScuba(finalStatus);
   return finalStatus;
 }
 

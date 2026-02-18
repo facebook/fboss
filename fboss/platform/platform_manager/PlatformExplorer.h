@@ -14,7 +14,6 @@
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/PresenceChecker.h"
-#include "fboss/platform/platform_manager/ScubaLogger.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_service_types.h"
 
@@ -57,7 +56,6 @@ class PlatformExplorer {
   explicit PlatformExplorer(
       const PlatformConfig& config,
       DataStore& dataStore,
-      ScubaLogger& scubaLogger,
       std::shared_ptr<PlatformFsUtils> platformFsUtils =
           std::make_shared<PlatformFsUtils>());
 

@@ -135,11 +135,10 @@ PlatformManagerStatus createPmStatus(
 PlatformExplorer::PlatformExplorer(
     const PlatformConfig& config,
     DataStore& dataStore,
-    ScubaLogger& scubaLogger,
     std::shared_ptr<PlatformFsUtils> platformFsUtils)
     : platformConfig_(config),
       dataStore_(dataStore),
-      explorationSummary_(platformConfig_, scubaLogger),
+      explorationSummary_(platformConfig_),
       pciExplorer_(platformFsUtils),
       devicePathResolver_(dataStore_),
       presenceChecker_(devicePathResolver_),
@@ -170,6 +169,7 @@ void PlatformExplorer::explore() {
   genHumanReadableEeproms();
   XLOG(INFO) << "Publishing hardware version of the unit ...";
   publishHardwareVersions();
+
   auto explorationStatus = explorationSummary_.summarize();
   updatePmStatus(createPmStatus(
       explorationStatus,

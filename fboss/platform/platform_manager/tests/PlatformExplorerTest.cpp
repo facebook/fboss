@@ -100,10 +100,7 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   platformConfig.symbolicLinkToDevicePath()[fpgaNonePath] = "";
 
   DataStore dataStore(platformConfig);
-  facebook::fboss::platform::platform_manager::ScubaLogger scubaLogger(
-      *platformConfig.platformName(), dataStore);
-  PlatformExplorer explorer(
-      platformConfig, dataStore, scubaLogger, platformFsUtils);
+  PlatformExplorer explorer(platformConfig, dataStore, platformFsUtils);
   explorer.updateFirmwareVersions();
   explorer.publishFirmwareVersions();
 
@@ -137,10 +134,7 @@ TEST(PlatformExplorerTest, PublishHardwareVersions) {
   dataStore.updateHardwareVersion(PlatformExplorer::kProductionSubState, "V3");
   dataStore.updateHardwareVersion(PlatformExplorer::kVariantVersion, "A2");
 
-  facebook::fboss::platform::platform_manager::ScubaLogger scubaLogger(
-      *platformConfig.platformName(), dataStore);
-  PlatformExplorer explorer(
-      platformConfig, dataStore, scubaLogger, platformFsUtils);
+  PlatformExplorer explorer(platformConfig, dataStore, platformFsUtils);
 
   // Test that publishHardwareVersions correctly publishes to ODS
   explorer.publishHardwareVersions();
@@ -163,9 +157,7 @@ TEST(PlatformExplorerTest, SymlinkExceptionHandling) {
       "/[TEST_DEVICE]";
 
   DataStore dataStore(platformConfig);
-  ScubaLogger scubaLogger(*platformConfig.platformName(), dataStore);
-  PlatformExplorer explorer(
-      platformConfig, dataStore, scubaLogger, platformFsUtils);
+  PlatformExplorer explorer(platformConfig, dataStore, platformFsUtils);
 
   EXPECT_TRUE(platformFsUtils->createDirectories("/run/devmap/unsupported"));
   EXPECT_NO_THROW(explorer.explore());
@@ -176,10 +168,8 @@ TEST(PlatformExplorerTest, GetFpgaInstanceIdUniquePerDevice) {
   auto platformConfig = createMinimalPlatformConfig();
   auto platformFsUtils = std::make_shared<PlatformFsUtils>();
   DataStore dataStore(platformConfig);
-  ScubaLogger scubaLogger(*platformConfig.platformName(), dataStore);
 
-  PlatformExplorer explorer(
-      platformConfig, dataStore, scubaLogger, platformFsUtils);
+  PlatformExplorer explorer(platformConfig, dataStore, platformFsUtils);
 
   auto id1 = explorer.getFpgaInstanceId("/", "FPGA1");
   auto id2 = explorer.getFpgaInstanceId("/", "FPGA2");
@@ -230,9 +220,7 @@ TEST(PlatformExplorerTest, ExplorePmUnitWithEmbeddedSensors) {
   platformConfig.pmUnitConfigs()["TEST_PM_WITH_SENSORS"] = pmUnitConfig;
 
   DataStore dataStore(platformConfig);
-  ScubaLogger scubaLogger(*platformConfig.platformName(), dataStore);
-  TestablePlatformExplorer explorer(
-      platformConfig, dataStore, scubaLogger, platformFsUtils);
+  TestablePlatformExplorer explorer(platformConfig, dataStore, platformFsUtils);
 
   EXPECT_NO_THROW(explorer.explore());
 
@@ -283,9 +271,7 @@ TEST(PlatformExplorerTest, ExploreSlotWithOutgoingI2cBuses) {
   platformConfig.pmUnitConfigs()["CHILD_PM"] = childPmUnitConfig;
 
   DataStore dataStore(platformConfig);
-  ScubaLogger scubaLogger(*platformConfig.platformName(), dataStore);
-  TestablePlatformExplorer explorer(
-      platformConfig, dataStore, scubaLogger, platformFsUtils);
+  TestablePlatformExplorer explorer(platformConfig, dataStore, platformFsUtils);
 
   SlotConfig slotConfig;
   slotConfig.slotType() = "CHILD_SLOT_TYPE";
@@ -304,9 +290,7 @@ TEST(PlatformExplorerTest, GetPmUnitInfoSuccess) {
   platformConfig.i2cAdaptersFromCpu() = {};
 
   DataStore dataStore(platformConfig);
-  ScubaLogger scubaLogger(*platformConfig.platformName(), dataStore);
-  TestablePlatformExplorer explorer(
-      platformConfig, dataStore, scubaLogger, platformFsUtils);
+  TestablePlatformExplorer explorer(platformConfig, dataStore, platformFsUtils);
 
   explorer.explore();
   auto pmUnitInfo = explorer.getPmUnitInfo("/");
@@ -317,10 +301,8 @@ TEST(PlatformExplorerTest, GetPmUnitInfoThrowsForNonExistentSlot) {
   auto platformConfig = createMinimalPlatformConfig();
   auto platformFsUtils = std::make_shared<PlatformFsUtils>();
   DataStore dataStore(platformConfig);
-  ScubaLogger scubaLogger(*platformConfig.platformName(), dataStore);
 
-  PlatformExplorer explorer(
-      platformConfig, dataStore, scubaLogger, platformFsUtils);
+  PlatformExplorer explorer(platformConfig, dataStore, platformFsUtils);
 
   EXPECT_THROW(
       explorer.getPmUnitInfo("/NON_EXISTENT_SLOT"), std::runtime_error);
