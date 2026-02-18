@@ -261,7 +261,7 @@
           "i2cAdapterBlockConfigs": [
             {
               "pmUnitScopedNamePrefix": "CPU_I2C_MASTER",
-              "deviceName": "iob_i2c_master",
+              "deviceName": "i2c_master",
               "csrOffsetCalc": "0x8000 + ({adapterIndex} - {startAdapterIndex})*0x80",
               "startAdapterIndex": 0,
               "numAdapters": 2,
@@ -633,7 +633,7 @@
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 64,
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.18-1",
+  "bspKmodsRpmVersion": "0.7.19-1",
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",
