@@ -13,7 +13,7 @@
 
 namespace facebook::fboss {
 
-class Q4DAsic;
+class Jericho4Asic;
 
 class SaiBcmJ4SimPlatform : public SaiBcmPlatform {
  public:
@@ -64,7 +64,7 @@ class SaiBcmJ4SimPlatform : public SaiBcmPlatform {
       const cfg::SwitchInfo& switchInfo,
       std::optional<HwAsic::FabricNodeRole> fabricNodeRole) override;
 
-  std::unique_ptr<Q4DAsic> asic_;
+  std::unique_ptr<Jericho4Asic> asic_;
 };
 
 } // namespace facebook::fboss

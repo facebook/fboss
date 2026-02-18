@@ -10,7 +10,7 @@
 
 #include "fboss/agent/platforms/sai/SaiBcmJ4SimPlatform.h"
 
-#include "fboss/agent/hw/switch_asics/Q4DAsic.h"
+#include "fboss/agent/hw/switch_asics/Jericho4Asic.h"
 #include "fboss/agent/platforms/common/j4sim/J4SimPlatformMapping.h"
 
 namespace {
@@ -37,7 +37,7 @@ void SaiBcmJ4SimPlatform::setupAsic(
     const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(!fabricNodeRole.has_value());
-  asic_ = std::make_unique<Q4DAsic>(switchId, switchInfo);
+  asic_ = std::make_unique<Jericho4Asic>(switchId, switchInfo);
 }
 
 HwAsic* SaiBcmJ4SimPlatform::getAsic() const {
