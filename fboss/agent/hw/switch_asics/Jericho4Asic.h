@@ -7,7 +7,7 @@
 
 namespace facebook::fboss {
 
-class Jericho4Asic : public Q4DAsic {
+class Jericho4Asic : public Jericho3Asic {
  public:
   Jericho4Asic(
       std::optional<int64_t> switchId,
