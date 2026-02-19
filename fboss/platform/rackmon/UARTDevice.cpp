@@ -39,10 +39,6 @@ const std::unordered_map<int, speed_t> kSpeedMap = {
 void UARTDevice::open() {
   Device::open();
   setAttribute(true, baudrate_, parity_);
-}
-
-void AspeedRS485Device::open() {
-  UARTDevice::open();
   struct serial_rs485 rs485Conf{};
   /*
    * NOTE: "SER_RS485_RTS_AFTER_SEND" and "SER_RS485_RX_DURING_TX" flags
@@ -52,7 +48,12 @@ void AspeedRS485Device::open() {
   rs485Conf.flags = SER_RS485_ENABLED;
   rs485Conf.flags |= (SER_RS485_RTS_AFTER_SEND | SER_RS485_RX_DURING_TX);
 
-  ioctl(TIOCSRS485, &rs485Conf);
+  try {
+    ioctl(TIOCSRS485, &rs485Conf);
+  } catch (std::exception& ex) {
+    logWarn << "Optional Enable RS485 RTS_AFTER_SEND and RX_DURING_TX failed: "
+            << ex.what() << std::endl;
+  }
 }
 
 void UARTDevice::setAttribute(bool readEnable, int baudrate, Parity parity) {
