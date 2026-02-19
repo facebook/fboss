@@ -107,6 +107,34 @@ TEST(ConfigValidatorTest, InvalidRootSlotType) {
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
+TEST(ConfigValidatorTest, I2cAdaptersFromCpuValidation) {
+  // CPU_BUS@0 — valid
+  EXPECT_TRUE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@0"}));
+
+  // CPU_BUS@1 — valid
+  EXPECT_TRUE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@1"}));
+
+  // CPU_BUS@0 + CPU_BUS@1 — valid (two-bus config)
+  EXPECT_TRUE(
+      ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@0", "CPU_BUS@1"}));
+
+  // Exact names only — valid
+  EXPECT_TRUE(
+      ConfigValidator().isValidI2cAdaptersFromCpu(
+          {"SMBus I801 adapter at 5000"}));
+
+  // CPU_BUS@2 — invalid (only @0 and @1 supported)
+  EXPECT_FALSE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@2"}));
+
+  // Mixed styles — invalid
+  EXPECT_FALSE(
+      ConfigValidator().isValidI2cAdaptersFromCpu(
+          {"CPU_BUS@0", "SMBus I801 adapter at 5000"}));
+
+  // Empty list — valid
+  EXPECT_TRUE(ConfigValidator().isValidI2cAdaptersFromCpu({}));
+}
+
 TEST(ConfigValidatorTest, ValidConfig) {
   auto config = getBasicConfig();
   EXPECT_TRUE(ConfigValidator().isValid(config));

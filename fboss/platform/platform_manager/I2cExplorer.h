@@ -40,6 +40,17 @@ class I2cExplorer {
   std::map<std::string, uint16_t> getBusNums(
       const std::vector<std::string>& i2cAdaptersFromCpu);
 
+  // Resolve virtual "CPU_BUS@0" name to a kernel bus number on AMD CPUs.
+  // Not yet implemented — throws at runtime.
+  std::map<std::string, uint16_t> resolveAmdCpuBusNums(
+      const std::vector<std::string>& i2cAdaptersFromCpu);
+
+  // Resolve virtual "CPU_BUS@0" name to a kernel bus number on Intel CPUs.
+  // Scans /sys/bus/i2c/devices/i2c-N/name for the single adapter
+  // matching "SMBus I801 adapter at" on this unit.
+  std::map<std::string, uint16_t> resolveIntelCpuBusNums(
+      const std::vector<std::string>& i2cAdaptersFromCpu);
+
   // Checks if a I2c devices is present at `addr` on `busNum`.
   virtual bool isI2cDevicePresent(uint16_t busNum, const I2cAddr& addr) const;
 

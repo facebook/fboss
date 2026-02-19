@@ -31,6 +31,8 @@ class ConfigValidator {
       const XcvrCtrlBlockConfig& xcvrCtrlBlockConfig);
   bool isValidI2cAdapterBlockConfig(
       const I2cAdapterBlockConfig& i2cAdapterBlockConfig);
+  bool isValidI2cAdaptersFromCpu(
+      const std::vector<std::string>& i2cAdaptersFromCpu);
   bool isValidPciDeviceConfig(const PciDeviceConfig& pciDeviceConfig);
   bool isValidI2cDeviceConfig(const I2cDeviceConfig& i2cDeviceConfig);
   bool isValidDevicePath(

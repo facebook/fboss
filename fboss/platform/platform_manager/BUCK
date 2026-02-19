@@ -93,6 +93,7 @@ cpp_library(
         ":utils",
         "//fboss/lib/i2c:i2c_ctrl",
         "//fboss/platform/helpers:platform_fs_utils",
+        "//folly:cpu_id",
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",

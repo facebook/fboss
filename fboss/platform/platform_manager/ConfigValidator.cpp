@@ -306,6 +306,33 @@ bool ConfigValidator::isValidXcvrCtrlBlockConfig(
   return true;
 }
 
+bool ConfigValidator::isValidI2cAdaptersFromCpu(
+    const std::vector<std::string>& i2cAdaptersFromCpu) {
+  static const re2::RE2 kCpuBusNameRegex{"CPU_BUS@\\d+"};
+  bool hasVirtual = false;
+  bool hasExact = false;
+  for (const auto& name : i2cAdaptersFromCpu) {
+    if (re2::RE2::FullMatch(name, kCpuBusNameRegex)) {
+      if (name != "CPU_BUS@0" && name != "CPU_BUS@1") {
+        XLOG(ERR) << fmt::format(
+            "Invalid virtual bus name '{}'. "
+            "Only CPU_BUS@0 and CPU_BUS@1 are supported",
+            name);
+        return false;
+      }
+      hasVirtual = true;
+    } else {
+      hasExact = true;
+    }
+  }
+  if (hasVirtual && hasExact) {
+    XLOG(ERR)
+        << "i2cAdaptersFromCpu must not mix CPU_BUS@N virtual names with exact adapter names";
+    return false;
+  }
+  return true;
+}
+
 bool ConfigValidator::isValidI2cAdapterBlockConfig(
     const I2cAdapterBlockConfig& i2cAdapterBlockConfig) {
   if (i2cAdapterBlockConfig.pmUnitScopedNamePrefix()->empty()) {
@@ -745,6 +772,12 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     XLOG(ERR) << fmt::format(
         "Invalid rootSlotType {}. Not found in slotTypeConfigs",
         *config.rootSlotType());
+    return false;
+  }
+
+  // Validate i2cAdaptersFromCpu entries: must all be either CPU_BUS@N
+  // virtual names or exact adapter names, not a mix.
+  if (!isValidI2cAdaptersFromCpu(*config.i2cAdaptersFromCpu())) {
     return false;
   }
 
