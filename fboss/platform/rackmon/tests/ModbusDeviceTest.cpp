@@ -1,8 +1,7 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include "ModbusDevice.h"
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 #include <thread>
+#include "TestUtils.h"
 
 using namespace std;
 using namespace testing;

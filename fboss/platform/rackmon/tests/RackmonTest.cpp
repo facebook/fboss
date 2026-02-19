@@ -1,9 +1,8 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include "Rackmon.h"
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 #include <fstream>
 #include "TempDir.h"
+#include "TestUtils.h"
 
 using namespace std;
 using namespace testing;
