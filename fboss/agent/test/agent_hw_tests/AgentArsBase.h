@@ -86,6 +86,7 @@ class AgentArsBase : public AgentHwTest {
       bool addMirror = false) const;
   RoutePrefixV6 getMirrorDestRoutePrefix(const folly::IPAddress dip) const;
   virtual void generatePrefixes();
+  virtual std::vector<PortID> getTestPorts() const;
   cfg::SwitchingMode getFwdSwitchingMode(const RoutePrefixV6& prefix) const;
   void verifyFwdSwitchingMode(
       const RoutePrefixV6& prefix,
