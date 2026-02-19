@@ -155,12 +155,18 @@ std::unordered_map<std::string, FruEeprom> ConfigUtils::getFruEepromList() {
   // have to add it explicitly. ```
   if (config_.platformName().value() == "MERU800BFA" ||
       config_.platformName().value() == "MERU800BIA" ||
-      config_.platformName().value() == "ICECUBE800BANW" ||
+      config_.platformName().value() == "GLATH05A-64O" ||
       config_.platformName().value() == "BLACKWOLF800BANW") {
     std::string eepromName = "SCM";
     FruEeprom fruEeprom;
     fruEeprom.path = "/run/devmap/eeproms/MERU_SCM_EEPROM";
-    fruEeprom.offset = getEepromOffset(config_, eepromName);
+    fruEeprom.offset = 0;
+    fruEepromList[eepromName] = fruEeprom;
+  } else if (config_.platformName().value() == "ICECUBE800BANW") {
+    std::string eepromName = "SMB";
+    FruEeprom fruEeprom;
+    fruEeprom.path = "/run/devmap/eeproms/SMB_EEPROM";
+    fruEeprom.offset = 0;
     fruEepromList[eepromName] = fruEeprom;
   } else if (config_.platformName().value() == "DARWIN") {
     // Darwin Platform special case that doesn't have a chassis EEPROM path
