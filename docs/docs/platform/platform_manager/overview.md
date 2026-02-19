@@ -13,7 +13,7 @@ slug: /platform/platform_manager
 The objective of PlatformManager is to generalize low level device setup and
 management across platforms. This avoids platform specific customized software
 logic. All the Platform specific information should be encoded in configuration
-files, and the same generic software should run on all platforms going forward.
+files such that the same generic software can run on all platforms.
 
 ## Functions of Interest
 
@@ -42,14 +42,21 @@ files, and the same generic software should run on all platforms going forward.
 | Topic                                                                  | Description                                      |
 | ---------------------------------------------------------------------- | ------------------------------------------------ |
 | [Modeling Requirements](/docs/platform/platform_manager/modeling)      | PMUnit, IDPROM, and hardware modeling rules      |
-TBD: add more documentation
+| [Block Configurations](/docs/platform/platform_manager/block_configs)  | Bulk FPGA sub-device configuration               |
+| [Presence Detection](/docs/platform/platform_manager/presence_detection) | GPIO and sysfs-based FRU presence detection    |
+| [Exploration Process](/docs/platform/platform_manager/exploration)     | How platform discovery works, status and errors  |
+| [Device Map](/docs/platform/platform_manager/devmap)                   | Symbolic link structure for stable device paths  |
+| [Running PlatformManager](/docs/platform/platform_manager/running)     | Command-line flags, run modes, systemd integration |
+| [Package Manager](/docs/platform/platform_manager/package_manager)     | BSP RPM management and kmods loading             |
+| [Thrift Service API](/docs/platform/platform_manager/service_api)      | Service endpoints for querying platform state    |
 
 ## Workflow
 
 ### On Initialization
 
-- Determine Platform Type using dmidecode set by BIOS. Details are in BMC Lite
-  Specifications.
+- Determine Platform Type using dmidecode set by BIOS. For details, refer to
+  the [Meta Switch Architecture](/docs/architecture/meta_switch_architecture)
+  documentation, which also links to the BMC-Lite specification.
 - Load the platform specific PlatformManager Config
 - Discover the devices (by polling present registers or reading sysfs paths)
   based on the config and load the necessary kmods.
@@ -77,7 +84,8 @@ TBD: add more documentation
   and testing instructions will be provided in fboss repository.
 - **PCI Device IDs**: All PCI devices (e.g., FPGA) should have unique Vendor ID and
   Device ID in the PCI configuration space.
-- **Dmidecode Setup**: The platform type should be obtainable through dmidecode, per
-  BMC-lite specification document
+- **Dmidecode Setup**: The platform type should be obtainable through dmidecode.
+  See [Meta Switch Architecture](/docs/architecture/meta_switch_architecture) for
+  details.
 - **BSP**: The BSP should follow the [BSP requirements specification](/docs/platform/bsp_development_requirements)
-  to enable device discovery and setup. We expect one set of kmods per vendor.
+  to enable device discovery and setup.
