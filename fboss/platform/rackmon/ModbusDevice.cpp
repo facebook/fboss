@@ -1,5 +1,7 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
+
 #include "ModbusDevice.h"
+#include "DeviceLocationFilter.h"
 #include "Log.h"
 
 using nlohmann::json;
@@ -15,6 +17,7 @@ ModbusDevice::ModbusDevice(
       numCommandRetries_(numCommandRetries),
       registerMap_(registerMap) {
   info_.deviceAddress = deviceAddress;
+  info_.port = interface_.getPort();
   info_.baudrate = registerMap.baudrate;
   info_.deviceType = registerMap.name;
   info_.parity = registerMap.parity;
@@ -381,10 +384,14 @@ void ModbusSpecialHandler::handle(ModbusDevice& dev) {
 NLOHMANN_JSON_SERIALIZE_ENUM(
     ModbusDeviceMode,
     {{ModbusDeviceMode::ACTIVE, "ACTIVE"},
-     {ModbusDeviceMode::DORMANT, "DORMANT"}})
+     {ModbusDeviceMode::DORMANT, "DORMANT"}});
 
 void to_json(json& j, const ModbusDeviceInfo& m) {
   j["devAddress"] = m.deviceAddress;
+  if (m.port.has_value()) {
+    j["uniqueDevAddress"] =
+        DeviceLocationFilter::combine(m.port, m.deviceAddress);
+  }
   j["deviceType"] = m.deviceType;
   j["crcErrors"] = m.crcErrors;
   j["timeouts"] = m.timeouts;
@@ -396,6 +403,10 @@ void to_json(json& j, const ModbusDeviceInfo& m) {
 // Legacy JSON format.
 void to_json(json& j, const ModbusDeviceRawData& m) {
   j["addr"] = m.deviceAddress;
+  if (m.port.has_value()) {
+    j["uniqueDevAddress"] =
+        DeviceLocationFilter::combine(m.port, m.deviceAddress);
+  }
   j["crc_fails"] = m.crcErrors;
   j["timeouts"] = m.timeouts;
   j["misc_fails"] = m.miscErrors;

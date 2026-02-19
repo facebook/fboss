@@ -1,10 +1,11 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #pragma once
 #include <atomic>
-#include <optional>
 #include <set>
 #include <shared_mutex>
 #include <thread>
+#include "DeviceLocationFilter.h"
+#include "DeviceLocationIterator.h"
 #include "Modbus.h"
 #include "ModbusDevice.h"
 #include "PollThread.h"
@@ -12,22 +13,9 @@
 namespace rackmon {
 
 struct ModbusDeviceFilter {
-  std::optional<std::set<uint8_t>> addrFilter{};
+  std::optional<DeviceLocationFilter> locationFilter{};
   std::optional<std::set<std::string>> typeFilter{};
   bool contains(const ModbusDevice& dev) const;
-};
-
-struct DeviceLocation {
-  uint8_t addr;
-
-  bool operator<(const DeviceLocation& other) const {
-    return addr < other.addr;
-  }
-
-  friend std::ostream& operator<<(std::ostream& os, const DeviceLocation& me) {
-    os << "0x" << std::hex << +me.addr;
-    return os;
-  }
 };
 
 class Rackmon {
@@ -47,11 +35,7 @@ class Rackmon {
   // These devices discovered on actively monitored buses
   std::map<DeviceLocation, std::unique_ptr<ModbusDevice>> devices_{};
 
-  // contains all the possible address allowed by currently
-  // loaded register maps. A majority of these are not expected
-  // to exist, but are candidates for a scan.
-  std::vector<DeviceLocation> allPossibleDevAddrs_{};
-  std::vector<DeviceLocation>::iterator nextDeviceToProbe_{};
+  std::unique_ptr<DeviceLocationIterator> nextDeviceToProbe_ = nullptr;
 
   // As an optimization, devices are normally scanned one by one
   // This allows someone to initiate a forced full scan.
@@ -67,9 +51,6 @@ class Rackmon {
   PollThreadTime monitorInterval_ = std::chrono::minutes(3);
 
   // Probe an interface for the presence of the address.
-  bool probe(Modbus&, DeviceLocation);
-
-  // Probe for the presence of an address
   bool probe(DeviceLocation);
 
   // --------- Private Methods --------
@@ -95,8 +76,8 @@ class Rackmon {
   void scan();
 
  protected:
-  // Return the device given address.
-  ModbusDevice& getModbusDevice(DeviceLocation);
+  // Return the device given location and optional port.
+  ModbusDevice& getModbusDevice(uint8_t addr, std::optional<uint8_t> port);
 
   PollThread<Rackmon>& getScanThread() {
     if (!scanThread_) {
@@ -148,11 +129,16 @@ class Rackmon {
   void forceScan();
 
   // Executes the Raw command. Throws an exception on error.
-  void rawCmd(Request& req, Response& resp, ModbusTime timeout);
+  void rawCmd(
+      Request& req,
+      std::optional<uint16_t> uniqueDevAddr,
+      Response& resp,
+      ModbusTime timeout);
 
   // Read registers
   void readHoldingRegisters(
       uint8_t deviceAddress,
+      std::optional<uint8_t> port,
       uint16_t registerOffset,
       std::vector<uint16_t>& registerContents,
       ModbusTime timeout = ModbusTime::zero());
@@ -160,6 +146,7 @@ class Rackmon {
   // Write Single Register
   void writeSingleRegister(
       uint8_t deviceAddress,
+      std::optional<uint8_t> port,
       uint16_t registerOffset,
       uint16_t value,
       ModbusTime timeout = ModbusTime::zero());
@@ -167,6 +154,7 @@ class Rackmon {
   // Write multiple registers
   void writeMultipleRegisters(
       uint8_t deviceAddress,
+      std::optional<uint8_t> port,
       uint16_t registerOffset,
       std::vector<uint16_t>& values,
       ModbusTime timeout = ModbusTime::zero());
@@ -174,6 +162,7 @@ class Rackmon {
   // Read File Record
   void readFileRecord(
       uint8_t deviceAddress,
+      std::optional<uint8_t> port,
       std::vector<FileRecord>& records,
       ModbusTime timeout = ModbusTime::zero());
 

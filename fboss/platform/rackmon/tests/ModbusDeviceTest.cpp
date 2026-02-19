@@ -12,7 +12,9 @@ using namespace rackmon;
 // Mocks the Modbus interface.
 class Mock2Modbus : public Modbus {
  public:
-  Mock2Modbus() : Modbus() {}
+  explicit Mock2Modbus(std::optional<uint8_t> p) : Modbus() {
+    port_ = p;
+  }
   ~Mock2Modbus() = default;
   MOCK_METHOD1(initialize, void(const nlohmann::json&));
   MOCK_METHOD5(command, void(Msg&, Msg&, uint32_t, ModbusTime, Parity));
@@ -37,7 +39,7 @@ ACTION_TEMPLATE(
 // Our Test class, sets up the register map and a common device store.
 class ModbusDeviceTest : public ::testing::Test {
  protected:
-  Mock2Modbus modbus_device;
+  Mock2Modbus modbus_device{std::nullopt};
   RegisterMap regmap;
   std::string regmap_s = R"({
     "name": "orv3_psu",
@@ -72,6 +74,21 @@ TEST_F(ModbusDeviceTest, BasicSetup) {
   EXPECT_TRUE(dev.isActive());
   ModbusDeviceInfo status = dev.getInfo();
   EXPECT_EQ(status.deviceAddress, 0x32);
+  EXPECT_EQ(status.baudrate, 19200);
+  EXPECT_EQ(status.crcErrors, 0);
+  EXPECT_EQ(status.timeouts, 0);
+  EXPECT_EQ(status.miscErrors, 0);
+  EXPECT_EQ(status.numConsecutiveFailures, 0);
+}
+
+TEST_F(ModbusDeviceTest, BasicSetupWithPort) {
+  Mock2Modbus modbus(123);
+  EXPECT_EQ(modbus.getPort(), 123);
+  ModbusDevice dev(modbus, 0x32, get_regmap());
+  EXPECT_TRUE(dev.isActive());
+  ModbusDeviceInfo status = dev.getInfo();
+  EXPECT_EQ(status.deviceAddress, 0x32);
+  EXPECT_EQ(status.port, 123);
   EXPECT_EQ(status.baudrate, 19200);
   EXPECT_EQ(status.crcErrors, 0);
   EXPECT_EQ(status.timeouts, 0);

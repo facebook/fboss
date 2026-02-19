@@ -3,6 +3,8 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <iomanip>
+#include <optional>
+#include "DeviceLocationFilter.h"
 #include "Log.h"
 
 #if (defined(__llvm__) && (__clang_major__ < 9)) || \
@@ -23,11 +25,11 @@ namespace rackmon {
 bool ModbusDeviceFilter::contains(const ModbusDevice& dev) const {
   // If neither is provided, its considered as a
   // shortcut of "all".
-  if (!addrFilter && !typeFilter) {
+  if (!locationFilter && !typeFilter) {
     return true;
   }
-  if (addrFilter &&
-      addrFilter->find(dev.getDeviceAddress()) != addrFilter->end()) {
+  if (locationFilter &&
+      locationFilter->contains(dev.getDevicePort(), dev.getDeviceAddress())) {
     return true;
   }
   if (typeFilter &&
@@ -57,15 +59,8 @@ void Rackmon::loadRegisterMap(const nlohmann::json& config) {
     throw std::runtime_error("Cannot load configuration when started");
   }
   registerMapDB_.load(config);
-  // Precomputing this makes our scan soooo much easier.
-  // its 256 bytes wasted. but worth it. TODO use a
-  // interval list with an iterator to waste less bytes.
-  for (auto range : config["address_range"]) {
-    for (uint16_t addr = range[0]; addr <= range[1]; ++addr) {
-      allPossibleDevAddrs_.push_back({uint8_t(addr)});
-    }
-  }
-  nextDeviceToProbe_ = allPossibleDevAddrs_.begin();
+  nextDeviceToProbe_ =
+      std::make_unique<DeviceLocationIterator>(registerMapDB_, interfaces_);
   monitorInterval_ = std::chrono::seconds(registerMapDB_.minMonitorInterval());
 }
 
@@ -90,8 +85,8 @@ void Rackmon::load(const std::string& confPath, const std::string& regmapDir) {
   }
 }
 
-bool Rackmon::probe(Modbus& interface, DeviceLocation key) {
-  if (!interface.isPresent()) {
+bool Rackmon::probe(DeviceLocation key) {
+  if (!key.interface.isPresent()) {
     return false;
   }
   for (auto it = registerMapDB_.find(key.addr); it != registerMapDB_.end();
@@ -101,29 +96,21 @@ bool Rackmon::probe(Modbus& interface, DeviceLocation key) {
     try {
       ReadHoldingRegistersReq req(key.addr, rmap.probeRegister, v.size());
       ReadHoldingRegistersResp resp(key.addr, v);
-      interface.command(req, resp, rmap.baudrate, kProbeTimeout, rmap.parity);
+      key.interface.command(
+          req, resp, rmap.baudrate, kProbeTimeout, rmap.parity);
       {
         std::unique_lock lock(devicesMutex_);
         devices_[key] =
-            std::make_unique<ModbusDevice>(interface, key.addr, rmap);
+            std::make_unique<ModbusDevice>(key.interface, key.addr, rmap);
       }
       logInfo << std::setw(2) << std::setfill('0') << "Found " << key << " on "
-              << interface.name() << std::endl;
+              << key.interface.name() << std::endl;
       return true;
     } catch (std::exception&) {
       // Exceptions are expected for unfound addresses.
     }
   }
   return false;
-}
-
-bool Rackmon::probe(DeviceLocation key) {
-  // We do not support the same address
-  // on multiple interfaces.
-  return std::any_of(
-      interfaces_.begin(), interfaces_.end(), [this, key](const auto& iface) {
-        return probe(*iface, key);
-      });
 }
 
 std::vector<DeviceLocation> Rackmon::inspectDormant() {
@@ -175,19 +162,46 @@ bool Rackmon::isDeviceKnown(DeviceLocation key) {
   return devices_.find(key) != devices_.end();
 }
 
-ModbusDevice& Rackmon::getModbusDevice(DeviceLocation key) {
+ModbusDevice& Rackmon::getModbusDevice(
+    uint8_t addr,
+    std::optional<uint8_t> port) {
+  ModbusDevice* d = nullptr;
   std::stringstream err;
-  auto it = devices_.find(key);
-  if (it == devices_.end()) {
-    err << "No device found at " << key << " during probe sequence";
-    throw std::out_of_range(err.str());
+  std::stringstream ss;
+  ss << "0x" << std::hex << +addr << " port: ";
+  if (port.has_value()) {
+    ss << std::dec << port.value();
+  } else {
+    ss << "NULL";
   }
-  auto& d = *it->second;
-  if (!d.isActive()) {
-    err << "Device " << key << " is not active";
-    throw std::runtime_error(err.str());
+  std::string location = ss.str();
+  const DeviceLocationFilter filter({{port, addr}});
+  for (auto device = devices_.begin(); device != devices_.end(); ++device) {
+    const DeviceLocation& devLocation = device->first;
+
+    if (filter.contains(devLocation.interface.getPort(), devLocation.addr)) {
+      // Addresses match and either the ports match or (for backwards
+      // compatibility) no port is specified
+      if (d == nullptr) {
+        d = device->second.get();
+      } else {
+        err << "Multiple devices found at " << location
+            << " during probe sequence";
+        throw std::runtime_error(err.str());
+      }
+    }
   }
-  return d;
+
+  if (d != nullptr) {
+    if (!d->isActive()) {
+      err << "Device at " << location << " is not active";
+      throw std::runtime_error(err.str());
+    }
+    return *d;
+  }
+
+  err << "No device found at " << location << " during probe sequence";
+  throw std::out_of_range(err.str());
 }
 
 void Rackmon::fullScan() {
@@ -196,7 +210,10 @@ void Rackmon::fullScan() {
   // Retry the scan loop to ensure we discover any flaky
   // devices which might have missed the first loop.
   for (int i = 0; i < kScanNumRetry; i++) {
-    for (const auto& key : allPossibleDevAddrs_) {
+    DeviceLocationIterator locationIterator(registerMapDB_, interfaces_);
+    while (locationIterator != locationIterator.end()) {
+      DeviceLocation key = *locationIterator;
+      ++locationIterator;
       if (isDeviceKnown(key)) {
         continue;
       }
@@ -228,8 +245,8 @@ void Rackmon::scan() {
   }
 
   // Probe for the address only if we already dont know it.
-  if (!isDeviceKnown(*nextDeviceToProbe_)) {
-    if (probe(*nextDeviceToProbe_)) {
+  if (!isDeviceKnown(**nextDeviceToProbe_)) {
+    if (probe(**nextDeviceToProbe_)) {
       std::shared_lock lk(threadMutex_);
       if (monitorThread_) {
         monitorThread_->tick(true);
@@ -240,8 +257,11 @@ void Rackmon::scan() {
 
   // Try and recover dormant devices
   recoverDormant();
-  if (++nextDeviceToProbe_ == allPossibleDevAddrs_.end()) {
-    nextDeviceToProbe_ = allPossibleDevAddrs_.begin();
+  ++(*nextDeviceToProbe_);
+  if (*nextDeviceToProbe_ == nextDeviceToProbe_->end()) {
+    nextDeviceToProbe_ =
+        std::make_unique<DeviceLocationIterator>(registerMapDB_, interfaces_);
+    ;
   }
 }
 
@@ -296,18 +316,33 @@ void Rackmon::forceScan() {
   }
 }
 
-void Rackmon::rawCmd(Request& req, Response& resp, ModbusTime timeout) {
+void Rackmon::rawCmd(
+    Request& req,
+    std::optional<uint16_t> uniqueDevAddr,
+    Response& resp,
+    ModbusTime timeout) {
+  std::optional<uint8_t> port = std::nullopt;
   uint8_t addr = req.addr;
+  if (uniqueDevAddr.has_value()) {
+    uint8_t addr2;
+    std::tie(port, addr2) =
+        DeviceLocationFilter::decompose(uniqueDevAddr.value());
+    if (addr != addr2) {
+      throw std::runtime_error(
+          "Mismatch between device address and unique device address");
+    }
+  }
   RACKMON_PROFILE_SCOPE(raw_cmd, "rawcmd::" + std::to_string(int(req.addr)));
   std::shared_lock lock(devicesMutex_);
 
-  getModbusDevice({addr}).command(req, resp, timeout);
+  getModbusDevice(addr, port).command(req, resp, timeout);
   // Add back the CRC removed by validate.
   resp.len += 2;
 }
 
 void Rackmon::readHoldingRegisters(
     uint8_t deviceAddress,
+    std::optional<uint8_t> port,
     uint16_t registerOffset,
     std::vector<uint16_t>& registerContents,
     ModbusTime timeout) {
@@ -315,12 +350,13 @@ void Rackmon::readHoldingRegisters(
       raw_cmd, "readRegs::" + std::to_string(int(deviceAddress)));
   std::shared_lock lock(devicesMutex_);
 
-  getModbusDevice({deviceAddress})
+  getModbusDevice(deviceAddress, port)
       .readHoldingRegisters(registerOffset, registerContents, timeout);
 }
 
 void Rackmon::writeSingleRegister(
     uint8_t deviceAddress,
+    std::optional<uint8_t> port,
     uint16_t registerOffset,
     uint16_t value,
     ModbusTime timeout) {
@@ -328,12 +364,13 @@ void Rackmon::writeSingleRegister(
       raw_cmd, "writeReg::" + std::to_string(int(deviceAddress)));
   std::shared_lock lock(devicesMutex_);
 
-  getModbusDevice({deviceAddress})
+  getModbusDevice(deviceAddress, port)
       .writeSingleRegister(registerOffset, value, timeout);
 }
 
 void Rackmon::writeMultipleRegisters(
     uint8_t deviceAddress,
+    std::optional<uint8_t> port,
     uint16_t registerOffset,
     std::vector<uint16_t>& values,
     ModbusTime timeout) {
@@ -341,18 +378,19 @@ void Rackmon::writeMultipleRegisters(
       raw_cmd, "writeRegs::" + std::to_string(int(deviceAddress)));
   std::shared_lock lock(devicesMutex_);
 
-  getModbusDevice({deviceAddress})
+  getModbusDevice(deviceAddress, port)
       .writeMultipleRegisters(registerOffset, values, timeout);
 }
 
 void Rackmon::readFileRecord(
     uint8_t deviceAddress,
+    std::optional<uint8_t> port,
     std::vector<FileRecord>& records,
     ModbusTime timeout) {
   RACKMON_PROFILE_SCOPE(
       raw_cmd, "ReadFile::" + std::to_string(int(deviceAddress)));
   std::shared_lock lock(devicesMutex_);
-  getModbusDevice({deviceAddress}).readFileRecord(records, timeout);
+  getModbusDevice(deviceAddress, port).readFileRecord(records, timeout);
 }
 
 std::vector<ModbusDeviceInfo> Rackmon::listDevices() const {

@@ -54,6 +54,7 @@ class ModbusSpecialHandler : public SpecialHandlerInfo {
 // Generic Device information
 struct ModbusDeviceInfo {
   uint8_t deviceAddress = 0;
+  std::optional<uint8_t> port = std::nullopt;
   std::string deviceType{"Unknown"};
   uint32_t baudrate = 0;
   ModbusDeviceMode mode = ModbusDeviceMode::ACTIVE;
@@ -118,6 +119,10 @@ class ModbusDevice {
 
   uint8_t getDeviceAddress() const {
     return info_.deviceAddress;
+  }
+
+  std::optional<uint8_t> getDevicePort() const {
+    return info_.port;
   }
 
   const std::string& getDeviceType() const {
