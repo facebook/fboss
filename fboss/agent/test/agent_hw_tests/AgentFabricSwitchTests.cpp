@@ -88,17 +88,14 @@ class AgentFabricSwitchTest : public AgentHwTest {
 TEST_F(AgentFabricSwitchTest, init) {
   auto setup = []() {};
   auto verify = [this]() {
-    auto state = getProgrammedState();
-    for (auto& portMap : std::as_const(*state->getPorts())) {
-      for (auto& port : std::as_const(*portMap.second)) {
-        EXPECT_EQ(port.second->getAdminState(), cfg::PortState::ENABLED);
-        auto portSwitchId =
-            getSw()->getScopeResolver()->scope(port.second->getID()).switchId();
-        auto portAsic = getSw()->getHwAsicTable()->getHwAsic(portSwitchId);
-        EXPECT_EQ(
-            port.second->getLoopbackMode(),
-            portAsic->getDesiredLoopbackMode(port.second->getPortType()));
-      }
+    auto switchId = getCurrentSwitchIdForTesting();
+    auto portAsic = getSw()->getHwAsicTable()->getHwAsic(switchId);
+    for (auto portId : fabricPortIdsForTesting()) {
+      auto port = getProgrammedState()->getPorts()->getNode(portId);
+      EXPECT_EQ(port->getAdminState(), cfg::PortState::ENABLED);
+      EXPECT_EQ(
+          port->getLoopbackMode(),
+          portAsic->getDesiredLoopbackMode(port->getPortType()));
     }
   };
   verifyAcrossWarmBoots(setup, verify);
