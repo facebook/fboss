@@ -174,9 +174,13 @@ void to_json(nlohmann::json& j, const Register& m);
 struct RegisterStoreValue {
   uint16_t regAddr = 0;
   std::string name{};
+  std::optional<std::string> unit = std::nullopt;
   std::vector<RegisterValue> history{};
-  RegisterStoreValue(uint16_t reg, const std::string& n)
-      : regAddr(reg), name(n) {}
+  RegisterStoreValue(
+      uint16_t reg,
+      const std::string& n,
+      const std::optional<std::string>& u)
+      : regAddr(reg), name(n), unit(u) {}
 };
 void to_json(nlohmann::json& j, const RegisterStoreValue& m);
 

@@ -255,7 +255,7 @@ void RegisterStore::operator++() {
 
 RegisterStore::operator RegisterStoreValue() const {
   std::unique_lock lk(historyMutex_);
-  RegisterStoreValue ret(regAddr_, desc_.name);
+  RegisterStoreValue ret(regAddr_, desc_.name, desc_.unit);
   for (const auto& reg : history_) {
     if (reg) {
       ret.history.emplace_back(reg);
@@ -476,6 +476,9 @@ void to_json(json& j, const RegisterStoreValue& m) {
   j["regAddress"] = m.regAddr;
   j["name"] = m.name;
   j["history"] = m.history;
+  if (m.unit.has_value()) {
+    j["unit"] = m.unit.value();
+  }
 }
 
 void to_json(json& j, const RegisterStore& m) {

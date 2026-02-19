@@ -273,7 +273,8 @@ ModbusDeviceValueData ModbusDevice::getValueData(
   for (const auto& reg : info_.registerList) {
     if (shouldPickRegister(reg)) {
       if (latestValueOnly) {
-        data.registerList.emplace_back(reg.regAddr(), reg.name());
+        data.registerList.emplace_back(
+            reg.regAddr(), reg.name(), reg.descriptor().unit);
         data.registerList.back().history.emplace_back(reg.back());
       } else {
         data.registerList.emplace_back(reg);
