@@ -207,6 +207,7 @@ cpp_library(
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_utils",
         "//fboss/lib/config:fboss_config_utils",
+        "//folly:conv",
         "//folly:file_util",
         "//folly:map_util",
         "//folly:network_address",
