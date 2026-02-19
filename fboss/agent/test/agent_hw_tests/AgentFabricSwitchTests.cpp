@@ -593,9 +593,8 @@ TEST_F(AgentFabricSwitchTest, verifyRtpGpdAlwaysDisabled) {
 
 TEST_F(AgentFabricSwitchTest, verifySourceRoutedCellHandling) {
   auto verify = [&]() {
-    auto fabricSwitchId = *getFabricSwitchIdsWithPorts().begin();
-    auto fabricPorts =
-        getAgentEnsemble()->masterLogicalFabricPortIds(fabricSwitchId);
+    auto fabricSwitchId = getCurrentSwitchIdForTesting();
+    auto fabricPorts = fabricPortIdsForTesting();
     std::string sourceRoutedCellInjectCintStr = R"(
       cint_reset();
       int i;
