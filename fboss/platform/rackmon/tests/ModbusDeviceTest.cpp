@@ -517,7 +517,7 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   ModbusDeviceValueData data4 = dev.getValueData({}, true);
   EXPECT_EQ(data4.registerList[0].history.size(), 1);
   EXPECT_EQ(
-      std::get<std::string>(data3.registerList[0].history[0].value), "cdef");
+      std::get<std::string>(data4.registerList[0].history[0].value), "cdef");
 }
 
 TEST_F(ModbusDeviceTest, MonitorRawData) {
