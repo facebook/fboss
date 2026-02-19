@@ -16487,6 +16487,9 @@
           "test_name_regex": "AgentMirroringScaleTest/[15].MaxMirroringTest$"
         },
         {
+          "test_name_regex": "AgentMirroringScaleTest/[15].ExceedMaxMirroringTest$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
         },
         {
@@ -16724,6 +16727,9 @@
         },
         {
           "test_name_regex": "AgentMirroringScaleTest/[15].MaxMirroringTest$"
+        },
+        {
+          "test_name_regex": "AgentMirroringScaleTest/[15].ExceedMaxMirroringTest$"
         },
         {
           "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
