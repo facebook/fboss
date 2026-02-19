@@ -105,11 +105,9 @@ TEST_F(AgentFabricSwitchTest, checkFabricConnectivityStats) {
   auto setup = [=, this]() {
     auto newCfg = getSw()->getConfig();
     // reset the neighbor reachability information
-    for (const auto& portID : masterLogicalPortIds()) {
+    for (const auto& portID : fabricPortIdsForTesting()) {
       auto portCfg = utility::findCfgPort(newCfg, portID);
-      if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
-        portCfg->expectedNeighborReachability() = {};
-      }
+      portCfg->expectedNeighborReachability() = {};
     }
     applyNewConfig(newCfg);
   };
@@ -118,11 +116,9 @@ TEST_F(AgentFabricSwitchTest, checkFabricConnectivityStats) {
     WITH_RETRIES({
       auto reachabilityStats = getAgentEnsemble()->getFabricReachabilityStats();
       EXPECT_EVENTUALLY_EQ(
-          *reachabilityStats.missingCount(),
-          masterLogicalFabricPortIds().size());
+          *reachabilityStats.missingCount(), fabricPortIdsForTesting().size());
       EXPECT_EVENTUALLY_EQ(
-          *reachabilityStats.mismatchCount(),
-          masterLogicalFabricPortIds().size());
+          *reachabilityStats.mismatchCount(), fabricPortIdsForTesting().size());
     });
   };
   verifyAcrossWarmBoots(setup, verify);
