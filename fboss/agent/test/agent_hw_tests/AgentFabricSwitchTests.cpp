@@ -129,23 +129,21 @@ TEST_F(AgentFabricSwitchTest, collectStats) {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     WITH_RETRIES({
       getSw()->updateStats();
-      for (auto& portMap : std::as_const(*getProgrammedState()->getPorts())) {
-        for (auto& [_, port] : std::as_const(*portMap.second)) {
-          auto loadBearingInErrors = fb303::fbData->getCounterIfExists(
-              port->getName() + ".load_bearing_in_errors.sum.60");
-          auto loadBearingFecErrors = fb303::fbData->getCounterIfExists(
-              port->getName() +
-              ".load_bearing_fec_uncorrectable_errors.sum.60");
-          auto loadBearingFlaps = fb303::fbData->getCounterIfExists(
-              port->getName() + ".load_bearing_link_state.flap.sum.60");
-          EXPECT_EVENTUALLY_TRUE(loadBearingInErrors.has_value());
-          EXPECT_EVENTUALLY_TRUE(loadBearingFecErrors.has_value());
-          if (getAgentEnsemble()->getBootType() == BootType::COLD_BOOT) {
-            EXPECT_EVENTUALLY_TRUE(loadBearingFlaps.has_value());
-          } else {
-            // No port flaps after wb, hence no port flap stats being recorded
-            EXPECT_FALSE(loadBearingFlaps.has_value());
-          }
+      for (auto portId : fabricPortIdsForTesting()) {
+        auto port = getProgrammedState()->getPorts()->getNode(portId);
+        auto loadBearingInErrors = fb303::fbData->getCounterIfExists(
+            port->getName() + ".load_bearing_in_errors.sum.60");
+        auto loadBearingFecErrors = fb303::fbData->getCounterIfExists(
+            port->getName() + ".load_bearing_fec_uncorrectable_errors.sum.60");
+        auto loadBearingFlaps = fb303::fbData->getCounterIfExists(
+            port->getName() + ".load_bearing_link_state.flap.sum.60");
+        EXPECT_EVENTUALLY_TRUE(loadBearingInErrors.has_value());
+        EXPECT_EVENTUALLY_TRUE(loadBearingFecErrors.has_value());
+        if (getAgentEnsemble()->getBootType() == BootType::COLD_BOOT) {
+          EXPECT_EVENTUALLY_TRUE(loadBearingFlaps.has_value());
+        } else {
+          // No port flaps after wb, hence no port flap stats being recorded
+          EXPECT_FALSE(loadBearingFlaps.has_value());
         }
       }
     });
