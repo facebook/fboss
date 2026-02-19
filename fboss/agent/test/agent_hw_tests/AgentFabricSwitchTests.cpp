@@ -36,6 +36,12 @@ class AgentFabricSwitchTest : public AgentHwTest {
           std::any_of(getAsics().begin(), getAsics().end(), [](auto& iter) {
             return iter.second->getSwitchType() == cfg::SwitchType::FABRIC;
           }));
+      ASSERT_FALSE(
+          getAgentEnsemble()
+              ->masterLogicalFabricPortIds(getCurrentSwitchIdForTesting())
+              .empty())
+          << "No fabric ports for switchId: "
+          << static_cast<int>(getCurrentSwitchIdForTesting());
     }
   }
 
@@ -58,6 +64,11 @@ class AgentFabricSwitchTest : public AgentHwTest {
   }
 
  protected:
+  std::vector<PortID> fabricPortIdsForTesting() const {
+    return getAgentEnsemble()->masterLogicalFabricPortIds(
+        getCurrentSwitchIdForTesting());
+  }
+
   std::map<SwitchID, std::vector<PortID>> switch2FabricPortIds() const {
     std::map<SwitchID, std::vector<PortID>> switch2FabricPortIds;
     for (auto switchId : getFabricSwitchIdsWithPorts()) {
