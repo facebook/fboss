@@ -871,7 +871,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     maxVoqs = maxSystemPorts.value() * 8;
   }
 #endif
-  if (swType == cfg::SwitchType::FABRIC && bootType == BootType::COLD_BOOT) {
+  if (getAsic()->isSupported(HwAsic::Feature::SWITCH_ISOLATE) &&
+      bootType == BootType::COLD_BOOT) {
     // FABRIC switches should always start in isolated state until we configure
     // the switch
     switchIsolate = true;

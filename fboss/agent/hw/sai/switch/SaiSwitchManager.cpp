@@ -1419,17 +1419,15 @@ void SaiSwitchManager::updateSramLowBufferLimitHitCounter() {
 }
 
 void SaiSwitchManager::setSwitchIsolate(bool isolate) {
-  auto switchType = platform_->getAsic()->getSwitchType();
-  // Supported only for FABRIC switches!
-  if (switchType == cfg::SwitchType::FABRIC ||
-      switchType == cfg::SwitchType::VOQ) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SWITCH_ISOLATE)) {
     XLOG(DBG2) << " Setting switch state to : "
                << (isolate ? "DRAINED" : "UNDRAINED");
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::SwitchIsolate{isolate});
   } else {
     XLOG(DBG2) << "Ignoring setSwitchIsolate for switch type "
-               << apache::thrift::util::enumNameSafe(switchType);
+               << apache::thrift::util::enumNameSafe(
+                      platform_->getAsic()->getSwitchType());
   }
 }
 

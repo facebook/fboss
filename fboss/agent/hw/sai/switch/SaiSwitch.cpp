@@ -3324,8 +3324,7 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
       scopeResolver->switchIdToSwitchInfo());
   multiSwitchSwitchSettings->addNode(matcher.matcherString(), switchSettings);
 
-  if (getSwitchType() == cfg::SwitchType::VOQ ||
-      getSwitchType() == cfg::SwitchType::FABRIC) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SWITCH_ISOLATE)) {
     CHECK(getSwitchId().has_value());
     // In practice, this will read and populate the value set during switch
     // create viz. DRAINED
@@ -3399,7 +3398,7 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeysJson.get(),
       adapterKeys2AdapterHostKeysJson.get());
   if (bootType_ != BootType::WARM_BOOT) {
-    if (getSwitchType() == cfg::SwitchType::FABRIC) {
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::SWITCH_ISOLATE)) {
       auto& switchApi = SaiApiTable::getInstance()->switchApi();
       auto isolated = switchApi.getAttribute(
           saiSwitchId_, SaiSwitchTraits::Attributes::SwitchIsolate{});
