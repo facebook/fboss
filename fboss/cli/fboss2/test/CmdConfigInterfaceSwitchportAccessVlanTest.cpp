@@ -16,6 +16,7 @@
 #include <sstream>
 
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
+#include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 #include "fboss/cli/fboss2/test/TestableConfigSession.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
@@ -100,9 +101,21 @@ class CmdConfigInterfaceSwitchportAccessVlanTestFixture
     // Create session config path
     sessionConfigPath_ = testHomeDir_ / ".fboss2" / "agent.conf";
     cliConfigDir_ = testEtcDir_ / "coop" / "cli";
+
+    // Initialize the ConfigSession singleton for all tests
+    auto testSession = std::make_unique<TestableConfigSession>(
+        sessionConfigPath_.string(),
+        systemConfigPath_.string(),
+        cliConfigDir_.string());
+    // Set a default command line for tests that call saveConfig()
+    testSession->setCommandLine(
+        "config interface switchport access vlan eth1/1/1 100");
+    TestableConfigSession::setInstance(std::move(testSession));
   }
 
   void TearDown() override {
+    // Reset the singleton to ensure tests don't interfere with each other
+    TestableConfigSession::setInstance(nullptr);
     std::error_code ec;
     if (fs::exists(testHomeDir_)) {
       fs::remove_all(testHomeDir_, ec);
@@ -208,11 +221,6 @@ TEST_F(
 TEST_F(
     CmdConfigInterfaceSwitchportAccessVlanTestFixture,
     queryClientSetsIngressVlanMultiplePorts) {
-  TestableConfigSession session(
-      sessionConfigPath_.string(),
-      systemConfigPath_.string(),
-      cliConfigDir_.string());
-
   auto cmd = CmdConfigInterfaceSwitchportAccessVlan();
   VlanIdValue vlanId({"2001"});
 
@@ -227,6 +235,7 @@ TEST_F(
   EXPECT_THAT(result, HasSubstr("2001"));
 
   // Verify the ingressVlan was updated for both ports
+  auto& session = ConfigSession::getInstance();
   auto& config = session.getAgentConfig();
   auto& switchConfig = *config.sw();
   auto& ports = *switchConfig.ports();
@@ -248,11 +257,6 @@ TEST_F(
 TEST_F(
     CmdConfigInterfaceSwitchportAccessVlanTestFixture,
     queryClientThrowsOnEmptyInterfaceList) {
-  TestableConfigSession session(
-      sessionConfigPath_.string(),
-      systemConfigPath_.string(),
-      cliConfigDir_.string());
-
   auto cmd = CmdConfigInterfaceSwitchportAccessVlan();
   VlanIdValue vlanId({"100"});
 

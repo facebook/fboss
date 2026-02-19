@@ -176,11 +176,13 @@ TEST_F(CmdConfigQosBufferPoolTestFixture, bufferPoolConfigGetters) {
 
 // Test shared-bytes command creates buffer pool config
 TEST_F(CmdConfigQosBufferPoolTestFixture, sharedBytesCreatesBufferPool) {
-  TestableConfigSession::setInstance(
-      std::make_unique<TestableConfigSession>(
-          sessionConfigPath_.string(),
-          systemConfigPath_.string(),
-          cliConfigDir_.string()));
+  auto testSession = std::make_unique<TestableConfigSession>(
+      sessionConfigPath_.string(),
+      systemConfigPath_.string(),
+      cliConfigDir_.string());
+  testSession->setCommandLine(
+      "config qos buffer-pool test_pool shared-bytes 50000");
+  TestableConfigSession::setInstance(std::move(testSession));
 
   auto cmd = CmdConfigQosBufferPool();
   BufferPoolConfig config({"test_pool", "shared-bytes", "50000"});
@@ -203,11 +205,13 @@ TEST_F(CmdConfigQosBufferPoolTestFixture, sharedBytesCreatesBufferPool) {
 
 // Test headroom-bytes command creates buffer pool config
 TEST_F(CmdConfigQosBufferPoolTestFixture, headroomBytesCreatesBufferPool) {
-  TestableConfigSession::setInstance(
-      std::make_unique<TestableConfigSession>(
-          sessionConfigPath_.string(),
-          systemConfigPath_.string(),
-          cliConfigDir_.string()));
+  auto testSession = std::make_unique<TestableConfigSession>(
+      sessionConfigPath_.string(),
+      systemConfigPath_.string(),
+      cliConfigDir_.string());
+  testSession->setCommandLine(
+      "config qos buffer-pool headroom_pool headroom-bytes 10000");
+  TestableConfigSession::setInstance(std::move(testSession));
 
   auto cmd = CmdConfigQosBufferPool();
   BufferPoolConfig config({"headroom_pool", "headroom-bytes", "10000"});
@@ -232,11 +236,13 @@ TEST_F(CmdConfigQosBufferPoolTestFixture, headroomBytesCreatesBufferPool) {
 
 // Test reserved-bytes command creates buffer pool config
 TEST_F(CmdConfigQosBufferPoolTestFixture, reservedBytesCreatesBufferPool) {
-  TestableConfigSession::setInstance(
-      std::make_unique<TestableConfigSession>(
-          sessionConfigPath_.string(),
-          systemConfigPath_.string(),
-          cliConfigDir_.string()));
+  auto testSession = std::make_unique<TestableConfigSession>(
+      sessionConfigPath_.string(),
+      systemConfigPath_.string(),
+      cliConfigDir_.string());
+  testSession->setCommandLine(
+      "config qos buffer-pool reserved_pool reserved-bytes 20000");
+  TestableConfigSession::setInstance(std::move(testSession));
 
   auto cmd = CmdConfigQosBufferPool();
   BufferPoolConfig config({"reserved_pool", "reserved-bytes", "20000"});
@@ -261,11 +267,13 @@ TEST_F(CmdConfigQosBufferPoolTestFixture, reservedBytesCreatesBufferPool) {
 
 // Test updating an existing buffer pool with multiple attributes
 TEST_F(CmdConfigQosBufferPoolTestFixture, updateExistingBufferPool) {
-  TestableConfigSession::setInstance(
-      std::make_unique<TestableConfigSession>(
-          sessionConfigPath_.string(),
-          systemConfigPath_.string(),
-          cliConfigDir_.string()));
+  auto testSession = std::make_unique<TestableConfigSession>(
+      sessionConfigPath_.string(),
+      systemConfigPath_.string(),
+      cliConfigDir_.string());
+  testSession->setCommandLine(
+      "config qos buffer-pool existing_pool shared-bytes 30000 headroom-bytes 5000 reserved-bytes 2000");
+  TestableConfigSession::setInstance(std::move(testSession));
 
   auto cmd = CmdConfigQosBufferPool();
 

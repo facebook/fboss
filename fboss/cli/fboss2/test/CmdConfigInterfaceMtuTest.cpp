@@ -108,11 +108,13 @@ class CmdConfigInterfaceMtuTestFixture : public CmdHandlerTestBase {
 
     // Initialize the ConfigSession singleton for all tests
     fs::path sessionConfig = testHomeDir_ / ".fboss2" / "agent.conf";
-    TestableConfigSession::setInstance(
-        std::make_unique<TestableConfigSession>(
-            sessionConfig.string(),
-            systemConfigPath_.string(),
-            (testEtcDir_ / "coop" / "cli").string()));
+    auto testSession = std::make_unique<TestableConfigSession>(
+        sessionConfig.string(),
+        systemConfigPath_.string(),
+        (testEtcDir_ / "coop" / "cli").string());
+    // Set a default command line for tests that call saveConfig()
+    testSession->setCommandLine("config interface eth1/1/1 mtu 9000");
+    TestableConfigSession::setInstance(std::move(testSession));
   }
 
   void TearDown() override {

@@ -164,6 +164,7 @@ TEST_F(ConfigSessionTestFixture, sessionConfigModified) {
   auto& ports = *config.sw()->ports();
   ASSERT_FALSE(ports.empty());
   ports[0].description() = "Modified port";
+  session.setCommandLine("config interface eth1/1/1 description Modified port");
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
   // Verify session config is modified
@@ -204,6 +205,8 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
     ports[0].description() = "First commit";
+    session.setCommandLine(
+        "config interface eth1/1/1 description First commit");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
@@ -243,6 +246,8 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
 
     // Make another change to the same port
     ports[0].description() = "Second commit";
+    session.setCommandLine(
+        "config interface eth1/1/1 description Second commit");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
@@ -281,7 +286,8 @@ TEST_F(ConfigSessionTestFixture, commitOnNewlyInitializedSession) {
 
   // Setup mock agent server
   setupMockedAgentServer();
-  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(1);
+  // No config changes were made, so reloadConfig() should not be called
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(0);
 
   // Create a new session and immediately commit it
   // This tests that metadata file is created during session initialization
@@ -322,16 +328,19 @@ TEST_F(ConfigSessionTestFixture, multipleChangesInOneSession) {
   auto& ports = *config.sw()->ports();
   ASSERT_FALSE(ports.empty());
   ports[0].description() = "Change 1";
+  session.setCommandLine("config interface eth1/1/1 description Change 1");
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
   EXPECT_THAT(readFile(sessionConfig), ::testing::HasSubstr("Change 1"));
 
   // Make second change
   ports[0].description() = "Change 2";
+  session.setCommandLine("config interface eth1/1/1 description Change 2");
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
   EXPECT_THAT(readFile(sessionConfig), ::testing::HasSubstr("Change 2"));
 
   // Make third change
   ports[0].description() = "Change 3";
+  session.setCommandLine("config interface eth1/1/1 description Change 3");
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
   EXPECT_THAT(readFile(sessionConfig), ::testing::HasSubstr("Change 3"));
 }
@@ -352,6 +361,8 @@ TEST_F(ConfigSessionTestFixture, sessionPersistsAcrossCommands) {
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
     ports[0].description() = "Persistent change";
+    session1.setCommandLine(
+        "config interface eth1/1/1 description Persistent change");
     session1.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
   }
@@ -405,6 +416,7 @@ TEST_F(ConfigSessionTestFixture, symlinkRollbackOnFailure) {
   auto& ports = *config.sw()->ports();
   ASSERT_FALSE(ports.empty());
   ports[0].description() = "Failed change";
+  session.setCommandLine("config interface eth1/1/1 description Failed change");
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
   // Commit should fail and rollback the symlink
@@ -449,6 +461,8 @@ TEST_F(ConfigSessionTestFixture, atomicRevisionCreation) {
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
     ports[0].description() = description;
+    session.setCommandLine(
+        "config interface eth1/1/1 description " + description);
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
@@ -528,6 +542,8 @@ TEST_F(ConfigSessionTestFixture, concurrentSessionCreationSameUser) {
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
     ports[0].description() = description;
+    session.setCommandLine(
+        "config interface eth1/1/1 description " + description);
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
@@ -820,6 +836,7 @@ TEST_F(ConfigSessionTestFixture, actionLevelPersistsToMetadataFile) {
 
     // Load the config (required before saveConfig)
     session.getAgentConfig();
+    session.setCommandLine("config interface eth1/1/1 description Test");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
   }
@@ -878,6 +895,7 @@ TEST_F(ConfigSessionTestFixture, actionLevelPersistsAcrossSessions) {
 
     // Load the config (required before saveConfig)
     session1.getAgentConfig();
+    session1.setCommandLine("config interface eth1/1/1 description Test");
     session1.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
   }
@@ -911,7 +929,7 @@ TEST_F(ConfigSessionTestFixture, commandTrackingBasic) {
     EXPECT_TRUE(session.getCommands().empty());
 
     // Simulate a command and save config
-    session.addCommand("config interface eth1/1/1 description Test change");
+    session.setCommandLine("config interface eth1/1/1 description Test change");
     auto& config = session.getAgentConfig();
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
@@ -956,20 +974,17 @@ TEST_F(ConfigSessionTestFixture, commandTrackingMultipleCommands) {
   auto& ports = *config.sw()->ports();
   ASSERT_FALSE(ports.empty());
 
-  session.addCommand("config interface eth1/1/1 mtu 9000");
+  session.setCommandLine("config interface eth1/1/1 mtu 9000");
   ports[0].description() = "First change";
-  session.saveConfig(
-        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+  session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
-  session.addCommand("config interface eth1/1/1 description Test");
+  session.setCommandLine("config interface eth1/1/1 description Test");
   ports[0].description() = "Second change";
-  session.saveConfig(
-        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+  session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
-  session.addCommand("config interface eth1/1/1 speed 100G");
+  session.setCommandLine("config interface eth1/1/1 speed 100G");
   ports[0].description() = "Third change";
-  session.saveConfig(
-        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+  session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
   // Verify all commands were recorded in order
   EXPECT_EQ(3, session.getCommands().size());
@@ -994,12 +1009,12 @@ TEST_F(ConfigSessionTestFixture, commandTrackingPersistsAcrossSessions) {
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
 
-    session1.addCommand("config interface eth1/1/1 mtu 9000");
+    session1.setCommandLine("config interface eth1/1/1 mtu 9000");
     ports[0].description() = "First change";
     session1.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
-    session1.addCommand("config interface eth1/1/1 description Test");
+    session1.setCommandLine("config interface eth1/1/1 description Test");
     ports[0].description() = "Second change";
     session1.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
@@ -1034,10 +1049,9 @@ TEST_F(ConfigSessionTestFixture, commandTrackingClearedOnReset) {
   auto& ports = *config.sw()->ports();
   ASSERT_FALSE(ports.empty());
 
-  session.addCommand("config interface eth1/1/1 mtu 9000");
+  session.setCommandLine("config interface eth1/1/1 mtu 9000");
   ports[0].description() = "Test change";
-  session.saveConfig(
-        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+  session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
   EXPECT_EQ(1, session.getCommands().size());
 

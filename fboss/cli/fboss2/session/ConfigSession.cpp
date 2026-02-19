@@ -192,12 +192,14 @@ int getCurrentRevisionNumber(const std::string& systemConfigPath) {
   return ConfigSession::extractRevisionNumber(target);
 }
 
+} // anonymous namespace
+
 /*
  * Read the command line from /proc/self/cmdline, skipping argv[0].
  * Returns the command arguments as a space-separated string,
  * e.g., "config interface eth1/1/1 mtu 9000"
  */
-std::string readCommandLineFromProc() {
+std::string ConfigSession::readCommandLineFromProc() const {
   std::ifstream file("/proc/self/cmdline");
   if (!file) {
     throw std::runtime_error(
@@ -220,8 +222,6 @@ std::string readCommandLineFromProc() {
   }
   return folly::join(" ", args);
 }
-
-} // anonymous namespace
 
 ConfigSession::ConfigSession() {
   username_ = getUsername();
@@ -452,7 +452,6 @@ void ConfigSession::updateRequiredAction(
   if (requiredActions_.find(service) == requiredActions_.end()) {
     requiredActions_[service] = cli::ConfigActionLevel::HITLESS;
   }
-
   // Only update if the new action level is higher (more impactful)
   if (static_cast<int>(actionLevel) >
       static_cast<int>(requiredActions_[service])) {
@@ -494,12 +493,6 @@ void ConfigSession::resetRequiredAction(cli::ServiceType service) {
 
 const std::vector<std::string>& ConfigSession::getCommands() const {
   return commands_;
-}
-
-void ConfigSession::addCommand(const std::string& command) {
-  if (!command.empty() && (commands_.empty() || commands_.back() != command)) {
-    commands_.push_back(command);
-  }
 }
 
 void ConfigSession::restartService(
