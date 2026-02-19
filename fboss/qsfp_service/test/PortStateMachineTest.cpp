@@ -2198,7 +2198,6 @@ TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedSuccess) {
             isMultiPort /* isMultiPort */) /* expected state */,
         [this, isMultiTcvr]() {
           transceiverManager_->setPauseRemediation(0, nullptr /* evb */);
-          sleep(1);
 
           MockCmisTransceiverImpl* xcvrImpl1 =
               static_cast<MockCmisTransceiverImpl*>(
@@ -2223,9 +2222,21 @@ TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedSuccess) {
 
           portManager_->setOverrideAllAgentPortStatusForTesting(
               false /* isUp */, true /* isEnabled */);
-          // Simpler to call full refreshStateMachines() because remediation
-          // logic is already implemented.
 
+          // First, trigger port status update to mark lastDownTime.
+          // This calls updateTransceiverPortStatus which updates port states
+          // and marks lastDownTime via updateTcvrLastDownTime.
+          portManager_->updateTransceiverPortStatus();
+          portManager_->updatePortActiveStatusInTransceiverManager();
+
+          // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
+          // The sleep must be AFTER the port status update which marks
+          // lastDownTime, but BEFORE remediation is triggered.
+          /* sleep override */
+          sleep(1);
+
+          // Now call refreshStateMachines which will trigger remediation.
+          // The port status is already updated from the call above.
           portManager_->refreshStateMachines();
           EXPECT_TRUE(xcvr1_->getDirty_());
           if (isMultiTcvr) {
@@ -3039,4 +3050,5 @@ TEST_F(PortStateMachineTest, agentConfigChangedWarmBootNoRemediationOnPortUp) {
     );
   }
 }
+
 } // namespace facebook::fboss

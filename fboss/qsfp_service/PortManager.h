@@ -472,6 +472,17 @@ class PortManager {
 
   void handlePendingUpdates();
 
+  // Helper function to build a snapshot of previous port active states per
+  // transceiver. Returns a map of TransceiverID to whether any of its
+  // initialized ports are in PORT_UP state.
+  std::map<TransceiverID, bool> buildTcvrActivePortSnapshot() const;
+
+  // Helper function to update lastDownTime tracking in TransceiverManager.
+  // Compares previous and current port states per transceiver and calls
+  // updateLastDownTimeFromPortStatus with any detected status changes.
+  void updateTcvrLastDownTime(
+      const std::map<TransceiverID, bool>& previousTcvrHadActivePort);
+
   PortNameIdMap setupPortNameToPortIDMap();
 
   TcvrToSynchronizedPortSet setupTcvrToSynchronizedPortSet();

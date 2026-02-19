@@ -448,6 +448,36 @@ class TransceiverManager {
 
   void markLastDownTime(TransceiverID id) noexcept;
 
+  /*
+   * updateLastDownTimeFromPortStatus is a Port Manager mode-only function that
+   * provides information to TransceiverManager about aggregate port status for
+   * a specific transceiver, so that we properly update markLastDownTime to
+   * avoid early remediation.
+   *
+   * The input map (tcvrPortStatusChanges) should only contain transceivers that
+   * experienced a relevant port status change:
+   *
+   *   - TransceiverID not present in map:
+   *       No relevant port status change occurred for this transceiver.
+   *       No action is taken.
+   *
+   *   - TransceiverID -> true:
+   *       At least one port became active (equivalent to ACTIVE state entry)
+   * since last status check. Sets needMarkLastDownTime = true in the state
+   * machine, enabling lastDownTime to be marked on the next DOWN transition.
+   *
+   *   - TransceiverID -> false:
+   *       All ports went down (equivalent to INACTIVE state entry) since last
+   * status check. If needMarkLastDownTime is true, marks lastDownTime and sets
+   *       the flag to false. If flag is already false, does nothing
+   *       (prevents re-marking during failed remediation cycles).
+   *
+   * Replicates activeStateEntry and inactiveStateEntry logic from
+   * TransceiverStateMachine.h.
+   */
+  void updateLastDownTimeFromPortStatus(
+      const std::map<TransceiverID, bool>& tcvrPortStatusChanges) noexcept;
+
   // Calling thread MUST hold lock on transceivers_ while this function
   // executes.
   virtual bool verifyEepromChecksumsLocked(TransceiverID id);
