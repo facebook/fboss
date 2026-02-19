@@ -412,6 +412,13 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   constexpr time_t monInterval = RegisterDescriptor::kDefaultInterval;
   ModbusDeviceMockTime dev(get_modbus(), 0x32, get_regmap(), baseTime);
 
+  ModbusDeviceValueData emptyLatestData = dev.getValueData({}, true);
+  EXPECT_EQ(emptyLatestData.deviceAddress, 0x32);
+  EXPECT_EQ(emptyLatestData.registerList.size(), 1);
+  EXPECT_EQ(emptyLatestData.registerList[0].regAddr, 0);
+  EXPECT_EQ(emptyLatestData.registerList[0].name, "MFG_MODEL");
+  EXPECT_EQ(emptyLatestData.registerList[0].history.size(), 0);
+
   dev.reloadAllRegisters();
   ModbusDeviceValueData data = dev.getValueData();
   EXPECT_EQ(data.deviceAddress, 0x32);

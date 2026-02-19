@@ -274,7 +274,9 @@ ModbusDeviceValueData ModbusDevice::getValueData(
       if (latestValueOnly) {
         data.registerList.emplace_back(
             reg.regAddr(), reg.name(), reg.descriptor().unit);
-        data.registerList.back().history.emplace_back(reg.back());
+        if (reg.back()) {
+          data.registerList.back().history.emplace_back(reg.back());
+        }
       } else {
         data.registerList.emplace_back(reg);
       }
