@@ -74,7 +74,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::PQP_ERROR_EGRESS_DROP_COUNTER:
     case HwAsic::Feature::FABRIC_LINK_DOWN_CELL_DROP_COUNTER:
-    case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
     case HwAsic::Feature::CRC_ERROR_DETECT:
     case HwAsic::Feature::ACL_METADATA_QUALIFER:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
@@ -250,6 +249,12 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
+    // Disabling some counters for the time being.
+    // This will result in an early return in
+    // SaiDebugCounterManager::setupTrapDropCounter(), which is currently
+    // failing with SAI 14.x
+    case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
+    case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
       return false;
   }
   return false;

@@ -17,6 +17,10 @@ class J4SimPlatformMapping : public PlatformMapping {
  public:
   J4SimPlatformMapping();
   explicit J4SimPlatformMapping(const std::string& platformMappingStr);
+  // For CPU system port number as key, get the core for CPU port and
+  // the port ID within the core.
+  std::map<uint32_t, std::pair<uint32_t, uint32_t>> getCpuPortsCoreAndPortIdx()
+      const override;
 
  private:
   // Forbidden copy constructor and assignment operator

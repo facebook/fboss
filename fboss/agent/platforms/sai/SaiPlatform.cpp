@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
+#include "fboss/agent/hw/switch_asics/Jericho4Asic.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
@@ -559,18 +560,23 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       swInfo.switchType() = cfg::SwitchType::VOQ;
       swInfo.switchMac() = localMac.toString();
       const Jericho3Asic j3(0, swInfo);
+      const Jericho4Asic j4(0, swInfo);
       for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
         if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {
           continue;
         }
         switch (*dsfNode.asicType()) {
           case cfg::AsicType::ASIC_TYPE_JERICHO3:
-          case cfg::AsicType::ASIC_TYPE_JERICHO4:
             // for directly connected interface nodes we don't expect
             // asic type to change across dsf nodes
             maxCoreCount = std::max(j3.getNumCores(), maxCoreCount);
             maxSystemCoreCount =
                 std::max(maxSystemCoreCount, uint32_t(id + j3.getNumCores()));
+            break;
+          case cfg::AsicType::ASIC_TYPE_JERICHO4:
+            maxCoreCount = std::max(j4.getNumCores(), maxCoreCount);
+            maxSystemCoreCount =
+                std::max(maxSystemCoreCount, uint32_t(id + j4.getNumCores()));
             break;
           default:
             throw FbossError("Unexpected asic type: ", *dsfNode.asicType());
@@ -914,6 +920,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
             mapToValueList};
   }
 #endif
+  maxSystemPorts = 1024;
+  maxVoqs = 8 * 1024;
+  maxSystemPortId = 1024 - 1;
 
   return {
       initSwitch,
@@ -960,7 +969,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
       dllPath,
       std::nullopt, // Restart Issu
-      switchIsolate,
+      std::nullopt, // switchIsolate,
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       creditWd, // Credit Watchdog
       creditWdMs, // Credit Watchdog Timer

@@ -18,4 +18,21 @@ J4SimPlatformMapping::J4SimPlatformMapping(
     const std::string& platformMappingStr)
     : PlatformMapping(platformMappingStr) {}
 
+std::map<uint32_t, std::pair<uint32_t, uint32_t>>
+J4SimPlatformMapping::getCpuPortsCoreAndPortIdx() const {
+  static const std::map<uint32_t, std::pair<uint32_t, uint32_t>>
+      kSingleStageCpuPortsCoreAndPortIdx = {
+          // {CPU System Port, {Core ID, Port ID/PP_DSP}}
+          {0, {0, 0}},
+          {1, {1, 0}},
+          {2, {2, 0}},
+          {3, {3, 0}},
+          {4, {4, 0}},
+          {5, {5, 0}},
+          {6, {6, 0}},
+          {7, {7, 0}},
+      };
+  return kSingleStageCpuPortsCoreAndPortIdx;
+}
+
 } // namespace facebook::fboss

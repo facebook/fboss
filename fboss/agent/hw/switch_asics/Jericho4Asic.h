@@ -29,6 +29,9 @@ class Jericho4Asic : public Jericho3Asic {
       return false;
     }
     return Jericho3Asic::isSupported(feature);
+
+  uint32_t getNumCores() const override {
+    return 8;
   }
 };
 
