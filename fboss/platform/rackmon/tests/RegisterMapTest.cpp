@@ -1,8 +1,16 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <filesystem>
 #include <fstream>
+#if (defined(__llvm__) && (__clang_major__ < 9)) || \
+    (!defined(__llvm__) && (__GNUC__ < 8))
+#include <experimental/filesystem>
+namespace std {
+namespace filesystem = experimental::filesystem;
+}
+#else
+#include <filesystem>
+#endif
 #include "Register.h"
 
 using namespace std;

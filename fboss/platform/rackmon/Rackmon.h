@@ -167,6 +167,9 @@ class Rackmon {
   // Get status of devices
   std::vector<ModbusDeviceInfo> listDevices() const;
 
+  // Get monitored data
+  void getRawData(std::vector<ModbusDeviceRawData>& data) const;
+
   // Get value data
   void getValueData(
       std::vector<ModbusDeviceValueData>& data,
