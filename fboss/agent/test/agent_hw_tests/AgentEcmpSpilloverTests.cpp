@@ -11,6 +11,7 @@
 #include "fboss/agent/test/agent_hw_tests/AgentArsBase.h"
 
 #include "fboss/agent/AgentDirectoryUtil.h"
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -226,6 +227,74 @@ TEST_F(AgentEcmpSpilloverTest, VerifyEcmpDecompress) {
     }
   };
 
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Verify rollback after reclaim
+TEST_F(AgentEcmpSpilloverTest, VerifyEcmpSpilloverForcedRollback) {
+  generatePrefixes();
+
+  auto setup = [=, this]() {
+    programDynamicPrefixes();
+    programSpilloverPrefixes();
+
+    verifyDynamicPrefixes();
+    verifySpilloverPrefixes();
+  };
+
+  auto verify = [=, this]() {
+    StateDeltaApplication deltaApplication;
+    deltaApplication.mode() = DeltaApplicationMode::ROLLBACK;
+    EXPECT_THROW(
+        ({
+          std::vector<RoutePrefixV6> delPrefixes = {
+              dynamicPrefixes.begin(),
+              dynamicPrefixes.begin() +
+                  (kMaxSpilloverCount * kPrefixesPerNhopSet)};
+          auto wrapper = std::make_unique<SwSwitchRouteUpdateWrapper>(
+              getSw(), getSw()->getRib(), deltaApplication);
+          helper_->unprogramRoutes(wrapper.get(), delPrefixes);
+        }),
+        FbossHwUpdateError);
+
+    verifyDynamicPrefixes();
+    verifySpilloverPrefixes();
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Verify rollback after reclaim with partial failure
+TEST_F(AgentEcmpSpilloverTest, VerifyEcmpSpilloverForcedRollbackPartial) {
+  generatePrefixes();
+
+  auto setup = [=, this]() {
+    programDynamicPrefixes();
+    programSpilloverPrefixes();
+
+    verifyDynamicPrefixes();
+    verifySpilloverPrefixes();
+  };
+
+  auto verify = [=, this]() {
+    // reclaim produces a delta vector of size 2. Rollback after 1st
+    StateDeltaApplication deltaApplication;
+    deltaApplication.mode() = DeltaApplicationMode::ROLLBACK_AT_INDEX;
+    deltaApplication.rollbackIndex() = 0;
+    EXPECT_THROW(
+        ({
+          std::vector<RoutePrefixV6> delPrefixes = {
+              dynamicPrefixes.begin(),
+              dynamicPrefixes.begin() +
+                  (kMaxSpilloverCount * kPrefixesPerNhopSet)};
+          auto wrapper = std::make_unique<SwSwitchRouteUpdateWrapper>(
+              getSw(), getSw()->getRib(), deltaApplication);
+          helper_->unprogramRoutes(wrapper.get(), delPrefixes);
+        }),
+        FbossHwUpdateError);
+
+    verifyDynamicPrefixes();
+    verifySpilloverPrefixes();
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
 
