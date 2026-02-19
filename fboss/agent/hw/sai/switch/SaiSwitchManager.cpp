@@ -1638,8 +1638,10 @@ bool SaiSwitchManager::isPtpTcEnabled() const {
 }
 
 bool SaiSwitchManager::isMeasureCableLengthEnabled() const {
-  return GET_OPT_ATTR(
-      Switch, CablePropagationDelayMeasurement, switch_->attributes());
+  auto& attr = std::get<std::optional<
+      SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement>>(
+      switch_->attributes());
+  return attr.has_value() && attr->value();
 }
 
 void SaiSwitchManager::setPfcWatchdogTimerGranularity(
