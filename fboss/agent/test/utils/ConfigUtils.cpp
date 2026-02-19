@@ -87,7 +87,9 @@ int getSysPortIdsAllocated(
     std::optional<PlatformType> platformType = std::nullopt) {
   auto portsConsumed = firstSwitchIdMin;
   auto deviceIndex = remoteSwitchId / asic.getNumCores();
-  CHECK(asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3);
+  CHECK(
+      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_Q4D);
   if (deviceIndex < getMaxRdsw(platformType)) {
     portsConsumed += deviceIndex * getRdswSysPortBlockSize(platformType) - 1;
   } else {

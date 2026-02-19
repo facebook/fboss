@@ -28,6 +28,7 @@ add_library(switch_asics
   fboss/agent/hw/switch_asics/ChenabAsic.cpp
   fboss/agent/hw/switch_asics/BroadcomXgsAsic.cpp
   fboss/agent/hw/switch_asics/G202xAsic.cpp
+  fboss/agent/hw/switch_asics/Q4DAsic.cpp
 )
 
 target_link_libraries(switch_asics

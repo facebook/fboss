@@ -1676,8 +1676,9 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TRIDENT2;
   bool isJericho2 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2;
-  bool isJericho3 =
-      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3;
+  bool isJericho3 = platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_Q4D;
   bool isTomahawk5 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
   bool isChenab =

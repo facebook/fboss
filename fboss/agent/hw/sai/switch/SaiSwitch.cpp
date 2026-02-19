@@ -3168,8 +3168,10 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
       scopeResolver->switchIdToSwitchInfo());
   multiSwitchSwitchSettings->addNode(matcher.matcherString(), switchSettings);
 
-  if (getSwitchType() == cfg::SwitchType::VOQ ||
-      getSwitchType() == cfg::SwitchType::FABRIC) {
+  // Skipping switch isolate for single FAP systems (Q4D asic for now).
+  if ((getSwitchType() == cfg::SwitchType::VOQ ||
+       getSwitchType() == cfg::SwitchType::FABRIC) &&
+      platform_->getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_Q4D) {
     CHECK(getSwitchId().has_value());
     // In practice, this will read and populate the value set during switch
     // create viz. DRAINED
