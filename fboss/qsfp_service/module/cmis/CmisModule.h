@@ -577,9 +577,21 @@ class CmisModule : public QsfpModule {
   void resetDataPath(const std::string& portName) override;
 
   /*
+   * Returns true if the current module is LPO
+   */
+  bool isLpoModule() const override;
+
+  /*
+   * Return if module is AEC cable.
+   */
+  bool isAecModule() const override {
+    return getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES;
+  }
+
+  /*
    * returns whether optics frequency is tunable or not
    */
-  bool isTunableOptics() const;
+  bool isTunableOptics() const override;
 
   /*
    * returns the tunable optics laser status and laser frequency
@@ -857,18 +869,6 @@ class CmisModule : public QsfpModule {
 
   void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)
       override;
-
-  /*
-   * Returns true if the current module is LPO
-   */
-  bool isLpoModule() const override;
-
-  /*
-   * Return if module is AEC cable.
-   */
-  bool isAecModule() const {
-    return getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES;
-  }
 
   std::time_t vdmIntervalStartTime_{0};
 };
