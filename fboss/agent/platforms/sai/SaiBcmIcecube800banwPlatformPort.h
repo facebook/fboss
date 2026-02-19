@@ -19,6 +19,15 @@ class SaiBcmIcecube800banwPlatformPort : public SaiBcmPlatformPort {
       : SaiBcmPlatformPort(id, platform) {}
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;
+  uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
+      const override {
+    if (getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+      // The management port core ID is 64
+      // However, the correct lane numbering in TH6 start from 514(514-517)
+      return SaiBcmPlatformPort::getPhysicalLaneId(chipId, logicalLane) + 1;
+    }
+    return SaiBcmPlatformPort::getPhysicalLaneId(chipId, logicalLane);
+  }
 };
 
 } // namespace facebook::fboss
