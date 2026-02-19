@@ -94,6 +94,8 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
       std::make_pair(
           "SAI_KEY_PFC_WD_FORWARD_ACTION_BEHAVIOR",
           "PFC_WD_FORWARD_ACTION_IMMEDIATE_RECOVERY"));
+  kv_map.insert(std::make_pair("SAI_WITHOUT_SX_NETDEV", "1"));
+
   return kv_map;
 }
 
