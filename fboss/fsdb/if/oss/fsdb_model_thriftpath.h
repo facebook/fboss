@@ -183,7 +183,8 @@ std::pair<strings::tcvrName, Child<::std::string, ::apache::thrift::type_class::
 std::pair<strings::lpoModule, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::tunableLaserStatus, ChildThriftPath<::facebook::fboss::TunableLaserStatus, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::communicationError, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
-std::pair<strings::errorStates, ChildThriftPath<::std::set<::facebook::fboss::TransceiverErrorState>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<strings::errorStates, ChildThriftPath<::std::set<::facebook::fboss::TransceiverErrorState>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<strings::moduleTechnology, Child<::facebook::fboss::ModuleTechnology, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::ModuleTechnology>>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::facebook::fboss::TransceiverType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::TransceiverType>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
@@ -211,7 +212,8 @@ std::pair<strings::errorStates, ChildThriftPath<::std::set<::facebook::fboss::Tr
    std::pair<std::integral_constant<apache::thrift::field_id_t, 28>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 29>, ChildThriftPath<::facebook::fboss::TunableLaserStatus, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 30>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 31>, ChildThriftPath<::std::set<::facebook::fboss::TransceiverErrorState>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 31>, ChildThriftPath<::std::set<::facebook::fboss::TransceiverErrorState>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 32>, Child<::facebook::fboss::ModuleTechnology, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::ModuleTechnology>>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::present, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::transceiver, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -240,7 +242,8 @@ std::pair<strings::tcvrName, std::integral_constant<apache::thrift::field_id_t, 
 std::pair<strings::lpoModule, std::integral_constant<apache::thrift::field_id_t, 28>>,
 std::pair<strings::tunableLaserStatus, std::integral_constant<apache::thrift::field_id_t, 29>>,
 std::pair<strings::communicationError, std::integral_constant<apache::thrift::field_id_t, 30>>,
-std::pair<strings::errorStates, std::integral_constant<apache::thrift::field_id_t, 31>>>::template type_of<Name>;
+std::pair<strings::errorStates, std::integral_constant<apache::thrift::field_id_t, 31>>,
+std::pair<strings::moduleTechnology, std::integral_constant<apache::thrift::field_id_t, 32>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -274,6 +277,7 @@ std::pair<strings::errorStates, std::integral_constant<apache::thrift::field_id_
     STRUCT_CHILD_GETTERS(tunableLaserStatus, 29);
     STRUCT_CHILD_GETTERS(communicationError, 30);
     STRUCT_CHILD_GETTERS(errorStates, 31);
+    STRUCT_CHILD_GETTERS(moduleTechnology, 32);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -305,6 +309,7 @@ std::pair<strings::errorStates, std::integral_constant<apache::thrift::field_id_
     else if constexpr (__id == 29) { return tunableLaserStatus(); }
     else if constexpr (__id == 30) { return communicationError(); }
     else if constexpr (__id == 31) { return errorStates(); }
+    else if constexpr (__id == 32) { return moduleTechnology(); }
   }
 
   template <typename T, T... Values>
