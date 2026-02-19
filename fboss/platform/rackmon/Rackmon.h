@@ -17,6 +17,21 @@ struct ModbusDeviceFilter {
   bool contains(const ModbusDevice& dev) const;
 };
 
+struct DeviceLocation {
+  uint8_t addr;
+
+  bool operator<(const DeviceLocation& other) const {
+    return addr < other.addr;
+  }
+
+  friend std::ostream& operator<<(
+      std::ostream& os,
+      const DeviceLocation& other) {
+    os << std::hex << +other.addr;
+    return os;
+  }
+};
+
 class Rackmon {
   static constexpr int kScanNumRetry = 3;
   static constexpr time_t kDormantMinInactiveTime = 300;
@@ -32,13 +47,13 @@ class Rackmon {
   mutable std::shared_mutex devicesMutex_{};
 
   // These devices discovered on actively monitored busses
-  std::map<uint8_t, std::unique_ptr<ModbusDevice>> devices_{};
+  std::map<DeviceLocation, std::unique_ptr<ModbusDevice>> devices_{};
 
   // contains all the possible address allowed by currently
   // loaded register maps. A majority of these are not expected
   // to exist, but are candidates for a scan.
-  std::vector<uint8_t> allPossibleDevAddrs_{};
-  std::vector<uint8_t>::iterator nextDeviceToProbe_{};
+  std::vector<DeviceLocation> allPossibleDevAddrs_{};
+  std::vector<DeviceLocation>::iterator nextDeviceToProbe_{};
 
   // As an optimization, devices are normally scanned one by one
   // This allows someone to initiate a forced full scan.
@@ -54,15 +69,15 @@ class Rackmon {
   PollThreadTime monitorInterval_ = std::chrono::minutes(3);
 
   // Probe an interface for the presence of the address.
-  bool probe(Modbus& interface, uint8_t addr);
+  bool probe(Modbus&, DeviceLocation);
 
   // Probe for the presence of an address
-  bool probe(uint8_t addr);
+  bool probe(DeviceLocation);
 
   // --------- Private Methods --------
 
   // probe dormant devices and return recovered devices.
-  std::vector<uint8_t> inspectDormant();
+  std::vector<DeviceLocation> inspectDormant();
   // Try and recover dormant devices.
   void recoverDormant();
 
@@ -70,7 +85,7 @@ class Rackmon {
     return std::time(nullptr);
   }
 
-  bool isDeviceKnown(uint8_t);
+  bool isDeviceKnown(DeviceLocation);
 
   // Monitor loop. Blocks forever as long as req_stop is true.
   void monitor();
@@ -83,7 +98,7 @@ class Rackmon {
 
  protected:
   // Return the device given address.
-  ModbusDevice& getModbusDevice(uint8_t addr);
+  ModbusDevice& getModbusDevice(DeviceLocation);
 
   PollThread<Rackmon>& getScanThread() {
     if (!scanThread_) {
