@@ -161,19 +161,13 @@ TEST_F(AgentFabricSwitchTest, checkFabricConnectivity) {
 }
 
 TEST_F(AgentFabricSwitchTest, fabricPortIsolate) {
-  std::map<SwitchID, PortID> switchId2FabricPortId;
-  std::set<PortID> fabricPortIds;
-  for (const auto& [switchId, portIds] : switch2FabricPortIds()) {
-    fabricPortIds.insert(portIds[0]);
-    switchId2FabricPortId.insert({switchId, portIds[0]});
-  }
-  ASSERT_GT(fabricPortIds.size(), 0);
-  ASSERT_GT(switchId2FabricPortId.size(), 0);
+  auto switchId = getCurrentSwitchIdForTesting();
+  auto allFabricPortIds = fabricPortIdsForTesting();
+  auto drainedPortId = allFabricPortIds[0];
   auto setup = [=, this]() {
     auto newCfg = getSw()->getConfig();
     for (auto& portCfg : *newCfg.ports()) {
-      if (fabricPortIds.find(PortID(*portCfg.logicalID())) !=
-          fabricPortIds.end()) {
+      if (PortID(*portCfg.logicalID()) == drainedPortId) {
         *portCfg.drainState() = cfg::PortDrainState::DRAINED;
       }
     }
@@ -182,22 +176,15 @@ TEST_F(AgentFabricSwitchTest, fabricPortIsolate) {
 
   auto verify = [=, this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    for (const auto& [switchId, fabricPortId] : switchId2FabricPortId) {
-      utility::checkPortFabricReachability(
-          getAgentEnsemble(), switchId, fabricPortId);
+    utility::checkPortFabricReachability(
+        getAgentEnsemble(), switchId, drainedPortId);
+    std::vector<PortID> undrainedPortIds;
+    std::vector<PortID> drainedPortIds = {drainedPortId};
+    for (auto portId : allFabricPortIds) {
+      if (portId != drainedPortId) {
+        undrainedPortIds.push_back(portId);
+      }
     }
-    std::vector<PortID> undrainedPortIds = masterLogicalFabricPortIds();
-    std::vector<PortID> drainedPortIds(
-        fabricPortIds.begin(), fabricPortIds.end());
-    // Remove the drained port
-    undrainedPortIds.erase(
-        std::remove_if(
-            undrainedPortIds.begin(),
-            undrainedPortIds.end(),
-            [&fabricPortIds](const PortID& portId) {
-              return fabricPortIds.find(portId) != fabricPortIds.end();
-            }),
-        undrainedPortIds.end());
     auto checkActiveInactiveState = [&]() {
       // Only drained port will be inactive
       utility::checkFabricPortsActiveState(
