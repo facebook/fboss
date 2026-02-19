@@ -388,10 +388,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
 
 void to_json(json& j, const ModbusDeviceInfo& m) {
   j["devAddress"] = m.deviceAddress;
-  if (m.port.has_value()) {
-    j["uniqueDevAddress"] =
-        DeviceLocationFilter::combine(m.port, m.deviceAddress);
-  }
+  j["uniqueDevAddress"] =
+      DeviceLocationFilter::combine(m.port, m.deviceAddress);
   j["deviceType"] = m.deviceType;
   j["crcErrors"] = m.crcErrors;
   j["timeouts"] = m.timeouts;
@@ -403,10 +401,8 @@ void to_json(json& j, const ModbusDeviceInfo& m) {
 // Legacy JSON format.
 void to_json(json& j, const ModbusDeviceRawData& m) {
   j["addr"] = m.deviceAddress;
-  if (m.port.has_value()) {
-    j["uniqueDevAddress"] =
-        DeviceLocationFilter::combine(m.port, m.deviceAddress);
-  }
+  j["uniqueDevAddress"] =
+      DeviceLocationFilter::combine(m.port, m.deviceAddress);
   j["crc_fails"] = m.crcErrors;
   j["timeouts"] = m.timeouts;
   j["misc_fails"] = m.miscErrors;
