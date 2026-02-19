@@ -437,35 +437,32 @@ TEST_F(AgentFabricSwitchTest, dtlQueueWatermarks) {
 
 TEST_F(AgentFabricSwitchTest, switchReachability) {
   auto verify = [this]() {
+    auto switchId = getCurrentSwitchIdForTesting();
     utility::checkFabricPortsActiveState(
-        getAgentEnsemble(),
-        masterLogicalFabricPortIds(),
-        true /*expectActive*/);
-    for (auto switchId : getFabricSwitchIdsWithPorts()) {
-      bool switchReachabilityWorking = false;
-      WITH_RETRIES({
-        auto switchReachability = getSw()->getSwitchReachability();
-        ASSERT_EVENTUALLY_TRUE(switchReachability.contains(switchId));
-        auto switchIter = switchReachability.find(switchId);
-        for (auto& [destinationSwitchId, portGroupId] :
-             *switchIter->second.switchIdToFabricPortGroupMap()) {
-          auto portGroupIter =
-              switchIter->second.fabricPortGroupMap()->find(portGroupId);
-          if (portGroupIter != switchIter->second.fabricPortGroupMap()->end()) {
-            XLOG(DBG0) << "On local switch id " << switchId
-                       << ", destination switch id " << destinationSwitchId
-                       << " reachability available over port group ID "
-                       << portGroupId << ", with group size "
-                       << portGroupIter->second.size();
-            // Fabric device does not have physical rechability to
-            // any other device, so no ports expected in port group.
-            EXPECT_EQ(portGroupIter->second.size(), 0);
-            switchReachabilityWorking = true;
-          }
+        getAgentEnsemble(), fabricPortIdsForTesting(), true /*expectActive*/);
+    bool switchReachabilityWorking = false;
+    WITH_RETRIES({
+      auto switchReachability = getSw()->getSwitchReachability();
+      ASSERT_EVENTUALLY_TRUE(switchReachability.contains(switchId));
+      auto switchIter = switchReachability.find(switchId);
+      for (auto& [destinationSwitchId, portGroupId] :
+           *switchIter->second.switchIdToFabricPortGroupMap()) {
+        auto portGroupIter =
+            switchIter->second.fabricPortGroupMap()->find(portGroupId);
+        if (portGroupIter != switchIter->second.fabricPortGroupMap()->end()) {
+          XLOG(DBG0) << "On local switch id " << switchId
+                     << ", destination switch id " << destinationSwitchId
+                     << " reachability available over port group ID "
+                     << portGroupId << ", with group size "
+                     << portGroupIter->second.size();
+          // Fabric device does not have physical rechability to
+          // any other device, so no ports expected in port group.
+          EXPECT_EQ(portGroupIter->second.size(), 0);
+          switchReachabilityWorking = true;
         }
-        EXPECT_EVENTUALLY_TRUE(switchReachabilityWorking);
-      });
-    }
+      }
+      EXPECT_EVENTUALLY_TRUE(switchReachabilityWorking);
+    });
   };
 
   verifyAcrossWarmBoots([]() {}, verify);
