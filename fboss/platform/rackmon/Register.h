@@ -315,7 +315,6 @@ struct AddrRange {
 
 // Container of an entire register map. This is the memory
 // representation of each JSON register map descriptors
-// at /etc/rackmon.d.
 struct RegisterMap {
   AddrRange applicableAddresses;
   std::string name;
