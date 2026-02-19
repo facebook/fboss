@@ -2012,11 +2012,19 @@ SwSwitch::applyUpdate(
   for (const auto& delta : deltas) {
     if (!resourceAccountant_->isValidUpdate(delta)) {
       updateRejected = true;
+      stats()->resourceAccountantRejectedUpdates();
+      XLOG(ERR) << "State updated rejected by resource accountant";
+      break;
+    }
+    if (!isValidStateUpdate(delta)) {
+      updateRejected = true;
+      XLOG(ERR) << "Attempted to apply invalid state update, rejected it";
       break;
     }
   }
   if (updateRejected) {
-    stats()->resourceAccountantRejectedUpdates();
+    /* reconstruct the resource account to reset resources accounted in earlier
+     * deltas */
     resourceAccountant_ = std::make_unique<ResourceAccountant>(
         getHwAsicTable(), getScopeResolver());
     resourceAccountant_->stateChanged(
