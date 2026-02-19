@@ -2239,6 +2239,9 @@ void printCmisDetailService(
       }
       printf("  FW Version: %x.%x\n", integerPart, fractionalPart);
     }
+    if (auto buildNumber = fwStatus.buildNumber()) {
+      printf("  FW Build Number: %d\n", *buildNumber);
+    }
     if (auto fwFault = fwStatus.fwFault()) {
       printf("  Firmware fault: 0x%x\n", *fwFault);
     }
