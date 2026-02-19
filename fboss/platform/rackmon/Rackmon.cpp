@@ -154,7 +154,6 @@ void Rackmon::monitor() {
     }
     dev_it.second->reloadAllRegisters();
   }
-  lastMonitorTime_ = std::time(nullptr);
 }
 
 bool Rackmon::isDeviceKnown(DeviceLocation key) {
@@ -252,7 +251,6 @@ void Rackmon::scan() {
         monitorThread_->tick(true);
       }
     }
-    lastScanTime_ = std::time(nullptr);
   }
 
   // Try and recover dormant devices

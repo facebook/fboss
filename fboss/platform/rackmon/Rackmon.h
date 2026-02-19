@@ -42,10 +42,6 @@ class Rackmon {
   // This mimicks a restart of rackmond.
   std::atomic<bool> reqForceScan_ = true;
 
-  // Timestamps of last scan
-  time_t lastScanTime_;
-  time_t lastMonitorTime_;
-
   // Interval at which we will monitor all the discovered
   // devices.
   PollThreadTime monitorInterval_ = std::chrono::minutes(3);
