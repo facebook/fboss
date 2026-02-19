@@ -565,6 +565,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         }
         switch (*dsfNode.asicType()) {
           case cfg::AsicType::ASIC_TYPE_JERICHO3:
+          case cfg::AsicType::ASIC_TYPE_JERICHO4:
             // for directly connected interface nodes we don't expect
             // asic type to change across dsf nodes
             maxCoreCount = std::max(j3.getNumCores(), maxCoreCount);

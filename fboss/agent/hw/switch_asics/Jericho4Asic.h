@@ -20,7 +20,15 @@ class Jericho4Asic : public Jericho3Asic {
   }
 
   cfg::PortSpeed getMaxPortSpeed() const override {
-    return cfg::PortSpeed::TWOHUNDREDG;
+    return cfg::PortSpeed::ONEPOINTSIXT;
+  }
+
+  bool isSupported(Feature feature) const override {
+    // TBD if necessary
+    if (feature == HwAsic::Feature::SWITCH_ISOLATE) {
+      return false;
+    }
+    return Jericho3Asic::isSupported(feature);
   }
 };
 

@@ -33,6 +33,7 @@ class AgentDiagShellStressTest : public AgentHwTest {
           // No diag shell to test for these ASICs
           break;
         case cfg::AsicType::ASIC_TYPE_JERICHO3:
+        case cfg::AsicType::ASIC_TYPE_JERICHO4:
           runBcmDnxCmds(switchId);
           break;
         case cfg::AsicType::ASIC_TYPE_EBRO:

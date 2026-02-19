@@ -10,6 +10,7 @@
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
+#include "fboss/agent/hw/switch_asics/Jericho4Asic.h"
 #include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
 #include "fboss/agent/hw/switch_asics/RamonAsic.h"
 
@@ -38,6 +39,11 @@ const HwAsic& getHwAsicForAsicType(const cfg::AsicType& asicType) {
       switchInfo.switchType() = cfg::SwitchType::VOQ;
       static Jericho3Asic jericho3Asic{switchId, switchInfo};
       return jericho3Asic;
+    }
+    case cfg::AsicType::ASIC_TYPE_JERICHO4: {
+      switchInfo.switchType() = cfg::SwitchType::VOQ;
+      static Jericho4Asic jericho4Asic{switchId, switchInfo};
+      return jericho4Asic;
     }
     case cfg::AsicType::ASIC_TYPE_RAMON: {
       switchInfo.switchType() = cfg::SwitchType::FABRIC;
@@ -81,6 +87,8 @@ uint32_t getFabricPortsPerVirtualDevice(const cfg::AsicType asicType) {
     case cfg::AsicType::ASIC_TYPE_RAMON:
       return 192;
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      return 160;
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
       return 160;
     case cfg::AsicType::ASIC_TYPE_RAMON3:
       return 256;

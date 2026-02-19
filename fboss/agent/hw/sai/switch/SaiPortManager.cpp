@@ -611,6 +611,7 @@ int getWorstCaseAssumedOpticsDelayNS(
     case cfg::AsicType::ASIC_TYPE_G202X:
       break;
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
       if (portType == cfg::PortType::FABRIC_PORT) {
         return 110;
       } else {
