@@ -209,8 +209,7 @@ struct SaiArsProfileTraits {
       std::optional<Attributes::ArsBaseIndex>,
       std::optional<Attributes::ArsAlternateMembersRouteMetaData>,
       std::optional<Attributes::ArsRouteMetaDataMask>,
-      std::optional<Attributes::ArsPrimaryMembersRouteMetaData>,
-      std::optional<Attributes::EcmpMemberCount>>;
+      std::optional<Attributes::ArsPrimaryMembersRouteMetaData>>;
 #else
       >;
 #endif
