@@ -17,14 +17,19 @@ enum class ModbusDeviceMode { ACTIVE = 0, DORMANT = 1 };
 struct ModbusRegisterFilter {
   std::optional<std::set<uint16_t>> addrFilter{};
   std::optional<std::set<std::string>> nameFilter{};
+  bool unitsOnly = false;
   operator bool() const {
-    return addrFilter || nameFilter;
+    return addrFilter || nameFilter || unitsOnly;
   }
-  bool contains(uint16_t addr) const {
-    return addrFilter && addrFilter->find(addr) != addrFilter->end();
-  }
-  bool contains(const std::string& name) const {
-    return nameFilter && nameFilter->find(name) != nameFilter->end();
+
+  bool contains(const RegisterStore& reg) const {
+    if (unitsOnly && reg.descriptor().unit.has_value()) {
+      return true;
+    } else if (
+        addrFilter && addrFilter->find(reg.regAddr()) != addrFilter->end()) {
+      return true;
+    }
+    return nameFilter && nameFilter->find(reg.name()) != nameFilter->end();
   }
 };
 

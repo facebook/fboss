@@ -267,8 +267,7 @@ ModbusDeviceValueData ModbusDevice::getValueData(
     data.ModbusDeviceInfo::operator=(info_);
   }
   auto shouldPickRegister = [&filter](const RegisterStore& reg) {
-    return !filter || filter.contains(reg.regAddr()) ||
-        filter.contains(reg.name());
+    return !filter || filter.contains(reg);
   };
   for (const auto& reg : info_.registerList) {
     if (shouldPickRegister(reg)) {
@@ -286,8 +285,7 @@ ModbusDeviceValueData ModbusDevice::getValueData(
 
 void ModbusDevice::forceReloadRegisters(const ModbusRegisterFilter& filter) {
   auto shouldPickRegister = [&filter](const RegisterStore& reg) {
-    return !filter || filter.contains(reg.regAddr()) ||
-        filter.contains(reg.name());
+    return !filter || filter.contains(reg);
   };
   std::vector<RegisterStoreSpan> regSpans{};
   for (auto& reg : info_.registerList) {
