@@ -218,7 +218,6 @@ struct RegisterStore {
       time_t reloadTime = std::time(nullptr));
 
   // Returns a reference to the last written value (Back of the list)
-  Register& back();
   const Register& back() const;
 
   // Returns the front (Next to write) reference

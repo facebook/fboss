@@ -233,11 +233,6 @@ std::vector<uint16_t>::iterator RegisterStore::setRegister(
   return start + size;
 }
 
-Register& RegisterStore::back() {
-  std::unique_lock lk(historyMutex_);
-  return idx_ == 0 ? history_.back() : history_[idx_ - 1];
-}
-
 const Register& RegisterStore::back() const {
   std::unique_lock lk(historyMutex_);
   return idx_ == 0 ? history_.back() : history_[idx_ - 1];
