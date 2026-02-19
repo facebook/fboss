@@ -423,6 +423,9 @@ void from_json(const json& j, RegisterDescriptor& i) {
       }
     }
   }
+  if (j.contains("unit")) {
+    i.unit = j.at("unit").get<std::string>();
+  }
 }
 
 void to_json(json& j, const RegisterDescriptor& i) {

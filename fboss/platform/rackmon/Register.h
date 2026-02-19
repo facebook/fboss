@@ -68,6 +68,8 @@ struct RegisterDescriptor {
 
   // Monitoring interval
   time_t interval = kDefaultInterval;
+
+  std::optional<std::string> unit = std::nullopt;
 };
 
 struct FlagType {
