@@ -18,12 +18,16 @@ struct ModbusRegisterFilter {
   std::optional<std::set<uint16_t>> addrFilter{};
   std::optional<std::set<std::string>> nameFilter{};
   bool unitsOnly = false;
+  bool flagsOnly = false;
   operator bool() const {
-    return addrFilter || nameFilter || unitsOnly;
+    return addrFilter || nameFilter || unitsOnly || flagsOnly;
   }
 
   bool contains(const RegisterStore& reg) const {
     if (unitsOnly && reg.descriptor().unit.has_value()) {
+      return true;
+    } else if (
+        flagsOnly && reg.descriptor().format == RegisterValueType::FLAGS) {
       return true;
     } else if (
         addrFilter && addrFilter->find(reg.regAddr()) != addrFilter->end()) {
