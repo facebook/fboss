@@ -16,6 +16,7 @@
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/lib/QsfpConfigParserHelper.h"
+#include "fboss/qsfp_service/module/CdbCommandBlock.h"
 #include "fboss/qsfp_service/module/FirmwareUpgrader.h"
 #include "fboss/qsfp_service/module/QsfpFieldInfo.h"
 #include "fboss/qsfp_service/module/QsfpHelper.h"
@@ -797,7 +798,38 @@ FirmwareStatus CmisModule::getFwStatus() {
   fwStatus.buildRev() = fwRevisions[2];
   fwStatus.fwFault() =
       (getSettingsValue(CmisField::MODULE_FLAG, FWFAULT_MASK) >> 1);
+
+  // Use cached firmware build number from full EEPROM read
+  if (cachedFwBuildNumber_.has_value()) {
+    fwStatus.buildNumber() = cachedFwBuildNumber_.value();
+  }
+
   return fwStatus;
+}
+
+std::optional<uint16_t> CmisModule::fetchFwBuildNumberFromCdb() {
+  if (flatMem_) {
+    return std::nullopt;
+  }
+
+  CdbCommandBlock commandBlockBuf;
+  commandBlockBuf.createCdbCmdGetFirmwareInfo();
+  auto ret = commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
+  if (ret && commandBlockBuf.getCdbRlplLength() >= kCdbFwInfoMinRlplLength) {
+    const uint8_t* response = commandBlockBuf.getCdbLplFlatMemory();
+    uint8_t firmwareStatusByte = response[kCdbFwInfoFwStatusOffset];
+    bool bankARunning = (firmwareStatusByte & kCdbFwInfoBankARunningMask) != 0;
+    bool bankBRunning = (firmwareStatusByte & kCdbFwInfoBankBRunningMask) != 0;
+
+    if (bankARunning) {
+      return (response[kCdbFwInfoImageABuildHiOffset] << 8) |
+          response[kCdbFwInfoImageABuildLoOffset];
+    } else if (bankBRunning) {
+      return (response[kCdbFwInfoImageBBuildHiOffset] << 8) |
+          response[kCdbFwInfoImageBBuildLoOffset];
+    }
+  }
+  return std::nullopt;
 }
 
 ModuleStatus CmisModule::getModuleStatus() {
@@ -2364,6 +2396,9 @@ void CmisModule::updateQsfpData(bool allPages) {
       readCmisField(CmisField::PAGE_UPPER01H, page01_);
       readCmisField(CmisField::PAGE_UPPER02H, page02_);
       readCmisField(CmisField::PAGE_UPPER13H, page13_);
+
+      // Cache firmware build number from CDB Get Firmware Info command
+      cachedFwBuildNumber_ = fetchFwBuildNumberFromCdb();
     }
 
     // Update the application capabilities once we have read from eeprom

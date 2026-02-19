@@ -203,6 +203,9 @@ class CmisModule : public QsfpModule {
   // Some of the pages are static and they need not be read every refresh cycle
   bool staticPagesCached_{false};
 
+  // Cached firmware build number from CDB Get Firmware Info command
+  std::optional<uint16_t> cachedFwBuildNumber_;
+
   /*
    * Structure to hold datapath init/deinit state per port using timers
    * progStartTimer: Time point when datapath programming started.
@@ -511,6 +514,12 @@ class CmisModule : public QsfpModule {
    */
   std::array<std::string, 3> getFwRevisions();
   FirmwareStatus getFwStatus();
+
+  /*
+   * Fetches the firmware build number from CDB Get Firmware Info command.
+   * Returns the build number if successful, or std::nullopt on failure.
+   */
+  std::optional<uint16_t> fetchFwBuildNumberFromCdb();
 
   /*
    * Gather host side per lane configuration settings and return false when it
