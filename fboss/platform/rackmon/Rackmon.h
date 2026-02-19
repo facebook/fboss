@@ -24,10 +24,8 @@ struct DeviceLocation {
     return addr < other.addr;
   }
 
-  friend std::ostream& operator<<(
-      std::ostream& os,
-      const DeviceLocation& other) {
-    os << std::hex << +other.addr;
+  friend std::ostream& operator<<(std::ostream& os, const DeviceLocation& me) {
+    os << "0x" << std::hex << +me.addr;
     return os;
   }
 };
@@ -46,7 +44,7 @@ class Rackmon {
 
   mutable std::shared_mutex devicesMutex_{};
 
-  // These devices discovered on actively monitored busses
+  // These devices discovered on actively monitored buses
   std::map<DeviceLocation, std::unique_ptr<ModbusDevice>> devices_{};
 
   // contains all the possible address allowed by currently

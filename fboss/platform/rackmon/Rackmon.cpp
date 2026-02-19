@@ -179,12 +179,12 @@ ModbusDevice& Rackmon::getModbusDevice(DeviceLocation key) {
   std::stringstream err;
   auto it = devices_.find(key);
   if (it == devices_.end()) {
-    err << "No device found at 0x" << key << " during probe sequence";
+    err << "No device found at " << key << " during probe sequence";
     throw std::out_of_range(err.str());
   }
   auto& d = *it->second;
   if (!d.isActive()) {
-    err << "Device 0x" << key << " is not active";
+    err << "Device " << key << " is not active";
     throw std::runtime_error(err.str());
   }
   return d;
