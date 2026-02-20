@@ -19,6 +19,7 @@
 #include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/weutil/FbossEepromInterface.h"
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
+#include "fboss/platform/weutil/ParserUtils.h"
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
@@ -350,7 +351,10 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
             eepromName,
             0,
             std::stoi(*idpromConfig.address(), nullptr, 16),
-            dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName()));
+            dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName()),
+            kMaxEepromDataRegionSize);
+        // The parsed file contains data starting at offset 0
+        eepromOffset = 0;
       } catch (const std::exception& e) {
         auto errMsg = fmt::format(
             "Could not read MERU_SCM_EEPROM for {}: {}",
