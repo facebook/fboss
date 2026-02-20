@@ -1,0 +1,18 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+
+oncall("fboss_agent")
+
+python_library(
+    name = "bgp_json_to_cli_lib",
+    srcs = ["bgp_json_to_cli.py"],
+    labels = ["autodeps2_generated"],
+)
+
+python_binary(
+    name = "bgp_json_to_cli",
+    srcs = ["bgp_json_to_cli.py"],
+    labels = ["autodeps2_generated"],
+    main_module = "fboss.cli.fboss2.tools.bgp_json_to_cli",
+    deps = [],
+)

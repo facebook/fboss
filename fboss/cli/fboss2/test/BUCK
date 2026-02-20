@@ -63,6 +63,7 @@ cpp_unittest(
 cpp_unittest(
     name = "cmd_test",
     srcs = [
+        "BgpConfigSessionTest.cpp",
         "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigHistoryTest.cpp",
         "CmdConfigInterfaceDescriptionTest.cpp",
