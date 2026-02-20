@@ -51,6 +51,16 @@ env -i \
   PATH="/usr/bin:/usr/sbin:/bin:/sbin" \
   kernel-install add "${KERNEL_VERSION}" "${VMLINUZ_PATH}" --initrd-file "${INITRD_PATH}"
 
+# 5. Enable systemd services
+echo "Enabling FBOSS systemd services..."
+systemctl enable platform_manager.service
+systemctl enable data_corral_service.service
+systemctl enable fan_service.service
+systemctl enable sensor_service.service
+systemctl enable fsdb.service
+systemctl enable qsfp_service.service
+systemctl enable wedge_agent.service
+
 # 6. Use system GRUB 2.06 from packages
 # The grub2-efi-x64 package already provides grubx64.efi with all necessary modules
 # We just need to make sure the btrfs module is accessible on the EFI partition
