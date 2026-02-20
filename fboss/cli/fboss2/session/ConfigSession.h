@@ -84,7 +84,7 @@ namespace facebook::fboss {
 class ConfigSession {
  public:
   ConfigSession();
-  ~ConfigSession() = default;
+  virtual ~ConfigSession() = default;
 
   // Get or create the current config session
   // If no session exists, copies /etc/coop/agent.conf to ~/.fboss2/agent.conf
@@ -157,6 +157,9 @@ class ConfigSession {
   // Get the systemd service name for a service type
   static std::string getServiceName(cli::ServiceType service);
 
+  // Get the list of commands executed in this session
+  const std::vector<std::string>& getCommands() const;
+
  protected:
   // Constructor for testing with custom paths
   ConfigSession(
@@ -166,6 +169,13 @@ class ConfigSession {
 
   // Set the singleton instance (for testing only)
   static void setInstance(std::unique_ptr<ConfigSession> instance);
+
+  // Read the command line for the current process from /proc/self/cmdline.
+  // Returns the command arguments as a space-separated string,
+  // e.g., "config interface eth1/1/1 mtu 9000"
+  // Throws runtime_error if the command line cannot be read.
+  // Virtual to allow tests to override with mock command lines.
+  virtual std::string readCommandLineFromProc() const;
 
  private:
   std::string sessionConfigPath_;
@@ -183,12 +193,15 @@ class ConfigSession {
   // session.
   std::map<cli::ServiceType, cli::ConfigActionLevel> requiredActions_;
 
+  // List of commands executed in this session, persisted to disk
+  std::vector<std::string> commands_;
+
   // Path to the metadata file (e.g., ~/.fboss2/metadata)
   std::string getMetadataPath() const;
 
-  // Load/save action levels from/to disk
-  void loadActionLevel();
-  void saveActionLevel();
+  // Load/save metadata (action levels and commands) from disk
+  void loadMetadata();
+  void saveMetadata();
 
   // Restart a service via systemd and wait for it to be active
   // For AGENT_WARMBOOT, does a simple restart.

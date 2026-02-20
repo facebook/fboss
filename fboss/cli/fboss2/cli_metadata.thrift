@@ -33,4 +33,7 @@ struct ConfigSessionMetadata {
   // Maps each service to the required action level for pending config changes.
   // Services not in this map default to HITLESS.
   1: map<ServiceType, ConfigActionLevel> action;
+  // List of CLI commands executed in this session, in chronological order.
+  // Each entry is the full command string (e.g., "config interface eth1/1/1 mtu 9000").
+  2: list<string> commands;
 }

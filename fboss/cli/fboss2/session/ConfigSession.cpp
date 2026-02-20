@@ -28,6 +28,7 @@
 #include <cerrno>
 #include <chrono>
 #include <filesystem>
+#include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <thread>
@@ -193,6 +194,35 @@ int getCurrentRevisionNumber(const std::string& systemConfigPath) {
 
 } // anonymous namespace
 
+/*
+ * Read the command line from /proc/self/cmdline, skipping argv[0].
+ * Returns the command arguments as a space-separated string,
+ * e.g., "config interface eth1/1/1 mtu 9000"
+ */
+std::string ConfigSession::readCommandLineFromProc() const {
+  std::ifstream file("/proc/self/cmdline");
+  if (!file) {
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to open /proc/self/cmdline: {}", folly::errnoStr(errno)));
+  }
+
+  std::vector<std::string> args;
+  std::string arg;
+  bool first = true;
+  while (std::getline(file, arg, '\0')) {
+    if (first) {
+      // Skip argv[0] (program name)
+      first = false;
+      continue;
+    }
+    if (!arg.empty()) {
+      args.push_back(arg);
+    }
+  }
+  return folly::join(" ", args);
+}
+
 ConfigSession::ConfigSession() {
   username_ = getUsername();
   std::string homeDir = getHomeDirectory();
@@ -298,7 +328,7 @@ void ConfigSession::saveConfig(
   // (like clientIdToAdminDistance) by converting them to strings.
   // If we use facebook::thrift::to_dynamic() directly, the integer keys
   // are preserved as integers in the folly::dynamic object, which causes
-  // folly::toPrettyJson() to fail because JSON objects require string keys.
+  // folly::toPrettyJson() to fail because JSON objects requires string keys.
   std::string json =
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(
           agentConfig_);
@@ -311,8 +341,24 @@ void ConfigSession::saveConfig(
   folly::writeFileAtomic(
       sessionConfigPath_, prettyJson, 0644, folly::SyncType::WITH_SYNC);
 
+  // Automatically record the command from /proc/self/cmdline.
+  // This ensures all config commands are tracked without requiring manual
+  // instrumentation in each command implementation.
+  std::string rawCmd = readCommandLineFromProc();
+  CHECK(!rawCmd.empty())
+      << "saveConfig() called with no command line arguments";
+  // Only record if this is a config command and not already the last one
+  // recorded as that'd be idempotent anyway.
+  if (rawCmd.find("config ") == 0 &&
+      (commands_.empty() || commands_.back() != rawCmd)) {
+    commands_.push_back(rawCmd);
+  }
+
   // Update the required action metadata for this service
   updateRequiredAction(service, actionLevel);
+
+  // Save command history and action levels to metadata
+  saveMetadata();
 }
 
 int ConfigSession::extractRevisionNumber(const std::string& filenameOrPath) {
@@ -349,7 +395,7 @@ std::string ConfigSession::getServiceName(cli::ServiceType service) {
   throw std::runtime_error("Unknown service type");
 }
 
-void ConfigSession::loadActionLevel() {
+void ConfigSession::loadMetadata() {
   std::string metadataPath = getMetadataPath();
   // Note: We don't initialize requiredActions_ here since getRequiredAction()
   // returns HITLESS by default for agents not in the map, and
@@ -376,19 +422,21 @@ void ConfigSession::loadActionLevel() {
         facebook::thrift::dynamic_format::PORTABLE,
         facebook::thrift::format_adherence::LENIENT);
     requiredActions_ = *metadata.action();
+    commands_ = *metadata.commands();
   } catch (const std::exception& ex) {
     // If JSON parsing fails, keep defaults
     LOG(WARNING) << "Failed to parse metadata file: " << ex.what();
   }
 }
 
-void ConfigSession::saveActionLevel() {
+void ConfigSession::saveMetadata() {
   std::string metadataPath = getMetadataPath();
 
   // Build Thrift metadata struct and serialize to JSON with symbolic enum names
   // Using PORTABLE format for human-readable enum names instead of integers
   cli::ConfigSessionMetadata metadata;
   metadata.action() = requiredActions_;
+  metadata.commands() = commands_;
 
   folly::dynamic json = facebook::thrift::to_dynamic(
       metadata, facebook::thrift::dynamic_format::PORTABLE);
@@ -404,12 +452,10 @@ void ConfigSession::updateRequiredAction(
   if (requiredActions_.find(service) == requiredActions_.end()) {
     requiredActions_[service] = cli::ConfigActionLevel::HITLESS;
   }
-
   // Only update if the new action level is higher (more impactful)
   if (static_cast<int>(actionLevel) >
       static_cast<int>(requiredActions_[service])) {
     requiredActions_[service] = actionLevel;
-    saveActionLevel();
   }
 }
 
@@ -424,6 +470,7 @@ cli::ConfigActionLevel ConfigSession::getRequiredAction(
 
 void ConfigSession::resetRequiredAction(cli::ServiceType service) {
   requiredActions_[service] = cli::ConfigActionLevel::HITLESS;
+  commands_.clear();
 
   // If all services are HITLESS, remove the file entirely
   bool allHitless = true;
@@ -440,8 +487,12 @@ void ConfigSession::resetRequiredAction(cli::ServiceType service) {
     // Ignore errors - file might not exist
   } else {
     // Only save if there are remaining services with non-HITLESS levels
-    saveActionLevel();
+    saveMetadata();
   }
+}
+
+const std::vector<std::string>& ConfigSession::getCommands() const {
+  return commands_;
 }
 
 void ConfigSession::restartService(
@@ -591,9 +642,12 @@ void ConfigSession::initializeSession() {
     fs::path sessionPath(sessionConfigPath_);
     ensureDirectoryExists(sessionPath.parent_path().string());
     copySystemConfigToSession();
+    // Create initial empty metadata file for new sessions
+    saveMetadata();
+  } else {
+    // Load metadata from disk (survives across CLI invocations)
+    loadMetadata();
   }
-  // Load the action level from disk (survives across CLI invocations)
-  loadActionLevel();
 }
 
 void ConfigSession::copySystemConfigToSession() {
@@ -675,6 +729,23 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
         fmt::format(
             "Failed to copy session config to {}: {}",
             targetConfigPath,
+            ec.message()));
+  }
+
+  // Copy the metadata file alongside the config revision
+  // e.g., agent-r123.conf -> agent-r123.metadata.json
+  // This is required for rollback functionality
+  std::string metadataPath = getMetadataPath();
+  std::string targetMetadataPath =
+      fmt::format("{}/agent-r{}.metadata.json", cliConfigDir_, revision);
+  fs::copy_file(metadataPath, targetMetadataPath, ec);
+  if (ec) {
+    // Clean up the revision file we created
+    fs::remove(targetConfigPath);
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to copy metadata to {}: {}",
+            targetMetadataPath,
             ec.message()));
   }
 
@@ -800,6 +871,9 @@ int ConfigSession::rollback(
   atomicSymlinkUpdate(systemConfigPath_, newRevisionPath);
 
   // Reload the config - if this fails, atomically undo the rollback
+  // TODO: look at all the metadata files in the revision range and
+  // decide whether or not we need to restart the agent based on the highest
+  // action level in that range.
   try {
     auto client =
         utils::createClient<apache::thrift::Client<facebook::fboss::FbossCtrl>>(

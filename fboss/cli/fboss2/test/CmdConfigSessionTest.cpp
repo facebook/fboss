@@ -164,6 +164,7 @@ TEST_F(ConfigSessionTestFixture, sessionConfigModified) {
   auto& ports = *config.sw()->ports();
   ASSERT_FALSE(ports.empty());
   ports[0].description() = "Modified port";
+  session.setCommandLine("config interface eth1/1/1 description Modified port");
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
   // Verify session config is modified
@@ -204,6 +205,8 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
     ports[0].description() = "First commit";
+    session.setCommandLine(
+        "config interface eth1/1/1 description First commit");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
@@ -218,6 +221,10 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
     fs::path targetConfig = cliConfigDir / "agent-r2.conf";
     EXPECT_TRUE(fs::exists(targetConfig));
     EXPECT_THAT(readFile(targetConfig), ::testing::HasSubstr("First commit"));
+
+    // Verify metadata file was created alongside the config revision
+    fs::path targetMetadata = cliConfigDir / "agent-r2.metadata.json";
+    EXPECT_TRUE(fs::exists(targetMetadata));
 
     // Verify symlink was replaced and points to new revision
     EXPECT_TRUE(fs::is_symlink(systemConfigPath_));
@@ -239,6 +246,8 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
 
     // Make another change to the same port
     ports[0].description() = "Second commit";
+    session.setCommandLine(
+        "config interface eth1/1/1 description Second commit");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
@@ -251,15 +260,56 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
     EXPECT_TRUE(fs::exists(targetConfig));
     EXPECT_THAT(readFile(targetConfig), ::testing::HasSubstr("Second commit"));
 
+    // Verify metadata file was created alongside the config revision
+    fs::path targetMetadata = cliConfigDir / "agent-r3.metadata.json";
+    EXPECT_TRUE(fs::exists(targetMetadata));
+
     // Verify symlink was updated to point to r3
     EXPECT_TRUE(fs::is_symlink(systemConfigPath_));
     EXPECT_EQ(fs::read_symlink(systemConfigPath_), targetConfig);
 
-    // Verify all revisions exist
+    // Verify all revisions and their metadata files exist
     EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r1.conf"));
     EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.conf"));
     EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r3.conf"));
+    EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.metadata.json"));
+    EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r3.metadata.json"));
   }
+}
+
+// Ensure commit() works on a newly initialized session
+// This verifies that initializeSession() creates the metadata file
+TEST_F(ConfigSessionTestFixture, commitOnNewlyInitializedSession) {
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionConfig = sessionDir / "agent.conf";
+  fs::path cliConfigDir = testEtcDir_ / "coop" / "cli";
+
+  // Setup mock agent server
+  setupMockedAgentServer();
+  // No config changes were made, so reloadConfig() should not be called
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(0);
+
+  // Create a new session and immediately commit it
+  // This tests that metadata file is created during session initialization
+  TestableConfigSession session(
+      sessionConfig.string(),
+      systemConfigPath_.string(),
+      cliConfigDir.string());
+
+  // Verify metadata file was created during session initialization
+  fs::path metadataPath = sessionDir / "conf_metadata.json";
+  EXPECT_TRUE(fs::exists(metadataPath));
+
+  // Make no changes to the session. It's initialized but that's it.
+
+  // Commit should succeed, right now empty sessions still commmit a new
+  // revision (TODO: fix this so we don't create empty commits).
+  auto result = session.commit(localhost());
+  EXPECT_EQ(result.revision, 2);
+
+  // Verify metadata file was copied to revision directory
+  fs::path targetMetadata = cliConfigDir / "agent-r2.metadata.json";
+  EXPECT_TRUE(fs::exists(targetMetadata));
 }
 
 TEST_F(ConfigSessionTestFixture, multipleChangesInOneSession) {
@@ -278,16 +328,19 @@ TEST_F(ConfigSessionTestFixture, multipleChangesInOneSession) {
   auto& ports = *config.sw()->ports();
   ASSERT_FALSE(ports.empty());
   ports[0].description() = "Change 1";
+  session.setCommandLine("config interface eth1/1/1 description Change 1");
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
   EXPECT_THAT(readFile(sessionConfig), ::testing::HasSubstr("Change 1"));
 
   // Make second change
   ports[0].description() = "Change 2";
+  session.setCommandLine("config interface eth1/1/1 description Change 2");
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
   EXPECT_THAT(readFile(sessionConfig), ::testing::HasSubstr("Change 2"));
 
   // Make third change
   ports[0].description() = "Change 3";
+  session.setCommandLine("config interface eth1/1/1 description Change 3");
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
   EXPECT_THAT(readFile(sessionConfig), ::testing::HasSubstr("Change 3"));
 }
@@ -308,6 +361,8 @@ TEST_F(ConfigSessionTestFixture, sessionPersistsAcrossCommands) {
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
     ports[0].description() = "Persistent change";
+    session1.setCommandLine(
+        "config interface eth1/1/1 description Persistent change");
     session1.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
   }
@@ -361,6 +416,7 @@ TEST_F(ConfigSessionTestFixture, symlinkRollbackOnFailure) {
   auto& ports = *config.sw()->ports();
   ASSERT_FALSE(ports.empty());
   ports[0].description() = "Failed change";
+  session.setCommandLine("config interface eth1/1/1 description Failed change");
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
   // Commit should fail and rollback the symlink
@@ -405,6 +461,8 @@ TEST_F(ConfigSessionTestFixture, atomicRevisionCreation) {
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
     ports[0].description() = description;
+    session.setCommandLine(
+        "config interface eth1/1/1 description " + description);
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
@@ -447,8 +505,9 @@ TEST_F(ConfigSessionTestFixture, concurrentSessionCreationSameUser) {
   fs::path cliConfigDir = testEtcDir_ / "coop" / "cli";
 
   // Setup mock agent server
+  // Either 1 or 2 commits might succeed depending on the race
   setupMockedAgentServer();
-  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(2);
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(testing::Between(1, 2));
 
   // Test concurrent session creation and commits for the SAME user
   // This tests the race conditions in:
@@ -458,14 +517,18 @@ TEST_F(ConfigSessionTestFixture, concurrentSessionCreationSameUser) {
   // 4. atomicSymlinkUpdate() - concurrent symlink updates
   //
   // Note: When two threads share the same session file, they race to modify it.
-  // The atomic operations ensure no crashes or corruption, but both commits
-  // might have the same content if one thread's saveConfig() overwrites the
-  // other's changes. This is expected behavior - the important thing is that
-  // both commits succeed without crashes.
+  // The atomic operations ensure no crashes or corruption. However, if one
+  // thread commits and deletes the session files before the other thread
+  // calls commit(), the second thread will get "No config session exists".
+  // This is a valid race outcome - the important thing is no crashes.
   std::atomic<int> revision1{0};
   std::atomic<int> revision2{0};
+  std::atomic<bool> thread1NoSession{false};
+  std::atomic<bool> thread2NoSession{false};
 
-  auto commitTask = [&](const std::string& description, std::atomic<int>& rev) {
+  auto commitTask = [&](const std::string& description,
+                        std::atomic<int>& rev,
+                        std::atomic<bool>& noSession) {
     // Both threads use the SAME session path
     fs::path sessionDir = testHomeDir_ / ".fboss2_shared";
     fs::path sessionConfig = sessionDir / "agent.conf";
@@ -479,31 +542,63 @@ TEST_F(ConfigSessionTestFixture, concurrentSessionCreationSameUser) {
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
     ports[0].description() = description;
+    session.setCommandLine(
+        "config interface eth1/1/1 description " + description);
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
-    rev = session.commit(localhost()).revision;
+    try {
+      rev = session.commit(localhost()).revision;
+    } catch (const std::runtime_error& e) {
+      // If the other thread already committed and deleted the session files,
+      // we'll get "No config session exists" - this is a valid race outcome
+      if (folly::StringPiece(e.what()).contains("No config session exists")) {
+        noSession = true;
+      } else {
+        throw; // Re-throw unexpected errors
+      }
+    }
   };
 
-  std::thread thread1(commitTask, "First commit", std::ref(revision1));
-  std::thread thread2(commitTask, "Second commit", std::ref(revision2));
+  std::thread thread1(
+      commitTask,
+      "First commit",
+      std::ref(revision1),
+      std::ref(thread1NoSession));
+  std::thread thread2(
+      commitTask,
+      "Second commit",
+      std::ref(revision2),
+      std::ref(thread2NoSession));
 
   thread1.join();
   thread2.join();
 
-  // Both commits should succeed with different revision numbers
-  EXPECT_NE(revision1.load(), 0);
-  EXPECT_NE(revision2.load(), 0);
-  EXPECT_NE(revision1.load(), revision2.load());
+  // At least one commit should succeed
+  bool commit1Succeeded = revision1.load() != 0;
+  bool commit2Succeeded = revision2.load() != 0;
+  EXPECT_TRUE(commit1Succeeded || commit2Succeeded);
 
-  // Both should be either r2 or r3 (one gets r2, the other gets r3)
-  EXPECT_TRUE(
-      (revision1.load() == 2 && revision2.load() == 3) ||
-      (revision1.load() == 3 && revision2.load() == 2));
-
-  // Both revision files should exist
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.conf"));
-  EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r3.conf"));
+  // If both succeeded, they should have different revision numbers
+  if (commit1Succeeded && commit2Succeeded) {
+    EXPECT_NE(revision1.load(), revision2.load());
+    // Both should be either r2 or r3 (one gets r2, the other gets r3)
+    EXPECT_TRUE(
+        (revision1.load() == 2 && revision2.load() == 3) ||
+        (revision1.load() == 3 && revision2.load() == 2));
+    // Both revision files should exist
+    EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.conf"));
+    EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r3.conf"));
+  } else {
+    // One thread got "No config session exists" because the other committed
+    // first
+    EXPECT_TRUE(thread1NoSession.load() || thread2NoSession.load());
+    // The successful commit should be r2
+    int successfulRevision =
+        commit1Succeeded ? revision1.load() : revision2.load();
+    EXPECT_EQ(successfulRevision, 2);
+    EXPECT_TRUE(fs::exists(cliConfigDir / "agent-r2.conf"));
+  }
 
   // The history command would list all three revisions with their metadata
 }
@@ -732,15 +827,17 @@ TEST_F(ConfigSessionTestFixture, actionLevelPersistsToMetadataFile) {
   fs::path sessionConfig = sessionDir / "agent.conf";
   fs::path metadataFile = sessionDir / "conf_metadata.json";
 
-  // Create a ConfigSession and set action level
+  // Create a ConfigSession and set action level via saveConfig
   {
     TestableConfigSession session(
         sessionConfig.string(),
         systemConfigPath_.string(),
         (testEtcDir_ / "coop" / "cli").string());
 
-    // Set to AGENT_WARMBOOT
-    session.updateRequiredAction(
+    // Load the config (required before saveConfig)
+    session.getAgentConfig();
+    session.setCommandLine("config interface eth1/1/1 description Test");
+    session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
   }
 
@@ -789,14 +886,17 @@ TEST_F(ConfigSessionTestFixture, actionLevelPersistsAcrossSessions) {
   fs::path sessionDir = testHomeDir_ / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
 
-  // First session: set action level
+  // First session: set action level via saveConfig
   {
     TestableConfigSession session1(
         sessionConfig.string(),
         systemConfigPath_.string(),
         (testEtcDir_ / "coop" / "cli").string());
 
-    session1.updateRequiredAction(
+    // Load the config (required before saveConfig)
+    session1.getAgentConfig();
+    session1.setCommandLine("config interface eth1/1/1 description Test");
+    session1.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
   }
 
@@ -811,6 +911,185 @@ TEST_F(ConfigSessionTestFixture, actionLevelPersistsAcrossSessions) {
         session2.getRequiredAction(cli::ServiceType::AGENT),
         cli::ConfigActionLevel::AGENT_WARMBOOT);
   }
+}
+
+TEST_F(ConfigSessionTestFixture, commandTrackingBasic) {
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionConfig = sessionDir / "agent.conf";
+  fs::path metadataFile = sessionDir / "conf_metadata.json";
+
+  // Create a ConfigSession, execute command, and verify persistence
+  {
+    TestableConfigSession session(
+        sessionConfig.string(),
+        systemConfigPath_.string(),
+        (testEtcDir_ / "coop" / "cli").string());
+
+    // Initially, no commands should be recorded
+    EXPECT_TRUE(session.getCommands().empty());
+
+    // Simulate a command and save config
+    session.setCommandLine("config interface eth1/1/1 description Test change");
+    auto& config = session.getAgentConfig();
+    auto& ports = *config.sw()->ports();
+    ASSERT_FALSE(ports.empty());
+    ports[0].description() = "Test change";
+    session.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+
+    // Verify command was recorded in memory
+    EXPECT_EQ(1, session.getCommands().size());
+    EXPECT_EQ(
+        "config interface eth1/1/1 description Test change",
+        session.getCommands()[0]);
+  }
+
+  // Verify metadata file exists and has commands persisted
+  EXPECT_TRUE(fs::exists(metadataFile));
+  std::string content = readFile(metadataFile);
+
+  // Parse the JSON and verify structure
+  folly::dynamic json = folly::parseJson(content);
+  EXPECT_TRUE(json.isObject());
+  EXPECT_TRUE(json.count("commands"));
+  EXPECT_TRUE(json["commands"].isArray());
+  EXPECT_EQ(1, json["commands"].size());
+  EXPECT_EQ(
+      "config interface eth1/1/1 description Test change",
+      json["commands"][0].asString());
+}
+
+TEST_F(ConfigSessionTestFixture, commandTrackingMultipleCommands) {
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionConfig = sessionDir / "agent.conf";
+
+  // Create a ConfigSession
+  TestableConfigSession session(
+      sessionConfig.string(),
+      systemConfigPath_.string(),
+      (testEtcDir_ / "coop" / "cli").string());
+
+  // Execute multiple commands
+  auto& config = session.getAgentConfig();
+  auto& ports = *config.sw()->ports();
+  ASSERT_FALSE(ports.empty());
+
+  session.setCommandLine("config interface eth1/1/1 mtu 9000");
+  ports[0].description() = "First change";
+  session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+
+  session.setCommandLine("config interface eth1/1/1 description Test");
+  ports[0].description() = "Second change";
+  session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+
+  session.setCommandLine("config interface eth1/1/1 speed 100G");
+  ports[0].description() = "Third change";
+  session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+
+  // Verify all commands were recorded in order
+  EXPECT_EQ(3, session.getCommands().size());
+  EXPECT_EQ("config interface eth1/1/1 mtu 9000", session.getCommands()[0]);
+  EXPECT_EQ(
+      "config interface eth1/1/1 description Test", session.getCommands()[1]);
+  EXPECT_EQ("config interface eth1/1/1 speed 100G", session.getCommands()[2]);
+}
+
+TEST_F(ConfigSessionTestFixture, commandTrackingPersistsAcrossSessions) {
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionConfig = sessionDir / "agent.conf";
+
+  // First session: execute some commands
+  {
+    TestableConfigSession session1(
+        sessionConfig.string(),
+        systemConfigPath_.string(),
+        (testEtcDir_ / "coop" / "cli").string());
+
+    auto& config = session1.getAgentConfig();
+    auto& ports = *config.sw()->ports();
+    ASSERT_FALSE(ports.empty());
+
+    session1.setCommandLine("config interface eth1/1/1 mtu 9000");
+    ports[0].description() = "First change";
+    session1.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+
+    session1.setCommandLine("config interface eth1/1/1 description Test");
+    ports[0].description() = "Second change";
+    session1.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+  }
+
+  // Second session: verify commands were persisted
+  {
+    TestableConfigSession session2(
+        sessionConfig.string(),
+        systemConfigPath_.string(),
+        (testEtcDir_ / "coop" / "cli").string());
+
+    EXPECT_EQ(2, session2.getCommands().size());
+    EXPECT_EQ("config interface eth1/1/1 mtu 9000", session2.getCommands()[0]);
+    EXPECT_EQ(
+        "config interface eth1/1/1 description Test",
+        session2.getCommands()[1]);
+  }
+}
+
+TEST_F(ConfigSessionTestFixture, commandTrackingClearedOnReset) {
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionConfig = sessionDir / "agent.conf";
+
+  // Create a ConfigSession and add some commands
+  TestableConfigSession session(
+      sessionConfig.string(),
+      systemConfigPath_.string(),
+      (testEtcDir_ / "coop" / "cli").string());
+
+  auto& config = session.getAgentConfig();
+  auto& ports = *config.sw()->ports();
+  ASSERT_FALSE(ports.empty());
+
+  session.setCommandLine("config interface eth1/1/1 mtu 9000");
+  ports[0].description() = "Test change";
+  session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+
+  EXPECT_EQ(1, session.getCommands().size());
+
+  // Reset the action level (which also clears commands)
+  session.resetRequiredAction(cli::ServiceType::AGENT);
+
+  // Verify commands were cleared
+  EXPECT_TRUE(session.getCommands().empty());
+}
+
+TEST_F(ConfigSessionTestFixture, commandTrackingLoadsFromMetadataFile) {
+  fs::path sessionDir = testHomeDir_ / ".fboss2";
+  fs::path sessionConfig = sessionDir / "agent.conf";
+  fs::path metadataFile = sessionDir / "conf_metadata.json";
+
+  // Create session directory and metadata file manually
+  fs::create_directories(sessionDir);
+  std::ofstream metaFile(metadataFile);
+  metaFile << R"({
+    "action": {"AGENT": "HITLESS"},
+    "commands": ["cmd1", "cmd2", "cmd3"]
+  })";
+  metaFile.close();
+
+  // Also create the session config file
+  fs::copy_file(systemConfigPath_, sessionConfig);
+
+  // Create a ConfigSession - should load commands from metadata file
+  TestableConfigSession session(
+      sessionConfig.string(),
+      systemConfigPath_.string(),
+      (testEtcDir_ / "coop" / "cli").string());
+
+  // Verify commands were loaded
+  EXPECT_EQ(3, session.getCommands().size());
+  EXPECT_EQ("cmd1", session.getCommands()[0]);
+  EXPECT_EQ("cmd2", session.getCommands()[1]);
+  EXPECT_EQ("cmd3", session.getCommands()[2]);
 }
 
 } // namespace facebook::fboss
