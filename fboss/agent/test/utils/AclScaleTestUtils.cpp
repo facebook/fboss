@@ -28,7 +28,8 @@ uint32_t getMaxAclEntries(const std::vector<const HwAsic*>& asics) {
   auto asic = checkSameAndGetAsic(asics);
   auto maxAclEntries = asic->getMaxAclEntries();
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
-      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5 ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
     return 16;
   }
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
