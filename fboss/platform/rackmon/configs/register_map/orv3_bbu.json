@@ -435,49 +435,56 @@
             "length": 1,
             "keep": 10,
             "format": "INTEGER",
-            "name": "Temp1"
+            "name": "Temp1",
+            "unit": "Celsius"
         },
         {
             "begin": 123,
             "length": 1,
             "keep": 10,
             "format": "INTEGER",
-            "name": "Temp2"
+            "name": "Temp2",
+            "unit": "Celsius"
         },
         {
             "begin": 124,
             "length": 1,
             "keep": 10,
             "format": "INTEGER",
-            "name": "Temp3"
+            "name": "Temp3",
+            "unit": "Celsius"
         },
         {
             "begin": 125,
             "length": 1,
             "keep": 10,
             "format": "INTEGER",
-            "name": "Temp4"
+            "name": "Temp4",
+            "unit": "Celsius"
         },
         {
             "begin": 126,
             "length": 1,
             "keep": 10,
             "format": "INTEGER",
-            "name": "Relative_State_Of_Charge"
+            "name": "Relative_State_Of_Charge",
+            "unit": "Percent"
         },
         {
             "begin": 127,
             "length": 1,
             "keep": 10,
             "format": "INTEGER",
-            "name": "Absolute_State_Of_Charge"
+            "name": "Absolute_State_Of_Charge",
+            "unit": "Percent"
         },
         {
             "begin": 128,
             "length": 1,
             "keep": 10,
             "format": "INTEGER",
-            "name": "Battery_Voltage"
+            "name": "Battery_Voltage",
+            "unit": "Volt"
         },
         {
             "begin": 129,
@@ -485,7 +492,8 @@
             "keep": 10,
             "format": "INTEGER",
             "sign": true,
-            "name": "Battery_Current"
+            "name": "Battery_Current",
+            "unit": "Ampere"
         },
         {
             "begin": 130,
@@ -493,21 +501,24 @@
             "keep": 10,
             "format": "INTEGER",
             "sign": true,
-            "name": "Average_Current"
+            "name": "Average_Current",
+            "unit": "Ampere"
         },
         {
             "begin": 131,
             "length": 1,
             "keep": 10,
             "format": "INTEGER",
-            "name": "Remaining_Capacity"
+            "name": "Remaining_Capacity",
+            "unit": "milliAmpereHour"
         },
         {
             "begin": 132,
             "length": 1,
             "keep": 10,
             "format": "INTEGER",
-            "name": "Full_Charge_Capacity"
+            "name": "Full_Charge_Capacity",
+            "unit": "milliAmpereHour"
         },
         {
             "begin": 133,
@@ -1160,7 +1171,8 @@
             "begin": 291,
             "length": 1,
             "format": "INTEGER",
-            "name": "Variable_Charge_Override_Current"
+            "name": "Variable_Charge_Override_Current",
+            "unit": "Ampere"
         },
         {
             "begin": 292,
@@ -1208,7 +1220,8 @@
             "begin": 300,
             "length": 2,
             "format": "INTEGER",
-            "name": "Variable_Charge_Override_Timeout"
+            "name": "Variable_Charge_Override_Timeout",
+            "unit": "Second"
         },
         {
             "begin": 302,
