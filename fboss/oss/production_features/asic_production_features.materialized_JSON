@@ -85,7 +85,8 @@
         69,
         72,
         79,
-        86
+        86,
+        68
     ],
     "jericho3": [
         2,
@@ -559,7 +560,8 @@
         "PTP_TC",
         "MODIFY_ACL_QUALIFIERS",
         "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
-        "CLASS_ID_FOR_NEIGHBOR"
+        "CLASS_ID_FOR_NEIGHBOR",
+        "MPLS"
     ],
     "jericho3": [
         "CPU_RX_TX",
