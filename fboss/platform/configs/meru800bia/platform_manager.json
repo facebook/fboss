@@ -239,13 +239,13 @@
         {
           "busName": "SMB_I2C_MASTER_0@0",
           "address": "0x54",
-          "kernelDeviceName": "isl68226",
+          "kernelDeviceName": "bp4a_isl68226",
           "pmUnitScopedName": "SMB_ISL68226_J3"
         },
         {
           "busName": "SMB_I2C_MASTER_0@0",
           "address": "0x55",
-          "kernelDeviceName": "isl68226",
+          "kernelDeviceName": "bp4a_isl68226",
           "pmUnitScopedName": "SMB_ISL68226_OPTICS"
         },
         {
