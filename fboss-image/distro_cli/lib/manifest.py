@@ -56,6 +56,12 @@ class ImageManifest:
         """Check if component is present in manifest."""
         return component in self.data
 
+    def get_component(self, component: str) -> dict | None:
+        """Return component data in manifest."""
+        if component not in self.data:
+            return None
+        return self.data[component]
+
     def resolve_path(self, path: str) -> Path:
         """Resolve a path relative to the manifest file."""
         if path.startswith("http://") or path.startswith("https://"):

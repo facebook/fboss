@@ -533,8 +533,8 @@ size_t pumpRoCETraffic(
     uint8_t reserved,
     const std::optional<std::vector<uint8_t>>& nxtHdr,
     bool sameDstQueue) {
-  auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "100.0.0.1");
-  auto dstIp = folly::IPAddress(isV6 ? "2001::1" : "200.0.0.1");
+  auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "100.10.0.1");
+  auto dstIp = folly::IPAddress(isV6 ? "2001::1" : "200.10.0.1");
 
   return pumpRoCETraffic(
       isV6,
@@ -664,13 +664,13 @@ size_t pumpTraffic(
   for (auto i = 0; i < int(std::sqrt(numPackets)); ++i) {
     auto srcIp = folly::IPAddress(
         folly::sformat(
-            isV6 ? "1001::{}:{}" : "100.0.{}.{}",
+            isV6 ? "1001::{}:{}" : "100.10.{}.{}",
             (i + 1) / 256,
             (i + 1) % 256));
     for (auto j = 0; j < int(numPackets / std::sqrt(numPackets)); ++j) {
       auto dstIp = folly::IPAddress(
           folly::sformat(
-              isV6 ? "2001::{}:{}" : "201.0.{}.{}",
+              isV6 ? "2001::{}:{}" : "201.10.{}.{}",
               (j + 1) / 256,
               (j + 1) % 256));
       auto pkt = makeUDPTxPacket(
@@ -782,11 +782,11 @@ void pumpDeterministicRandomTraffic(
   for (auto i = 0; i < 1000; ++i) {
     auto srcIp = isV6
         ? folly::IPAddress(folly::sformat("1001::{}", intToHex(srcV6())))
-        : folly::IPAddress(folly::sformat("100.0.0.{}", srcV4()));
+        : folly::IPAddress(folly::sformat("100.10.0.{}", srcV4()));
     for (auto j = 0; j < 100; ++j) {
       auto dstIp = isV6
           ? folly::IPAddress(folly::sformat("2001::{}", intToHex(dstV6())))
-          : folly::IPAddress(folly::sformat("200.0.0.{}", dstV4()));
+          : folly::IPAddress(folly::sformat("200.10.0.{}", dstV4()));
 
       auto pkt = makeUDPTxPacket(
           allocateFn,
@@ -829,10 +829,10 @@ void pumpMplsTraffic(
   std::unique_ptr<TxPacket> pkt;
   for (auto i = 0; i < 100; ++i) {
     auto srcIp = folly::IPAddress(
-        folly::sformat(isV6 ? "1001::{}" : "100.0.0.{}", i + 1));
+        folly::sformat(isV6 ? "1001::{}" : "100.10.0.{}", i + 1));
     for (auto j = 0; j < 100; ++j) {
       auto dstIp = folly::IPAddress(
-          folly::sformat(isV6 ? "2001::{}" : "200.0.0.{}", j + 1));
+          folly::sformat(isV6 ? "2001::{}" : "200.10.0.{}", j + 1));
 
       auto frame = isV6 ? utility::getEthFrame(
                               intfMac,

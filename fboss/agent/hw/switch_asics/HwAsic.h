@@ -383,6 +383,7 @@ class HwAsic {
     SAI_FEC_CORRECTED_BITS,
     SAI_FEC_CODEWORDS_STATS,
     LINK_INACTIVE_BASED_ISOLATE,
+    SWITCH_ISOLATE,
     SAI_PORT_SERDES_PROGRAMMING,
     RX_SNR,
     MANAGEMENT_PORT,
@@ -390,6 +391,7 @@ class HwAsic {
     PORT_WRED_COUNTER,
     PORT_SERDES_ZERO_PREEMPHASIS,
     EGRESS_FORWARDING_DROP_COUNTER,
+    SWITCH_DROP_DEBUG_COUNTER,
     SAI_PRBS,
     RCI_WATERMARK_COUNTER,
     DTL_WATERMARK_COUNTER,
@@ -466,6 +468,9 @@ class HwAsic {
     SAI_SERDES_RX_REACH,
     ECN_PROBABILISTIC_MARKING,
     SAI_SERDES_PRECODING,
+    // Feature for platforms that can create wide DLB groups and
+    // also increase DLB table scale by combining multiple DLBs
+    VIRTUAL_ARS_GROUP,
   };
 
   enum class AsicMode {
@@ -615,6 +620,9 @@ class HwAsic {
 
   virtual std::optional<uint32_t> getMaxArsGroups() const = 0;
   virtual std::optional<uint32_t> getArsBaseIndex() const = 0;
+  virtual std::optional<uint32_t> getMaxArsWidth() const {
+    return std::nullopt;
+  }
   // TODO(zecheng): Define more specific limits for v4/v6 routes with different
   // mask lengths
   virtual std::optional<uint32_t> getMaxRoutes() const {

@@ -561,6 +561,15 @@ SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
+    AttributeCablePropagationDelayMediaType::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  return SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE;
+#else
+  return std::nullopt;
+#endif
+}
+
 const std::vector<sai_stat_id_t>&
 SaiPortTraits::macTxDataQueueMinWatermarkStats() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)

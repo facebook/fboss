@@ -1194,6 +1194,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
           case cfg::AsicType::ASIC_TYPE_RAMON:
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+          case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
           case cfg::AsicType::ASIC_TYPE_YUBA:
           case cfg::AsicType::ASIC_TYPE_G202X:
           case cfg::AsicType::ASIC_TYPE_RAMON3:
@@ -2944,6 +2945,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->amIdles().value_or(false) ==
           orig->getAmIdles().value_or(false) &&
       portConf->amIdles().has_value() == orig->getAmIdles().has_value() &&
+      portConf->clmEnable().value_or(false) ==
+          orig->getClmEnable().value_or(false) &&
+      portConf->clmEnable().has_value() == orig->getClmEnable().has_value() &&
       newFabricLinkMonSwitchId == orig->getPortSwitchId()) {
     return nullptr;
   }
@@ -3030,6 +3034,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setAmIdles(portConf->amIdles().value());
   } else {
     newPort->setAmIdles(std::nullopt);
+  }
+  if (portConf->clmEnable().has_value()) {
+    newPort->setClmEnable(portConf->clmEnable().value());
+  } else {
+    newPort->setClmEnable(std::nullopt);
   }
   return newPort;
 }
@@ -4785,6 +4794,10 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
   if (config.alternatePathBias()) {
     newFlowletSwitchingConfig->setAlternatePathBias(
         *config.alternatePathBias());
+  }
+  if (config.minWidthForArsVirtualGroup()) {
+    newFlowletSwitchingConfig->setMinWidthForArsVirtualGroup(
+        *config.minWidthForArsVirtualGroup());
   }
   return newFlowletSwitchingConfig;
 }

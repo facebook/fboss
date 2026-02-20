@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 //
 #include "fboss/agent/EcmpResourceManager.h"
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchFullScaleDsfTests.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
@@ -170,6 +171,41 @@ TEST_F(AgentVoqSwitchEcmpCompressionTest, addRemoveMaxScaleRoutes) {
     assertCorrectness();
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(
+    AgentVoqSwitchEcmpCompressionTest,
+    addMaxScaleRoutesOverEcmpLimitAndRollback) {
+  auto verify = [this]() {
+    std::vector<RoutePrefixV6> prefixes;
+    std::vector<boost::container::flat_set<PortDescriptor>> nhops;
+    for (auto i = numStartRoutes(); i < maxRoutes(); ++i) {
+      prefixes.emplace_back(makePrefix(i));
+      nhops.emplace_back(getNextHops(i));
+    }
+    // 30 routes added for compression which will create a vector of size 31
+    // rollback in the middle
+    StateDeltaApplication deltaApplication;
+    deltaApplication.mode() = DeltaApplicationMode::ROLLBACK_AT_INDEX;
+    deltaApplication.rollbackIndex() =
+        static_cast<int>((maxRoutes() - numStartRoutes()) / 2);
+    EXPECT_THROW(
+        ({
+          auto routeUpdater = std::make_unique<SwSwitchRouteUpdateWrapper>(
+              getSw(), getSw()->getRib(), deltaApplication);
+          utility::EcmpSetupTargetedPorts6 ecmpHelper(
+              getProgrammedState(), getSw()->needL2EntryForNeighbor());
+          ecmpHelper.programRoutes(routeUpdater.get(), nhops, prefixes);
+        }),
+        FbossHwUpdateError);
+
+    auto resourceMgr = ecmpResourceManager();
+    auto mergedGids = resourceMgr->getMergedGids();
+    EXPECT_EQ(mergedGids.size(), 0);
+    assertNumRoutesWithNhopOverrides(getProgrammedState(), 0);
+    assertCorrectness();
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 
 } // namespace facebook::fboss

@@ -52,6 +52,13 @@ class HwSwitchCallback {
       bool fwIsolated,
       const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate) = 0;
 
+  /*
+   * linkAdminStateChangedByFw() is invoked by the HwSwitch whenever the
+   * firmware disables one or more ports.
+   */
+  virtual void linkAdminStateChangedByFw(
+      const std::vector<int32_t>& fwDisabledPortIds) = 0;
+
   virtual void linkConnectivityChanged(
       const std::map<PortID, multiswitch::FabricConnectivityDelta>&
           port2OldAndNewConnectivity) = 0;

@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 //
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
@@ -14,7 +15,6 @@
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/RouteTestUtils.h"
-#include "fboss/agent/test/utils/VoqTestUtils.h"
 
 using namespace facebook::fb303;
 
@@ -32,14 +32,6 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
   std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes(
       const std::map<int64_t, cfg::DsfNode>& curDsfNodes) const {
     return utility::addRemoteIntfNodeCfg(curDsfNodes, 1);
-  }
-  SwitchID getRemoteVoqSwitchId() const {
-    const auto config = getSw()->getConfig();
-    const auto dsfNodes = config.dsfNodes();
-    // We added remote switch Id at the end
-    const auto& [switchId, remoteNode] = *dsfNodes->crbegin();
-    CHECK(*remoteNode.type() == cfg::DsfNodeType::INTERFACE_NODE);
-    return SwitchID(switchId);
   }
 
  protected:
@@ -67,8 +59,9 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
         int totalVoqResourceExhaustionDrops = 0;
         for (const auto& switchIndex : switchIndices) {
           auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
-          const auto& voqExhaustionDrop =
-              switchStats.switchDropStats()->voqResourceExhaustionDrops();
+          const auto voqExhaustionDrop = std::as_const(switchStats)
+                                             .switchDropStats()
+                                             ->voqResourceExhaustionDrops();
           CHECK(voqExhaustionDrop.has_value());
           XLOG(INFO) << " Voq resource exhaustion drops for switchIndex "
                      << switchIndex << " : " << *voqExhaustionDrop;
@@ -768,7 +761,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToRemoteNeighbor) {
   };
 
   auto setup = [&, this]() {
-    auto remoteSwitchID = getRemoteVoqSwitchId();
+    auto remoteSwitchID = utility::getRemoteVoqSwitchId(getSw());
     addRemoteSysPortAndIntf(getSw(), remoteSwitchID);
 
     utility::EcmpSetupTargetedPorts6 ecmpHelper(

@@ -8,6 +8,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/MultiPortTrafficTestUtils.h"
@@ -236,10 +237,10 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
             vlanId,
             srcMac,
             intfMac,
-            folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+            folly::IPAddressV6(kTestSrcIpV6),
             dstIpv6Addr,
-            8001,
-            8000,
+            kTestDstPort,
+            kTestSrcPort,
             /*
              * Trailing 2 bits are for ECN, we do not want drops in
              * these queues due to WRED thresholds!
@@ -379,7 +380,8 @@ class AgentPacketSendReceiveLagTest : public AgentPacketSendReceiveTest {
         masterLogicalPortIds[0],
         masterLogicalPortIds[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, l3Asics, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, l3Asics, ensemble.isSai());
 

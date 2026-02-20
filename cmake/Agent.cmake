@@ -163,6 +163,7 @@ target_link_libraries(utils
   meru800bfa_platform_mapping
   janga800bic_platform_mapping
   blackwolf800banw_platform_mapping
+  icecube800banw_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
   tahansb800bc_platform_mapping
@@ -335,7 +336,6 @@ add_library(core
   fboss/agent/TunIntf.cpp
   fboss/agent/TunManager.cpp
   fboss/agent/ndp/IPv6RouteAdvertiser.cpp
-  fboss/agent/oss/HwSwitch.cpp
   fboss/agent/oss/PacketLogger.cpp
   fboss/agent/oss/RouteUpdateLogger.cpp
   fboss/agent/oss/SwSwitch.cpp
@@ -430,6 +430,7 @@ set(core_libs
   dsfnode_utils
   hw_switch_thrift_client_table
   file_based_warmboot_utils
+  validate_state_update
 )
 
 target_link_libraries(core ${core_libs})
@@ -522,7 +523,6 @@ target_link_libraries(platform_base
 add_library(hw_switch
   fboss/agent/HwSwitch.cpp
   fboss/agent/HwSwitchRouteUpdateWrapper.cpp
-  fboss/agent/oss/HwSwitch.cpp
 )
 
 target_link_libraries(hw_switch
@@ -607,6 +607,7 @@ target_link_libraries(switchid_scope_resolver
   hwswitch_matcher
   state
   switchinfo_utils
+  Folly::folly
 )
 
 add_library(hwagent
@@ -876,4 +877,15 @@ target_link_libraries(test_utils
   load_agent_config
   common_file_utils
   Folly::folly
+)
+
+
+add_library(validate_state_update
+  fboss/agent/ValidateStateUpdate.cpp
+)
+
+target_link_libraries(validate_state_update
+  state
+  fboss_error
+  switchid_scope_resolver
 )

@@ -22,6 +22,10 @@ std::string getBuildVersion() {
   return "Not implemented";
 }
 
+std::string getBuildSummary() {
+  return "Not implemented";
+}
+
 void runThriftService(
     std::shared_ptr<apache::thrift::ThriftServer> server,
     std::shared_ptr<apache::thrift::ServerInterface> handler,
@@ -39,10 +43,4 @@ void runThriftService(
   server->serve();
 }
 
-folly::Function<void(apache::thrift::ThriftServer&)>
-createTestThriftServerConfig() {
-  return [](apache::thrift::ThriftServer& server) {
-    facebook::fboss::ThriftServiceUtils::setPreferredEventBaseBackend(server);
-  };
-}
 } // namespace facebook::fboss::platform::helpers

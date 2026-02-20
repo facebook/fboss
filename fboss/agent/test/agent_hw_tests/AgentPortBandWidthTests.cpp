@@ -7,6 +7,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -108,10 +109,10 @@ class AgentPortBandwidthTest : public AgentHwTest {
         vlanId,
         srcMac,
         dstMac(),
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+        folly::IPAddressV6(kTestSrcIpV6),
         kDestIp(),
-        8000,
-        8001,
+        kTestSrcPort,
+        kTestDstPort,
         static_cast<uint8_t>(dscpVal << 2),
         255 /* Hop limit */,
         payload);
@@ -135,7 +136,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
   }
 
   folly::IPAddressV6 kDestIp() const {
-    return folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
+    return folly::IPAddressV6(kTestDstIpV6);
   }
 
   uint32_t kMinPps() const {

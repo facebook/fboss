@@ -306,6 +306,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosTcAndColorToDot1pMap
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
+      std::nullopt, // CablePropagationDelayMediaType
   };
 }
 

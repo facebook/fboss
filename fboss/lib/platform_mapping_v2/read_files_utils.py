@@ -313,9 +313,12 @@ def read_si_settings(
             cable_length = float(row[Column.MEDIA_TYPE])
 
         # Add optics settings if present in the csv file.
+        driver_peaking = None
         tcvr_setting = None
         tcvr_vendor = row[Column.TCVR_VENDOR]
         if tcvr_vendor:
+            # if the vendor is specified, we need to check the part number and
+            # the driver peaking values that they are specified
             tcvr_part_num = row[Column.TCVR_PART_NUM]
             if not tcvr_part_num:
                 raise Exception(
@@ -325,6 +328,12 @@ def read_si_settings(
             vendor = Vendor(
                 name=str(row[Column.TCVR_VENDOR]), partNumber=str(tcvr_part_num)
             )
+            driver_peaking = int(row[Column.DRIVER_PEAKING])
+            if driver_peaking is None:
+                raise Exception(
+                    "Invalid driver peaking value not populated ",
+                    row[Column.DRIVER_PEAKING],
+                )
             tcvr_setting = TransceiverOverrideSetting(vendor=vendor)
         si_setting_factor = SiSettingFactor(
             # pyre-fixme[6]: Expected `Optional[PortSpeed]` for 1st param but got `Optional[int]`.
@@ -543,6 +552,7 @@ def read_si_settings(
                 rx_setting=rx_setting,
                 custom_tx_collection=tx_custom_collection or None,
                 custom_rx_collection=rx_custom_collection or None,
+                driver_peaking=driver_peaking,
             )
         )
 

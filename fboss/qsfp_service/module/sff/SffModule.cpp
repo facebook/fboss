@@ -1518,7 +1518,8 @@ bool SffModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
        (portState.startHostLane == 0) && portState.numHostLanes == 4);
 }
 
-void SffModule::customizeTransceiverLocked(TransceiverPortState& portState) {
+void SffModule::customizeTransceiverLocked(
+    const TransceiverPortState& portState) {
   auto speed = portState.speed;
   QSFP_LOG(INFO, this) << folly::sformat(
       "customizeTransceiverLocked: PortName {}, Speed {}, StartHostLane {}, numHostLanes {}",

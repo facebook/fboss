@@ -3,6 +3,7 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/target_determinator/macros:ci.bzl", "ci")
 load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
 load("//fboss/agent:sai.bzl", "sai_main_all")
 load("//fboss/thriftpath_plugin/facebook:thriftpath_plugin.bzl", "thrift_plugin_thriftpath")
@@ -286,6 +287,7 @@ cpp_library(
         "//common/services/cpp:thrift_acl_checker_module_config",
         "//common/services/cpp:thrift_aclchecker_handler_factory",
         "//common/services/cpp:tls",
+        "//common/thrift/cpp/server:profiling_connection_handler",
         "//fb303:export_type",
         "//fb303:service_data",
         "//fboss/lib:thrift_method_rate_limit",
@@ -990,6 +992,7 @@ cpp_library(
         ":switchinfo_utils",
         ":tx_packet_utils",
         ":utils",
+        ":validate_state_update",
         ":voq_utils",
         "//common/fbwhoami:fb_who_am_i",
         "//common/network:util",
@@ -1004,6 +1007,7 @@ cpp_library(
         "//fboss/agent/hw:hw_cpu_fb303_stats",
         "//fboss/agent/hw:hw_switch_fb303_stats",
         "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/if:hw_ctrl-cpp2-services",
@@ -1043,6 +1047,7 @@ cpp_library(
         "//fboss/lib:hw_write_behavior",
         "//fboss/lib:radix_tree",
         "//fboss/lib:thread_heartbeat",
+        "//fboss/lib:thrift_service_utils",
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/lib/link_snapshots:async_filewriter_factory",
         "//fboss/lib/phy:phy-cpp2-types",
@@ -1296,7 +1301,6 @@ cpp_library(
     srcs = [
         "HwSwitch.cpp",
         "HwSwitchRouteUpdateWrapper.cpp",
-        "facebook/HwSwitch.cpp",
     ],
     exported_deps = [
         "fbsource//third-party/re2:re2",
@@ -1324,6 +1328,7 @@ cpp_library(
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
+        "//fboss/agent/state:state_utils",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:hw_write_behavior",
         "//folly:file_util",
@@ -1455,6 +1460,8 @@ cpp_library(
         ":hwswitch_matcher",
         ":switchinfo_utils",
         "//fboss/agent/state:state",
+        "//folly:string",
+        "//folly/logging:logging",
     ],
     exported_external_deps = [
         ("boost", None, "boost_container"),
@@ -1496,6 +1503,7 @@ cpp_library(
         ":load_agent_config",
         ":switch_config-cpp2-types",
         ":utils",
+        "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:multiswitch_ctrl-cpp2-services",
         "//fboss/agent/state:state",
         "//fboss/lib:hw_write_behavior",
@@ -1851,7 +1859,6 @@ cpp_library(
     ],
     exported_deps = [
         ":agent_dir_util",
-        ":agent_features",
         ":hw_asic_table",
         ":switch_state-cpp2-types",
         "//fboss/agent/rib:standalone_rib",
@@ -2115,6 +2122,10 @@ ci_sandcastle(
     ],
     command = "SandcastleUniversalCommand",
     oncall = "fboss_agent",
+    schedules = [
+        ci.diff,
+        ci.continuous,
+    ],
 )
 
 cpp_library(
@@ -2132,6 +2143,21 @@ cpp_library(
         "//folly:synchronized",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "validate_state_update",
+    srcs = [
+        "ValidateStateUpdate.cpp",
+    ],
+    exported_deps = [
+        ":fboss-error",
+        ":fboss-types",
+        ":switchid_scope_resolver",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/state:nodebase",
+        "//fboss/agent/state:state",
     ],
 )
 

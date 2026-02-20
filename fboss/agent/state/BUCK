@@ -19,6 +19,7 @@ cpp_library(
         "NodeMapIterator.h",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         "//fboss/agent:constants",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
@@ -27,7 +28,6 @@ cpp_library(
     ],
     exported_external_deps = [
         "boost",
-        "glog",
         ("boost", None, "boost_container"),
     ],
 )
@@ -131,6 +131,7 @@ cpp_library(
     ],
     propagated_pp_flags = ["-DENABLE_DYNAMIC_APIS"],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         ":label_forwarding_action",
         ":nodebase",
         "//common/network/if:if-cpp2-types",
@@ -171,7 +172,6 @@ cpp_library(
     ],
     exported_external_deps = [
         "gflags",
-        "glog",
         ("boost", None, "boost_container"),
     ],
 )
@@ -217,6 +217,7 @@ cpp_library(
         "StateUpdateHelpers.h",
     ],
     exported_deps = [
+        "//fboss/agent/if:common-cpp2-types",
         "//folly:fbstring",
         "//folly:intrusive_list",
         "//folly:range",

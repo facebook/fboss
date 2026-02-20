@@ -40,7 +40,7 @@ namespace facebook::fboss {
 
 struct ConcurrentIndices;
 class SaiStore;
-
+class FineGrainedLockPolicy;
 /*
  * This is equivalent to sai_fdb_event_notification_data_t. Copy only the
  * necessary FDB event attributes from sai_fdb_event_notification_data_t.
@@ -96,7 +96,9 @@ class SaiSwitch : public HwSwitch {
   }
 
   std::shared_ptr<SwitchState> stateChangedImpl(
-      const std::vector<StateDelta>& deltas) override;
+      const std::vector<StateDelta>& deltas,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior)
+      override;
 
   bool isValidStateUpdate(const StateDelta& delta) const override;
 
@@ -182,9 +184,13 @@ class SaiSwitch : public HwSwitch {
       sai_size_t buffer_size,
       const void* buffer,
       uint32_t event_type);
-  void pfcDeadlockNotificationCallback(
+  void pfcDeadlockNotificationCallbackTopHalf(
       uint32_t count,
       const sai_queue_deadlock_notification_data_t* data);
+  void pfcDeadlockNotificationCallbackBottomHalf(
+      uint32_t count,
+      const sai_queue_deadlock_notification_data_t* data);
+
   void vendorSwitchEventNotificationCallback(
       sai_size_t bufferSize,
       const void* buffer,
@@ -219,7 +225,7 @@ class SaiSwitch : public HwSwitch {
   SaiManagerTable* managerTable();
 
   bool getRollbackInProgress_() {
-    return rollbackInProgress_;
+    return getSwitchRunState() == SwitchRunState::ROLLBACK;
   }
 
   /*
@@ -304,14 +310,19 @@ class SaiSwitch : public HwSwitch {
       const StateDelta& delta,
       const LockPolicyT& lk);
   void preRollback(const StateDelta& delta) noexcept override;
+  void rollbackPartialRoutes(const StateDelta& delta) noexcept override;
   void rollback(const std::vector<StateDelta>& deltas) noexcept override;
   std::string listObjectsLocked(
       const std::vector<sai_object_type_t>& objects,
       bool cached,
-      const std::lock_guard<std::mutex>& lock) const;
+      const FineGrainedLockPolicy& policy) const;
+  std::string listCachedObjectsLocked(
+      const std::vector<sai_object_type_t>& objects,
+      const SaiStore* store,
+      const FineGrainedLockPolicy& policy) const;
   void listManagedObjectsLocked(
       std::string& output,
-      const std::lock_guard<std::mutex>& lock) const;
+      const FineGrainedLockPolicy& policy) const;
   void switchRunStateChangedImpl(SwitchRunState newState) override;
 
   TeFlowStats getTeFlowStats() const override;
@@ -471,6 +482,8 @@ class SaiSwitch : public HwSwitch {
       bool fwIsolated = false,
       const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate =
           std::nullopt);
+  void fwDisabledLinksCallbackBottomHalf(
+      const std::vector<int32_t>& fwDisabledPortIds);
 
   void setSwitchReachabilityChangePending();
   std::map<SwitchID, std::set<PortID>> getSwitchReachabilityChange();
@@ -694,6 +707,18 @@ class SaiSwitch : public HwSwitch {
       std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction);
   void setPortOwnershipToAdapter();
 
+  template <typename LockPolicyT, typename AddrT>
+  void processRemovedRoutesDelta(
+      const RouterID& routerID,
+      const auto& routesDelta,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT, typename AddrT>
+  void processChangedAndAddedRoutesDelta(
+      const RouterID& routerID,
+      const auto& routesDelta,
+      const LockPolicyT& lockPolicy);
+
   bool processVlanUntaggedPackets() const;
 
   /* reconstruction state apis */
@@ -735,7 +760,6 @@ class SaiSwitch : public HwSwitch {
   std::unique_ptr<SaiStore> saiStore_;
   std::unique_ptr<SaiManagerTable> managerTable_;
   std::atomic<BootType> bootType_{BootType::UNINITIALIZED};
-  bool rollbackInProgress_{false};
   Callback* callback_{nullptr};
 
   SwitchSaiId saiSwitchId_;
@@ -758,6 +782,9 @@ class SaiSwitch : public HwSwitch {
   FbossEventBase switchAsicSdkHealthNotificationBHEventBase_{
       "SwitchAsicSdkHealthNotificationEventBase"};
 #endif
+  std::unique_ptr<std::thread> pfcDeadlockNotificationBottomHalfThread_;
+  FbossEventBase pfcDeadlockNotificationBottomHalfEventBase_{
+      "PfcDeadlockNotificationBottomHalfEventBase"};
 
   HwResourceStats hwResourceStats_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};

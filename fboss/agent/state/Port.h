@@ -867,6 +867,23 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  /** @brief Get Cable Length Measurement (CLM) enable state */
+  std::optional<bool> getClmEnable() const {
+    if (auto clmEnable = cref<switch_state_tags::clmEnable>()) {
+      return clmEnable->cref();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set Cable Length Measurement (CLM) enable state */
+  void setClmEnable(std::optional<bool> clmEnable) {
+    if (!clmEnable.has_value()) {
+      ref<switch_state_tags::clmEnable>().reset();
+    } else {
+      set<switch_state_tags::clmEnable>(clmEnable.value());
+    }
+  }
+
   std::optional<int32_t> getPortSwitchId() const {
     if (auto portSwitchId = cref<switch_state_tags::portSwitchId>()) {
       return portSwitchId->cref();

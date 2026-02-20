@@ -10,6 +10,8 @@
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include <folly/String.h>
+
 #include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
@@ -18,6 +20,7 @@
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmIcecube800banwPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmLadakh800bclsPlatformPort.h"
@@ -417,6 +420,9 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiWedge800CACTPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_TAHANSB800BC) {
       saiPort = std::make_unique<SaiBcmTahansb800bcPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_ICECUBE800BANW) {
+      saiPort =
+          std::make_unique<SaiBcmIcecube800banwPlatformPort>(portId, this);
     } else {
       saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
     }
@@ -456,10 +462,16 @@ SaiPlatform::findPortIDAndProfiles(
     std::vector<uint32_t> lanes,
     PortSaiId portSaiId) const {
   std::vector<cfg::PortProfileID> matchingProfiles;
+
   for (const auto& portMapping : portMapping_) {
     const auto& platformPort = portMapping.second;
     auto profiles = platformPort->getAllProfileIDsForSpeed(speed);
     for (auto profileID : profiles) {
+      XLOG(DBG5) << "portID: " << portMapping.first
+                 << " profileID : " << static_cast<int>(profileID)
+                 << " expected: " << static_cast<int>(speed)
+                 << " lanes: " << folly::join(",", lanes) << " got lanes: "
+                 << folly::join(",", platformPort->getHwPortLanes(profileID));
       if (platformPort->getHwPortLanes(profileID) == lanes) {
         matchingProfiles.push_back(profileID);
       }
@@ -472,7 +484,9 @@ SaiPlatform::findPortIDAndProfiles(
       "platform port not found ",
       (PortID)portSaiId,
       " speed: ",
-      static_cast<int>(speed));
+      static_cast<int>(speed),
+      ", lanes ",
+      folly::join(",", lanes));
 }
 
 std::vector<SaiPlatformPort*> SaiPlatform::getPortsWithTransceiverID(
@@ -857,7 +871,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     maxVoqs = maxSystemPorts.value() * 8;
   }
 #endif
-  if (swType == cfg::SwitchType::FABRIC && bootType == BootType::COLD_BOOT) {
+  if (getAsic()->isSupported(HwAsic::Feature::SWITCH_ISOLATE) &&
+      bootType == BootType::COLD_BOOT) {
     // FABRIC switches should always start in isolated state until we configure
     // the switch
     switchIsolate = true;

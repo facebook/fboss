@@ -253,7 +253,7 @@ void AgentEnsemble::applyNewConfig(
 }
 
 std::vector<PortID> AgentEnsemble::masterLogicalPortIds() const {
-  return masterLogicalPortIds_;
+  return masterLogicalPortIds(SwitchID(FLAGS_switch_id_for_testing));
 }
 
 void AgentEnsemble::switchRunStateChanged(SwitchRunState runState) {}
@@ -721,6 +721,7 @@ AgentEnsemble::getHwAgentTestClient(SwitchID switchId) {
  * and for some warmboot tests.
  */
 void AgentEnsemble::createAndDumpOverriddenAgentConfig() {
+  XLOG(DBG2) << "Creating overridden agent config";
   CHECK(initialConfig_ != cfg::SwitchConfig());
   auto testConfig = AgentConfig::fromFile(configFile_);
 
@@ -745,18 +746,21 @@ void AgentEnsemble::createAndDumpOverriddenAgentConfig() {
 
   // Create directory and dump ensemble config
   utilCreateDir(AgentDirectoryUtil().agentEnsembleConfigDir());
-  agentConfig.dumpConfig(
-      AgentDirectoryUtil().agentEnsembleConfigDir() +
-      kOverriddenAgentConfigFile);
+  auto ensembleConfigPath = AgentDirectoryUtil().agentEnsembleConfigDir() +
+      kOverriddenAgentConfigFile;
+  agentConfig.dumpConfig(ensembleConfigPath);
+  XLOG(DBG2) << "Dumped ensemble config to " << ensembleConfigPath;
 
   // Handle hardware agent config for multi-switch setups
   if (FLAGS_multi_switch ||
       folly::get_default(defaultCommandLineArgs, kMultiSwitch, "") == "true") {
     for (const auto& [_, switchInfo] :
          *newAgentConf.sw()->switchSettings()->switchIdToSwitchInfo()) {
-      agentConfig.dumpConfig(
-          AgentDirectoryUtil().getTestHwAgentConfigFile(
-              *switchInfo.switchIndex()));
+      auto hwAgentConfigPath = AgentDirectoryUtil().getTestHwAgentConfigFile(
+          *switchInfo.switchIndex());
+      agentConfig.dumpConfig(hwAgentConfigPath);
+      XLOG(DBG2) << "Dumped hw_agent config for switch index "
+                 << *switchInfo.switchIndex() << " to " << hwAgentConfigPath;
     }
   }
 }

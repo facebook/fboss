@@ -11,12 +11,13 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+# Add parent directory to path for standalone execution
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from cmds.build import setup_build_command
-from cmds.device import setup_device_commands
-from lib.cli import CLI
-from lib.logger import setup_logging
+from distro_cli.cmds.build import setup_build_command
+from distro_cli.cmds.device import setup_device_commands
+from distro_cli.lib.cli import CLI
+from distro_cli.lib.logger import setup_logging
 
 
 def main():

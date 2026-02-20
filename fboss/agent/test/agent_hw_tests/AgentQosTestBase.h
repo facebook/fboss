@@ -8,10 +8,14 @@
  *
  */
 
+#pragma once
+
 #include "fboss/agent/TxPacket.h"
+
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
@@ -24,8 +28,6 @@ class AgentQosTestBase : public AgentHwTest {
       const std::map<int, std::vector<uint8_t>>& queueToDscp);
 
   void sendPacket(uint8_t dscp, bool frontPanel);
-
-  static inline constexpr auto kEcmpWidth = 1;
 };
 
 } // namespace facebook::fboss

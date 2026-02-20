@@ -84,6 +84,7 @@ cpp_library(
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
@@ -106,9 +107,6 @@ cpp_library(
         "//folly/io:iobuf",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-        "glog",
     ],
 )
 

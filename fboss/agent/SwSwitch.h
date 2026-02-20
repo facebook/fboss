@@ -26,6 +26,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_reachability_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/single/MonolithicHwSwitchHandler.h"
@@ -380,7 +381,9 @@ class SwSwitch : public HwSwitchCallback {
    */
   void updateStateWithHwFailureProtection(
       folly::StringPiece name,
-      StateUpdateFn fn);
+      StateUpdateFn fn,
+      std::optional<StateDeltaApplication> deltaApplicationBehavior =
+          std::nullopt);
 
   /**
    * Apply config from the config file (specified in 'config' flag).
@@ -579,6 +582,8 @@ class SwSwitch : public HwSwitchCallback {
       const std::map<PortID, bool>& port2IsActive,
       bool fwIsolated,
       const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate) override;
+  void linkAdminStateChangedByFw(
+      const std::vector<int32_t>& fwDisabledPortIds) override;
   void linkConnectivityChanged(
       const std::map<PortID, multiswitch::FabricConnectivityDelta>&
           port2OldAndNewConnectivity) override;
@@ -1037,7 +1042,8 @@ class SwSwitch : public HwSwitchCallback {
   void updateStateBlockingImpl(
       folly::StringPiece name,
       StateUpdateFn fn,
-      int stateUpdateBehavior);
+      int stateUpdateBehavior,
+      std::optional<StateDeltaApplication> deltaApplicationBehavior);
 
   /*
    * Applied state corresponds to what was successfully applied
@@ -1083,7 +1089,8 @@ class SwSwitch : public HwSwitchCallback {
   applyUpdate(
       const std::shared_ptr<SwitchState>& oldState,
       const std::shared_ptr<SwitchState>& newState,
-      bool isTransaction);
+      bool isTransaction,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior);
 
   void startThreads();
   void stopThreads();
@@ -1136,11 +1143,15 @@ class SwSwitch : public HwSwitchCallback {
 
   std::shared_ptr<SwitchState> stateChanged(
       const StateDelta& delta,
-      bool transaction) const;
+      bool transaction,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior)
+      const;
 
   std::shared_ptr<SwitchState> stateChanged(
       const std::vector<StateDelta>& delta,
-      bool transaction) const;
+      bool transaction,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior)
+      const;
 
   template <typename FsdbFunc>
   void runFsdbSyncFunction(FsdbFunc&& fn);

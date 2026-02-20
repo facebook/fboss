@@ -465,7 +465,7 @@ TYPED_TEST(DHCPv4HandlerTest, DHCPRequest) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
 
   EXPECT_SWITCHED_PKT(sw, "DHCP request", checkDHCPReq());
 
@@ -504,7 +504,7 @@ TYPED_TEST(DHCPv4HandlerTest, RelayOverrideDHCPRequest) {
   const string dhcpMsgTypeOpt = "35  01  01";
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
 
   EXPECT_SWITCHED_PKT(sw, "DHCP request", checkDHCPReq(kDhcpOverride));
 
@@ -539,7 +539,7 @@ TYPED_TEST(DHCPv4HandlerTest, RelaySrcDHCPRequest) {
   const string dhcpMsgTypeOpt = "35  01  01";
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
 
   EXPECT_SWITCHED_PKT(
       sw, "DHCP request", checkDHCPReq(kDhcpOverride, kDhcpV4RelaySrc));
@@ -585,7 +585,7 @@ TYPED_TEST(DHCPv4HandlerTest, DHCPReply) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
 
   EXPECT_SWITCHED_PKT(sw, "DHCP reply", checkDHCPReply());
 
@@ -636,7 +636,7 @@ TYPED_TEST(DHCPv4HandlerTest, RelaySrcDHCPReply) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
 
   // DHCP reply source is override to fboss55's address
   EXPECT_SWITCHED_PKT(
@@ -679,7 +679,7 @@ TYPED_TEST(DHCPv4HandlerTest, DHCPBadRequest) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
 
   sendDHCPPacket(

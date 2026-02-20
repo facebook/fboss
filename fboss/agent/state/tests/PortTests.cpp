@@ -1271,3 +1271,71 @@ TEST(Port, amIdlesConfig) {
   EXPECT_TRUE(serializedPort->getAmIdles().has_value());
   EXPECT_EQ(serializedPort->getAmIdles().value(), true);
 }
+
+// Test clmEnable (Cable Length Measurement) configuration: default value,
+// config changes, getter/setter methods, and serialization/deserialization
+TEST(Port, clmEnableConfig) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  registerPort(state, PortID(1), "port1", scope());
+
+  auto changeAndVerifyClmEnable = [](std::unique_ptr<MockPlatform>& platform,
+                                     std::shared_ptr<SwitchState>& state,
+                                     std::optional<bool> newClmEnable) {
+    auto oldClmEnable = state->getPorts()->getNodeIf(PortID(1))->getClmEnable();
+    cfg::SwitchConfig config;
+    config.ports()->resize(1);
+    preparedMockPortConfig(
+        config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+    if (newClmEnable.has_value()) {
+      config.ports()[0].clmEnable() = newClmEnable.value();
+    }
+    auto newState = publishAndApplyConfig(state, &config, platform.get());
+
+    if (oldClmEnable != newClmEnable) {
+      EXPECT_NE(nullptr, newState);
+      state = newState;
+      auto portClmEnable =
+          state->getPorts()->getNodeIf(PortID(1))->getClmEnable();
+      EXPECT_EQ(portClmEnable, newClmEnable);
+    } else {
+      EXPECT_EQ(nullptr, newState);
+    }
+  };
+
+  // Verify the default clmEnable is nullopt
+  EXPECT_EQ(
+      std::nullopt, state->getPorts()->getNodeIf(PortID(1))->getClmEnable());
+
+  // Test setting various values and verify changes are properly configured
+  changeAndVerifyClmEnable(platform, state, false); // nullopt → false
+  changeAndVerifyClmEnable(platform, state, true); // false → true
+  changeAndVerifyClmEnable(platform, state, false); // true → false
+  changeAndVerifyClmEnable(platform, state, std::nullopt); // false → nullopt
+  changeAndVerifyClmEnable(platform, state, true); // nullopt → true
+  changeAndVerifyClmEnable(platform, state, std::nullopt); // true → nullopt
+
+  // Test direct getter/setter methods
+  auto port = state->getPorts()->getNodeIf(PortID(1));
+  auto newPort = port->clone();
+
+  // Test setting true
+  newPort->setClmEnable(true);
+  EXPECT_TRUE(newPort->getClmEnable().has_value());
+  EXPECT_EQ(newPort->getClmEnable().value(), true);
+
+  // Test setting false
+  newPort->setClmEnable(false);
+  EXPECT_TRUE(newPort->getClmEnable().has_value());
+  EXPECT_EQ(newPort->getClmEnable().value(), false);
+
+  // Test setting nullopt
+  newPort->setClmEnable(std::nullopt);
+  EXPECT_FALSE(newPort->getClmEnable().has_value());
+
+  // Test serialization/deserialization
+  newPort->setClmEnable(true);
+  auto serializedPort = std::make_shared<Port>(newPort->toThrift());
+  EXPECT_TRUE(serializedPort->getClmEnable().has_value());
+  EXPECT_EQ(serializedPort->getClmEnable().value(), true);
+}

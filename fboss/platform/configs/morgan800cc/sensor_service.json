@@ -319,8 +319,8 @@
           "sysfsPath": "/run/devmap/sensors/SCM_ADT75_0X49/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 115,
-            "lowerCriticalVal": -10
+            "upperCriticalVal": 70,
+            "maxAlarmVal": 65
           },
           "compute": "@/1000"
         },
@@ -329,8 +329,8 @@
           "sysfsPath": "/run/devmap/sensors/SCM_TMP451_0X4C/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 55,
-            "lowerCriticalVal": -10
+            "upperCriticalVal": 65,
+            "maxAlarmVal": 50
           },
           "compute": "@/1000"
         },
@@ -340,6 +340,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.795,
+            "maxAlarmVal": 3.5,
+            "minAlarmVal": 3.1,
             "lowerCriticalVal": 2.805
           },
           "compute": "@/1000*0.057628239"
@@ -350,6 +352,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 1.15,
+            "maxAlarmVal": 1.1,
+            "minAlarmVal": 0.9,
             "lowerCriticalVal": 0.85
           },
           "compute": "@/1000*0.017486839"
@@ -360,6 +364,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.795,
+            "maxAlarmVal": 3.5,
+            "minAlarmVal": 3.1,
             "lowerCriticalVal": 2.805
           },
           "compute": "@/1000*0.057628239"
@@ -370,6 +376,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.795,
+            "maxAlarmVal": 3.795,
+            "minAlarmVal": 2.805,
             "lowerCriticalVal": 2.805
           },
           "compute": "@/1000*0.057628239"
@@ -380,6 +388,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 2.875,
+            "maxAlarmVal": 2.8,
+            "minAlarmVal": 2.2,
             "lowerCriticalVal": 2.125
           },
           "compute": "@/1000*0.043657757000000005"
@@ -390,6 +400,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.795,
+            "maxAlarmVal": 3.795,
+            "minAlarmVal": 2.805,
             "lowerCriticalVal": 2.805
           },
           "compute": "@/1000*0.057628239"
@@ -400,7 +412,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 2.07,
-            "lowerCriticalVal": 1.53
+            "maxAlarmVal": 1.9,
+            "minAlarmVal": 1.7,
+            "lowerCriticalVal": 1.6
           },
           "compute": "@/1000*0.031433585"
         },
@@ -410,6 +424,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.795,
+            "maxAlarmVal": 3.5,
+            "minAlarmVal": 3.1,
             "lowerCriticalVal": 2.805
           },
           "compute": "@/1000*0.057628239"
@@ -420,6 +436,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 1.15,
+            "maxAlarmVal": 1.1,
+            "minAlarmVal": 0.9,
             "lowerCriticalVal": 0.85
           },
           "compute": "@/1000*0.017486839"
@@ -430,6 +448,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 13.8,
+            "maxAlarmVal": 13.8,
+            "minAlarmVal": 10.2,
             "lowerCriticalVal": 10.2
           },
           "compute": "@/1000*0.20880881499999998"
@@ -440,6 +460,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.795,
+            "maxAlarmVal": 3.5,
+            "minAlarmVal": 3.1,
             "lowerCriticalVal": 2.805
           },
           "compute": "@/1000*0.057628239"
@@ -450,6 +472,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 0.69,
+            "maxAlarmVal": 0.69,
+            "minAlarmVal": 0.51,
             "lowerCriticalVal": 0.51
           },
           "compute": "@/1000*0.015716793"
@@ -460,6 +484,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 5.75,
+            "maxAlarmVal": 5.75,
+            "minAlarmVal": 4.25,
             "lowerCriticalVal": 4.25
           },
           "compute": "@/1000*0.08721279000000001"
@@ -470,6 +496,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.795,
+            "maxAlarmVal": 3.5,
+            "minAlarmVal": 3.1,
             "lowerCriticalVal": 2.805
           },
           "compute": "@/1000*0.057628239"
@@ -480,7 +508,7 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 105,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 100
           },
           "compute": "@/1000"
         },
@@ -490,7 +518,27 @@
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 83,
-            "lowerCriticalVal": -10
+            "maxAlarmVal": 80
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SCM_I_VP1P05_CPU",
+          "sysfsPath": "/run/devmap/sensors/SCM_TPS53688_0X62/curr3_input",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 6.6,
+            "maxAlarmVal": 6.5
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SCM_I_VP1P8_VCCIN",
+          "sysfsPath": "/run/devmap/sensors/SCM_TPS53688_0X62/curr2_input",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 36,
+            "maxAlarmVal": 35.1
           },
           "compute": "@/1000"
         },
@@ -499,8 +547,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_TPS53688_0X63/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.15,
-            "lowerCriticalVal": 0.4
+            "upperCriticalVal": 1.2,
+            "maxAlarmVal": 1.15,
+            "minAlarmVal": 0.85,
+            "lowerCriticalVal": 0.8
           },
           "compute": "@/1000"
         },
@@ -509,8 +559,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_TPS53688_0X63/in2_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 2.07,
-            "lowerCriticalVal": 1.62
+            "upperCriticalVal": 2.1,
+            "maxAlarmVal": 2.1,
+            "minAlarmVal": 1.6,
+            "lowerCriticalVal": 1.5
           },
           "compute": "@/1000"
         },
@@ -520,7 +572,9 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 1.208,
-            "lowerCriticalVal": 0.42
+            "maxAlarmVal": 1.15,
+            "minAlarmVal": 0.84,
+            "lowerCriticalVal": 0.8
           },
           "compute": "@/1000"
         },
@@ -530,6 +584,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 2.07,
+            "maxAlarmVal": 1.9,
+            "minAlarmVal": 1.65,
             "lowerCriticalVal": 1.44
           },
           "compute": "@/1000"

@@ -136,6 +136,7 @@ cpp_unittest(
         "//fboss/fsdb/tests/utils:fsdb_test_server",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_utils",
+        "//fboss/lib:thrift_service_utils",
         "//folly:dynamic",
         "//folly:file_util",
         "//folly:memory",

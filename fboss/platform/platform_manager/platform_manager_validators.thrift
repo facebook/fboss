@@ -79,3 +79,19 @@ const list<string> PLATFORMS_WITH_IDPROM_CHASSIS_EEPROM = [
   "JANGA800BIC",
   "TAHAN800BC",
 ];
+
+// List of platforms that are allowed to have logical EEPROMs.
+// Logical EEPROMs are formed when multiple EEPROMs in the platform
+// use the same physical EEPROM (bus and address).
+const list<string> PLATFORMS_WITH_LOGICAL_EEPROMS = [
+  "GLATH05A-64O",
+  "BLACKWOLF800BANW",
+];
+
+// Platforms where optics devices (xcvr, port LEDs) must NOT be managed
+// through platform_manager. On these platforms, qsfp_service and
+// led_service interact with the SCD FPGA directly using I2C transactions.
+// Managing them through platform_manager gives a false impression about
+// their management. Once we start managing these devices from PM, we can
+// add them to the PM config.
+const list<string> PLATFORMS_WITHOUT_PM_OPTICS = ["DARWIN", "DARWIN48V"];

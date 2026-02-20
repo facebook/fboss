@@ -84,6 +84,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
         bool /* fwIsolated */,
         const std::optional<
             uint32_t>& /* numActiveFabricPortsAtFwIsolate */) = 0;
+    virtual void linkAdminStateChangedByFw(
+        const std::vector<int32_t>& /* fwDisabledPortIds */) = 0;
     virtual void linkConnectivityChanged(
         const std::map<PortID, multiswitch::FabricConnectivityDelta>&
             port2OldAndNewConnectivity) = 0;
@@ -190,6 +192,10 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       bool /* fwIsolated */,
       const std::optional<uint32_t>& /* numActiveFabricPortsAtFwIsolate */
       ) override;
+  void linkAdminStateChangedByFw(
+      const std::vector<int32_t>& /* fwDisabledPortIds */) override {
+    // TODO
+  }
   void linkConnectivityChanged(
       const std::map<PortID, multiswitch::FabricConnectivityDelta>&
       /*port2OldAndNewConnectivity*/) override {

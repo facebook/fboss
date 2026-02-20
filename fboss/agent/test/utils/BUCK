@@ -161,10 +161,12 @@ cpp_library(
     ],
     headers = ["PortTestUtils.h"],
     exported_deps = [
+        "fbsource//third-party/googletest:gtest",
         "//fboss/agent:fboss-error",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/state:state",
         "//fboss/agent/test:test_ensemble_if",
+        "//fboss/lib:common_utils",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
     ],
 )
@@ -806,5 +808,23 @@ cpp_library(
     exported_deps = [
         "//fboss/agent:core",
         "//fboss/agent/state:state",
+    ],
+)
+
+cpp_library(
+    name = "tunnel_mgr_test_utils",
+    srcs = ["TunnelMgrTestUtils.cpp"],
+    headers = ["TunnelMgrTestUtils.h"],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:utils",
+        "//fboss/agent/state:state",
+        "//folly:conv",
+        "//folly:network_address",
+        "//folly:string",
+        "//folly/logging:logging",
     ],
 )

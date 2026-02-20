@@ -34,6 +34,17 @@ bool isExpectedError(
     }
   }
 
+  // RTM outlet tsensor may not be present on EVT1A hardware for ladakh800bcls
+  if (*platformConfig.platformName() == "LADAKH800BCLS" &&
+      (errorType == ExplorationErrorType::I2C_DEVICE_CREATE ||
+       errorType == ExplorationErrorType::I2C_DEVICE_REG_INIT ||
+       errorType == ExplorationErrorType::RUN_DEVMAP_SYMLINK)) {
+    if (devicePath == "/RTM_L_SLOT@0/[RTM_L_OUTLET_TSENSOR]" ||
+        devicePath == "/RTM_R_SLOT@0/[RTM_R_OUTLET_TSENSOR]") {
+      return true;
+    }
+  }
+
   return false;
 }
 

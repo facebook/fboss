@@ -197,11 +197,12 @@ def parse_args():
     parser.add_argument(
         OPT_ARG_USE_CLANG,
         dest="use_clang",
-        default=False,
-        action="store_true",
+        default=True,
+        action=argparse.BooleanOptionalAction,
         help=(
             "Use clang instead of gcc for building. This will install the full LLVM toolchain "
-            "in the Docker image and configure it as the default compiler via update-alternatives."
+            "in the Docker image and configure it as the default compiler via update-alternatives. "
+            "Use --no-use-clang to build with gcc instead."
         ),
     )
 

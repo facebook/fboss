@@ -1324,6 +1324,12 @@ struct Port {
    * Controls whether AM idles are enabled on the port.
    */
   37: optional bool amIdles;
+
+  /*
+   * Cable Length Measurement (CLM) enable configuration.
+   * Controls whether cable length measurement is enabled on the port.
+   */
+  38: optional bool clmEnable;
 }
 
 enum LacpPortRate {
@@ -1536,6 +1542,7 @@ enum AsicType {
   ASIC_TYPE_AGERA3 = 19,
   ASIC_TYPE_G202X = 20,
   ASIC_TYPE_FAKE_NO_WARMBOOT = 21,
+  ASIC_TYPE_TOMAHAWKULTRA1 = 22,
 }
 /**
  * The configuration for an interface
@@ -1884,6 +1891,7 @@ struct SwitchInfo {
    */
   13: optional i32 minLinksPerDeviceToRemainInVOQDomain;
   14: optional i32 minLinksPerDeviceToJoinVOQDomain;
+  15: SystemPortRanges localSystemPortRanges;
 }
 
 /*
@@ -2104,6 +2112,7 @@ struct DsfNode {
   // Offset from where to start local system port
   // ID allocation from
   12: optional i32 globalSystemPortOffset;
+  // Global system port ranges
   13: SystemPortRanges systemPortRanges;
   // Inband port ID - port used by this DSF node
   // for inband communication. This must be known
@@ -2115,6 +2124,7 @@ struct DsfNode {
   // If strict priority, using spPriority
   // If weighted round robin, use wrrWeight
   16: optional SchedulingParam schedulingParam;
+  17: SystemPortRanges localSystemPortRanges;
 }
 
 /**
@@ -2252,6 +2262,8 @@ struct FlowletSwitchingConfig {
   15: optional i32 alternatePathCost;
   // alternate path bias
   16: optional i32 alternatePathBias;
+  // minimum width for ARS virtual group
+  17: optional i32 minWidthForArsVirtualGroup;
 }
 
 /*

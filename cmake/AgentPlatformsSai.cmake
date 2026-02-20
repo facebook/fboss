@@ -35,6 +35,8 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiMeru400biaPlatformPort.cpp
   fboss/agent/platforms/sai/SaiMeru400biaPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMontblancPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmIcecube800banwPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmIcecube800banwPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatform.cpp
@@ -91,6 +93,7 @@ add_library(sai_platform ${SAI_PLATFORM_SRC})
 target_link_libraries(sai_platform
   handler
   dsfnode_utils
+  Folly::folly
   product_info
   sai_switch
   thrift_handler
@@ -125,6 +128,7 @@ target_link_libraries(sai_platform
   tahan800bc_platform_mapping
   tahansb800bc_platform_mapping
   ladakh800bcls_platform_mapping
+  icecube800banw_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
   led_structs_types_cpp2

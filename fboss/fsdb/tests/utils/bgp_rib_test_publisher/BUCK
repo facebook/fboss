@@ -1,0 +1,35 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "bgp_rib_test_publisher_lib",
+    srcs = ["BgpRibTestPublisher.cpp"],
+    headers = ["BgpRibTestPublisher.h"],
+    exported_deps = [
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/client:fsdb_syncer",
+        "//fboss/fsdb/if:fsdb_model",
+        "//folly:network_address",
+        "//folly/logging:logging",
+        "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
+    ],
+)
+
+cpp_binary(
+    name = "bgp_rib_test_publisher",
+    srcs = ["main.cpp"],
+    deps = [
+        ":bgp_rib_test_publisher_lib",
+        "//fboss/fsdb/common:flags",
+        "//folly:string",
+        "//folly/init:init",
+        "//folly/io/async:async_base",
+        "//folly/io/async:async_signal_handler",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)

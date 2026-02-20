@@ -29,6 +29,7 @@ void SaiArsManager::addArs(
       std::nullopt,
       std::nullopt,
       std::nullopt,
+      std::nullopt,
       std::nullopt};
 
   auto hostKey = getAdapterHostKey(attributes);

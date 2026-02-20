@@ -1,6 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/SwitchIdScopeResolver.h"
+#include <folly/String.h>
+#include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/state/AclTableGroup.h"
@@ -16,6 +18,36 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SystemPort.h"
 #include "fboss/agent/state/Vlan.h"
+
+namespace {
+
+std::string switchInfoToSysPortRangesStr(
+    const std::map<int64_t, facebook::fboss::cfg::SwitchInfo>&
+        switchIdToSwitchInfo) {
+  std::vector<std::string> entries;
+  for (const auto& [id, info] : switchIdToSwitchInfo) {
+    std::vector<std::string> globalRanges;
+    for (const auto& range : *info.systemPortRanges()->systemPortRanges()) {
+      globalRanges.push_back(
+          "[" + std::to_string(*range.minimum()) + ", " +
+          std::to_string(*range.maximum()) + "]");
+    }
+    std::vector<std::string> localRanges;
+    for (const auto& range :
+         *info.localSystemPortRanges()->systemPortRanges()) {
+      localRanges.push_back(
+          "[" + std::to_string(*range.minimum()) + ", " +
+          std::to_string(*range.maximum()) + "]");
+    }
+    entries.push_back(
+        "switchId=" + std::to_string(id) + " global={" +
+        folly::join(", ", globalRanges) + "} local={" +
+        folly::join(", ", localRanges) + "}");
+  }
+  return folly::join("; ", entries);
+}
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -157,9 +189,14 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(SystemPortID sysPortId) const {
   for (const auto& [id, info] : switchIdToSwitchInfo_) {
     if (withinRange(*info.systemPortRanges(), sysPortId)) {
       return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(id)}));
+    } else if (withinRange(*info.localSystemPortRanges(), sysPortId)) {
+      return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(id)}));
     }
   }
-  // This is a non local sys port. So it maps to all local voq switchIds
+
+  XLOG(ERR) << "SystemPortID " << static_cast<int64_t>(sysPortId)
+            << " NOT within any range: "
+            << switchInfoToSysPortRangesStr(switchIdToSwitchInfo_);
   return voqSwitchMatcher();
 }
 

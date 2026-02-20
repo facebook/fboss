@@ -22,6 +22,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -127,14 +128,6 @@ class AgentAqmTest : public AgentHwTest {
     return 5;
   }
 
-  folly::IPAddressV6 kSrcIp() const {
-    return folly::IPAddressV6("2620:0:1cfe:face:b00c::3");
-  }
-
-  folly::IPAddressV6 kDestIp() const {
-    return folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
-  }
-
   bool isEct(const uint8_t ecnVal) {
     return ecnVal != kNotECT;
   }
@@ -160,10 +153,10 @@ class AgentAqmTest : public AgentHwTest {
         vlanId,
         srcMac,
         intfMac,
-        kSrcIp(),
-        kDestIp(),
-        8000,
-        8001,
+        folly::IPAddressV6(kTestSrcIpV6),
+        folly::IPAddressV6(kTestDstIpV6),
+        kTestSrcPort,
+        kTestDstPort,
         dscpVal,
         ttl,
         std::vector<uint8_t>(payloadLen, 0xff));
@@ -245,7 +238,7 @@ class AgentAqmTest : public AgentHwTest {
     applyNewState([&ecmpHelper, &portDesc](std::shared_ptr<SwitchState> in) {
       return ecmpHelper.resolveNextHops(in, {portDesc});
     });
-    RoutePrefixV6 route{kDestIp(), 128};
+    RoutePrefixV6 route{folly::IPAddressV6(kTestDstIpV6), 128};
     auto wrapper = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(&wrapper, {portDesc}, {route});
     utility::ttlDecrementHandlingForLoopbackTraffic(

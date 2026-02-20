@@ -36,6 +36,12 @@ class AgentFabricSwitchTest : public AgentHwTest {
           std::any_of(getAsics().begin(), getAsics().end(), [](auto& iter) {
             return iter.second->getSwitchType() == cfg::SwitchType::FABRIC;
           }));
+      ASSERT_FALSE(
+          getAgentEnsemble()
+              ->masterLogicalFabricPortIds(getCurrentSwitchIdForTesting())
+              .empty())
+          << "No fabric ports for switchId: "
+          << static_cast<int>(getCurrentSwitchIdForTesting());
     }
   }
 
@@ -58,6 +64,11 @@ class AgentFabricSwitchTest : public AgentHwTest {
   }
 
  protected:
+  std::vector<PortID> fabricPortIdsForTesting() const {
+    return getAgentEnsemble()->masterLogicalFabricPortIds(
+        getCurrentSwitchIdForTesting());
+  }
+
   std::map<SwitchID, std::vector<PortID>> switch2FabricPortIds() const {
     std::map<SwitchID, std::vector<PortID>> switch2FabricPortIds;
     for (auto switchId : getFabricSwitchIdsWithPorts()) {
@@ -77,17 +88,14 @@ class AgentFabricSwitchTest : public AgentHwTest {
 TEST_F(AgentFabricSwitchTest, init) {
   auto setup = []() {};
   auto verify = [this]() {
-    auto state = getProgrammedState();
-    for (auto& portMap : std::as_const(*state->getPorts())) {
-      for (auto& port : std::as_const(*portMap.second)) {
-        EXPECT_EQ(port.second->getAdminState(), cfg::PortState::ENABLED);
-        auto portSwitchId =
-            getSw()->getScopeResolver()->scope(port.second->getID()).switchId();
-        auto portAsic = getSw()->getHwAsicTable()->getHwAsic(portSwitchId);
-        EXPECT_EQ(
-            port.second->getLoopbackMode(),
-            portAsic->getDesiredLoopbackMode(port.second->getPortType()));
-      }
+    auto switchId = getCurrentSwitchIdForTesting();
+    auto portAsic = getSw()->getHwAsicTable()->getHwAsic(switchId);
+    for (auto portId : fabricPortIdsForTesting()) {
+      auto port = getProgrammedState()->getPorts()->getNode(portId);
+      EXPECT_EQ(port->getAdminState(), cfg::PortState::ENABLED);
+      EXPECT_EQ(
+          port->getLoopbackMode(),
+          portAsic->getDesiredLoopbackMode(port->getPortType()));
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -97,11 +105,9 @@ TEST_F(AgentFabricSwitchTest, checkFabricConnectivityStats) {
   auto setup = [=, this]() {
     auto newCfg = getSw()->getConfig();
     // reset the neighbor reachability information
-    for (const auto& portID : masterLogicalPortIds()) {
+    for (const auto& portID : fabricPortIdsForTesting()) {
       auto portCfg = utility::findCfgPort(newCfg, portID);
-      if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
-        portCfg->expectedNeighborReachability() = {};
-      }
+      portCfg->expectedNeighborReachability() = {};
     }
     applyNewConfig(newCfg);
   };
@@ -110,11 +116,9 @@ TEST_F(AgentFabricSwitchTest, checkFabricConnectivityStats) {
     WITH_RETRIES({
       auto reachabilityStats = getAgentEnsemble()->getFabricReachabilityStats();
       EXPECT_EVENTUALLY_EQ(
-          *reachabilityStats.missingCount(),
-          masterLogicalFabricPortIds().size());
+          *reachabilityStats.missingCount(), fabricPortIdsForTesting().size());
       EXPECT_EVENTUALLY_EQ(
-          *reachabilityStats.mismatchCount(),
-          masterLogicalFabricPortIds().size());
+          *reachabilityStats.mismatchCount(), fabricPortIdsForTesting().size());
     });
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -125,23 +129,21 @@ TEST_F(AgentFabricSwitchTest, collectStats) {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     WITH_RETRIES({
       getSw()->updateStats();
-      for (auto& portMap : std::as_const(*getProgrammedState()->getPorts())) {
-        for (auto& [_, port] : std::as_const(*portMap.second)) {
-          auto loadBearingInErrors = fb303::fbData->getCounterIfExists(
-              port->getName() + ".load_bearing_in_errors.sum.60");
-          auto loadBearingFecErrors = fb303::fbData->getCounterIfExists(
-              port->getName() +
-              ".load_bearing_fec_uncorrectable_errors.sum.60");
-          auto loadBearingFlaps = fb303::fbData->getCounterIfExists(
-              port->getName() + ".load_bearing_link_state.flap.sum.60");
-          EXPECT_EVENTUALLY_TRUE(loadBearingInErrors.has_value());
-          EXPECT_EVENTUALLY_TRUE(loadBearingFecErrors.has_value());
-          if (getAgentEnsemble()->getBootType() == BootType::COLD_BOOT) {
-            EXPECT_EVENTUALLY_TRUE(loadBearingFlaps.has_value());
-          } else {
-            // No port flaps after wb, hence no port flap stats being recorded
-            EXPECT_FALSE(loadBearingFlaps.has_value());
-          }
+      for (auto portId : fabricPortIdsForTesting()) {
+        auto port = getProgrammedState()->getPorts()->getNode(portId);
+        auto loadBearingInErrors = fb303::fbData->getCounterIfExists(
+            port->getName() + ".load_bearing_in_errors.sum.60");
+        auto loadBearingFecErrors = fb303::fbData->getCounterIfExists(
+            port->getName() + ".load_bearing_fec_uncorrectable_errors.sum.60");
+        auto loadBearingFlaps = fb303::fbData->getCounterIfExists(
+            port->getName() + ".load_bearing_link_state.flap.sum.60");
+        EXPECT_EVENTUALLY_TRUE(loadBearingInErrors.has_value());
+        EXPECT_EVENTUALLY_TRUE(loadBearingFecErrors.has_value());
+        if (getAgentEnsemble()->getBootType() == BootType::COLD_BOOT) {
+          EXPECT_EVENTUALLY_TRUE(loadBearingFlaps.has_value());
+        } else {
+          // No port flaps after wb, hence no port flap stats being recorded
+          EXPECT_FALSE(loadBearingFlaps.has_value());
         }
       }
     });
@@ -152,27 +154,20 @@ TEST_F(AgentFabricSwitchTest, collectStats) {
 TEST_F(AgentFabricSwitchTest, checkFabricConnectivity) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    for (const auto& switchId : getFabricSwitchIdsWithPorts()) {
-      utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
-    }
+    auto switchId = getCurrentSwitchIdForTesting();
+    utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
 
 TEST_F(AgentFabricSwitchTest, fabricPortIsolate) {
-  std::map<SwitchID, PortID> switchId2FabricPortId;
-  std::set<PortID> fabricPortIds;
-  for (const auto& [switchId, portIds] : switch2FabricPortIds()) {
-    fabricPortIds.insert(portIds[0]);
-    switchId2FabricPortId.insert({switchId, portIds[0]});
-  }
-  ASSERT_GT(fabricPortIds.size(), 0);
-  ASSERT_GT(switchId2FabricPortId.size(), 0);
+  auto switchId = getCurrentSwitchIdForTesting();
+  auto allFabricPortIds = fabricPortIdsForTesting();
+  auto drainedPortId = allFabricPortIds[0];
   auto setup = [=, this]() {
     auto newCfg = getSw()->getConfig();
     for (auto& portCfg : *newCfg.ports()) {
-      if (fabricPortIds.find(PortID(*portCfg.logicalID())) !=
-          fabricPortIds.end()) {
+      if (PortID(*portCfg.logicalID()) == drainedPortId) {
         *portCfg.drainState() = cfg::PortDrainState::DRAINED;
       }
     }
@@ -181,22 +176,15 @@ TEST_F(AgentFabricSwitchTest, fabricPortIsolate) {
 
   auto verify = [=, this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    for (const auto& [switchId, fabricPortId] : switchId2FabricPortId) {
-      utility::checkPortFabricReachability(
-          getAgentEnsemble(), switchId, fabricPortId);
+    utility::checkPortFabricReachability(
+        getAgentEnsemble(), switchId, drainedPortId);
+    std::vector<PortID> undrainedPortIds;
+    std::vector<PortID> drainedPortIds = {drainedPortId};
+    for (auto portId : allFabricPortIds) {
+      if (portId != drainedPortId) {
+        undrainedPortIds.push_back(portId);
+      }
     }
-    std::vector<PortID> undrainedPortIds = masterLogicalFabricPortIds();
-    std::vector<PortID> drainedPortIds(
-        fabricPortIds.begin(), fabricPortIds.end());
-    // Remove the drained port
-    undrainedPortIds.erase(
-        std::remove_if(
-            undrainedPortIds.begin(),
-            undrainedPortIds.end(),
-            [&fabricPortIds](const PortID& portId) {
-              return fabricPortIds.find(portId) != fabricPortIds.end();
-            }),
-        undrainedPortIds.end());
     auto checkActiveInactiveState = [&]() {
       // Only drained port will be inactive
       utility::checkFabricPortsActiveState(
@@ -222,15 +210,12 @@ TEST_F(AgentFabricSwitchTest, fabricSwitchIsolate) {
 
   auto verify = [=, this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    for (const auto& switchId : getFabricSwitchIdsWithPorts()) {
-      utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
-    }
+    auto switchId = getCurrentSwitchIdForTesting();
+    utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
     // All ports should go to inactive state when switch is drained and
     // ports are in loopback!
     utility::checkFabricPortsActiveState(
-        getAgentEnsemble(),
-        masterLogicalFabricPortIds(),
-        false /*expectActive*/);
+        getAgentEnsemble(), fabricPortIdsForTesting(), false /*expectActive*/);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -452,35 +437,32 @@ TEST_F(AgentFabricSwitchTest, dtlQueueWatermarks) {
 
 TEST_F(AgentFabricSwitchTest, switchReachability) {
   auto verify = [this]() {
+    auto switchId = getCurrentSwitchIdForTesting();
     utility::checkFabricPortsActiveState(
-        getAgentEnsemble(),
-        masterLogicalFabricPortIds(),
-        true /*expectActive*/);
-    for (auto switchId : getFabricSwitchIdsWithPorts()) {
-      bool switchReachabilityWorking = false;
-      WITH_RETRIES({
-        auto switchReachability = getSw()->getSwitchReachability();
-        ASSERT_EVENTUALLY_TRUE(switchReachability.contains(switchId));
-        auto switchIter = switchReachability.find(switchId);
-        for (auto& [destinationSwitchId, portGroupId] :
-             *switchIter->second.switchIdToFabricPortGroupMap()) {
-          auto portGroupIter =
-              switchIter->second.fabricPortGroupMap()->find(portGroupId);
-          if (portGroupIter != switchIter->second.fabricPortGroupMap()->end()) {
-            XLOG(DBG0) << "On local switch id " << switchId
-                       << ", destination switch id " << destinationSwitchId
-                       << " reachability available over port group ID "
-                       << portGroupId << ", with group size "
-                       << portGroupIter->second.size();
-            // Fabric device does not have physical rechability to
-            // any other device, so no ports expected in port group.
-            EXPECT_EQ(portGroupIter->second.size(), 0);
-            switchReachabilityWorking = true;
-          }
+        getAgentEnsemble(), fabricPortIdsForTesting(), true /*expectActive*/);
+    bool switchReachabilityWorking = false;
+    WITH_RETRIES({
+      auto switchReachability = getSw()->getSwitchReachability();
+      ASSERT_EVENTUALLY_TRUE(switchReachability.contains(switchId));
+      auto switchIter = switchReachability.find(switchId);
+      for (auto& [destinationSwitchId, portGroupId] :
+           *switchIter->second.switchIdToFabricPortGroupMap()) {
+        auto portGroupIter =
+            switchIter->second.fabricPortGroupMap()->find(portGroupId);
+        if (portGroupIter != switchIter->second.fabricPortGroupMap()->end()) {
+          XLOG(DBG0) << "On local switch id " << switchId
+                     << ", destination switch id " << destinationSwitchId
+                     << " reachability available over port group ID "
+                     << portGroupId << ", with group size "
+                     << portGroupIter->second.size();
+          // Fabric device does not have physical rechability to
+          // any other device, so no ports expected in port group.
+          EXPECT_EQ(portGroupIter->second.size(), 0);
+          switchReachabilityWorking = true;
         }
-        EXPECT_EVENTUALLY_TRUE(switchReachabilityWorking);
-      });
-    }
+      }
+      EXPECT_EVENTUALLY_TRUE(switchReachabilityWorking);
+    });
   };
 
   verifyAcrossWarmBoots([]() {}, verify);
@@ -611,9 +593,8 @@ TEST_F(AgentFabricSwitchTest, verifyRtpGpdAlwaysDisabled) {
 
 TEST_F(AgentFabricSwitchTest, verifySourceRoutedCellHandling) {
   auto verify = [&]() {
-    auto fabricSwitchId = *getFabricSwitchIdsWithPorts().begin();
-    auto fabricPorts =
-        getAgentEnsemble()->masterLogicalFabricPortIds(fabricSwitchId);
+    auto fabricSwitchId = getCurrentSwitchIdForTesting();
+    auto fabricPorts = fabricPortIdsForTesting();
     std::string sourceRoutedCellInjectCintStr = R"(
       cint_reset();
       int i;

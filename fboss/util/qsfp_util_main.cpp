@@ -390,7 +390,7 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    if (FLAGS_vdm_info && printVdmInfo(i2cInfo, portNum)) {
+    if (FLAGS_vdm_info && printVdmInfo(i2cInfo, portNum, evb)) {
       printf("QSFP %d: printed module vdm info\n", portNum);
       return EX_OK;
     }

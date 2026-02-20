@@ -140,38 +140,62 @@ TEST_F(GpioTest, GpioCreated) {
 
       try {
         id++;
+        auto initialDetectedGpios = GpioUtils::gpiodetect("");
         CdevUtils::createNewDevice(*device.pciInfo(), auxDevice, id);
         registerDeviceForCleanup(*device.pciInfo(), auxDevice, id);
 
         // GPIO detection, check that the GPIO device is detected and verify the
         // number of lines
-        std::string gpioName =
-            fmt::format("{}.{}", "fboss_iob_pci.gpiochip", id);
-        auto detectedGpios = GpioUtils::gpiodetect(gpioName);
-        ASSERT_EQ(detectedGpios.size(), 1)
-            << "Expected GPIO not detected: " << gpioName;
-        if (detectedGpios[0].lines <= 0) { // Assuming > 0 is required
+        auto detectedGpios = GpioUtils::gpiodetect("");
+        ASSERT_EQ(detectedGpios.size() - initialDetectedGpios.size(), 1)
+            << "Expected 1 new GPIO to be detected for " << *auxDevice.name();
+
+        // Find the newly added GPIO by comparing the two vectors
+        size_t newGpioIndex = 0;
+        std::string gpioName;
+        for (size_t i = 0; i < detectedGpios.size(); ++i) {
+          bool found = false;
+          for (const auto& initial : initialDetectedGpios) {
+            if (detectedGpios[i].name == initial.name) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            newGpioIndex = i;
+            gpioName = detectedGpios[i].name;
+            break;
+          }
+        }
+        ASSERT_FALSE(gpioName.empty())
+            << "Could not find newly added GPIO for " << *auxDevice.name();
+
+        if (detectedGpios[newGpioIndex].lines <=
+            0) { // Assuming > 0 is required
           errorMessages.emplace_back(
               fmt::format(
                   "For {}: expected > 0 lines, but got {}",
                   gpioName,
-                  detectedGpios[0].lines));
+                  detectedGpios[newGpioIndex].lines));
           continue; // Continue to the next auxDevice
         }
         XLOG(INFO) << "GPIO detection: " << gpioName
                    << " size: " << detectedGpios.size()
-                   << " lines: " << detectedGpios[0].lines;
+                   << " lines: " << detectedGpios[newGpioIndex].lines;
 
         // GPIO info, verify the number of lines
         auto info = GpioUtils::gpioinfo(gpioName);
-        EXPECT_EQ(info.size(), detectedGpios[0].lines)
+        EXPECT_EQ(info.size(), detectedGpios[newGpioIndex].lines)
             << "Line count mismatch for " << gpioName << ": gpiodetect reports "
-            << detectedGpios[0].lines << " lines, but gpioinfo reports "
-            << info.size() << " lines.";
+            << detectedGpios[newGpioIndex].lines
+            << " lines, but gpioinfo reports " << info.size() << " lines.";
         XLOG(INFO) << "GPIO info: " << gpioName << " lines: " << info.size();
 
         // GPIO get, show each line's value
         for (size_t i = 0; i < info.size(); ++i) {
+          if (info[i].direction != "input") {
+            continue;
+          }
           int val = GpioUtils::gpioget(gpioName, i);
           XLOG(INFO) << "GPIO get: " << gpioName << " Line index: " << i
                      << " Line value: " << val;

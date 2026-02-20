@@ -178,6 +178,13 @@ TEST_F(FbossEepromInterfaceTest, V5) {
   auto eeprom = createFbossEepromInterface(kEepromV5);
   EXPECT_EQ(eeprom.getVersion(), 5);
   EXPECT_EQ(eeprom.getEepromContents(), createEepromContents(5));
+
+  EXPECT_EQ(eeprom.getProductName(), kProductName);
+  EXPECT_EQ(eeprom.getProductPartNumber(), kProductPartNumber);
+  EXPECT_EQ(eeprom.getProductionState(), kProductionState);
+  EXPECT_EQ(eeprom.getProductionSubState(), kProductionSubState);
+  EXPECT_EQ(eeprom.getVariantVersion(), kVariantIndicator);
+  EXPECT_EQ(eeprom.getProductSerialNumber(), kProductSerialNumber);
 }
 
 TEST_F(FbossEepromInterfaceTest, V5WrongCRC) {
@@ -190,6 +197,13 @@ TEST_F(FbossEepromInterfaceTest, V6) {
   auto eeprom = createFbossEepromInterface(kEepromV6);
   EXPECT_EQ(eeprom.getVersion(), 6);
   EXPECT_EQ(eeprom.getEepromContents(), createEepromContents(6));
+
+  EXPECT_EQ(eeprom.getProductName(), kProductName);
+  EXPECT_EQ(eeprom.getProductPartNumber(), kProductPartNumber);
+  EXPECT_EQ(eeprom.getProductionState(), kProductionState);
+  EXPECT_EQ(eeprom.getProductionSubState(), kProductionSubState);
+  EXPECT_EQ(eeprom.getVariantVersion(), kVariantIndicator);
+  EXPECT_EQ(eeprom.getProductSerialNumber(), kProductSerialNumber);
 }
 
 TEST_F(FbossEepromInterfaceTest, InvalidEepromSize) {

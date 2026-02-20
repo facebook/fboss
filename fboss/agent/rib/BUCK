@@ -80,12 +80,15 @@ cpp_unittest(
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent:utils",
         "//fboss/agent/hw/mock:mock",
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/if:mpls-cpp2-types",
+        "//fboss/agent/state:label_forwarding_action",
         "//fboss/agent/state:state",
         "//fboss/agent/test:hw_test_handle",
         "//fboss/agent/test:label_forwarding_utils",
@@ -93,6 +96,10 @@ cpp_unittest(
         "//folly:network_address",
         "//folly/functional:partial",
         "//folly/json:dynamic",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "gflags",
     ],
 )
 
@@ -145,7 +152,6 @@ cpp_library(
     headers = ["NextHopIDManager.h"],
     exported_deps = [
         "fbsource//third-party/googletest:gtest_headers",
-        "//fboss/agent:address_utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent/state:state",

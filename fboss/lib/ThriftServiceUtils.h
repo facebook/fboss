@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <folly/Function.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
 namespace facebook::fboss {
@@ -26,5 +27,13 @@ class ThriftServiceUtils {
 
   static void setPreferredEventBaseBackendToEpoll(
       apache::thrift::ThriftServer& server);
+
+  /**
+   * Create a server configuration callback for use with
+   * ScopedServerInterfaceThread that configures the server with the preferred
+   * EventBase backend (epoll) to avoid libevent2 performance issues in OSS.
+   */
+  static folly::Function<void(apache::thrift::ThriftServer&)>
+  createThriftServerConfig();
 };
 } // namespace facebook::fboss

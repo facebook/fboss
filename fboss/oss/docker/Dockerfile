@@ -5,7 +5,7 @@ ARG USERNAME=root
 ARG USER_UID=0
 ARG USER_GID=0
 ARG USER_SHELL=/bin/bash
-ARG USE_CLANG=false
+ARG USE_CLANG=true
 
 # Download and install sccache
 RUN version=v0.11.0 && \

@@ -11,11 +11,17 @@
 
 #include <string>
 #include <vector>
+#include "fboss/agent/types.h"
 #include "fboss/lib/if/gen-cpp2/pim_state_types.h"
 
 #define PIM_LOG(level, pimID) XLOG(level) << "[PimID: " << pimID << "] "
 
 namespace facebook::fboss {
+
+// Initialize per-PIM fb303 stats for xphy error monitoring.
+// This is a standalone function to avoid circular dependencies between
+// multi_pim_container and qsfp_service:stats.
+void initPerPimFb303Stats(const PimID& pimID);
 /*
  * Multi-pim Platform Pim Container base class.
  * As each pim has its own fpga, this class can provide functions to access

@@ -10,11 +10,13 @@ cpp_binary(
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
+        "//fboss/lib:thrift_service_utils",
         "//fboss/platform/helpers:init",
         "//fboss/platform/platform_manager:config_utils",
+        "//fboss/platform/platform_manager:exploration_errors",
         "//fboss/platform/platform_manager:pkg_manager",
+        "//fboss/platform/platform_manager:platform_explorer",
         "//fboss/platform/platform_manager:platform_manager_handler",
-        "//fboss/platform/platform_manager:scuba_logger",
         "//thrift/lib/cpp2/util:util",
     ],
 )

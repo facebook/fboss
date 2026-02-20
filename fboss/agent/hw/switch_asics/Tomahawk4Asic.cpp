@@ -183,11 +183,13 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
+    case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::MANAGEMENT_PORT:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER:
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
+    case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::RCI_WATERMARK_COUNTER:
     case HwAsic::Feature::DTL_WATERMARK_COUNTER:
@@ -246,6 +248,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
+    case HwAsic::Feature::VIRTUAL_ARS_GROUP:
       return false;
   }
   return false;
@@ -286,11 +289,11 @@ int Tomahawk4Asic::getStationID(int intfId) const {
 
 int Tomahawk4Asic::getNumLanesPerPhysicalPort() const {
   /*
-    In each Blackhawk7 core, there are 4 phyiscal ports and (up to) 4 logical
-    ports but 8 physical lanes. Therefore, when calculating the physical_port of
-    bcm_port_resource_t when using flexing port logic, we need to use
-    numLanesPerPhysicalPort to divide physical lanes, which is learned from
-    PlatformMapping.
+    In each Blackhawk7 core, there are 4 phyiscal ports and (up to) 4
+    logical ports but 8 physical lanes. Therefore, when calculating the
+    physical_port of bcm_port_resource_t when using flexing port logic, we
+    need to use numLanesPerPhysicalPort to divide physical lanes, which is
+    learned from PlatformMapping.
   */
   return 2;
 }
@@ -330,6 +333,10 @@ std::optional<uint32_t> Tomahawk4Asic::getMaxArsGroups() const {
 
 std::optional<uint32_t> Tomahawk4Asic::getArsBaseIndex() const {
   return getMaxEcmpGroups().value() - getMaxArsGroups().value();
+}
+
+std::optional<uint32_t> Tomahawk4Asic::getMaxArsWidth() const {
+  return 64;
 }
 
 } // namespace facebook::fboss

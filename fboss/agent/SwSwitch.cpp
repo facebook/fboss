@@ -75,6 +75,7 @@
 #include "fboss/agent/TeFlowNexthopHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/ValidateStateUpdate.h"
 #include "fboss/agent/capture/PcapPkt.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -672,7 +673,7 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
       stateDeltaLogger_->logStateDelta(
           minAlpmStateDelta, "Setup min ALPM state");
     }
-    stateChanged(minAlpmStateDelta, false);
+    stateChanged(minAlpmStateDelta, false, std::nullopt);
   }
 
   if (stateDeltaLogger_ && FLAGS_enable_state_delta_logging) {
@@ -1727,26 +1728,33 @@ void SwSwitch::updateStateNoCoalescing(StringPiece name, StateUpdateFn fn) {
 
 void SwSwitch::updateStateBlocking(folly::StringPiece name, StateUpdateFn fn) {
   auto behaviorFlags = static_cast<int>(StateUpdate::BehaviorFlags::NONE);
-  updateStateBlockingImpl(name, fn, behaviorFlags);
+  updateStateBlockingImpl(name, fn, behaviorFlags, std::nullopt);
 }
 
 void SwSwitch::updateStateWithHwFailureProtection(
     folly::StringPiece name,
-    StateUpdateFn fn) {
+    StateUpdateFn fn,
+    std::optional<StateDeltaApplication> deltaApplicationBehavior) {
   int stateUpdateBehavior =
       static_cast<int>(StateUpdate::BehaviorFlags::NON_COALESCING) |
       static_cast<int>(StateUpdate::BehaviorFlags::HW_FAILURE_PROTECTION);
 
-  updateStateBlockingImpl(name, fn, stateUpdateBehavior);
+  updateStateBlockingImpl(
+      name, fn, stateUpdateBehavior, deltaApplicationBehavior);
 }
 
 void SwSwitch::updateStateBlockingImpl(
     folly::StringPiece name,
     StateUpdateFn fn,
-    int stateUpdateBehavior) {
+    int stateUpdateBehavior,
+    std::optional<StateDeltaApplication> deltaApplicationBehavior) {
   auto result = std::make_shared<BlockingUpdateResult>();
   auto update = make_unique<BlockingStateUpdate>(
-      name, std::move(fn), result, stateUpdateBehavior);
+      name,
+      std::move(fn),
+      result,
+      stateUpdateBehavior,
+      std::move(deltaApplicationBehavior));
   if (updateState(std::move(update))) {
     result->wait();
   }
@@ -1810,6 +1818,12 @@ void SwSwitch::handlePendingUpdates() {
     CHECK(isNonCoalescing)
         << " Hw Failure protected updates should be non coalescing";
   }
+  auto deltaApplicationBehavior =
+      updates.begin()->getDeltaApplicationBehavior();
+  if (deltaApplicationBehavior.has_value()) {
+    CHECK(isNonCoalescing)
+        << " Delta application behavior only applies to non coalescing updates";
+  }
 
   // This function should never be called with valid updates while we don't have
   // a valid switch state
@@ -1856,8 +1870,11 @@ void SwSwitch::handlePendingUpdates() {
     auto isTransaction = updates.begin()->hwFailureProtected() &&
         multiHwSwitchHandler_->transactionsSupported();
     // There was some change during these state updates
-    std::tie(newAppliedState, newDesiredState) =
-        applyUpdate(oldAppliedState, newDesiredState, isTransaction);
+    std::tie(newAppliedState, newDesiredState) = applyUpdate(
+        oldAppliedState,
+        newDesiredState,
+        isTransaction,
+        deltaApplicationBehavior);
     if (newDesiredState != newAppliedState) {
       /*
        * Send newAppliedState to EcmpResourceManager and Shel Manager to
@@ -1953,7 +1970,8 @@ std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>
 SwSwitch::applyUpdate(
     const shared_ptr<SwitchState>& oldState,
     const shared_ptr<SwitchState>& newState,
-    bool isTransaction) {
+    bool isTransaction,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   // Check that we are starting from what has been already applied
   DCHECK_EQ(oldState, getAppliedState());
   auto newDesiredState = newState;
@@ -1994,11 +2012,19 @@ SwSwitch::applyUpdate(
   for (const auto& delta : deltas) {
     if (!resourceAccountant_->isValidUpdate(delta)) {
       updateRejected = true;
+      stats()->resourceAccountantRejectedUpdates();
+      XLOG(ERR) << "State updated rejected by resource accountant";
+      break;
+    }
+    if (!isValidStateUpdate(delta)) {
+      updateRejected = true;
+      XLOG(ERR) << "Attempted to apply invalid state update, rejected it";
       break;
     }
   }
   if (updateRejected) {
-    stats()->resourceAccountantRejectedUpdates();
+    /* reconstruct the resource account to reset resources accounted in earlier
+     * deltas */
     resourceAccountant_ = std::make_unique<ResourceAccountant>(
         getHwAsicTable(), getScopeResolver());
     resourceAccountant_->stateChanged(
@@ -2027,7 +2053,8 @@ SwSwitch::applyUpdate(
   // undesirable.  So far I don't think this brief discrepancy should cause
   // major issues.
   try {
-    newAppliedState = stateChanged(deltas, isTransaction);
+    newAppliedState =
+        stateChanged(deltas, isTransaction, deltaApplicationBehavior);
   } catch (const std::exception& ex) {
     // Notify the hw_ of the crash so it can execute any device specific
     // tasks before we fatal. An example would be to dump the current hw
@@ -2181,8 +2208,9 @@ void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
     handlePacket(std::move(pkt));
   } catch (const std::exception& ex) {
     portStats(port)->pktError();
-    XLOG(ERR) << "error processing trapped packet: " << folly::exceptionStr(ex)
-              << " from port: " << port;
+    XLOG_EVERY_N(ERR, 10000)
+        << "error processing trapped packet: " << folly::exceptionStr(ex)
+        << " from port: " << port;
     // Return normally, without letting the exception propagate to our caller.
     return;
   }
@@ -2623,6 +2651,38 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
     updateStateNoCoalescing(
         "Fw Isolate Update", std::move(updateActiveStateFn));
   }
+}
+
+void SwSwitch::linkAdminStateChangedByFw(
+    const std::vector<int32_t>& fwDisabledPortIds) {
+  auto updateAdminDisableStateFn =
+      [fwDisabledPortIds, this](const std::shared_ptr<SwitchState>& state) {
+        std::shared_ptr<SwitchState> newState(state);
+        for (const auto& portId : fwDisabledPortIds) {
+          // Firmware Admin disable the link and issues callback. While the link
+          // is Admin disabled, since Firmware wants to issue callback quickly,
+          // it does not run the usual Admin disable sequence.
+          // Thus, explicit Admin disable means:
+          //  - FBOSS SwitchState is updated.
+          //  - SAI API call to Admin Disable. SAI implementation can run the
+          //  usual Admin disable sequence then.
+          // Note: this change cannot be persistent, so link will come up as
+          // Admin Enabled post warmboot, and Firmware may disable it again if
+          // the problem persists.
+          XLOG(DBG2) << "Admin Disable link disabled by Firmware: " << portId;
+          auto* port = newState->getPorts()->getNodeIf(portId).get();
+          auto newPort = port->modify(&newState);
+          newPort->setAdminState(cfg::PortState::DISABLED);
+          newPort->addError(PortError::LINK_DISABLED_BY_FIRMWARE);
+        }
+
+        return newState;
+      };
+
+  updateStateNoCoalescing(
+      "Fw Isolate Link Admin Disable Update",
+      std::move(updateAdminDisableStateFn));
+  return;
 }
 
 void SwSwitch::validateSwitchReachabilityInformation(
@@ -3630,58 +3690,14 @@ void SwSwitch::updateConfigAppliedInfo() {
 }
 
 bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
-  bool isValid = true;
-
-  forEachChanged(
-      delta.getAclsDelta(),
-      [&](const shared_ptr<AclEntry>& /* oldAcl */,
-          const shared_ptr<AclEntry>& newAcl) {
-        isValid = isValid && newAcl->hasMatcher();
-        return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
-      },
-      [&](const shared_ptr<AclEntry>& addAcl) {
-        isValid = isValid && addAcl->hasMatcher();
-        return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
-      },
-      [&](const shared_ptr<AclEntry>& /* delAcl */) {});
-
-  forEachChanged(
-      delta.getPortsDelta(),
-      [&](const shared_ptr<Port>& /* oldport */,
-          const shared_ptr<Port>& newport) {
-        isValid = isValid && newport->hasValidPortQueues();
-        return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
-      },
-      [&](const shared_ptr<Port>& addport) {
-        isValid = isValid && addport->hasValidPortQueues();
-        return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
-      },
-      [&](const shared_ptr<Port>& /* delport */) {});
-
-  // Ensure only one sflow mirror session is configured
-  std::set<std::string> ingressMirrors;
-  for (auto mniter : std::as_const(*(delta.newState()->getPorts()))) {
-    for (auto iter : std::as_const(*mniter.second)) {
-      auto port = iter.second;
-      if (port && port->getIngressMirror().has_value()) {
-        auto ingressMirror = delta.newState()->getMirrors()->getNodeIf(
-            port->getIngressMirror().value());
-        if (ingressMirror && ingressMirror->type() == Mirror::Type::SFLOW) {
-          ingressMirrors.insert(port->getIngressMirror().value());
-        }
-      }
-    }
-  }
-  if (ingressMirrors.size() > 1) {
-    XLOG(ERR) << "Only one sflow mirror can be configured across all ports";
-    isValid = false;
-  }
-
+  auto isValid = isStateUpdateValidCommon(delta);
   if (isValid) {
     if (isRunModeMonolithic()) {
       isValid = getMonolithicHwSwitchHandler()->isValidStateUpdate(delta);
     } else {
       // TODO - implement state update validation for multiswitch
+      isValid = isStateUpdateValidMultiSwitch(
+          delta, getScopeResolver(), getHwAsicTable()->getHwAsics());
     }
   }
 
@@ -3861,14 +3877,20 @@ void SwSwitch::sentNeighborSolicitation(
 
 std::shared_ptr<SwitchState> SwSwitch::stateChanged(
     const StateDelta& delta,
-    bool transaction) const {
-  return multiHwSwitchHandler_->stateChanged(delta, transaction);
+    bool transaction,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior)
+    const {
+  return multiHwSwitchHandler_->stateChanged(
+      delta, transaction, HwWriteBehavior::WRITE, deltaApplicationBehavior);
 }
 
 std::shared_ptr<SwitchState> SwSwitch::stateChanged(
     const std::vector<StateDelta>& deltas,
-    bool transaction) const {
-  return multiHwSwitchHandler_->stateChanged(deltas, transaction);
+    bool transaction,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior)
+    const {
+  return multiHwSwitchHandler_->stateChanged(
+      deltas, transaction, HwWriteBehavior::WRITE, deltaApplicationBehavior);
 }
 
 std::shared_ptr<SwitchState> SwSwitch::modifyTransceivers(

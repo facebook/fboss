@@ -30,8 +30,9 @@ CmdConfigInterfaceMtuTraits::RetType CmdConfigInterfaceMtu::queryClient(
     }
   }
 
-  // Save the updated config
-  ConfigSession::getInstance().saveConfig();
+  // Save the updated config - MTU changes are hitless
+  ConfigSession::getInstance().saveConfig(
+      cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
   std::string interfaceList = folly::join(", ", interfaces.getNames());
   std::string message = "Successfully set MTU for interface(s) " +
