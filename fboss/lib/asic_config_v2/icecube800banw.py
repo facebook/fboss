@@ -7,9 +7,17 @@ from fboss.lib.platform_mapping_v2.gen import read_all_vendor_data
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
 from typing import List
 
+SAI_CFG = {
+    "l3_ecmp_member_secondary_mem_size": "8192",
+    "sai_port_phy_time_sync_en": "0",
+    "sai_eapol_trap_use_bcast_mac": "1",
+    "sai_stats_disable_mask": "0x800",
+}
+
+
 class Icecube800banwConfig(Tomahawk6AsicConfig):
-    MGMT_PORT_LOGICAL_ID = 520
-    MGMT_PORT_PHYSICAL_ID = 513
+    MGMT_PORT_LOGICAL_ID = 268
+    MGMT_PORT_PHYSICAL_ID = 514
 
     def __init__(
         self, asic_config_params: asic_config_thrift.AsicConfigParameters
@@ -68,12 +76,17 @@ class Icecube800banwConfig(Tomahawk6AsicConfig):
             "MTU_CHECK: 1",
         )
 
+    def generate_global_settings(self) -> None:
+        super(Icecube800banwConfig, self).generate_global_settings()
+        for attribute, value in SAI_CFG.items():
+            self.values["global"][attribute] = value
+
     def generate_asic_config(self) -> None:
         self.generate_global_settings()
-        self.generate_logical_port_to_physical_port_mapping(mgmt_port=False)
+        self.generate_logical_port_to_physical_port_mapping(mgmt_port=True)
         self.generate_lane_map()
         self.generate_polarity_map()
-        self.generate_port_config(mgmt_port=False)
+        self.generate_port_config(mgmt_port=True)
         self.generate_autoload_board_settings()
         self.generate_flex_counter_settings()
         self.generate_asic_vendor_config()
@@ -110,6 +123,7 @@ class Icecube800banwConfig(Tomahawk6AsicConfig):
                 logical_to_physical_port_mapping.append([lp_id, pp_id])
 
         return logical_to_physical_port_mapping
+
 
 def gen_icecube800banw_asic_config(
     asic_config_params: asic_config_thrift.AsicConfigParameters,
