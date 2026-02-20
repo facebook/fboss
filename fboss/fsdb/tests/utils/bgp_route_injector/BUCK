@@ -1,3 +1,4 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 
 oncall("fboss_agent_push")
@@ -15,5 +16,22 @@ cpp_library(
         "//folly/io/async:async_socket",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/async:rocket_client_channel",
+    ],
+)
+
+cpp_binary(
+    name = "route_injector",
+    srcs = ["main.cpp"],
+    deps = [
+        ":route_injector_lib",
+        "//folly:file_util",
+        "//folly:string",
+        "//folly/init:init",
+        "//folly/io/async:async_base",
+        "//folly/io/async:async_signal_handler",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "gflags",
     ],
 )
