@@ -2213,6 +2213,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/jericho3/multi_switch": [
@@ -2419,6 +2422,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/ramon3/mono": [
@@ -2877,6 +2883,9 @@
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
+        },
+        {
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig$"
         }
     ],
@@ -3084,6 +3093,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig$"
@@ -4273,6 +4285,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono/fap": [
@@ -4505,6 +4520,9 @@
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
         },
         {
@@ -4718,6 +4736,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/multi_switch/fap": [
@@ -4924,6 +4945,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -7715,6 +7739,9 @@
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         }
     ],
@@ -7948,6 +7975,9 @@
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -8166,6 +8196,9 @@
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         }
     ],
@@ -8373,6 +8406,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -11894,6 +11930,9 @@
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         }
     ],
@@ -12127,6 +12166,9 @@
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -12345,6 +12387,9 @@
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         }
     ],
@@ -12552,6 +12597,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot_for_warm_boot.0.AgentEmptyVoqTest.CheckInit.AgentRxReasonTests.InsertAndRemoveRxReason"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
