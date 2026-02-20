@@ -239,6 +239,11 @@ class HwArsTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
+  bool supportsFuturePortLoad() const {
+    return getPlatform()->getAsic()->isSupported(
+        HwAsic::Feature::ARS_FUTURE_PORT_LOAD);
+  }
+
   cfg::PortFlowletConfig getPortFlowletConfig(
       int scalingFactor,
       int loadWeight,
@@ -246,7 +251,9 @@ class HwArsTest : public HwLinkStateDependentTest {
     cfg::PortFlowletConfig portFlowletConfig;
     portFlowletConfig.scalingFactor() = scalingFactor;
     portFlowletConfig.loadWeight() = loadWeight;
-    portFlowletConfig.queueWeight() = queueWeight;
+    if (supportsFuturePortLoad()) {
+      portFlowletConfig.queueWeight() = queueWeight;
+    }
     return portFlowletConfig;
   }
 
@@ -271,7 +278,9 @@ class HwArsTest : public HwLinkStateDependentTest {
     flowletCfg.inactivityIntervalUsecs() = inactivityIntervalUsecs;
     flowletCfg.flowletTableSize() = flowletTableSize;
     flowletCfg.dynamicEgressLoadExponent() = 3;
-    flowletCfg.dynamicQueueExponent() = 3;
+    if (supportsFuturePortLoad()) {
+      flowletCfg.dynamicQueueExponent() = 3;
+    }
     flowletCfg.dynamicQueueMinThresholdBytes() = 100000;
     flowletCfg.dynamicQueueMaxThresholdBytes() = 200000;
     flowletCfg.dynamicSampleRate() = samplingRate;

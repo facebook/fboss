@@ -71,13 +71,15 @@ class AgentArsFlowletTest : public AgentArsBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
+    auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
     utility::addFlowletConfigs(
         cfg,
         ensemble.masterLogicalPortIds(),
         ensemble.isSai(),
         cfg::SwitchingMode::FLOWLET_QUALITY,
         ensemble.isSai() ? cfg::SwitchingMode::FIXED_ASSIGNMENT
-                         : cfg::SwitchingMode::PER_PACKET_RANDOM);
+                         : cfg::SwitchingMode::PER_PACKET_RANDOM,
+        hwAsic->isSupported(HwAsic::Feature::ARS_FUTURE_PORT_LOAD));
     return cfg;
   }
 
@@ -118,6 +120,11 @@ class AgentArsFlowletTest : public AgentArsBase {
       portCfg->flowletConfigName() = "default";
     }
   }
+  bool supportsFuturePortLoad() const {
+    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    return hwAsic->isSupported(HwAsic::Feature::ARS_FUTURE_PORT_LOAD);
+  }
+
   cfg::FlowletSwitchingConfig getFlowletSwitchingConfig(
       cfg::SwitchingMode switchingMode,
       uint16_t inactivityIntervalUsecs,
@@ -127,7 +134,9 @@ class AgentArsFlowletTest : public AgentArsBase {
     flowletCfg.inactivityIntervalUsecs() = inactivityIntervalUsecs;
     flowletCfg.flowletTableSize() = flowletTableSize;
     flowletCfg.dynamicEgressLoadExponent() = 3;
-    flowletCfg.dynamicQueueExponent() = 3;
+    if (supportsFuturePortLoad()) {
+      flowletCfg.dynamicQueueExponent() = 3;
+    }
     flowletCfg.dynamicQueueMinThresholdBytes() = 100000;
     flowletCfg.dynamicQueueMaxThresholdBytes() = 200000;
     flowletCfg.dynamicSampleRate() = samplingRate;
@@ -146,7 +155,9 @@ class AgentArsFlowletTest : public AgentArsBase {
     cfg::PortFlowletConfig portFlowletConfig;
     portFlowletConfig.scalingFactor() = scalingFactor;
     portFlowletConfig.loadWeight() = loadWeight;
-    portFlowletConfig.queueWeight() = queueWeight;
+    if (supportsFuturePortLoad()) {
+      portFlowletConfig.queueWeight() = queueWeight;
+    }
     return portFlowletConfig;
   }
 

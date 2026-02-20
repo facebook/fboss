@@ -136,7 +136,8 @@ std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
     bool isSai,
     cfg::SwitchingMode switchingMode,
-    cfg::SwitchingMode backupSwitchingMode) {
+    cfg::SwitchingMode backupSwitchingMode,
+    bool supportsFuturePortLoad) {
   cfg::FlowletSwitchingConfig flowletCfg;
   flowletCfg.inactivityIntervalUsecs() = 16;
   flowletCfg.flowletTableSize() = 2048;
@@ -152,12 +153,16 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
   // SAI has sample rate in msec while native BCM is number of ticks
   if (isSai) {
     flowletCfg.dynamicEgressLoadExponent() = 1;
-    flowletCfg.dynamicQueueExponent() = 1;
+    if (supportsFuturePortLoad) {
+      flowletCfg.dynamicQueueExponent() = 1;
+    }
     flowletCfg.dynamicPhysicalQueueExponent() = 5;
     flowletCfg.dynamicSampleRate() = 1000;
   } else {
     flowletCfg.dynamicEgressLoadExponent() = 0;
-    flowletCfg.dynamicQueueExponent() = 0;
+    if (supportsFuturePortLoad) {
+      flowletCfg.dynamicQueueExponent() = 0;
+    }
     flowletCfg.dynamicPhysicalQueueExponent() = 4;
     flowletCfg.dynamicSampleRate() = 1000000;
   }
@@ -226,10 +231,11 @@ void addFlowletConfigs(
     const std::vector<PortID>& ports,
     bool isSai,
     cfg::SwitchingMode switchingMode,
-    cfg::SwitchingMode backupSwitchingMode) {
+    cfg::SwitchingMode backupSwitchingMode,
+    bool supportsFuturePortLoad) {
   cfg::FlowletSwitchingConfig flowletCfg =
       utility::getDefaultFlowletSwitchingConfig(
-          isSai, switchingMode, backupSwitchingMode);
+          isSai, switchingMode, backupSwitchingMode, supportsFuturePortLoad);
   if (FLAGS_enable_th5_ars_scale_mode) {
     flowletCfg.primaryPathQualityThreshold() = 7;
     flowletCfg.alternatePathCost() = 0;
@@ -245,7 +251,9 @@ void addFlowletConfigs(
     portFlowletConfig.scalingFactor() = kScalingFactor;
   }
   portFlowletConfig.loadWeight() = kLoadWeight;
-  portFlowletConfig.queueWeight() = kQueueWeight;
+  if (supportsFuturePortLoad) {
+    portFlowletConfig.queueWeight() = kQueueWeight;
+  }
   portFlowletCfgMap.insert(std::make_pair("default", portFlowletConfig));
   cfg.portFlowletConfigs() = portFlowletCfgMap;
 
