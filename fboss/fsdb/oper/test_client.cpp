@@ -7,17 +7,20 @@
 #include <folly/coro/BlockingWait.h>
 #include <folly/coro/Task.h>
 #include <folly/init/Init.h>
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "servicerouter/client/cpp2/ServiceRouter.h"
 
+DEFINE_string(host, "::1", "FSDB server host");
+
 using namespace facebook::fboss::fsdb;
 
 auto fsdbClient() {
   auto params = facebook::servicerouter::ClientParams();
-  params.setSingleHost("::1", fsdb_common_constants::PORT());
+  params.setSingleHost(FLAGS_host, FLAGS_fsdbPort);
   params.setProcessingTimeoutMs(std::chrono::milliseconds(500));
 
   return facebook::servicerouter::cpp2::getClientFactory()

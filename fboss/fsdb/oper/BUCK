@@ -163,6 +163,7 @@ cpp_binary(
     name = "test_client",
     srcs = ["test_client.cpp"],
     deps = [
+        "//fboss/fsdb/common:flags",
         "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
         "//fboss/fsdb/if:fsdb_model",
