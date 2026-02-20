@@ -71,7 +71,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "1",
+            "controllerId": "2",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_2"
           },
@@ -106,7 +106,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "1",
+            "controllerId": "3",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_3"
           },
@@ -141,7 +141,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "1",
+            "controllerId": "4",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_4"
           },
@@ -176,7 +176,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "1",
+            "controllerId": "5",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_5"
           },
@@ -211,7 +211,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "1",
+            "controllerId": "6",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_6"
           },
@@ -246,7 +246,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "1",
+            "controllerId": "7",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_7"
           },
@@ -281,7 +281,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "1",
+            "controllerId": "8",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_8"
           },
@@ -316,7 +316,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "2",
+            "controllerId": "9",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_9"
           },
@@ -351,7 +351,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "2",
+            "controllerId": "10",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_10"
           },
@@ -386,7 +386,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "2",
+            "controllerId": "11",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_11"
           },
@@ -421,7 +421,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "2",
+            "controllerId": "12",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_12"
           },
@@ -456,7 +456,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "2",
+            "controllerId": "13",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_13"
           },
@@ -491,7 +491,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "2",
+            "controllerId": "14",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_14"
           },
@@ -526,7 +526,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "2",
+            "controllerId": "15",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_15"
           },
@@ -561,7 +561,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "2",
+            "controllerId": "16",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_16"
           },
@@ -596,7 +596,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "3",
+            "controllerId": "17",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_17"
           },
@@ -631,7 +631,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "3",
+            "controllerId": "18",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_18"
           },
@@ -666,7 +666,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "3",
+            "controllerId": "19",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_19"
           },
@@ -701,7 +701,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "3",
+            "controllerId": "20",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_20"
           },
@@ -736,7 +736,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "3",
+            "controllerId": "21",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_21"
           },
@@ -771,7 +771,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "3",
+            "controllerId": "22",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_22"
           },
@@ -806,7 +806,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "3",
+            "controllerId": "23",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_23"
           },
@@ -841,7 +841,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "3",
+            "controllerId": "24",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_24"
           },
@@ -876,7 +876,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "4",
+            "controllerId": "25",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_25"
           },
@@ -911,7 +911,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "4",
+            "controllerId": "26",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_26"
           },
@@ -946,7 +946,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "4",
+            "controllerId": "27",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_27"
           },
@@ -981,7 +981,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "4",
+            "controllerId": "28",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_28"
           },
@@ -1016,7 +1016,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "4",
+            "controllerId": "29",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_29"
           },
@@ -1051,7 +1051,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "4",
+            "controllerId": "30",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_30"
           },
@@ -1086,7 +1086,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "4",
+            "controllerId": "31",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_31"
           },
@@ -1121,7 +1121,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "4",
+            "controllerId": "32",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_32"
           },
@@ -1156,7 +1156,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "5",
+            "controllerId": "33",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_33"
           },
@@ -1191,7 +1191,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "5",
+            "controllerId": "34",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_34"
           },
@@ -1226,7 +1226,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "5",
+            "controllerId": "35",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_35"
           },
@@ -1261,7 +1261,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "5",
+            "controllerId": "36",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_36"
           },
@@ -1296,7 +1296,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "5",
+            "controllerId": "37",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_37"
           },
@@ -1331,7 +1331,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "5",
+            "controllerId": "38",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_38"
           },
@@ -1366,7 +1366,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "5",
+            "controllerId": "39",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_39"
           },
@@ -1401,7 +1401,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "5",
+            "controllerId": "40",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_40"
           },
@@ -1436,7 +1436,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "6",
+            "controllerId": "41",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_41"
           },
@@ -1471,7 +1471,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "6",
+            "controllerId": "42",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_42"
           },
@@ -1506,7 +1506,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "6",
+            "controllerId": "43",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_43"
           },
@@ -1541,7 +1541,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "6",
+            "controllerId": "44",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_44"
           },
@@ -1576,7 +1576,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "6",
+            "controllerId": "45",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_45"
           },
@@ -1611,7 +1611,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "6",
+            "controllerId": "46",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_46"
           },
@@ -1646,7 +1646,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "6",
+            "controllerId": "47",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_47"
           },
@@ -1681,7 +1681,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "6",
+            "controllerId": "48",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_48"
           },
@@ -1716,7 +1716,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "7",
+            "controllerId": "49",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_49"
           },
@@ -1751,7 +1751,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "7",
+            "controllerId": "50",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_50"
           },
@@ -1786,7 +1786,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "7",
+            "controllerId": "51",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_51"
           },
@@ -1821,7 +1821,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "7",
+            "controllerId": "52",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_52"
           },
@@ -1856,7 +1856,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "7",
+            "controllerId": "53",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_53"
           },
@@ -1891,7 +1891,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "7",
+            "controllerId": "54",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_54"
           },
@@ -1926,7 +1926,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "7",
+            "controllerId": "55",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_55"
           },
@@ -1961,7 +1961,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "7",
+            "controllerId": "56",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_56"
           },
@@ -1996,7 +1996,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "8",
+            "controllerId": "57",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_57"
           },
@@ -2031,7 +2031,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "8",
+            "controllerId": "58",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_58"
           },
@@ -2066,7 +2066,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "8",
+            "controllerId": "59",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_59"
           },
@@ -2101,7 +2101,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "8",
+            "controllerId": "60",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_60"
           },
@@ -2136,7 +2136,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "8",
+            "controllerId": "61",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_61"
           },
@@ -2171,7 +2171,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "8",
+            "controllerId": "62",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_62"
           },
@@ -2206,7 +2206,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "8",
+            "controllerId": "63",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_63"
           },
@@ -2241,7 +2241,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "gpioChip": ""
           },
           "io": {
-            "controllerId": "8",
+            "controllerId": "64",
             "type": 1,
             "devicePath": "/run/devmap/xcvrs/xcvr_io_64"
           },
@@ -2254,6 +2254,37 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "6": 128,
             "7": 128,
             "8": 128
+          }
+        },
+        "65": {
+          "tcvrId": 65,
+          "accessControl": {
+            "controllerId": "65",
+            "type": 1,
+            "reset": {
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_65/xcvr_reset_65",
+              "mask": 1,
+              "gpioOffset": 0,
+              "resetHoldHi": 0
+            },
+            "presence": {
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_65/xcvr_present_65",
+              "mask": 1,
+              "gpioOffset": 0,
+              "presentHoldHi": 0
+            },
+            "gpioChip": ""
+          },
+          "io": {
+            "controllerId": "65",
+            "type": 1,
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_65"
+          },
+          "tcvrLaneToLedId": {
+            "1": 129,
+            "2": 129,
+            "3": 129,
+            "4": 129
           }
         }
       },
@@ -3027,6 +3058,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "bluePath": "/sys/class/leds/port64_led2:blue:status",
           "yellowPath": "/sys/class/leds/port64_led2:amber:status",
           "transceiverId": 64
+        },
+        "129": {
+          "id": 129,
+          "bluePath": "/sys/class/leds/port65_led1:blue:status",
+          "yellowPath": "/sys/class/leds/port65_led1:amber:status",
+          "transceiverId": 65
         }
       }
     }
