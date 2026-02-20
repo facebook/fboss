@@ -2,23 +2,23 @@
     "name": "ORV3_BBU",
     "address_range": [
         [
-	        64,
-	        127
-	    ]
+            64,
+            127
+        ]
     ],
     "probe_register": 8,
     "baudrate": 19200,
     "special_handlers": [
-      {
-        "reg": 302,
-        "len": 2,
-        "period": 3600,
-        "action": "write",
-        "info": {
-          "interpret": "INTEGER",
-          "shell": "date +%s"
+        {
+            "reg": 302,
+            "len": 2,
+            "period": 3600,
+            "action": "write",
+            "info": {
+                "interpret": "INTEGER",
+                "shell": "date +%s"
+            }
         }
-      }
     ],
     "registers": [
         {
@@ -88,22 +88,70 @@
             "changes_only": true,
             "format": "FLAGS",
             "flags": [
-                [15, "Discharge_Not_Allowed"],
-                [14, "Charge_Not_Allowed"],
-                [13, "Temperature_Failure"],
-                [12, "Pack_Over_Current"],
-                [11, "Cell_Under_Voltage"],
-                [10, "Pack_Under_Voltage"],
-                [9, "Cell_Over_Voltage"],
-                [8, "Pack_Over_Voltage"],
-                [7, "EOL"],
-                [6, "Fan_Failure"],
-                [5, "Cell_Balancing_Failure"],
-                [4, "Micro_Failure"],
-                [3, "AFE_Failure"],
-                [2, "Discharge_Fuse_Failure"],
-                [1, "Charge_Fuse_Failure"],
-                [0, "Charge_FET_Failure"]
+                [
+                    15,
+                    "Discharge_Not_Allowed"
+                ],
+                [
+                    14,
+                    "Charge_Not_Allowed"
+                ],
+                [
+                    13,
+                    "Temperature_Failure"
+                ],
+                [
+                    12,
+                    "Pack_Over_Current"
+                ],
+                [
+                    11,
+                    "Cell_Under_Voltage"
+                ],
+                [
+                    10,
+                    "Pack_Under_Voltage"
+                ],
+                [
+                    9,
+                    "Cell_Over_Voltage"
+                ],
+                [
+                    8,
+                    "Pack_Over_Voltage"
+                ],
+                [
+                    7,
+                    "EOL"
+                ],
+                [
+                    6,
+                    "Fan_Failure"
+                ],
+                [
+                    5,
+                    "Cell_Balancing_Failure"
+                ],
+                [
+                    4,
+                    "Micro_Failure"
+                ],
+                [
+                    3,
+                    "AFE_Failure"
+                ],
+                [
+                    2,
+                    "Discharge_Fuse_Failure"
+                ],
+                [
+                    1,
+                    "Charge_Fuse_Failure"
+                ],
+                [
+                    0,
+                    "Charge_FET_Failure"
+                ]
             ],
             "name": "BBU_Status"
         },
@@ -114,19 +162,58 @@
             "changes_only": true,
             "format": "FLAGS",
             "flags": [
-                [12, "Temp_Sensor_Failure"],
-                [11, "Other_Permanent_Faults"],
-                [10, "Charge_Timeout"],
-                [9, "Micro_Failure"],
-                [8, "Fuse_Failure"],
-                [7, "Fan_Failure"],
-                [6, "AFE_Failure"],
-                [5, "Discharge_FET_failure"],
-                [4, "Charge_FET_Failure"],
-                [3, "Cell_Balancing_Failure"],
-                [2, "Cell_Over_Temperature"],
-                [1, "Cell_Under_Voltage"],
-                [0, "Cell_Over_Voltage"]
+                [
+                    12,
+                    "Temp_Sensor_Failure"
+                ],
+                [
+                    11,
+                    "Other_Permanent_Faults"
+                ],
+                [
+                    10,
+                    "Charge_Timeout"
+                ],
+                [
+                    9,
+                    "Micro_Failure"
+                ],
+                [
+                    8,
+                    "Fuse_Failure"
+                ],
+                [
+                    7,
+                    "Fan_Failure"
+                ],
+                [
+                    6,
+                    "AFE_Failure"
+                ],
+                [
+                    5,
+                    "Discharge_FET_failure"
+                ],
+                [
+                    4,
+                    "Charge_FET_Failure"
+                ],
+                [
+                    3,
+                    "Cell_Balancing_Failure"
+                ],
+                [
+                    2,
+                    "Cell_Over_Temperature"
+                ],
+                [
+                    1,
+                    "Cell_Under_Voltage"
+                ],
+                [
+                    0,
+                    "Cell_Over_Voltage"
+                ]
             ],
             "name": "Permanent_Failures"
         },
@@ -143,22 +230,70 @@
             "changes_only": true,
             "format": "FLAGS",
             "flags": [
-                [15, "VO_SEL_Pin_Enable_Disable"],
-                [14, "EOL_Threshold_Override"],
-                [13, "System_Control_Enable"],
-                [12, "CC_Charge_Timeout_Disable"],
-                [11, "PCM_Threshold_Override_Enable"],
-                [10, "Variable_Charger_Manual_Override"],
-                [9, "HW_Reset_Pin_Enable_Disable"],
-                [8, "SoH_Override"],
-                [7, "SoH_Test_Interval_Override"],
-                [6, "SMBUS_Communication_Failure"],
-                [5, "CANBUS_Communication_Failure"],
-                [4, "SoH_Test_OCV_Relaxation_Time"],
-                [3, "SoH_Test"],
-                [2, "Cell_Balancing"],
-                [1, "Discharge"],
-                [0, "Charging"]
+                [
+                    15,
+                    "VO_SEL_Pin_Enable_Disable"
+                ],
+                [
+                    14,
+                    "EOL_Threshold_Override"
+                ],
+                [
+                    13,
+                    "System_Control_Enable"
+                ],
+                [
+                    12,
+                    "CC_Charge_Timeout_Disable"
+                ],
+                [
+                    11,
+                    "PCM_Threshold_Override_Enable"
+                ],
+                [
+                    10,
+                    "Variable_Charger_Manual_Override"
+                ],
+                [
+                    9,
+                    "HW_Reset_Pin_Enable_Disable"
+                ],
+                [
+                    8,
+                    "SoH_Override"
+                ],
+                [
+                    7,
+                    "SoH_Test_Interval_Override"
+                ],
+                [
+                    6,
+                    "SMBUS_Communication_Failure"
+                ],
+                [
+                    5,
+                    "CANBUS_Communication_Failure"
+                ],
+                [
+                    4,
+                    "SoH_Test_OCV_Relaxation_Time"
+                ],
+                [
+                    3,
+                    "SoH_Test"
+                ],
+                [
+                    2,
+                    "Cell_Balancing"
+                ],
+                [
+                    1,
+                    "Discharge"
+                ],
+                [
+                    0,
+                    "Charging"
+                ]
             ],
             "name": "BBU_Mode"
         },
@@ -169,16 +304,46 @@
             "changes_only": true,
             "format": "FLAGS",
             "flags": [
-                [15, "Over_Charge_Alarm"],
-                [14, "Terminate_Charge_Alarm"],
-                [12, "Over_Temerature_Alarm"],
-                [11, "Terminate_Discharge_Alarm"],
-                [9, "Remaing_Capacity_Alarm"],
-                [8, "Remaining_Time_Alarm"],
-                [7, "Initialized"],
-                [6, "Discharging"],
-                [5, "Fully_Charged"],
-                [4, "Fully_Discharged"]
+                [
+                    15,
+                    "Over_Charge_Alarm"
+                ],
+                [
+                    14,
+                    "Terminate_Charge_Alarm"
+                ],
+                [
+                    12,
+                    "Over_Temerature_Alarm"
+                ],
+                [
+                    11,
+                    "Terminate_Discharge_Alarm"
+                ],
+                [
+                    9,
+                    "Remaing_Capacity_Alarm"
+                ],
+                [
+                    8,
+                    "Remaining_Time_Alarm"
+                ],
+                [
+                    7,
+                    "Initialized"
+                ],
+                [
+                    6,
+                    "Discharging"
+                ],
+                [
+                    5,
+                    "Fully_Charged"
+                ],
+                [
+                    4,
+                    "Fully_Discharged"
+                ]
             ],
             "name": "Battery_Status"
         },
@@ -490,12 +655,30 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [7, "Second_Shelf_Detection"],
-                [4, "Fan_Fault"],
-                [3, "Charger_Converter_Fault"],
-                [2, "Buck_Converter_Fault"],
-                [1, "Power_Boost_Converter_Fault"],
-                [0, "Temperature_Fault"]
+                [
+                    7,
+                    "Second_Shelf_Detection"
+                ],
+                [
+                    4,
+                    "Fan_Fault"
+                ],
+                [
+                    3,
+                    "Charger_Converter_Fault"
+                ],
+                [
+                    2,
+                    "Buck_Converter_Fault"
+                ],
+                [
+                    1,
+                    "Power_Boost_Converter_Fault"
+                ],
+                [
+                    0,
+                    "Temperature_Fault"
+                ]
             ],
             "name": "BBU_Status_Word"
         },
@@ -504,11 +687,26 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [4, "Power_Boost_UVP"],
-                [3, "Power_Boost_SCP2"],
-                [2, "Power_Boost_OVP"],
-                [1, "Power_Boost_OCP"],
-                [0, "Power_Boost_SCP1"]
+                [
+                    4,
+                    "Power_Boost_UVP"
+                ],
+                [
+                    3,
+                    "Power_Boost_SCP2"
+                ],
+                [
+                    2,
+                    "Power_Boost_OVP"
+                ],
+                [
+                    1,
+                    "Power_Boost_OCP"
+                ],
+                [
+                    0,
+                    "Power_Boost_SCP1"
+                ]
             ],
             "name": "BBU_Status_Power_Boost"
         },
@@ -517,7 +715,10 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [3, "Buck_Output_OVP"]
+                [
+                    3,
+                    "Buck_Output_OVP"
+                ]
             ],
             "name": "BBU_Status_Buck_Converter"
         },
@@ -526,11 +727,26 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [4, "Charger_Timeout"],
-                [3, "Charger_Output_OCP"],
-                [2, "Charger_Output_OVP"],
-                [1, "Charger_Input_UVP"],
-                [0, "Charger_Input_OVP"]
+                [
+                    4,
+                    "Charger_Timeout"
+                ],
+                [
+                    3,
+                    "Charger_Output_OCP"
+                ],
+                [
+                    2,
+                    "Charger_Output_OVP"
+                ],
+                [
+                    1,
+                    "Charger_Input_UVP"
+                ],
+                [
+                    0,
+                    "Charger_Input_OVP"
+                ]
             ],
             "name": "BBU_Status_Charger"
         },
@@ -539,12 +755,30 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [5, "Battery_Pack_OTP"],
-                [4, "Power_Boost_OTP"],
-                [3, "Buck_Converter_OTP"],
-                [2, "Charger_OTP"],
-                [1, "Output_Ambient_OTP"],
-                [0, "Input_Ambient_OTP"]
+                [
+                    5,
+                    "Battery_Pack_OTP"
+                ],
+                [
+                    4,
+                    "Power_Boost_OTP"
+                ],
+                [
+                    3,
+                    "Buck_Converter_OTP"
+                ],
+                [
+                    2,
+                    "Charger_OTP"
+                ],
+                [
+                    1,
+                    "Output_Ambient_OTP"
+                ],
+                [
+                    0,
+                    "Input_Ambient_OTP"
+                ]
             ],
             "name": "BBU_Status_Temperature"
         },
@@ -553,7 +787,10 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [0, "BBU_EOL"]
+                [
+                    0,
+                    "BBU_EOL"
+                ]
             ],
             "name": "End_of_Life_Status"
         },
@@ -580,15 +817,42 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [15, "Discharge_Power_Less_Than_500W"],
-                [14, "BBU_Failure"],
-                [13, "BBU_Not_Installed"],
-                [12, "BBU_EOL"],
-                [11, "BBU_In_Bootloader_Mode"],
-                [10, "BBU_Voltage_3900mV_Per_Cell"],
-                [9, "CAN_Failure"],
-                [8, "BBU_Backup"],
-                [7, "Others"]
+                [
+                    15,
+                    "Discharge_Power_Less_Than_500W"
+                ],
+                [
+                    14,
+                    "BBU_Failure"
+                ],
+                [
+                    13,
+                    "BBU_Not_Installed"
+                ],
+                [
+                    12,
+                    "BBU_EOL"
+                ],
+                [
+                    11,
+                    "BBU_In_Bootloader_Mode"
+                ],
+                [
+                    10,
+                    "BBU_Voltage_3900mV_Per_Cell"
+                ],
+                [
+                    9,
+                    "CAN_Failure"
+                ],
+                [
+                    8,
+                    "BBU_Backup"
+                ],
+                [
+                    7,
+                    "Others"
+                ]
             ],
             "name": "SOH_Failure_Reason"
         },
@@ -603,21 +867,66 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [15, "SYNC_STOP_L"],
-                [14, "PSKILL"],
-                [13, "BBU_ALERT_L"],
-                [12, "BBU_Reset"],
-                [11, "SOH_L"],
-                [10, "BKP_RED_L"],
-                [9, "VOUT_SEL"],
-                [8, "PLS_L"],
-                [7, "SYNC_START_L"],
-                [6, "A2"],
-                [5, "A1"],
-                [4, "A0"],
-                [3, "RS485_Addr2"],
-                [2, "RS485_Addr1"],
-                [1, "RS485_Addr0"]
+                [
+                    15,
+                    "SYNC_STOP_L"
+                ],
+                [
+                    14,
+                    "PSKILL"
+                ],
+                [
+                    13,
+                    "BBU_ALERT_L"
+                ],
+                [
+                    12,
+                    "BBU_Reset"
+                ],
+                [
+                    11,
+                    "SOH_L"
+                ],
+                [
+                    10,
+                    "BKP_RED_L"
+                ],
+                [
+                    9,
+                    "VOUT_SEL"
+                ],
+                [
+                    8,
+                    "PLS_L"
+                ],
+                [
+                    7,
+                    "SYNC_START_L"
+                ],
+                [
+                    6,
+                    "A2"
+                ],
+                [
+                    5,
+                    "A1"
+                ],
+                [
+                    4,
+                    "A0"
+                ],
+                [
+                    3,
+                    "RS485_Addr2"
+                ],
+                [
+                    2,
+                    "RS485_Addr1"
+                ],
+                [
+                    1,
+                    "RS485_Addr0"
+                ]
             ],
             "name": "BBU_Module_Hardware_Signals"
         },
@@ -626,18 +935,54 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [15, "SYS_PRES"],
-                [14, "PF_Flag"],
-                [13, "GG_SMD"],
-                [12, "GG_SMC"],
-                [11, "RTCSMD"],
-                [10, "RTCSMC"],
-                [7, "BMS_Not_Insert"],
-                [5, "PSU_Fault_L"],
-                [4, "BMS_Fail"],
-                [2, "BMS_SoH"],
-                [1, "BMS_Charge_Enable"],
-                [0, "BMS_Stop_Discharge"]
+                [
+                    15,
+                    "SYS_PRES"
+                ],
+                [
+                    14,
+                    "PF_Flag"
+                ],
+                [
+                    13,
+                    "GG_SMD"
+                ],
+                [
+                    12,
+                    "GG_SMC"
+                ],
+                [
+                    11,
+                    "RTCSMD"
+                ],
+                [
+                    10,
+                    "RTCSMC"
+                ],
+                [
+                    7,
+                    "BMS_Not_Insert"
+                ],
+                [
+                    5,
+                    "PSU_Fault_L"
+                ],
+                [
+                    4,
+                    "BMS_Fail"
+                ],
+                [
+                    2,
+                    "BMS_SoH"
+                ],
+                [
+                    1,
+                    "BMS_Charge_Enable"
+                ],
+                [
+                    0,
+                    "BMS_Stop_Discharge"
+                ]
             ],
             "name": "Battery_Pack_Hardware_Signals"
         },
@@ -646,14 +991,38 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [7, "FAULT_LOC_LED_Blink"],
-                [6, "FAULT_LOC_LED_On"],
-                [5, "EOL_LED_Blink"],
-                [4, "EOL_LED_On"],
-                [3, "LOWV_LED_Blink"],
-                [2, "LOWV_LED_On"],
-                [1, "Power_Good_LED_Blink"],
-                [0, "Power_Good_LED_On"]
+                [
+                    7,
+                    "FAULT_LOC_LED_Blink"
+                ],
+                [
+                    6,
+                    "FAULT_LOC_LED_On"
+                ],
+                [
+                    5,
+                    "EOL_LED_Blink"
+                ],
+                [
+                    4,
+                    "EOL_LED_On"
+                ],
+                [
+                    3,
+                    "LOWV_LED_Blink"
+                ],
+                [
+                    2,
+                    "LOWV_LED_On"
+                ],
+                [
+                    1,
+                    "Power_Good_LED_Blink"
+                ],
+                [
+                    0,
+                    "Power_Good_LED_On"
+                ]
             ],
             "name": "LED_Status"
         },
@@ -668,14 +1037,38 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [15, "Discharge_Power_Less_Than_500W"],
-                [14, "BBU_Failure"],
-                [13, "BBU_Not_Installed"],
-                [12, "BBU_EOL"],
-                [11, "BBU_In_Bootloader_Mode"],
-                [10, "BBU_Voltage_3900mV_Per_Cell"],
-                [9, "CAN_Failure"],
-                [8, "Other"]
+                [
+                    15,
+                    "Discharge_Power_Less_Than_500W"
+                ],
+                [
+                    14,
+                    "BBU_Failure"
+                ],
+                [
+                    13,
+                    "BBU_Not_Installed"
+                ],
+                [
+                    12,
+                    "BBU_EOL"
+                ],
+                [
+                    11,
+                    "BBU_In_Bootloader_Mode"
+                ],
+                [
+                    10,
+                    "BBU_Voltage_3900mV_Per_Cell"
+                ],
+                [
+                    9,
+                    "CAN_Failure"
+                ],
+                [
+                    8,
+                    "Other"
+                ]
             ],
             "name": "SOH_Not_Start_Reason"
         },
@@ -774,7 +1167,10 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [0, "Fault_LED_Blink"]
+                [
+                    0,
+                    "Fault_LED_Blink"
+                ]
             ],
             "name": "LED_Override"
         },
@@ -873,9 +1269,13 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [0, "Clear_BBU_Faults_And_Latch"]
+                [
+                    0,
+                    "Clear_BBU_Faults_And_Latch"
+                ]
             ],
             "name": "BBU_Clear_Fault"
         }
     ]
 }
+
