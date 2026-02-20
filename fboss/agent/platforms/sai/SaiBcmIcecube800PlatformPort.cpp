@@ -7,18 +7,17 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmIcecube800PlatformPort.h"
 
 namespace facebook::fboss {
 
-void SaiBcmIcecube800bcPlatformPort::linkStatusChanged(
+void SaiBcmIcecube800PlatformPort::linkStatusChanged(
     bool /*up*/,
     bool /*adminUp*/) {
   // TODO: set led color
 }
 
-void SaiBcmIcecube800bcPlatformPort::externalState(
-    PortLedExternalState /*lfs*/) {
+void SaiBcmIcecube800PlatformPort::externalState(PortLedExternalState /*lfs*/) {
   // TODO: set led color
 }
 
