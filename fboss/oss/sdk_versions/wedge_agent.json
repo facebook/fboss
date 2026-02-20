@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<9e931452f290ee43ed2f3233a1f552a9>>"
+        "@generated SignedSource<<0696bbf03d24b86161cd0eec1f2f420d>>"
     ],
     "MINIPACK": [
         {
@@ -126,12 +126,6 @@
     "WEDGE400C": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "1.42.8",
-            "saiSdk": "1.42.8",
-            "saiVersion": "1.7.4"
-        },
-        {
-            "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "24.8.3001",
             "saiSdk": "24.8.3001",
             "saiVersion": "1.14.0"
@@ -141,7 +135,8 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.34",
-            "saiSdk": "14.0.ea_odp"
+            "saiSdk": "14.0_ea_odp",
+            "saiVersion": "1.15.7"
         }
     ],
     "MINIPACK3N": [
@@ -240,7 +235,8 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.34",
-            "saiSdk": "14.0.ea_odp"
+            "saiSdk": "14.0_ea_odp",
+            "saiVersion": "1.15.7"
         }
     ]
 }
