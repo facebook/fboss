@@ -26,6 +26,7 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/platform/helpers:platform_utils",
+        "//fboss/platform/helpers:structured_logger",
         "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-types",
         "//folly:file_util",
@@ -119,7 +120,9 @@ cpp_binary(
         ":utils",
         "//fb303:logging",
         "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:structured_logger",
         "//folly/executors:function_scheduler",
+        "//folly/logging:logging",
     ],
 )
 

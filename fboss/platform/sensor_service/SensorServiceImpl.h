@@ -16,6 +16,7 @@
 #include <folly/Synchronized.h>
 
 #include "fboss/platform/helpers/PlatformUtils.h"
+#include "fboss/platform/helpers/StructuredLogger.h"
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include "fboss/platform/sensor_service/PmUnitInfoFetcher.h"
 #include "fboss/platform/sensor_service/Utils.h"
@@ -112,6 +113,7 @@ class SensorServiceImpl {
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
       publishedStatsToFsdbAt_;
   SensorConfig sensorConfig_{};
+  helpers::StructuredLogger structuredLogger_;
   std::shared_ptr<Utils> utils_{};
   std::shared_ptr<PlatformUtils> platformUtils_{};
   PmUnitInfoFetcher pmUnitInfoFetcher_{};
