@@ -45,6 +45,11 @@ class LinkTest : public AgentTest {
       uint32_t retries = 60,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(1000)) const;
+  void waitForPortStateMachineState(
+      bool up,
+      uint32_t retries = 60,
+      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+          std::chrono::milliseconds(1000)) const;
   bool checkReachabilityOnAllCabledPorts() const;
   /*
    * Get pairs of ports connected to each other
@@ -74,6 +79,14 @@ class LinkTest : public AgentTest {
       const;
   const std::vector<PortID>& getCabledFabricPorts() const {
     return cabledFabricPorts_;
+  }
+  /*
+   * Get cabled ports that are managed by qsfp_service (i.e., ports with
+   * TRANSCEIVER or XPHY chips). Ports connected directly to backplane
+   * without XPHY are not managed by qsfp_service.
+   */
+  const std::vector<PortID>& getQsfpServiceManagedPorts() const {
+    return qsfpServiceManagedPorts_;
   }
 
   void checkAgentMemoryInBounds() const;
@@ -137,6 +150,7 @@ class LinkTest : public AgentTest {
   std::vector<PortID> cabledFabricPorts_;
   std::vector<PortID> cabledTransceiverPorts_;
   std::set<TransceiverID> cabledTransceivers_;
+  std::vector<PortID> qsfpServiceManagedPorts_;
 };
 int linkTestMain(
     int argc,

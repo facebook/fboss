@@ -71,6 +71,16 @@ SaiVirtualRouterHandle* SaiVirtualRouterManager::getVirtualRouterHandleImpl(
   return itr->second.get();
 }
 
+RouterID SaiVirtualRouterManager::getRouterID(
+    const sai_object_id_t vrId) const {
+  for (const auto& [routerId, handle] : handles_) {
+    if (handle.get()->virtualRouter->adapterKey() == vrId) {
+      return routerId;
+    }
+  }
+  throw FbossError("No RouterID found for virtual router SAI id ", vrId);
+}
+
 std::shared_ptr<SaiMplsRouterInterface>
 SaiVirtualRouterManager::createMplsRouterInterface(VirtualRouterSaiId vrId) {
   auto asicType = platform_->getAsic()->getAsicType();
@@ -94,6 +104,7 @@ SaiVirtualRouterManager::createMplsRouterInterface(VirtualRouterSaiId vrId) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:

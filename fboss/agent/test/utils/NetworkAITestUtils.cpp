@@ -236,43 +236,6 @@ void addVoqAqmConfig(
   config->defaultVoqConfig() = voqs;
 }
 
-// Configure a specific VoQ with ECN marking at the specified probability.
-// Used to apply ECN config dynamically after traffic is flowing.
-void addVoqEcnProbabilisticMarkingConfig(
-    cfg::SwitchConfig* config,
-    cfg::StreamType /* streamType */,
-    const HwAsic* asic,
-    int queueId,
-    int probability,
-    int minThresh,
-    int maxThresh) {
-  XLOG(DBG2) << "Configuring VoQ ECN probabilistic marking for queue "
-             << queueId << " with minThresh: " << minThresh << " bytes"
-             << ", maxThresh: " << maxThresh << " bytes"
-             << ", probability: " << probability << "%";
-
-  auto nameAndDefaultVoqCfg =
-      getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
-  CHECK(nameAndDefaultVoqCfg.has_value());
-  std::vector<cfg::PortQueue> voqs = nameAndDefaultVoqCfg->queueConfig;
-
-  for (auto& voq : voqs) {
-    auto voqId = voq.id();
-    if (asic->scalingFactorBasedDynamicThresholdSupported()) {
-      voq.scalingFactor() = cfg::MMUScalingFactor::ONE;
-    }
-    voq.reservedBytes() = 1500; // Set to possible MTU!
-
-    // Configure only the specified VoQ with ECN
-    if (voqId == getTrafficClassToVoqId(asic, queueId)) {
-      voq.aqms() = {};
-      voq.aqms()->push_back(
-          GetEcnConfig(*asic, minThresh, maxThresh, probability));
-    }
-  }
-  config->defaultVoqConfig() = voqs;
-}
-
 void addEventorVoqConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType) {

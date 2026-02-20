@@ -184,7 +184,8 @@ void includeLpoTransceivers(
   // Remove LPO modules from the map
   auto itr = infos.begin();
   while (itr != infos.end()) {
-    if (itr->second.tcvrState()->lpoModule().value()) {
+    if (itr->second.tcvrState()->moduleTechnology().value() ==
+        ModuleTechnology::LPO) {
       itr = infos.erase(itr);
     } else {
       itr++;

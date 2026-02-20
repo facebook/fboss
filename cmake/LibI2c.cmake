@@ -11,7 +11,6 @@ add_library(i2c_ctrl
 
 target_link_libraries(i2c_ctrl
   i2c_controller_stats_cpp2
-  utils
   Folly::folly
 )
 

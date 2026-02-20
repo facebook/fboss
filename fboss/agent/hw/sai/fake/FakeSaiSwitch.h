@@ -40,17 +40,17 @@ class FakeSwitch {
   void setShellStatus(bool enabled) {
     shellEnabled_ = enabled;
   }
-  void setEcmpHashV4Id(const sai_object_id_t id) {
-    ecmpHashV4_ = id;
+  void setEcmpHashV4Id(const sai_object_id_t oid) {
+    ecmpHashV4_ = oid;
   }
-  void setEcmpHashV6Id(const sai_object_id_t id) {
-    ecmpHashV6_ = id;
+  void setEcmpHashV6Id(const sai_object_id_t oid) {
+    ecmpHashV6_ = oid;
   }
-  void setLagHashV4Id(const sai_object_id_t id) {
-    lagHashV4_ = id;
+  void setLagHashV4Id(const sai_object_id_t oid) {
+    lagHashV4_ = oid;
   }
-  void setLagHashV6Id(const sai_object_id_t id) {
-    lagHashV6_ = id;
+  void setLagHashV6Id(const sai_object_id_t oid) {
+    lagHashV6_ = oid;
   }
   void setEcmpSeed(sai_uint32_t seed) {
     ecmpSeed_ = seed;
@@ -240,8 +240,8 @@ class FakeSwitch {
     counterRefreshInterval_ = interval;
   }
 
-  void setDefaultVlanId(sai_object_id_t id) {
-    defaultVlanId_ = id;
+  void setDefaultVlanId(sai_object_id_t oid) {
+    defaultVlanId_ = oid;
   }
 
   sai_object_id_t getDefaultVlanId() const {

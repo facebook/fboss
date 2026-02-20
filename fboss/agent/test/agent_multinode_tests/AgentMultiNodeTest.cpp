@@ -49,6 +49,7 @@ AgentMultiNodeTest::getProductionFeaturesVerified() const {
 void AgentMultiNodeTest::setCmdLineFlagOverrides() const {
   AgentHwTest::setCmdLineFlagOverrides();
   FLAGS_hide_fabric_ports = false;
+  FLAGS_hide_interface_ports = false;
   // Allow disabling of looped ports. This should
   // be a noop for VOQ switches
   FLAGS_disable_looped_fabric_ports = true;

@@ -11,6 +11,8 @@
 #include "fboss/agent/FibHelpers.h"
 
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 
@@ -118,5 +120,35 @@ template std::shared_ptr<Route<folly::IPAddressV6>> findLongestMatchRoute(
 template bool isNoHostRoute(const std::shared_ptr<MacEntry>& entry);
 template bool isNoHostRoute(const std::shared_ptr<NdpEntry>& entry);
 template bool isNoHostRoute(const std::shared_ptr<ArpEntry>& entry);
+
+std::vector<NextHop> getNextHops(
+    const std::shared_ptr<FibInfo>& fibInfo,
+    NextHopSetId id) {
+  return fibInfo->resolveNextHopSetFromId(id);
+}
+
+std::vector<NextHop> getNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    NextHopSetId id) {
+  auto fibsInfoMap = state->getFibsInfoMap();
+  if (!fibsInfoMap || fibsInfoMap->empty()) {
+    throw FbossError("FibsInfoMap is not initialized or empty");
+  }
+
+  // If there's only one FibInfo, use it directly without lookup
+  if (fibsInfoMap->size() == 1) {
+    return getNextHops(fibsInfoMap->cbegin()->second, id);
+  }
+
+  // Multiple FibInfo entries: search for the one containing this ID
+  for (const auto& [_, fibInfo] : std::as_const(*fibsInfoMap)) {
+    auto idToNextHopIdSetMap = fibInfo->getIdToNextHopIdSetMap();
+    if (idToNextHopIdSetMap && idToNextHopIdSetMap->getNextHopIdSetIf(id)) {
+      return getNextHops(fibInfo, id);
+    }
+  }
+
+  throw FbossError("NextHopSetId ", id, " not found in any FibInfo");
+}
 
 } // namespace facebook::fboss

@@ -32,12 +32,14 @@ struct TransceiverPortState {
   uint8_t numHostLanes;
   TransmitterTechnology transmitterTech = TransmitterTechnology::UNKNOWN;
   std::optional<cfg::OpticalChannelConfig> opticalChannelConfig;
+  std::optional<std::map<uint8_t, uint8_t>> driverPeaking;
 
   bool operator==(const TransceiverPortState& other) const {
     return speed == other.speed && portName == other.portName &&
         startHostLane == other.startHostLane &&
         transmitterTech == other.transmitterTech &&
-        opticalChannelConfig == other.opticalChannelConfig;
+        opticalChannelConfig == other.opticalChannelConfig &&
+        driverPeaking == other.driverPeaking;
   }
 };
 

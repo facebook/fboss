@@ -1,0 +1,114 @@
+# .github/CODEOWNERS
+#
+# FBOSS GitHub Repository — Code Owners
+# ======================================
+#
+# This file defines the default reviewers for pull requests based on
+# which files are modified. GitHub will automatically request reviews
+# from the listed owners when a PR touches matching paths.
+#
+# Rules:
+#   - Later patterns take precedence over earlier ones.
+#   - Any ONE listed owner can approve unless branch protection
+#     requires multiple approvals.
+#   - Owners are ordered by recent commit activity (most active first).
+##
+# To verify GitHub handles, visit:
+#   https://github.com/facebook/fboss/commits?author=<handle>
+#
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# ──────────────────────────────────────────────────────────────────────
+# Default — catches any file not matched by a more specific rule below.
+# These are the most prolific cross-cutting contributors.
+# ──────────────────────────────────────────────────────────────────────
+*                                       @joseph5wu @KevinYakar @srikrishnagopu @AarjunC
+
+# ──────────────────────────────────────────────────────────────────────
+# Agent — the core FBOSS daemon that programs the switching ASIC.
+# Includes HW abstraction, state management, routing, and packet I/O.
+# Path: fboss/agent/
+# ──────────────────────────────────────────────────────────────────────
+/fboss/agent/                           @shri-khare @phshaikh @jasmeetbagga @daiwei1983 @zechengh09 @msomasundaran @ashutoshgrewal
+
+# ──────────────────────────────────────────────────────────────────────
+# QSFP Service — manages QSFP/OSFP optical transceiver modules.
+# Handles optics detection, configuration, monitoring, and diagnostics.
+# Path: fboss/qsfp_service/
+# ──────────────────────────────────────────────────────────────────────
+/fboss/qsfp_service/                    @harshitgulati18 @xanabani @Protick666
+
+# ──────────────────────────────────────────────────────────────────────
+# Platform — platform-specific services and hardware support.
+# Includes fan_service, sensor_service, rackmon, platform_manager,
+# data_corral_service, and firmware utilities.
+# Path: fboss/platform/
+# ──────────────────────────────────────────────────────────────────────
+/fboss/platform/                        @lohithchittineni @somasun @RomanChoporov-Meta @mikechoifb @binhuang00 @joancaneus @Scott8440 @tao-ren
+
+# ──────────────────────────────────────────────────────────────────────
+# Shared Libraries — reusable code used across FBOSS components.
+# Includes PHY layer libs, BSP, I2C, ASIC config, and platform mapping.
+# Path: fboss/lib/
+# ──────────────────────────────────────────────────────────────────────
+/fboss/lib/                             @Protick666 @harshitgulati18 @shri-khare
+
+# ──────────────────────────────────────────────────────────────────────
+# CLI — the fboss2 command-line interface for switch management.
+# Provides operational commands for querying and configuring switches.
+# Path: fboss/cli/
+# ──────────────────────────────────────────────────────────────────────
+/fboss/cli/                             @joseph5wu @AarjunC
+
+# ──────────────────────────────────────────────────────────────────────
+# FSDB — Fast Switch Database for configuration and state storage.
+# Provides a pub-sub interface for structured switch state data.
+# Path: fboss/fsdb/
+# ──────────────────────────────────────────────────────────────────────
+/fboss/fsdb/                            @KevinYakar
+
+# ──────────────────────────────────────────────────────────────────────
+# LED Service — controls front-panel LED indicators on switch platforms.
+# Path: fboss/led_service/
+# ──────────────────────────────────────────────────────────────────────
+/fboss/led_service/                     @xanabani @Protick666 @harshitgulati18
+
+# ──────────────────────────────────────────────────────────────────────
+# MDIO — Management Data Input/Output interface for PHY communication.
+# Path: fboss/mdio/
+# ──────────────────────────────────────────────────────────────────────
+/fboss/mdio/                            @xanabani @Protick666 @harshitgulati18
+
+# ──────────────────────────────────────────────────────────────────────
+# Firmware — firmware images and update utilities for switch components.
+# Path: fboss/firmware/
+# ──────────────────────────────────────────────────────────────────────
+/fboss/firmware/                        @xanabani @Protick666 @harshitgulati18
+
+# ──────────────────────────────────────────────────────────────────────
+# Thrift COW — Copy-on-Write data structures for Thrift-defined state.
+# Used by the agent for efficient, versioned state management.
+# Path: fboss/thrift_cow/
+# ──────────────────────────────────────────────────────────────────────
+/fboss/thrift_cow/                      @shiva-menta
+
+# ──────────────────────────────────────────────────────────────────────
+# Thrift Visitors — visitor pattern implementations for traversing
+# Thrift-defined data structures (used with thrift_cow).
+# Path: fboss/thrift_visitors/
+# ──────────────────────────────────────────────────────────────────────
+/fboss/thrift_visitors/                 @shiva-menta
+
+# ──────────────────────────────────────────────────────────────────────
+# OSS — open-source packaging, scripts, and build definitions for
+# syncing FBOSS to the public GitHub repository.
+# Path: fboss/oss/
+# ──────────────────────────────────────────────────────────────────────
+/fboss/oss/                             @AarjunC @KevinYakar @joseph5wu @srikrishnagopu
+
+# ──────────────────────────────────────────────────────────────────────
+# GitHub / Build — open-source build infrastructure, CMake configs,
+# CI workflows, and GitHub-specific packaging.
+# Path: fboss/github/
+# ──────────────────────────────────────────────────────────────────────
+/fboss/github/                          @joseph5wu @KevinYakar @srikrishnagopu @AarjunC

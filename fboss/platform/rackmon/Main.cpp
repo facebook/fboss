@@ -20,9 +20,6 @@ int main(int argc, char** argv) {
   auto server = std::make_shared<apache::thrift::ThriftServer>();
   auto handler = std::make_shared<rackmonsvc::ThriftHandler>();
 
-  server->setPort(FLAGS_port);
-  server->setInterface(handler);
-  server->setAllowPlaintextOnLoopback(true);
   helpers::runThriftService(server, handler, "Rackmon", FLAGS_port);
 
   return 0;

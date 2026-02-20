@@ -22,6 +22,7 @@ class DsfTopologyInfo : public TopologyInfo {
     populateDsfNodeInfo(switchState->getDsfNodes());
     populateAllRdsws();
     populateAllFdsws();
+    populateAllEdsws();
     populateAllSwitches();
   }
 
@@ -41,6 +42,10 @@ class DsfTopologyInfo : public TopologyInfo {
 
   const std::set<std::string>& getFdsws() const override {
     return allFdsws_;
+  }
+
+  const std::set<std::string>& getEdsws() const override {
+    return allEdsws_;
   }
 
   const std::set<std::string>& getSdsws() const override {
@@ -72,10 +77,12 @@ class DsfTopologyInfo : public TopologyInfo {
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
   void populateAllRdsws();
   void populateAllFdsws();
+  void populateAllEdsws();
   void populateAllSwitches() override;
 
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;
+  std::map<int, std::vector<std::string>> clusterIdToEdsws_;
   std::set<std::string> sdsws_;
 
   std::map<SwitchID, std::string> switchIdToSwitchName_;
@@ -85,6 +92,7 @@ class DsfTopologyInfo : public TopologyInfo {
 
   std::set<std::string> allRdsws_;
   std::set<std::string> allFdsws_;
+  std::set<std::string> allEdsws_;
 };
 
 } // namespace facebook::fboss::utility

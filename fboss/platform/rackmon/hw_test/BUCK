@@ -9,8 +9,10 @@ cpp_binary(
         "RackmonHwTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/glog:glog",
         "fbsource//third-party/googletest:gtest",
         "//common/services/cpp:light",
+        "//fboss/lib:thrift_service_utils",
         "//fboss/platform/helpers:init",
         "//fboss/platform/rackmon:core",
         "//fboss/platform/rackmon:handler",
@@ -21,8 +23,5 @@ cpp_binary(
         "//folly/logging:logging",
         "//thrift/lib/cpp2/async:rocket_client_channel",
         "//thrift/lib/cpp2/util:util",
-    ],
-    external_deps = [
-        "glog",
     ],
 )

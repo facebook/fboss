@@ -64,7 +64,6 @@ class AspeedRS485Device : public UARTDevice {
  public:
   AspeedRS485Device(const std::string& device, int baudrate)
       : UARTDevice(device, baudrate) {}
-  void open() override;
   void write(const uint8_t* buf, size_t len) override;
 };
 

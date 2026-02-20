@@ -49,7 +49,8 @@ HwSwitchHandler::~HwSwitchHandler() {
 
 folly::Future<HwSwitchStateUpdateResult> HwSwitchHandler::stateChanged(
     HwSwitchStateUpdate update,
-    const HwWriteBehavior& hwWriteBehavior) {
+    const HwWriteBehavior& hwWriteBehavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   auto [promise, semiFuture] =
       folly::makePromiseContract<HwSwitchStateUpdateResult>();
 
@@ -57,10 +58,13 @@ folly::Future<HwSwitchStateUpdateResult> HwSwitchHandler::stateChanged(
       [capturedPromise = std::move(promise),
        update = std::move(update),
        hwWriteBehavior = hwWriteBehavior,
+       deltaApplicationBehavior = deltaApplicationBehavior,
        this]() mutable {
-        capturedPromise.setWith([update, hwWriteBehavior, this]() {
-          return stateChangedImpl(update, hwWriteBehavior);
-        });
+        capturedPromise.setWith(
+            [update, hwWriteBehavior, deltaApplicationBehavior, this]() {
+              return stateChangedImpl(
+                  update, hwWriteBehavior, deltaApplicationBehavior);
+            });
       });
 
   auto future = std::move(semiFuture).via(&hwSwitchManagerEvb_);
@@ -69,7 +73,8 @@ folly::Future<HwSwitchStateUpdateResult> HwSwitchHandler::stateChanged(
 
 HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
     const HwSwitchStateUpdate& update,
-    const HwWriteBehavior& hwWriteBehavior) {
+    const HwWriteBehavior& hwWriteBehavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   std::vector<fsdb::OperDelta> inDeltas;
   for (const auto& operDelta : update.operDeltas) {
     auto inDelta = operDeltaFilter_.filterWithSwitchStateRootPath(operDelta);
@@ -88,19 +93,25 @@ HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
       update.isTransaction,
       update.oldState,
       update.newState,
-      hwWriteBehavior);
+      hwWriteBehavior,
+      deltaApplicationBehavior);
   auto outDelta = stateUpdateResult.first;
+  // this is the success case where an empty delta is returned
+  // applicable to both SaiSwitch and BcmSwitch
   if (outDelta.changes()->empty()) {
     return {update.newState, stateUpdateResult.second};
   }
-  // outDelta would be combined delta if update fails at first delta
-  // return the old state
+  // multi switch mode returns full delta if cancelled
+  // HwSwitch rollback returns full delta if transaction fails and rollback
+  // succeeds
+  // applicable only to SaiSwitch and multi (absent in BcmSwitch)
   auto inDelta = operDeltaFilter_.filterWithSwitchStateRootPath(
       StateDelta(update.oldState, update.newState).getOperDelta());
   if (inDelta && *inDelta == outDelta) {
     return {update.oldState, stateUpdateResult.second};
   }
   // obtain the state that actually got programmed
+  // applicable only to BcmSwitch
   return {
       StateDelta(update.newState, outDelta).newState(),
       stateUpdateResult.second};
@@ -111,8 +122,15 @@ HwSwitchStateOperUpdateResult HwSwitchHandler::stateChangedImpl(
     bool transaction,
     const std::shared_ptr<SwitchState>& oldState,
     const std::shared_ptr<SwitchState>& newState,
-    const HwWriteBehavior& hwWriteBehavior) {
-  return stateChanged(deltas, transaction, oldState, newState, hwWriteBehavior);
+    const HwWriteBehavior& hwWriteBehavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
+  return stateChanged(
+      deltas,
+      transaction,
+      oldState,
+      newState,
+      hwWriteBehavior,
+      deltaApplicationBehavior);
 }
 
 fsdb::OperDelta HwSwitchHandler::getFullSyncOperDelta(

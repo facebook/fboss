@@ -339,7 +339,7 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::queues>(std::move(queuesThrift));
   }
 
-  bool hasValidPortQueues(bool isEcnProbabilisticMarkingSupported) const {
+  bool hasValidPortQueues() const {
     constexpr auto kDefaultProbability = 100;
     for (const auto& portQueue : *getPortQueues()) {
       const auto& aqms = portQueue->get<ctrl_if_tags::aqms>();
@@ -351,19 +351,9 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
         auto behavior = entry->cref<switch_config_tags::behavior>()->toThrift();
         auto detection =
             entry->cref<switch_config_tags::detection>()->toThrift();
-        if (behavior == facebook::fboss::cfg::QueueCongestionBehavior::ECN) {
-          auto probability = detection.linear()->probability();
-          if (isEcnProbabilisticMarkingSupported) {
-            // Probability must be >0 and <=100
-            if (probability <= 0 || probability > 100) {
-              return false;
-            }
-          } else {
-            // Must be exactly 100%
-            if (probability != kDefaultProbability) {
-              return false;
-            }
-          }
+        if (behavior == facebook::fboss::cfg::QueueCongestionBehavior::ECN &&
+            detection.linear()->probability() != kDefaultProbability) {
+          return false;
         }
       }
     }
@@ -874,6 +864,23 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
       ref<switch_state_tags::amIdles>().reset();
     } else {
       set<switch_state_tags::amIdles>(amIdles.value());
+    }
+  }
+
+  /** @brief Get Cable Length Measurement (CLM) enable state */
+  std::optional<bool> getClmEnable() const {
+    if (auto clmEnable = cref<switch_state_tags::clmEnable>()) {
+      return clmEnable->cref();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set Cable Length Measurement (CLM) enable state */
+  void setClmEnable(std::optional<bool> clmEnable) {
+    if (!clmEnable.has_value()) {
+      ref<switch_state_tags::clmEnable>().reset();
+    } else {
+      set<switch_state_tags::clmEnable>(clmEnable.value());
     }
   }
 

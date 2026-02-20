@@ -54,7 +54,7 @@ class PkgManager {
       const std::shared_ptr<PlatformFsUtils>& platformFsUtils =
           std::make_shared<PlatformFsUtils>());
   virtual ~PkgManager() = default;
-  virtual void processAll() const;
+  virtual void processAll(bool enablePkgMgmnt, bool reloadKmods) const;
   virtual bool isValidRpm() const;
   virtual void processRpms() const;
   void processLocalRpms() const;

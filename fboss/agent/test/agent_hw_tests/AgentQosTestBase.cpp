@@ -10,6 +10,8 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentQosTestBase.h"
 
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
+
 namespace facebook::fboss {
 
 void AgentQosTestBase::verifyDscpQueueMapping(
@@ -17,7 +19,7 @@ void AgentQosTestBase::verifyDscpQueueMapping(
   auto setup = [=, this]() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
-    resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+    resolveNeighborAndProgramRoutes(ecmpHelper, kDefaultEcmpWidth);
   };
 
   auto verify = [=, this]() {
@@ -53,10 +55,10 @@ void AgentQosTestBase::sendPacket(uint8_t dscp, bool frontPanel) {
       vlanId,
       srcMac, // src mac
       intfMac, // dst mac
-      folly::IPAddressV6("2620:0:1cfe:face:b00c::3"), // src ip
-      folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), // dst ip
-      8000, // l4 src port
-      8001, // l4 dst port
+      folly::IPAddressV6(kTestSrcIpV6), // src ip
+      folly::IPAddressV6(kTestDstIpV6), // dst ip
+      kTestSrcPort, // l4 src port
+      kTestDstPort, // l4 dst port
       dscp << 2, // shifted by 2 bits for ECN
       255 // ttl
   );
@@ -66,7 +68,8 @@ void AgentQosTestBase::sendPacket(uint8_t dscp, bool frontPanel) {
   if (frontPanel) {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
-    auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
+    auto outPort =
+        ecmpHelper.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
     getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
   } else {
     getSw()->sendPacketSwitchedAsync(std::move(txPacket));

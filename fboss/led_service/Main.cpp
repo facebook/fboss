@@ -35,9 +35,6 @@ int main(int argc, char** argv) {
   auto handler = std::make_shared<LedServiceHandler>(std::move(serviceImpl));
   handler->getLedService()->kickStart();
 
-  server->setPort(FLAGS_led_service_port);
-  server->setInterface(handler);
-  server->setAllowPlaintextOnLoopback(true);
   helpers::runThriftService(
       server, handler, "LedService", FLAGS_led_service_port);
 

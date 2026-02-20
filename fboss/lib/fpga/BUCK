@@ -94,9 +94,12 @@ cpp_library(
     ],
     exported_deps = [
         ":fpga_device",
+        "//fb303:thread_cached_service_data",
         "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
         "//fboss/lib/if:pim_state-cpp2-types",
-        "//fboss/qsfp_service:stats",
+        "//folly:conv",
+        "//folly:synchronized",
     ],
 )
 

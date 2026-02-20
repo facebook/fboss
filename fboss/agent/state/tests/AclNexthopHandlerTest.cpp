@@ -188,6 +188,8 @@ class AclNexthopHandlerTest : public ::testing::Test {
       const std::vector<std::string>& nexthopIps,
       const std::vector<int32_t>& intfIDs = {}) {
     auto aclEntry = std::make_shared<AclEntry>(0, name);
+    aclEntry->setDstIp(
+        folly::IPAddress::tryCreateNetwork("2401::2/128").value());
     auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();
     auto idx = 0;
     for (auto nhIp : nexthopIps) {

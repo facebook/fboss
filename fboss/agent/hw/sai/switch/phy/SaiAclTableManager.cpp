@@ -27,14 +27,18 @@ SaiAclTableManager::SaiAclTableManager(
       aclStats_(HwFb303Stats(std::nullopt)),
       aclEntryMinimumPriority_(
           (platform->getAsic()->getAsicType() ==
-           cfg::AsicType::ASIC_TYPE_SANDIA_PHY)
+               cfg::AsicType::ASIC_TYPE_SANDIA_PHY ||
+           platform->getAsic()->getAsicType() ==
+               cfg::AsicType::ASIC_TYPE_AGERA3)
               ? 0
               : SaiApiTable::getInstance()->switchApi().getAttribute(
                     managerTable_->switchManager().getSwitchSaiId(),
                     SaiSwitchTraits::Attributes::AclEntryMinimumPriority())),
       aclEntryMaximumPriority_(
           (platform->getAsic()->getAsicType() ==
-           cfg::AsicType::ASIC_TYPE_SANDIA_PHY)
+               cfg::AsicType::ASIC_TYPE_SANDIA_PHY ||
+           platform->getAsic()->getAsicType() ==
+               cfg::AsicType::ASIC_TYPE_AGERA3)
               ? 0
               : SaiApiTable::getInstance()->switchApi().getAttribute(
                     managerTable_->switchManager().getSwitchSaiId(),

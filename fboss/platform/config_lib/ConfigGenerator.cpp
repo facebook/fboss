@@ -18,9 +18,9 @@
 #include "fboss/platform/fw_util/if/gen-cpp2/fw_util_config_types.h"
 #include "fboss/platform/platform_manager/ConfigValidator.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
+#include "fboss/platform/rma-showtech/gen-cpp2/showtech_config_types.h"
 #include "fboss/platform/sensor_service/ConfigValidator.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_config_types.h"
-#include "fboss/platform/showtech/gen-cpp2/showtech_config_types.h"
 #include "fboss/platform/weutil/ConfigValidator.h"
 #include "fboss/platform/weutil/if/gen-cpp2/weutil_config_types.h"
 
@@ -62,7 +62,7 @@ std::any deserialize(
       return SimpleJSONSerializer::deserialize<LedManagerConfig>(jsonConfigStr);
     } else if (serviceName == "bsp_tests") {
       return SimpleJSONSerializer::deserialize<BspTestsConfig>(jsonConfigStr);
-    } else if (serviceName == "showtech") {
+    } else if (serviceName == "rma_showtech") {
       return SimpleJSONSerializer::deserialize<ShowtechConfig>(jsonConfigStr);
     }
     LOG(FATAL) << fmt::format("Unsupported service {}", serviceName);
@@ -83,7 +83,7 @@ const auto kX86Services = std::set<std::string>{
     "fw_util",
     "led_manager",
     "bsp_tests",
-    "showtech"};
+    "rma_showtech"};
 constexpr auto kHdrName = "GeneratedConfig.h";
 constexpr auto kHdrBegin = R"(#pragma once
 

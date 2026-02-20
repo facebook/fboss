@@ -22,6 +22,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -127,14 +128,6 @@ class AgentAqmTest : public AgentHwTest {
     return 5;
   }
 
-  folly::IPAddressV6 kSrcIp() const {
-    return folly::IPAddressV6("2620:0:1cfe:face:b00c::3");
-  }
-
-  folly::IPAddressV6 kDestIp() const {
-    return folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
-  }
-
   bool isEct(const uint8_t ecnVal) {
     return ecnVal != kNotECT;
   }
@@ -160,10 +153,10 @@ class AgentAqmTest : public AgentHwTest {
         vlanId,
         srcMac,
         intfMac,
-        kSrcIp(),
-        kDestIp(),
-        8000,
-        8001,
+        folly::IPAddressV6(kTestSrcIpV6),
+        folly::IPAddressV6(kTestDstIpV6),
+        kTestSrcPort,
+        kTestDstPort,
         dscpVal,
         ttl,
         std::vector<uint8_t>(payloadLen, 0xff));
@@ -206,7 +199,7 @@ class AgentAqmTest : public AgentHwTest {
     }
   }
 
-  virtual cfg::SwitchConfig configureQueue2WithAqmThreshold(
+  cfg::SwitchConfig configureQueue2WithAqmThreshold(
       bool enableWred,
       bool enableEcn) const {
     auto config = utility::onePortPerInterfaceConfig(
@@ -245,7 +238,7 @@ class AgentAqmTest : public AgentHwTest {
     applyNewState([&ecmpHelper, &portDesc](std::shared_ptr<SwitchState> in) {
       return ecmpHelper.resolveNextHops(in, {portDesc});
     });
-    RoutePrefixV6 route{kDestIp(), 128};
+    RoutePrefixV6 route{folly::IPAddressV6(kTestDstIpV6), 128};
     auto wrapper = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(&wrapper, {portDesc}, {route});
     utility::ttlDecrementHandlingForLoopbackTraffic(
@@ -451,7 +444,6 @@ class AgentAqmTest : public AgentHwTest {
           queueId,
           utility::kQueueConfigAqmsEcnThresholdMinMax,
           utility::kQueueConfigAqmsEcnThresholdMinMax,
-          100, // probability
           isVoq);
     }
   }
@@ -940,85 +932,6 @@ class AgentAqmEcnOnlyTest : public AgentAqmTest {
   }
 };
 
-class AgentAqmEcnProbabilisticMarkingTest : public AgentAqmTest {
- public:
-  std::vector<ProductionFeature> getProductionFeaturesVerified()
-      const override {
-    return {
-        ProductionFeature::ECN, ProductionFeature::ECN_PROBABILISTIC_MARKING};
-  }
-
- protected:
-  static constexpr int kMinThresh = 10 * 1024;
-  static constexpr int kMaxThresh = 30 * 1024 * 1024;
-  static constexpr int kProbability = 50;
-
-  cfg::SwitchConfig configureQueue2WithAqmThreshold(
-      bool enableWred,
-      bool enableEcn) const override {
-    auto config = utility::onePortPerInterfaceConfig(
-        getSw(), masterLogicalPortIds(), true /*interfaceHasSubnet*/);
-    if (getAgentEnsemble()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
-            HwAsic::Feature::L3_QOS)) {
-      auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-      auto streamType =
-          *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
-      bool isVoq = hwAsic->getSwitchType() == cfg::SwitchType::VOQ;
-
-      if (isDualStage3Q2QQos()) {
-        utility::addNetworkAIQueueConfig(
-            &config,
-            streamType,
-            cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
-            hwAsic,
-            enableWred,
-            false /* enableEcn - override below */);
-      } else {
-        utility::addOlympicQueueConfig(
-            &config,
-            getAgentEnsemble()->getL3Asics(),
-            enableWred,
-            false /* enableEcn - we'll add our own */);
-        if (isVoq) {
-          utility::addVoqAqmConfig(
-              &config,
-              streamType,
-              hwAsic,
-              enableWred,
-              false /* enableEcn, override below */);
-        }
-      }
-
-      if (enableEcn) {
-        auto kQueueId =
-            utility::getOlympicQueueId(utility::OlympicQueueType::ECN1);
-        if (isVoq) {
-          utility::addVoqEcnProbabilisticMarkingConfig(
-              &config,
-              streamType,
-              hwAsic,
-              kQueueId,
-              kProbability,
-              kMinThresh,
-              kMaxThresh);
-        } else {
-          utility::addQueueEcnProbabilisticMarkingConfig(
-              &config,
-              streamType,
-              getAgentEnsemble()->getL3Asics(),
-              kQueueId,
-              kProbability,
-              kMinThresh,
-              kMaxThresh);
-        }
-      }
-      utility::addOlympicQosMaps(config, getAgentEnsemble()->getL3Asics());
-    }
-    utility::setTTLZeroCpuConfig(getAgentEnsemble()->getL3Asics(), config);
-    return config;
-  }
-};
-
 TEST_F(AgentAqmTest, verifyEct0) {
   runTest(kECT0, true /* enableWred */, true /* enableEcn */);
 }
@@ -1073,10 +986,6 @@ TEST_F(AgentAqmEcnOnlyTest, verifyEcnThreshold) {
 
 TEST_F(AgentAqmEcnOnlyTest, verifyPerQueueEcnMarkedStats) {
   runPerQueueEcnMarkedStatsTest();
-}
-
-TEST_F(AgentAqmEcnProbabilisticMarkingTest, verifyEcnProbabilisticMarking) {
-  runTest(kECT0, false /* enableWred */, true /* enableEcn */);
 }
 
 } // namespace facebook::fboss

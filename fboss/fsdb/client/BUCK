@@ -103,6 +103,7 @@ cpp_library(
         "FsdbSubManagerBase.h",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         ":fsdb_pub_sub",
         "//fboss/fsdb/common:flags",
         "//fboss/fsdb/if:fsdb_model",
@@ -111,9 +112,6 @@ cpp_library(
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly/io/async:scoped_event_base_thread",
         "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-        "glog",
     ],
 )
 

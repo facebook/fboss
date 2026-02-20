@@ -31,7 +31,8 @@ void SaiArsManager::addArs(
           flowletSwitchConfig->getFlowletTableSize()},
       std::nullopt, // PrimaryPathQualityThreshold
       SaiArsTraits::Attributes::AlternatePathCost{0},
-      SaiArsTraits::Attributes::AlternatePathBias{0}};
+      SaiArsTraits::Attributes::AlternatePathBias{0},
+      std::nullopt}; // NextHopGroupType
 
   auto hostKey = getAdapterHostKey(attributes);
 
@@ -74,7 +75,8 @@ void SaiArsManager::addArs(
             flowletSwitchConfig->getFlowletTableSize()},
         primaryPathQualityThreshold,
         alternatePathCost,
-        alternatePathBias};
+        alternatePathBias,
+        std::nullopt}; // NextHopGroupType
     alternateMemberArsHandle_->ars = store.setObject(
         getAdapterHostKey(alternateMemArsAttributes),
         alternateMemArsAttributes);

@@ -96,7 +96,8 @@ boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts(
   if (sw->getSwitchInfoTable().l3SwitchType() == cfg::SwitchType::VOQ) {
     for (const auto& portMap : std::as_const(*sw->getState()->getPorts())) {
       for (const auto& port : std::as_const(*portMap.second)) {
-        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
+            port.second->getPortType() == cfg::PortType::HYPER_PORT) {
           ports.insert(PortDescriptor{PortID(port.second->getID())});
         }
       }

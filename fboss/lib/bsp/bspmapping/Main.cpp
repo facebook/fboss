@@ -21,6 +21,8 @@ namespace facebook::fboss {
 const std::map<PlatformType, folly::StringPiece> kHardwareNameMap = {
     {facebook::fboss::PlatformType::PLATFORM_MONTBLANC,
      kPortMappingMontblancCsv},
+    {facebook::fboss::PlatformType::PLATFORM_MINIPACK3BTA,
+     kPortMappingMinipack3BTACsv},
     {facebook::fboss::PlatformType::PLATFORM_MINIPACK3N,
      kPortMappingMinipack3NCsv},
     {facebook::fboss::PlatformType::PLATFORM_MERU400BFU,
@@ -53,6 +55,8 @@ const std::map<PlatformType, folly::StringPiece> kHardwareNameMap = {
      kPortMappingWedge800CACTCsv},
     {facebook::fboss::PlatformType::PLATFORM_LADAKH800BCLS,
      kPortMappingLadakh800bclsCsv},
+    {facebook::fboss::PlatformType::PLATFORM_ICECUBE800BANW,
+     kPortMappingIcecube800banwCsv},
 };
 
 // Helper function to generate PHY CSV filename from regular CSV filename

@@ -52,6 +52,38 @@ void FibInfo::updateFibContainer(
   modifiedFibInfo->ref<switch_state_tags::fibsMap>() = fibsMap;
 }
 
+std::vector<NextHop> FibInfo::resolveNextHopSetFromId(NextHopSetId id) const {
+  auto idToNextHopIdSetMap = getIdToNextHopIdSetMap();
+  if (!idToNextHopIdSetMap) {
+    throw FbossError("IdToNextHopIdSetMap is not initialized");
+  }
+
+  auto nextHopIdSetNode = idToNextHopIdSetMap->getNextHopIdSetIf(id);
+  if (!nextHopIdSetNode) {
+    throw FbossError("NextHopSetId ", id, " not found");
+  }
+
+  auto idToNextHopMap = getIdToNextHopMap();
+  if (!idToNextHopMap) {
+    throw FbossError("IdToNextHopMap is not initialized");
+  }
+
+  std::vector<NextHop> nextHops;
+  nextHops.reserve(nextHopIdSetNode->size());
+  for (const auto& elem : std::as_const(*nextHopIdSetNode)) {
+    auto nextHopId = (*elem).toThrift();
+    auto nextHopNode = idToNextHopMap->getNextHopIf(nextHopId);
+    if (!nextHopNode) {
+      throw FbossError("NextHopId ", nextHopId, " not found in IdToNextHopMap");
+    }
+    nextHops.push_back(
+        util::fromThrift(
+            nextHopNode->toThrift(), true /* allowV6NonLinkLocal */));
+  }
+
+  return nextHops;
+}
+
 template struct ThriftStructNode<FibInfo, state::FibInfoFields>;
 
 } // namespace facebook::fboss

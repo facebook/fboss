@@ -31,7 +31,7 @@ enum SensorType {
   POWER = 0,
   VOLTAGE = 1,
   CURRENT = 2,
-  TEMPERTURE = 3,
+  TEMPERATURE = 3,
   FAN = 4,
   PWM = 5,
 }

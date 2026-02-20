@@ -13,7 +13,7 @@
 #include <thread>
 
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
-#include "fboss/platform/helpers/Init.h"
+#include "fboss/lib/ThriftServiceUtils.h"
 
 #ifndef IS_OSS
 #include "common/services/cpp/ServiceFrameworkLight.h"
@@ -25,10 +25,11 @@ namespace rackmonsvc {
 RackmonThriftService::RackmonThriftService()
     : thriftHandler_(std::make_shared<rackmonsvc::ThriftHandler>()) {
   using namespace std::chrono_literals;
-  using namespace facebook::fboss::platform;
 
   server_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-      thriftHandler_, folly::SocketAddress("::1", 5973));
+      thriftHandler_,
+      folly::SocketAddress("::1", 5973),
+      facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
   // We need to have discovered at least one device in 20s.
   std::this_thread::sleep_for(20s);
 }

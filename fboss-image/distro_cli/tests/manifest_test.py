@@ -18,9 +18,7 @@ import unittest
 from pathlib import Path
 
 # Add parent directory to path to import the modules
-test_dir = Path(__file__).parent
-cli_dir = test_dir.parent
-sys.path.insert(0, str(cli_dir))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from lib.manifest import ImageManifest
 
@@ -31,7 +29,7 @@ class TestImageManifest(unittest.TestCase):
     def setUp(self):
         """Use the test manifest from the tests directory"""
         self.test_dir = Path(__file__).parent
-        self.manifest_path = self.test_dir / "dev_image.json"
+        self.manifest_path = self.test_dir / "data" / "dev_image.json"
 
         # Load the manifest data for validation
         with self.manifest_path.open() as f:
@@ -86,8 +84,7 @@ class TestImageManifest(unittest.TestCase):
         resolved = manifest.resolve_path("vendor_bsp/build.make")
 
         # Check that the path ends with the expected relative path
-        # (works in both normal and Bazel sandbox environments)
-        self.assertTrue(str(resolved).endswith("tests/vendor_bsp/build.make"))
+        self.assertTrue(str(resolved).endswith("tests/data/vendor_bsp/build.make"))
         self.assertTrue(resolved.is_absolute())
 
     def test_resolve_path_url(self):

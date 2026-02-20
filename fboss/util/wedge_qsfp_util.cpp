@@ -44,6 +44,7 @@
 #include "fboss/lib/bsp/BspIOBus.h"
 #include "fboss/lib/bsp/BspTransceiverApi.h"
 #include "fboss/lib/bsp/blackwolf800banw/Blackwolf800banwBspPlatformMapping.h"
+#include "fboss/lib/bsp/icecube800banw/Icecube800banwBspPlatformMapping.h"
 #include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
@@ -53,6 +54,7 @@
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
+#include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
@@ -850,8 +852,6 @@ int doReadReg(
       doReadRegDirect(bus, portNum, offset, length, page);
     }
   } else {
-    // Release the bus access for QSFP service
-    bus->close();
     std::vector<int32_t> idx = zeroBasedPortIds(ports);
     std::map<int32_t, ReadResponse> resp;
     doReadRegViaService(idx, offset, length, page, evb, resp);
@@ -1046,8 +1046,6 @@ int doWriteReg(
       doWriteRegDirect(bus, portNum, offset, page, data);
     }
   } else {
-    // Release the bus access for QSFP service
-    bus->close();
     std::vector<int32_t> idx = zeroBasedPortIds(ports);
     doWriteRegViaService(idx, offset, page, data, evb);
   }
@@ -2242,6 +2240,9 @@ void printCmisDetailService(
       }
       printf("  FW Version: %x.%x\n", integerPart, fractionalPart);
     }
+    if (auto buildNumber = fwStatus.buildNumber()) {
+      printf("  FW Build Number: %d\n", *buildNumber);
+    }
     if (auto fwFault = fwStatus.fwFault()) {
       printf("  Firmware fault: 0x%x\n", *fwFault);
     }
@@ -2744,7 +2745,6 @@ bool setTransceiverLoopback(
     }
     return true;
   }
-  return true;
 }
 
 bool doMiniphotonLoopbackDirect(
@@ -3562,10 +3562,9 @@ void doCdbCommand(DirectI2cInfo i2cInfo, unsigned int module) {
  * Get the VDM Performance Monitoring stats from qsfp_service ad display the
  * values
  */
-bool printVdmInfoViaService(unsigned int port) {
+bool printVdmInfoViaService(unsigned int port, folly::EventBase& evb) {
   printf("Displaying VDM info for module %d via service:", port);
 
-  folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
   std::vector<int32_t> portList;
   unsigned int zeroBasedPortId = port - 1;
   portList.push_back(zeroBasedPortId);
@@ -3855,10 +3854,13 @@ bool printVdmInfoDirect(DirectI2cInfo i2cInfo, unsigned int port) {
  * Get and print the VDM performance monitoring diagsnostic data either
  * directly from hardware or through qsfp_service
  */
-bool printVdmInfo(DirectI2cInfo i2cInfo, unsigned int port) {
+bool printVdmInfo(
+    DirectI2cInfo i2cInfo,
+    unsigned int port,
+    folly::EventBase& evb) {
   if (!FLAGS_direct_i2c) {
     if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
-      return printVdmInfoViaService(port);
+      return printVdmInfoViaService(port, evb);
     } else {
       printf("Qsfp service is not active, pl provide --direct_i2c option\n");
       return false;
@@ -4449,6 +4451,13 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
               .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "icecube800banw") {
+      auto systemContainer =
+          BspGenericSystemContainer<
+              Icecube800banwBspPlatformMapping>::getInstance()
+              .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
     } else if (FLAGS_platform == "icecube800bc") {
       auto systemContainer = BspGenericSystemContainer<
                                  Icecube800bcBspPlatformMapping>::getInstance()
@@ -4458,6 +4467,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
     } else if (FLAGS_platform == "icetea800bc") {
       auto systemContainer = BspGenericSystemContainer<
                                  Icetea800bcBspPlatformMapping>::getInstance()
+                                 .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "minipack3bta") {
+      auto systemContainer = BspGenericSystemContainer<
+                                 Minipack3BTABspPlatformMapping>::getInstance()
                                  .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
@@ -4559,6 +4574,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
+  } else if (mode == PlatformType::PLATFORM_ICECUBE800BANW) {
+    auto systemContainer = BspGenericSystemContainer<
+                               Icecube800banwBspPlatformMapping>::getInstance()
+                               .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
   } else if (mode == PlatformType::PLATFORM_ICECUBE800BC) {
     auto systemContainer =
         BspGenericSystemContainer<Icecube800bcBspPlatformMapping>::getInstance()
@@ -4568,6 +4589,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
   } else if (mode == PlatformType::PLATFORM_ICETEA800BC) {
     auto systemContainer =
         BspGenericSystemContainer<Icetea800bcBspPlatformMapping>::getInstance()
+            .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
+  } else if (mode == PlatformType::PLATFORM_MINIPACK3BTA) {
+    auto systemContainer =
+        BspGenericSystemContainer<Minipack3BTABspPlatformMapping>::getInstance()
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
@@ -4672,6 +4699,8 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
       mode = PlatformType::PLATFORM_JANGA800BIC;
     } else if (FLAGS_platform == "tahan800bc") {
       mode = PlatformType::PLATFORM_TAHAN800BC;
+    } else if (FLAGS_platform == "icecube800banw") {
+      mode = PlatformType::PLATFORM_ICECUBE800BANW;
     } else if (FLAGS_platform == "icecube800bc") {
       mode = PlatformType::PLATFORM_ICECUBE800BC;
     } else if (FLAGS_platform == "icetea800bc") {
@@ -4732,6 +4761,12 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
     auto systemContainer =
         BspGenericSystemContainer<Morgan800ccBspPlatformMapping>::getInstance()
             .get();
+    return std::make_pair(
+        std::make_unique<BspTransceiverApi>(systemContainer), 0);
+  } else if (mode == PlatformType::PLATFORM_ICECUBE800BANW) {
+    auto systemContainer = BspGenericSystemContainer<
+                               Icecube800banwBspPlatformMapping>::getInstance()
+                               .get();
     return std::make_pair(
         std::make_unique<BspTransceiverApi>(systemContainer), 0);
   } else if (mode == PlatformType::PLATFORM_ICECUBE800BC) {

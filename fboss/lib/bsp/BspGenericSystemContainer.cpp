@@ -4,6 +4,7 @@
 #include <folly/FileUtil.h>
 #include <folly/Singleton.h>
 #include "fboss/lib/bsp/blackwolf800banw/Blackwolf800banwBspPlatformMapping.h"
+#include "fboss/lib/bsp/icecube800banw/Icecube800banwBspPlatformMapping.h"
 #include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
@@ -13,6 +14,7 @@
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
+#include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
@@ -103,6 +105,15 @@ template <>
 std::shared_ptr<MontblancSystemContainer>
 MontblancSystemContainer::getInstance() {
   return _montblancSystemContainer.try_get();
+}
+
+using Minipack3BTASystemContainer =
+    BspGenericSystemContainer<Minipack3BTABspPlatformMapping>;
+folly::Singleton<Minipack3BTASystemContainer> _minipack3btaSystemContainer;
+template <>
+std::shared_ptr<Minipack3BTASystemContainer>
+Minipack3BTASystemContainer::getInstance() {
+  return _minipack3btaSystemContainer.try_get();
 }
 
 using Minipack3NSystemContainer =
@@ -203,6 +214,14 @@ template <>
 std::shared_ptr<Blackwolf800banwSystemContainer>
 Blackwolf800banwSystemContainer::getInstance() {
   return _blackwolf800banwSystemContainer.try_get();
+
+using Icecube800banwSystemContainer =
+    BspGenericSystemContainer<Icecube800banwBspPlatformMapping>;
+folly::Singleton<Icecube800banwSystemContainer> _icecube800banwSystemContainer;
+template <>
+std::shared_ptr<Icecube800banwSystemContainer>
+Icecube800banwSystemContainer::getInstance() {
+  return _icecube800banwSystemContainer.try_get();
 }
 
 } // namespace fboss

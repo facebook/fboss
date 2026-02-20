@@ -16,6 +16,14 @@
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#if defined(BRCM_SAI_SDK_GTE_14_0)
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiarsextensions.h>
+#else
+#include <saiarsextensions.h>
+#endif
+#endif
+
 namespace facebook::fboss {
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
@@ -33,6 +41,12 @@ void SaiArsManager::addArs(
     alternatePathBiasForArs = SaiArsTraits::Attributes::AlternatePathBias{0};
   }
 #endif
+  std::optional<SaiArsTraits::Attributes::NextHopGroupType> nextHopGroupType =
+      std::nullopt;
+#if defined(BRCM_SAI_SDK_GTE_14_0) && defined(BRCM_SAI_SDK_XGS)
+  nextHopGroupType = SaiArsTraits::Attributes::NextHopGroupType{
+      SAI_ARS_NEXT_HOP_GROUP_TYPE_REGULAR};
+#endif
   SaiArsTraits::CreateAttributes attributes{
       SaiArsTraits::Attributes::Mode{
           cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
@@ -42,7 +56,8 @@ void SaiArsManager::addArs(
           flowletSwitchConfig->getFlowletTableSize()},
       std::nullopt, // PrimaryPathQualityThreshold
       alternatePathCostForArs,
-      alternatePathBiasForArs};
+      alternatePathBiasForArs,
+      nextHopGroupType};
 
   auto& store = saiStore_->get<SaiArsTraits>();
   arsHandle_->ars = store.setObject(getAdapterHostKey(attributes), attributes);
@@ -83,10 +98,31 @@ void SaiArsManager::addArs(
             flowletSwitchConfig->getFlowletTableSize()},
         primaryPathQualityThreshold,
         alternatePathCost,
-        alternatePathBias};
+        alternatePathBias,
+        nextHopGroupType};
     alternateMemberArsHandle_->ars = store.setObject(
         getAdapterHostKey(alternateMemAttributes), alternateMemAttributes);
   }
+
+#if defined(BRCM_SAI_SDK_GTE_14_0) && defined(BRCM_SAI_SDK_XGS)
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
+    SaiArsTraits::CreateAttributes virtualArsGroupAttributes{
+        SaiArsTraits::Attributes::Mode{
+            cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
+        SaiArsTraits::Attributes::IdleTime{
+            flowletSwitchConfig->getInactivityIntervalUsecs()},
+        SaiArsTraits::Attributes::MaxFlows{
+            flowletSwitchConfig->getFlowletTableSize()},
+        std::nullopt, // PrimaryPathQualityThreshold
+        std::nullopt, // AlternatePathCost
+        std::nullopt, // AlternatePathBias
+        SaiArsTraits::Attributes::NextHopGroupType{
+            SAI_ARS_NEXT_HOP_GROUP_TYPE_VIRTUAL}};
+    virtualArsGroupHandle_->ars = store.setObject(
+        getAdapterHostKey(virtualArsGroupAttributes),
+        virtualArsGroupAttributes);
+  }
+#endif
 }
 #endif
 

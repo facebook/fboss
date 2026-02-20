@@ -68,6 +68,8 @@ struct RegisterDescriptor {
 
   // Monitoring interval
   time_t interval = kDefaultInterval;
+
+  std::optional<std::string> unit = std::nullopt;
 };
 
 struct FlagType {
@@ -172,9 +174,13 @@ void to_json(nlohmann::json& j, const Register& m);
 struct RegisterStoreValue {
   uint16_t regAddr = 0;
   std::string name{};
+  std::optional<std::string> unit = std::nullopt;
   std::vector<RegisterValue> history{};
-  RegisterStoreValue(uint16_t reg, const std::string& n)
-      : regAddr(reg), name(n) {}
+  RegisterStoreValue(
+      uint16_t reg,
+      const std::string& n,
+      const std::optional<std::string>& u)
+      : regAddr(reg), name(n), unit(u) {}
 };
 void to_json(nlohmann::json& j, const RegisterStoreValue& m);
 
@@ -212,7 +218,6 @@ struct RegisterStore {
       time_t reloadTime = std::time(nullptr));
 
   // Returns a reference to the last written value (Back of the list)
-  Register& back();
   const Register& back() const;
 
   // Returns the front (Next to write) reference
@@ -315,7 +320,6 @@ struct AddrRange {
 
 // Container of an entire register map. This is the memory
 // representation of each JSON register map descriptors
-// at /etc/rackmon.d.
 struct RegisterMap {
   AddrRange applicableAddresses;
   std::string name;

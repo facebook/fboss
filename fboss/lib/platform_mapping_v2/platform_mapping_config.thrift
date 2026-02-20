@@ -126,6 +126,7 @@ struct SiSettingRow {
   4: phy.RxSettings rx_setting;
   5: optional map<string, i32> custom_tx_collection;
   6: optional map<string, i32> custom_rx_collection;
+  7: optional i32 driver_peaking;
 }
 
 struct ConnectionEnd {
@@ -145,6 +146,7 @@ struct SiFactorAndSetting {
   3: optional SiSettingFactor factor;
   4: optional map<string, i32> custom_tx_collection;
   5: optional map<string, i32> custom_rx_collection;
+  6: optional map<i32, i32> driver_peaking;
 }
 
 struct TxRxLaneInfo {

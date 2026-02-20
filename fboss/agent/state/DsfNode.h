@@ -39,6 +39,7 @@ class DsfNode : public ThriftStructNode<DsfNode, cfg::DsfNode> {
   std::set<folly::CIDRNetwork> getLoopbackIpsSorted() const;
   void setLoopbackIps(const std::vector<std::string>& loopbackIps);
   cfg::SystemPortRanges getSystemPortRanges() const;
+  cfg::SystemPortRanges getLocalSystemPortRanges() const;
   std::optional<folly::MacAddress> getMac() const;
   PlatformType getPlatformType() const;
   std::optional<int> getClusterId() const;

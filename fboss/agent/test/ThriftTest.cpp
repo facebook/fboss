@@ -1697,7 +1697,7 @@ TEST_F(ThriftTest, syncFibIsHwProtected) {
   UnicastRoute nr2 = *makeUnicastRoute("bbbb::/64", "42::42").get();
   newRoutes->push_back(nr2);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChangedImpl(_))
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_, _))
       .Times(::testing::AtLeast(1))
       .WillOnce(Return(sw_->getState()));
   EXPECT_THROW(
@@ -1727,7 +1727,7 @@ TEST_F(ThriftTest, addUnicastRoutesIsHwProtected) {
   UnicastRoute nr1 = *makeUnicastRoute("aaaa::/64", "42::42").get();
   newRoutes->push_back(nr1);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChangedImpl(_)).WillOnce(Return(sw_->getState()));
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_, _)).WillOnce(Return(sw_->getState()));
   EXPECT_THROW(
       {
         try {
@@ -1811,7 +1811,7 @@ TEST_F(ThriftTest, syncMplsFibIsHwProtected) {
   MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
   newRoutes->push_back(nr1);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChangedImpl(_))
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_, _))
       .WillRepeatedly(Return(sw_->getState()));
   EXPECT_THROW(
       {
@@ -1838,7 +1838,7 @@ TEST_F(ThriftTest, addMplsRoutesIsHwProtected) {
   MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
   newRoutes->push_back(nr1);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChangedImpl(_))
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_, _))
       .WillRepeatedly(Return(sw_->getState()));
   EXPECT_THROW(
       {
@@ -1879,7 +1879,7 @@ TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
       *makeUnicastRoute("bbbb::/64", "2401:db00:2110:3001::1").get();
   routes.push_back(nr2);
   // Fail HW update by returning one route added state.
-  EXPECT_HW_CALL(sw_, stateChangedImpl(_))
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_, _))
       .Times(::testing::AtLeast(1))
       .WillOnce(Return(oneRouteAddedState));
   EXPECT_THROW(

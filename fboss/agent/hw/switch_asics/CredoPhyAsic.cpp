@@ -21,6 +21,8 @@ bool CredoPhyAsic::isSupported(Feature feature) const {
       return true;
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::VIRTUAL_ARS_GROUP:
+    case HwAsic::Feature::SAI_SERDES_PRECODING:
     default:
       return false;
   }

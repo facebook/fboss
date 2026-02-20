@@ -56,6 +56,11 @@ bool AgentArsBase::isChenab(const AgentEnsemble& ensemble) const {
   return (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB);
 }
 
+bool AgentArsBase::isTH3(const AgentEnsemble& ensemble) const {
+  auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+  return (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3);
+}
+
 std::string AgentArsBase::getAclName(
     AclType aclType,
     bool enableAlternateArsMembers) const {
@@ -97,8 +102,12 @@ std::string AgentArsBase::getCounterName(
   return getAclName(aclType, enableAlternateArsMembers) + "-stats";
 }
 
+std::vector<PortID> AgentArsBase::getTestPorts() const {
+  return masterLogicalInterfacePortIds();
+}
+
 void AgentArsBase::setup(int ecmpWidth) {
-  std::vector<PortID> portIds = masterLogicalInterfacePortIds();
+  std::vector<PortID> portIds = getTestPorts();
   flat_set<PortDescriptor> portDescs;
   std::vector<PortDescriptor> tempPortDescs;
   for (size_t w = 0; w < ecmpWidth; ++w) {
@@ -412,8 +421,7 @@ void AgentArsBase::addRoceAcl(
   std::vector<cfg::CounterType> setCounterTypes{
       cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
   acl->srcPort() =
-      PortDescriptor(masterLogicalInterfacePortIds()[kFrontPanelPortForTest])
-          .phyPortID();
+      PortDescriptor(getTestPorts()[kFrontPanelPortForTest]).phyPortID();
   if (udfTable.has_value()) {
     acl->udfTable() = udfTable.value();
   }
@@ -735,7 +743,7 @@ void AgentArsBase::addAclAndStat(
 }
 
 void AgentArsBase::generatePrefixes() {
-  std::vector<PortID> portIds = masterLogicalInterfacePortIds();
+  std::vector<PortID> portIds = getTestPorts();
   std::vector<PortDescriptor> portDescriptorIds;
   std::transform(
       portIds.begin(),

@@ -1,5 +1,5 @@
 # pyre-strict
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from neteng.fboss.platform_mapping_config.ttypes import (
     SiFactorAndSetting,
@@ -40,6 +40,11 @@ class SiSettings:
             ):
                 if setting.factor.cable_length or setting.factor.tcvr_override_setting:
                     # There is an extra factor specified other than lane speed and media
+                    driver_peaking: Dict[int, int] = {}
+                    if setting.driver_peaking is not None:
+                        driver_peaking[setting.pin_connection.logical_lane_id] = (
+                            setting.driver_peaking
+                        )
                     si_factor_and_settings.append(
                         SiFactorAndSetting(
                             factor=setting.factor,
@@ -47,6 +52,7 @@ class SiSettings:
                             rx_setting=setting.rx_setting,
                             custom_tx_collection=setting.custom_tx_collection,
                             custom_rx_collection=setting.custom_rx_collection,
+                            driver_peaking=driver_peaking,
                         )
                     )
                 else:
@@ -57,6 +63,7 @@ class SiSettings:
                             rx_setting=setting.rx_setting,
                             custom_tx_collection=setting.custom_tx_collection,
                             custom_rx_collection=setting.custom_rx_collection,
+                            driver_peaking=None,
                         )
                     )
         return si_factor_and_settings

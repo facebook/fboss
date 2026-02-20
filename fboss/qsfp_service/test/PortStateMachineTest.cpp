@@ -2198,7 +2198,6 @@ TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedSuccess) {
             isMultiPort /* isMultiPort */) /* expected state */,
         [this, isMultiTcvr]() {
           transceiverManager_->setPauseRemediation(0, nullptr /* evb */);
-          sleep(1);
 
           MockCmisTransceiverImpl* xcvrImpl1 =
               static_cast<MockCmisTransceiverImpl*>(
@@ -2223,9 +2222,21 @@ TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedSuccess) {
 
           portManager_->setOverrideAllAgentPortStatusForTesting(
               false /* isUp */, true /* isEnabled */);
-          // Simpler to call full refreshStateMachines() because remediation
-          // logic is already implemented.
 
+          // First, trigger port status update to mark lastDownTime.
+          // This calls updateTransceiverPortStatus which updates port states
+          // and marks lastDownTime via updateTcvrLastDownTime.
+          portManager_->updateTransceiverPortStatus();
+          portManager_->updatePortActiveStatusInTransceiverManager();
+
+          // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
+          // The sleep must be AFTER the port status update which marks
+          // lastDownTime, but BEFORE remediation is triggered.
+          /* sleep override */
+          sleep(1);
+
+          // Now call refreshStateMachines which will trigger remediation.
+          // The port status is already updated from the call above.
           portManager_->refreshStateMachines();
           EXPECT_TRUE(xcvr1_->getDirty_());
           if (isMultiTcvr) {
@@ -2234,7 +2245,8 @@ TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedSuccess) {
 
           std::map<std::string, bool> expectedAttrValues = {
               {"isTransceiverProgrammed", false},
-              {"isTransceiverJustRemediated", true}};
+              {"isTransceiverJustRemediated", true},
+              {"needMarkLastDownTime", false}};
           verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
 
           assertCurrentStateEquals(makeStates(
@@ -2361,7 +2373,8 @@ TEST_F(PortStateMachineTest, CheckCmisTransceiverRemediatedFailed) {
 
           std::map<std::string, bool> afterRemediationAttrValues = {
               {"isTransceiverProgrammed", false},
-              {"isTransceiverJustRemediated", true}};
+              {"isTransceiverJustRemediated", true},
+              {"needMarkLastDownTime", false}};
           verifyStateMachineAttributes(isMultiTcvr, afterRemediationAttrValues);
 
           portManager_->refreshStateMachines();
@@ -3039,4 +3052,278 @@ TEST_F(PortStateMachineTest, agentConfigChangedWarmBootNoRemediationOnPortUp) {
     );
   }
 }
+
+TEST_F(PortStateMachineTest, LastDownTimeUpdatedOnPortDown) {
+  const std::string kTestName = "LastDownTimeUpdatedOnPortDown";
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+    initManagers(mappingType);
+    xcvr1_ = overrideTransceiver(isMultiPort, true /*isMock*/, tcvrId1_);
+    if (isMultiTcvr) {
+      xcvr2_ = overrideTransceiver(isMultiPort, true /*isMock*/, tcvrId2_);
+    }
+
+    // Drive to TRANSCEIVER_PROGRAMMED / PORT_UP via setState
+    setState(
+        makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_UP,
+            isMultiTcvr,
+            isMultiPort),
+        isMultiPort,
+        isMultiTcvr);
+
+    // Record lastDownTime before transition
+    auto initialDownTime = xcvr1_->getLastDownTime();
+
+    // Sleep 1s so the new timestamp is clearly different
+    /* sleep override */
+    sleep(1);
+
+    // Set all ports DOWN, trigger the updateTransceiverPortStatus path
+    portManager_->setOverrideAllAgentPortStatusForTesting(
+        false /* isUp */, true /* isEnabled */);
+    portManager_->updateTransceiverPortStatus();
+    portManager_->updatePortActiveStatusInTransceiverManager();
+
+    // Verify lastDownTime was updated for tcvr1
+    EXPECT_GT(xcvr1_->getLastDownTime(), initialDownTime);
+
+    // Verify needMarkLastDownTime is now false for tcvr1 (was set true on UP,
+    // cleared on DOWN). Note: tcvr2 in DUAL_TRANSCEIVER mode doesn't have
+    // ports in the test override, so its needMarkLastDownTime is not managed
+    // by updateTcvrLastDownTime.
+    std::map<std::string, bool> expectedAttrValues = {
+        {"needMarkLastDownTime", false}};
+    verifyStateMachineAttributes(tcvrId1_, expectedAttrValues);
+  }
+}
+
+TEST_F(PortStateMachineTest, LastDownTimeNotUpdatedWhenPortsStayUp) {
+  const std::string kTestName = "LastDownTimeNotUpdatedWhenPortsStayUp";
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+    initManagers(mappingType);
+    xcvr1_ = overrideTransceiver(isMultiPort, true /*isMock*/, tcvrId1_);
+    if (isMultiTcvr) {
+      xcvr2_ = overrideTransceiver(isMultiPort, true /*isMock*/, tcvrId2_);
+    }
+
+    // Drive to PORT_UP via setState
+    setState(
+        makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_UP,
+            isMultiTcvr,
+            isMultiPort),
+        isMultiPort,
+        isMultiTcvr);
+
+    auto downTimeBefore = xcvr1_->getLastDownTime();
+    /* sleep override */
+    sleep(1);
+
+    // Refresh again without changing port status (ports stay UP)
+    portManager_->updateTransceiverPortStatus();
+    portManager_->updatePortActiveStatusInTransceiverManager();
+
+    // lastDownTime should NOT have changed
+    EXPECT_EQ(xcvr1_->getLastDownTime(), downTimeBefore);
+  }
+}
+
+TEST_F(PortStateMachineTest, LastDownTimeNotUpdatedOnRepeatedDown) {
+  const std::string kTestName = "LastDownTimeNotUpdatedOnRepeatedDown";
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+    initManagers(mappingType);
+    xcvr1_ = overrideTransceiver(isMultiPort, true /*isMock*/, tcvrId1_);
+    if (isMultiTcvr) {
+      xcvr2_ = overrideTransceiver(isMultiPort, true /*isMock*/, tcvrId2_);
+    }
+
+    // Drive to PORT_UP then DOWN
+    setState(
+        makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_UP,
+            isMultiTcvr,
+            isMultiPort),
+        isMultiPort,
+        isMultiTcvr);
+
+    portManager_->setOverrideAllAgentPortStatusForTesting(
+        false /* isUp */, true /* isEnabled */);
+    portManager_->updateTransceiverPortStatus();
+    portManager_->updatePortActiveStatusInTransceiverManager();
+
+    // Record lastDownTime after first DOWN transition
+    auto downTimeAfterFirstDown = xcvr1_->getLastDownTime();
+
+    // needMarkLastDownTime should be false now for tcvr1
+    std::map<std::string, bool> expectedAttrValues = {
+        {"needMarkLastDownTime", false}};
+    verifyStateMachineAttributes(tcvrId1_, expectedAttrValues);
+
+    /* sleep override */
+    sleep(1);
+
+    // Trigger another update cycle with ports still DOWN
+    portManager_->updateTransceiverPortStatus();
+    portManager_->updatePortActiveStatusInTransceiverManager();
+
+    // lastDownTime should NOT have changed (guard prevents re-marking)
+    EXPECT_EQ(xcvr1_->getLastDownTime(), downTimeAfterFirstDown);
+  }
+}
+
+TEST_F(PortStateMachineTest, LastDownTimeUpdatedOnUpDownCycle) {
+  const std::string kTestName = "LastDownTimeUpdatedOnUpDownCycle";
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+    initManagers(mappingType);
+    xcvr1_ = overrideTransceiver(isMultiPort, true /*isMock*/, tcvrId1_);
+    if (isMultiTcvr) {
+      xcvr2_ = overrideTransceiver(isMultiPort, true /*isMock*/, tcvrId2_);
+    }
+
+    // Cycle 1: UP -> DOWN
+    setState(
+        makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_UP,
+            isMultiTcvr,
+            isMultiPort),
+        isMultiPort,
+        isMultiTcvr);
+
+    portManager_->setOverrideAllAgentPortStatusForTesting(
+        false /* isUp */, true /* isEnabled */);
+    portManager_->updateTransceiverPortStatus();
+    portManager_->updatePortActiveStatusInTransceiverManager();
+    auto firstDownTime = xcvr1_->getLastDownTime();
+
+    /* sleep override */
+    sleep(1);
+
+    // Cycle 2: UP again -> DOWN again
+    setOverrideAgentStatusPortUp(isMultiTcvr, isMultiPort);
+    portManager_->updateTransceiverPortStatus();
+    portManager_->updatePortActiveStatusInTransceiverManager();
+
+    // needMarkLastDownTime should now be true for tcvr1 (port came back up)
+    std::map<std::string, bool> expectedAttrValues = {
+        {"needMarkLastDownTime", true}};
+    verifyStateMachineAttributes(tcvrId1_, expectedAttrValues);
+
+    portManager_->setOverrideAllAgentPortStatusForTesting(
+        false /* isUp */, true /* isEnabled */);
+    portManager_->updateTransceiverPortStatus();
+    portManager_->updatePortActiveStatusInTransceiverManager();
+
+    // Second DOWN time should be strictly greater than first
+    EXPECT_GT(xcvr1_->getLastDownTime(), firstDownTime);
+    expectedAttrValues = {{"needMarkLastDownTime", false}};
+    verifyStateMachineAttributes(tcvrId1_, expectedAttrValues);
+  }
+}
+
+TEST_F(PortStateMachineTest, LastDownTimeViaUpdatePortActiveState) {
+  const std::string kTestName = "LastDownTimeViaUpdatePortActiveState";
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+    initManagers(mappingType);
+    xcvr1_ = overrideTransceiver(isMultiPort, true /*isMock*/, tcvrId1_);
+    if (isMultiTcvr) {
+      xcvr2_ = overrideTransceiver(isMultiPort, true /*isMock*/, tcvrId2_);
+    }
+
+    // Drive to PORT_UP via setState
+    setState(
+        makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_UP,
+            isMultiTcvr,
+            isMultiPort),
+        isMultiPort,
+        isMultiTcvr);
+
+    auto initialDownTime = xcvr1_->getLastDownTime();
+    /* sleep override */
+    sleep(1);
+
+    // Use updatePortActiveState (agent callback path) to set ports DOWN
+    std::map<int32_t, PortStatus> portStatusMap;
+    PortStatus downStatus;
+    downStatus.enabled() = true;
+    downStatus.up() = false;
+    portStatusMap[static_cast<int32_t>(portId1_)] = downStatus;
+    if (isMultiPort) {
+      portStatusMap[static_cast<int32_t>(portId3_)] = downStatus;
+    }
+    portManager_->updatePortActiveState(portStatusMap);
+
+    // Verify lastDownTime updated via this path
+    EXPECT_GT(xcvr1_->getLastDownTime(), initialDownTime);
+  }
+}
+
+TEST_F(PortStateMachineTest, PrematureRemediationBlockedByLastDownTime) {
+  const std::string kTestName = "PrematureRemediationBlockedByLastDownTime";
+  for (const auto& [mappingType, isMultiTcvr, isMultiPort] :
+       getTestModeCombinations()) {
+    logTestExecution(kTestName, isMultiTcvr, isMultiPort);
+    initManagers(mappingType);
+    xcvr1_ = overrideTransceiver(isMultiPort, true /*isMock*/, tcvrId1_);
+    if (isMultiTcvr) {
+      xcvr2_ = overrideTransceiver(isMultiPort, true /*isMock*/, tcvrId2_);
+    }
+
+    // Drive to PORT_UP via setState
+    setState(
+        makeStates(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            PortStateMachineState::PORT_UP,
+            isMultiTcvr,
+            isMultiPort),
+        isMultiPort,
+        isMultiTcvr);
+
+    // Set a longer initial_remediate_interval to block premature remediation
+    gflags::SetCommandLineOptionWithMode(
+        "initial_remediate_interval", "300", gflags::SET_FLAGS_DEFAULT);
+    transceiverManager_->setPauseRemediation(0, nullptr /* evb */);
+
+    // Set ports DOWN and update
+    portManager_->setOverrideAllAgentPortStatusForTesting(
+        false /* isUp */, true /* isEnabled */);
+    portManager_->updateTransceiverPortStatus();
+    portManager_->updatePortActiveStatusInTransceiverManager();
+
+    // Immediately try remediation (no sleep - NOT enough time has passed)
+    portManager_->refreshStateMachines();
+
+    // Remediation should NOT have triggered (xcvr should not be dirty)
+    EXPECT_FALSE(xcvr1_->getDirty_());
+    if (isMultiTcvr) {
+      EXPECT_FALSE(xcvr2_->getDirty_());
+    }
+
+    // State should still be TRANSCEIVER_PROGRAMMED (not reset to DISCOVERED)
+    std::map<std::string, bool> expectedAttrValues = {
+        {"isTransceiverProgrammed", true},
+        {"isTransceiverJustRemediated", false}};
+    verifyStateMachineAttributes(isMultiTcvr, expectedAttrValues);
+
+    // Reset flag
+    gflags::SetCommandLineOptionWithMode(
+        "initial_remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
+  }
+}
+
 } // namespace facebook::fboss

@@ -4,6 +4,7 @@
 #include <chrono>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <set>
 #include <sstream>
 #include "Msg.h"
@@ -31,6 +32,7 @@ class Modbus {
   void closeDevice();
 
  protected:
+  std::optional<uint8_t> port_ = std::nullopt;
   PollThread<Modbus>& getHealthCheckThread() {
     return *healthCheckThread_;
   }
@@ -51,6 +53,9 @@ class Modbus {
   }
   const std::string& name() const {
     return devicePath_;
+  }
+  std::optional<uint8_t> getPort() const {
+    return port_;
   }
 
   virtual std::unique_ptr<UARTDevice> makeDevice(

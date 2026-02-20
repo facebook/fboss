@@ -135,8 +135,7 @@ std::map<int64_t, cfg::DsfNode> SaiSwitchEnsemble::dsfNodesFromInputConfig()
   return *getAgentConfig()->thrift.sw()->dsfNodes();
 }
 
-void SaiSwitchEnsemble::init(
-    const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info) {
+void SaiSwitchEnsemble::init(const TestEnsembleInitInfo& info) {
   auto agentConfig = getAgentConfig();
   if (info.overrideDsfNodes.has_value()) {
     cfg::AgentConfig thrift = agentConfig->thrift;
