@@ -1,0 +1,19 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "route_injector_lib",
+    srcs = ["RouteInjector.cpp"],
+    headers = ["RouteInjector.h"],
+    exported_deps = [
+        "//fboss/agent:address_utils",
+        "//fboss/agent/if:ctrl-cpp2-clients",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//folly:network_address",
+        "//folly/io/async:async_base",
+        "//folly/io/async:async_socket",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+    ],
+)
