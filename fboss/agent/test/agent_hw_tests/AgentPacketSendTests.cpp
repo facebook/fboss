@@ -416,19 +416,20 @@ TEST_F(AgentPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
     getAgentEnsemble()->getSw()->getPacketObservers()->registerPacketObserver(
         this, "LacpPacketReceiveSrcPort");
     auto vlanId = getVlanIDForTx();
-    auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    auto switchId = getCurrentSwitchIdForTesting();
+    auto intfMac = utility::getMacForFirstInterfaceWithPorts(
+        getProgrammedState(), switchId);
     auto payLoadSize = 256;
     static auto payload = std::vector<uint8_t>(payLoadSize, 0xff);
     payload[0] = 0x1; // sub-version of lacp packet
     auto expectedNumPktsReceived = 1;
     for (auto port :
          {masterLogicalPortIds(
-              {cfg::PortType::INTERFACE_PORT,
-               cfg::PortType::HYPER_PORT_MEMBER})[0],
+              {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT_MEMBER},
+              switchId)[0],
           masterLogicalPortIds(
-              {cfg::PortType::INTERFACE_PORT,
-               cfg::PortType::HYPER_PORT_MEMBER})[1]}) {
+              {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT_MEMBER},
+              switchId)[1]}) {
       // verify lacp packet properly sent and received from lag
       auto txPacket = utility::makeEthTxPacket(
           getAgentEnsemble()->getSw(),
