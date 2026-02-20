@@ -34,6 +34,7 @@ cpp_library(
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test/utils:acl_test_utils",
         "//fboss/agent/test/utils:dscp_marking_utils",
+        "//fboss/agent/test/utils:network_ai_qos_utils",
         "//fboss/agent/test/utils:queue_per_host_test_utils",
         "//fboss/lib/config:fboss_config_utils",
         "//folly/gen:base",

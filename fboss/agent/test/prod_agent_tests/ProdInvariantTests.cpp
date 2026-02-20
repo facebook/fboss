@@ -769,8 +769,15 @@ class ProdInvariantStswTest : public ProdInvariantRtswTest {
                                  kEcmpWidth,
                                  is_mmu_lossless_mode())
                                  .second;
+    auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = checkSameAndGetAsic(hwAsics);
+
     for (auto& downlinkPort : ecmpDownlinkPorts) {
       ecmpPorts_.emplace_back(downlinkPort);
+      if (asic->getMaxArsWidth().has_value() &&
+          ecmpPorts_.size() == asic->getMaxArsWidth().value()) {
+        break;
+      }
     }
     setupAgentTestEcmp(ecmpPorts_);
     XLOG(DBG2) << "ProdInvariantTest setup done";
@@ -787,7 +794,7 @@ TEST_F(ProdInvariantStswTest, verifyInvariants) {
   auto verify = [&]() {
     verifyAcl();
     verifyCopp();
-    verifyLoadBalancing(30000);
+    verifyLoadBalancing(90000);
     verifyDscpToQueueMapping();
     verifySafeDiagCommands();
     verifyThriftHandler();
