@@ -454,7 +454,7 @@ TEST(ConfigValidatorTest, AsicCommandWithVersionedSensors) {
   AsicCommand asicCommand;
   asicCommand.sensorName() = "VERSIONED_SENSOR";
   asicCommand.cmd() = "echo 42";
-  asicCommand.sensorType() = SensorType::TEMPERTURE;
+  asicCommand.sensorType() = SensorType::TEMPERATURE;
   config.asicCommand() = asicCommand;
   EXPECT_FALSE(ConfigValidator().isValidAsicCommand(config));
 

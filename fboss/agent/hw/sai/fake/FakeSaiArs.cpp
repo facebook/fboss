@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
+#include "fboss/agent/hw/sai/api/fake/saifakeextensions.h"
+
 #include <optional>
 
 using facebook::fboss::FakeSai;
@@ -25,6 +27,7 @@ sai_status_t create_ars_fn(
   std::optional<sai_uint32_t> primary_path_quality_threshold;
   std::optional<sai_uint32_t> alternate_path_cost;
   std::optional<sai_uint32_t> alternate_path_bias;
+  std::optional<sai_int32_t> next_hop_group_type;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ARS_ATTR_MODE:
@@ -45,6 +48,9 @@ sai_status_t create_ars_fn(
       case SAI_ARS_ATTR_ALTERNATE_PATH_BIAS:
         alternate_path_bias = attr_list[i].value.u32;
         break;
+      case SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE:
+        next_hop_group_type = attr_list[i].value.s32;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -55,7 +61,8 @@ sai_status_t create_ars_fn(
       max_flows.value(),
       primary_path_quality_threshold,
       alternate_path_cost,
-      alternate_path_bias);
+      alternate_path_bias,
+      next_hop_group_type);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -89,6 +96,9 @@ sai_status_t set_ars_attribute_fn(
       break;
     case SAI_ARS_ATTR_ALTERNATE_PATH_BIAS:
       ars.alternate_path_bias = attr->value.u32;
+      break;
+    case SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE:
+      ars.next_hop_group_type = attr->value.s32;
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
@@ -135,6 +145,13 @@ sai_status_t get_ars_attribute_fn(
         } else {
           attr_list[i].value.u32 =
               0; // Default value for unset optional attribute
+        }
+        break;
+      case SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE:
+        if (ars.next_hop_group_type) {
+          attr_list[i].value.s32 = ars.next_hop_group_type.value();
+        } else {
+          attr_list[i].value.s32 = 0;
         }
         break;
       default:

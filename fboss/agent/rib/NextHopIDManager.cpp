@@ -1,7 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/rib/NextHopIDManager.h"
-#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
@@ -196,7 +195,7 @@ NextHopIDManager::decrOrDeallocRouteNextHopSetID(NextHopSetID nextHopSetID) {
 
     auto derefNextHop = decrOrDeallocateNextHop(nextHopIt->second);
     if (derefNextHop) {
-      XLOG(DBG3) << "NextHop " << nextHopIt->second << " deallocated";
+      XLOG(DBG3) << "NextHopID " << nextHopID << " deallocated";
       // Track deallocated NextHops for the caller to update FibInfo
       result.removedNextHopIds.push_back(nextHopID);
     }
@@ -267,7 +266,7 @@ void NextHopIDManager::reconstructFromFib(
       // Iterate directly over the node; elements are wrapped, so unwrap with
       // .toThrift()
       NextHopIDSet nextHopIDSet;
-      for (const auto& elem : *nextHopIdSetNode) {
+      for (const auto& elem : std::as_const(*nextHopIdSetNode)) {
         NextHopID nextHopID((*elem).toThrift());
         nextHopIDSet.insert(nextHopID);
 
@@ -317,7 +316,11 @@ void NextHopIDManager::reconstructFromFib(
           processNhopSetId(NextHopSetID(*setIdOpt));
         }
 
-        // TODO: Process normalizedResolvedNextHopID
+        // Process normalizedResolvedNextHopSetID
+        if (auto normalizedSetIdOpt =
+                fwdInfo.getNormalizedResolvedNextHopSetID()) {
+          processNhopSetId(NextHopSetID(*normalizedSetIdOpt));
+        }
       }
     };
 

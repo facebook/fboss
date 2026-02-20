@@ -586,7 +586,8 @@ class SaiStore {
    */
   void reload(
       const folly::dynamic* adapterKeys = nullptr,
-      const folly::dynamic* adapterKeys2AdapterHostKey = nullptr);
+      const folly::dynamic* adapterKeys2AdapterHostKey = nullptr,
+      const std::vector<sai_object_type_t>& objTypes = {});
 
   /*
    *
@@ -603,6 +604,7 @@ class SaiStore {
   }
 
   std::string storeStr(sai_object_type_t objType) const;
+  std::string storeStr(const std::vector<sai_object_type_t>& objTypes) const;
   folly::dynamic adapterKeysFollyDynamic() const;
 
   void exitForWarmBoot();
@@ -646,6 +648,7 @@ class SaiStore {
 #endif
       SaiObjectStore<SaiInPortDebugCounterTraits>,
       SaiObjectStore<SaiOutPortDebugCounterTraits>,
+      SaiObjectStore<SaiInSwitchDebugCounterTraits>,
       SaiObjectStore<SaiSystemPortTraits>,
       SaiObjectStore<SaiPortTraits>,
       SaiObjectStore<SaiUdfTraits>,

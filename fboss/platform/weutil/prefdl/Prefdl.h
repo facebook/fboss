@@ -14,7 +14,6 @@ class PrefdlBase {
  public:
   explicit PrefdlBase(const std::string& fileName);
 
-  void printData();
   std::string getField(const std::string&);
 
   // ToDo: add method to get individual field

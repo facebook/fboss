@@ -14,6 +14,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
@@ -47,8 +48,7 @@ class AgentMmuTuningTest : public AgentHwTest {
   void setup() {
     utility::EcmpSetupAnyNPorts6 helper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
-    auto constexpr kEcmpWidth = 1;
-    resolveNeighborAndProgramRoutes(helper, kEcmpWidth);
+    resolveNeighborAndProgramRoutes(helper, kDefaultEcmpWidth);
     utility::setCreditWatchdogAndPortTx(
         getAgentEnsemble(), masterLogicalPortIds()[0], false);
   }
@@ -136,10 +136,10 @@ class AgentMmuTuningTest : public AgentHwTest {
         getVlanIDForTx(),
         srcMac,
         dstMac(),
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
-        8000,
-        8001,
+        folly::IPAddressV6(kTestSrcIpV6),
+        folly::IPAddressV6(kTestDstIpV6),
+        kTestSrcPort,
+        kTestDstPort,
         // Trailing 2 bits are for ECN
         static_cast<uint8_t>(dscpVal << 2),
         // Hop limit

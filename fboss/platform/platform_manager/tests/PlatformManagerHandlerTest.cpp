@@ -82,12 +82,10 @@ class MockPlatformExplorer : public PlatformExplorer {
  public:
   explicit MockPlatformExplorer(
       const PlatformConfig& config,
-      DataStore& dataStore,
-      ScubaLogger& scubaLogger)
+      DataStore& dataStore)
       : PlatformExplorer(
             config,
             dataStore,
-            scubaLogger,
             std::make_shared<PlatformFsUtils>()) {}
 
   void setPMStatus(const PlatformManagerStatus& status) {
@@ -111,10 +109,7 @@ class PlatformManagerHandlerTest : public Test {
 
   void initializeComponents() {
     dataStore_ = std::make_unique<DataStore>(config_);
-    scubaLogger_ =
-        std::make_unique<ScubaLogger>(*config_.platformName(), *dataStore_);
-    explorer_ = std::make_unique<MockPlatformExplorer>(
-        config_, *dataStore_, *scubaLogger_);
+    explorer_ = std::make_unique<MockPlatformExplorer>(config_, *dataStore_);
     handler_ = std::make_unique<PlatformManagerHandler>(
         *explorer_, *dataStore_, config_);
   }
@@ -127,7 +122,6 @@ class PlatformManagerHandlerTest : public Test {
 
   PlatformConfig config_;
   std::unique_ptr<DataStore> dataStore_;
-  std::unique_ptr<ScubaLogger> scubaLogger_;
   std::unique_ptr<MockPlatformExplorer> explorer_;
   std::unique_ptr<PlatformManagerHandler> handler_;
 };
@@ -213,8 +207,7 @@ TEST_F(PlatformManagerHandlerTest, GetAllPmUnits_ReturnsPopulatedMapWithUnits) {
   dataStore.updatePmUnitName("/SLOT_B@1", "PM_UNIT_B");
   dataStore.updatePmUnitVersion("/SLOT_B@1", version2);
 
-  ScubaLogger scubaLogger(*config_.platformName(), dataStore);
-  MockPlatformExplorer explorer(config_, dataStore, scubaLogger);
+  MockPlatformExplorer explorer(config_, dataStore);
   PlatformManagerHandler handler(explorer, dataStore, config_);
 
   PmUnitsResponse response;
@@ -278,8 +271,7 @@ TEST_F(
   FbossEepromInterface eepromInterface(eepromPath, 0);
   dataStore.updateEepromContents("/test_slot", eepromInterface);
 
-  ScubaLogger scubaLogger(*config_.platformName(), dataStore);
-  MockPlatformExplorer explorer(config_, dataStore, scubaLogger);
+  MockPlatformExplorer explorer(config_, dataStore);
   PlatformManagerHandler handler(explorer, dataStore, config_);
 
   auto request = std::make_unique<PmUnitInfoRequest>();
@@ -305,8 +297,7 @@ TEST_F(
   FbossEepromInterface eepromInterface(eepromPath, 0);
   dataStore.updateEepromContents("/test_slot_v6", eepromInterface);
 
-  ScubaLogger scubaLogger(*config_.platformName(), dataStore);
-  MockPlatformExplorer explorer(config_, dataStore, scubaLogger);
+  MockPlatformExplorer explorer(config_, dataStore);
   PlatformManagerHandler handler(explorer, dataStore, config_);
 
   auto request = std::make_unique<PmUnitInfoRequest>();

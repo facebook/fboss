@@ -552,9 +552,7 @@ TransceiverManager::getPortsRequiringOpticsFwUpgrade() const {
   return ports;
 }
 
-std::map<std::string, FirmwareUpgradeData>
-TransceiverManager::triggerAllOpticsFwUpgrade() {
-  std::map<std::string, FirmwareUpgradeData> ports;
+void TransceiverManager::ensureFwUpgradeAllowed() const {
   if (!isFullyInitialized()) {
     throw FbossError("Service is still initializing...");
   }
@@ -564,20 +562,47 @@ TransceiverManager::triggerAllOpticsFwUpgrade() {
   if (!FLAGS_firmware_upgrade_supported) {
     throw FbossError("Firmware upgrade is not supported...");
   }
+}
+
+std::map<std::string, FirmwareUpgradeData>
+TransceiverManager::triggerAllOpticsFwUpgrade() {
+  ensureFwUpgradeAllowed();
+  std::map<std::string, FirmwareUpgradeData> ports;
   auto portsForFwUpgrade = getPortsRequiringOpticsFwUpgrade();
+
+  std::vector<std::string> interfaces;
+  interfaces.reserve(portsForFwUpgrade.size());
+  for (const auto& [portName, _] : portsForFwUpgrade) {
+    interfaces.push_back(portName);
+  }
+  return triggerOpticsFwUpgrade(interfaces);
+}
+
+std::map<std::string, FirmwareUpgradeData>
+TransceiverManager::triggerOpticsFwUpgrade(
+    const std::vector<std::string>& interfaces) {
+  ensureFwUpgradeAllowed();
+  auto portsForFwUpgrade = getPortsRequiringOpticsFwUpgrade();
+  std::map<std::string, FirmwareUpgradeData> portsSelectedForUpgrade;
   auto tcvrsToUpgradeWLock = tcvrsForFwUpgrade.wlock();
 
-  for (const auto& [portName, _] : portsForFwUpgrade) {
+  for (const auto& portName : interfaces) {
+    if (portsForFwUpgrade.find(portName) == portsForFwUpgrade.end()) {
+      XLOG(ERR) << "Port " << portName << " does not require firmware upgrade";
+      continue;
+    }
     if (portNameToModule_.find(portName) != portNameToModule_.end()) {
       auto tcvrID = TransceiverID(portNameToModule_[portName]);
       XLOG(INFO)
           << FirmwareUpgradeAlert()
-          << "Selected for firmware upgrade through triggerAllOpticsFwUpgrade cli"
+          << "Selected for firmware upgrade through triggerOpticsFwUpgrade function"
           << TransceiverParam(tcvrID) << PortParam(portName);
       tcvrsToUpgradeWLock->insert(TransceiverID(portNameToModule_[portName]));
+
+      portsSelectedForUpgrade[portName] = portsForFwUpgrade[portName];
     }
   }
-  return portsForFwUpgrade;
+  return portsSelectedForUpgrade;
 }
 
 bool TransceiverManager::firmwareUpgradeRequired(TransceiverID id) {
@@ -1554,6 +1579,63 @@ bool TransceiverManager::isTransceiverPortStateSupported(
 }
 
 /*
+ * Return the DriverPeaking values per lane for a given port in a transceiver,
+ * if the portConfigOverrides exist and matches the PortID, PortProfileID, and
+ * Transceiver Vendor.
+ */
+std::optional<std::map<uint8_t, uint8_t>>
+TransceiverManager::getDriverPeakingOverrides(
+    TransceiverID tcvrId,
+    cfg::PortProfileID profile,
+    size_t numberOfLanes) {
+  auto lockedTransceivers = transceivers_.rlock();
+  auto tcvrIt = lockedTransceivers->find(tcvrId);
+  if (tcvrIt == lockedTransceivers->end()) {
+    return std::nullopt;
+  }
+
+  const auto info = tcvrIt->second->getTransceiverInfo();
+  auto factor = buildPlatformPortConfigOverrideFactor(info);
+
+  // Get all the driver peaking for all the ports in the transceiver
+  // that match the profile. Add them to the TransceiverPortState.
+  // This is because in CmisModule we may program the AppSel at once
+  // for all the ports that match the profile, and we want the overrides
+  // then.
+  auto portIds = platformMapping_->getSwPortListFromTransceiverId(tcvrId);
+  bool overridesFound = false;
+  std::map<uint8_t, uint8_t> driverPeakings;
+  for (const auto& port : portIds) {
+    PlatformPortProfileConfigMatcher matcher(profile, port, factor);
+    auto driverPeakingOpt =
+        platformMapping_->getPortDriverPeakingOverrides(matcher);
+    if (!driverPeakingOpt) {
+      continue;
+    }
+    if (driverPeakingOpt->size() != numberOfLanes) {
+      XLOG(ERR)
+          << "Warning: Driver Peaking overrides do not match the number of lanes: transceiver "
+          << tcvrId << " port " << port << ". Not overriding";
+      continue;
+    }
+    overridesFound = true;
+    // Thrift does not support an array of uint8_t, so we need to convert to
+    // vector<uint8_t>. The value applied to CMIS per spec is 4 bits per lane.
+    for (const auto& [lane, driverPeakingValue] : *driverPeakingOpt) {
+      driverPeakings.insert(
+          std::make_pair(
+              static_cast<uint8_t>(lane),
+              static_cast<uint8_t>(driverPeakingValue)));
+    }
+  }
+
+  if (!overridesFound) {
+    return std::nullopt;
+  }
+  return driverPeakings;
+}
+
+/*
  * getOpticalChannelConfig - Retrieve optical channel configuration for a
  * transceiver
  *
@@ -1671,6 +1753,8 @@ void TransceiverManager::programTransceiver(
     portState.speed = speed;
     portState.numHostLanes = tcvrHostLanes.size();
     portState.opticalChannelConfig = opticalChannelConfig;
+    portState.driverPeaking =
+        getDriverPeakingOverrides(id, portProfile, tcvrHostLanes.size());
     programTcvrState.ports.emplace(*portName, portState);
   }
 
@@ -2718,6 +2802,44 @@ void TransceiverManager::markLastDownTime(TransceiverID id) noexcept {
     return;
   }
   tcvrIt->second->markLastDownTime();
+}
+
+void TransceiverManager::updateLastDownTimeFromPortStatus(
+    const std::map<TransceiverID, bool>& tcvrPortStatusChanges) noexcept {
+  for (const auto& [tcvrId, portsNowActive] : tcvrPortStatusChanges) {
+    auto stateMachineItr = stateMachineControllers_.find(tcvrId);
+    if (stateMachineItr == stateMachineControllers_.end()) {
+      XLOG(DBG2) << "[Transceiver:" << tcvrId
+                 << "] Skip updateLastDownTimeFromPortStatus, "
+                 << "state machine not found";
+      continue;
+    }
+
+    auto lockedStateMachine =
+        stateMachineItr->second->getStateMachine().wlock();
+
+    if (portsNowActive) {
+      // Equivalent to activeStateEntry: enable marking for next DOWN transition
+      lockedStateMachine->get_attribute(needMarkLastDownTime) = true;
+      XLOG(DBG2) << "[Transceiver:" << tcvrId
+                 << "] Port Manager mode: Port(s) now active, "
+                 << "set needMarkLastDownTime=true";
+    } else {
+      // Equivalent to markLastDownTime (INACTIVE state entry):
+      // Only mark if needMarkLastDownTime is true, then clear it
+      if (lockedStateMachine->get_attribute(needMarkLastDownTime)) {
+        markLastDownTime(tcvrId);
+        lockedStateMachine->get_attribute(needMarkLastDownTime) = false;
+        XLOG(DBG2)
+            << "[Transceiver:" << tcvrId
+            << "] Port Manager mode: All ports down, marked lastDownTime";
+      } else {
+        XLOG(DBG3) << "[Transceiver:" << tcvrId
+                   << "] Port Manager mode: All ports down, "
+                   << "but needMarkLastDownTime=false, skipping";
+      }
+    }
+  }
 }
 
 time_t TransceiverManager::getLastDownTime(TransceiverID id) const {

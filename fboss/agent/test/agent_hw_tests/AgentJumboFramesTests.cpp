@@ -11,6 +11,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
@@ -45,10 +46,10 @@ class AgentJumboFramesTest : public AgentHwTest {
         getVlanIDForTx(),
         mac,
         mac,
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
-        8000,
-        8001,
+        folly::IPAddressV6(kTestSrcIpV6),
+        folly::IPAddressV6(kTestDstIpV6),
+        kTestSrcPort,
+        kTestDstPort,
         0,
         255,
         std::vector<uint8_t>(payloadSize, 0xff));

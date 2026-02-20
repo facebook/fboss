@@ -96,6 +96,8 @@ inline std::string toString(PlatformType mode) {
       return "TAHAN800BC";
     case PlatformType::PLATFORM_YANGRA:
       return "YANGRA";
+    case PlatformType::PLATFORM_MINIPACK3BTA:
+      return "MINIPACK3BTA";
     case PlatformType::PLATFORM_MINIPACK3N:
       return "MINIPACK3N";
     case PlatformType::PLATFORM_ICECUBE800BC:
@@ -110,6 +112,8 @@ inline std::string toString(PlatformType mode) {
       return "WEDGE800CACT";
     case PlatformType::PLATFORM_LADAKH800BCLS:
       return "LADAKH800BCLS";
+    case PlatformType::PLATFORM_ICECUBE800BANW:
+      return "ICECUBE800BANW";
     case PlatformType::PLATFORM_UNKNOWN:
       return "UNKNOWN";
   }

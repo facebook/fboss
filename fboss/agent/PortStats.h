@@ -104,6 +104,14 @@ class PortStats {
   void fabricLinkMonitoringRxPackets(int64_t count);
   void fabricLinkMonitoringTxPackets(int64_t count);
 
+  // Getters for current fabric link monitoring stats
+  int64_t getFabricLinkMonitoringRxPackets() const {
+    return curFabricLinkMonitoringRxPackets_;
+  }
+  int64_t getFabricLinkMonitoringTxPackets() const {
+    return curFabricLinkMonitoringTxPackets_;
+  }
+
   // Non-const as it accesses curInErrors_, should only be called from the
   // stats update thread.
   void

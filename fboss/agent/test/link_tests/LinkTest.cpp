@@ -80,7 +80,7 @@ void LinkTest::SetUp() {
   // programming
   waitForAllCabledPorts(true, 60, 5s);
   utility::waitForAllTransceiverStates(true, getCabledTranceivers(), 60, 5s);
-  utility::waitForPortStateMachineState(true, getCabledPorts(), 60, 5s);
+  waitForPortStateMachineState(true, 60, 5s);
   XLOG(DBG2) << "Link Test setup ready";
 }
 
@@ -164,6 +164,14 @@ void LinkTest::waitForAllCabledPorts(
   waitForLinkStatus(getCabledPorts(), up, retries, msBetweenRetry);
 }
 
+void LinkTest::waitForPortStateMachineState(
+    bool up,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
+  utility::waitForPortStateMachineState(
+      up, getQsfpServiceManagedPorts(), retries, msBetweenRetry);
+}
+
 // Initializes the vector that holds the ports that are expected to be cabled.
 // If the expectedLLDPValues in the switch config has an entry, we expect
 // that port to take part in the test
@@ -174,10 +182,18 @@ void LinkTest::initializeCabledPorts() {
   const auto& platformMapping = sw()->getPlatformMapping();
   const auto& chips = platformMapping->getChips();
 
+  // Specifically for ports that qsfp_service should track in Port Manager mode.
+  auto managedPortIds =
+      utility::getPortIdsWithTransceiverOrXphy(platformPorts, chips);
+  std::set<PortID> managedPortSet(managedPortIds.begin(), managedPortIds.end());
+
   for (const auto& port : *swConfig.ports()) {
     if (!(*port.expectedLLDPValues()).empty()) {
       auto portID = *port.logicalID();
       cabledPorts_.emplace_back(portID);
+      if (managedPortSet.count(PortID(portID))) {
+        qsfpServiceManagedPorts_.emplace_back(portID);
+      }
       if (*port.portType() == cfg::PortType::FABRIC_PORT) {
         cabledFabricPorts_.emplace_back(portID);
       }

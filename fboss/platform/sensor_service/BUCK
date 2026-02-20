@@ -29,8 +29,10 @@ cpp_library(
         "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-types",
         "//folly:file_util",
+        "//folly:string",
         "//folly:synchronized",
         "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )

@@ -1,9 +1,8 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include "Rackmon.h"
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 #include <fstream>
 #include "TempDir.h"
+#include "TestUtils.h"
 
 using namespace std;
 using namespace testing;
@@ -66,8 +65,14 @@ class FakeModbus : public Modbus {
 
 class Mock3Modbus : public Modbus {
  public:
-  Mock3Modbus(uint8_t e, uint8_t mina, uint8_t maxa, uint32_t b)
+  Mock3Modbus(
+      uint8_t e,
+      uint8_t mina,
+      uint8_t maxa,
+      uint32_t b,
+      std::optional<uint8_t> p)
       : Modbus(), fake_(e, mina, maxa, b) {
+    port_ = p;
     ON_CALL(*this, command(_, _, _, _, _))
         .WillByDefault(Invoke([this](
                                   Msg& req,
@@ -150,14 +155,17 @@ class RackmonTest : public ::testing::Test {
   }
 
  public:
-  std::unique_ptr<Modbus>
-  make_modbus(uint8_t exp_addr, int num_cmd_calls, uint32_t exp_baud = 19200) {
+  std::unique_ptr<Modbus> make_modbus(
+      uint8_t exp_addr,
+      int num_cmd_calls,
+      uint32_t exp_baud = 19200,
+      std::optional<uint8_t> port = std::nullopt) {
     json exp = R"({
       "device_path": "/tmp/blah",
       "baudrate": 19200
     })"_json;
     std::unique_ptr<Mock3Modbus> ptr =
-        std::make_unique<Mock3Modbus>(exp_addr, 160, 162, exp_baud);
+        std::make_unique<Mock3Modbus>(exp_addr, 160, 162, exp_baud, port);
     EXPECT_CALL(*ptr, initialize(exp)).Times(1);
     if (num_cmd_calls > 0) {
       EXPECT_CALL(*ptr, isPresent())
@@ -231,7 +239,7 @@ TEST_F(RackmonTest, BasicScanFoundNone) {
   req.raw[0] = 100; // Some unknown address, this should throw
   req.raw[1] = 0x3;
   req.len = 2;
-  EXPECT_THROW(mon.rawCmd(req, resp, 1s), std::out_of_range);
+  EXPECT_THROW(mon.rawCmd(req, std::nullopt, resp, 1s), std::out_of_range);
 }
 
 TEST_F(RackmonTest, BasicScanFoundOne) {
@@ -259,7 +267,7 @@ TEST_F(RackmonTest, BasicScanFoundOne) {
   // start up.
   EXPECT_CALL(mon, makeInterface())
       .Times(1)
-      .WillOnce(Return(ByMove(make_modbus(161, 4, 115200))));
+      .WillOnce(Return(ByMove(make_modbus(161, 4, 115200, 123))));
   mon.load(r_conf, r_test_dir);
   mon.start();
 
@@ -269,6 +277,7 @@ TEST_F(RackmonTest, BasicScanFoundOne) {
   EXPECT_EQ(devs.size(), 1);
   EXPECT_EQ(devs[0].baudrate, 115200);
   EXPECT_EQ(devs[0].deviceAddress, 161);
+  EXPECT_EQ(devs[0].port, 123);
   EXPECT_EQ(devs[0].deviceType, "orv3_psu");
   EXPECT_EQ(devs[0].mode, ModbusDeviceMode::ACTIVE);
   mon.stop();
@@ -279,25 +288,30 @@ TEST_F(RackmonTest, BasicScanFoundOne) {
   rreq.raw[1] = 0x3;
   rreq.len = 2;
   std::vector<uint16_t> read_regs;
-  EXPECT_THROW(mon.rawCmd(rreq, rresp, 1s), std::out_of_range);
+  EXPECT_THROW(mon.rawCmd(rreq, std::nullopt, rresp, 1s), std::out_of_range);
 
   // Only difference of implementations between Rackmon and ModbusDevice
   // is rackmon checks validity of address. Check that we are throwing
   // correctly. The actual functionality is tested in modbus_device_test.cpp.
   EXPECT_THROW(
-      mon.readHoldingRegisters(100, 0x123, read_regs), std::out_of_range);
-  EXPECT_THROW(mon.writeSingleRegister(100, 0x123, 0x1234), std::out_of_range);
+      mon.readHoldingRegisters(100, std::nullopt, 0x123, read_regs),
+      std::out_of_range);
   EXPECT_THROW(
-      mon.writeMultipleRegisters(100, 0x123, read_regs), std::out_of_range);
+      mon.writeSingleRegister(100, std::nullopt, 0x123, 0x1234),
+      std::out_of_range);
+  EXPECT_THROW(
+      mon.writeMultipleRegisters(100, std::nullopt, 0x123, read_regs),
+      std::out_of_range);
   std::vector<FileRecord> records(1);
   records[0].data.resize(2);
-  EXPECT_THROW(mon.readFileRecord(100, records), std::out_of_range);
+  EXPECT_THROW(
+      mon.readFileRecord(100, std::nullopt, records), std::out_of_range);
 
   // Use a known handled response.
   ReadHoldingRegistersReq req(161, 0, 8);
   std::vector<uint16_t> regs(8);
   ReadHoldingRegistersResp resp(161, regs);
-  mon.rawCmd(req, resp, 1s);
+  mon.rawCmd(req, std::nullopt, resp, 1s);
 
   EXPECT_EQ(regs[0], 'a' << 8 | 'b');
 }
@@ -309,7 +323,7 @@ TEST_F(RackmonTest, BasicScanFoundOneMon) {
   // start up.
   EXPECT_CALL(mon, makeInterface())
       .Times(1)
-      .WillOnce(Return(ByMove(make_modbus(161, 4))));
+      .WillOnce(Return(ByMove(make_modbus(161, 4, 19200))));
   mon.load(r_conf, r_test_dir);
   mon.start();
 
@@ -317,6 +331,7 @@ TEST_F(RackmonTest, BasicScanFoundOneMon) {
   mon.scanTick();
   std::vector<ModbusDeviceInfo> devs = mon.listDevices();
   EXPECT_EQ(devs.size(), 1);
+  EXPECT_EQ(devs[0].port, std::nullopt);
   EXPECT_EQ(devs[0].deviceAddress, 161);
   EXPECT_EQ(devs[0].mode, ModbusDeviceMode::ACTIVE);
 
@@ -340,8 +355,8 @@ TEST_F(RackmonTest, BasicScanFoundOneMon) {
 
   ModbusDeviceFilter filter1, filter2, filter3, filter4;
   ModbusRegisterFilter rFilter1, rFilter2;
-  filter1.addrFilter = {161, 162};
-  filter2.addrFilter = {162};
+  filter1.locationFilter = DeviceLocationFilter(std::set<uint16_t>{161, 162});
+  filter2.locationFilter = DeviceLocationFilter(std::set<uint16_t>{162});
   filter3.typeFilter = {"orv2_psu"};
   filter4.typeFilter = {"orv3_psu"};
   rFilter1.addrFilter = {0, 10};
@@ -379,7 +394,7 @@ TEST_F(RackmonTest, DormantRecovery) {
       "baudrate": 19200
     })"_json;
     std::unique_ptr<Mock3Modbus> ptr =
-        std::make_unique<Mock3Modbus>(161, 160, 162, 19200);
+        std::make_unique<Mock3Modbus>(161, 160, 162, 19200, 3);
     EXPECT_CALL(*ptr, initialize(exp)).Times(1);
     EXPECT_CALL(*ptr, isPresent()).WillRepeatedly(Return(true));
     EXPECT_CALL(*ptr, command(_, _, _, _, _))
@@ -433,7 +448,6 @@ TEST_F(RackmonTest, DormantRecovery) {
   EXPECT_EQ(devs[0].mode, ModbusDeviceMode::ACTIVE);
 
   commandTimeout = true;
-
   // Monitor for 10 more ticks, each time it is active.
   // but we are expecting command to have failed
   mon.monitorTick();

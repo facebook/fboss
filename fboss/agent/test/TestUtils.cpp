@@ -503,6 +503,8 @@ cfg::DsfNode makeDsfNodeCfg(
     dsfNodeCfg.localSystemPortOffset() = *sysPortRange.minimum();
     dsfNodeCfg.globalSystemPortOffset() = *sysPortRange.minimum();
     dsfNodeCfg.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
+    dsfNodeCfg.localSystemPortRanges()->systemPortRanges()->push_back(
+        sysPortRange);
     dsfNodeCfg.inbandPortId() = kSingleStageInbandPortId;
   }
   dsfNodeCfg.asicType() = asicType;
@@ -1569,6 +1571,8 @@ cfg::SwitchInfo createSwitchInfo(
     systemPortRange.maximum() = *sysPortMax;
     switchInfo.systemPortRanges()->systemPortRanges()->push_back(
         systemPortRange);
+    switchInfo.localSystemPortRanges()->systemPortRanges()->push_back(
+        systemPortRange);
     switchInfo.localSystemPortOffset() = *sysPortMin;
     switchInfo.globalSystemPortOffset() = *sysPortMin;
   }
@@ -1650,12 +1654,13 @@ std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
         ON_CALL(*handler, stateChanged(_, _))
             .WillByDefault(
                 [=](const auto& delta, bool) { return delta.newState(); });
-        ON_CALL(*handler, stateChanged(_, _, _, _, _))
+        ON_CALL(*handler, stateChanged(_, _, _, _, _, _))
             .WillByDefault([=](const std::vector<fsdb::OperDelta>&,
                                bool,
                                const std::shared_ptr<SwitchState>&,
                                const std::shared_ptr<SwitchState>&,
-                               const HwWriteBehavior&) {
+                               const HwWriteBehavior&,
+                               const std::optional<StateDeltaApplication>&) {
               return std::make_pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>(
                   fsdb::OperDelta{},
                   HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED);

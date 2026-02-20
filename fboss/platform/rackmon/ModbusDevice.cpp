@@ -1,5 +1,7 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
+
 #include "ModbusDevice.h"
+#include "DeviceLocationFilter.h"
 #include "Log.h"
 
 using nlohmann::json;
@@ -15,6 +17,7 @@ ModbusDevice::ModbusDevice(
       numCommandRetries_(numCommandRetries),
       registerMap_(registerMap) {
   info_.deviceAddress = deviceAddress;
+  info_.port = interface_.getPort();
   info_.baudrate = registerMap.baudrate;
   info_.deviceType = registerMap.name;
   info_.parity = registerMap.parity;
@@ -264,14 +267,16 @@ ModbusDeviceValueData ModbusDevice::getValueData(
     data.ModbusDeviceInfo::operator=(info_);
   }
   auto shouldPickRegister = [&filter](const RegisterStore& reg) {
-    return !filter || filter.contains(reg.regAddr()) ||
-        filter.contains(reg.name());
+    return !filter || filter.contains(reg);
   };
   for (const auto& reg : info_.registerList) {
     if (shouldPickRegister(reg)) {
       if (latestValueOnly) {
-        data.registerList.emplace_back(reg.regAddr(), reg.name());
-        data.registerList.back().history.emplace_back(reg.back());
+        data.registerList.emplace_back(
+            reg.regAddr(), reg.name(), reg.descriptor().unit);
+        if (reg.back()) {
+          data.registerList.back().history.emplace_back(reg.back());
+        }
       } else {
         data.registerList.emplace_back(reg);
       }
@@ -282,8 +287,7 @@ ModbusDeviceValueData ModbusDevice::getValueData(
 
 void ModbusDevice::forceReloadRegisters(const ModbusRegisterFilter& filter) {
   auto shouldPickRegister = [&filter](const RegisterStore& reg) {
-    return !filter || filter.contains(reg.regAddr()) ||
-        filter.contains(reg.name());
+    return !filter || filter.contains(reg);
   };
   std::vector<RegisterStoreSpan> regSpans{};
   for (auto& reg : info_.registerList) {
@@ -381,10 +385,12 @@ void ModbusSpecialHandler::handle(ModbusDevice& dev) {
 NLOHMANN_JSON_SERIALIZE_ENUM(
     ModbusDeviceMode,
     {{ModbusDeviceMode::ACTIVE, "ACTIVE"},
-     {ModbusDeviceMode::DORMANT, "DORMANT"}})
+     {ModbusDeviceMode::DORMANT, "DORMANT"}});
 
 void to_json(json& j, const ModbusDeviceInfo& m) {
   j["devAddress"] = m.deviceAddress;
+  j["uniqueDevAddress"] =
+      DeviceLocationFilter::combine(m.port, m.deviceAddress);
   j["deviceType"] = m.deviceType;
   j["crcErrors"] = m.crcErrors;
   j["timeouts"] = m.timeouts;
@@ -396,6 +402,8 @@ void to_json(json& j, const ModbusDeviceInfo& m) {
 // Legacy JSON format.
 void to_json(json& j, const ModbusDeviceRawData& m) {
   j["addr"] = m.deviceAddress;
+  j["uniqueDevAddress"] =
+      DeviceLocationFilter::combine(m.port, m.deviceAddress);
   j["crc_fails"] = m.crcErrors;
   j["timeouts"] = m.timeouts;
   j["misc_fails"] = m.miscErrors;

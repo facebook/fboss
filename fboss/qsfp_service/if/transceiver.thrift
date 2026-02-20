@@ -406,6 +406,7 @@ struct FirmwareStatus {
   2: optional i32 fwFault;
   3: optional string dspFwVer;
   4: optional string buildRev;
+  5: optional i32 buildNumber;
 }
 
 struct MediaLaneSettings {
@@ -583,6 +584,18 @@ enum TransceiverErrorState {
   INVALID_DATA_PATH_LANE_STATE = 0x2,
 }
 
+// Module Technology. Used to identify
+// properties of module in special NGT cases.
+enum ModuleTechnology {
+  GREY = 0,
+  LPO = 1,
+  TUNABLE = 2,
+  AEC = 3,
+
+  // unknown
+  UNKNOWN = -1,
+}
+
 struct TcvrState {
   1: bool present;
   2: TransceiverType transceiver;
@@ -608,13 +621,14 @@ struct TcvrState {
   25: bool fwUpgradeInProgress;
   26: set<string> interfaces;
   27: string tcvrName;
-  28: bool lpoModule;
+  28: bool lpoModule; // Deprecated, use ModuleTechnology instead
   29: optional TunableLaserStatus tunableLaserStatus;
   // Will be set to true if the last attempt to read data from this transceiver
   // was unsuccessful
   30: bool communicationError;
   // All the error states that require transceiver remediation from self healing
   31: set<TransceiverErrorState> errorStates;
+  32: ModuleTechnology moduleTechnology = GREY;
 }
 
 struct TcvrStats {

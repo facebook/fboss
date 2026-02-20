@@ -26,6 +26,9 @@ auto constexpr kFanReadRpmFailure = "{}.rpm_read.failure";
 auto constexpr kFanReadRpmValue = "{}.rpm_read.value";
 auto constexpr kSensorReadFailure = "{}.sensor_read.failure";
 auto constexpr kSensorReadValue = "{}.sensor_read.value";
+auto constexpr kOpticsReadMaxValue = "{}.optics_read.max.value";
+auto constexpr kOpticsPwmValue = "{}.optics_pwm.value";
+auto constexpr kOpticsAggPwmValue = "agg.optics_pwm.value";
 auto constexpr kLedWriteFailure = "{}.led_write.failure";
 auto constexpr kFanFailThresholdInSec = 300;
 auto constexpr kSensorFailThresholdInSec = 300;
@@ -51,7 +54,7 @@ std::optional<T> getConfigOpticData(
 namespace facebook::fboss::platform::fan_service {
 
 ControlLogic::ControlLogic(FanServiceConfig config, std::shared_ptr<Bsp> bsp)
-    : config_(config), pBsp_(bsp) {
+    : config_(std::move(config)), structuredLogger_("fan_service"), pBsp_(bsp) {
   pSensorData_ = std::make_shared<SensorData>();
 
   setupPidLogics();
@@ -304,48 +307,39 @@ void ControlLogic::getOpticsUpdate() {
     int aggOpticPwm = 0;
     const auto& aggregationType = *optic.aggregationType();
 
-    if (aggregationType == constants::OPTIC_AGGREGATION_TYPE_MAX()) {
-      for (const auto& [opticType, opticDataList] : opticEntry->data) {
-        int pwmForThis = 0;
-        auto tablePointer =
-            getConfigOpticData<TempToPwmMap>(opticType, *optic.tempToPwmMaps());
+    if (aggregationType != constants::OPTIC_AGGREGATION_TYPE_MAX() &&
+        aggregationType != constants::OPTIC_AGGREGATION_TYPE_PID() &&
+        aggregationType !=
+            constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
+      throw facebook::fboss::FbossError(
+          "Only max and pid aggregation is supported for optics!");
+    }
 
-        if (tablePointer) {
-          float maxTemp = 0.0;
-          for (const auto& opticData : opticDataList) {
-            if (opticData.temp > maxTemp) {
-              maxTemp = opticData.temp;
-            }
-          }
-
-          pwmForThis = tablePointer->begin()->second;
-          for (const auto& [temp, pwm] : *tablePointer) {
-            if (maxTemp >= temp) {
-              pwmForThis = pwm;
-            }
-          }
-          XLOG(INFO) << fmt::format(
-              "{}: Max optic temp is {}. PWM is {}",
-              opticType,
-              maxTemp,
-              pwmForThis);
-        }
-        if (pwmForThis > aggOpticPwm) {
-          aggOpticPwm = pwmForThis;
+    for (const auto& [opticType, opticDataList] : opticEntry->data) {
+      float maxTemp = 0.0;
+      int maxTempTxvrId = -1;
+      for (const auto& opticData : opticDataList) {
+        if (opticData.temp > maxTemp) {
+          maxTemp = opticData.temp;
+          maxTempTxvrId = opticData.txvrId;
         }
       }
-    } else if (
-        aggregationType == constants::OPTIC_AGGREGATION_TYPE_PID() ||
-        aggregationType ==
-            constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
-      for (const auto& [opticType, opticDataList] : opticEntry->data) {
-        float maxTemp = 0.0;
-        for (const auto& opticData : opticDataList) {
-          if (opticData.temp > maxTemp) {
-            maxTemp = opticData.temp;
+
+      int pwmForThis = 0;
+
+      if (aggregationType == constants::OPTIC_AGGREGATION_TYPE_MAX()) {
+        auto tablePointer =
+            getConfigOpticData<TempToPwmMap>(opticType, *optic.tempToPwmMaps());
+        if (!tablePointer) {
+          continue;
+        }
+        pwmForThis = tablePointer->begin()->second;
+        for (const auto& [temp, pwm] : *tablePointer) {
+          if (maxTemp >= temp) {
+            pwmForThis = pwm;
           }
         }
-
+      } else {
         auto pidSetting =
             getConfigOpticData<PidSetting>(opticType, *optic.pidSettings());
         if (!pidSetting) {
@@ -353,21 +347,33 @@ void ControlLogic::getOpticsUpdate() {
               "Optic {} does not have PID setting", opticType);
           continue;
         }
-
         std::string cacheKey = opticName + opticType;
-        float pwm = pidLogics_.at(cacheKey)->calculatePwm(maxTemp);
-        if (pwm > aggOpticPwm) {
-          aggOpticPwm = pwm;
-        }
+        pwmForThis = pidLogics_.at(cacheKey)->calculatePwm(maxTemp);
       }
-    } else {
-      throw facebook::fboss::FbossError(
-          "Only max and pid aggregation is supported for optics!");
+
+      XLOG(INFO) << fmt::format(
+          "{}: Max optic temp is {} from txvr {}. PWM is {}",
+          opticType,
+          maxTemp,
+          maxTempTxvrId,
+          pwmForThis);
+
+      fb303::fbData->setCounter(
+          fmt::format(kOpticsReadMaxValue, opticType), maxTemp);
+      fb303::fbData->setCounter(
+          fmt::format(kOpticsPwmValue, opticType), pwmForThis);
+
+      if (pwmForThis > aggOpticPwm) {
+        aggOpticPwm = pwmForThis;
+      }
     }
+
     XLOG(INFO) << fmt::format(
-        "Optics: Aggregation Type: {}. Aggregate PWM is {}",
+        "Optics: {}. Aggregation Type: {}. Aggregate PWM is {}",
+        opticName,
         aggregationType,
         aggOpticPwm);
+    fb303::fbData->setCounter(kOpticsAggPwmValue, aggOpticPwm);
     opticReadCaches_[opticName] = aggOpticPwm;
     pSensor_->updateOpticDataProcessingTimestamp(
         opticName, opticEntry->qsfpServiceTimeStamp);
@@ -446,6 +452,13 @@ bool ControlLogic::programFan(
         *fan.fanName(),
         fanPwm,
         pwmRawValue);
+    structuredLogger_.logAlert(
+        "fan_pwm_write_failure",
+        fmt::format("Failed to program {} with PWM {}", *fan.fanName(), fanPwm),
+        {{"zone_name", *zone.zoneName()},
+         {"fan_name", *fan.fanName()},
+         {"pwm_value", std::to_string(fanPwm)},
+         {"pwm_raw_value", std::to_string(pwmRawValue)}});
   }
 
   return !writeSuccess;
@@ -618,6 +631,10 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   }
   if (overtempCondition_.checkIfOvertemp()) {
     XLOG(ERR) << fmt::format("Running shutdown command");
+    structuredLogger_.logAlert(
+        "emergency_shutdown",
+        "System overtemp detected, running shutdown command",
+        {{}});
     pBsp_->emergencyShutdown(true);
   }
 
@@ -625,31 +642,40 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   uint64_t secondsSinceLastOpticsUpdate =
       pBsp_->getCurrentTime() - pSensor_->getLastQsfpSvcTime();
   bool missingOpticsUpdate{false}, fanFailures{false}, sensorFailures{false};
+  std::string boostModeReason;
   if ((*config_.pwmBoostOnNoQsfpAfterInSec() != 0) &&
       (secondsSinceLastOpticsUpdate >= *config_.pwmBoostOnNoQsfpAfterInSec())) {
     missingOpticsUpdate = true;
-    XLOG(INFO) << fmt::format(
+    boostModeReason = fmt::format(
         "Boost mode enabled for optics update missing for {}s",
         secondsSinceLastOpticsUpdate);
+    XLOG(INFO) << boostModeReason;
   }
   if ((*config_.pwmBoostOnNumDeadFan() != 0) &&
       (numFanFailed_ >= *config_.pwmBoostOnNumDeadFan())) {
     fanFailures = true;
-    XLOG(INFO) << fmt::format(
-        "Boost mode enabled for {} fan failures", numFanFailed_);
+    boostModeReason =
+        fmt::format("Boost mode enabled for {} fan failures", numFanFailed_);
+    XLOG(INFO) << boostModeReason;
   }
   if ((*config_.pwmBoostOnNumDeadSensor() != 0) &&
       (numSensorFailed_ >= *config_.pwmBoostOnNumDeadSensor())) {
     sensorFailures = true;
-    XLOG(INFO) << fmt::format(
+    boostModeReason = fmt::format(
         "Boost mode enabled for {} sensor failures", numSensorFailed_);
+    XLOG(INFO) << boostModeReason;
   }
-  bool boostMode = (missingOpticsUpdate || fanFailures || sensorFailures);
+  bool previousBoostMode = boostMode_;
+  boostMode_ = (missingOpticsUpdate || fanFailures || sensorFailures);
+  if (boostMode_ && !previousBoostMode) {
+    structuredLogger_.logEvent(
+        "boost_mode_activated", {{"reason", boostModeReason}});
+  }
 
   // STEP 5: Calculate and program fan PWMs
   fanStatuses_.withWLock([&](auto& fanStatuses) {
     for (const auto& zone : *config_.zones()) {
-      int16_t zonePwm = calculateZonePwm(zone, boostMode);
+      int16_t zonePwm = calculateZonePwm(zone, boostMode_);
       for (const auto& fan : *config_.fans()) {
         if (std::find(
                 zone.fanNames()->begin(),

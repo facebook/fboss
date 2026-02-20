@@ -67,10 +67,13 @@ cpp_unittest(
         "CmdConfigHistoryTest.cpp",
         "CmdConfigInterfaceDescriptionTest.cpp",
         "CmdConfigInterfaceMtuTest.cpp",
+        "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",
+        "CmdConfigQosBufferPoolTest.cpp",
         "CmdConfigReloadTest.cpp",
         "CmdConfigSessionDiffTest.cpp",
         "CmdConfigSessionTest.cpp",
         "CmdGetPcapTest.cpp",
+        "CmdListConfigTest.cpp",
         "CmdSetPortStateTest.cpp",
         "CmdShowAclTest.cpp",
         "CmdShowAgentSslTest.cpp",
@@ -173,7 +176,7 @@ cpp_binary(
     ],
     deps = [
         "//fboss/agent/if:ctrl-cpp2-services",
-        "//fboss/lib:thrift_service_utils_oss",
+        "//fboss/lib:thrift_service_utils_oss",  # @manual
         "//folly/init:init",
         "//folly/io/async:async_base",
         "//folly/io/async:epoll",

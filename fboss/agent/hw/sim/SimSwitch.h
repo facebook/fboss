@@ -27,7 +27,9 @@ class SimSwitch : public HwSwitch {
       BootType bootType,
       bool failHwCallsOnWarmboot) override;
   std::shared_ptr<SwitchState> stateChangedImpl(
-      const std::vector<StateDelta>& deltas) override;
+      const std::vector<StateDelta>& deltas,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior)
+      override;
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const override;
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
   bool sendPacketOutOfPortAsync(

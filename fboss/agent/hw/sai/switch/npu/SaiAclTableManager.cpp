@@ -10,9 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
-#include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
-#include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
@@ -140,7 +138,8 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
 
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
     if (platform_->getAsic()->isSupported(
-            HwAsic::Feature::ARS_ALTERNATE_MEMBERS)) {
+            HwAsic::Feature::ARS_ALTERNATE_MEMBERS) ||
+        platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_L3_SWITCH_CANCEL);
     }
 #endif

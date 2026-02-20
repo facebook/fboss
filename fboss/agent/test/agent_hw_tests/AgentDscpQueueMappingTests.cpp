@@ -10,9 +10,11 @@
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
+
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -32,7 +34,7 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
   void setupHelper() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
-    resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+    resolveNeighborAndProgramRoutes(ecmpHelper, kDefaultEcmpWidth);
   }
 
   void sendPacket(bool frontPanel, int16_t dscp, uint8_t ttl = 64) {
@@ -45,10 +47,10 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
         vlanId,
         srcMac, // src mac
         intfMac, // dst mac
-        kSrcIP(),
+        folly::IPAddressV6("2620:0:1cfe:face:b00c::1"),
         kDstIP(),
-        8000, // l4 src port
-        8001, // l4 dst port
+        kTestSrcPort, // l4 src port
+        kTestDstPort, // l4 dst port
         dscp << 2, // Trailing 2 bits are for ECN
         ttl);
 
@@ -58,15 +60,12 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
     if (frontPanel) {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(), getSw()->needL2EntryForNeighbor());
-      auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
+      auto outPort =
+          ecmpHelper.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
     } else {
       getSw()->sendPacketSwitchedAsync(std::move(txPacket));
     }
-  }
-
-  folly::IPAddressV6 kSrcIP() {
-    return folly::IPAddressV6("2620:0:1cfe:face:b00c::1");
   }
 
   folly::IPAddressV6 kDstIP() {
@@ -106,7 +105,6 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
     return masterLogicalInterfacePortIds()[0];
   }
 
-  static inline constexpr auto kEcmpWidth = 1;
   const VlanID kVlanID{utility::kBaseVlanId};
   const InterfaceID kIntfID{utility::kBaseVlanId};
 };

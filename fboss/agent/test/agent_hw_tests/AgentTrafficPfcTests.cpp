@@ -7,6 +7,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
@@ -404,9 +405,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
   void setupPfcDurationCounters(
       cfg::SwitchConfig& cfg,
       const std::vector<PortID>& portIds,
-      bool rxPfcDurationEnabled) {
-    // Either RX or TX direction is enabled based on production feature to
-    // ensure we can test these separately.
+      bool rxPfcDurationEnabled,
+      bool txPfcDurationEnabled) {
     auto getPfcEnabledPortCfg = [&](const PortID& portId) {
       auto portCfg = std::find_if(
           cfg.ports()->begin(), cfg.ports()->end(), [&portId](auto& port) {
@@ -421,7 +421,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
       if (rxPfcDurationEnabled) {
         portCfg->pfc()->rxPfcDurationEnable() = true;
         XLOG(DBG0) << "Enabled PFC RX duration counter for port ID " << portId;
-      } else {
+      }
+      if (txPfcDurationEnabled) {
         portCfg->pfc()->txPfcDurationEnable() = true;
         XLOG(DBG0) << "Enabled PFC TX duration counter for port ID " << portId;
       }
@@ -538,10 +539,10 @@ class AgentTrafficPfcTest : public AgentHwTest {
             vlan,
             srcMac,
             intfMac,
-            folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+            folly::IPAddressV6(kTestSrcIpV6),
             ips[j],
-            8000,
-            8001,
+            kTestSrcPort,
+            kTestDstPort,
             dscp << 2, // dscp is last 6 bits in TC
             255,
             std::vector<uint8_t>(2000, 0xff));
@@ -822,7 +823,38 @@ TEST_F(AgentTrafficPfcTxDurationTest, verifyPfcTxDuration) {
   auto cfg =
       getPfcTestConfig(kLosslessTrafficClass, kLosslessPriority, {}, param);
   std::vector<PortID> portIds = portIdsForTest(false /*scale*/);
-  setupPfcDurationCounters(cfg, portIds, false /*rxPfcDurationEnabled*/);
+  setupPfcDurationCounters(
+      cfg,
+      portIds,
+      false /*rxPfcDurationEnabled*/,
+      true /*txPfcDurationEnabled*/);
+  runPfcTestWithCfg(
+      cfg,
+      kLosslessTrafficClass,
+      kLosslessPriority,
+      param,
+      validatePfcDurationCounters);
+}
+
+class AgentTrafficPfcRxTxDurationTest : public AgentTrafficPfcTest {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::PFC_RX_TX_DURATION};
+  }
+};
+
+TEST_F(AgentTrafficPfcRxTxDurationTest, verifyPfcRxTxDuration) {
+  TrafficTestParams param{
+      .buffer = defaultPfcBufferParams(),
+  };
+  auto cfg =
+      getPfcTestConfig(kLosslessTrafficClass, kLosslessPriority, {}, param);
+  std::vector<PortID> portIds = portIdsForTest(false /*scale*/);
+  setupPfcDurationCounters(
+      cfg,
+      portIds,
+      true /*rxPfcDurationEnabled*/,
+      true /*txPfcDurationEnabled*/);
   runPfcTestWithCfg(
       cfg,
       kLosslessTrafficClass,
@@ -935,9 +967,11 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
           pfcWatchdog.recoveryTimeMsecs() = 1000;
           pfcWatchdog.detectionTimeMsecs() = 198;
           break;
+        case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+        case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
           pfcWatchdog.recoveryTimeMsecs() = 100;
           pfcWatchdog.detectionTimeMsecs() = 10;
           break;
@@ -1211,9 +1245,9 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogReset) {
         portId, deadlockCtrBefore, recoveryCtrBefore);
     // Stop PFC trigger
     cleanupPfcDeadlockDetectionTrigger(txOffPortId);
+    waitForPfcDeadlocksToSettle(portId);
     // Reset watchdog
     setupWatchdog({portId}, false /* disable */);
-    waitForPfcDeadlocksToSettle(portId);
   };
 
   auto verify = [&]() {

@@ -10,6 +10,8 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentQosSchedulerTestBase.h"
 
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
+
 namespace {
 auto constexpr kRateSamplingInterval = 25;
 } // namespace
@@ -24,10 +26,10 @@ AgentQosSchedulerTestBase::createUdpPkt(uint8_t dscpVal) const {
       getVlanIDForTx(),
       srcMac,
       dstMac(),
-      folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-      folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
-      8000,
-      8001,
+      folly::IPAddressV6(kTestSrcIpV6),
+      folly::IPAddressV6(kTestDstIpV6),
+      kTestSrcPort,
+      kTestDstPort,
       // Trailing 2 bits are for ECN
       static_cast<uint8_t>(dscpVal << 2),
       // Hop limit
@@ -42,7 +44,7 @@ void AgentQosSchedulerTestBase::sendUdpPkt(uint8_t dscpVal, bool frontPanel) {
   if (frontPanel) {
     getSw()->sendPacketOutOfPortAsync(
         createUdpPkt(dscpVal),
-        ecmpHelper6.ecmpPortDescriptorAt(kEcmpWidthForTest).phyPortID());
+        ecmpHelper6.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID());
   } else {
     getSw()->sendPacketSwitchedAsync(createUdpPkt(dscpVal));
   }
@@ -59,7 +61,7 @@ void AgentQosSchedulerTestBase::sendUdpPkts(
 
 void AgentQosSchedulerTestBase::_setup(
     const utility::EcmpSetupAnyNPorts6& ecmpHelper6) {
-  resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+  resolveNeighborAndProgramRoutes(ecmpHelper6, kDefaultEcmpWidth);
   utility::ttlDecrementHandlingForLoopbackTraffic(
       getAgentEnsemble(), ecmpHelper6.getRouterId(), ecmpHelper6.nhop(0));
 }

@@ -33,15 +33,14 @@ RetType CmdShowArp::queryClient(const HostInfo& hostInfo) {
   std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
   std::map<int64_t, cfg::DsfNode> dsfNodes;
   auto client =
-      utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
 
   client->sync_getArpTable(entries);
   client->sync_getAllPortInfo(portEntries);
   try {
-    // TODO: Remove try catch once wedge_agent with getDsfNodes API
-    // is rolled out
     client->sync_getDsfNodes(dsfNodes);
   } catch (const std::exception&) {
+    // getDsfNodes is not supported on non-DSF switches (e.g. wedge400)
   }
   return createModel(entries, portEntries, dsfNodes);
 }

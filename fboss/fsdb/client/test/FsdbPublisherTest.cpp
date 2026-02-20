@@ -384,6 +384,13 @@ class DeltaPublisherTest : public ::testing::Test {
     connRetryEvbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
     streamPublisher_ = std::make_unique<TestPublisher<FsdbDeltaPublisher>>(
         streamEvbThread_->getEventBase(), connRetryEvbThread_->getEventBase());
+
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    initialChunksWritten_ =
+        fb303::ServiceData::get()
+            ->getCounterIfExists(
+                streamPublisher_->getCounterPrefix() + ".chunksWritten.sum")
+            .value_or(0);
   }
 
   void TearDown() override {
@@ -401,6 +408,7 @@ class DeltaPublisherTest : public ::testing::Test {
   std::unique_ptr<folly::ScopedEventBaseThread> streamEvbThread_;
   std::unique_ptr<folly::ScopedEventBaseThread> connRetryEvbThread_;
   std::unique_ptr<TestPublisher<FsdbDeltaPublisher>> streamPublisher_;
+  int64_t initialChunksWritten_{0};
 };
 
 TEST_F(DeltaPublisherTest, publisherQueueMemoryLimit) {
@@ -419,13 +427,14 @@ TEST_F(DeltaPublisherTest, publisherQueueMemoryLimit) {
   // Start the generator so serveStream begins consuming
   streamPublisher_->startGenerator();
 
-  // verify initial update is written
+  // verify initial update is written (check delta from initial value)
   streamPublisher_->write(OperDelta{});
   WITH_RETRIES({
     fb303::ThreadCachedServiceData::get()->publishStats();
     EXPECT_EVENTUALLY_EQ(
         fb303::ServiceData::get()->getCounter(
-            counterPrefix + ".chunksWritten.sum"),
+            counterPrefix + ".chunksWritten.sum") -
+            initialChunksWritten_,
         1);
   });
 

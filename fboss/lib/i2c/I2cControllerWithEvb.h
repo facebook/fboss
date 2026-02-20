@@ -4,7 +4,7 @@
 
 #include <folly/Format.h>
 #include <folly/io/async/EventBase.h>
-#include "fboss/agent/Utils.h"
+#include <folly/system/ThreadName.h>
 
 namespace facebook::fboss {
 
@@ -18,7 +18,7 @@ class I2cControllerWithEvb {
 
   void start(uint32_t pim) {
     th_.reset(new std::thread([&, pim]() {
-      initThread(folly::format("I2c_pim{:d}_ctrl0", pim).str());
+      folly::setThreadName(folly::format("I2c_pim{:d}_ctrl0", pim).str());
       evb_.loopForever();
     }));
   }

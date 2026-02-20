@@ -78,6 +78,7 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
 
   std::optional<SaiArsProfileTraits::Attributes::ArsPrimaryMembersRouteMetaData>
       arsPrimaryMembersRouteMetaData = 0;
+
 #else
   if (samplingInterval >= kArsMinSamplingRateNs) {
     // convert nanosec to microsec

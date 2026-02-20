@@ -24,7 +24,7 @@ class ConfigDifferTest : public ::testing::Test {
     sensor.name() = name;
     sensor.sysfsPath() =
         fmt::format("{}{}/{}", kSensorPathPrefix, name, pathSuffix);
-    sensor.type() = sensor_config::SensorType::TEMPERTURE;
+    sensor.type() = sensor_config::SensorType::TEMPERATURE;
     return sensor;
   }
 

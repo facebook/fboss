@@ -15,6 +15,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
+#include "fboss/lib/ThriftServiceUtils.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/fan_service/Bsp.h"
 #include "fboss/platform/fan_service/FanServiceHandler.h"
@@ -78,7 +79,9 @@ TEST_F(FanServiceHwTest, FanStatusesThrift) {
 
   auto fanServiceHandler =
       std::make_shared<FanServiceHandler>(std::move(controlLogic_));
-  apache::thrift::ScopedServerInterfaceThread server(fanServiceHandler);
+  apache::thrift::ScopedServerInterfaceThread server(
+      fanServiceHandler,
+      facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
   auto client = server.newClient<apache::thrift::Client<FanService>>();
 
   FanStatusesResponse resp;

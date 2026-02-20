@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/switch_asics/Tomahawk6Asic.h"
+#include "fboss/agent/AgentFeatures.h"
 
 namespace facebook::fboss {
 
@@ -110,7 +111,10 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::ARS:
+    case HwAsic::Feature::VIRTUAL_ARS_GROUP:
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
+    case HwAsic::Feature::SAI_SERDES_PRECODING:
+    case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -170,10 +174,11 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
+    case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER:
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
-    case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
+    case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     case HwAsic::Feature::RCI_WATERMARK_COUNTER:
     case HwAsic::Feature::DTL_WATERMARK_COUNTER:
     case HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY:
@@ -265,11 +270,16 @@ Tomahawk6Asic::desiredLoopbackModes() const {
 }
 
 std::optional<uint32_t> Tomahawk6Asic::getMaxArsGroups() const {
-  // TODO: old TH4 number, update if necessary
-  return 128;
+  return FLAGS_enable_th6_ars_scale_mode ? 256 : 128;
 }
 
+// virtual groups size do not change the DLB object usage.
+// set start index based on max non virtual dlb groups
 std::optional<uint32_t> Tomahawk6Asic::getArsBaseIndex() const {
-  return std::nullopt;
+  return getMaxEcmpGroups().value() - 128;
+}
+
+std::optional<uint32_t> Tomahawk6Asic::getMaxArsWidth() const {
+  return FLAGS_enable_th6_ars_scale_mode ? 256 : 64;
 }
 } // namespace facebook::fboss

@@ -22,9 +22,11 @@
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
 #include "fboss/agent/test/utils/UdfTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace facebook::fboss {
 
@@ -490,16 +492,16 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
 
 TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
   auto setup = [this]() {
-    this->setup(kEcmpWidth);
+    this->setup(kWideEcmpWidth);
     generateApplyConfig(AclType::FLOWLET);
   };
 
   auto verify = [this]() {
     auto verifyCounts = [this](int destPort, bool bumpOnHit) {
       // gather stats for all ECMP members
-      int pktsBefore[kEcmpWidth];
+      int pktsBefore[kWideEcmpWidth];
       int pktsBeforeTotal = 0;
-      for (int i = 0; i < kEcmpWidth; i++) {
+      for (int i = 0; i < kWideEcmpWidth; i++) {
         auto ecmpEgressPort = helper_->ecmpPortDescriptorAt(i).phyPortID();
         pktsBefore[i] =
             *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts_();
@@ -525,9 +527,9 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
         auto aclPktCountAfter = utility::getAclInOutPackets(
             getSw(), getCounterName(AclType::FLOWLET));
 
-        int pktsAfter[kEcmpWidth];
+        int pktsAfter[kWideEcmpWidth];
         int pktsAfterTotal = 0;
-        for (int i = 0; i < kEcmpWidth; i++) {
+        for (int i = 0; i < kWideEcmpWidth; i++) {
           auto ecmpEgressPort = helper_->ecmpPortDescriptorAt(i).phyPortID();
           pktsAfter[i] =
               *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts_();
@@ -553,12 +555,12 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
           // also verify traffic is not load-balanced, implying,
           // 3 out of the 4 egress ports should have 0 count
           int zeroCount = 0;
-          for (int i = 0; i < kEcmpWidth; i++) {
+          for (int i = 0; i < kWideEcmpWidth; i++) {
             if (pktsAfter[i] - pktsBefore[i] == 0) {
               zeroCount++;
             }
           }
-          EXPECT_EVENTUALLY_EQ(kEcmpWidth - 1, zeroCount);
+          EXPECT_EVENTUALLY_EQ(kWideEcmpWidth - 1, zeroCount);
         }
       });
     };
@@ -757,6 +759,230 @@ TEST_F(AgentFlowletSwitchingEnhancedScaleTest, VerifyAlternateArsEcmpObjects) {
     // Verify traffic on the 4 ports again (back to alternate ARS)
     verifyCounts(4791, true, 4, true); // DLB enabled, 4 ports, alternate ARS
     verifyCounts(1024, false, 4, true); // DLB disabled, 4 ports, alternate ARS
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentFlowletWideArsSwitchingTest : public AgentFlowletSwitchingTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::DLB,
+        ProductionFeature::VIRTUAL_ARS_GROUP,
+        ProductionFeature::UDF_WR_IMMEDIATE_ACL,
+        ProductionFeature::SINGLE_ACL_TABLE};
+  }
+  void setCmdLineFlagOverrides() const override {
+    AgentFlowletSwitchingTest::setCmdLineFlagOverrides();
+    FLAGS_enable_th6_ars_scale_mode = true;
+    FLAGS_dlbResourceCheckEnable = false;
+    FLAGS_enable_route_resource_protection = false;
+    FLAGS_ecmp_width = kWideEcmpWidth;
+  }
+
+ protected:
+  static constexpr int kWideEcmpWidth = 256;
+  static constexpr int kStatsCheckInterval = 25;
+  static constexpr int kMinWidthForArsVirtualGroup = 65;
+
+  std::vector<PortID> getSubsidiaryPorts(const AgentEnsemble& ensemble) const {
+    auto portsByControllingPort = utility::getSubsidiaryPortIDs(
+        ensemble.getSw()->getPlatformMapping()->getPlatformPorts());
+    const auto& platformPorts =
+        ensemble.getSw()->getPlatformMapping()->getPlatformPorts();
+    std::vector<PortID> ports;
+    for (const auto& [controllingPort, subPorts] : portsByControllingPort) {
+      if (ports.size() >= kWideEcmpWidth) {
+        break;
+      }
+      auto ctrlIt = platformPorts.find(static_cast<int32_t>(controllingPort));
+      if (ctrlIt == platformPorts.end() ||
+          *ctrlIt->second.mapping()->portType() !=
+              cfg::PortType::INTERFACE_PORT) {
+        continue;
+      }
+      for (auto subPort : subPorts) {
+        auto subIt = platformPorts.find(static_cast<int32_t>(subPort));
+        if (subIt != platformPorts.end() &&
+            *subIt->second.mapping()->portType() ==
+                cfg::PortType::MANAGEMENT_PORT) {
+          continue;
+        }
+        ports.push_back(subPort);
+      }
+    }
+    return ports;
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto ports = getSubsidiaryPorts(ensemble);
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(), ports, true /*interfaceHasSubnet*/);
+    const auto& platformPorts =
+        ensemble.getSw()->getPlatformMapping()->getPlatformPorts();
+
+    // Force speed to 200G to create atleast 256 ports for th6
+    for (auto& port : *cfg.ports()) {
+      if (*port.speed() > cfg::PortSpeed::TWOHUNDREDG) {
+        auto platIt =
+            platformPorts.find(static_cast<int32_t>(*port.logicalID()));
+        if (platIt != platformPorts.end()) {
+          for (const auto& [profileID, profileCfg] :
+               *platIt->second.supportedProfiles()) {
+            if (utility::getSpeed(profileID) == cfg::PortSpeed::TWOHUNDREDG) {
+              port.profileID() = profileID;
+              port.speed() = cfg::PortSpeed::TWOHUNDREDG;
+              break;
+            }
+          }
+        }
+      }
+    }
+    auto backupSwitchingMode = isChenab(ensemble)
+        ? cfg::SwitchingMode::FIXED_ASSIGNMENT
+        : cfg::SwitchingMode::PER_PACKET_RANDOM;
+    utility::addFlowletConfigs(
+        cfg,
+        ports,
+        ensemble.isSai(),
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        backupSwitchingMode);
+    cfg.flowletSwitchingConfig()->minWidthForArsVirtualGroup() =
+        kMinWidthForArsVirtualGroup;
+    return cfg;
+  }
+
+  std::vector<PortID> getTestPorts() const override {
+    return getSubsidiaryPorts(*getAgentEnsemble());
+  }
+
+  void verifyTrafficDistribution(int ecmpWidth, int destPort, bool bumpOnHit) {
+    std::vector<int> pktsBefore(ecmpWidth);
+    int pktsBeforeTotal = 0;
+    for (int i = 0; i < ecmpWidth; i += kStatsCheckInterval) {
+      auto ecmpEgressPort = helper_->ecmpPortDescriptorAt(i).phyPortID();
+      pktsBefore[i] =
+          *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts_();
+      pktsBeforeTotal += pktsBefore[i];
+    }
+
+    auto aclPktCountBefore =
+        utility::getAclInOutPackets(getSw(), getCounterName(AclType::FLOWLET));
+    constexpr int packetCount = 1000;
+
+    std::vector<uint8_t> rethHdr(16);
+    rethHdr[15] = 0xFF;
+    auto egressPort =
+        helper_->ecmpPortDescriptorAt(kFrontPanelPortForTest).phyPortID();
+    sendRoceTraffic(
+        egressPort,
+        utility::kUdfRoceOpcodeWriteImmediate,
+        rethHdr,
+        packetCount,
+        destPort);
+
+    WITH_RETRIES_N(5, {
+      auto aclPktCountAfter = utility::getAclInOutPackets(
+          getSw(), getCounterName(AclType::FLOWLET));
+
+      std::vector<int> pktsAfter(ecmpWidth);
+      int pktsAfterTotal = 0;
+      for (int i = 0; i < ecmpWidth; i += kStatsCheckInterval) {
+        auto ecmpEgressPort = helper_->ecmpPortDescriptorAt(i).phyPortID();
+        pktsAfter[i] =
+            *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts_();
+        pktsAfterTotal += pktsAfter[i];
+        XLOG(DBG2) << "Ecmp egress Port: " << ecmpEgressPort
+                   << ", Count: " << pktsBefore[i] << " -> " << pktsAfter[i];
+      }
+
+      XLOG(DBG2) << "\n"
+                 << "aclPacketCounter(" << getCounterName(AclType::FLOWLET)
+                 << "): " << aclPktCountBefore << " -> " << aclPktCountAfter
+                 << "\n";
+
+      EXPECT_EVENTUALLY_GT(pktsAfterTotal, pktsBeforeTotal);
+
+      if (bumpOnHit) {
+        EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + packetCount);
+      } else {
+        EXPECT_EVENTUALLY_EQ(aclPktCountAfter, aclPktCountBefore);
+        int zeroCount = 0;
+        for (int i = 0; i < ecmpWidth; i += kStatsCheckInterval) {
+          if (pktsAfter[i] - pktsBefore[i] == 0) {
+            zeroCount++;
+          }
+        }
+        int sampledPorts =
+            (ecmpWidth + kStatsCheckInterval - 1) / kStatsCheckInterval;
+        EXPECT_EVENTUALLY_GE(zeroCount, sampledPorts - 1);
+      }
+    });
+  }
+};
+
+TEST_F(AgentFlowletWideArsSwitchingTest, VerifyEcmp) {
+  auto setup = [this]() {
+    this->setup(kWideEcmpWidth);
+    generateApplyConfig(AclType::FLOWLET);
+  };
+
+  auto verify = [this]() {
+    // Verify DLB is hit with ACL matching packet
+    verifyTrafficDistribution(kWideEcmpWidth, 4791, true);
+    // Verify packet is still ECMP'd without DLB using static hash
+    verifyTrafficDistribution(kWideEcmpWidth, 1024, false);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentFlowletWideArsSwitchingTest, EcmpScaleTest) {
+  static constexpr int kDefaultRouteEcmpWidth = 256;
+  static constexpr int kSecondaryEcmpWidth = 90;
+  static constexpr int kNumSecondaryEcmpGroups = 254;
+
+  auto setup = [this]() {
+    this->setup(kDefaultRouteEcmpWidth);
+    generateApplyConfig(AclType::FLOWLET);
+    generatePrefixes();
+
+    auto wrapper = getSw()->getRouteUpdater();
+
+    std::vector<RoutePrefixV6> testPrefixes;
+    std::vector<flat_set<PortDescriptor>> testNhopSets;
+    testPrefixes.reserve(kNumSecondaryEcmpGroups);
+    testNhopSets.reserve(kNumSecondaryEcmpGroups);
+
+    for (int i = 0; i < kNumSecondaryEcmpGroups; ++i) {
+      testPrefixes.push_back(prefixes[i]);
+      // Create unique nhop sets from 256 ports using rotation:
+      // Groups 0-253: rotation with step=1, each group starts at port i
+      flat_set<PortDescriptor> nhopSet;
+      int rotation = i % kDefaultRouteEcmpWidth;
+      for (int j = 0; j < kSecondaryEcmpWidth; ++j) {
+        int portIndex = (rotation + j) % kDefaultRouteEcmpWidth;
+        nhopSet.insert(helper_->ecmpPortDescriptorAt(portIndex));
+      }
+      testNhopSets.push_back(nhopSet);
+    }
+
+    helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
+
+    XLOG(DBG2) << "EcmpScaleTest::setup - programmed "
+               << kNumSecondaryEcmpGroups << " secondary ECMP groups with "
+               << kSecondaryEcmpWidth << " members each, "
+               << "default route has " << kDefaultRouteEcmpWidth << " members";
+  };
+
+  auto verify = [this]() {
+    // Verify DLB is hit with ACL matching packet
+    verifyTrafficDistribution(kDefaultRouteEcmpWidth, 4791, true);
+    // Verify packet is still ECMP'd without DLB using static hash
+    verifyTrafficDistribution(kDefaultRouteEcmpWidth, 1024, false);
   };
 
   verifyAcrossWarmBoots(setup, verify);

@@ -54,6 +54,8 @@ target_link_libraries(platform_mapping_utils
   tahansb800bc_platform_mapping
   wedge800cact_platform_mapping
   ladakh800bcls_platform_mapping
+  minipack3bta_platform_mapping
+  icecube800banw_platform_mapping
   platform_mode
   ${RE2}
 )

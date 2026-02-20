@@ -29,6 +29,7 @@ TEST(ConfigLibTest, Basic) {
   EXPECT_NO_THROW(ConfigLib().getSensorServiceConfig(kMorgan800cc));
   EXPECT_NO_THROW(ConfigLib().getSensorServiceConfig(kJanga800bic));
   EXPECT_NO_THROW(ConfigLib().getSensorServiceConfig(kTahan800bc));
+  EXPECT_NO_THROW(ConfigLib().getSensorServiceConfig(kBlackwolf800banw));
   EXPECT_THROW(
       ConfigLib().getSensorServiceConfig(kNonExistentPlatform),
       std::runtime_error);
@@ -40,6 +41,7 @@ TEST(ConfigLibTest, Basic) {
   EXPECT_NO_THROW(ConfigLib().getFanServiceConfig(kMorgan800cc));
   EXPECT_NO_THROW(ConfigLib().getFanServiceConfig(kJanga800bic));
   EXPECT_NO_THROW(ConfigLib().getFanServiceConfig(kTahan800bc));
+  EXPECT_NO_THROW(ConfigLib().getFanServiceConfig(kBlackwolf800banw));
   EXPECT_NO_THROW(ConfigLib().getFanServiceConfig(kSample));
   EXPECT_THROW(
       ConfigLib().getFanServiceConfig(kNonExistentPlatform),
@@ -53,6 +55,7 @@ TEST(ConfigLibTest, Basic) {
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kMorgan800cc));
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kJanga800bic));
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kTahan800bc));
+  EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kBlackwolf800banw));
   EXPECT_THROW(
       ConfigLib().getPlatformManagerConfig(kNonExistentPlatform),
       std::runtime_error);
@@ -76,6 +79,7 @@ TEST(ConfigLibTest, Basic) {
 
   // BspTests Configs
   EXPECT_NO_THROW(ConfigLib().getBspTestConfig(kMeru800bfa));
+  EXPECT_NO_THROW(ConfigLib().getBspTestConfig(kBlackwolf800banw));
   EXPECT_THROW(
       ConfigLib().getBspTestConfig(kNonExistentPlatform), std::out_of_range);
 

@@ -11,11 +11,12 @@
 #include "folly/synchronization/Baton.h"
 
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/ThriftServiceUtils.h"
 
 using namespace testing;
 using namespace facebook::fboss;
 
-static const std::string g_client = "testClient";
+[[maybe_unused]] static const std::string g_client = "testClient";
 static const std::vector<std::string> g_ports = {"eth0", "eth1", "lo"};
 static const double g_connect_timer = 100;
 static const std::string g_mkaTofboss = "FromMkaToFboss";
@@ -268,7 +269,10 @@ class BidirectionalPacketStreamTest : public Test {
         g_connect_timer);
 
     fbossAgent_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-        fbossAgentStream_, "::1", fbossAgentPort);
+        fbossAgentStream_,
+        "::1",
+        fbossAgentPort,
+        facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
     fbossAgentStream_->connectClient(mkaServer_->getPort());
 
     EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(500)));
@@ -307,7 +311,10 @@ class BidirectionalPacketStreamTest : public Test {
         "mka_server", mkaClientThread_->getEventBase(), &evb_, g_connect_timer);
 
     mkaServer_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-        mkaServerStream_, "::1", serverPort);
+        mkaServerStream_,
+        "::1",
+        serverPort,
+        facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
     mkaServerStream_->connectClient(fbossAgent_->getPort());
 
     EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(500)));
@@ -336,7 +343,8 @@ class BidirectionalPacketStreamTest : public Test {
     mkaServerStream_ = std::make_shared<BidirectionalPacketStream>(
         "mka_server", mkaClientThread_->getEventBase(), &evb_, g_connect_timer);
     mkaServer_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-        mkaServerStream_);
+        mkaServerStream_,
+        facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
 
     fbossAgentStream_ = std::make_shared<BidirectionalPacketStream>(
         "fboss_agent",
@@ -344,7 +352,8 @@ class BidirectionalPacketStreamTest : public Test {
         &evb_,
         g_connect_timer);
     fbossAgent_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-        fbossAgentStream_);
+        fbossAgentStream_,
+        facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
   }
 
   void TearDown() override {
@@ -437,7 +446,10 @@ TEST_F(BidirectionalPacketStreamTest, MKAServerDisconnectReconnectTest) {
       g_connect_timer);
 
   fbossAgent_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-      fbossAgentStream_, "::1", fbossAgentPort);
+      fbossAgentStream_,
+      "::1",
+      fbossAgentPort,
+      facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
   fbossAgentStream_->connectClient(mkaServer_->getPort());
 
   EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(200)));

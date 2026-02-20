@@ -94,6 +94,11 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     if (isEcmpModeDynamic(nextHopGroupHandle->desiredArsMode_)) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
+
+      if (minWidthForArsVirtualGroup_.has_value() &&
+          swNextHops.size() >= minWidthForArsVirtualGroup_.value()) {
+        arsHandlePtr = managerTable_->arsManager().getVirtualArsGroupHandle();
+      }
       if (arsHandlePtr->ars) {
         auto arsSaiId = arsHandlePtr->ars->adapterKey();
         arsObjectId = SaiNextHopGroupTraits::Attributes::ArsObjectId{arsSaiId};
@@ -269,10 +274,6 @@ void SaiNextHopGroupManager::updateArsModeAll(
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-  auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
-  CHECK(arsHandlePtr->ars);
-  auto arsSaiId = arsHandlePtr->ars->adapterKey();
-
   for (auto entry : handles_) {
     auto handle = entry.second;
     auto handlePtr = handle.lock();
@@ -285,6 +286,13 @@ void SaiNextHopGroupManager::updateArsModeAll(
       continue;
     }
 
+    auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
+    if (minWidthForArsVirtualGroup_.has_value() &&
+        handlePtr->members_.size() >= minWidthForArsVirtualGroup_.value()) {
+      arsHandlePtr = managerTable_->arsManager().getVirtualArsGroupHandle();
+    }
+    CHECK(arsHandlePtr->ars);
+    auto arsSaiId = arsHandlePtr->ars->adapterKey();
     if (newFlowletConfig) {
       handlePtr->nextHopGroup->setOptionalAttribute(
           SaiNextHopGroupTraits::Attributes::ArsObjectId{arsSaiId});
@@ -300,6 +308,11 @@ void SaiNextHopGroupManager::updateArsModeAll(
 void SaiNextHopGroupManager::setPrimaryArsSwitchingMode(
     std::optional<cfg::SwitchingMode> switchingMode) {
   primaryArsMode_ = switchingMode;
+}
+
+void SaiNextHopGroupManager::setMinWidthForArsVirtualGroup(
+    std::optional<int32_t> minWidthForArsVirtualGroup) {
+  minWidthForArsVirtualGroup_ = minWidthForArsVirtualGroup;
 }
 
 std::string SaiNextHopGroupManager::listManagedObjects() const {

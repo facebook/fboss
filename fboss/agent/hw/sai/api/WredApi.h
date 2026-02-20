@@ -64,11 +64,6 @@ struct SaiWredTraits {
         SAI_WRED_ATTR_ECN_GREEN_MAX_THRESHOLD,
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
-    using EcnGreenMarkProbability = SaiAttribute<
-        EnumType,
-        SAI_WRED_ATTR_ECN_GREEN_MARK_PROBABILITY,
-        sai_uint32_t,
-        SaiInt100Default<sai_uint32_t>>; /* Default probability is 100.*/
   };
 
   using AdapterKey = WredSaiId;
@@ -79,8 +74,7 @@ struct SaiWredTraits {
       std::optional<Attributes::GreenDropProbability>,
       Attributes::EcnMarkMode,
       std::optional<Attributes::EcnGreenMinThreshold>,
-      std::optional<Attributes::EcnGreenMaxThreshold>,
-      std::optional<Attributes::EcnGreenMarkProbability>>;
+      std::optional<Attributes::EcnGreenMaxThreshold>>;
   using AdapterHostKey = CreateAttributes;
 };
 
@@ -91,7 +85,6 @@ SAI_ATTRIBUTE_NAME(Wred, GreenDropProbability);
 SAI_ATTRIBUTE_NAME(Wred, EcnMarkMode);
 SAI_ATTRIBUTE_NAME(Wred, EcnGreenMinThreshold);
 SAI_ATTRIBUTE_NAME(Wred, EcnGreenMaxThreshold);
-SAI_ATTRIBUTE_NAME(Wred, EcnGreenMarkProbability);
 
 class WredApi : public SaiApi<WredApi> {
  public:

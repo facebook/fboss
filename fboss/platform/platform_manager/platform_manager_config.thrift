@@ -184,6 +184,8 @@ struct I2cRegData {
 //
 // `isEeprom`: Whether this I2C Device is an EEPROM device
 //
+// `eepromOffset`: offset for eeprom content.  Applies only to EEPROM device
+//
 // For example, the three i2c devices in the below Sample PmUnit will be modeled
 // as follows
 //
@@ -223,6 +225,7 @@ struct I2cDeviceConfig {
   11: optional list<I2cRegData> initRegSettings;
   12: bool isWatchdog;
   13: bool isEeprom;
+  14: optional i16 eepromOffset;
 }
 
 // Configs for sensors which are embedded (eg within CPU).
@@ -739,10 +742,16 @@ struct PlatformConfig {
   // List of PmUnits which the platform can support. Key is the PmUnit name.
   12: map<string, PmUnitConfig> pmUnitConfigs;
 
-  // List of the i2c buses created from the CPU.  We are assuming the i2c
-  // Adapter name (content of /sys/bus/i2c/devices/i2c-N/name) is unique for
-  // buses directly coming of CPU. We have to revisit this logic if this
-  // assumption changes.
+  // List of the i2c buses created from the CPU.  Entries can use either:
+  //  (a) Virtual name "CPU_BUS@0" — resolved at runtime by detecting the
+  //      CPU vendor (via folly::CpuId) and scanning sysfs for the
+  //      corresponding adapter:
+  //        - Intel: matches "SMBus I801 adapter at <offset>" (one per
+  //          unit).  Only CPU_BUS@0 is supported today.
+  //        - AMD: not yet implemented (throws at runtime).
+  //  (b) Exact adapter name matching /sys/bus/i2c/devices/i2c-N/name
+  //      (e.g. "SMBus I801 adapter at 5000").
+  // All entries in a single config must use the same style.
   13: list<string> i2cAdaptersFromCpu;
 
   // Global mapping from an application friendly path (symbolic link) to

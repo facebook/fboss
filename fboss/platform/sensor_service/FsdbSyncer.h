@@ -9,9 +9,7 @@
 #include <memory>
 
 namespace facebook::fboss {
-namespace fsdb {
-class FsdbPubSubManager;
-}
+
 class FsdbSyncer {
  public:
   FsdbSyncer();

@@ -39,8 +39,7 @@ class TestHwSwitchEnsemble : HwSwitchEnsemble {
       std::string& /*output*/,
       std::optional<SwitchID> /*swId*/) override {}
 
-  void init(
-      const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& /*info*/) override {}
+  void init(const TestEnsembleInitInfo& /*info*/) override {}
 
  public:
   std::unique_ptr<std::thread> setupThrift() override {
