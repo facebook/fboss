@@ -30,8 +30,9 @@ class Jericho4Asic : public Jericho3Asic {
     }
     return Jericho3Asic::isSupported(feature);
 
+  // Jericho4 cModel bringup is using Jericho4L (99410) which only has 4 cores
   uint32_t getNumCores() const override {
-    return 8;
+    return 4;
   }
 };
 
