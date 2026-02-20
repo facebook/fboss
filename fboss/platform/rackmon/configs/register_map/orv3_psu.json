@@ -409,14 +409,16 @@
             "length": 1,
             "format": "FLOAT",
             "precision": 6,
-            "name": "PSU_Input_Voltage_AC"
+            "name": "PSU_Input_Voltage_AC",
+            "unit": "Volts"
         },
         {
             "begin": 89,
             "length": 1,
             "format": "FLOAT",
             "precision": 10,
-            "name": "PSU_Input_Current_AC"
+            "name": "PSU_Input_Current_AC",
+            "unit": "Amperes"
         },
         {
             "begin": 90,
