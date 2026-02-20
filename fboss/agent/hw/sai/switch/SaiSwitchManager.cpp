@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
+#include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
@@ -17,6 +18,7 @@
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
+#include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
@@ -235,7 +237,7 @@ SaiSwitchManager::SaiSwitchManager(
       // be a no-op if already set.
       switch_->setOptionalAttribute(
           SaiSwitchTraits::Attributes::MaxSwitchId{
-              platform->getAsic()->getMaxSwitchId()});
+              utility::getDsfVoqSwitchMaxSwitchId()});
 #endif
     }
   } else {
@@ -1327,7 +1329,30 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
         errorStats.dramDataPathPacketError().value_or(0);
   }
 
-  if (switchDropStats.size() || errorDropStats.size()) {
+  // Read switch debug counter stats (L2, L3, Tunnel drops)
+  auto& debugCounterMgr = managerTable_->debugCounterManager();
+  auto switchDebugStatIds = debugCounterMgr.getConfiguredSwitchDebugStatIds();
+  if (switchDebugStatIds.size()) {
+    std::vector<sai_stat_id_t> debugStatsVec(
+        switchDebugStatIds.begin(), switchDebugStatIds.end());
+    switch_->updateStats(debugStatsVec, SAI_STATS_MODE_READ);
+    auto debugStatValues = switch_->getStats(debugStatsVec);
+    for (const auto& [statId, value] : debugStatValues) {
+      if (statId == debugCounterMgr.getL2SwitchDropCounterStatId()) {
+        switchDropStats_.switchL2InDrops() =
+            switchDropStats_.switchL2InDrops().value_or(0) + value;
+      } else if (statId == debugCounterMgr.getL3SwitchDropCounterStatId()) {
+        switchDropStats_.switchL3InDrops() =
+            switchDropStats_.switchL3InDrops().value_or(0) + value;
+      } else if (statId == debugCounterMgr.getTunnelSwitchDropCounterStatId()) {
+        switchDropStats_.switchTunnelInDrops() =
+            switchDropStats_.switchTunnelInDrops().value_or(0) + value;
+      }
+    }
+  }
+
+  if (switchDropStats.size() || errorDropStats.size() ||
+      switchDebugStatIds.size()) {
     platform_->getHwSwitch()->getSwitchStats()->update(switchDropStats_);
   }
   auto switchDramStats = supportedDramStats();
@@ -1394,17 +1419,15 @@ void SaiSwitchManager::updateSramLowBufferLimitHitCounter() {
 }
 
 void SaiSwitchManager::setSwitchIsolate(bool isolate) {
-  auto switchType = platform_->getAsic()->getSwitchType();
-  // Supported only for FABRIC switches!
-  if (switchType == cfg::SwitchType::FABRIC ||
-      switchType == cfg::SwitchType::VOQ) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SWITCH_ISOLATE)) {
     XLOG(DBG2) << " Setting switch state to : "
                << (isolate ? "DRAINED" : "UNDRAINED");
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::SwitchIsolate{isolate});
   } else {
     XLOG(DBG2) << "Ignoring setSwitchIsolate for switch type "
-               << apache::thrift::util::enumNameSafe(switchType);
+               << apache::thrift::util::enumNameSafe(
+                      platform_->getAsic()->getSwitchType());
   }
 }
 
@@ -1610,6 +1633,13 @@ bool SaiSwitchManager::isPtpTcEnabled() const {
 #endif
   ptpTcEnabled &= managerTable_->portManager().isPtpTcEnabled();
   return ptpTcEnabled;
+}
+
+bool SaiSwitchManager::isMeasureCableLengthEnabled() const {
+  auto& attr = std::get<std::optional<
+      SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement>>(
+      switch_->attributes());
+  return attr.has_value() && attr->value();
 }
 
 void SaiSwitchManager::setPfcWatchdogTimerGranularity(

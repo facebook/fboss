@@ -164,7 +164,7 @@ PkgManager::PkgManager(
       systemInterface_(systemInterface),
       platformFsUtils_(platformFsUtils) {}
 
-void PkgManager::processAll() const {
+void PkgManager::processAll(bool enablePkgMgmnt, bool reloadKmods) const {
   SCOPE_SUCCESS {
     fb303::fbData->setCounter(kProcessAllFailure, 0);
   };
@@ -175,7 +175,7 @@ void PkgManager::processAll() const {
   if (FLAGS_local_rpm_path.size()) {
     fb303::fbData->setExportedValue(
         kBspKmodsRpmName, "local_rpm: " + FLAGS_local_rpm_path);
-  } else if (FLAGS_enable_pkg_mgmnt) {
+  } else if (enablePkgMgmnt) {
     fb303::fbData->setExportedValue(kBspKmodsRpmName, getKmodsRpmName());
     fb303::fbData->setCounter(
         fmt::format(
@@ -195,7 +195,7 @@ void PkgManager::processAll() const {
     loadRequiredKmods();
     return;
   }
-  if (FLAGS_enable_pkg_mgmnt) {
+  if (enablePkgMgmnt) {
     auto bspKmodsRpmName = getKmodsRpmName();
     if (!systemInterface_->isRpmInstalled(bspKmodsRpmName)) {
       XLOG(INFO) << fmt::format(
@@ -226,7 +226,7 @@ void PkgManager::processAll() const {
   }
   // Kmods management.
   // Only when no BSP management happened.
-  if (FLAGS_reload_kmods) {
+  if (reloadKmods) {
     unloadBspKmods();
   }
   try {

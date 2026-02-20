@@ -146,6 +146,11 @@ bool ResourceAccountant::checkArsResource(bool intermediateState) const {
           arsEcmpGroupRefMap_.size() >
               (arsGroupLimit.value() * resourcePercentage) /
                   kHundredPercentage) {
+        XLOG(DBG2)
+            << " ARS group limit exceeded. ARS group demand from this update: "
+            << arsEcmpGroupRefMap_.size()
+            << " ASIC limit: " << arsGroupLimit.value()
+            << ", resource percentage: " << resourcePercentage;
         return false;
       }
     }
@@ -251,6 +256,8 @@ bool ResourceAccountant::checkAndUpdateRouteResource(bool add) {
     for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
       const auto routeLimit = hwAsic->getMaxRoutes();
       if (routeLimit.has_value() && routeUsage_ > routeLimit.value()) {
+        XLOG(DBG2) << "Route limit exceeded. Route demand from this update: "
+                   << routeUsage_ << " ASIC Limit: " << routeLimit.value();
         return false;
       }
     }
@@ -317,20 +324,22 @@ bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
 
   if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable &&
       !validRouteUpdate) {
-    XLOG(WARNING)
-        << "Invalid route update - exceeding DLB resource limits. New state consumes "
-        << arsEcmpGroupRefMap_.size() << " DLB ECMP groups";
     for (const auto& [switchId, hwAsic] : asicTable_->getHwAsics()) {
       const auto dlbGroupLimit = hwAsic->getMaxArsGroups();
-      XLOG(WARNING) << "DLB ECMP resource limits for Switch " << switchId
-                    << ": max DLB groups="
-                    << (dlbGroupLimit.has_value()
-                            ? folly::to<std::string>(dlbGroupLimit.value())
-                            : "None");
-    }
-    return validRouteUpdate;
-  }
+      if (dlbGroupLimit && arsEcmpGroupRefMap_.size() > dlbGroupLimit.value()) {
+        XLOG(WARNING)
+            << "Invalid route update - exceeding DLB resource limits. New state consumes "
+            << arsEcmpGroupRefMap_.size() << " DLB ECMP groups";
 
+        XLOG(WARNING) << "DLB ECMP resource limits for Switch " << switchId
+                      << ": max DLB groups="
+                      << (dlbGroupLimit.has_value()
+                              ? folly::to<std::string>(dlbGroupLimit.value())
+                              : "None");
+        return validRouteUpdate;
+      }
+    }
+  }
   if (!validRouteUpdate) {
     XLOG(WARNING)
         << "Invalid route update - exceeding route or ECMP resource limits. New state consumes "

@@ -1,8 +1,7 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include "ModbusDevice.h"
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 #include <thread>
+#include "TestUtils.h"
 
 using namespace std;
 using namespace testing;
@@ -12,7 +11,9 @@ using namespace rackmon;
 // Mocks the Modbus interface.
 class Mock2Modbus : public Modbus {
  public:
-  Mock2Modbus() : Modbus() {}
+  explicit Mock2Modbus(std::optional<uint8_t> p) : Modbus() {
+    port_ = p;
+  }
   ~Mock2Modbus() = default;
   MOCK_METHOD1(initialize, void(const nlohmann::json&));
   MOCK_METHOD5(command, void(Msg&, Msg&, uint32_t, ModbusTime, Parity));
@@ -37,7 +38,7 @@ ACTION_TEMPLATE(
 // Our Test class, sets up the register map and a common device store.
 class ModbusDeviceTest : public ::testing::Test {
  protected:
-  Mock2Modbus modbus_device;
+  Mock2Modbus modbus_device{std::nullopt};
   RegisterMap regmap;
   std::string regmap_s = R"({
     "name": "orv3_psu",
@@ -72,6 +73,21 @@ TEST_F(ModbusDeviceTest, BasicSetup) {
   EXPECT_TRUE(dev.isActive());
   ModbusDeviceInfo status = dev.getInfo();
   EXPECT_EQ(status.deviceAddress, 0x32);
+  EXPECT_EQ(status.baudrate, 19200);
+  EXPECT_EQ(status.crcErrors, 0);
+  EXPECT_EQ(status.timeouts, 0);
+  EXPECT_EQ(status.miscErrors, 0);
+  EXPECT_EQ(status.numConsecutiveFailures, 0);
+}
+
+TEST_F(ModbusDeviceTest, BasicSetupWithPort) {
+  Mock2Modbus modbus(123);
+  EXPECT_EQ(modbus.getPort(), 123);
+  ModbusDevice dev(modbus, 0x32, get_regmap());
+  EXPECT_TRUE(dev.isActive());
+  ModbusDeviceInfo status = dev.getInfo();
+  EXPECT_EQ(status.deviceAddress, 0x32);
+  EXPECT_EQ(status.port, 123);
   EXPECT_EQ(status.baudrate, 19200);
   EXPECT_EQ(status.crcErrors, 0);
   EXPECT_EQ(status.timeouts, 0);
@@ -396,6 +412,13 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   constexpr time_t monInterval = RegisterDescriptor::kDefaultInterval;
   ModbusDeviceMockTime dev(get_modbus(), 0x32, get_regmap(), baseTime);
 
+  ModbusDeviceValueData emptyLatestData = dev.getValueData({}, true);
+  EXPECT_EQ(emptyLatestData.deviceAddress, 0x32);
+  EXPECT_EQ(emptyLatestData.registerList.size(), 1);
+  EXPECT_EQ(emptyLatestData.registerList[0].regAddr, 0);
+  EXPECT_EQ(emptyLatestData.registerList[0].name, "MFG_MODEL");
+  EXPECT_EQ(emptyLatestData.registerList[0].history.size(), 0);
+
   dev.reloadAllRegisters();
   ModbusDeviceValueData data = dev.getValueData();
   EXPECT_EQ(data.deviceAddress, 0x32);
@@ -501,7 +524,7 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   ModbusDeviceValueData data4 = dev.getValueData({}, true);
   EXPECT_EQ(data4.registerList[0].history.size(), 1);
   EXPECT_EQ(
-      std::get<std::string>(data3.registerList[0].history[0].value), "cdef");
+      std::get<std::string>(data4.registerList[0].history[0].value), "cdef");
 }
 
 TEST_F(ModbusDeviceTest, MonitorRawData) {

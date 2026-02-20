@@ -16,10 +16,12 @@
 #include "fboss/platform/fan_service/FanServiceHandler.h"
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/helpers/PlatformNameLib.h"
+#include "fboss/platform/helpers/StructuredLogger.h"
 
 using namespace facebook;
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::fan_service;
+using facebook::fboss::platform::helpers::StructuredLogger;
 
 DEFINE_int32(thrift_port, 5972, "Port for the thrift service");
 DEFINE_int32(
@@ -32,38 +34,38 @@ int main(int argc, char** argv) {
   helpers::init(&argc, &argv);
 
   auto platformName = helpers::PlatformNameLib().getPlatformName();
-  std::string fanServiceConfJson =
-      ConfigLib().getFanServiceConfig(platformName);
-  auto config =
-      apache::thrift::SimpleJSONSerializer::deserialize<FanServiceConfig>(
-          fanServiceConfJson);
-  XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-      config);
-  if (!ConfigValidator().isValid(config)) {
-    XLOG(ERR) << "Invalid config! Aborting...";
-    throw std::runtime_error("Invalid Config.  Aborting...");
+
+  try {
+    std::string fanServiceConfJson =
+        ConfigLib().getFanServiceConfig(platformName);
+    auto config =
+        apache::thrift::SimpleJSONSerializer::deserialize<FanServiceConfig>(
+            fanServiceConfJson);
+    XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+        config);
+    if (!ConfigValidator().isValid(config)) {
+      XLOG(ERR) << "Invalid config! Aborting...";
+      throw std::runtime_error("Invalid Config.  Aborting...");
+    }
+
+    auto pBsp = std::make_shared<Bsp>(config);
+    auto server = std::make_shared<apache::thrift::ThriftServer>();
+    auto controlLogic = std::make_shared<ControlLogic>(config, pBsp);
+    auto handler = std::make_shared<FanServiceHandler>(controlLogic);
+
+    folly::FunctionScheduler scheduler;
+    scheduler.addFunction(
+        [controlLogic]() { controlLogic->controlFan(); },
+        std::chrono::seconds(FLAGS_control_interval),
+        "FanControl");
+    scheduler.start();
+
+    helpers::runThriftService(server, handler, "FanService", FLAGS_thrift_port);
+  } catch (const std::exception& ex) {
+    StructuredLogger structuredLogger("fan_service");
+    structuredLogger.logAlert("unexpected_crash", ex.what());
+    throw;
   }
-
-  auto pBsp = std::make_shared<Bsp>(config);
-  auto server = std::make_shared<apache::thrift::ThriftServer>();
-  auto controlLogic = std::make_shared<ControlLogic>(config, pBsp);
-  auto handler = std::make_shared<FanServiceHandler>(controlLogic);
-
-  folly::FunctionScheduler scheduler;
-  scheduler.addFunction(
-      [controlLogic]() { controlLogic->controlFan(); },
-      std::chrono::seconds(FLAGS_control_interval),
-      "FanControl");
-  scheduler.start();
-
-  server->setPort(FLAGS_thrift_port);
-  server->setInterface(handler);
-  server->setAllowPlaintextOnLoopback(true);
-
-  auto evb = server->getEventBaseManager()->getEventBase();
-  helpers::SignalHandler signalHandler(evb, server);
-
-  helpers::runThriftService(server, handler, "FanService", FLAGS_thrift_port);
 
   XLOG(INFO) << "================ STOPPED PLATFORM BINARY ================";
   return 0;

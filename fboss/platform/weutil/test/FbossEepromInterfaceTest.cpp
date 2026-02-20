@@ -84,14 +84,6 @@ const EepromData kEepromV6 = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff};
 
-FbossEepromInterface createFbossEepromInterface(const EepromData& data) {
-  folly::test::TemporaryDirectory tmpDir = folly::test::TemporaryDirectory();
-  std::string fileName = tmpDir.path().string() + "/eepromContent";
-  folly::writeFile(data, fileName.c_str());
-
-  return FbossEepromInterface(fileName, 0);
-}
-
 constexpr auto kProductName = "FIRST_SQUEEZE";
 constexpr auto kProductPartNumber = "20123456";
 constexpr auto kSystemAssemblyPartNumber = "SYSA1234";
@@ -109,9 +101,17 @@ constexpr auto kPCBManufacturer = "TERZO";
 constexpr auto kAssembledAt = "JUICETORY";
 constexpr auto kEepromLocationOnFabric = "BUDOKAN";
 constexpr auto kX86CpuMac = "11:22:33:44:55:66,258";
+constexpr auto kX86CpuMacBase = "11:22:33:44:55:66";
+constexpr auto kX86CpuMacSize = "258";
 constexpr auto kBmcMac = "12:34:56:78:9a:bc,772";
+constexpr auto kBmcMacBase = "12:34:56:78:9a:bc";
+constexpr auto kBmcMacSize = "772";
 constexpr auto kSwitchAsicMac = "66:55:44:33:22:11,512";
+constexpr auto kSwitchAsicMacBase = "66:55:44:33:22:11";
+constexpr auto kSwitchAsicMacSize = "512";
 constexpr auto kMetaReservedMac = "fe:dc:ba:98:76:54,2";
+constexpr auto kMetaReservedMacBase = "fe:dc:ba:98:76:54";
+constexpr auto kMetaReservedMacSize = "2";
 constexpr auto kRma = "1";
 constexpr auto kVendorDefinedField1 = "0x0101010101";
 constexpr auto kVendorDefinedField2 = "0x48656c6c6f";
@@ -158,64 +158,141 @@ EepromContents createEepromContents(int version, bool crcMatched = true) {
   }
 
   return result;
-};
+}
 
 } // namespace
 
-TEST(FbossEepromInterfaceTest, V5) {
+class FbossEepromInterfaceTest : public ::testing::Test {
+ protected:
+  FbossEepromInterface createFbossEepromInterface(const EepromData& data) {
+    std::string fileName = tmpDir_.path().string() + "/eepromContent";
+    folly::writeFile(data, fileName.c_str());
+    return FbossEepromInterface(fileName, 0);
+  }
+
+ private:
+  folly::test::TemporaryDirectory tmpDir_;
+};
+
+TEST_F(FbossEepromInterfaceTest, V5) {
+  auto eeprom = createFbossEepromInterface(kEepromV5);
+  EXPECT_EQ(eeprom.getVersion(), 5);
+  EXPECT_EQ(eeprom.getEepromContents(), createEepromContents(5));
+
+  EXPECT_EQ(eeprom.getProductName(), kProductName);
+  EXPECT_EQ(eeprom.getProductPartNumber(), kProductPartNumber);
+  EXPECT_EQ(eeprom.getProductionState(), kProductionState);
+  EXPECT_EQ(eeprom.getProductionSubState(), kProductionSubState);
+  EXPECT_EQ(eeprom.getVariantVersion(), kVariantIndicator);
+  EXPECT_EQ(eeprom.getProductSerialNumber(), kProductSerialNumber);
+}
+
+TEST_F(FbossEepromInterfaceTest, V5WrongCRC) {
+  auto eeprom = createFbossEepromInterface(kEepromV5WrongCrc);
+  EXPECT_EQ(eeprom.getVersion(), 5);
+  EXPECT_EQ(eeprom.getEepromContents(), createEepromContents(5, false));
+}
+
+TEST_F(FbossEepromInterfaceTest, V6) {
+  auto eeprom = createFbossEepromInterface(kEepromV6);
+  EXPECT_EQ(eeprom.getVersion(), 6);
+  EXPECT_EQ(eeprom.getEepromContents(), createEepromContents(6));
+
+  EXPECT_EQ(eeprom.getProductName(), kProductName);
+  EXPECT_EQ(eeprom.getProductPartNumber(), kProductPartNumber);
+  EXPECT_EQ(eeprom.getProductionState(), kProductionState);
+  EXPECT_EQ(eeprom.getProductionSubState(), kProductionSubState);
+  EXPECT_EQ(eeprom.getVariantVersion(), kVariantIndicator);
+  EXPECT_EQ(eeprom.getProductSerialNumber(), kProductSerialNumber);
+}
+
+TEST_F(FbossEepromInterfaceTest, InvalidEepromSize) {
+  const EepromData tooSmall = {0xfb, 0xfb};
+  EXPECT_THROW(createFbossEepromInterface(tooSmall), std::runtime_error);
+}
+
+TEST_F(FbossEepromInterfaceTest, InvalidEepromVersion) {
+  const EepromData invalidVersion = {0xfb, 0xfb, 0x04, 0xff};
+  EXPECT_THROW(createFbossEepromInterface(invalidVersion), std::runtime_error);
+}
+
+TEST_F(FbossEepromInterfaceTest, GetContentsV5) {
   auto eeprom = createFbossEepromInterface(kEepromV5);
 
-  EXPECT_EQ(eeprom.getProductName(), kProductName);
-  EXPECT_EQ(eeprom.getProductPartNumber(), kProductPartNumber);
-  EXPECT_EQ(eeprom.getProductionState(), kProductionState);
-  EXPECT_EQ(eeprom.getProductionSubState(), kProductionSubState);
-  EXPECT_EQ(eeprom.getVariantVersion(), kVariantIndicator);
-  EXPECT_EQ(eeprom.getProductSerialNumber(), kProductSerialNumber);
+  const std::vector<std::pair<std::string, std::string>> expected = {
+      {"Version", "5"},
+      {"Product Name", kProductName},
+      {"Product Part Number", kProductPartNumber},
+      {"System Assembly Part Number", kSystemAssemblyPartNumber},
+      {"Meta PCBA Part Number", kMetaPCBAPartNumber},
+      {"Meta PCB Part Number", kMetaPCBPartNumber},
+      {"ODM/JDM PCBA Part Number", kOdmJdmPCBAPartNumber},
+      {"ODM/JDM PCBA Serial Number", kOdmJdmPCBASerialNumber},
+      {"Product Production State", kProductionState},
+      {"Product Version", kProductionSubState},
+      {"Product Sub-Version", kVariantIndicator},
+      {"Product Serial Number", kProductSerialNumber},
+      {"System Manufacturer", kSystemManufacturer},
+      {"System Manufacturing Date", kSystemManufacturingDate},
+      {"PCB Manufacturer", kPCBManufacturer},
+      {"Assembled At", kAssembledAt},
+      {"EEPROM location on Fabric", kEepromLocationOnFabric},
+      {"X86 CPU MAC Base", kX86CpuMacBase},
+      {"X86 CPU MAC Address Size", kX86CpuMacSize},
+      {"BMC MAC Base", kBmcMacBase},
+      {"BMC MAC Address Size", kBmcMacSize},
+      {"Switch ASIC MAC Base", kSwitchAsicMacBase},
+      {"Switch ASIC MAC Address Size", kSwitchAsicMacSize},
+      {"META Reserved MAC Base", kMetaReservedMacBase},
+      {"META Reserved MAC Address Size", kMetaReservedMacSize},
+      {"CRC16", kCrc16V5},
+  };
+
+  EXPECT_EQ(eeprom.getContents(), expected);
 }
 
-TEST(FbossEepromInterfaceTest, V5WrongCRC) {
-  auto eeprom = createFbossEepromInterface(kEepromV5WrongCrc);
-  EXPECT_EQ(eeprom.getProductName(), kProductName);
-  EXPECT_EQ(eeprom.getProductPartNumber(), kProductPartNumber);
-  EXPECT_EQ(eeprom.getProductionState(), kProductionState);
-  EXPECT_EQ(eeprom.getProductionSubState(), kProductionSubState);
-  EXPECT_EQ(eeprom.getVariantVersion(), kVariantIndicator);
-  EXPECT_EQ(eeprom.getProductSerialNumber(), kProductSerialNumber);
-}
-
-TEST(FbossEepromInterfaceTest, V6) {
+TEST_F(FbossEepromInterfaceTest, GetContentsV6) {
   auto eeprom = createFbossEepromInterface(kEepromV6);
-  EXPECT_EQ(eeprom.getProductName(), kProductName);
-  EXPECT_EQ(eeprom.getProductPartNumber(), kProductPartNumber);
-  EXPECT_EQ(eeprom.getProductionState(), kProductionState);
-  EXPECT_EQ(eeprom.getProductionSubState(), kProductionSubState);
-  EXPECT_EQ(eeprom.getVariantVersion(), kVariantIndicator);
-  EXPECT_EQ(eeprom.getProductSerialNumber(), kProductSerialNumber);
+
+  const std::vector<std::pair<std::string, std::string>> expected = {
+      {"Version", "6"},
+      {"Product Name", kProductName},
+      {"Product Part Number", kProductPartNumber},
+      {"System Assembly Part Number", kSystemAssemblyPartNumber},
+      {"Meta PCBA Part Number", kMetaPCBAPartNumber},
+      {"Meta PCB Part Number", kMetaPCBPartNumber},
+      {"ODM/JDM PCBA Part Number", kOdmJdmPCBAPartNumber},
+      {"ODM/JDM PCBA Serial Number", kOdmJdmPCBASerialNumber},
+      {"Production State", kProductionState},
+      {"Production Sub-State", kProductionSubState},
+      {"Re-Spin/Variant Indicator", kVariantIndicator},
+      {"Product Serial Number", kProductSerialNumber},
+      {"System Manufacturer", kSystemManufacturer},
+      {"System Manufacturing Date", kSystemManufacturingDate},
+      {"PCB Manufacturer", kPCBManufacturer},
+      {"Assembled At", kAssembledAt},
+      {"EEPROM location on Fabric", kEepromLocationOnFabric},
+      {"X86 CPU MAC Base", kX86CpuMacBase},
+      {"X86 CPU MAC Address Size", kX86CpuMacSize},
+      {"BMC MAC Base", kBmcMacBase},
+      {"BMC MAC Address Size", kBmcMacSize},
+      {"Switch ASIC MAC Base", kSwitchAsicMacBase},
+      {"Switch ASIC MAC Address Size", kSwitchAsicMacSize},
+      {"META Reserved MAC Base", kMetaReservedMacBase},
+      {"META Reserved MAC Address Size", kMetaReservedMacSize},
+      {"RMA", kRma},
+      {"Vendor Defined Field 1", kVendorDefinedField1},
+      {"Vendor Defined Field 2", kVendorDefinedField2},
+      {"Vendor Defined Field 3", kVendorDefinedField3},
+      {"CRC16", kCrc16V6},
+  };
+
+  EXPECT_EQ(eeprom.getContents(), expected);
 }
 
-TEST(FbossEepromInterfaceTest, V5Object) {
-  auto eepromInterace = createFbossEepromInterface(kEepromV5);
-  auto actualObj = eepromInterace.getEepromContents();
-
-  EepromContents expectedObj = createEepromContents(5);
-
-  EXPECT_EQ(actualObj, expectedObj);
+TEST_F(FbossEepromInterfaceTest, UnknownFieldCode) {
+  const EepromData invalidField = {
+      0xfb, 0xfb, 0x05, 0xff, 0x99, 0x02, 0x00, 0x00};
+  EXPECT_THROW(createFbossEepromInterface(invalidField), std::runtime_error);
 }
-
-TEST(FbossEepromInterfaceTest, V6Object) {
-  auto eepromInterace = createFbossEepromInterface(kEepromV6);
-  auto actualObj = eepromInterace.getEepromContents();
-  EepromContents expectedObj = createEepromContents(6);
-
-  EXPECT_EQ(actualObj, expectedObj);
-}
-
-TEST(FbossEepromInterfaceTest, V5ObjWrongCrc) {
-  auto eeprom = createFbossEepromInterface(kEepromV5WrongCrc);
-  auto actualObj = eeprom.getEepromContents();
-  EepromContents expectedObj = createEepromContents(5, false);
-
-  EXPECT_EQ(actualObj, expectedObj);
-}
-
 } // namespace facebook::fboss::platform

@@ -59,6 +59,11 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
       desiredFw.versionStr() = "0.0";
       desiredFw.minorVersion() = 0;
       break;
+    case PlatformType::PLATFORM_LADAKH800BCLS:
+      // PAI fw does not Firmware Minor version
+      desiredFw.version() = 0xE006;
+      desiredFw.versionStr() = "57350"; // 0xE006 = 57350 decimal
+      break;
     default:
       throw FbossError("No xphys to check FW version on");
   }

@@ -76,6 +76,43 @@ int64_t bm_storage_helper(
   return (endingMemoryBytes - startingMemoryBytes);
 }
 
+template <typename RootType>
+void bm_storage_metrics_helper(
+    test_data::IDataGenerator& factory,
+    folly::UserCounters& counters,
+    unsigned iters,
+    test_data::RoleSelector /* selector */,
+    bool enableHybridStorage) {
+  std::vector<int64_t> memoryMeasurements;
+
+  for (unsigned i = 0; i < iters; i++) {
+    auto memoryUsage =
+        bm_storage_helper<RootType>(factory, enableHybridStorage);
+    if (memoryUsage > 0) {
+      memoryMeasurements.push_back(memoryUsage);
+    }
+  }
+
+  // Calculate and report metrics via UserCounters
+  if (!memoryMeasurements.empty()) {
+    int64_t sum = 0;
+    int64_t maxMem =
+        *std::max_element(memoryMeasurements.begin(), memoryMeasurements.end());
+
+    for (int64_t mem : memoryMeasurements) {
+      sum += mem;
+    }
+
+    int64_t avgMem = sum / static_cast<int64_t>(memoryMeasurements.size());
+
+    // Report metrics - these will appear as columns in benchmark output
+    counters["avg_memory_KB"] =
+        folly::UserMetric(static_cast<double>(avgMem) / 1024.0);
+    counters["max_memory_KB"] =
+        folly::UserMetric(static_cast<double>(maxMem) / 1024.0);
+  }
+}
+
 // Custom macro that combines BENCHMARK_NAMED_PARAM with UserCounters support
 #define BENCHMARK_COUNTERS_NAME_PARAM(name, counters, param_name, ...) \
   BENCHMARK_IMPL_COUNTERS(                                             \

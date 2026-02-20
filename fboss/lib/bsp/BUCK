@@ -18,6 +18,7 @@ thrift_library(
     thrift_srcs = {"bsp_platform_mapping.thrift": []},
     deps = [
         "//fboss/lib/led:led_mapping",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -90,6 +91,7 @@ cpp_library(
         "//fboss/lib:common_file_utils",
         "//fboss/lib:gpiod_line",
         "//fboss/lib/bsp/blackwolf800banw:blackwolf800banw_bsp",
+        "//fboss/lib/bsp/icecube800banw:icecube800banw_bsp",
         "//fboss/lib/bsp/icecube800bc:icecube800bc_bsp",
         "//fboss/lib/bsp/icetea800bc:icetea800bc_bsp",
         "//fboss/lib/bsp/janga800bic:janga800bic_bsp",
@@ -99,6 +101,7 @@ cpp_library(
         "//fboss/lib/bsp/meru400biu:meru400biu_bsp",
         "//fboss/lib/bsp/meru800bfa:meru800bfa_bsp",
         "//fboss/lib/bsp/meru800bia:meru800bia_bsp",
+        "//fboss/lib/bsp/minipack3bta:minipack3bta_bsp",
         "//fboss/lib/bsp/minipack3n:minipack3n_bsp",
         "//fboss/lib/bsp/montblanc:montblanc_bsp",
         "//fboss/lib/bsp/morgan800cc:morgan800cc_bsp",

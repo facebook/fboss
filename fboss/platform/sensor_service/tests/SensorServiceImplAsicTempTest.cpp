@@ -36,12 +36,12 @@ TEST_F(SensorServiceImplAsicTempTest, SuccessfulReading) {
   AsicCommand asicCommand;
   asicCommand.sensorName() = "ASIC_TEMP_MGET_TEMP";
   asicCommand.cmd() = "echo 42";
-  asicCommand.sensorType() = SensorType::TEMPERTURE;
+  asicCommand.sensorType() = SensorType::TEMPERATURE;
 
   auto sensorData = impl_->processAsicCmd(asicCommand);
 
   EXPECT_EQ(*sensorData.name(), "ASIC_TEMP_MGET_TEMP");
-  EXPECT_EQ(*sensorData.sensorType(), SensorType::TEMPERTURE);
+  EXPECT_EQ(*sensorData.sensorType(), SensorType::TEMPERATURE);
   ASSERT_TRUE(sensorData.value().has_value());
   EXPECT_EQ(*sensorData.value(), 42);
 }
@@ -54,12 +54,12 @@ TEST_F(SensorServiceImplAsicTempTest, CommandFailure) {
   AsicCommand asicCommand;
   asicCommand.sensorName() = "ASIC_TEMP_MGET_TEMP";
   asicCommand.cmd() = "failing_command";
-  asicCommand.sensorType() = SensorType::TEMPERTURE;
+  asicCommand.sensorType() = SensorType::TEMPERATURE;
 
   auto sensorData = impl_->processAsicCmd(asicCommand);
 
   EXPECT_EQ(*sensorData.name(), "ASIC_TEMP_MGET_TEMP");
-  EXPECT_EQ(*sensorData.sensorType(), SensorType::TEMPERTURE);
+  EXPECT_EQ(*sensorData.sensorType(), SensorType::TEMPERATURE);
   EXPECT_FALSE(sensorData.value().has_value());
 }
 
@@ -67,13 +67,13 @@ TEST_F(SensorServiceImplAsicTempTest, CommandFailure) {
 TEST_F(SensorServiceImplAsicTempTest, MissingCommand) {
   AsicCommand asicCommand;
   asicCommand.sensorName() = "ASIC_TEMP_MGET_TEMP";
-  asicCommand.sensorType() = SensorType::TEMPERTURE;
+  asicCommand.sensorType() = SensorType::TEMPERATURE;
   // Don't set cmd() - leave it unset
 
   auto sensorData = impl_->processAsicCmd(asicCommand);
 
   EXPECT_EQ(*sensorData.name(), "ASIC_TEMP_MGET_TEMP");
-  EXPECT_EQ(*sensorData.sensorType(), SensorType::TEMPERTURE);
+  EXPECT_EQ(*sensorData.sensorType(), SensorType::TEMPERATURE);
   EXPECT_FALSE(sensorData.value().has_value());
 }
 
@@ -85,12 +85,12 @@ TEST_F(SensorServiceImplAsicTempTest, NonNumericOutput) {
   AsicCommand asicCommand;
   asicCommand.sensorName() = "ASIC_TEMP_MGET_TEMP";
   asicCommand.cmd() = "echo invalid_data";
-  asicCommand.sensorType() = SensorType::TEMPERTURE;
+  asicCommand.sensorType() = SensorType::TEMPERATURE;
 
   auto sensorData = impl_->processAsicCmd(asicCommand);
 
   EXPECT_EQ(*sensorData.name(), "ASIC_TEMP_MGET_TEMP");
-  EXPECT_EQ(*sensorData.sensorType(), SensorType::TEMPERTURE);
+  EXPECT_EQ(*sensorData.sensorType(), SensorType::TEMPERATURE);
   // Should not have value because parsing failed
   EXPECT_FALSE(sensorData.value().has_value());
 }

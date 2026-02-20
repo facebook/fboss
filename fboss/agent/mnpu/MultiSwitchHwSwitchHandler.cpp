@@ -141,7 +141,8 @@ MultiSwitchHwSwitchHandler::stateChanged(
     bool transaction,
     const std::shared_ptr<SwitchState>& oldState,
     const std::shared_ptr<SwitchState>& newState,
-    const HwWriteBehavior& hwWriteBehavior) {
+    const HwWriteBehavior& hwWriteBehavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   multiswitch::StateOperDelta stateDelta;
   CHECK_GE(deltas.size(), 1);
   {
@@ -179,7 +180,8 @@ MultiSwitchHwSwitchHandler::stateChanged(
         deltas,
         transaction,
         currOperDeltaSeqNum_,
-        hwWriteBehavior);
+        hwWriteBehavior,
+        deltaApplicationBehavior);
     ++currOperDeltaSeqNum_;
     nextOperDelta_ = &stateDelta;
   }
@@ -406,7 +408,8 @@ void MultiSwitchHwSwitchHandler::fillMultiswitchOperDelta(
     const std::vector<fsdb::OperDelta>& deltas,
     bool transaction,
     int64_t lastSeqNum,
-    const HwWriteBehavior& hwWriteBehavior) {
+    const HwWriteBehavior& hwWriteBehavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   // Send full delta if this is first switchstate update.
   // Sequence number 0 indicates first update
   if (lastSeqNum == 0) {
@@ -421,6 +424,9 @@ void MultiSwitchHwSwitchHandler::fillMultiswitchOperDelta(
   stateDelta.transaction() = transaction;
   stateDelta.seqNum() = lastSeqNum + 1;
   stateDelta.hwWriteBehavior() = hwWriteBehavior;
+  if (deltaApplicationBehavior.has_value()) {
+    stateDelta.deltaApplicationBehavior() = deltaApplicationBehavior.value();
+  }
 }
 
 void MultiSwitchHwSwitchHandler::operDeltaAckTimeout() {

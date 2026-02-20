@@ -32,6 +32,7 @@ static constexpr uint16_t kCdbCommandFirmwareDownloadComplete = 0x0107;
 static constexpr uint16_t kCdbCommandFirmwareDownloadRun = 0x0109;
 static constexpr uint16_t kCdbCommandFirmwareDownloadCommit = 0x010a;
 static constexpr uint16_t kCdbCommandFirmwareDownloadFeature = 0x0041;
+static constexpr uint16_t kCdbCommandGetFirmwareInfo = 0x0100;
 static constexpr uint16_t kCdbCommandModuleQuery = 0x0000;
 static constexpr uint16_t kCdbCommandSymbolErrorHistogram = 0x9000;
 static constexpr uint16_t kCdbCommandRxErrorHistogram = 0x9001;
@@ -490,6 +491,35 @@ void CdbCommandBlock::createCdbCmdModuleQuery() {
 void CdbCommandBlock::createCdbCmdGetFwFeatureInfo() {
   resetCdbBlock();
   cdbFields_.cdbCommandCode = htons(kCdbCommandFirmwareDownloadFeature);
+  cdbFields_.cdbEplLength = 0;
+
+  cdbFields_.cdbLplLength = 0;
+  cdbFields_.cdbChecksum = onesComplementSum();
+}
+
+/*
+ * createCdbCmdGetFirmwareInfo
+ *
+ * Creates CDB Get Firmware Info command block (CMD 0x0100). This command
+ * returns the firmware versions and firmware default running images that
+ * reside in the module. The reply data includes firmware images A, B and
+ * either a factory or boot firmware image version.
+ * Reply Data (LPL):
+ *   Byte 136: FirmwareStatus - Bitmask for FW Status (Bank A/B)
+ *   Byte 137: ImageInformation - Bit flags for image info availability
+ *   Byte 138-139: Image A Major/Minor revision
+ *   Bytes 140-141: Image A build number
+ *   Bytes 142-173: Image A extra string
+ *   Byte 174-175: Image B Major/Minor revision
+ *   Bytes 176-177: Image B build number
+ *   Bytes 178-209: Image B extra string
+ *   Byte 210-211: Factory/Boot Major/Minor revision
+ *   Bytes 212-213: Factory/Boot build number
+ *   Bytes 214-245: Factory/Boot extra string
+ */
+void CdbCommandBlock::createCdbCmdGetFirmwareInfo() {
+  resetCdbBlock();
+  cdbFields_.cdbCommandCode = htons(kCdbCommandGetFirmwareInfo);
   cdbFields_.cdbEplLength = 0;
 
   cdbFields_.cdbLplLength = 0;

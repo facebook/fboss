@@ -16,6 +16,7 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -179,15 +180,14 @@ class AgentRouteTest : public AgentHwTest {
   std::shared_ptr<SwitchState> addRoutes(
       const std::shared_ptr<SwitchState>& inState,
       const std::vector<RoutePrefix<AddrT>>& routePrefixes) {
-    auto kEcmpWidth = 1;
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
         inState, getSw()->needL2EntryForNeighbor(), kRouterID());
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto newState = ecmpHelper.resolveNextHops(in, kEcmpWidth);
+      auto newState = ecmpHelper.resolveNextHops(in, kDefaultEcmpWidth);
       return newState;
     });
     auto wrapper = this->getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&wrapper, kEcmpWidth, routePrefixes);
+    ecmpHelper.programRoutes(&wrapper, kDefaultEcmpWidth, routePrefixes);
     return getProgrammedState();
   }
 
@@ -288,7 +288,6 @@ TYPED_TEST(AgentRouteTest, VerifyClassIdWithNhopResolutionFlap) {
 
     // verify classID programming
     this->verifyClassIDHelper(this->kGetRoutePrefix0(), this->kLookupClass());
-    auto kEcmpWidth = 1;
     using AddrT = typename TestFixture::Type;
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
         this->getProgrammedState(),
@@ -296,12 +295,12 @@ TYPED_TEST(AgentRouteTest, VerifyClassIdWithNhopResolutionFlap) {
         this->kRouterID());
     // Unresolve nhop
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto newState = ecmpHelper.unresolveNextHops(in, kEcmpWidth);
+      auto newState = ecmpHelper.unresolveNextHops(in, kDefaultEcmpWidth);
       return newState;
     });
     // Resolve nhop
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto newState = ecmpHelper.resolveNextHops(in, kEcmpWidth);
+      auto newState = ecmpHelper.resolveNextHops(in, kDefaultEcmpWidth);
       return newState;
     });
   };

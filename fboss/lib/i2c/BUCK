@@ -13,6 +13,9 @@ thrift_library(
     py3_namespace = "neteng.fboss",
     py_base_module = "neteng.fboss",
     thrift_srcs = {"i2c_controller_stats.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 cpp_library(
@@ -44,10 +47,10 @@ cpp_library(
     ],
     exported_deps = [
         ":i2c_controller_stats-cpp2-types",
-        "//fboss/agent:utils",
         "//folly:format",
         "//folly:synchronized",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
+        "//folly/system:thread_name",
     ],
 )

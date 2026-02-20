@@ -11,7 +11,6 @@
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/AgentDirectoryUtil.h"
-#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"

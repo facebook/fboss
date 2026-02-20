@@ -72,8 +72,8 @@ class G202xAsic : public TajoAsic {
   const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
       const override;
   int getMaxNumLogicalPorts() const override {
-    // 128 physical lanes + cpu
-    return 129;
+    // 8*32 + 2 CPU
+    return 258;
   }
 
   uint16_t getMirrorTruncateSize() const override {
@@ -166,10 +166,6 @@ class G202xAsic : public TajoAsic {
         prbs::PrbsPolynomial::PRBS15,
         prbs::PrbsPolynomial::PRBS31,
     };
-  }
-
-  cfg::IpTunnelMode getTunnelDscpMode() const override {
-    return cfg::IpTunnelMode::UNIFORM;
   }
 
  private:

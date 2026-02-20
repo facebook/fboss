@@ -45,6 +45,7 @@ class FakeAsic : public HwAsic {
       case HwAsic::Feature::LINK_TRAINING:
       case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
       case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
+      case HwAsic::Feature::SWITCH_ISOLATE:
       case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
       case HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY:
       case HwAsic::Feature::PORT_MTU_ERROR_TRAP:

@@ -12,10 +12,6 @@
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <fboss/cli/fboss2/utils/CmdUtils.h>
-#include <folly/String.h>
-#include <cstddef>
-#include <cstdint>
-#include <type_traits>
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/route/utils.h"
@@ -37,85 +33,12 @@ class CmdShowTeFlow : public CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits> {
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const ObjectArgType& queriedPrefixEntries) {
-    std::vector<TeFlowDetails> entries;
-    std::map<int32_t, facebook::fboss::PortInfoThrift> portInfo;
-    auto client =
-        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-
-    client->sync_getTeFlowTableDetails(entries);
-    client->sync_getAllPortInfo(portInfo);
-    return createModel(entries, portInfo, queriedPrefixEntries);
-  }
-
-  void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    for (const auto& entry : model.flowEntries().value()) {
-      out << fmt::format(
-          "\nFlow key: dst prefix {}/{}, src port {}\n",
-          entry.dstIp().value(),
-          folly::copy(entry.dstIpPrefixLength().value()),
-          entry.srcPortName().value());
-      out << fmt::format("Match Action:\n");
-      out << fmt::format("  Counter ID: {}\n", entry.counterID().value());
-      out << fmt::format("  Redirect to Nexthops:\n");
-      for (const auto& nh : entry.nextHops().value()) {
-        out << fmt::format(
-            "    {}\n", show::route::utils::getNextHopInfoStr(nh));
-      }
-      out << fmt::format("State:\n");
-      out << fmt::format(
-          "  Enabled: {}\n", folly::copy(entry.enabled().value()));
-      out << fmt::format("  Resolved Nexthops:\n");
-      for (const auto& nh : entry.resolvedNextHops().value()) {
-        out << fmt::format(
-            "    {}\n", show::route::utils::getNextHopInfoStr(nh));
-      }
-    }
-  }
-
+      const ObjectArgType& queriedPrefixEntries);
+  void printOutput(const RetType& model, std::ostream& out = std::cout);
   RetType createModel(
       std::vector<facebook::fboss::TeFlowDetails>& flowEntries,
       std::map<int32_t, facebook::fboss::PortInfoThrift> portInfo,
-      const ObjectArgType& queriedPrefixEntries) {
-    RetType model;
-    std::unordered_set<std::string> queriedSet(
-        queriedPrefixEntries.begin(), queriedPrefixEntries.end());
-
-    for (const auto& entry : flowEntries) {
-      auto dstIpStr = utils::getAddrStr(*entry.flow()->dstPrefix()->ip());
-      auto dstPrefix = dstIpStr + "/" +
-          std::to_string(*entry.flow()->dstPrefix()->prefixLength());
-      // Fill in entries if no prefix is specified or prefix specified is
-      // matching
-      if (queriedPrefixEntries.size() == 0 || queriedSet.count(dstPrefix)) {
-        cli::TeFlowEntry flowEntry;
-        flowEntry.dstIp() = dstIpStr;
-        flowEntry.dstIpPrefixLength() =
-            *entry.flow()->dstPrefix()->prefixLength();
-        flowEntry.srcPort() = *(entry.flow()->srcPort());
-        flowEntry.srcPortName() = *portInfo[*(entry.flow()->srcPort())].name();
-        flowEntry.enabled() = *(entry.enabled());
-        if (entry.counterID()) {
-          flowEntry.counterID() = *(entry.counterID());
-        }
-        for (const auto& nhop : *(entry.nexthops())) {
-          cli::NextHopInfo nhInfo;
-          show::route::utils::getNextHopInfoAddr(*nhop.address(), nhInfo);
-          nhInfo.weight() = *nhop.weight();
-          flowEntry.nextHops()->emplace_back(nhInfo);
-        }
-        for (const auto& nhop : *(entry.resolvedNexthops())) {
-          cli::NextHopInfo nhInfo;
-          show::route::utils::getNextHopInfoAddr(*nhop.address(), nhInfo);
-          nhInfo.weight() = *nhop.weight();
-          flowEntry.resolvedNextHops()->emplace_back(nhInfo);
-        }
-
-        model.flowEntries()->emplace_back(flowEntry);
-      }
-    }
-    return model;
-  }
+      const ObjectArgType& queriedPrefixEntries);
 };
 
 } // namespace facebook::fboss

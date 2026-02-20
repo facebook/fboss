@@ -62,12 +62,20 @@ void AgentEnsemble::setupEnsemble(
     bool disableLinkStateToggler,
     AgentEnsemblePlatformConfigFn platformConfigFn,
     uint32_t hwFeaturesDesired,
-    bool failHwCallsOnWarmboot) {
+    const TestEnsembleInitInfo& initInfo) {
   FLAGS_verify_apply_oper_delta = true;
 
   if (bootType_ == BootType::COLD_BOOT || FLAGS_prod_invariant_config_test) {
     auto inputAgentConfig =
         AgentConfig::fromFile(AgentEnsemble::getInputConfigFile())->thrift;
+    // If overrideDsfNodes is provided in initInfo, use it to update the
+    // dsfNodes in the config. This is useful for tests that need specific
+    // DSF configuration (e.g., L2 fabric level) before the HwSwitch is
+    // created.
+    if (initInfo.overrideDsfNodes.has_value()) {
+      inputAgentConfig.sw()->dsfNodes() = *initInfo.overrideDsfNodes;
+    }
+
     if (platformConfigFn) {
       platformConfigFn(
           *(inputAgentConfig.sw()), *(inputAgentConfig.platform()));
@@ -145,7 +153,7 @@ void AgentEnsemble::setupEnsemble(
       disableLinkStateToggler == false) {
     setupLinkStateToggler();
   }
-  startAgent(failHwCallsOnWarmboot);
+  startAgent(initInfo.failHwCallsOnWarmboot);
 
   for (const auto& switchId : getSw()->getSwitchInfoTable().getL3SwitchIDs()) {
     ensureHwSwitchConnected(switchId);
@@ -245,7 +253,7 @@ void AgentEnsemble::applyNewConfig(
 }
 
 std::vector<PortID> AgentEnsemble::masterLogicalPortIds() const {
-  return masterLogicalPortIds_;
+  return masterLogicalPortIds(SwitchID(FLAGS_switch_id_for_testing));
 }
 
 void AgentEnsemble::switchRunStateChanged(SwitchRunState runState) {}
@@ -713,6 +721,7 @@ AgentEnsemble::getHwAgentTestClient(SwitchID switchId) {
  * and for some warmboot tests.
  */
 void AgentEnsemble::createAndDumpOverriddenAgentConfig() {
+  XLOG(DBG2) << "Creating overridden agent config";
   CHECK(initialConfig_ != cfg::SwitchConfig());
   auto testConfig = AgentConfig::fromFile(configFile_);
 
@@ -737,18 +746,21 @@ void AgentEnsemble::createAndDumpOverriddenAgentConfig() {
 
   // Create directory and dump ensemble config
   utilCreateDir(AgentDirectoryUtil().agentEnsembleConfigDir());
-  agentConfig.dumpConfig(
-      AgentDirectoryUtil().agentEnsembleConfigDir() +
-      kOverriddenAgentConfigFile);
+  auto ensembleConfigPath = AgentDirectoryUtil().agentEnsembleConfigDir() +
+      kOverriddenAgentConfigFile;
+  agentConfig.dumpConfig(ensembleConfigPath);
+  XLOG(DBG2) << "Dumped ensemble config to " << ensembleConfigPath;
 
   // Handle hardware agent config for multi-switch setups
   if (FLAGS_multi_switch ||
       folly::get_default(defaultCommandLineArgs, kMultiSwitch, "") == "true") {
     for (const auto& [_, switchInfo] :
          *newAgentConf.sw()->switchSettings()->switchIdToSwitchInfo()) {
-      agentConfig.dumpConfig(
-          AgentDirectoryUtil().getTestHwAgentConfigFile(
-              *switchInfo.switchIndex()));
+      auto hwAgentConfigPath = AgentDirectoryUtil().getTestHwAgentConfigFile(
+          *switchInfo.switchIndex());
+      agentConfig.dumpConfig(hwAgentConfigPath);
+      XLOG(DBG2) << "Dumped hw_agent config for switch index "
+                 << *switchInfo.switchIndex() << " to " << hwAgentConfigPath;
     }
   }
 }

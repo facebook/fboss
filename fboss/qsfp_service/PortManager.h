@@ -299,6 +299,20 @@ class PortManager {
       phy::PortComponent component,
       const prbs::InterfacePrbsState& state);
 
+  void getSupportedPrbsPolynomials(
+      std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
+      const std::string& portName,
+      phy::PortComponent component);
+
+  void getInterfacePrbsState(
+      prbs::InterfacePrbsState& prbsState,
+      const std::string& portName,
+      phy::PortComponent component) const;
+
+  void getAllInterfacePrbsStates(
+      std::map<std::string, prbs::InterfacePrbsState>& prbsStates,
+      phy::PortComponent component) const;
+
   phy::PrbsStats getInterfacePrbsStats(
       const std::string& portName,
       phy::PortComponent component) const;
@@ -457,6 +471,17 @@ class PortManager {
   }
 
   void handlePendingUpdates();
+
+  // Helper function to build a snapshot of previous port active states per
+  // transceiver. Returns a map of TransceiverID to whether any of its
+  // initialized ports are in PORT_UP state.
+  std::map<TransceiverID, bool> buildTcvrActivePortSnapshot() const;
+
+  // Helper function to update lastDownTime tracking in TransceiverManager.
+  // Compares previous and current port states per transceiver and calls
+  // updateLastDownTimeFromPortStatus with any detected status changes.
+  void updateTcvrLastDownTime(
+      const std::map<TransceiverID, bool>& previousTcvrHadActivePort);
 
   PortNameIdMap setupPortNameToPortIDMap();
 

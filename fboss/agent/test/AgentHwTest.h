@@ -291,10 +291,26 @@ class AgentHwTest : public ::testing::Test {
   virtual std::vector<ProductionFeature> getProductionFeaturesVerified()
       const = 0;
   void printProductionFeatures() const;
+
+ protected:
   virtual bool failHwCallsOnWarmboot() const {
     return true;
   }
 
+  /*
+   * Override this function to provide custom initialization info for the
+   * test ensemble. This follows the same pattern as HwTest::overrideDsfNodes(),
+   * HwTest::overrideTransceiverInfo(), and HwTest::failHwCallsOnWarmboot().
+   * Tests can override to modify DSF configuration (e.g., L2 fabric level),
+   * transceiver info, or warmboot behavior before HwSwitch is created.
+   * The initInfo is pre-populated with:
+   *   - failHwCallsOnWarmboot: from the test's failHwCallsOnWarmboot() method
+   * Tests can modify these values as needed.
+   */
+  virtual void overrideTestEnsembleInitInfo(
+      TestEnsembleInitInfo& /*initInfo*/) const {}
+
+ private:
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
 };
 

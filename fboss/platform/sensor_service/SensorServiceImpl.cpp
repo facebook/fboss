@@ -12,7 +12,9 @@
 
 #include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
@@ -25,31 +27,42 @@ DEFINE_int32(
     5,
     "Interval at which stats subscriptions are served");
 
-namespace facebook::fboss::platform::sensor_service {
 namespace {
-void monitorSensorValue(const SensorData& sensorData) {
-  // Don't monitor if thresholds aren't defined to prevent false data.
-  if (!sensorData.thresholds()->upperCriticalVal() &&
-      !sensorData.thresholds()->lowerCriticalVal()) {
-    return;
+
+struct SensorStatsResult {
+  int readFailure{0};
+  int criticalViolation{0};
+  int alarmViolation{0};
+};
+
+SensorStatsResult computeSensorStats(
+    const facebook::fboss::platform::sensor_service::SensorData& sensorData) {
+  auto value = sensorData.value().to_optional();
+  if (!value) {
+    return {.readFailure = 1};
   }
-  // Skip reporting if there's no sensor value.
-  if (!sensorData.value()) {
-    return;
-  }
-  // At least one of upperCriticalVal or lowerCriticalVal exist.
-  bool thresholdViolation = *sensorData.value() >
-          sensorData.thresholds()->upperCriticalVal().value_or(INT_MAX) ||
-      *sensorData.value() <
-          sensorData.thresholds()->lowerCriticalVal().value_or(INT_MIN);
-  fb303::fbData->setCounter(
-      fmt::format(
-          SensorServiceImpl::kCriticalThresholdViolation,
-          *sensorData.name(),
-          apache::thrift::util::enumNameSafe(*sensorData.sensorType())),
-      thresholdViolation);
+  auto critViolation =
+      *value > sensorData.thresholds()->upperCriticalVal().value_or(INT_MAX) ||
+      *value < sensorData.thresholds()->lowerCriticalVal().value_or(INT_MIN);
+  auto alarmViolation =
+      *value > sensorData.thresholds()->maxAlarmVal().value_or(INT_MAX) ||
+      *value < sensorData.thresholds()->minAlarmVal().value_or(INT_MIN);
+  return {
+      .criticalViolation = critViolation,
+      .alarmViolation = alarmViolation,
+  };
 }
+
+std::string sensorTypeName(
+    facebook::fboss::platform::sensor_config::SensorType type) {
+  auto name = apache::thrift::util::enumNameSafe(type);
+  folly::toLowerAscii(name);
+  return name;
+}
+
 } // namespace
+
+namespace facebook::fboss::platform::sensor_service {
 
 SensorServiceImpl::SensorServiceImpl(
     const SensorConfig& sensorConfig,
@@ -87,7 +100,6 @@ std::map<std::string, SensorData> SensorServiceImpl::getAllSensorData() {
 
 void SensorServiceImpl::fetchSensorData() {
   std::map<std::string, SensorData> polledData;
-  uint readFailures{0};
   XLOG(INFO) << fmt::format(
       "Reading SensorData for {} PMUnits",
       sensorConfig_.pmUnitSensorsList()->size());
@@ -107,10 +119,7 @@ void SensorServiceImpl::fetchSensorData() {
           sensor.compute().to_optional());
       sensorData.slotPath() = *pmUnitSensors.slotPath();
       polledData[sensorName] = sensorData;
-      if (!sensorData.value()) {
-        readFailures++;
-      }
-      publishPerSensorStats(sensorName, sensorData.value().to_optional());
+      publishPerSensorStats(sensorData);
     }
   }
 
@@ -119,10 +128,7 @@ void SensorServiceImpl::fetchSensorData() {
     auto sensorData = processAsicCmd(sensorConfig_.asicCommand().value());
     const auto& sensorName = *sensorConfig_.asicCommand()->sensorName();
     polledData[sensorName] = sensorData;
-    if (!sensorData.value()) {
-      readFailures++;
-    }
-    publishPerSensorStats(sensorName, sensorData.value().to_optional());
+    publishPerSensorStats(sensorData);
   }
 
   processPower(polledData, *sensorConfig_.powerConfig());
@@ -132,13 +138,8 @@ void SensorServiceImpl::fetchSensorData() {
   processInputVoltage(
       polledData, *sensorConfig_.powerConfig()->inputVoltageSensors());
 
-  fb303::fbData->setCounter(kReadTotal, polledData.size());
-  fb303::fbData->setCounter(kTotalReadFailure, readFailures);
-  fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
-  XLOG(INFO) << fmt::format(
-      "Summary: Processed {} Sensors. {} Failures.",
-      polledData.size(),
-      readFailures);
+  publishAggStats(polledData);
+
   polledData_.swap(polledData);
 
   if (FLAGS_publish_stats_to_fsdb) {
@@ -227,25 +228,70 @@ SensorData SensorServiceImpl::fetchSensorDataImpl(
   }
   sensorData.thresholds() = thresholds ? *thresholds : Thresholds();
   sensorData.sensorType() = sensorType;
-  monitorSensorValue(sensorData);
   return sensorData;
 }
 
-void SensorServiceImpl::publishPerSensorStats(
-    const std::string& sensorName,
-    std::optional<float> value) {
+void SensorServiceImpl::publishPerSensorStats(const SensorData& sensorData) {
+  const auto& sensorName = *sensorData.name();
+  auto stats = computeSensorStats(sensorData);
+
   // We log 0 if there is a read failure.  If we dont log 0 on failure,
   // fb303 will pick up the last reported (on read success) value and
   // keep reporting that as the value. For 0 values, it is accurate to
   // read the value along with the kReadFailure counter. Alternative is
   // to delete this counter if there is a failure.
   fb303::fbData->setCounter(
-      fmt::format(kReadValue, sensorName), value.value_or(0));
-  if (!value) {
-    fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 1);
-  } else {
-    fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
+      fmt::format(kReadValue, sensorName),
+      sensorData.value().to_optional().value_or(0));
+  fb303::fbData->setCounter(
+      fmt::format(kReadFailure, sensorName), stats.readFailure);
+
+  if (sensorData.thresholds()->upperCriticalVal() ||
+      sensorData.thresholds()->lowerCriticalVal()) {
+    fb303::fbData->setCounter(
+        fmt::format(kCriticalThresholdViolation, sensorName),
+        stats.criticalViolation);
   }
+
+  if (sensorData.thresholds()->maxAlarmVal() ||
+      sensorData.thresholds()->minAlarmVal()) {
+    fb303::fbData->setCounter(
+        fmt::format(kAlarmThresholdViolation, sensorName),
+        stats.alarmViolation);
+  }
+}
+
+void SensorServiceImpl::publishAggStats(
+    const std::map<std::string, SensorData>& polledData) {
+  std::map<SensorType, std::pair<bool, bool>> violationsBySensorType;
+  int totalReadFailures{0};
+
+  for (const auto& [_, sensorData] : polledData) {
+    auto stats = computeSensorStats(sensorData);
+    auto& [hasCritical, hasAlarm] =
+        violationsBySensorType[*sensorData.sensorType()];
+    hasCritical = hasCritical || stats.criticalViolation;
+    hasAlarm = hasAlarm || stats.alarmViolation;
+    totalReadFailures += stats.readFailure;
+  }
+
+  for (const auto& [sensorType, violations] : violationsBySensorType) {
+    auto typeName = sensorTypeName(sensorType);
+    fb303::fbData->setCounter(
+        fmt::format(kAggHasCriticalThresholdViolation, typeName),
+        violations.first);
+    fb303::fbData->setCounter(
+        fmt::format(kAggHasAlarmThresholdViolation, typeName),
+        violations.second);
+  }
+
+  fb303::fbData->setCounter(kReadTotal, polledData.size());
+  fb303::fbData->setCounter(kTotalReadFailure, totalReadFailures);
+  fb303::fbData->setCounter(kHasReadFailure, totalReadFailures > 0 ? 1 : 0);
+  XLOG(INFO) << fmt::format(
+      "Summary: Processed {} Sensors. {} Failures.",
+      polledData.size(),
+      totalReadFailures);
 }
 
 void SensorServiceImpl::publishDerivedStats(
@@ -426,11 +472,26 @@ void SensorServiceImpl::processInputVoltage(
   }
 
   publishDerivedStats(kMaxInputVoltage, maxVoltage);
+
+  // Determine input power type based on voltage
+  // AC if maxVoltage > kACVoltageThreshold, DC otherwise
+  // We only do this once as power input type should not change during the
+  // sensor service execution lifetime
+  if (maxVoltage && *maxVoltage > kMinVoltageThreshold &&
+      inputPowerType_ == kInputPowerTypeUnknown) {
+    inputPowerType_ = (*maxVoltage > kACVoltageThreshold) ? kInputPowerTypeAC
+                                                          : kInputPowerTypeDC;
+  }
+  publishDerivedStats(kInputPowerType, inputPowerType_);
+
   XLOG(INFO) << fmt::format(
-      "Max Input Voltage: {}V (Based on {}).  Processed: {}/{}",
+      "Max Input Voltage: {}V (Based on {}).  Processed: {}/{}.  Power Type: {}",
       maxVoltage.value_or(0),
       maxSensor.value_or("NONE"),
       inputVoltageSensors.size() - numFailures,
-      inputVoltageSensors.size());
+      inputVoltageSensors.size(),
+      inputPowerType_ == kInputPowerTypeUnknown
+          ? "Unknown"
+          : (inputPowerType_ == kInputPowerTypeDC ? "DC" : "AC"));
 }
 } // namespace facebook::fboss::platform::sensor_service

@@ -279,7 +279,10 @@ void get_module_fw_info(
 
 void doCdbCommand(DirectI2cInfo i2cInfo, unsigned int module);
 
-bool printVdmInfo(DirectI2cInfo i2cInfo, unsigned int port);
+bool printVdmInfo(
+    DirectI2cInfo i2cInfo,
+    unsigned int port,
+    folly::EventBase& evb);
 
 bool getEepromCsumStatus(const DOMDataUnion& domDataUnion);
 

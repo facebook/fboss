@@ -12,6 +12,7 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 
 #include <folly/IPAddress.h>
 #include <optional>
@@ -85,16 +86,17 @@ class AgentArsBase : public AgentHwTest {
       bool addMirror = false) const;
   RoutePrefixV6 getMirrorDestRoutePrefix(const folly::IPAddress dip) const;
   virtual void generatePrefixes();
+  virtual std::vector<PortID> getTestPorts() const;
   cfg::SwitchingMode getFwdSwitchingMode(const RoutePrefixV6& prefix) const;
   void verifyFwdSwitchingMode(
       const RoutePrefixV6& prefix,
       cfg::SwitchingMode switchingMode) const;
   uint32_t getMaxArsGroups() const;
   bool isChenab(const AgentEnsemble& ensemble) const;
+  bool isTH3(const AgentEnsemble& ensemble) const;
 
  protected:
   cfg::AclActionType aclActionType_{cfg::AclActionType::PERMIT};
-  static inline constexpr auto kEcmpWidth = 4;
   static inline constexpr auto kOutQueue = 6;
   static inline constexpr auto kDscp = 30;
   static inline constexpr auto kSflowMirrorName = "sflow_mirror";

@@ -5,6 +5,7 @@
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 // For Netcastle runs, netcastle sets up db directory under
@@ -18,8 +19,23 @@ DEFINE_string(
 
 namespace facebook::fboss {
 
+template <bool enableLinkDisableFirmware>
+struct EnableLinkDisableFirmware {
+  static constexpr auto linkDisableFirmware = enableLinkDisableFirmware;
+};
+using FirmwareTypes = ::testing::
+    Types<EnableLinkDisableFirmware<false>, EnableLinkDisableFirmware<true>>;
+
+template <typename EnableLinkDisableFirmwareT>
 class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
+  static auto constexpr linkDisableFirmware =
+      EnableLinkDisableFirmwareT::linkDisableFirmware;
+
  public:
+  bool isLinkDisableFirmware() const {
+    return linkDisableFirmware == true;
+  }
+
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto config = utility::onePortPerInterfaceConfig(
@@ -55,10 +71,12 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     }
     return config;
   }
-  cfg::SwitchConfig addFwConfig(cfg::SwitchConfig config) const {
+  cfg::SwitchConfig addFwConfig(
+      cfg::SwitchConfig config,
+      const std::string firmwarePath = FLAGS_isolation_firmware_path) const {
     cfg::FirmwareInfo j3FwInfo;
     j3FwInfo.coreToUse() = 5;
-    j3FwInfo.path() = FLAGS_isolation_firmware_path;
+    j3FwInfo.path() = firmwarePath;
     j3FwInfo.logPath() = "/tmp/edk.log";
     j3FwInfo.firmwareLoadType() =
         cfg::FirmwareLoadType::FIRMWARE_LOAD_TYPE_START;
@@ -127,7 +145,6 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
       std::string out;
       getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
       XLOG(INFO) << "force_isolate output: " << out;
-      getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
     }
   }
   void getIsolate() {
@@ -138,7 +155,6 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
       std::string out;
       getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
       XLOG(INFO) << "get_isolate output: " << out;
-      getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
     }
   }
   void forceCrash(int delay = 1) {
@@ -147,6 +163,22 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
       std::string out;
       getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
+    }
+  }
+  void forceLinkAdminDisable(int portId) {
+    // SAI Implementation for diag shell requires offset of 1024
+    constexpr auto kPortIdOffset = 1024;
+
+    std::stringstream ss;
+    auto portToDisable = portId - kPortIdOffset;
+    ss << "edk -c fi force_link_down 0 5 " << portToDisable << " 1"
+       << std::endl;
+    XLOG(INFO) << "Running force link Admin Disable command to disable port: "
+               << portId;
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      std::string out;
+      getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
+      XLOG(INFO) << "force link admin disable output: " << out;
     }
   }
   /*
@@ -181,6 +213,21 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     }
 
     return switchIdToSdkRegDumpFile;
+  }
+
+  bool expectFabricPortsActivePostIsolate() {
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      auto sdkMajorVersionStr = getSdkMajorVersion(switchId);
+      auto sdkMajorVersionNum = std::stoi(sdkMajorVersionStr);
+      XLOG(DBG2) << "SDK major version number is " << sdkMajorVersionNum
+                 << " for switch ID " << switchId;
+      if (sdkMajorVersionNum >= 14) {
+        // For SDKs starting from 14.x, fabric ports would be in INACTIVE
+        // state after isolation (this is the correct behavior)
+        return false;
+      }
+    }
+    return true;
   }
 
   void assertFirmwareInfo(
@@ -223,14 +270,23 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
       FLAGS_janga_single_npu_for_testing = true;
     }
     FLAGS_sdk_reg_dump_path_prefix = sdkRegDumpPathPrefix_;
+
+    if (isLinkDisableFirmware()) {
+      FLAGS_isolation_firmware_path = "/tmp/db/jericho3ai_a0/fi-2.4.11-GA.elf";
+    } else {
+      FLAGS_isolation_firmware_path = "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf";
+    }
   }
 
  private:
   std::string sdkRegDumpPathPrefix_{"/tmp/sdk_reg_dump"};
 };
 
+TYPED_TEST_SUITE(AgentVoqSwitchIsolationFirmwareTest, FirmwareTypes);
+
+template <typename EnableLinkDisableFirmwareT>
 class AgentVoqSwitchIsolationFirmwareWBEventsTest
-    : public AgentVoqSwitchIsolationFirmwareTest {
+    : public AgentVoqSwitchIsolationFirmwareTest<EnableLinkDisableFirmwareT> {
   static bool isColdBoot;
   static uint16_t fwCapableSwitchIndex;
 
@@ -239,29 +295,31 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
 
  private:
   void setCmdLineFlagOverrides() const override {
-    AgentVoqSwitchIsolationFirmwareTest::setCmdLineFlagOverrides();
+    AgentVoqSwitchIsolationFirmwareTest<
+        EnableLinkDisableFirmwareT>::setCmdLineFlagOverrides();
     FLAGS_agent_exit_delay_s = 60;
   }
   void tearDownAgentEnsemble(bool warmboot = false) override {
     // We check for agentEnsemble not being NULL since the tests
     // are also invoked for just listing their prod features.
     // Then in such case, agentEnsemble is never setup
-    isColdBoot =
-        getAgentEnsemble() && getSw()->getBootType() == BootType::COLD_BOOT;
+    isColdBoot = this->getAgentEnsemble() &&
+        this->getSw()->getBootType() == BootType::COLD_BOOT;
     if (isColdBoot) {
       // We use just the first FW capable switch index for asserting for
       // counter.
       fwCapableSwitchIndex =
-          *getFWCapableSwitchIndices(getSw()->getConfig()).begin();
+          *this->getFWCapableSwitchIndices(this->getSw()->getConfig()).begin();
     }
     if (isColdBoot) {
       WITH_RETRIES({
         auto crashCounterRegex = std::string("(switch.") +
             folly::to<std::string>(fwCapableSwitchIndex) + ".)?" +
             "bcm.isolationFirmwareCrash.sum";
-        auto fwCrashedCounters = getAgentEnsemble()->getFb303RegexCounters(
-            crashCounterRegex,
-            *getSw()->getHwAsicTable()->getSwitchIDs().begin());
+        auto fwCrashedCounters =
+            this->getAgentEnsemble()->getFb303RegexCounters(
+                crashCounterRegex,
+                *this->getSw()->getHwAsicTable()->getSwitchIDs().begin());
         EXPECT_EVENTUALLY_TRUE(
             fwCrashedCounters.size() == 1 &&
             fwCrashedCounters.begin()->second == 0);
@@ -282,11 +340,19 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
   }
 };
 
-bool AgentVoqSwitchIsolationFirmwareWBEventsTest::isColdBoot = false;
-uint16_t AgentVoqSwitchIsolationFirmwareWBEventsTest::fwCapableSwitchIndex = 0;
+TYPED_TEST_SUITE(AgentVoqSwitchIsolationFirmwareWBEventsTest, FirmwareTypes);
 
+template <typename EnableLinkDisableFirmwareT>
+bool AgentVoqSwitchIsolationFirmwareWBEventsTest<
+    EnableLinkDisableFirmwareT>::isColdBoot = false;
+
+template <typename EnableLinkDisableFirmwareT>
+uint16_t AgentVoqSwitchIsolationFirmwareWBEventsTest<
+    EnableLinkDisableFirmwareT>::fwCapableSwitchIndex = 0;
+
+template <typename EnableLinkDisableFirmwareT>
 class AgentVoqSwitchIsolationFirmwareUpdateTest
-    : public AgentVoqSwitchIsolationFirmwareTest {
+    : public AgentVoqSwitchIsolationFirmwareTest<EnableLinkDisableFirmwareT> {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -299,72 +365,127 @@ class AgentVoqSwitchIsolationFirmwareUpdateTest
         true /*enable fabric ports*/);
     utility::populatePortExpectedNeighborsToSelf(
         ensemble.masterLogicalPortIds(), config);
-    config = clearFWConfig(config);
+    config = this->clearFWConfig(config);
     return config;
   }
   void tearDownAgentEnsemble(bool warmboot = false) override {
     // We check for agentEnsemble not being NULL since the tests
     // are also invoked for just listing their prod features.
     // Then in such case, agentEnsemble is never setup
-    if (getAgentEnsemble() && getSw()->getBootType() == BootType::COLD_BOOT) {
-      auto agentConfig = getSw()->getAgentConfig();
-      const auto& configFileName = getAgentEnsemble()->configFileName();
-      agentConfig.sw() = addFwConfig(*agentConfig.sw());
+    if (this->getAgentEnsemble() &&
+        this->getSw()->getBootType() == BootType::COLD_BOOT) {
+      auto agentConfig = this->getSw()->getAgentConfig();
+      const auto& configFileName = this->getAgentEnsemble()->configFileName();
+      agentConfig.sw() = this->addFwConfig(*agentConfig.sw());
       AgentEnsemble::writeConfig(agentConfig, configFileName);
     }
     AgentHwTest::tearDownAgentEnsemble(warmboot);
   }
 };
 
-TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceIsolate) {
+TYPED_TEST_SUITE(AgentVoqSwitchIsolationFirmwareUpdateTest, FirmwareTypes);
+
+TYPED_TEST(AgentVoqSwitchIsolationFirmwareTest, forceIsolate) {
   auto setup = [this]() {
-    assertPortAndDrainState(false /* not drained*/);
-    setMinLinksConfig();
-    assertFirmwareInfo(
+    this->assertPortAndDrainState(false /* not drained*/);
+    this->setMinLinksConfig();
+    this->assertFirmwareInfo(
         FirmwareOpStatus::RUNNING, FirmwareFuncStatus::MONITORING);
-    forceIsolate();
+    this->forceIsolate();
   };
 
   auto verify = [this]() {
-    assertSwitchDrainState(true /* drained */);
+    this->assertSwitchDrainState(true /* drained */);
     utility::checkFabricPortsActiveState(
-        getAgentEnsemble(),
-        masterLogicalFabricPortIds(),
-        true /* expect active*/);
-    assertFirmwareInfo(FirmwareOpStatus::STOPPED, FirmwareFuncStatus::ISOLATED);
+        this->getAgentEnsemble(),
+        this->masterLogicalFabricPortIds(),
+        this->expectFabricPortsActivePostIsolate());
+    this->assertFirmwareInfo(
+        FirmwareOpStatus::STOPPED, FirmwareFuncStatus::ISOLATED);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceCrash) {
+TYPED_TEST(AgentVoqSwitchIsolationFirmwareTest, forceCrash) {
   auto setup = [this]() {
-    assertPortAndDrainState(false /* not drained*/);
-    setMinLinksConfig();
+    this->assertPortAndDrainState(false /* not drained*/);
+    this->setMinLinksConfig();
   };
 
   auto verify = [this]() {
-    forceCrash();
+    this->forceCrash();
     WITH_RETRIES({
-      for (auto switchIdx : getFWCapableSwitchIndices(getSw()->getConfig())) {
-        auto switchStats = getHwSwitchStats(switchIdx);
+      for (auto switchIdx :
+           this->getFWCapableSwitchIndices(this->getSw()->getConfig())) {
+        auto switchStats = this->getHwSwitchStats(switchIdx);
         auto asicErrors = switchStats.hwAsicErrors();
         EXPECT_EVENTUALLY_GT(asicErrors->isolationFirmwareCrashes(), 0);
       }
     });
-    forceIsolatePostCrashAndVerify();
+    this->forceIsolatePostCrashAndVerify();
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(
+TYPED_TEST(AgentVoqSwitchIsolationFirmwareTest, forceLinkAdminDisable) {
+  if (!this->isLinkDisableFirmware()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  auto setup = [this]() {
+    this->assertPortAndDrainState(false /* not drained */);
+    this->setMinLinksConfig();
+    this->assertFirmwareInfo(
+        FirmwareOpStatus::RUNNING, FirmwareFuncStatus::MONITORING);
+
+    utility::checkFabricPortsActiveState(
+        this->getAgentEnsemble(),
+        this->masterLogicalFabricPortIds(),
+        this->expectFabricPortsActivePostIsolate());
+    ASSERT_TRUE(!this->masterLogicalFabricPortIds().empty());
+    this->forceLinkAdminDisable(this->masterLogicalFabricPortIds()[0]);
+  };
+
+  auto verify = [this]() {
+    // setup() induces Firmware link disable.
+    // On Firmware link disable, SAI implementation issues a callback.
+    // Agent processes this callback to Admin Disable the link.
+    // However, since the config is not modified, the link is Admin
+    // re-enabled post-warmboot.
+    // Thus, verify() DISABLED for coldboot runs, but ENABLED for warmboot runs.
+    auto portId = this->masterLogicalFabricPortIds()[0];
+    auto expectedAdminState =
+        this->getSw()->getBootType() == BootType::COLD_BOOT
+        ? cfg::PortState::DISABLED
+        : cfg::PortState::ENABLED;
+
+    utility::checkPortsAdminState(
+        this->getAgentEnsemble(), {portId}, expectedAdminState);
+
+    WITH_RETRIES({
+      if (this->getSw()->getBootType() == BootType::COLD_BOOT) {
+        auto port = this->getProgrammedState()->getPorts()->getNode(portId);
+        std::vector<PortError> expectedErrors = {
+            PortError::LINK_DISABLED_BY_FIRMWARE};
+        EXPECT_EVENTUALLY_EQ(port->getActiveErrors(), expectedErrors);
+      }
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(
     AgentVoqSwitchIsolationFirmwareWBEventsTest,
     forceIsolateDuringWarmBoot) {
   auto setup = [this]() {
-    assertPortAndDrainState(false /* not drained*/);
-    setMinLinksConfig();
+    this->assertPortAndDrainState(false /* not drained*/);
+    this->setMinLinksConfig();
     XLOG(ERR)
         << "Schedule a delayed isolate in the firmware. Agent would have unregistered SDK callbacks by that time.";
-    forceIsolate(kEventDelay);
+    this->forceIsolate(this->kEventDelay);
     /*
     Issue: The force_isolate command sometimes doesn't get flushed through the
     diagnostic shell before binaries exit, despite the SDK call being made.
@@ -376,44 +497,136 @@ TEST_F(
 
     TODO: Think of a long term solution to this.
     */
-    getIsolate();
+    this->getIsolate();
   };
 
   auto verifyPostWarmboot = [this]() {
-    getIsolate();
-    assertSwitchDrainState(true /* drained */);
+    this->getIsolate();
+    this->assertSwitchDrainState(true /* drained */);
     utility::checkFabricPortsActiveState(
-        getAgentEnsemble(),
-        masterLogicalFabricPortIds(),
-        true /* expect active*/);
+        this->getAgentEnsemble(),
+        this->masterLogicalFabricPortIds(),
+        this->expectFabricPortsActivePostIsolate());
   };
-  verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
+  this->verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
 }
 
-TEST_F(AgentVoqSwitchIsolationFirmwareWBEventsTest, forceCrashDuringWarmBoot) {
+TYPED_TEST(
+    AgentVoqSwitchIsolationFirmwareWBEventsTest,
+    forceCrashDuringWarmBoot) {
   auto setup = [this]() {
-    assertPortAndDrainState(false /* not drained*/);
-    setMinLinksConfig();
+    this->assertPortAndDrainState(false /* not drained*/);
+    this->setMinLinksConfig();
     // Force delayed crash - which most likely
     // will now happen while switch is warm booting
-    forceCrash(kEventDelay);
-  };
-
-  auto verifyPostWarmboot = [this]() { forceIsolatePostCrashAndVerify(); };
-  verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
-}
-
-TEST_F(AgentVoqSwitchIsolationFirmwareUpdateTest, loadOnWarmboot) {
-  auto setup = [this]() {
-    assertPortAndDrainState(false /* not drained*/);
-    setMinLinksConfig();
+    this->forceCrash(this->kEventDelay);
   };
 
   auto verifyPostWarmboot = [this]() {
-    forceIsolate();
-    assertSwitchDrainState(true /* drained */);
+    this->forceIsolatePostCrashAndVerify();
   };
-  verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
+  this->verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
+}
+
+TYPED_TEST(AgentVoqSwitchIsolationFirmwareUpdateTest, loadOnWarmboot) {
+  auto setup = [this]() {
+    this->assertPortAndDrainState(false /* not drained*/);
+    this->setMinLinksConfig();
+  };
+
+  auto verifyPostWarmboot = [this]() {
+    this->forceIsolate();
+    this->assertSwitchDrainState(true /* drained */);
+  };
+  this->verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
+}
+
+template <typename EnableLinkDisableFirmwareT>
+class AgentVoqSwitchIsolationFirmwareUpgradeDownGrade
+    : public AgentVoqSwitchIsolationFirmwareUpdateTest<
+          EnableLinkDisableFirmwareT> {
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true, /*interfaceHasSubnet*/
+        true, /*setInterfaceMac*/
+        utility::kBaseVlanId,
+        true /*enable fabric ports*/);
+    utility::populatePortExpectedNeighborsToSelf(
+        ensemble.masterLogicalPortIds(), config);
+    config = this->clearFWConfig(config);
+
+    // AgentVoqSwitchIsolationFirmwareUpgradeDownGrade/0.* run tests warmboot
+    // transition from fw version 2.4.0.1 to 2.4.11.
+    // AgentVoqSwitchIsolationFirmwareUpgradeDownGrade/1.* tests the reverse
+    // transition.
+    std::string fwPath;
+    if (this->isLinkDisableFirmware()) {
+      fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.11-GA.elf";
+    } else {
+      fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf";
+    }
+    config = this->addFwConfig(config, fwPath);
+    return config;
+  }
+
+  void tearDownAgentEnsemble(bool warmboot = false) override {
+    // We check for agentEnsemble not being NULL since the tests
+    // are also invoked for just listing their prod features.
+    // Then in such case, agentEnsemble is never setup
+    if (this->getAgentEnsemble() &&
+        this->getSw()->getBootType() == BootType::COLD_BOOT) {
+      auto agentConfig = this->getSw()->getAgentConfig();
+      const auto& configFileName = this->getAgentEnsemble()->configFileName();
+      agentConfig.sw() = this->clearFWConfig(*agentConfig.sw());
+
+      // To test firmware transition on warmboot, if we chose 2.4.11 during cb,
+      // configure 2.4.0.1 post wb and vice-versa.
+      std::string fwPath;
+      if (!this->isLinkDisableFirmware()) {
+        fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.11-GA.elf";
+      } else {
+        fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf";
+      }
+      agentConfig.sw() =
+          this->addFwConfig(*agentConfig.sw(), std::move(fwPath));
+      AgentEnsemble::writeConfig(agentConfig, configFileName);
+    }
+    AgentHwTest::tearDownAgentEnsemble(warmboot);
+  }
+};
+
+TYPED_TEST_SUITE(
+    AgentVoqSwitchIsolationFirmwareUpgradeDownGrade,
+    FirmwareTypes);
+
+TYPED_TEST(AgentVoqSwitchIsolationFirmwareUpgradeDownGrade, firmwareChange) {
+  auto setup = [this]() {
+    this->assertPortAndDrainState(false /* not drained*/);
+    this->setMinLinksConfig();
+  };
+
+  auto verify = [this]() {
+    this->assertFirmwareInfo(
+        FirmwareOpStatus::RUNNING, FirmwareFuncStatus::MONITORING);
+
+    // With one firmware running, warmboot upgrade to a different firmware,
+    // then force firmware isolate and verify that the newly loaded firmware can
+    // isolate as expected.
+    // Thus, force isolate during warmboot only.
+    if (this->getSw()->getBootType() == BootType::WARM_BOOT) {
+      this->forceIsolate();
+      this->assertSwitchDrainState(true /* drained */);
+      utility::checkFabricPortsActiveState(
+          this->getAgentEnsemble(),
+          this->masterLogicalFabricPortIds(),
+          this->expectFabricPortsActivePostIsolate());
+    }
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

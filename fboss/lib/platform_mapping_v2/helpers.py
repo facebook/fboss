@@ -555,7 +555,10 @@ def _create_override_from_si_setting(
         xphyLine=None,
     )
 
-    return PlatformPortConfigOverride(factor=override_factor, pins=port_pin_config)
+    driver_peaking = si_setting_and_factor.driver_peaking
+    return PlatformPortConfigOverride(
+        factor=override_factor, pins=port_pin_config, driverPeaking=driver_peaking
+    )
 
 
 def _format_custom_collection_json(custom_collection: Dict[str, List[int]]) -> str:

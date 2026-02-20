@@ -51,7 +51,7 @@ class PackageFboss:
     INSTALLED = "installed"
     BUILD = "build"
 
-    GETDEPS = "build/fbcode_builder/getdeps.py"
+    GETDEPS = "fboss/oss/scripts/run-getdeps.py"
 
     DEVTOOLS_LIBRARY_PATH = "/opt/rh/devtoolset-8/root/usr/lib64"
 

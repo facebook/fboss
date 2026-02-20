@@ -148,6 +148,7 @@ target_link_libraries(sai_switch
   sai_platform
   sai_store
   ref_map
+  validate_state_update
   Folly::folly
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}

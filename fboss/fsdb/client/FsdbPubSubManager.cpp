@@ -152,7 +152,10 @@ std::unique_ptr<PublisherT> FsdbPubSubManager::createPublisherImpl(
       publishStats,
       publisherStateChangeCb,
       publishQueueSize);
-  publisher->setConnectionOptions(utils::ConnectionOptions("::1", fsdbPort));
+  auto connectionOptions = utils::ConnectionOptions::defaultOptions<
+      facebook::fboss::fsdb::FsdbService>(
+      folly::SocketAddress("::1", fsdbPort));
+  publisher->setConnectionOptions(connectionOptions);
   return publisher;
 }
 

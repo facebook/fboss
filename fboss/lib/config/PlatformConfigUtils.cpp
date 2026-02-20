@@ -31,11 +31,12 @@ bool recurseCheckPortOwnsChip(
       if (zJunction.system().value().chip().value() == chip.name().value()) {
         return true;
       }
-      for (const auto& connection : zJunction.line().value()) {
+      const auto& connections = zJunction.line().value();
+      if (!connections.empty()) {
         // Because one port can only use one iphy, one xphy, one transceiver,
         // and if one PinConnection can't find this chip, you won't find
         // this chip on another PinConnection of the same port
-        return recurseCheckPortOwnsChip(connection, chip);
+        return recurseCheckPortOwnsChip(connections.front(), chip);
       }
     }
   }

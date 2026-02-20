@@ -10,74 +10,40 @@
 
 #include <gtest/gtest.h>
 
-#include "fboss/agent/SwitchIdScopeResolver.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
-#include "fboss/agent/rib/NetworkToRouteMap.h"
+#include <folly/logging/xlog.h>
+#include <gflags/gflags.h>
+
+#include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
-#include "fboss/agent/state/ForwardingInformationBase.h"
-#include "fboss/agent/state/ForwardingInformationBaseContainer.h"
-#include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/LabelForwardingAction.h"
+#include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/NextHopIdMaps.h"
-#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/RouteTypes.h"
-#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
-#include "fboss/agent/AddressUtil.h"
+
+DECLARE_bool(enable_nexthop_id_manager);
 
 namespace facebook::fboss {
 
 namespace {
 
-std::map<int64_t, cfg::SwitchInfo> getTestSwitchInfo() {
-  std::map<int64_t, cfg::SwitchInfo> map;
-  cfg::SwitchInfo info{};
-  info.switchType() = cfg::SwitchType::NPU;
-  info.asicType() = cfg::AsicType::ASIC_TYPE_FAKE;
-  info.switchIndex() = 0;
-  map.emplace(10, info);
-  return map;
-}
-
-const SwitchIdScopeResolver* scopeResolver() {
-  static const SwitchIdScopeResolver kSwitchIdScopeResolver(
-      getTestSwitchInfo());
-  return &kSwitchIdScopeResolver;
-}
+constexpr AdminDistance DISTANCE = AdminDistance::EBGP;
+const RouterID kRid0 = RouterID(0);
+const ClientID kClientA = ClientID(1001);
 
 HwSwitchMatcher scope() {
-  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(10)}};
-}
-
-std::shared_ptr<SwitchState> createInitialState(RouterID vrf) {
-  auto v4Fib = std::make_shared<ForwardingInformationBaseV4>();
-  auto v6Fib = std::make_shared<ForwardingInformationBaseV6>();
-
-  auto fibContainer = std::make_shared<ForwardingInformationBaseContainer>(vrf);
-  fibContainer->ref<switch_state_tags::fibV4>() = v4Fib;
-  fibContainer->ref<switch_state_tags::fibV6>() = v6Fib;
-
-  auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
-  fibsMap->updateForwardingInformationBaseContainer(fibContainer);
-
-  auto fibInfo = std::make_shared<FibInfo>();
-  fibInfo->ref<switch_state_tags::fibsMap>() = fibsMap;
-
-  auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
-  fibInfoMap->updateFibInfo(fibInfo, scope());
-
-  auto state = std::make_shared<SwitchState>();
-  state->resetFibsInfoMap(fibInfoMap);
-  return state;
-}
-
-std::shared_ptr<FibInfo> getFibInfo(const std::shared_ptr<SwitchState>& state) {
-  return state->getFibsInfoMap()->getFibInfo(scope());
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
 }
 
 } // namespace
@@ -85,136 +51,205 @@ std::shared_ptr<FibInfo> getFibInfo(const std::shared_ptr<SwitchState>& state) {
 class NextHopMapPopulationTest : public ::testing::Test {
  public:
   void SetUp() override {
-    vrf_ = RouterID(0);
-    state_ = createInitialState(vrf_);
-    state_->publish();
-    nextHopIDManager_ = std::make_unique<NextHopIDManager>();
+    FLAGS_enable_nexthop_id_manager = true;
+    auto config = initialConfig();
+    handle_ = createTestHandle(&config);
+    sw_ = handle_->getSw();
+  }
+
+  cfg::SwitchConfig initialConfig() const {
+    cfg::SwitchConfig config;
+    config.switchSettings()->switchIdToSwitchInfo() = {
+        {0, createSwitchInfo(cfg::SwitchType::NPU)}};
+    config.vlans()->resize(4);
+    config.vlans()[0].id() = 1;
+    config.vlans()[1].id() = 2;
+    config.vlans()[2].id() = 3;
+    config.vlans()[3].id() = 4;
+
+    config.interfaces()->resize(4);
+    config.interfaces()[0].intfID() = 1;
+    config.interfaces()[0].vlanID() = 1;
+    config.interfaces()[0].routerID() = 0;
+    config.interfaces()[0].mac() = "00:00:00:00:00:11";
+    config.interfaces()[0].ipAddresses()->resize(2);
+    config.interfaces()[0].ipAddresses()[0] = "1.1.1.1/24";
+    config.interfaces()[0].ipAddresses()[1] = "1::1/48";
+
+    config.interfaces()[1].intfID() = 2;
+    config.interfaces()[1].vlanID() = 2;
+    config.interfaces()[1].routerID() = 0;
+    config.interfaces()[1].mac() = "00:00:00:00:00:22";
+    config.interfaces()[1].ipAddresses()->resize(2);
+    config.interfaces()[1].ipAddresses()[0] = "2.2.2.2/24";
+    config.interfaces()[1].ipAddresses()[1] = "2::1/48";
+
+    config.interfaces()[2].intfID() = 3;
+    config.interfaces()[2].vlanID() = 3;
+    config.interfaces()[2].routerID() = 0;
+    config.interfaces()[2].mac() = "00:00:00:00:00:33";
+    config.interfaces()[2].ipAddresses()->resize(2);
+    config.interfaces()[2].ipAddresses()[0] = "3.3.3.3/24";
+    config.interfaces()[2].ipAddresses()[1] = "3::1/48";
+
+    config.interfaces()[3].intfID() = 4;
+    config.interfaces()[3].vlanID() = 4;
+    config.interfaces()[3].routerID() = 0;
+    config.interfaces()[3].mac() = "00:00:00:00:00:44";
+    config.interfaces()[3].ipAddresses()->resize(2);
+    config.interfaces()[3].ipAddresses()[0] = "4.4.4.4/24";
+    config.interfaces()[3].ipAddresses()[1] = "4::1/48";
+    return config;
   }
 
  protected:
-  void runFibUpdater() {
-    ForwardingInformationBaseUpdater updater(
-        scopeResolver(),
-        vrf_,
-        v4Rib_,
-        v6Rib_,
-        labelRib_,
-        nextHopIDManager_.get());
-    state_ = updater(state_);
+  RouteNextHopSet makeNextHops(
+      const std::vector<std::string>& nexthopStrs,
+      const std::vector<NextHopWeight>& weights = {}) {
+    RouteNextHopSet nhops;
+    for (size_t i = 0; i < nexthopStrs.size(); ++i) {
+      NextHopWeight weight = weights.empty() ? ECMP_WEIGHT : weights[i];
+      nhops.emplace(
+          UnresolvedNextHop(folly::IPAddress(nexthopStrs[i]), weight));
+    }
+    return nhops;
   }
 
+  // Add V4 route with nexthops
   void addV4Route(
+      SwSwitchRouteUpdateWrapper& updater,
       const std::string& prefixStr,
-      const std::vector<std::string>& nexthopStrs) {
+      const std::vector<std::string>& nexthopStrs,
+      const std::vector<NextHopWeight>& weights = {}) {
     auto prefix = makePrefixV4(prefixStr);
-    RouteNextHopSet nhops;
-    for (const auto& nhStr : nexthopStrs) {
-      nhops.emplace(ResolvedNextHop(
-          folly::IPAddress(nhStr), InterfaceID(1), UCMP_DEFAULT_WEIGHT));
-    }
-    auto route = std::make_shared<Route<folly::IPAddressV4>>(
-        Route<folly::IPAddressV4>::makeThrift(prefix));
-    route->update(
-        ClientID::BGPD, RouteNextHopEntry(nhops, AdminDistance::EBGP));
-    route->setResolved(RouteNextHopEntry(nhops, AdminDistance::EBGP));
-    route->publish();
-    v4Rib_.insert(prefix, route);
+    auto nhops = makeNextHops(nexthopStrs, weights);
+    updater.addRoute(
+        kRid0,
+        prefix.network(),
+        prefix.mask(),
+        kClientA,
+        RouteNextHopEntry(nhops, DISTANCE));
   }
 
+  // Add V6 route with nexthops
   void addV6Route(
+      SwSwitchRouteUpdateWrapper& updater,
       const std::string& prefixStr,
-      const std::vector<std::string>& nexthopStrs) {
+      const std::vector<std::string>& nexthopStrs,
+      const std::vector<NextHopWeight>& weights = {}) {
     auto prefix = makePrefixV6(prefixStr);
-    RouteNextHopSet nhops;
-    for (const auto& nhStr : nexthopStrs) {
-      nhops.emplace(ResolvedNextHop(
-          folly::IPAddress(nhStr), InterfaceID(1), UCMP_DEFAULT_WEIGHT));
-    }
-    auto route = std::make_shared<Route<folly::IPAddressV6>>(
-        Route<folly::IPAddressV6>::makeThrift(prefix));
-    route->update(
-        ClientID::BGPD, RouteNextHopEntry(nhops, AdminDistance::EBGP));
-    route->setResolved(RouteNextHopEntry(nhops, AdminDistance::EBGP));
-    route->publish();
-    v6Rib_.insert(prefix, route);
+    auto nhops = makeNextHops(nexthopStrs, weights);
+    updater.addRoute(
+        kRid0,
+        prefix.network(),
+        prefix.mask(),
+        kClientA,
+        RouteNextHopEntry(nhops, DISTANCE));
   }
 
-  void removeV4Route(const std::string& prefixStr) {
+  void addV4DropRoute(
+      SwSwitchRouteUpdateWrapper& updater,
+      const std::string& prefixStr) {
     auto prefix = makePrefixV4(prefixStr);
-    auto iter = v4Rib_.exactMatch(prefix.network(), prefix.mask());
-    if (iter != v4Rib_.end()) {
-      v4Rib_.erase(iter);
-    }
+    updater.addRoute(
+        kRid0,
+        prefix.network(),
+        prefix.mask(),
+        kClientA,
+        RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
   }
 
-  void removeV6Route(const std::string& prefixStr) {
+  void addV6DropRoute(
+      SwSwitchRouteUpdateWrapper& updater,
+      const std::string& prefixStr) {
     auto prefix = makePrefixV6(prefixStr);
-    auto iter = v6Rib_.exactMatch(prefix.network(), prefix.mask());
-    if (iter != v6Rib_.end()) {
-      v6Rib_.erase(iter);
-    }
+    updater.addRoute(
+        kRid0,
+        prefix.network(),
+        prefix.mask(),
+        kClientA,
+        RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
   }
 
-  void addV4DropRoute(const std::string& prefixStr) {
+  void addV4ToCpuRoute(
+      SwSwitchRouteUpdateWrapper& updater,
+      const std::string& prefixStr) {
     auto prefix = makePrefixV4(prefixStr);
-    auto route = std::make_shared<Route<folly::IPAddressV4>>(
-        Route<folly::IPAddressV4>::makeThrift(prefix));
-    route->update(
-        ClientID::BGPD,
-        RouteNextHopEntry(RouteForwardAction::DROP, AdminDistance::EBGP));
-    route->setResolved(
-        RouteNextHopEntry(RouteForwardAction::DROP, AdminDistance::EBGP));
-    route->publish();
-    v4Rib_.insert(prefix, route);
+    updater.addRoute(
+        kRid0,
+        prefix.network(),
+        prefix.mask(),
+        kClientA,
+        RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
   }
 
-  void addV6DropRoute(const std::string& prefixStr) {
+  void addV6ToCpuRoute(
+      SwSwitchRouteUpdateWrapper& updater,
+      const std::string& prefixStr) {
     auto prefix = makePrefixV6(prefixStr);
-    auto route = std::make_shared<Route<folly::IPAddressV6>>(
-        Route<folly::IPAddressV6>::makeThrift(prefix));
-    route->update(
-        ClientID::BGPD,
-        RouteNextHopEntry(RouteForwardAction::DROP, AdminDistance::EBGP));
-    route->setResolved(
-        RouteNextHopEntry(RouteForwardAction::DROP, AdminDistance::EBGP));
-    route->publish();
-    v6Rib_.insert(prefix, route);
+    updater.addRoute(
+        kRid0,
+        prefix.network(),
+        prefix.mask(),
+        kClientA,
+        RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
   }
 
-  void addV4ToCpuRoute(const std::string& prefixStr) {
+  // Add MPLS route with POP_AND_LOOKUP action.
+  // POP_AND_LOOKUP routes have a null address (::) as nexthop since forwarding
+  // is based on inner header lookup.
+  void addMplsPopAndLookupRoute(
+      SwSwitchRouteUpdateWrapper& updater,
+      MplsLabel label) {
+    MplsRoute mplsRoute;
+    mplsRoute.topLabel() = label;
+    NextHopThrift nexthop;
+    nexthop.mplsAction() = MplsAction();
+    *nexthop.mplsAction()->action() = MplsActionCode::POP_AND_LOOKUP;
+    folly::IPAddress nullAddr{"::"};
+    nexthop.address()->addr()->append(
+        reinterpret_cast<const char*>(nullAddr.bytes()),
+        folly::IPAddressV6::byteCount());
+    mplsRoute.nextHops()->emplace_back(nexthop);
+    updater.addRoute(kClientA, mplsRoute);
+  }
+
+  std::shared_ptr<MultiLabelForwardingInformationBase> getLabelFib() {
+    auto state = sw_->getState();
+    return state->getLabelForwardingInformationBase();
+  }
+
+  void delV4Route(
+      SwSwitchRouteUpdateWrapper& updater,
+      const std::string& prefixStr) {
     auto prefix = makePrefixV4(prefixStr);
-    auto route = std::make_shared<Route<folly::IPAddressV4>>(
-        Route<folly::IPAddressV4>::makeThrift(prefix));
-    route->update(
-        ClientID::BGPD,
-        RouteNextHopEntry(RouteForwardAction::TO_CPU, AdminDistance::EBGP));
-    route->setResolved(
-        RouteNextHopEntry(RouteForwardAction::TO_CPU, AdminDistance::EBGP));
-    route->publish();
-    v4Rib_.insert(prefix, route);
+    updater.delRoute(kRid0, prefix.network(), prefix.mask(), kClientA);
   }
 
-  void addV6ToCpuRoute(const std::string& prefixStr) {
+  void delV6Route(
+      SwSwitchRouteUpdateWrapper& updater,
+      const std::string& prefixStr) {
     auto prefix = makePrefixV6(prefixStr);
-    auto route = std::make_shared<Route<folly::IPAddressV6>>(
-        Route<folly::IPAddressV6>::makeThrift(prefix));
-    route->update(
-        ClientID::BGPD,
-        RouteNextHopEntry(RouteForwardAction::TO_CPU, AdminDistance::EBGP));
-    route->setResolved(
-        RouteNextHopEntry(RouteForwardAction::TO_CPU, AdminDistance::EBGP));
-    route->publish();
-    v6Rib_.insert(prefix, route);
+    updater.delRoute(kRid0, prefix.network(), prefix.mask(), kClientA);
+  }
+
+  std::shared_ptr<FibInfo> getFibInfo() {
+    auto state = sw_->getState();
+    return state->getFibsInfoMap()->getFibInfo(scope());
   }
 
   std::shared_ptr<IdToNextHopMap> getIdToNextHopMap() {
-    auto fibInfo = getFibInfo(state_);
+    auto fibInfo = getFibInfo();
     return fibInfo ? fibInfo->getIdToNextHopMap() : nullptr;
   }
 
   std::shared_ptr<IdToNextHopIdSetMap> getIdToNextHopIdSetMap() {
-    auto fibInfo = getFibInfo(state_);
+    auto fibInfo = getFibInfo();
     return fibInfo ? fibInfo->getIdToNextHopIdSetMap() : nullptr;
+  }
+
+  const NextHopIDManager* getNextHopIDManager() {
+    return sw_->getRib()->getNextHopIDManager();
   }
 
   // Verifies that the ID maps in switch state match the ID maps in the
@@ -222,9 +257,9 @@ class NextHopMapPopulationTest : public ::testing::Test {
   void verifyIdMapsMatchIdManager() {
     auto stateIdToNextHopMap = getIdToNextHopMap();
     auto stateIdToNextHopIdSetMap = getIdToNextHopIdSetMap();
-    const auto& managerIdToNextHop = nextHopIDManager_->getIdToNextHop();
-    const auto& managerIdToNextHopIdSet =
-        nextHopIDManager_->getIdToNextHopIdSet();
+    auto* manager = getNextHopIDManager();
+    const auto& managerIdToNextHop = manager->getIdToNextHop();
+    const auto& managerIdToNextHopIdSet = manager->getIdToNextHopIdSet();
 
     // Verify sizes match
     if (stateIdToNextHopMap) {
@@ -264,158 +299,25 @@ class NextHopMapPopulationTest : public ::testing::Test {
         managerSet.insert(nhId);
       }
 
-      // Convert state's NextHopIdSet to a set for comparison
-      // Iterate directly; elements are wrapped, so unwrap with .toThrift()
-      std::set<NextHopId> stateSet;
-      for (const auto& elem : *stateNextHopIdSet) {
-        stateSet.insert((*elem).toThrift());
-      }
+      // Use toThrift() to get the set without modifying published node
+      auto stateSet = stateNextHopIdSet->toThrift();
 
       EXPECT_EQ(stateSet, managerSet)
           << "NextHopIdSet mismatch for setId " << setId;
     }
   }
 
-  // Adds standard test routes
-  // - 2 routes with 3 shared nexthops (same ECMP group)
-  // - 1 route with single nexthop
-  // - 1 route with 5 nexthops
-  // - 3 routes with partial overlap (3 nexthops each)
-  // - 1 route with DROP action (empty nexthop set, no ID allocated)
-  // - 1 route with TO_CPU action (empty nexthop set, no ID allocated)
-  // Total: 28 unique nexthops, 12 unique nexthop sets
-  // (DROP and TO_CPU routes have empty nexthop sets and don't get IDs)
-  void addStandardTestRoutes(bool includeV6 = true) {
-    // V4 routes
-    // 1. 2 routes with 3 nexthops (same ones) - shared ECMP group
-    std::vector<std::string> sharedV4Nexthops = {
-        "1.1.1.1", "1.1.1.2", "1.1.1.3"};
-    addV4Route("10.0.0.0/24", sharedV4Nexthops);
-    addV4Route("10.0.1.0/24", sharedV4Nexthops);
-
-    // 2. 1 route with single nexthop
-    addV4Route("10.1.0.0/24", {"2.2.2.1"});
-
-    // 3. 1 route with 5 nexthops
-    addV4Route(
-        "10.2.0.0/24", {"3.3.3.1", "3.3.3.2", "3.3.3.3", "3.3.3.4", "3.3.3.5"});
-
-    // 4. 3 routes with partial overlap
-    addV4Route("10.3.0.0/24", {"4.4.4.1", "4.4.4.2", "4.4.4.3"});
-    addV4Route("10.3.1.0/24", {"4.4.4.2", "4.4.4.3", "4.4.4.4"});
-    addV4Route("10.3.2.0/24", {"4.4.4.3", "4.4.4.4", "4.4.4.5"});
-
-    // 5. 1 route with DROP action
-    addV4DropRoute("10.4.0.0/24");
-
-    // 6. 1 route with TO_CPU action
-    addV4ToCpuRoute("10.5.0.0/24");
-
-    if (!includeV6) {
-      return;
-    }
-
-    // V6 routes (same patterns)
-    // 1. 2 routes with 3 nexthops (same ones) - shared ECMP group
-    std::vector<std::string> sharedV6Nexthops = {
-        "2001:db8::1", "2001:db8::2", "2001:db8::3"};
-    addV6Route("2001:db8:1::/64", sharedV6Nexthops);
-    addV6Route("2001:db8:2::/64", sharedV6Nexthops);
-
-    // 2. 1 route with single nexthop
-    addV6Route("2001:db8:10::/64", {"2001:db8:a::1"});
-
-    // 3. 1 route with 5 nexthops
-    addV6Route(
-        "2001:db8:20::/64",
-        {"2001:db8:b::1",
-         "2001:db8:b::2",
-         "2001:db8:b::3",
-         "2001:db8:b::4",
-         "2001:db8:b::5"});
-
-    // 4. 3 routes with partial overlap
-    addV6Route(
-        "2001:db8:30::/64",
-        {"2001:db8:c::1", "2001:db8:c::2", "2001:db8:c::3"});
-    addV6Route(
-        "2001:db8:31::/64",
-        {"2001:db8:c::2", "2001:db8:c::3", "2001:db8:c::4"});
-    addV6Route(
-        "2001:db8:32::/64",
-        {"2001:db8:c::3", "2001:db8:c::4", "2001:db8:c::5"});
-
-    // 5. 1 route with DROP action
-    addV6DropRoute("2001:db8:40::/64");
-
-    // 6. 1 route with TO_CPU action
-    addV6ToCpuRoute("2001:db8:50::/64");
-  }
-
-  void verifyRouteNextHopsInternal(
-      const RouteNextHopEntry& fwdInfo,
-      const std::string& prefixStr,
-      const std::shared_ptr<IdToNextHopMap>& idToNextHopMap,
-      const std::shared_ptr<IdToNextHopIdSetMap>& idToNextHopIdSetMap) {
-    auto resolvedSetId = fwdInfo.getResolvedNextHopSetID();
-    const auto& nextHopSet = fwdInfo.getNextHopSet();
-
-    // Routes with empty nexthop sets (TO_CPU/DROP) don't get IDs
-    if (nextHopSet.empty()) {
-      EXPECT_FALSE(resolvedSetId.has_value())
-          << prefixStr
-          << ": Empty nexthop set should not have resolvedNextHopSetID";
-      return;
-    }
-
-    // Routes with nexthops should have a resolvedNextHopSetID
-    ASSERT_TRUE(resolvedSetId.has_value())
-        << prefixStr << ": Missing resolvedNextHopSetID";
-
-    // Look up the NextHopIdSet from the map
-    auto nextHopIdSetNode = idToNextHopIdSetMap->getNextHopIdSetIf(
-        static_cast<NextHopSetId>(*resolvedSetId));
-    ASSERT_NE(nextHopIdSetNode, nullptr)
-        << prefixStr << ": NextHopIdSet for setId " << *resolvedSetId
-        << " not found";
-
-    // Collect the IP addresses from the NextHop map
-    // Iterate directly; elements are wrapped, so unwrap with .toThrift()
-    std::set<std::string> retrievedNexthops;
-    for (const auto& elem : *nextHopIdSetNode) {
-      auto nhId = (*elem).toThrift();
-      auto nextHopNode = idToNextHopMap->getNextHopIf(nhId);
-      ASSERT_NE(nextHopNode, nullptr)
-          << prefixStr << ": NextHop for id " << nhId << " not found";
-
-      // Extract IP address from the NextHop
-      auto nextHopThrift = nextHopNode->toThrift();
-      auto addr = network::toIPAddress(*nextHopThrift.address());
-      retrievedNexthops.insert(addr.str());
-    }
-
-    // Compare with expected nexthops from the route's forward info
-    std::set<std::string> expectedNexthops;
-    for (const auto& nhop : fwdInfo.getNextHopSet()) {
-      expectedNexthops.insert(nhop.addr().str());
-    }
-
-    EXPECT_EQ(retrievedNexthops, expectedNexthops)
-        << "NextHops mismatch for route " << prefixStr;
-  }
-
   // This verifies if the NextHop IDs present in the FIB resolves to the correct
   // set of NextHops in the route. This will resolve the ID to set of NextHops
-  // and then compare it with the NextHopSet present in the route.
+  // using the FibHelper getNexthops function and compare it with the NextHopSet
+  // present in the route.
   void verifyIDMapsConsistency() {
-    auto fibInfo = getFibInfo(state_);
+    auto state = sw_->getState();
+    auto fibInfo = getFibInfo();
     ASSERT_NE(fibInfo, nullptr) << "FibInfo is null";
 
-    auto fibContainer = fibInfo->getFibContainerIf(vrf_);
+    auto fibContainer = fibInfo->getFibContainerIf(kRid0);
     ASSERT_NE(fibContainer, nullptr) << "FibContainer is null";
-
-    auto idToNextHopMap = getIdToNextHopMap();
-    auto idToNextHopIdSetMap = getIdToNextHopIdSetMap();
 
     // Verify all V4 routes
     auto fibV4 = fibContainer->getFibV4();
@@ -424,8 +326,32 @@ class NextHopMapPopulationTest : public ::testing::Test {
       std::string prefixStr =
           folly::sformat("{}/{}", prefix.network().str(), prefix.mask());
       const auto& fwdInfo = route->getForwardInfo();
-      verifyRouteNextHopsInternal(
-          fwdInfo, prefixStr, idToNextHopMap, idToNextHopIdSetMap);
+      auto resolvedSetId = fwdInfo.getResolvedNextHopSetID();
+      const auto& expectedNextHopSet = fwdInfo.getNextHopSet();
+
+      // Routes with empty nexthop sets (TO_CPU/DROP) don't get IDs
+      if (expectedNextHopSet.empty()) {
+        EXPECT_FALSE(resolvedSetId.has_value())
+            << prefixStr
+            << ": Empty nexthop set should not have resolvedNextHopSetID";
+        continue;
+      }
+
+      // Routes with nexthops should have a resolvedNextHopSetID
+      ASSERT_TRUE(resolvedSetId.has_value())
+          << prefixStr << ": Missing resolvedNextHopSetID";
+
+      // Use FibHelper getNexthops to resolve the ID back to NextHops
+      auto resolvedNextHops =
+          getNextHops(state, static_cast<NextHopSetId>(*resolvedSetId));
+
+      // Sort and compare as vectors
+      std::sort(resolvedNextHops.begin(), resolvedNextHops.end());
+      std::vector<NextHop> expectedNextHops(
+          expectedNextHopSet.begin(), expectedNextHopSet.end());
+
+      EXPECT_EQ(resolvedNextHops, expectedNextHops)
+          << "NextHops mismatch for route " << prefixStr;
     }
 
     // Verify all V6 routes
@@ -435,134 +361,223 @@ class NextHopMapPopulationTest : public ::testing::Test {
       std::string prefixStr =
           folly::sformat("{}/{}", prefix.network().str(), prefix.mask());
       const auto& fwdInfo = route->getForwardInfo();
-      verifyRouteNextHopsInternal(
-          fwdInfo, prefixStr, idToNextHopMap, idToNextHopIdSetMap);
+      auto resolvedSetId = fwdInfo.getResolvedNextHopSetID();
+      const auto& expectedNextHopSet = fwdInfo.getNextHopSet();
+
+      // Routes with empty nexthop sets (TO_CPU/DROP) don't get IDs
+      if (expectedNextHopSet.empty()) {
+        EXPECT_FALSE(resolvedSetId.has_value())
+            << prefixStr
+            << ": Empty nexthop set should not have resolvedNextHopSetID";
+        continue;
+      }
+
+      // Routes with nexthops should have a resolvedNextHopSetID
+      ASSERT_TRUE(resolvedSetId.has_value())
+          << prefixStr << ": Missing resolvedNextHopSetID";
+
+      // Use FibHelper getNexthops to resolve the ID back to NextHops
+      auto resolvedNextHops =
+          getNextHops(state, static_cast<NextHopSetId>(*resolvedSetId));
+
+      // Sort and compare as vectors
+      std::sort(resolvedNextHops.begin(), resolvedNextHops.end());
+      std::vector<NextHop> expectedNextHops(
+          expectedNextHopSet.begin(), expectedNextHopSet.end());
+
+      EXPECT_EQ(resolvedNextHops, expectedNextHops)
+          << "NextHops mismatch for route " << prefixStr;
     }
   }
 
-  RouterID vrf_;
-  std::shared_ptr<SwitchState> state_;
-  std::unique_ptr<NextHopIDManager> nextHopIDManager_;
-  IPv4NetworkToRouteMap v4Rib_;
-  IPv6NetworkToRouteMap v6Rib_;
-  LabelToRouteMap labelRib_;
+  void addStandardTestRoutes(
+      SwSwitchRouteUpdateWrapper& updater,
+      bool includeV6 = true) {
+    // V4 routes
+    // 1. 2 routes with 3 nexthops (same ones) - shared ECMP group
+    std::vector<std::string> sharedV4Nexthops = {"1.1.1.10", "2.2.2.10"};
+    addV4Route(updater, "10.0.0.0/24", sharedV4Nexthops);
+    addV4Route(updater, "10.0.1.0/24", sharedV4Nexthops);
+
+    // 2. 1 route with single nexthop
+    addV4Route(updater, "10.1.0.0/24", {"2.2.2.20"});
+
+    // 3. 1 route with 4 nexthops
+    addV4Route(
+        updater,
+        "10.2.0.0/24",
+        {"1.1.1.10", "2.2.2.10", "3.3.3.10", "4.4.4.10"});
+
+    // 4. 3 routes with partial overlap
+    addV4Route(updater, "10.3.0.0/24", {"1.1.1.10", "2.2.2.10", "3.3.3.10"});
+    addV4Route(updater, "10.3.1.0/24", {"2.2.2.10", "3.3.3.10", "4.4.4.10"});
+    addV4Route(updater, "10.3.2.0/24", {"3.3.3.10", "4.4.4.10", "1.1.1.10"});
+
+    // 5. 1 route with DROP action
+    addV4DropRoute(updater, "10.4.0.0/24");
+
+    // 6. 1 route with TO_CPU action
+    addV4ToCpuRoute(updater, "10.5.0.0/24");
+
+    // 7. Weighted routes for normalized ID testing
+    addV4Route(updater, "10.6.0.0/24", {"1.1.1.10", "2.2.2.10"}, {1, 1});
+    addV4Route(updater, "10.6.1.0/24", {"1.1.1.10", "2.2.2.10"}, {10, 20});
+    addV4Route(updater, "10.6.2.0/24", {"1.1.1.10", "2.2.2.10"}, {100, 200});
+
+    if (!includeV6) {
+      return;
+    }
+
+    // V6 routes (same patterns)
+    // 1. 2 routes with shared nexthops
+    std::vector<std::string> sharedV6Nexthops = {"1::10", "2::10"};
+    addV6Route(updater, "2001:db8:1::/64", sharedV6Nexthops);
+    addV6Route(updater, "2001:db8:2::/64", sharedV6Nexthops);
+
+    // 2. 1 route with single nexthop
+    addV6Route(updater, "2001:db8:10::/64", {"2::20"});
+
+    // 3. 1 route with 4 nexthops
+    addV6Route(
+        updater, "2001:db8:20::/64", {"1::10", "2::10", "3::10", "4::10"});
+
+    // 4. 3 routes with partial overlap
+    addV6Route(updater, "2001:db8:30::/64", {"1::10", "2::10", "3::10"});
+    addV6Route(updater, "2001:db8:31::/64", {"2::10", "3::10", "4::10"});
+    addV6Route(updater, "2001:db8:32::/64", {"3::10", "4::10", "1::10"});
+
+    // 5. 1 route with DROP action
+    addV6DropRoute(updater, "2001:db8:40::/64");
+
+    // 6. 1 route with TO_CPU action
+    addV6ToCpuRoute(updater, "2001:db8:50::/64");
+  }
+
+  SwSwitch* sw_ = nullptr;
+  std::unique_ptr<HwTestHandle> handle_;
 };
 
-TEST_F(NextHopMapPopulationTest, RouteAdditionTestsThroughFIBUpdater) {
-  addStandardTestRoutes();
-  runFibUpdater();
+TEST_F(NextHopMapPopulationTest, RouteAdditionTestsThroughRIBUpdater) {
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
 
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 }
 
-TEST_F(NextHopMapPopulationTest, RouteDeletionTestsThroughFIBUpdater) {
-  addStandardTestRoutes();
-  runFibUpdater();
+TEST_F(NextHopMapPopulationTest, RouteDeletionTestsThroughRIBUpdater) {
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 
   // Delete one route with same nexthop (shared ECMP) and check consistency
-  // Deleting 10.0.0.0/24 - shares nexthops with 10.0.1.0/24
-  // Nexthops should remain (still used by 10.0.1.0/24), set should remain
-  removeV4Route("10.0.0.0/24");
-  runFibUpdater();
+  updater = sw_->getRouteUpdater();
+  delV4Route(updater, "10.0.0.0/24");
+  updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 
   // Delete the other shared route
-  removeV4Route("10.0.1.0/24");
-  runFibUpdater();
+  updater = sw_->getRouteUpdater();
+  delV4Route(updater, "10.0.1.0/24");
+  updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 
-  // Delete multiple routes in a single FIB update:
-  // - 10.3.0.0/24: partial overlap route (4.4.4.1 removed, 4.4.4.2-3 still
-  // used)
-  // - 10.1.0.0/24: single nexthop route (2.2.2.1 removed)
-  // - 10.2.0.0/24: 5 nexthop route (3.3.3.1-5 removed)
-  removeV4Route("10.3.0.0/24");
-  removeV4Route("10.1.0.0/24");
-  removeV4Route("10.2.0.0/24");
-  runFibUpdater();
-
+  updater = sw_->getRouteUpdater();
+  delV4Route(updater, "10.6.2.0/24");
+  updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 
-  // Delete DROP route (route with empty nexthop set)
-  // DROP routes don't have NextHopSetIDs since they have empty nexthop sets
-  // This tests that deleting such routes doesn't affect the ID maps
-  removeV4Route("10.4.0.0/24");
-  removeV4Route("10.5.0.0/24");
-  runFibUpdater();
-
+  // Delete multiple routes in a single update
+  updater = sw_->getRouteUpdater();
+  delV4Route(updater, "10.3.0.0/24");
+  delV4Route(updater, "10.1.0.0/24");
+  delV4Route(updater, "10.2.0.0/24");
+  updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 
-  // Delete all remaining routes
-  removeV4Route("10.3.1.0/24");
-  removeV4Route("10.3.2.0/24");
-  removeV6Route("2001:db8:1::/64");
-  removeV6Route("2001:db8:2::/64");
-  removeV6Route("2001:db8:10::/64");
-  removeV6Route("2001:db8:20::/64");
-  removeV6Route("2001:db8:30::/64");
-  removeV6Route("2001:db8:31::/64");
-  removeV6Route("2001:db8:32::/64");
-  removeV6Route("2001:db8:40::/64");
-  removeV6Route("2001:db8:50::/64");
-  runFibUpdater();
+  // Delete DROP and TO_CPU routes
+  updater = sw_->getRouteUpdater();
+  delV4Route(updater, "10.4.0.0/24");
+  delV4Route(updater, "10.5.0.0/24");
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
 
-  // Verify everything is empty
+  // Delete all remaining routes including weighted routes
+  updater = sw_->getRouteUpdater();
+  delV4Route(updater, "10.3.1.0/24");
+  delV4Route(updater, "10.3.2.0/24");
+  delV4Route(updater, "10.6.0.0/24");
+  delV4Route(updater, "10.6.1.0/24");
+  delV6Route(updater, "2001:db8:1::/64");
+  delV6Route(updater, "2001:db8:2::/64");
+  delV6Route(updater, "2001:db8:10::/64");
+  delV6Route(updater, "2001:db8:20::/64");
+  delV6Route(updater, "2001:db8:30::/64");
+  delV6Route(updater, "2001:db8:31::/64");
+  delV6Route(updater, "2001:db8:32::/64");
+  delV6Route(updater, "2001:db8:40::/64");
+  delV6Route(updater, "2001:db8:50::/64");
+  updater.program();
+
   verifyIdMapsMatchIdManager();
 }
 
-TEST_F(NextHopMapPopulationTest, RouteUpdateTestsThroughFIBUpdater) {
-  addStandardTestRoutes();
-  runFibUpdater();
+TEST_F(NextHopMapPopulationTest, RouteUpdateTestsThroughRIBUpdater) {
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 
-  // Update route from having 3 nexthops to 5(ecmpexpand)
-  removeV4Route("10.0.0.0/24");
+  // Update route from having 2 nexthops to 4 (ECMP expand)
+  updater = sw_->getRouteUpdater();
   addV4Route(
-      "10.0.0.0/24", {"1.1.1.1", "1.1.1.2", "1.1.1.3", "1.1.1.4", "1.1.1.5"});
-  runFibUpdater();
+      updater, "10.0.0.0/24", {"1.1.1.10", "2.2.2.10", "3.3.3.10", "4.4.4.10"});
+  updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 
-  // Update route with 5 nexthops (10.2.0.0/24) to have 3 nexthops (ECMP shrink)
-  removeV4Route("10.2.0.0/24");
-  addV4Route("10.2.0.0/24", {"1.1.1.1", "1.1.1.2", "1.1.1.3"});
-  runFibUpdater();
+  // Update route with 4 nexthops (10.2.0.0/24) to have 2 nexthops (ECMP shrink)
+  updater = sw_->getRouteUpdater();
+  addV4Route(updater, "10.2.0.0/24", {"1.1.1.10", "2.2.2.10"});
+  updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 
   // Update route to a completely new set of nexthops
-  removeV4Route("10.0.0.0/24");
-  addV4Route("10.0.0.0/24", {"5.5.5.1", "5.5.5.2", "5.5.5.3"});
-  runFibUpdater();
+  updater = sw_->getRouteUpdater();
+  addV4Route(updater, "10.0.0.0/24", {"3.3.3.10", "4.4.4.10"});
+  updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 
   // Update route from having nexthops to TO_CPU action
-  removeV4Route("10.0.0.0/24");
-  addV4ToCpuRoute("10.0.0.0/24");
-  runFibUpdater();
+  updater = sw_->getRouteUpdater();
+  addV4ToCpuRoute(updater, "10.0.0.0/24");
+  updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 
   // Update route from TO_CPU action to having nexthops
-  removeV4Route("10.0.0.0/24");
-  addV4Route("10.0.0.0/24", {"6.6.6.1", "6.6.6.2"});
-  runFibUpdater();
+  updater = sw_->getRouteUpdater();
+  addV4Route(updater, "10.0.0.0/24", {"1.1.1.10", "2.2.2.10"});
+  updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 }
 
 TEST_F(NextHopMapPopulationTest, SerializationTests) {
-  addStandardTestRoutes();
-  runFibUpdater();
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
 
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
@@ -572,7 +587,7 @@ TEST_F(NextHopMapPopulationTest, SerializationTests) {
   auto originalIdToNextHopIdSetMap = getIdToNextHopIdSetMap();
 
   // Serialize the FibInfo
-  auto fibInfo = getFibInfo(state_);
+  auto fibInfo = getFibInfo();
   ASSERT_NE(fibInfo, nullptr);
   auto serialized = fibInfo->toThrift();
 
@@ -591,6 +606,47 @@ TEST_F(NextHopMapPopulationTest, SerializationTests) {
   EXPECT_EQ(
       deserializedNextHopIdSetMap->size(), originalIdToNextHopIdSetMap->size())
       << "IdToNextHopIdSetMap size should be preserved after deserialization";
+}
+
+// Test general addition of POP_AND_LOOKUP MPLS routes alongside normal
+// weighted routes. This verifies that both types of routes are handled
+// correctly
+TEST_F(NextHopMapPopulationTest, PopAndLookupWithNormalRouteAddition) {
+  // First, add standard IP routes
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater, false /* includeV6 */);
+
+  // Now add MPLS POP_AND_LOOKUP routes
+  addMplsPopAndLookupRoute(updater, 1001);
+  addMplsPopAndLookupRoute(updater, 1002);
+  addMplsPopAndLookupRoute(updater, 1003);
+  updater.program();
+
+  // Verify MPLS POP_AND_LOOKUP routes have resolvedNextHopSetID but NOT
+  // normalizedResolvedNextHopSetID
+  auto labelFib = getLabelFib();
+  ASSERT_NE(labelFib, nullptr);
+
+  auto labelEntry1 = labelFib->getNodeIf(1001);
+  ASSERT_NE(labelEntry1, nullptr);
+  const auto& labelFwdInfo1 = labelEntry1->getForwardInfo();
+  EXPECT_TRUE(labelFwdInfo1.getResolvedNextHopSetID().has_value())
+      << "POP_AND_LOOKUP MPLS route should have resolvedNextHopSetID";
+  EXPECT_FALSE(labelFwdInfo1.getNormalizedResolvedNextHopSetID().has_value())
+      << "POP_AND_LOOKUP MPLS route should NOT have "
+      << "normalizedResolvedNextHopSetID";
+
+  auto labelEntry2 = labelFib->getNodeIf(1002);
+  ASSERT_NE(labelEntry2, nullptr);
+  const auto& labelFwdInfo2 = labelEntry2->getForwardInfo();
+  EXPECT_TRUE(labelFwdInfo2.getResolvedNextHopSetID().has_value())
+      << "POP_AND_LOOKUP MPLS route should have resolvedNextHopSetID";
+  EXPECT_FALSE(labelFwdInfo2.getNormalizedResolvedNextHopSetID().has_value())
+      << "POP_AND_LOOKUP MPLS route should NOT have "
+      << "normalizedResolvedNextHopSetID";
+
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
 }
 
 } // namespace facebook::fboss

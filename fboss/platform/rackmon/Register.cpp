@@ -233,11 +233,6 @@ std::vector<uint16_t>::iterator RegisterStore::setRegister(
   return start + size;
 }
 
-Register& RegisterStore::back() {
-  std::unique_lock lk(historyMutex_);
-  return idx_ == 0 ? history_.back() : history_[idx_ - 1];
-}
-
 const Register& RegisterStore::back() const {
   std::unique_lock lk(historyMutex_);
   return idx_ == 0 ? history_.back() : history_[idx_ - 1];
@@ -255,7 +250,7 @@ void RegisterStore::operator++() {
 
 RegisterStore::operator RegisterStoreValue() const {
   std::unique_lock lk(historyMutex_);
-  RegisterStoreValue ret(regAddr_, desc_.name);
+  RegisterStoreValue ret(regAddr_, desc_.name, desc_.unit);
   for (const auto& reg : history_) {
     if (reg) {
       ret.history.emplace_back(reg);
@@ -423,6 +418,9 @@ void from_json(const json& j, RegisterDescriptor& i) {
       }
     }
   }
+  if (j.contains("unit")) {
+    i.unit = j.at("unit").get<std::string>();
+  }
 }
 
 void to_json(json& j, const RegisterDescriptor& i) {
@@ -473,6 +471,9 @@ void to_json(json& j, const RegisterStoreValue& m) {
   j["regAddress"] = m.regAddr;
   j["name"] = m.name;
   j["history"] = m.history;
+  if (m.unit.has_value()) {
+    j["unit"] = m.unit.value();
+  }
 }
 
 void to_json(json& j, const RegisterStore& m) {

@@ -13,6 +13,7 @@ DECLARE_int32(wedge_agent_port);
 DECLARE_string(qsfp_service_host);
 DECLARE_int32(qsfp_service_port);
 DECLARE_int32(bgp_service_port);
+DECLARE_bool(fsdb_client_ssl_preferred);
 
 namespace facebook::fboss::utils {
 

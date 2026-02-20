@@ -10,9 +10,11 @@
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <fboss/fsdb/oper/instantiations/FsdbPathConverter.h>
-#include "folly/Conv.h"
-
 #include <folly/logging/LogConfig.h>
+#include "folly/Conv.h"
+#ifndef IS_OSS
+#include "neteng/netwhoami/lib/cpp/Recover.h"
+#endif
 
 #include <re2/re2.h>
 #include <chrono>
@@ -123,6 +125,18 @@ std::string getl2EntryTypeStr(L2EntryType l2EntryType) {
     default:
       return "Unknown";
   }
+}
+
+bool isRunningOnSwitch() {
+#ifndef IS_OSS
+  try {
+    return netwhoami::tryRecoverWhoAmI().has_value();
+  } catch (const std::exception&) {
+    return false;
+  }
+#else
+  return false;
+#endif
 }
 
 bool comparePortName(

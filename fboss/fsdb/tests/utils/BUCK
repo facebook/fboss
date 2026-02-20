@@ -18,6 +18,7 @@ cpp_library(
         "//fboss/fsdb/oper:path_helpers",
         "//fboss/fsdb/server:handler",
         "//fboss/lib:common_utils",
+        "//fboss/lib:thrift_service_utils",
         "//thrift/lib/cpp2:server",
         "//thrift/lib/cpp2/util:util",
     ],

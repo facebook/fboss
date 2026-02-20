@@ -28,7 +28,7 @@ From container running on VM -
  tar -xvf fboss/oss/stable_commits/latest_stable_hashes.tar.gz
 
  # Build FBOSS
- ./build/fbcode_builder/getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss
+ ./fboss/oss/scripts/run-getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss
 ```
 
 ## Workflow: Iterate on FBOSS changes
@@ -74,7 +74,7 @@ From container running on VM -
  export SAI_BRCM_IMPL=1 // Optional
  export GETDEPS_USE_WGET=1
  cd /var/FBOSS/fboss.git
- ./build/fbcode_builder/getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss
+ ./fboss/oss/scripts/run-getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss
 ```
 
 ## Workflow: Iterate on FBOSS changes for "--cmake-target" option
@@ -84,7 +84,7 @@ From container running on VM -
 ```
  # Make the FBOSS code changes in “<scratch_path>/repos/github.com-facebook-fboss.git/”
  cd /var/FBOSS/fboss.git
- time ./build/fbcode_builder/getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss --cmake-target sai_test-sai_impl-1.11.0"
+ time ./fboss/oss/scripts/run-getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss --cmake-target sai_test-sai_impl-1.11.0"
 ```
 
 ## Workflow: Iterate on SAI lib changes for "--cmake-target" option
@@ -98,7 +98,7 @@ From container running on VM -
  cd <scratch_path>/installed/sai_impl-*>/
  # Replace libsai_impl.a with the newly built libsai.a
  cd /var/FBOSS/fboss.git
- time ./build/fbcode_builder/getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss --cmake-target sai_test-sai_impl-1.11.0"
+ time ./fboss/oss/scripts/run-getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss --cmake-target sai_test-sai_impl-1.11.0"
 ```
 
 ### SAI lib libsai.a changes involving SAI header changes (FBOSS OSS built using "--cmake-target" option)
@@ -116,5 +116,5 @@ From container running on VM -
  export SAI_BRCM_IMPL=1 // Optional
  export GETDEPS_USE_WGET=1
  cd /var/FBOSS/fboss.git
- ./build/fbcode_builder/getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss
+ ./fboss/oss/scripts/run-getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss
 ```

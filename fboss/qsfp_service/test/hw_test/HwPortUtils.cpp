@@ -49,7 +49,8 @@ void verifyPhyPortConfig(
   fillDefaultTxSettings(phyManager, filledConfig);
 
   // Now fetch the config actually programmed to the xphy
-  const auto& actualPortConfig = phyManager->getHwPhyPortConfig(portID);
+  const auto& actualPortConfig =
+      phyManager->getHwPhyPortConfig(portID, true /* readFromHw */);
 
   // Check speed
   EXPECT_EQ(filledConfig.profile.speed, actualPortConfig.profile.speed);

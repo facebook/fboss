@@ -140,6 +140,7 @@ enum SwitchRunState {
   CONFIGURED = 2,
   FIB_SYNCED = 3,
   EXITING = 4,
+  ROLLBACK = 5,
 }
 
 enum RemoteInterfaceType {
@@ -190,4 +191,18 @@ struct BufferPoolFields {
   2: optional i32 headroomBytes;
   3: i32 sharedBytes;
   4: optional i32 reservedBytes;
+}
+
+enum DeltaApplicationMode {
+  // Apply the full StateDelta vector
+  APPLY_ALL = 0,
+  // Rollback StateDelta vector at the end after application
+  ROLLBACK = 1,
+  // Rollback StateDelta vector at a specific index
+  ROLLBACK_AT_INDEX = 2,
+}
+
+struct StateDeltaApplication {
+  1: DeltaApplicationMode mode = DeltaApplicationMode.APPLY_ALL;
+  2: optional i32 rollbackIndex;
 }

@@ -20,13 +20,11 @@ cpp_library(
         "RackmonThriftHandler.h",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         ":core",
         ":rackmon_pls",
         "//fb303:service_data",
         "//fboss/platform/rackmon/if:rackmonsvc-cpp2-services",
-    ],
-    exported_external_deps = [
-        "glog",
     ],
 )
 
@@ -83,6 +81,8 @@ cpp_library(
     ],
     headers = [
         "Device.h",
+        "DeviceLocationFilter.h",
+        "DeviceLocationIterator.h",
         "Log.h",
         "Modbus.h",
         "ModbusCmds.h",
@@ -108,8 +108,10 @@ cpp_library(
     headers = [
         "RackmonPlsManager.h",
     ],
+    exported_deps = [
+        "fbsource//third-party/glog:glog",
+    ],
     exported_external_deps = [
-        "glog",
         "nlohmann_json",
         ("libgpiod", None, "gpiod"),
     ],
@@ -139,6 +141,7 @@ cpp_unittest(
     # @autodeps-skip
     name = "rackmon_test",
     srcs = [
+        "tests/DeviceLocationIteratorTest.cpp",
         "tests/DeviceTest.cpp",
         "tests/ModbusCmdsTest.cpp",
         "tests/ModbusDeviceTest.cpp",
@@ -159,6 +162,8 @@ cpp_unittest(
     ],
     headers = [
         "Device.h",
+        "DeviceLocationFilter.h",
+        "DeviceLocationIterator.h",
         "Modbus.h",
         "ModbusCmds.h",
         "ModbusDevice.h",
@@ -169,6 +174,7 @@ cpp_unittest(
         "RackmonPlsManager.h",
         "Register.h",
         "tests/TempDir.h",
+        "tests/TestUtils.h",
     ],
     compiler_flags = [
         "-D__TEST__",

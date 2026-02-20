@@ -21,6 +21,7 @@ cpp_library(
         "Tomahawk5Asic.cpp",
         "Tomahawk6Asic.cpp",
         "TomahawkAsic.cpp",
+        "TomahawkUltra1Asic.cpp",
         "Trident2Asic.cpp",
         "YubaAsic.cpp",
     ],

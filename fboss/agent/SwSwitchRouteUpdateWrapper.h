@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/RouteUpdateWrapper.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
 namespace facebook::fboss {
@@ -21,7 +22,9 @@ class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
  public:
   explicit SwSwitchRouteUpdateWrapper(
       SwSwitch* sw,
-      RoutingInformationBase* rib);
+      RoutingInformationBase* rib,
+      const std::optional<StateDeltaApplication>& deltaApplication =
+          std::nullopt);
 
  private:
   AdminDistance clientIdToAdminDistance(ClientID clientID) const override;

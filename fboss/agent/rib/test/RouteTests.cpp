@@ -11,6 +11,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/state/RouteNextHop.h"
 
 #include "fboss/agent/rib/RouteUpdater.h"
@@ -81,7 +82,8 @@ TEST(Route, removeRoutesForClient) {
   RouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
   RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
 
-  RibRouteUpdater u2(&v4Routes, &v6Routes);
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u2(&v4Routes, &v6Routes, &nhopIds);
   u2.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
       kClientA,
       {
@@ -119,7 +121,8 @@ TEST(Route, serializeRouteTable) {
   std::optional<cfg::AclLookupClass> classID(
       cfg::AclLookupClass::DST_CLASS_L3_DPR);
 
-  RibRouteUpdater u2(&v4Routes, &v6Routes, &mplsRoutes);
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u2(&v4Routes, &v6Routes, &mplsRoutes, &nhopIds);
   u2.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
       kClientA,
       {

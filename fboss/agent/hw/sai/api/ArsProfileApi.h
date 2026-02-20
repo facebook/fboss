@@ -163,6 +163,15 @@ struct SaiArsProfileTraits {
         AttributeArsPrimaryMembersRouteMetaData,
         SaiIntDefault<sai_uint32_t>>;
 #endif
+    struct AttributeEcmpMemberCount {
+      std::optional<sai_attr_id_t> operator()();
+    };
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+    using EcmpMemberCount = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeEcmpMemberCount,
+        SaiIntDefault<sai_uint32_t>>;
+#endif
   };
 
   using AdapterKey = ArsProfileSaiId;
@@ -238,6 +247,7 @@ SAI_ATTRIBUTE_NAME(ArsProfile, ArsBaseIndex)
 SAI_ATTRIBUTE_NAME(ArsProfile, ArsAlternateMembersRouteMetaData)
 SAI_ATTRIBUTE_NAME(ArsProfile, ArsRouteMetaDataMask)
 SAI_ATTRIBUTE_NAME(ArsProfile, ArsPrimaryMembersRouteMetaData)
+SAI_ATTRIBUTE_NAME(ArsProfile, EcmpMemberCount)
 #endif
 
 class ArsProfileApi : public SaiApi<ArsProfileApi> {

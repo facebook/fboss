@@ -12,11 +12,6 @@
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <fboss/cli/fboss2/utils/CmdUtils.h>
-#include <folly/String.h>
-#include <cstddef>
-#include <cstdint>
-#include <type_traits>
-#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/gen-cpp2/model_types.h"
 
@@ -33,44 +28,11 @@ class CmdShowFlowlet : public CmdHandler<CmdShowFlowlet, CmdShowFlowletTraits> {
  public:
   using EcmpDetails = facebook::fboss::EcmpDetails;
 
-  RetType queryClient(const HostInfo& hostInfo) {
-    std::vector<EcmpDetails> entries;
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+  RetType queryClient(const HostInfo& hostInfo);
 
-    client->sync_getAllEcmpDetails(entries);
-    return createModel(entries);
-  }
+  void printOutput(const RetType& model, std::ostream& out = std::cout);
 
-  void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    for (const auto& entry : model.ecmpEntries().value()) {
-      out << fmt::format(
-          "  ECMP ID: {}\n", folly::copy(entry.ecmpId().value()));
-      out << fmt::format(
-          "    Flowlet Enabled: {}\n",
-          folly::copy(entry.flowletEnabled().value()));
-      out << fmt::format(
-          "    Flowlet Interval: {}\n",
-          folly::copy(entry.flowletInterval().value()));
-      out << fmt::format(
-          "    Flowlet Table Size: {}\n",
-          folly::copy(entry.flowletTableSize().value()));
-    }
-  }
-
-  RetType createModel(std::vector<facebook::fboss::EcmpDetails>& ecmpEntries) {
-    RetType model;
-
-    for (const auto& entry : ecmpEntries) {
-      cli::EcmpEntry ecmpEntry;
-      ecmpEntry.ecmpId() = *(entry.ecmpId());
-      ecmpEntry.flowletEnabled() = *(entry.flowletEnabled());
-      ecmpEntry.flowletInterval() = *(entry.flowletInterval());
-      ecmpEntry.flowletTableSize() = *(entry.flowletTableSize());
-      model.ecmpEntries()->emplace_back(ecmpEntry);
-    }
-    return model;
-  }
+  RetType createModel(std::vector<facebook::fboss::EcmpDetails>& ecmpEntries);
 };
 
 } // namespace facebook::fboss
