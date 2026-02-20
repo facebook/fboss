@@ -70,6 +70,11 @@ void ExplorationSummary::publishCounters(ExplorationStatus finalStatus) {
       kExplorationFail,
       finalStatus != ExplorationStatus::SUCCEEDED &&
           finalStatus != ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS);
+  fb303::fbData->setCounter(
+      kExplorationSucceeded, finalStatus == ExplorationStatus::SUCCEEDED);
+  fb303::fbData->setCounter(
+      kExplorationSucceededWithExpectedErrors,
+      finalStatus == ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS);
   fb303::fbData->setCounter(kTotalFailures, nErrs_);
   fb303::fbData->setCounter(kTotalExpectedFailures, nExpectedErrs_);
 

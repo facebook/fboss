@@ -18,6 +18,10 @@ class ExplorationSummary {
   constexpr static auto kTotalExpectedFailures =
       "platform_explorer.total_expected_failures";
   constexpr static auto kExplorationFail = "platform_explorer.exploration_fail";
+  constexpr static auto kExplorationSucceeded =
+      "platform_explorer.exploration_succeeded";
+  constexpr static auto kExplorationSucceededWithExpectedErrors =
+      "platform_explorer.exploration_succeeded_with_expected_errors";
   constexpr static auto kExplorationFailByType =
       "platform_explorer.exploration_fail.{}";
 

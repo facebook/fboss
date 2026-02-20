@@ -26,6 +26,17 @@ class ExplorationSummaryTest : public testing::Test {
 TEST_F(ExplorationSummaryTest, GoodExploration) {
   EXPECT_EQ(summary_.summarize({}, {}), ExplorationStatus::SUCCEEDED);
   EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(ExplorationSummary::kExplorationFail),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          ExplorationSummary::kExplorationSucceeded),
+      1);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          ExplorationSummary::kExplorationSucceededWithExpectedErrors),
+      0);
+  EXPECT_EQ(
       facebook::fb303::fbData->getCounter(ExplorationSummary::kTotalFailures),
       0);
   EXPECT_EQ(
@@ -57,6 +68,17 @@ TEST_F(ExplorationSummaryTest, ExplorationWithExpectedErrors) {
       summary_.summarize({}, {}),
       ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS);
   EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(ExplorationSummary::kExplorationFail),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          ExplorationSummary::kExplorationSucceeded),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          ExplorationSummary::kExplorationSucceededWithExpectedErrors),
+      1);
+  EXPECT_EQ(
       facebook::fb303::fbData->getCounter(ExplorationSummary::kTotalFailures),
       0);
   EXPECT_EQ(
@@ -79,6 +101,17 @@ TEST_F(ExplorationSummaryTest, ExplorationWithOnlyErrors) {
   summary_.addError(
       ExplorationErrorType::I2C_DEVICE_EXPLORE, "/[NVME]", "fail");
   EXPECT_EQ(summary_.summarize({}, {}), ExplorationStatus::FAILED);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(ExplorationSummary::kExplorationFail),
+      1);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          ExplorationSummary::kExplorationSucceeded),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          ExplorationSummary::kExplorationSucceededWithExpectedErrors),
+      0);
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(ExplorationSummary::kTotalFailures),
       3);
@@ -114,6 +147,17 @@ TEST_F(ExplorationSummaryTest, ExplorationWithMixedErrors) {
   summary_.addError(
       ExplorationErrorType::I2C_DEVICE_EXPLORE, "/[MCB_MUX_B]", "fail");
   EXPECT_EQ(summary_.summarize({}, {}), ExplorationStatus::FAILED);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(ExplorationSummary::kExplorationFail),
+      1);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          ExplorationSummary::kExplorationSucceeded),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          ExplorationSummary::kExplorationSucceededWithExpectedErrors),
+      0);
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(ExplorationSummary::kTotalFailures),
       2);
