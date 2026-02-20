@@ -16,6 +16,31 @@ bgp_rib_test_publisher \
   --next-hops="2001:db8:ffff::1,2001:db8:ffff::2" &
 PID=$!
 ```
+### Multi-plane tests
+Multiple instances of the publisher can be run in parallel to simulate multiple planes. This also requires starting multiple instances of fsdb, 1 per plane. The following example shows how to start 2 planes with 1 test publisher each.
+```bash
+# Plane 1 (uses default fsdb service running on port 5908)
+bgp_rib_test_publisher \
+  --routes="2001:db8:1::/48,2001:db8:2::/48" \
+  --next-hops="2001:db8:ffff::1,2001:db8:ffff::2" &
+# with default fsdb service, fboss2 CLI can be used for validation. E.g.
+# fboss2 show fsdb state bgp/ribMap
+
+# Plane 2 (uses separate fsdb instance to simulate plane 2)
+# start fsdb listening on unused ports 5911, 5912, 5913
+fsdb --readConfigFile=false --thrift_ssl_policy=permitted --streamExpire_ms=0 --fsdbPort=5911 --migrated_fsdbPort=5912 --fsdbPort_high_priority=5913 &
+# start publisher using plane 2's fsdb instance
+bgp_rib_test_publisher \
+  --routes="2001:db8:1::/48,2001:db8:2::/48" \
+  --next-hops="2001:db8:ffff::1,2001:db8:ffff::2" \
+  --fsdbPort=5911 &
+
+# for non-default fsdb instance, use test_client to query ribMap published by publisher
+# and specify fsdbPort for the fsdb instance
+buck2 build fbcode//fboss/fsdb/oper:test_client
+# either run test_client on the test device, or specify host-IP. E.g.
+buck2 run //fboss/fsdb/oper:test_client --host=2401:db00:2066:3083::f --fsdbPort=5911 get bgp/ribMap
+```
 
 ### Flags
 
