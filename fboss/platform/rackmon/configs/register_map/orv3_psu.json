@@ -1,24 +1,24 @@
 {
     "name": "ORV3_PSU",
     "address_range": [
-	    [
-	        192,
-	        247
-	    ]
+        [
+            192,
+            247
+        ]
     ],
     "probe_register": 8,
     "baudrate": 19200,
     "special_handlers": [
-      {
-        "reg": 98,
-        "len": 2,
-        "period": 3600,
-        "action": "write",
-        "info": {
-          "interpret": "INTEGER",
-          "shell": "date +%s"
+        {
+            "reg": 98,
+            "len": 2,
+            "period": 3600,
+            "action": "write",
+            "info": {
+                "interpret": "INTEGER",
+                "shell": "date +%s"
+            }
         }
-      }
     ],
     "registers": [
         {
@@ -94,14 +94,38 @@
             "changes_only": true,
             "format": "FLAGS",
             "flags": [
-                [11, "Fan_Alarm"],
-                [10, "Temp_Alarm"],
-                [9, "DCDC_Converter_Failure"],
-                [8, "PFC_Converter_Fail"],
-                [3, "Communication"],
-                [2, "Temperature"],
-                [1, "DCDC"],
-                [0, "PFC"]
+                [
+                    11,
+                    "Fan_Alarm"
+                ],
+                [
+                    10,
+                    "Temp_Alarm"
+                ],
+                [
+                    9,
+                    "DCDC_Converter_Failure"
+                ],
+                [
+                    8,
+                    "PFC_Converter_Fail"
+                ],
+                [
+                    3,
+                    "Communication"
+                ],
+                [
+                    2,
+                    "Temperature"
+                ],
+                [
+                    1,
+                    "DCDC"
+                ],
+                [
+                    0,
+                    "PFC"
+                ]
             ],
             "name": "General_Alarm_Status_Register"
         },
@@ -112,14 +136,38 @@
             "changes_only": true,
             "format": "FLAGS",
             "flags": [
-                [11, "PFC_Fail"],
-                [10, "Input_Relay_Off"],
-                [9, "Bulk_Not_Ok"],
-                [8, "AC_Not_OK"],
-                [5, "Freq_High"],
-                [4, "Freq_Low"],
-                [1, "AC_OVP"],
-                [0, "AC_UVP"]
+                [
+                    11,
+                    "PFC_Fail"
+                ],
+                [
+                    10,
+                    "Input_Relay_Off"
+                ],
+                [
+                    9,
+                    "Bulk_Not_Ok"
+                ],
+                [
+                    8,
+                    "AC_Not_OK"
+                ],
+                [
+                    5,
+                    "Freq_High"
+                ],
+                [
+                    4,
+                    "Freq_Low"
+                ],
+                [
+                    1,
+                    "AC_OVP"
+                ],
+                [
+                    0,
+                    "AC_UVP"
+                ]
             ],
             "name": "PFC_Alarm_Status_Register"
         },
@@ -130,13 +178,34 @@
             "changes_only": true,
             "format": "FLAGS",
             "flags": [
-                [10, "Oring_Fail"],
-                [9, "Secondary_MCU_Fail"],
-                [8, "DCDC_Fail"],
-                [3, "Main_SCKT"],
-                [2, "Main_OCP"],
-                [1, "Main_OVP"],
-                [0, "Main_UVP"]
+                [
+                    10,
+                    "Oring_Fail"
+                ],
+                [
+                    9,
+                    "Secondary_MCU_Fail"
+                ],
+                [
+                    8,
+                    "DCDC_Fail"
+                ],
+                [
+                    3,
+                    "Main_SCKT"
+                ],
+                [
+                    2,
+                    "Main_OCP"
+                ],
+                [
+                    1,
+                    "Main_OVP"
+                ],
+                [
+                    0,
+                    "Main_UVP"
+                ]
             ],
             "name": "DCDC_Alarm_Status_Register"
         },
@@ -147,13 +216,34 @@
             "changes_only": true,
             "format": "FLAGS",
             "flags": [
-                [8, "Fan_Failure"],
-                [5, "PFC_Temp_Alarm"],
-                [4, "LLC_Temp_Alarm"],
-                [3, "Sync_Temp_Alarm"],
-                [2, "Oring_Temp_Alarm"],
-                [1, "Inlet_Temp_Alarm"],
-                [0, "Outlet_Temp_Alarm"]
+                [
+                    8,
+                    "Fan_Failure"
+                ],
+                [
+                    5,
+                    "PFC_Temp_Alarm"
+                ],
+                [
+                    4,
+                    "LLC_Temp_Alarm"
+                ],
+                [
+                    3,
+                    "Sync_Temp_Alarm"
+                ],
+                [
+                    2,
+                    "Oring_Temp_Alarm"
+                ],
+                [
+                    1,
+                    "Inlet_Temp_Alarm"
+                ],
+                [
+                    0,
+                    "Outlet_Temp_Alarm"
+                ]
             ],
             "name": "Temperature_Alarm_Status_Register"
         },
@@ -164,10 +254,22 @@
             "changes_only": true,
             "format": "FLAGS",
             "flags": [
-                [9, "PMBus_Active"],
-                [8, "Modbus_Active"],
-                [1, "Secondary_Logic_MCU_Fault"],
-                [0, "Primary_Secondary_MCU_Fault"]
+                [
+                    9,
+                    "PMBus_Active"
+                ],
+                [
+                    8,
+                    "Modbus_Active"
+                ],
+                [
+                    1,
+                    "Secondary_Logic_MCU_Fault"
+                ],
+                [
+                    0,
+                    "Primary_Secondary_MCU_Fault"
+                ]
             ],
             "name": "Communication_Alarm_Status_Register"
         },
@@ -333,15 +435,42 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [15, "Power_Cycle_5s"],
-                [14, "Clear_Faults_Latch"],
-                [13, "VO_Sel_Pin_Enable"],
-                [12, "HW_Reset_Pin_Enable"],
-                [11, "Active_Current_Sharing_Enable"],
-                [10, "Operation_At_Low_Voltage"],
-                [9, "Output_Voltage_Setting_51V_48V"],
-                [8, "PLS_Enable_Disable"],
-                [0, "PSU_Write_Enable"]
+                [
+                    15,
+                    "Power_Cycle_5s"
+                ],
+                [
+                    14,
+                    "Clear_Faults_Latch"
+                ],
+                [
+                    13,
+                    "VO_Sel_Pin_Enable"
+                ],
+                [
+                    12,
+                    "HW_Reset_Pin_Enable"
+                ],
+                [
+                    11,
+                    "Active_Current_Sharing_Enable"
+                ],
+                [
+                    10,
+                    "Operation_At_Low_Voltage"
+                ],
+                [
+                    9,
+                    "Output_Voltage_Setting_51V_48V"
+                ],
+                [
+                    8,
+                    "PLS_Enable_Disable"
+                ],
+                [
+                    0,
+                    "PSU_Write_Enable"
+                ]
             ],
             "name": "PSU_Setting_Register"
         },
@@ -362,9 +491,18 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [6, "Amber_LED"],
-                [5, "Blue_LED"],
-                [0, "LED_Override"]
+                [
+                    6,
+                    "Amber_LED"
+                ],
+                [
+                    5,
+                    "Blue_LED"
+                ],
+                [
+                    0,
+                    "LED_Override"
+                ]
             ],
             "name": "LED_Override"
         },
@@ -422,3 +560,4 @@
         }
     ]
 }
+
