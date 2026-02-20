@@ -10,6 +10,9 @@ thrift_library(
     ],
     thrift_cpp2_options = ["json"],
     thrift_srcs = {"showtech_config.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 cpp_binary(
