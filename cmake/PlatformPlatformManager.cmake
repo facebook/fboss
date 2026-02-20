@@ -7,7 +7,7 @@ add_library(platform_manager_fbiob_ioctl_h INTERFACE)
 
 target_sources(platform_manager_fbiob_ioctl_h
   INTERFACE
-    fboss/platform/platform_manager/fbiob_ioctl.h
+    fboss/platform/platform_manager/uapi/fbiob-ioctl.h
 )
 
 add_fbthrift_cpp_library(
