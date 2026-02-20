@@ -79,6 +79,13 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
   std::optional<SaiArsProfileTraits::Attributes::ArsPrimaryMembersRouteMetaData>
       arsPrimaryMembersRouteMetaData = 0;
 
+#if defined(BRCM_SAI_SDK_GTE_14_0)
+  std::optional<SaiArsProfileTraits::Attributes::EcmpMemberCount>
+      ecmpMemberCount = platform_->getAsic()->getMaxArsWidth()
+      ? std::optional<SaiArsProfileTraits::Attributes::EcmpMemberCount>(
+            platform_->getAsic()->getMaxArsWidth().value())
+      : std::nullopt;
+#endif
 #else
   if (samplingInterval >= kArsMinSamplingRateNs) {
     // convert nanosec to microsec
@@ -110,7 +117,12 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       arsBaseIndex,
       arsAlternateMembersRouteMetaData,
       arsRouteMetaDataMask,
-      arsPrimaryMembersRouteMetaData};
+      arsPrimaryMembersRouteMetaData
+#if defined(BRCM_SAI_SDK_GTE_14_0)
+      ,
+      ecmpMemberCount
+#endif
+  };
 #else
   };
 #endif

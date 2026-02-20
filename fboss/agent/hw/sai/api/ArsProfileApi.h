@@ -209,7 +209,12 @@ struct SaiArsProfileTraits {
       std::optional<Attributes::ArsBaseIndex>,
       std::optional<Attributes::ArsAlternateMembersRouteMetaData>,
       std::optional<Attributes::ArsRouteMetaDataMask>,
-      std::optional<Attributes::ArsPrimaryMembersRouteMetaData>>;
+      std::optional<Attributes::ArsPrimaryMembersRouteMetaData>
+#if defined(BRCM_SAI_SDK_GTE_14_0)
+      ,
+      std::optional<Attributes::EcmpMemberCount>
+#endif
+      >;
 #else
       >;
 #endif
