@@ -2,15 +2,25 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
 load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_versions")
+load("//fboss/build:build_info.bzl", "gen_sdk_build_info_src")
 load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_agent_push")
+
+[
+    gen_sdk_build_info_src(
+        name = "wedge_agent_{}_sdk_build_info".format(sdk.major_version),
+        sdk = sdk,
+    )
+    for sdk in BCM_SDKS
+]
 
 [
     cpp_binary(
         name = "wedge_agent_{}".format(sdk.major_version),
         srcs = [
             "wedge_agent.cpp",
+            ":wedge_agent_{}_sdk_build_info".format(sdk.major_version),
         ],
         linker_flags = [
             "--export-dynamic",
