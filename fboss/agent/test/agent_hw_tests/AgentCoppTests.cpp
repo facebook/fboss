@@ -73,6 +73,7 @@ template <typename TestType>
 class AgentCoppTest : public AgentHwTest {
   void setCmdLineFlagOverrides() const override {
     FLAGS_sai_user_defined_trap = true;
+    FLAGS_classid_for_unresolved_routes = true;
     AgentHwTest::setCmdLineFlagOverrides();
   }
 
