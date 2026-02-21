@@ -85,7 +85,9 @@ class MultiHwSwitchHandler {
 
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept;
 
-  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept;
+  bool sendPacketSwitchedAsync(
+      std::unique_ptr<TxPacket> pkt,
+      std::optional<SwitchID> switchId = std::nullopt) noexcept;
 
   bool transactionsSupported() const;
 
