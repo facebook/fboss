@@ -10,11 +10,115 @@ variables before calling the real getdeps.py. This allows us to configure the
 build environment without modifying the upstream getdeps.py script.
 """
 
+import argparse
 import glob
 import os
 import re
 import subprocess
 import sys
+import tempfile
+
+
+# SDK Related Flags
+ARG_NPU_SAI_IMPL = "--npu-sai-impl"
+ARG_NPU_SAI_VERSION = "--npu-sai-version"
+ARG_NPU_SAI_SDK_VERSION = "--npu-sai-sdk-version"
+ARG_NPU_LIBSAI_IMPL_PATH = "--npu-libsai-impl-path"
+ARG_NPU_EXPERIMENTS_PATH = "--npu-experiments-path"
+
+# Misc Build Flags
+ARG_BENCHMARK_INSTALL = "--benchmark-install"
+ARG_SKIP_INSTALL = "--skip-install"
+ARG_ASAN = "--asan"
+ARG_GETDEPS_HELP = "--getdeps-help"
+ARG_GETDEPS = "getdeps_args"
+
+SAI_IMPL_CHOICES = [
+    "SAI_BRCM_IMPL",
+    "SAI_BRCM_PAI_IMPL",
+    "CHENAB_SAI_SDK",
+    "SAI_TAJO_IMPL",
+    "BUILD_SAI_FAKE",
+]
+SAI_VERSION_SHAS = {
+    "1.13.2": "d60935ba1e5cc7e4ebf2ae7d04f9e937d445e3f875822e27a359c775cb203bae",
+    "1.14.0": "4e3a1d010bda0c589db46e077725a2cd9624a5cc255c89d1caa79deb408d1fa7",
+    "1.15.0": "94b7a7dd9dbcc46bf14ba9f12b8597e9e9c2069fcb8e383a61cdf6ca172f3511",
+    "1.15.3": "fd390d86e7abb419023decf1ec254054450a35d9147b0ad6499e6d12aa860812",
+    "1.16.0": "c7d9e85646b28a4d788448db28da649da37cd3ec7955fbeb8d7d80f76ef1796f",
+    "1.16.1": "cf65142d1a1286b5faa24c9ae61b3f955f04724d0bf5ef6e5679298353aa0871",
+    "1.16.3": "5c89cdb6b2e4f1b42ced6b78d43d06d22434ddbf423cdc551f7c2001f12e63d9",
+    "1.17.1": "05411b13b32abcc50f2f2b78e491e503b2b05e5a1503699abd4cc1b81f90d1ae",
+}
+# TODO: fill out
+SAI_SDK_VERSIONS = [
+    "SAI_VERSION_14_0_EA_ODP",
+]
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        ARG_NPU_SAI_IMPL,
+        required=False,
+        choices=SAI_IMPL_CHOICES,
+        help="SAI implementation to be used for the build.",
+    )
+    parser.add_argument(
+        ARG_NPU_SAI_VERSION,
+        required=False,
+        choices=SAI_VERSION_SHAS.keys(),
+        help="SAI version to be used for the build.",
+    )
+    parser.add_argument(
+        ARG_NPU_SAI_SDK_VERSION,
+        required=False,
+        choices=SAI_SDK_VERSIONS,
+        help="SAI SDK version to be used for the build.",
+    )
+    parser.add_argument(
+        ARG_NPU_LIBSAI_IMPL_PATH,
+        required=False,
+        # TODO: can we also specify a directory of dynamic libs, or should
+        # we add this to a diff flag
+        help="Full path to libsai_impl.a.",
+    )
+    parser.add_argument(
+        ARG_NPU_EXPERIMENTS_PATH,
+        required=False,
+        help="Full path to SAI spec experiments directory.",
+    )
+    parser.add_argument(
+        ARG_BENCHMARK_INSTALL,
+        required=False,
+        action="store_true",
+        help="Set this flag to install benchmark binaries.",
+    )
+    parser.add_argument(
+        ARG_SKIP_INSTALL,
+        required=False,
+        action="store_true",
+        help="Set this flag to skip installing binaries.",
+    )
+    # TODO: re-enable when asain builds are supported
+    # parser.add_argument(
+    #     ARG_ASAN,
+    #     required=False,
+    #     action="store_true",
+    #     help="Set this flag to enable ASAN builds.",
+    # )
+    parser.add_argument(
+        ARG_GETDEPS_HELP,
+        required=False,
+        action="store_true",
+        help="Set this flag to show the help menu for getdeps.py.",
+    )
+    parser.add_argument(
+        ARG_GETDEPS,
+        nargs=argparse.REMAINDER,
+        help="Arguments to be passed to getdeps.py.",
+    )
+    return parser.parse_args()
 
 
 def path_to(*args):
@@ -194,7 +298,86 @@ def setup_clang_environment(toolchain_info):
                 f.write(content.replace("\nbinutils", "\n#binutils"))
 
 
+def _edit_libsai_manifest(version):
+    """Overwrite the libsai manifest with the correct URL and SHA for the given version."""
+    url = f"https://github.com/opencomputeproject/SAI/archive/v{version}.tar.gz"
+    sha256 = SAI_VERSION_SHAS[version]
+    manifest_path = path_to("build", "fbcode_builder", "manifests", "libsai")
+    manifest_str = (
+        "[manifest]\n"
+        "name = libsai\n"
+        "\n"
+        "[download]\n"
+        f"url = {url}\n"
+        f"sha256 = {sha256}\n"
+        "\n"
+        "[build]\n"
+        "builder = nop\n"
+        f"subdir = SAI-{version}\n"
+        "\n"
+        "[install.files]\n"
+        "inc = include\n"
+    )
+    with open(manifest_path, "w") as f:
+        f.write(manifest_str)
+    print(f"Updated libsai manifest for SAI version {version}", file=sys.stderr)
+
+
+def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
+    """Validate SDK artifact paths, stage them, and prepend to CMAKE_PREFIX_PATH.
+
+    Both paths must be provided together. When present, the artifacts are
+    staged into a temporary directory with the lib/ and include/ structure
+    that CMake expects, and that directory is prepended to CMAKE_PREFIX_PATH.
+    """
+    if (libsai_impl_path is None) and (experiments_path is None):
+        print(
+            f"Both {ARG_NPU_LIBSAI_IMPL_PATH} and {ARG_NPU_EXPERIMENTS_PATH} not provided! Skip preparing SDK artifacts.",
+            file=sys.stderr,
+        )
+        return
+
+    if (libsai_impl_path is None) or (experiments_path is None):
+        print(
+            f"Error: {ARG_NPU_LIBSAI_IMPL_PATH} and {ARG_NPU_EXPERIMENTS_PATH} must both be provided together.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    # Stage artifacts into a prefix directory with lib/ and include/ subdirs
+    # using symlinks to avoid copying potentially large files.
+    staging_dir = tempfile.mkdtemp(prefix="fboss_sdk_")
+    lib_dir = os.path.join(staging_dir, "lib")
+    os.makedirs(lib_dir)
+    os.symlink(
+        os.path.abspath(libsai_impl_path),
+        os.path.join(lib_dir, os.path.basename(libsai_impl_path)),
+    )
+    os.symlink(os.path.abspath(experiments_path), os.path.join(staging_dir, "include"))
+
+    print(f"Staged SDK artifacts in {staging_dir}", file=sys.stderr)
+
+    # Prepend the staging directory to CMAKE_PREFIX_PATH
+    existing = os.environ.get("CMAKE_PREFIX_PATH", "")
+    os.environ["CMAKE_PREFIX_PATH"] = (
+        f"{staging_dir}:{existing}" if existing else staging_dir
+    )
+
+
 def main():
+    args = parse_args()
+    getdeps_path = path_to("build", "fbcode_builder", "getdeps.py")
+
+    if args.getdeps_help:
+        os.execv(getdeps_path, [getdeps_path, "-h"])
+
+    _conditionally_prepare_sdk_artifacts(
+        args.npu_libsai_impl_path, args.npu_experiments_path
+    )
+
+    if args.npu_sai_version is not None:
+        _edit_libsai_manifest(args.npu_sai_version)
+
     # Detect which toolchain is active and set up environment accordingly
     toolchain_info = detect_toolchain()
 
@@ -207,8 +390,7 @@ def main():
     # and we'll proceed without environment setup
 
     # Call the real getdeps.py with all arguments
-    getdeps_path = path_to("build", "fbcode_builder", "getdeps.py")
-    os.execv(getdeps_path, [getdeps_path] + sys.argv[1:])
+    os.execv(getdeps_path, [getdeps_path] + args.getdeps_args)
 
 
 if __name__ == "__main__":
