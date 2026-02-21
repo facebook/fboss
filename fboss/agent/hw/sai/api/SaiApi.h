@@ -284,11 +284,15 @@ class SaiApi {
          * If default value is provided, allow fallback in case of certain
          * error conditions (primarily to support the case where adapter should,
          * but does not return a default value for unimplemented attributes).
+         * INVALID_PARAMETER is included so that adapters (e.g. fake_sai) that
+         * do not support get for an optional attribute can be skipped.
          * The error codes here are not very precise and may need to be revised
          * based on experience.
          */
-        static constexpr std::array<sai_status_t, 2> kFallbackToDefaultErrCode{
-            SAI_STATUS_NOT_IMPLEMENTED, SAI_STATUS_NOT_SUPPORTED};
+        static constexpr std::array<sai_status_t, 3> kFallbackToDefaultErrCode{
+            SAI_STATUS_NOT_IMPLEMENTED,
+            SAI_STATUS_NOT_SUPPORTED,
+            SAI_STATUS_INVALID_PARAMETER};
         auto status = e.getSaiStatus();
         auto fallbackToDefault =
             std::find(

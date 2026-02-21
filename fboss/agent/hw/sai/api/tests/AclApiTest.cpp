@@ -410,13 +410,22 @@ class AclApiTest : public ::testing::Test {
             true, // neighbor meta
             true, // ether type
             true, // outer vlan id
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
             true, // bth opcode
+#endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
             true, // ipv6 next header
+#endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
             kUserDefinedFieldGroup0(), // udf group 0
             kUserDefinedFieldGroup1(), // udf group 1
             kUserDefinedFieldGroup2(), // udf group 2
             kUserDefinedFieldGroup3(), // udf group 3
             kUserDefinedFieldGroup4(), // udf group 4
+#endif
         },
         kSwitchID());
   }
@@ -499,8 +508,14 @@ class AclApiTest : public ::testing::Test {
         aclFieldOuterVlanIdAttribute{AclEntryFieldU16(kOuterVlanId())};
     SaiAclEntryTraits::Attributes::FieldBthOpcode aclFieldBthOpcodeAttribute{
         AclEntryFieldU8(kBthOpcode())};
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
     SaiAclEntryTraits::Attributes::FieldIpv6NextHeader
         aclFieldIpv6NextHeaderAttribute{AclEntryFieldU8(kIpv6NextHeader())};
+#endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
     SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin0
         aclUserDefinedGroup0{AclEntryFieldU8List{kUDFGroupData()}};
     SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin1
@@ -511,6 +526,7 @@ class AclApiTest : public ::testing::Test {
         aclUserDefinedGroup3{AclEntryFieldU8List{kUDFGroupData()}};
     SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin4
         aclUserDefinedGroup4{AclEntryFieldU8List{kUDFGroupData()}};
+#endif
     SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction{
         AclEntryActionU32(kPacketAction())};
     SaiAclEntryTraits::Attributes::ActionCounter aclActionCounter{
@@ -526,8 +542,10 @@ class AclApiTest : public ::testing::Test {
         AclEntryActionSaiObjectIdList(kMirrorEgress())};
     SaiAclEntryTraits::Attributes::ActionMacsecFlow aclActionMacsecFlow{
         AclEntryActionSaiObjectIdT(kMacsecFlow())};
+#if !defined(TAJO_SDK)
     SaiAclEntryTraits::Attributes::ActionSetUserTrap aclActionSetUserTrap{
         AclEntryActionSaiObjectIdT(kSetUserTrap())};
+#endif
     SaiAclEntryTraits::Attributes::ActionSetArsObject aclActionSetArsObject{
         AclEntryActionSaiObjectIdT(kSetArsObject())};
     SaiAclEntryTraits::Attributes::ActionDisableArsForwarding
@@ -568,12 +586,19 @@ class AclApiTest : public ::testing::Test {
          aclFieldEtherTypeAttribute,
          aclFieldOuterVlanIdAttribute,
          aclFieldBthOpcodeAttribute,
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
          aclFieldIpv6NextHeaderAttribute,
+#endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
          aclUserDefinedGroup0,
          aclUserDefinedGroup1,
          aclUserDefinedGroup2,
          aclUserDefinedGroup3,
          aclUserDefinedGroup4,
+#endif
          aclActionPacketAction,
          aclActionCounter,
          aclActionSetTC,
@@ -581,7 +606,9 @@ class AclApiTest : public ::testing::Test {
          aclActionMirrorIngress,
          aclActionMirrorEgress,
          aclActionMacsecFlow,
+#if !defined(TAJO_SDK)
          aclActionSetUserTrap,
+#endif
          aclActionSetArsObject,
          aclActionDisableArsForwarding,
          aclActionSetEcmpHashAlgorithm,
@@ -782,8 +809,14 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::FieldOuterVlanId());
     auto aclFieldBthOpcodeGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldBthOpcode());
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
     auto aclFieldIpv6NextHeaderGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldIpv6NextHeader());
+#endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
     auto aclUdfGroupData0Got = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin0());
     auto aclUdfGroupData1Got = aclApi->getAttribute(
@@ -794,6 +827,7 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin3());
     auto aclUdfGroupData4Got = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin4());
+#endif
 
     auto aclActionPacketActionGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionPacketAction());
@@ -809,8 +843,10 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::ActionMirrorEgress());
     auto aclActionMacsecFlowGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionMacsecFlow());
+#if !defined(TAJO_SDK)
     auto aclActionSetUserTrapGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionSetUserTrap());
+#endif
     auto aclActionSetArsObjectGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionSetArsObject());
     auto aclActionDisableArsForwardingGot = aclApi->getAttribute(
@@ -851,12 +887,19 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclFieldEtherTypeGot.getDataAndMask(), etherType);
     EXPECT_EQ(aclFieldOuterVlanIdGot.getDataAndMask(), outerVlanId);
     EXPECT_EQ(aclFieldBthOpcodeGot.getDataAndMask(), bthOpcode);
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
     EXPECT_EQ(aclFieldIpv6NextHeaderGot.getDataAndMask(), ipv6NextHeader);
+#endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
     EXPECT_EQ(aclUdfGroupData0Got.getDataAndMask(), udfGroupData0);
     EXPECT_EQ(aclUdfGroupData1Got.getDataAndMask(), udfGroupData1);
     EXPECT_EQ(aclUdfGroupData2Got.getDataAndMask(), udfGroupData2);
     EXPECT_EQ(aclUdfGroupData3Got.getDataAndMask(), udfGroupData3);
     EXPECT_EQ(aclUdfGroupData4Got.getDataAndMask(), udfGroupData4);
+#endif
 
     EXPECT_EQ(aclActionPacketActionGot.getData(), packetAction);
     EXPECT_EQ(aclActionCounterGot.getData(), counter);
@@ -865,7 +908,9 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclActionMirrorIngress.getData(), mirrorIngress);
     EXPECT_EQ(aclActionMirrorEgress.getData(), mirrorEgress);
     EXPECT_EQ(aclActionMacsecFlowGot.getData(), macsecFlow);
+#if !defined(TAJO_SDK)
     EXPECT_EQ(aclActionSetUserTrapGot.getData(), setUserTrap);
+#endif
     EXPECT_EQ(aclActionSetArsObjectGot.getData(), setArsObject);
     EXPECT_EQ(aclActionDisableArsForwardingGot.getData(), disableArsForwarding);
     EXPECT_EQ(aclActionSetEcmpHashAlgorithmGot.getData(), setEcmpHashAlgorithm);
@@ -1016,6 +1061,10 @@ TEST_F(AclApiTest, getAclTableAttribute) {
       aclTableId, SaiAclTableTraits::Attributes::FieldRouteDstUserMeta());
   auto aclTableFieldNeighborDstUserMetaGot = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::FieldNeighborDstUserMeta());
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
   auto aclTableUserDefinedFieldGroup0 = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::UserDefinedFieldGroupMin0());
   auto aclTableUserDefinedFieldGroup1 = aclApi->getAttribute(
@@ -1026,6 +1075,7 @@ TEST_F(AclApiTest, getAclTableAttribute) {
       aclTableId, SaiAclTableTraits::Attributes::UserDefinedFieldGroupMin3());
   auto aclTableUserDefinedFieldGroup4 = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::UserDefinedFieldGroupMin4());
+#endif
 
   EXPECT_EQ(aclTableStageGot, SAI_ACL_STAGE_INGRESS);
   EXPECT_EQ(aclTableBindPointTypeListGot.size(), 1);
@@ -1057,11 +1107,16 @@ TEST_F(AclApiTest, getAclTableAttribute) {
   EXPECT_EQ(aclTableFieldFdbDstUserMetaGot, true);
   EXPECT_EQ(aclTableFieldRouteDstUserMetaGot, true);
   EXPECT_EQ(aclTableFieldNeighborDstUserMetaGot, true);
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
   EXPECT_EQ(aclTableUserDefinedFieldGroup0, kUserDefinedFieldGroup0());
   EXPECT_EQ(aclTableUserDefinedFieldGroup1, kUserDefinedFieldGroup1());
   EXPECT_EQ(aclTableUserDefinedFieldGroup2, kUserDefinedFieldGroup2());
   EXPECT_EQ(aclTableUserDefinedFieldGroup3, kUserDefinedFieldGroup3());
   EXPECT_EQ(aclTableUserDefinedFieldGroup4, kUserDefinedFieldGroup4());
+#endif
 }
 
 TEST_F(AclApiTest, getAclEntryAttribute) {
@@ -1292,8 +1347,14 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryFieldU16(kOuterVlanId())};
   SaiAclEntryTraits::Attributes::FieldBthOpcode aclFieldBthOpcode{
       AclEntryFieldU8(kBthOpcode())};
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
   SaiAclEntryTraits::Attributes::FieldIpv6NextHeader aclFieldIpv6NextHeader{
       AclEntryFieldU8(kIpv6NextHeader())};
+#endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
   SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin0 aclUserDefinedGroup0{
       AclEntryFieldU8List{kUDFGroupData()}};
   SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin1 aclUserDefinedGroup1{
@@ -1304,6 +1365,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryFieldU8List{kUDFGroupData()}};
   SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin4 aclUserDefinedGroup4{
       AclEntryFieldU8List{kUDFGroupData()}};
+#endif
 
   SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction2{
       AclEntryActionU32(kPacketAction2())};
@@ -1319,8 +1381,10 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryActionSaiObjectIdList(kMirrorEgress2())};
   SaiAclEntryTraits::Attributes::ActionMacsecFlow aclActionMacsecFlow2{
       AclEntryActionSaiObjectIdT(kMacsecFlow2())};
+#if !defined(TAJO_SDK)
   SaiAclEntryTraits::Attributes::ActionSetUserTrap aclActionSetUserTrap{
       AclEntryActionSaiObjectIdT(kSetUserTrap())};
+#endif
   SaiAclEntryTraits::Attributes::ActionSetArsObject aclActionSetArsObject{
       AclEntryActionSaiObjectIdT(kSetArsObject())};
   SaiAclEntryTraits::Attributes::ActionDisableArsForwarding
@@ -1358,12 +1422,19 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclFieldEtherType);
   aclApi->setAttribute(aclEntryId, aclFieldOuterVlanId);
   aclApi->setAttribute(aclEntryId, aclFieldBthOpcode);
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
   aclApi->setAttribute(aclEntryId, aclFieldIpv6NextHeader);
+#endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
   aclApi->setAttribute(aclEntryId, aclUserDefinedGroup0);
   aclApi->setAttribute(aclEntryId, aclUserDefinedGroup1);
   aclApi->setAttribute(aclEntryId, aclUserDefinedGroup2);
   aclApi->setAttribute(aclEntryId, aclUserDefinedGroup3);
   aclApi->setAttribute(aclEntryId, aclUserDefinedGroup4);
+#endif
   aclApi->setAttribute(aclEntryId, aclActionPacketAction2);
   aclApi->setAttribute(aclEntryId, aclActionCounter2);
   aclApi->setAttribute(aclEntryId, aclActionSetTC2);
@@ -1371,7 +1442,9 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclActionMirrorIngress2);
   aclApi->setAttribute(aclEntryId, aclActionMirrorEgress2);
   aclApi->setAttribute(aclEntryId, aclActionMacsecFlow2);
+#if !defined(TAJO_SDK)
   aclApi->setAttribute(aclEntryId, aclActionSetUserTrap);
+#endif
   aclApi->setAttribute(aclEntryId, aclActionSetArsObject);
   aclApi->setAttribute(aclEntryId, aclActionDisableArsForwarding);
   aclApi->setAttribute(aclEntryId, aclActionSetEcmpHashAlgorithm);

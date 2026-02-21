@@ -23,23 +23,63 @@ class RouterInterfaceStoreTest : public SaiStoreTest {
       sai_object_id_t vlanId,
       const folly::MacAddress& mac,
       sai_uint32_t mtu) {
+    SaiVlanRouterInterfaceTraits::Attributes::VirtualRouterId
+        virtualRouterIdAttribute(0);
+    SaiVlanRouterInterfaceTraits::Attributes::Type typeAttribute(
+        SAI_ROUTER_INTERFACE_TYPE_VLAN);
+    SaiVlanRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute(vlanId);
+    SaiVlanRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute(mac);
+    SaiVlanRouterInterfaceTraits::Attributes::Mtu mtuAttribute(mtu);
     return saiApiTable->routerInterfaceApi()
         .create<SaiVlanRouterInterfaceTraits>(
-            {0, SAI_ROUTER_INTERFACE_TYPE_VLAN, vlanId, mac, mtu}, 0);
+            {
+                virtualRouterIdAttribute,
+                typeAttribute,
+                vlanIdAttribute,
+                srcMacAttribute,
+                mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+                ,
+                std::nullopt // AdminMplsState
+#endif
+            },
+            0);
   }
   RouterInterfaceSaiId createPortRouterInterface(
       sai_object_id_t portId,
       const folly::MacAddress& mac,
       sai_uint32_t mtu) {
+    SaiPortRouterInterfaceTraits::Attributes::VirtualRouterId
+        virtualRouterIdAttribute(0);
+    SaiPortRouterInterfaceTraits::Attributes::Type typeAttribute(
+        SAI_ROUTER_INTERFACE_TYPE_PORT);
+    SaiPortRouterInterfaceTraits::Attributes::PortId portIdAttribute(portId);
+    SaiPortRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute(mac);
+    SaiPortRouterInterfaceTraits::Attributes::Mtu mtuAttribute(mtu);
     return saiApiTable->routerInterfaceApi()
         .create<SaiPortRouterInterfaceTraits>(
-            {0, SAI_ROUTER_INTERFACE_TYPE_PORT, portId, mac, mtu}, 0);
+            {
+                virtualRouterIdAttribute,
+                typeAttribute,
+                portIdAttribute,
+                srcMacAttribute,
+                mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+                ,
+                std::nullopt // AdminMplsState
+#endif
+            },
+            0);
   }
 
   RouterInterfaceSaiId createMplsRouterInterface() {
+    SaiMplsRouterInterfaceTraits::Attributes::VirtualRouterId
+        virtualRouterIdAttribute(0);
+    SaiMplsRouterInterfaceTraits::Attributes::Type typeAttribute(
+        SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER);
     return saiApiTable->routerInterfaceApi()
         .create<SaiMplsRouterInterfaceTraits>(
-            {0, SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER}, 0);
+            {virtualRouterIdAttribute, typeAttribute}, 0);
   }
 };
 
@@ -122,8 +162,24 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceCreateCtor) {
   folly::MacAddress srcMac{"41:41:41:41:41:41"};
   {
     SaiVlanRouterInterfaceTraits::AdapterHostKey k{0, 41};
+    SaiVlanRouterInterfaceTraits::Attributes::VirtualRouterId
+        virtualRouterIdAttribute(0);
+    SaiVlanRouterInterfaceTraits::Attributes::Type typeAttribute(
+        SAI_ROUTER_INTERFACE_TYPE_VLAN);
+    SaiVlanRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute(41);
+    SaiVlanRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute(srcMac);
+    SaiVlanRouterInterfaceTraits::Attributes::Mtu mtuAttribute(9000);
     SaiVlanRouterInterfaceTraits::CreateAttributes c{
-        0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac, 9000};
+        virtualRouterIdAttribute,
+        typeAttribute,
+        vlanIdAttribute,
+        srcMacAttribute,
+        mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        ,
+        std::nullopt // AdminMplsState
+#endif
+    };
 
     auto obj = createObj<SaiVlanRouterInterfaceTraits>(k, c, 0);
     EXPECT_EQ(GET_ATTR(VlanRouterInterface, VlanId, obj.attributes()), 41);
@@ -133,8 +189,24 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceCreateCtor) {
   }
   {
     SaiPortRouterInterfaceTraits::AdapterHostKey k{0, 41};
+    SaiPortRouterInterfaceTraits::Attributes::VirtualRouterId
+        virtualRouterIdAttribute(0);
+    SaiPortRouterInterfaceTraits::Attributes::Type typeAttribute(
+        SAI_ROUTER_INTERFACE_TYPE_PORT);
+    SaiPortRouterInterfaceTraits::Attributes::PortId portIdAttribute(41);
+    SaiPortRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute(srcMac);
+    SaiPortRouterInterfaceTraits::Attributes::Mtu mtuAttribute(9000);
     SaiPortRouterInterfaceTraits::CreateAttributes c{
-        0, SAI_ROUTER_INTERFACE_TYPE_PORT, 41, srcMac, 9000};
+        virtualRouterIdAttribute,
+        typeAttribute,
+        portIdAttribute,
+        srcMacAttribute,
+        mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        ,
+        std::nullopt // AdminMplsState
+#endif
+    };
 
     auto obj = createObj<SaiPortRouterInterfaceTraits>(k, c, 0);
     EXPECT_EQ(GET_ATTR(PortRouterInterface, PortId, obj.attributes()), 41);
@@ -161,8 +233,24 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceSetSrcMac) {
   folly::MacAddress srcMac{"41:41:41:41:41:41"};
   {
     SaiVlanRouterInterfaceTraits::AdapterHostKey k{0, 41};
+    SaiVlanRouterInterfaceTraits::Attributes::VirtualRouterId
+        virtualRouterIdAttribute(0);
+    SaiVlanRouterInterfaceTraits::Attributes::Type typeAttribute(
+        SAI_ROUTER_INTERFACE_TYPE_VLAN);
+    SaiVlanRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute(41);
+    SaiVlanRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute(srcMac);
+    SaiVlanRouterInterfaceTraits::Attributes::Mtu mtuAttribute(9000);
     SaiVlanRouterInterfaceTraits::CreateAttributes c{
-        0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac, 9000};
+        virtualRouterIdAttribute,
+        typeAttribute,
+        vlanIdAttribute,
+        srcMacAttribute,
+        mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        ,
+        std::nullopt // AdminMplsState
+#endif
+    };
 
     auto obj = createObj<SaiVlanRouterInterfaceTraits>(k, c, 0);
     EXPECT_EQ(GET_ATTR(VlanRouterInterface, VlanId, obj.attributes()), 41);
@@ -171,8 +259,19 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceSetSrcMac) {
     EXPECT_EQ(GET_OPT_ATTR(VlanRouterInterface, Mtu, obj.attributes()), 9000);
 
     folly::MacAddress srcMac2{"42:42:42:42:42:42"};
+    SaiVlanRouterInterfaceTraits::Attributes::SrcMac srcMac2Attribute(srcMac2);
+    SaiVlanRouterInterfaceTraits::Attributes::Mtu mtu2Attribute(1514);
     SaiVlanRouterInterfaceTraits::CreateAttributes newAttrs{
-        0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac2, 1514};
+        virtualRouterIdAttribute,
+        typeAttribute,
+        vlanIdAttribute,
+        srcMac2Attribute,
+        mtu2Attribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        ,
+        std::nullopt // AdminMplsState
+#endif
+    };
     obj.setAttributes(newAttrs);
     EXPECT_EQ(GET_ATTR(VlanRouterInterface, VlanId, obj.attributes()), 41);
     EXPECT_EQ(
@@ -181,8 +280,24 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceSetSrcMac) {
   }
   {
     SaiPortRouterInterfaceTraits::AdapterHostKey k{0, 41};
+    SaiPortRouterInterfaceTraits::Attributes::VirtualRouterId
+        virtualRouterIdAttribute(0);
+    SaiPortRouterInterfaceTraits::Attributes::Type typeAttribute(
+        SAI_ROUTER_INTERFACE_TYPE_PORT);
+    SaiPortRouterInterfaceTraits::Attributes::PortId portIdAttribute(41);
+    SaiPortRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute(srcMac);
+    SaiPortRouterInterfaceTraits::Attributes::Mtu mtuAttribute(9000);
     SaiPortRouterInterfaceTraits::CreateAttributes c{
-        0, SAI_ROUTER_INTERFACE_TYPE_PORT, 41, srcMac, 9000};
+        virtualRouterIdAttribute,
+        typeAttribute,
+        portIdAttribute,
+        srcMacAttribute,
+        mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        ,
+        std::nullopt // AdminMplsState
+#endif
+    };
 
     auto obj = createObj<SaiPortRouterInterfaceTraits>(k, c, 0);
     EXPECT_EQ(GET_ATTR(PortRouterInterface, PortId, obj.attributes()), 41);
@@ -191,8 +306,19 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceSetSrcMac) {
     EXPECT_EQ(GET_OPT_ATTR(PortRouterInterface, Mtu, obj.attributes()), 9000);
 
     folly::MacAddress srcMac2{"42:42:42:42:42:42"};
+    SaiPortRouterInterfaceTraits::Attributes::SrcMac srcMac2Attribute(srcMac2);
+    SaiPortRouterInterfaceTraits::Attributes::Mtu mtu2Attribute(1514);
     SaiPortRouterInterfaceTraits::CreateAttributes newAttrs{
-        0, SAI_ROUTER_INTERFACE_TYPE_PORT, 41, srcMac2, 1514};
+        virtualRouterIdAttribute,
+        typeAttribute,
+        portIdAttribute,
+        srcMac2Attribute,
+        mtu2Attribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        ,
+        std::nullopt // AdminMplsState
+#endif
+    };
     obj.setAttributes(newAttrs);
     EXPECT_EQ(GET_ATTR(PortRouterInterface, PortId, obj.attributes()), 41);
     EXPECT_EQ(
@@ -223,8 +349,24 @@ TEST_F(RouterInterfaceStoreTest, routerFormatTest) {
   folly::MacAddress srcMac{"41:41:41:41:41:41"};
   {
     SaiVlanRouterInterfaceTraits::AdapterHostKey k{0, 41};
+    SaiVlanRouterInterfaceTraits::Attributes::VirtualRouterId
+        virtualRouterIdAttribute(0);
+    SaiVlanRouterInterfaceTraits::Attributes::Type typeAttribute(
+        SAI_ROUTER_INTERFACE_TYPE_VLAN);
+    SaiVlanRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute(41);
+    SaiVlanRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute(srcMac);
+    SaiVlanRouterInterfaceTraits::Attributes::Mtu mtuAttribute(9000);
     SaiVlanRouterInterfaceTraits::CreateAttributes c{
-        0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac, 9000};
+        virtualRouterIdAttribute,
+        typeAttribute,
+        vlanIdAttribute,
+        srcMacAttribute,
+        mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        ,
+        std::nullopt // AdminMplsState
+#endif
+    };
     auto obj = createObj<SaiVlanRouterInterfaceTraits>(k, c, 0);
     auto expected =
         "RouterInterfaceSaiId(0): "
@@ -234,8 +376,24 @@ TEST_F(RouterInterfaceStoreTest, routerFormatTest) {
   }
   {
     SaiPortRouterInterfaceTraits::AdapterHostKey k{0, 41};
+    SaiPortRouterInterfaceTraits::Attributes::VirtualRouterId
+        virtualRouterIdAttribute(0);
+    SaiPortRouterInterfaceTraits::Attributes::Type typeAttribute(
+        SAI_ROUTER_INTERFACE_TYPE_PORT);
+    SaiPortRouterInterfaceTraits::Attributes::PortId portIdAttribute(41);
+    SaiPortRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute(srcMac);
+    SaiPortRouterInterfaceTraits::Attributes::Mtu mtuAttribute(9000);
     SaiPortRouterInterfaceTraits::CreateAttributes c{
-        0, SAI_ROUTER_INTERFACE_TYPE_PORT, 41, srcMac, 9000};
+        virtualRouterIdAttribute,
+        typeAttribute,
+        portIdAttribute,
+        srcMacAttribute,
+        mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        ,
+        std::nullopt // AdminMplsState
+#endif
+    };
     auto obj = createObj<SaiPortRouterInterfaceTraits>(k, c, 0);
     auto expected =
         "RouterInterfaceSaiId(1): "
