@@ -630,7 +630,25 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
   }
 
  private:
-  // program neighbor entries with neighbor updater
+  // Generate same unique MAC per index as updateNeighborEntries
+  // (02:00:00:XX:YY:ZZ)
+  static folly::MacAddress macFromNeighborIndex(uint32_t i) {
+    return folly::MacAddress::fromBinary(
+        folly::ByteRange(
+            std::array<uint8_t, 6>{
+                0x02,
+                0x00,
+                static_cast<uint8_t>((i >> 24) & 0xFF),
+                static_cast<uint8_t>((i >> 16) & 0xFF),
+                static_cast<uint8_t>((i >> 8) & 0xFF),
+                static_cast<uint8_t>(i & 0xFF),
+            }
+                .data(),
+            6));
+  }
+
+  // program neighbor entries with neighbor updater (entries from
+  // getBulkProgramCount() onward)
   template <typename AddrT>
   void programNeighborsWithNeighborUpdater(
       const PortDescriptor& port,
@@ -638,11 +656,12 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     for (int i = getBulkProgramCount(); i < ipAddresses.size(); i++) {
       XLOG(DBG2) << "Programming neighbor " << i << ": "
                  << ipAddresses[i].str();
+      folly::MacAddress mac = macFromNeighborIndex(static_cast<uint32_t>(i));
       if (FLAGS_intf_nbr_tables) {
         getSw()->getNeighborUpdater()->receivedNdpMineForIntf(
             kIntfID,
             ipAddresses[i],
-            kNeighborMac,
+            mac,
             port,
             ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
             0);
@@ -650,7 +669,7 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
         getSw()->getNeighborUpdater()->receivedNdpMine(
             kVlanID,
             ipAddresses[i],
-            kNeighborMac,
+            mac,
             port,
             ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
             0);
@@ -686,7 +705,7 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
           state,
           port,
           ipAddressesV6[i],
-          kNeighborMac,
+          macFromNeighborIndex(i),
           FLAGS_intf_nbr_tables,
           lookupClass);
     }
