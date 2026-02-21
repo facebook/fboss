@@ -213,11 +213,14 @@ T1 Link tests scope is controlled by the known-bad and unsupported test files, s
 
 ### Agent Benchmark Tests
 
-- `sai_tx_slow_path_rate-sai_impl` binary
-- `sai_rx_slow_path_rate-sai_impl` binary
-- `sai_ecmp_shrink_speed-sai_impl` binary
-- `sai_rib_resolution_speed-sai_impl` binary
-- `sai_stats_collection_speed-sai_impl` binary
+`run_test.py`:
+```bash
+./bin/run_test.py benchmark \
+--filter_file ./share/hw_benchmark_tests/t1_benchmarks.conf
+```
+
+```bash file=../fboss/oss/hw_benchmark_tests/t1_benchmarks.conf
+```
 
 ### SAI Tests
 
@@ -259,19 +262,14 @@ T1 Link tests scope is controlled by the known-bad and unsupported test files, s
 
 ### Agent Benchmark Tests
 
-- `sai_fsw_scale_route_add_speed-sai_impl` binary
-- `sai_hgrid_du_scale_route_add_speed-sai_impl` binary
-- `sai_th_alpm_scale_route_add_speed-sai_impl` binary
-- `sai_fsw_scale_route_del_speed-sai_impl` binary
-- `sai_ecmp_shrink_with_competing_route_updates_speed-sai_impl` binary
-- `sai_th_alpm_scale_route_del_speed-sai_impl` binary
-- `sai_hgrid_du_scale_route_del_speed-sai_impl` binary
-- `sai_init_and_exit_40Gx10G-sai_impl` binary
-- `sai_init_and_exit_100Gx10G-sai_impl` binary
-- `sai_init_and_exit_100Gx25G-sai_impl` binary
-- `sai_init_and_exit_100Gx50G-sai_impl` binary
-- `sai_init_and_exit_100Gx100G-sai_impl` binary
-- `sai_switch_reachability_change_speed-sai_impl` binary
+`run_test.py`:
+```bash
+./bin/run_test.py benchmark \
+--filter_file ./share/hw_benchmark_tests/t2_benchmarks.conf
+```
+
+```bash file=../fboss/oss/hw_benchmark_tests/t2_benchmarks.conf
+```
 
 ### SAI Tests
 
