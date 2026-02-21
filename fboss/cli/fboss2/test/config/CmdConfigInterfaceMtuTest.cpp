@@ -1,63 +1,26 @@
-// (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <boost/filesystem/operations.hpp>
+#include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <cstdlib>
-#include <filesystem>
-#include <fstream>
-#include <memory>
-#include <stdexcept>
-#include <system_error>
 #include <vector>
 
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
-#include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "fboss/cli/fboss2/test/TestableConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
-#include "fboss/cli/fboss2/utils/PortMap.h" // NOLINT(misc-include-cleaner)
-
-namespace fs = std::filesystem;
 
 using namespace ::testing;
 
 namespace facebook::fboss {
 
-class CmdConfigInterfaceMtuTestFixture : public CmdHandlerTestBase {
+class CmdConfigInterfaceMtuTestFixture : public CmdConfigTestBase {
  public:
-  void SetUp() override {
-    CmdHandlerTestBase::SetUp();
-
-    // Create unique test directories
-    auto tempBase = fs::temp_directory_path();
-    auto uniquePath =
-        boost::filesystem::unique_path("fboss_mtu_test_%%%%-%%%%-%%%%-%%%%");
-    testHomeDir_ = tempBase / (uniquePath.string() + "_home");
-    testEtcDir_ = tempBase / (uniquePath.string() + "_etc");
-
-    std::error_code ec;
-    if (fs::exists(testHomeDir_)) {
-      fs::remove_all(testHomeDir_, ec);
-    }
-    if (fs::exists(testEtcDir_)) {
-      fs::remove_all(testEtcDir_, ec);
-    }
-
-    // Create test directories
-    fs::create_directories(testHomeDir_);
-    fs::create_directories(testEtcDir_ / "coop");
-    fs::create_directories(testEtcDir_ / "coop" / "cli");
-
-    // NOLINTNEXTLINE(concurrency-mt-unsafe,misc-include-cleaner)
-    setenv("HOME", testHomeDir_.c_str(), 1);
-    // NOLINTNEXTLINE(concurrency-mt-unsafe,misc-include-cleaner)
-    setenv("USER", "testuser", 1);
-
-    // Create a test system config file as agent-r1.conf in the cli directory
-    fs::path initialRevision = testEtcDir_ / "coop" / "cli" / "agent-r1.conf";
-    createTestConfig(initialRevision, R"({
+  CmdConfigInterfaceMtuTestFixture()
+      : CmdConfigTestBase(
+            "fboss_mtu_test_%%%%-%%%%-%%%%-%%%%",
+            R"({
   "sw": {
     "ports": [
       {
@@ -100,46 +63,13 @@ class CmdConfigInterfaceMtuTestFixture : public CmdHandlerTestBase {
       }
     ]
   }
-})");
+})") {}
 
-    // Create symlink at agent.conf pointing to agent-r1.conf
-    systemConfigPath_ = testEtcDir_ / "coop" / "agent.conf";
-    fs::create_symlink(initialRevision, systemConfigPath_);
+  void SetUp() override {
+    CmdConfigTestBase::SetUp();
 
-    // Initialize the ConfigSession singleton for all tests
-    fs::path sessionConfig = testHomeDir_ / ".fboss2" / "agent.conf";
-    auto testSession = std::make_unique<TestableConfigSession>(
-        sessionConfig.string(),
-        systemConfigPath_.string(),
-        (testEtcDir_ / "coop" / "cli").string());
-    // Set a default command line for tests that call saveConfig()
-    testSession->setCommandLine("config interface eth1/1/1 mtu 9000");
-    TestableConfigSession::setInstance(std::move(testSession));
+    setupTestableConfigSession("config interface eth1/1/1 mtu", "9000");
   }
-
-  void TearDown() override {
-    // Reset the singleton to ensure tests don't interfere with each other
-    TestableConfigSession::setInstance(nullptr);
-    std::error_code ec;
-    if (fs::exists(testHomeDir_)) {
-      fs::remove_all(testHomeDir_, ec);
-    }
-    if (fs::exists(testEtcDir_)) {
-      fs::remove_all(testEtcDir_, ec);
-    }
-    CmdHandlerTestBase::TearDown();
-  }
-
- protected:
-  void createTestConfig(const fs::path& path, const std::string& content) {
-    std::ofstream file(path);
-    file << content;
-    file.close();
-  }
-
-  fs::path testHomeDir_;
-  fs::path testEtcDir_;
-  fs::path systemConfigPath_;
 };
 
 // Test setting MTU on a single existing interface

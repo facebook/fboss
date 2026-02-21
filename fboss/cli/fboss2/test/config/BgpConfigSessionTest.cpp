@@ -1,24 +1,14 @@
-/*
- *  Copyright (c) 2004-present, Facebook, Inc.
- *  All rights reserved.
- *
- *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant
- *  of patent rights can be found in the PATENTS file in the same directory.
- *
- */
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <boost/filesystem.hpp>
-#include <folly/json/dynamic.h>
-#include <folly/json/json.h>
+#include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <filesystem>
-#include <fstream>
+
+#include <folly/json/dynamic.h>
+#include <folly/json/json.h>
 
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.h"
-
-namespace fs = std::filesystem;
 
 namespace facebook::fboss {
 
@@ -33,27 +23,13 @@ namespace facebook::fboss {
  * 4. Nested structures (peer timers, pre_filter, add_path) are correct
  * 5. The round-trip workflow (CLI -> JSON) produces valid output
  */
-class BgpConfigSessionTest : public ::testing::Test {
+class BgpConfigSessionTest : public CmdConfigTestBase {
  public:
+  BgpConfigSessionTest()
+      : CmdConfigTestBase("bgp_config_test_%%%%-%%%%-%%%%", "") {}
+
   void SetUp() override {
-    // Create unique test directory
-    auto tempBase = fs::temp_directory_path();
-    auto uniquePath =
-        boost::filesystem::unique_path("bgp_config_test_%%%%-%%%%-%%%%");
-    testHomeDir_ = tempBase / uniquePath.string();
-
-    // Clean up any previous test artifacts
-    std::error_code ec;
-    if (fs::exists(testHomeDir_)) {
-      fs::remove_all(testHomeDir_, ec);
-    }
-
-    // Create test directories
-    fs::create_directories(testHomeDir_ / ".fboss2");
-
-    // Set environment variables
-    originalHome_ = getenv("HOME");
-    setenv("HOME", testHomeDir_.c_str(), 1);
+    CmdConfigTestBase::SetUp();
 
     // Enable stub mode to prevent actual file writes during most tests
     session_ = &BgpConfigSession::getInstance();
@@ -61,30 +37,8 @@ class BgpConfigSessionTest : public ::testing::Test {
     session_->clearSession();
   }
 
-  void TearDown() override {
-    // Restore original HOME
-    if (originalHome_) {
-      setenv("HOME", originalHome_, 1);
-    }
-
-    // Clean up test directories
-    std::error_code ec;
-    if (fs::exists(testHomeDir_)) {
-      fs::remove_all(testHomeDir_, ec);
-    }
-  }
-
  protected:
-  fs::path testHomeDir_;
-  const char* originalHome_ = nullptr;
   BgpConfigSession* session_ = nullptr;
-
-  std::string readFile(const fs::path& path) {
-    std::ifstream file(path);
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-  }
 };
 
 // ==================== Global Configuration Tests ====================

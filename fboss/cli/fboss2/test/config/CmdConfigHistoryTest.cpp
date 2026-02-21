@@ -1,147 +1,47 @@
-// (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <boost/filesystem.hpp>
+#include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <sstream>
 
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
-#include "fboss/cli/fboss2/session/ConfigSession.h"
-#include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "fboss/cli/fboss2/test/TestableConfigSession.h"
-#include "fboss/cli/fboss2/utils/PortMap.h"
-
-#include <filesystem>
-#include <fstream>
-
-namespace fs = std::filesystem;
 
 using namespace ::testing;
 
 namespace facebook::fboss {
 
-class CmdConfigHistoryTestFixture : public CmdHandlerTestBase {
+namespace {
+const std::string initialConfigContents = R"({
+  "sw": {
+    "ports": [
+      {
+        "logicalID": 1,
+        "name": "eth1/1/1",
+        "state": 2,
+        "speed": 100000
+      }
+    ]
+  }
+})";
+}
+
+class CmdConfigHistoryTestFixture : public CmdConfigTestBase {
  public:
-  fs::path testHomeDir_;
-  fs::path testEtcDir_;
-  fs::path systemConfigPath_;
-  fs::path sessionConfigPath_;
-  fs::path cliConfigDir_;
-
-  void SetUp() override {
-    CmdHandlerTestBase::SetUp();
-
-    // Create unique test directories for each test to avoid conflicts when
-    // running tests in parallel
-    auto tempBase = fs::temp_directory_path();
-    auto uniquePath = boost::filesystem::unique_path(
-        "fboss2_config_history_test_%%%%-%%%%-%%%%-%%%%");
-    testHomeDir_ = tempBase / (uniquePath.string() + "_home");
-    testEtcDir_ = tempBase / (uniquePath.string() + "_etc");
-
-    // Clean up any previous test artifacts (shouldn't exist with unique names)
-    std::error_code ec;
-    fs::remove_all(testHomeDir_, ec);
-    fs::remove_all(testEtcDir_, ec);
-
-    // Create fresh test directories
-    fs::create_directories(testHomeDir_);
-    fs::create_directories(testEtcDir_);
-
-    // Set up paths
-    systemConfigPath_ = testEtcDir_ / "agent.conf";
-    sessionConfigPath_ = testHomeDir_ / ".fboss2" / "agent.conf";
-    cliConfigDir_ = testEtcDir_ / "coop" / "cli";
-
-    // Create CLI config directory
-    fs::create_directories(cliConfigDir_);
-
-    // Create a default system config
-    createTestConfig(
-        systemConfigPath_,
-        R"({
-  "sw": {
-    "ports": [
-      {
-        "logicalID": 1,
-        "name": "eth1/1/1",
-        "state": 2,
-        "speed": 100000
-      }
-    ]
-  }
-})");
-  }
-
-  void TearDown() override {
-    // Reset the singleton to ensure tests don't interfere with each other
-    TestableConfigSession::setInstance(nullptr);
-    // Clean up test directories (use error_code to avoid exceptions)
-    std::error_code ec;
-    fs::remove_all(testHomeDir_, ec);
-    fs::remove_all(testEtcDir_, ec);
-    CmdHandlerTestBase::TearDown();
-  }
-
-  void createTestConfig(const fs::path& path, const std::string& content) {
-    fs::create_directories(path.parent_path());
-    std::ofstream file(path);
-    file << content;
-    file.close();
-  }
-
-  std::string readFile(const fs::path& path) {
-    std::ifstream file(path);
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-  }
-
-  void initializeTestSession() {
-    // Ensure system config exists before initializing session
-    if (!fs::exists(systemConfigPath_)) {
-      createTestConfig(
-          systemConfigPath_,
-          R"({
-  "sw": {
-    "ports": [
-      {
-        "logicalID": 1,
-        "name": "eth1/1/1",
-        "state": 2,
-        "speed": 100000
-      }
-    ]
-  }
-})");
-    }
-
-    // Ensure the parent directory of session config exists
-    fs::create_directories(sessionConfigPath_.parent_path());
-
-    // Initialize ConfigSession singleton with test paths
-    TestableConfigSession::setInstance(
-        std::make_unique<TestableConfigSession>(
-            sessionConfigPath_.string(),
-            systemConfigPath_.string(),
-            cliConfigDir_.string()));
-  }
+  CmdConfigHistoryTestFixture()
+      : CmdConfigTestBase(
+            "fboss2_config_history_test_%%%%-%%%%-%%%%-%%%%", // unique_path
+            initialConfigContents) {}
 };
 
 TEST_F(CmdConfigHistoryTestFixture, historyListsRevisions) {
   // Create revision files with valid config content
-  createTestConfig(
-      cliConfigDir_ / "agent-r1.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
-  createTestConfig(
-      cliConfigDir_ / "agent-r2.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
-  createTestConfig(
-      cliConfigDir_ / "agent-r3.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
+  createTestConfig(getCliConfigDir() / "agent-r1.conf", initialConfigContents);
+  createTestConfig(getCliConfigDir() / "agent-r2.conf", initialConfigContents);
+  createTestConfig(getCliConfigDir() / "agent-r3.conf", initialConfigContents);
 
   // Initialize ConfigSession singleton with test paths
-  initializeTestSession();
+  setupTestableConfigSession();
 
   // Create and execute the command
   auto cmd = CmdConfigHistory();
@@ -160,21 +60,18 @@ TEST_F(CmdConfigHistoryTestFixture, historyListsRevisions) {
 
 TEST_F(CmdConfigHistoryTestFixture, historyIgnoresNonMatchingFiles) {
   // Create valid revision files
-  createTestConfig(
-      cliConfigDir_ / "agent-r1.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
-  createTestConfig(
-      cliConfigDir_ / "agent-r2.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
+  createTestConfig(getCliConfigDir() / "agent-r1.conf", initialConfigContents);
+  createTestConfig(getCliConfigDir() / "agent-r2.conf", initialConfigContents);
 
   // Create files that should be ignored
-  createTestConfig(cliConfigDir_ / "agent.conf.bak", R"({"backup": true})");
-  createTestConfig(cliConfigDir_ / "other-r1.conf", R"({"other": true})");
-  createTestConfig(cliConfigDir_ / "agent-r1.txt", R"({"wrong_ext": true})");
-  createTestConfig(cliConfigDir_ / "agent-rX.conf", R"({"invalid": true})");
+  createTestConfig(getCliConfigDir() / "agent.conf.bak", R"({"backup": true})");
+  createTestConfig(getCliConfigDir() / "other-r1.conf", R"({"other": true})");
+  createTestConfig(
+      getCliConfigDir() / "agent-r1.txt", R"({"wrong_ext": true})");
+  createTestConfig(getCliConfigDir() / "agent-rX.conf", R"({"invalid": true})");
 
   // Initialize ConfigSession singleton with test paths
-  initializeTestSession();
+  setupTestableConfigSession();
 
   // Create and execute the command
   auto cmd = CmdConfigHistory();
@@ -193,10 +90,13 @@ TEST_F(CmdConfigHistoryTestFixture, historyIgnoresNonMatchingFiles) {
 
 TEST_F(CmdConfigHistoryTestFixture, historyEmptyDirectory) {
   // Directory exists but has no revision files
-  EXPECT_TRUE(fs::exists(cliConfigDir_));
+  EXPECT_TRUE(cliConfigDirExists());
+
+  // Remove the initial revision file created by SetUp() to simulate empty dir
+  removeInitialRevisionFile();
 
   // Initialize ConfigSession singleton with test paths
-  initializeTestSession();
+  setupTestableConfigSession();
 
   // Create and execute the command
   auto cmd = CmdConfigHistory();
@@ -204,23 +104,17 @@ TEST_F(CmdConfigHistoryTestFixture, historyEmptyDirectory) {
 
   // Verify the output indicates no revisions found
   EXPECT_NE(result.find("No config revisions found"), std::string::npos);
-  EXPECT_NE(result.find(cliConfigDir_.string()), std::string::npos);
+  EXPECT_NE(result.find(getCliConfigDir().string()), std::string::npos);
 }
 
 TEST_F(CmdConfigHistoryTestFixture, historyNonSequentialRevisions) {
   // Create non-sequential revision files (e.g., after deletions)
-  createTestConfig(
-      cliConfigDir_ / "agent-r1.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
-  createTestConfig(
-      cliConfigDir_ / "agent-r5.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
-  createTestConfig(
-      cliConfigDir_ / "agent-r10.conf",
-      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 100000}]}})");
+  createTestConfig(getCliConfigDir() / "agent-r1.conf", initialConfigContents);
+  createTestConfig(getCliConfigDir() / "agent-r5.conf", initialConfigContents);
+  createTestConfig(getCliConfigDir() / "agent-r10.conf", initialConfigContents);
 
   // Initialize ConfigSession singleton with test paths
-  initializeTestSession();
+  setupTestableConfigSession();
 
   // Create and execute the command
   auto cmd = CmdConfigHistory();

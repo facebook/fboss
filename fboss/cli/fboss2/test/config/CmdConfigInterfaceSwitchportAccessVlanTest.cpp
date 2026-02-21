@@ -1,65 +1,24 @@
-/*
- *  Copyright (c) 2004-present, Facebook, Inc.
- *  All rights reserved.
- *
- *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant
- *  of patent rights can be found in the PATENTS file in the same directory.
- *
- */
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <boost/filesystem.hpp>
+#include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <filesystem>
-#include <fstream>
-#include <sstream>
 
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
-#include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "fboss/cli/fboss2/test/TestableConfigSession.h"
-#include "fboss/cli/fboss2/utils/PortMap.h"
-
-namespace fs = std::filesystem;
 
 using namespace ::testing;
 
 namespace facebook::fboss {
 
 class CmdConfigInterfaceSwitchportAccessVlanTestFixture
-    : public CmdHandlerTestBase {
+    : public CmdConfigTestBase {
  public:
-  void SetUp() override {
-    CmdHandlerTestBase::SetUp();
-
-    // Create unique test directories
-    auto tempBase = fs::temp_directory_path();
-    auto uniquePath = boost::filesystem::unique_path(
-        "fboss_switchport_test_%%%%-%%%%-%%%%-%%%%");
-    testHomeDir_ = tempBase / (uniquePath.string() + "_home");
-    testEtcDir_ = tempBase / (uniquePath.string() + "_etc");
-
-    std::error_code ec;
-    if (fs::exists(testHomeDir_)) {
-      fs::remove_all(testHomeDir_, ec);
-    }
-    if (fs::exists(testEtcDir_)) {
-      fs::remove_all(testEtcDir_, ec);
-    }
-
-    // Create test directories
-    fs::create_directories(testHomeDir_);
-    fs::create_directories(testEtcDir_ / "coop");
-    fs::create_directories(testEtcDir_ / "coop" / "cli");
-
-    // Set environment variables
-    setenv("HOME", testHomeDir_.c_str(), 1);
-    setenv("USER", "testuser", 1);
-
-    // Create a test system config file with ports and vlanPorts
-    fs::path initialRevision = testEtcDir_ / "coop" / "cli" / "agent-r1.conf";
-    createTestConfig(initialRevision, R"({
+  CmdConfigInterfaceSwitchportAccessVlanTestFixture()
+      : CmdConfigTestBase(
+            "fboss_switchport_test_%%%%-%%%%-%%%%-%%%%",
+            R"({
   "sw": {
     "ports": [
       {
@@ -92,52 +51,14 @@ class CmdConfigInterfaceSwitchportAccessVlanTestFixture
       }
     ]
   }
-})");
+})") {}
 
-    // Create symlink
-    systemConfigPath_ = testEtcDir_ / "coop" / "agent.conf";
-    fs::create_symlink(initialRevision, systemConfigPath_);
+  void SetUp() override {
+    CmdConfigTestBase::SetUp();
 
-    // Create session config path
-    sessionConfigPath_ = testHomeDir_ / ".fboss2" / "agent.conf";
-    cliConfigDir_ = testEtcDir_ / "coop" / "cli";
-
-    // Initialize the ConfigSession singleton for all tests
-    auto testSession = std::make_unique<TestableConfigSession>(
-        sessionConfigPath_.string(),
-        systemConfigPath_.string(),
-        cliConfigDir_.string());
-    // Set a default command line for tests that call saveConfig()
-    testSession->setCommandLine(
-        "config interface switchport access vlan eth1/1/1 100");
-    TestableConfigSession::setInstance(std::move(testSession));
+    setupTestableConfigSession(
+        "config interface switchport access vlan eth1/1/1", "100");
   }
-
-  void TearDown() override {
-    // Reset the singleton to ensure tests don't interfere with each other
-    TestableConfigSession::setInstance(nullptr);
-    std::error_code ec;
-    if (fs::exists(testHomeDir_)) {
-      fs::remove_all(testHomeDir_, ec);
-    }
-    if (fs::exists(testEtcDir_)) {
-      fs::remove_all(testEtcDir_, ec);
-    }
-    CmdHandlerTestBase::TearDown();
-  }
-
- protected:
-  void createTestConfig(const fs::path& path, const std::string& content) {
-    std::ofstream file(path);
-    file << content;
-    file.close();
-  }
-
-  fs::path testHomeDir_;
-  fs::path testEtcDir_;
-  fs::path systemConfigPath_;
-  fs::path sessionConfigPath_;
-  fs::path cliConfigDir_;
 };
 
 // Tests for VlanIdValue validation

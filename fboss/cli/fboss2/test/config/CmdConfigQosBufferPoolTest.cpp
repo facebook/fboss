@@ -1,60 +1,21 @@
-/*
- *  Copyright (c) 2004-present, Facebook, Inc.
- *  All rights reserved.
- *
- *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant
- *  of patent rights can be found in the PATENTS file in the same directory.
- *
- */
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <boost/filesystem.hpp>
+#include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <filesystem>
-#include <fstream>
 
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
-#include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "fboss/cli/fboss2/test/TestableConfigSession.h"
-#include "fboss/cli/fboss2/utils/PortMap.h"
-
-namespace fs = std::filesystem;
+#include "fboss/cli/fboss2/session/ConfigSession.h"
 
 namespace facebook::fboss {
 
-class CmdConfigQosBufferPoolTestFixture : public CmdHandlerTestBase {
+class CmdConfigQosBufferPoolTestFixture : public CmdConfigTestBase {
  public:
-  void SetUp() override {
-    CmdHandlerTestBase::SetUp();
-
-    // Create unique test directories
-    auto tempBase = fs::temp_directory_path();
-    auto uniquePath =
-        boost::filesystem::unique_path("fboss_bp_test_%%%%-%%%%-%%%%-%%%%");
-    testHomeDir_ = tempBase / (uniquePath.string() + "_home");
-    testEtcDir_ = tempBase / (uniquePath.string() + "_etc");
-
-    std::error_code ec;
-    if (fs::exists(testHomeDir_)) {
-      fs::remove_all(testHomeDir_, ec);
-    }
-    if (fs::exists(testEtcDir_)) {
-      fs::remove_all(testEtcDir_, ec);
-    }
-
-    // Create test directories
-    fs::create_directories(testHomeDir_);
-    fs::create_directories(testEtcDir_ / "coop");
-    fs::create_directories(testEtcDir_ / "coop" / "cli");
-
-    // Set environment variables
-    setenv("HOME", testHomeDir_.c_str(), 1);
-    setenv("USER", "testuser", 1);
-
-    // Create a test system config file
-    fs::path initialRevision = testEtcDir_ / "coop" / "cli" / "agent-r1.conf";
-    createTestConfig(initialRevision, R"({
+  CmdConfigQosBufferPoolTestFixture()
+      : CmdConfigTestBase(
+            "fboss_bp_test_%%%%-%%%%-%%%%-%%%%", // unique_path
+            R"({
   "sw": {
     "ports": [
       {
@@ -65,50 +26,10 @@ class CmdConfigQosBufferPoolTestFixture : public CmdHandlerTestBase {
       }
     ]
   }
-})");
-
-    // Create symlink
-    systemConfigPath_ = testEtcDir_ / "coop" / "agent.conf";
-    fs::create_symlink(initialRevision, systemConfigPath_);
-
-    // Create session config path
-    sessionConfigPath_ = testHomeDir_ / ".fboss2" / "agent.conf";
-    cliConfigDir_ = testEtcDir_ / "coop" / "cli";
-  }
-
-  void TearDown() override {
-    // Reset the singleton to ensure tests don't interfere with each other
-    TestableConfigSession::setInstance(nullptr);
-
-    std::error_code ec;
-    if (fs::exists(testHomeDir_)) {
-      fs::remove_all(testHomeDir_, ec);
-    }
-    if (fs::exists(testEtcDir_)) {
-      fs::remove_all(testEtcDir_, ec);
-    }
-    CmdHandlerTestBase::TearDown();
-  }
+})") {}
 
  protected:
-  void createTestConfig(const fs::path& path, const std::string& content) {
-    std::ofstream file(path);
-    file << content;
-    file.close();
-  }
-
-  std::string readFile(const fs::path& path) {
-    std::ifstream file(path);
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-  }
-
-  fs::path testHomeDir_;
-  fs::path testEtcDir_;
-  fs::path systemConfigPath_;
-  fs::path sessionConfigPath_;
-  fs::path cliConfigDir_;
+  const std::string cmdPrefix_ = "config qos buffer-pool";
 };
 
 // Test BufferPoolConfig argument validation
@@ -176,16 +97,10 @@ TEST_F(CmdConfigQosBufferPoolTestFixture, bufferPoolConfigGetters) {
 
 // Test shared-bytes command creates buffer pool config
 TEST_F(CmdConfigQosBufferPoolTestFixture, sharedBytesCreatesBufferPool) {
-  auto testSession = std::make_unique<TestableConfigSession>(
-      sessionConfigPath_.string(),
-      systemConfigPath_.string(),
-      cliConfigDir_.string());
-  testSession->setCommandLine(
-      "config qos buffer-pool test_pool shared-bytes 50000");
-  TestableConfigSession::setInstance(std::move(testSession));
+  setupTestableConfigSession(cmdPrefix_, "test_pool shared-bytes 50000");
 
   auto cmd = CmdConfigQosBufferPool();
-  BufferPoolConfig config({"test_pool", "shared-bytes", "50000"});
+  BufferPoolConfig config(getCmdArgsList());
 
   auto result = cmd.queryClient(localhost(), config);
 
@@ -205,16 +120,10 @@ TEST_F(CmdConfigQosBufferPoolTestFixture, sharedBytesCreatesBufferPool) {
 
 // Test headroom-bytes command creates buffer pool config
 TEST_F(CmdConfigQosBufferPoolTestFixture, headroomBytesCreatesBufferPool) {
-  auto testSession = std::make_unique<TestableConfigSession>(
-      sessionConfigPath_.string(),
-      systemConfigPath_.string(),
-      cliConfigDir_.string());
-  testSession->setCommandLine(
-      "config qos buffer-pool headroom_pool headroom-bytes 10000");
-  TestableConfigSession::setInstance(std::move(testSession));
+  setupTestableConfigSession(cmdPrefix_, "headroom_pool headroom-bytes 10000");
 
   auto cmd = CmdConfigQosBufferPool();
-  BufferPoolConfig config({"headroom_pool", "headroom-bytes", "10000"});
+  BufferPoolConfig config(getCmdArgsList());
 
   auto result = cmd.queryClient(localhost(), config);
 
@@ -236,16 +145,10 @@ TEST_F(CmdConfigQosBufferPoolTestFixture, headroomBytesCreatesBufferPool) {
 
 // Test reserved-bytes command creates buffer pool config
 TEST_F(CmdConfigQosBufferPoolTestFixture, reservedBytesCreatesBufferPool) {
-  auto testSession = std::make_unique<TestableConfigSession>(
-      sessionConfigPath_.string(),
-      systemConfigPath_.string(),
-      cliConfigDir_.string());
-  testSession->setCommandLine(
-      "config qos buffer-pool reserved_pool reserved-bytes 20000");
-  TestableConfigSession::setInstance(std::move(testSession));
+  setupTestableConfigSession(cmdPrefix_, "reserved_pool reserved-bytes 20000");
 
   auto cmd = CmdConfigQosBufferPool();
-  BufferPoolConfig config({"reserved_pool", "reserved-bytes", "20000"});
+  BufferPoolConfig config(getCmdArgsList());
 
   auto result = cmd.queryClient(localhost(), config);
 
@@ -267,25 +170,13 @@ TEST_F(CmdConfigQosBufferPoolTestFixture, reservedBytesCreatesBufferPool) {
 
 // Test updating an existing buffer pool with multiple attributes
 TEST_F(CmdConfigQosBufferPoolTestFixture, updateExistingBufferPool) {
-  auto testSession = std::make_unique<TestableConfigSession>(
-      sessionConfigPath_.string(),
-      systemConfigPath_.string(),
-      cliConfigDir_.string());
-  testSession->setCommandLine(
-      "config qos buffer-pool existing_pool shared-bytes 30000 headroom-bytes 5000 reserved-bytes 2000");
-  TestableConfigSession::setInstance(std::move(testSession));
+  setupTestableConfigSession(
+      cmdPrefix_,
+      "existing_pool shared-bytes 30000 headroom-bytes 5000 reserved-bytes 2000");
 
   auto cmd = CmdConfigQosBufferPool();
-
   // Set all attributes in one command
-  BufferPoolConfig config(
-      {"existing_pool",
-       "shared-bytes",
-       "30000",
-       "headroom-bytes",
-       "5000",
-       "reserved-bytes",
-       "2000"});
+  BufferPoolConfig config(getCmdArgsList());
   cmd.queryClient(localhost(), config);
 
   // Verify all values are set correctly

@@ -1,66 +1,24 @@
-// (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <boost/filesystem.hpp>
+#include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <sstream>
+#include <filesystem>
 
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
-#include "fboss/cli/fboss2/session/ConfigSession.h"
-#include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "fboss/cli/fboss2/test/TestableConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
-#include "fboss/cli/fboss2/utils/PortMap.h"
-
-#include <filesystem>
-#include <fstream>
-
-namespace fs = std::filesystem;
 
 using namespace ::testing;
 
 namespace facebook::fboss {
 
-class CmdConfigSessionDiffTestFixture : public CmdHandlerTestBase {
+class CmdConfigSessionDiffTestFixture : public CmdConfigTestBase {
  public:
-  fs::path testHomeDir_;
-  fs::path testEtcDir_;
-  fs::path systemConfigPath_;
-  fs::path sessionConfigPath_;
-  fs::path cliConfigDir_;
-
-  void SetUp() override {
-    CmdHandlerTestBase::SetUp();
-
-    // Create unique test directories for each test to avoid conflicts when
-    // running tests in parallel
-    auto tempBase = fs::temp_directory_path();
-    auto uniquePath = boost::filesystem::unique_path(
-        "fboss2_config_session_diff_test_%%%%-%%%%-%%%%-%%%%");
-    testHomeDir_ = tempBase / (uniquePath.string() + "_home");
-    testEtcDir_ = tempBase / (uniquePath.string() + "_etc");
-
-    // Clean up any previous test artifacts (shouldn't exist with unique names)
-    std::error_code ec;
-    fs::remove_all(testHomeDir_, ec);
-    fs::remove_all(testEtcDir_, ec);
-
-    // Create fresh test directories
-    fs::create_directories(testHomeDir_);
-    fs::create_directories(testEtcDir_);
-
-    // Set up paths
-    systemConfigPath_ = testEtcDir_ / "agent.conf";
-    sessionConfigPath_ = testHomeDir_ / ".fboss2" / "agent.conf";
-    cliConfigDir_ = testEtcDir_ / "coop" / "cli";
-
-    // Create CLI config directory
-    fs::create_directories(cliConfigDir_);
-
-    // Create a default system config
-    createTestConfig(
-        systemConfigPath_,
-        R"({
+  CmdConfigSessionDiffTestFixture()
+      : CmdConfigTestBase(
+            "fboss2_config_session_diff_test_%%%%-%%%%-%%%%-%%%%",
+            R"({
   "sw": {
     "ports": [
       {
@@ -71,73 +29,15 @@ class CmdConfigSessionDiffTestFixture : public CmdHandlerTestBase {
       }
     ]
   }
-})");
-  }
-
-  void TearDown() override {
-    // Reset the singleton to ensure tests don't interfere with each other
-    TestableConfigSession::setInstance(nullptr);
-    // Clean up test directories (use error_code to avoid exceptions)
-    std::error_code ec;
-    fs::remove_all(testHomeDir_, ec);
-    fs::remove_all(testEtcDir_, ec);
-    CmdHandlerTestBase::TearDown();
-  }
-
-  void createTestConfig(const fs::path& path, const std::string& content) {
-    fs::create_directories(path.parent_path());
-    std::ofstream file(path);
-    file << content;
-    file.close();
-  }
-
-  std::string readFile(const fs::path& path) {
-    std::ifstream file(path);
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-  }
-
-  void initializeTestSession() {
-    // Ensure system config exists before initializing session
-    // (ConfigSession constructor calls initializeSession which will copy it)
-    if (!fs::exists(systemConfigPath_)) {
-      createTestConfig(
-          systemConfigPath_,
-          R"({
-  "sw": {
-    "ports": [
-      {
-        "logicalID": 1,
-        "name": "eth1/1/1",
-        "state": 2,
-        "speed": 100000
-      }
-    ]
-  }
-})");
-    }
-
-    // Ensure the parent directory of session config exists
-    // (initializeSession will try to copy system config to session config)
-    fs::create_directories(sessionConfigPath_.parent_path());
-
-    // Initialize ConfigSession singleton with test paths
-    // The constructor will automatically call initializeSession()
-    TestableConfigSession::setInstance(
-        std::make_unique<TestableConfigSession>(
-            sessionConfigPath_.string(),
-            systemConfigPath_.string(),
-            cliConfigDir_.string()));
-  }
+})") {}
 };
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffNoSession) {
   // Initialize the session (which creates the session config file)
-  initializeTestSession();
+  setupTestableConfigSession();
 
   // Then delete the session config file to simulate "no session" case
-  fs::remove(sessionConfigPath_);
+  std::filesystem::remove(getSessionConfigPath());
 
   auto cmd = CmdConfigSessionDiff();
   utils::RevisionList emptyRevisions(std::vector<std::string>{});
@@ -148,7 +48,7 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffNoSession) {
 }
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffIdenticalConfigs) {
-  initializeTestSession();
+  setupTestableConfigSession();
 
   // initializeTestSession() already creates the session config by copying
   // the system config, so we don't need to do it again
@@ -165,12 +65,12 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffIdenticalConfigs) {
 }
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffDifferentConfigs) {
-  initializeTestSession();
+  setupTestableConfigSession();
 
   // Create session directory and modify the config
-  fs::create_directories(sessionConfigPath_.parent_path());
+  std::filesystem::create_directories(getSessionConfigPath().parent_path());
   createTestConfig(
-      sessionConfigPath_,
+      getSessionConfigPath(),
       R"({
   "sw": {
     "ports": [
@@ -196,11 +96,11 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffDifferentConfigs) {
 }
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffSessionVsRevision) {
-  initializeTestSession();
+  setupTestableConfigSession();
 
   // Create a revision file
   createTestConfig(
-      cliConfigDir_ / "agent-r1.conf",
+      getCliConfigDir() / "agent-r1.conf",
       R"({
   "sw": {
     "ports": [
@@ -214,9 +114,9 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffSessionVsRevision) {
 })");
 
   // Create session with different content
-  fs::create_directories(sessionConfigPath_.parent_path());
+  std::filesystem::create_directories(getSessionConfigPath().parent_path());
   createTestConfig(
-      sessionConfigPath_,
+      getSessionConfigPath(),
       R"({
   "sw": {
     "ports": [
@@ -240,11 +140,11 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffSessionVsRevision) {
 }
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffTwoRevisions) {
-  initializeTestSession();
+  setupTestableConfigSession();
 
   // Create two different revision files
   createTestConfig(
-      cliConfigDir_ / "agent-r1.conf",
+      getCliConfigDir() / "agent-r1.conf",
       R"({
   "sw": {
     "ports": [
@@ -258,7 +158,7 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffTwoRevisions) {
 })");
 
   createTestConfig(
-      cliConfigDir_ / "agent-r2.conf",
+      getCliConfigDir() / "agent-r2.conf",
       R"({
   "sw": {
     "ports": [
@@ -283,11 +183,13 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffTwoRevisions) {
 }
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffWithCurrentKeyword) {
-  initializeTestSession();
+  // Remove the initial revision file created by SetUp() to simulate empty dir
+  removeInitialRevisionFile();
+  setupTestableConfigSession();
 
   // Create a revision file
   createTestConfig(
-      cliConfigDir_ / "agent-r1.conf",
+      getCliConfigDir() / "agent-r1.conf",
       R"({
   "sw": {
     "ports": [
@@ -313,7 +215,7 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffWithCurrentKeyword) {
 }
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffNonexistentRevision) {
-  initializeTestSession();
+  setupTestableConfigSession();
 
   auto cmd = CmdConfigSessionDiff();
   utils::RevisionList revisions(std::vector<std::string>{"r999"});
@@ -323,7 +225,7 @@ TEST_F(CmdConfigSessionDiffTestFixture, diffNonexistentRevision) {
 }
 
 TEST_F(CmdConfigSessionDiffTestFixture, diffTooManyArguments) {
-  initializeTestSession();
+  setupTestableConfigSession();
 
   auto cmd = CmdConfigSessionDiff();
   utils::RevisionList revisions(std::vector<std::string>{"r1", "r2", "r3"});

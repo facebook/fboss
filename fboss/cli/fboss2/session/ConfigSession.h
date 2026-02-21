@@ -17,10 +17,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
-
-namespace facebook::fboss::utils {
-class PortMap;
-}
+#include "fboss/cli/fboss2/utils/PortMap.h"
 
 namespace facebook::fboss {
 

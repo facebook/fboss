@@ -15,8 +15,10 @@ cpp_unittest(
         "CmdConfigReloadTest.cpp",
         "CmdConfigSessionDiffTest.cpp",
         "CmdConfigSessionTest.cpp",
+        "CmdConfigTestBase.cpp",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
         "//fboss/cli/fboss2:cmd-common-utils",
         "//fboss/cli/fboss2:fboss2-config-lib",
