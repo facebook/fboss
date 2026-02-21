@@ -24,6 +24,16 @@ all_params: Dict[PlatformType, Dict[str, Any]] = {
     PlatformType.PLATFORM_JANGA800BIC: {},
     # chassis is default here
     PlatformType.PLATFORM_TAHAN800BC: {},
+    PlatformType.PLATFORM_ICECUBE800BANW: {
+        "default": {
+            "asic_config_params": asic_config_thrift.AsicConfigParameters(
+                configType=asic_config_thrift.AsicConfigType.YAML_CONFIG,
+                exactMatch=False,
+                mmuLossless=False,
+                configGenType=asic_config_thrift.AsicConfigGenType.DEFAULT,
+            ),
+        }
+    },
     PlatformType.PLATFORM_ICECUBE800BC: {
         "default": {
             "asic_config_params": asic_config_thrift.AsicConfigParameters(
