@@ -329,19 +329,23 @@ auto AgentArsBase::verifyAclType(bool bumpOnHit, AclType aclType) {
       EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + 1);
       // At most we should get a pkt bump of 2
       EXPECT_EVENTUALLY_LE(aclPktCountAfter, aclPktCountBefore + 2);
-      EXPECT_EVENTUALLY_GE(
-          aclBytesCountAfter, aclBytesCountBefore + sizeOfPacketSent);
-      // On native BCM we see 4 extra bytes in the acl counter. This is
-      // likely due to ingress vlan getting imposed and getting counted
-      // when packet hits acl in ingress pipeline
-      if (!getAgentEnsemble()->isSai()) {
-        EXPECT_EVENTUALLY_LE(
-            aclBytesCountAfter,
-            aclBytesCountBefore + (2 * sizeOfPacketSent) + 4);
+      if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
+        EXPECT_EVENTUALLY_GE(
+            aclBytesCountAfter, aclBytesCountBefore + sizeOfPacketSent);
+        // On native BCM we see 4 extra bytes in the acl counter. This is
+        // likely due to ingress vlan getting imposed and getting counted
+        // when packet hits acl in ingress pipeline
+        if (!getAgentEnsemble()->isSai()) {
+          EXPECT_EVENTUALLY_LE(
+              aclBytesCountAfter,
+              aclBytesCountBefore + (2 * sizeOfPacketSent) + 4);
+        }
       }
     } else {
       EXPECT_EVENTUALLY_EQ(aclPktCountBefore, aclPktCountAfter);
-      EXPECT_EVENTUALLY_EQ(aclBytesCountBefore, aclBytesCountAfter);
+      if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
+        EXPECT_EVENTUALLY_EQ(aclBytesCountBefore, aclBytesCountAfter);
+      }
     }
   });
 }
