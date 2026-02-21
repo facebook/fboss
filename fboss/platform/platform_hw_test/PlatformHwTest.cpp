@@ -10,6 +10,8 @@
 
 #include <gtest/gtest.h>
 
+#include <gflags/gflags.h>
+
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/helpers/PlatformFsUtils.h"
 #ifndef IS_OSS
@@ -18,6 +20,11 @@
 #include "fboss/platform/platform_checks/checks/MacAddressCheck.h"
 #include "fboss/platform/platform_checks/checks/PciDeviceCheck.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
+
+DEFINE_string(
+    mgmt_interface,
+    "eth0",
+    "Management interface name for MAC address validation");
 
 namespace facebook::fboss::platform {
 
@@ -32,7 +39,7 @@ class PlatformHwTest : public ::testing::Test {
 };
 
 TEST_F(PlatformHwTest, CorrectMacX86) {
-  platform_checks::MacAddressCheck macCheck;
+  platform_checks::MacAddressCheck macCheck(FLAGS_mgmt_interface);
   auto result = macCheck.run();
 
   if (result.status() != platform_checks::CheckStatus::OK) {
