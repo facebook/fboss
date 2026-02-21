@@ -13,13 +13,12 @@
 
 namespace facebook::fboss {
 
-class SaiBcmIcecube800bcPlatformPort : public SaiBcmPlatformPort {
+class SaiBcmIcecube800PlatformPort : public SaiBcmPlatformPort {
  public:
-  SaiBcmIcecube800bcPlatformPort(PortID id, SaiPlatform* platform)
+  SaiBcmIcecube800PlatformPort(PortID id, SaiPlatform* platform)
       : SaiBcmPlatformPort(id, platform) {}
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;
-
   uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const override {
     if (getPortType() == cfg::PortType::MANAGEMENT_PORT) {
@@ -29,9 +28,6 @@ class SaiBcmIcecube800bcPlatformPort : public SaiBcmPlatformPort {
     }
     return SaiBcmPlatformPort::getPhysicalLaneId(chipId, logicalLane);
   }
-
- private:
-  uint32_t currentLedState_{0};
 };
 
 } // namespace facebook::fboss
