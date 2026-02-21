@@ -5,7 +5,7 @@ A test publisher utility that writes BGP RIB data to FSDB. Used for testing FSDB
 ## Build
 
 ```bash
-buck2 build fbcode//fboss/fsdb/tests/utils/bgp_rib_test_publisher:bgp_rib_test_publisher
+buck2 build @mode/opt fbcode//fboss/fsdb/tests/utils/bgp_rib_test_publisher:bgp_rib_test_publisher
 ```
 
 ## Usage
@@ -52,8 +52,6 @@ buck2 run //fboss/fsdb/oper:test_client --host=2401:db00:2066:3083::f --fsdbPort
 Both flags are required and must have the same number of entries.
 
 ## Signal Handling
-
-Uses `folly::AsyncSignalHandler` with `EventBase::loopForever()` — no polling or sleep loops.
 
 | Signal | Action |
 |--------|--------|
