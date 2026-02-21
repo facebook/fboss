@@ -8,7 +8,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/TrunkUtils.h"
-#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/MultiPortTrafficTestUtils.h"

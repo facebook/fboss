@@ -10,14 +10,15 @@
 
 #pragma once
 
-#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
-
 namespace facebook::fboss {
 
-// Default ECMP width for single next-hop tests
-inline constexpr auto kDefaultEcmpWidth = 1;
+// Common IPv6 test addresses used across agent HW tests.
+// Prefix: 2620:0:1cfe:face:b00c::
+inline constexpr auto kTestSrcIpV6 = "2620:0:1cfe:face:b00c::3";
+inline constexpr auto kTestDstIpV6 = "2620:0:1cfe:face:b00c::4";
 
-// Wide ECMP width for multi-path tests (load balancing, overflow, etc.)
-inline constexpr auto kWideEcmpWidth = 4;
+// Common L4 port numbers used across agent HW tests.
+inline constexpr int kTestSrcPort = 8000;
+inline constexpr int kTestDstPort = 8001;
 
 } // namespace facebook::fboss

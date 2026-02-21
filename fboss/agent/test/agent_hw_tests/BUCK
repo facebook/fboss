@@ -106,6 +106,7 @@ cpp_library(
         "AgentArsBase.h",
         "AgentHwTestConstants.h",
         "AgentRollbackTests.h",
+        "AgentTestAddressConstants.h",
         "AgentVoqSwitchFabricLinkMonitoringTests.h",
     ],
     link_whole = True,
