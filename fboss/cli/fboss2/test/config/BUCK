@@ -1,0 +1,30 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_oss")
+
+cpp_unittest(
+    name = "cmd_config_test",
+    srcs = [
+        "BgpConfigSessionTest.cpp",
+        "CmdConfigAppliedInfoTest.cpp",
+        "CmdConfigHistoryTest.cpp",
+        "CmdConfigInterfaceDescriptionTest.cpp",
+        "CmdConfigInterfaceMtuTest.cpp",
+        "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",
+        "CmdConfigQosBufferPoolTest.cpp",
+        "CmdConfigReloadTest.cpp",
+        "CmdConfigSessionDiffTest.cpp",
+        "CmdConfigSessionTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/cli/fboss2:cmd-common-utils",
+        "//fboss/cli/fboss2:fboss2-config-lib",
+        "//fboss/cli/fboss2:fboss2-lib",
+        "//fboss/cli/fboss2/test:cmd_test_utils",
+        "//folly:dynamic",
+    ],
+    external_deps = [
+        ("boost", None, "boost_filesystem"),
+    ],
+)

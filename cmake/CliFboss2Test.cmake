@@ -35,15 +35,6 @@ gtest_discover_tests(fboss2_framework_test)
 add_executable(fboss2_cmd_test
   fboss/cli/fboss2/oss/CmdListConfig.cpp
   fboss/cli/fboss2/test/TestMain.cpp
-  fboss/cli/fboss2/test/CmdConfigAppliedInfoTest.cpp
-  fboss/cli/fboss2/test/CmdConfigHistoryTest.cpp
-  fboss/cli/fboss2/test/CmdConfigInterfaceDescriptionTest.cpp
-  fboss/cli/fboss2/test/CmdConfigInterfaceMtuTest.cpp
-  fboss/cli/fboss2/test/CmdConfigInterfaceSwitchportAccessVlanTest.cpp
-  fboss/cli/fboss2/test/CmdConfigQosBufferPoolTest.cpp
-  fboss/cli/fboss2/test/CmdConfigReloadTest.cpp
-  fboss/cli/fboss2/test/CmdConfigSessionDiffTest.cpp
-  fboss/cli/fboss2/test/CmdConfigSessionTest.cpp
   fboss/cli/fboss2/test/CmdGetPcapTest.cpp
   fboss/cli/fboss2/test/CmdListConfigTest.cpp
   fboss/cli/fboss2/test/CmdSetPortStateTest.cpp

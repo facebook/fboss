@@ -63,16 +63,6 @@ cpp_unittest(
 cpp_unittest(
     name = "cmd_test",
     srcs = [
-        "BgpConfigSessionTest.cpp",
-        "CmdConfigAppliedInfoTest.cpp",
-        "CmdConfigHistoryTest.cpp",
-        "CmdConfigInterfaceDescriptionTest.cpp",
-        "CmdConfigInterfaceMtuTest.cpp",
-        "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",
-        "CmdConfigQosBufferPoolTest.cpp",
-        "CmdConfigReloadTest.cpp",
-        "CmdConfigSessionDiffTest.cpp",
-        "CmdConfigSessionTest.cpp",
         "CmdGetPcapTest.cpp",
         "CmdListConfigTest.cpp",
         "CmdSetPortStateTest.cpp",
@@ -122,8 +112,7 @@ cpp_unittest(
         "//fboss/agent:address_utils",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
-        "//fboss/cli/fboss2:cmd-common-utils",
-        "//fboss/cli/fboss2:fboss2-config-lib",
+        "//fboss/cli/fboss2:cmd-subcommands",
         "//fboss/cli/fboss2:fboss2-lib",
         "//fboss/cli/fboss2/commands/show/acl:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/agent:model-cpp2-types",
@@ -149,7 +138,6 @@ cpp_unittest(
         "//fboss/cli/fboss2/commands/show/route:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/teflow:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/transceiver:model-cpp2-types",
-        "//folly:dynamic",
         "//folly:file_util",
         "//folly:network_address",
         "//folly/json:dynamic",
@@ -159,7 +147,6 @@ cpp_unittest(
     ],
     external_deps = [
         ("boost", None, "boost_algorithm"),
-        ("boost", None, "boost_filesystem"),
     ],
 )
 
