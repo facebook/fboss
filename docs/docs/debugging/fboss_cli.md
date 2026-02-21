@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # FBOSS CLI
 
 FBOSS provides two CLI binaries for interacting with the switch:
