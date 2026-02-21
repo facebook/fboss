@@ -297,8 +297,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
      */
     FLAGS_ingress_egress_buffer_pool_size = kGlobalIngressEgressBufferPoolSize;
     // Some platforms (TH4, TH5) requires same egress/ingress buffer pool sizes.
-    FLAGS_egress_buffer_pool_size = PfcBufferParams::kGlobalSharedBytes +
-        PfcBufferParams::kGlobalHeadroomBytes;
+    // Use dedicated egress pool size (256 MB) for PFC tests
+    FLAGS_egress_buffer_pool_size = PfcBufferParams::kEgressPoolSize;
     FLAGS_skip_buffer_reservation = true;
     FLAGS_qgroup_guarantee_enable = true;
   }
@@ -570,7 +570,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
     pumpTraffic(
         priority,
         std::nullopt /* vlanId */,
-        std::nullopt /* queue */,
+        7 /* queue - inject to CPU queue 7 which maps to egress Queue 1 */,
         portIds,
         getDestinationIps(static_cast<int>(portIds.size())));
   }
@@ -794,7 +794,8 @@ class AgentTrafficPfcZeroGlobalHeadroomTest : public AgentTrafficPfcTest {
     AgentTrafficPfcTest::setCmdLineFlagOverrides();
     // Some platforms (TH4, TH5) requires same egress/ingress buffer pool sizes.
     // Global headroom will be 0 in this test.
-    FLAGS_egress_buffer_pool_size = PfcBufferParams::kGlobalSharedBytes;
+    // Use dedicated egress pool size (256 MB) for PFC tests
+    FLAGS_egress_buffer_pool_size = PfcBufferParams::kEgressPoolSize;
   }
 };
 
