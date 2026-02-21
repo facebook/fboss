@@ -169,6 +169,13 @@ SwitchID AgentHwTest::getCurrentSwitchIdForTesting() const {
   return SwitchID(FLAGS_switch_id_for_testing);
 }
 
+SwitchID AgentHwTest::getSwitchIdUnderTest(const AgentEnsemble& ensemble) {
+  return ensemble.getSw()
+      ->getScopeResolver()
+      ->scope(ensemble.masterLogicalPortIds()[0])
+      .switchId();
+}
+
 const std::map<SwitchID, const HwAsic*> AgentHwTest::getAsics() const {
   return agentEnsemble_->getSw()->getHwAsicTable()->getHwAsics();
 }

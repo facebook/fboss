@@ -144,26 +144,36 @@ class AgentNeighborTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
+    auto switchId = getSwitchIdUnderTest(ensemble);
+    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = programToTrunk
         ? utility::oneL3IntfTwoPortConfig(
-              ensemble.getSw(),
+              ensemble.getPlatformMapping(),
+              asic,
               ensemble.masterLogicalPortIds()[0],
-              ensemble.masterLogicalPortIds()[1])
+              ensemble.masterLogicalPortIds()[1],
+              ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+              asic->desiredLoopbackModes(),
+              ensemble.getSw()->getPlatformType())
         : utility::onePortPerInterfaceConfig(
-              ensemble.getSw(), ensemble.masterLogicalPortIds());
+              ensemble.getPlatformMapping(),
+              asic,
+              ensemble.masterLogicalPortIds(),
+              ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+              asic->desiredLoopbackModes(),
+              ensemble.getSw()->getPlatformType());
     if (programToTrunk) {
       // Keep member size to be less than/equal to HW limitation, but first add
-      // the two ports for testing.
-      std::set<int> portSet{
-          ensemble.masterLogicalPortIds()[0],
-          ensemble.masterLogicalPortIds()[1]};
+      // the two ports for testing. Only use ports from masterLogicalPortIds()
+      // which are scoped to the test switch ID, to avoid adding ports from
+      // other switches in multi-NPU setups.
+      auto masterPorts = ensemble.masterLogicalPortIds();
+      std::set<int> portSet{masterPorts[0], masterPorts[1]};
       int idx = 0;
-      while (
-          portSet.size() <
-          std::min(
-              checkSameAndGetAsic(ensemble.getL3Asics())->getMaxLagMemberSize(),
-              static_cast<uint32_t>((*cfg.ports()).size()))) {
-        portSet.insert(*cfg.ports()[idx].logicalID());
+      while (portSet.size() < std::min(
+                                  asic->getMaxLagMemberSize(),
+                                  static_cast<uint32_t>(masterPorts.size()))) {
+        portSet.insert(masterPorts[idx]);
         idx++;
       }
       std::vector<int> ports(portSet.begin(), portSet.end());
@@ -174,9 +184,11 @@ class AgentNeighborTest : public AgentHwTest {
   VlanID kVlanID() const {
     if (checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
             ->getSwitchType() == cfg::SwitchType::NPU) {
-      auto vlanId = getVlanIDForTx();
-      CHECK(vlanId.has_value());
-      return *vlanId;
+      auto portId = portIdsForTest()[0];
+      return getProgrammedState()
+          ->getPorts()
+          ->getNodeIf(portId)
+          ->getIngressVlan();
     }
     XLOG(FATAL) << " No vlans on non-npu switches";
   }
@@ -187,7 +199,12 @@ class AgentNeighborTest : public AgentHwTest {
       if (!isIntfNbrTable) {
         return InterfaceID(static_cast<int>(kVlanID()));
       } else {
-        return utility::firstInterfaceIDWithPorts(getProgrammedState());
+        auto portId = portIdsForTest()[0];
+        return InterfaceID((*getProgrammedState()
+                                 ->getPorts()
+                                 ->getNodeIf(portId)
+                                 ->getInterfaceIDs()
+                                 .begin()));
       }
     } else if (switchType == cfg::SwitchType::VOQ) {
       CHECK(!programToTrunk) << " Trunks not supported yet on VOQ switches";
@@ -640,8 +657,15 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
+    auto switchId = getSwitchIdUnderTest(ensemble);
+    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     return utility::onePortPerInterfaceConfig(
-        ensemble.getSw(), ensemble.masterLogicalPortIds());
+        ensemble.getPlatformMapping(),
+        asic,
+        ensemble.masterLogicalPortIds(),
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
   }
   folly::IPAddressV6 neighborIP(PortID port) const {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6(
@@ -670,8 +694,9 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     }
 
     // Create adjacencies on all test ports
-    auto dstMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+    auto switchId = getSwitchIdUnderTest(*getAgentEnsemble());
+    auto dstMac = utility::getMacForFirstInterfaceWithPorts(
+        this->getProgrammedState(), switchId);
     for (int idx = 0; idx < portIds.size(); idx++) {
       this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         utility::EcmpSetupAnyNPorts6 ecmpHelper6(
@@ -685,8 +710,8 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     // Dump the local interface config
     XLOG(DBG0) << "Dumping port configurations:";
     for (int idx = 0; idx < portIds.size(); idx++) {
-      auto mac =
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+      auto mac = utility::getMacForFirstInterfaceWithPorts(
+          getProgrammedState(), switchId);
       XLOG(DBG0) << "   Port " << portIds[idx]
                  << ", IPv6: " << cfg.interfaces()[idx].ipAddresses()[1]
                  << ", Intf MAC: " << mac;

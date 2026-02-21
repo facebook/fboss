@@ -10,8 +10,11 @@
 
 #include "fboss/agent/state/StateUtils.h"
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -29,6 +32,10 @@ namespace {
 
 HwSwitchMatcher hwMatcher() {
   return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+}
+
+HwSwitchMatcher hwMatcher(SwitchID switchId) {
+  return HwSwitchMatcher(std::unordered_set<SwitchID>({switchId}));
 }
 
 } // namespace
@@ -244,4 +251,171 @@ TEST_F(ComputeReversedDeltasTest, PortAddRemoveSequence) {
   EXPECT_EQ(*reversedDeltas[1].newState(), *state1);
   EXPECT_EQ(*reversedDeltas[2].oldState(), *state1);
   EXPECT_EQ(*reversedDeltas[2].newState(), *baseState_);
+}
+
+// Tests for firstInterfaceIDWithPorts function
+class FirstInterfaceIDWithPortsTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    platform_ = createMockPlatform();
+  }
+
+  std::shared_ptr<Interface>
+  createInterface(InterfaceID intfId, VlanID vlanId, bool isVirtual = false) {
+    auto intf = std::make_shared<Interface>();
+    intf->set<switch_state_tags::interfaceId>(intfId);
+    intf->setRouterID(RouterID(0));
+    intf->setType(cfg::InterfaceType::VLAN);
+    intf->setVlanID(vlanId);
+    intf->setName(folly::sformat("intf{}", static_cast<int>(intfId)));
+    intf->setMac(folly::MacAddress("00:00:00:00:00:01"));
+    intf->setMtu(9000);
+    intf->setIsVirtual(isVirtual);
+    intf->setIsStateSyncDisabled(false);
+    return intf;
+  }
+
+  std::shared_ptr<SwitchState> createStateWithInterface(
+      InterfaceID intfId,
+      VlanID vlanId,
+      bool isVirtual = false,
+      std::optional<SwitchID> switchId = std::nullopt) {
+    auto state = make_shared<SwitchState>();
+
+    auto intf = createInterface(intfId, vlanId, isVirtual);
+
+    auto intfMap = std::make_shared<InterfaceMap>();
+    intfMap->addNode(intf);
+
+    auto multiIntfMap = std::make_shared<MultiSwitchInterfaceMap>();
+    auto matcher =
+        switchId.has_value() ? hwMatcher(*switchId) : hwMatcher(SwitchID(0));
+    multiIntfMap->addMapNode(intfMap, matcher);
+
+    state->resetIntfs(multiIntfMap);
+    state->publish();
+    return state;
+  }
+
+  std::shared_ptr<SwitchState> createStateWithMultipleInterfaces(
+      const std::vector<std::tuple<InterfaceID, VlanID, bool, SwitchID>>&
+          interfaces) {
+    auto state = make_shared<SwitchState>();
+    auto multiIntfMap = std::make_shared<MultiSwitchInterfaceMap>();
+
+    // Group interfaces by switchId
+    std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchIdToIntfMap;
+
+    for (const auto& [intfId, vlanId, isVirtual, switchId] : interfaces) {
+      auto intf = createInterface(intfId, vlanId, isVirtual);
+
+      if (switchIdToIntfMap.find(switchId) == switchIdToIntfMap.end()) {
+        switchIdToIntfMap[switchId] = std::make_shared<InterfaceMap>();
+      }
+      switchIdToIntfMap[switchId]->addNode(intf);
+    }
+
+    for (const auto& [switchId, intfMap] : switchIdToIntfMap) {
+      multiIntfMap->addMapNode(intfMap, hwMatcher(switchId));
+    }
+
+    state->resetIntfs(multiIntfMap);
+    state->publish();
+    return state;
+  }
+
+  std::unique_ptr<MockPlatform> platform_;
+};
+
+TEST_F(FirstInterfaceIDWithPortsTest, FindFirstInterfaceWithoutSwitchId) {
+  // Create state with a single interface
+  auto state = createStateWithInterface(
+      InterfaceID(100), VlanID(100), false /* isVirtual */);
+
+  // Should find the interface when no switchId specified
+  auto result = utility::firstInterfaceIDWithPorts(state);
+  EXPECT_EQ(result, InterfaceID(100));
+}
+
+TEST_F(FirstInterfaceIDWithPortsTest, FindFirstInterfaceForSpecificSwitchId) {
+  // Create state with interfaces on different switches
+  auto state = createStateWithMultipleInterfaces({
+      {InterfaceID(100), VlanID(100), false, SwitchID(0)},
+      {InterfaceID(200), VlanID(200), false, SwitchID(1)},
+  });
+
+  // Should find interface for switch 0
+  auto result0 = utility::firstInterfaceIDWithPorts(state, SwitchID(0));
+  EXPECT_EQ(result0, InterfaceID(100));
+
+  // Should find interface for switch 1
+  auto result1 = utility::firstInterfaceIDWithPorts(state, SwitchID(1));
+  EXPECT_EQ(result1, InterfaceID(200));
+}
+
+TEST_F(FirstInterfaceIDWithPortsTest, SkipVirtualInterfaces) {
+  // Create state with a virtual interface first, then a non-virtual one
+  auto state = createStateWithMultipleInterfaces({
+      {InterfaceID(100), VlanID(100), true /* virtual */, SwitchID(0)},
+      {InterfaceID(101), VlanID(101), false /* non-virtual */, SwitchID(0)},
+  });
+
+  // Should skip virtual interface and return non-virtual one
+  auto result = utility::firstInterfaceIDWithPorts(state);
+  EXPECT_EQ(result, InterfaceID(101));
+}
+
+TEST_F(FirstInterfaceIDWithPortsTest, SkipVirtualInterfacesWithSwitchId) {
+  // Create state with virtual and non-virtual interfaces on specific switch
+  auto state = createStateWithMultipleInterfaces({
+      {InterfaceID(100), VlanID(100), true /* virtual */, SwitchID(1)},
+      {InterfaceID(101), VlanID(101), false /* non-virtual */, SwitchID(1)},
+  });
+
+  // Should skip virtual interface and return non-virtual one for switch 1
+  auto result = utility::firstInterfaceIDWithPorts(state, SwitchID(1));
+  EXPECT_EQ(result, InterfaceID(101));
+}
+
+TEST_F(FirstInterfaceIDWithPortsTest, ThrowWhenNoInterfaceFoundForSwitchId) {
+  // Create state with interface only on switch 0
+  auto state = createStateWithInterface(
+      InterfaceID(100), VlanID(100), false /* isVirtual */, SwitchID(0));
+
+  // Should throw when looking for interface on switch 1 (which has no
+  // interfaces)
+  EXPECT_THROW(
+      utility::firstInterfaceIDWithPorts(state, SwitchID(1)), FbossError);
+}
+
+TEST_F(FirstInterfaceIDWithPortsTest, ThrowWhenNoInterfaceFoundAtAll) {
+  // Create empty state
+  auto state = make_shared<SwitchState>();
+  state->publish();
+
+  // Should throw when no interfaces exist
+  EXPECT_THROW(utility::firstInterfaceIDWithPorts(state), FbossError);
+}
+
+TEST_F(FirstInterfaceIDWithPortsTest, ThrowWhenOnlyVirtualInterfacesExist) {
+  // Create state with only virtual interfaces
+  auto state = createStateWithInterface(
+      InterfaceID(100), VlanID(100), true /* virtual */
+  );
+
+  // Should throw when only virtual interfaces exist
+  EXPECT_THROW(utility::firstInterfaceIDWithPorts(state), FbossError);
+}
+
+TEST_F(
+    FirstInterfaceIDWithPortsTest,
+    ThrowWhenOnlyVirtualInterfacesExistForSwitchId) {
+  // Create state with only virtual interface on specific switch
+  auto state = createStateWithMultipleInterfaces({
+      {InterfaceID(100), VlanID(100), true /* virtual */, SwitchID(0)},
+  });
+
+  // Should throw when only virtual interfaces exist for the specified switch
+  EXPECT_THROW(
+      utility::firstInterfaceIDWithPorts(state, SwitchID(0)), FbossError);
 }

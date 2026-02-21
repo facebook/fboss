@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
@@ -127,6 +128,20 @@ void checkSameAsicType(const std::vector<const HwAsic*>& asics) {
 const HwAsic* checkSameAndGetAsic(const std::vector<const HwAsic*>& asics) {
   CHECK(!asics.empty()) << " Expect at least one asic to be passed in ";
   checkSameAsicType(asics);
+  // In multi-NPU setups, return the ASIC for the switch under test
+  // so that callers get switch-scoped properties (e.g. switchType,
+  // maxLagMemberSize) for the correct NPU.
+  if (FLAGS_switch_id_for_testing) {
+    auto targetSwitchId = SwitchID(FLAGS_switch_id_for_testing);
+    for (const auto& asic : asics) {
+      if (asic->getSwitchId() &&
+          SwitchID(*asic->getSwitchId()) == targetSwitchId) {
+        return asic;
+      }
+    }
+    throw FbossError(
+        "No asic found with switchId: ", FLAGS_switch_id_for_testing);
+  }
   return *asics.begin();
 }
 

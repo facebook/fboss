@@ -48,20 +48,31 @@ folly::MacAddress getInterfaceMac(
 }
 
 folly::MacAddress getMacForFirstInterfaceWithPorts(
-    const std::shared_ptr<SwitchState>& state) {
-  auto intfID = firstInterfaceIDWithPorts(state);
+    const std::shared_ptr<SwitchState>& state,
+    std::optional<SwitchID> switchId) {
+  auto intfID = firstInterfaceIDWithPorts(state, switchId);
   return getInterfaceMac(state, intfID);
 }
 
 InterfaceID firstInterfaceIDWithPorts(
-    const std::shared_ptr<SwitchState>& state) {
-  const auto& intfMap = state->getInterfaces()->cbegin()->second;
-  for (const auto& [intfID, intf] : std::as_const(*intfMap)) {
-    if (intf->isVirtual()) {
-      // virtual interfaces do not have associated ports
+    const std::shared_ptr<SwitchState>& state,
+    std::optional<SwitchID> switchId) {
+  for (const auto& [matcher, intfMap] :
+       std::as_const(*state->getInterfaces())) {
+    if (switchId.has_value() && !HwSwitchMatcher(matcher).has(*switchId)) {
       continue;
     }
-    return InterfaceID(intfID);
+    for (const auto& [intfID, intf] : std::as_const(*intfMap)) {
+      if (intf->isVirtual()) {
+        // virtual interfaces do not have associated ports
+        continue;
+      }
+      return InterfaceID(intfID);
+    }
+  }
+  if (switchId.has_value()) {
+    throw FbossError(
+        "No interface found in state for switchId: ", switchId.value());
   }
   throw FbossError("No interface found in state");
 }

@@ -569,6 +569,7 @@ cpp_library(
         "AsicUtils.cpp",
     ],
     exported_deps = [
+        ":agent_features",
         "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
