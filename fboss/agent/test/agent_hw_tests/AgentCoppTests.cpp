@@ -506,8 +506,8 @@ class AgentCoppTest : public AgentHwTest {
       bool outOfPort,
       bool selfSolicit,
       bool expectRxPacket = true) {
-    InterfaceID intfId =
-        utility::firstInterfaceIDWithPorts(getProgrammedState());
+    InterfaceID intfId = utility::firstInterfaceIDWithPorts(
+        getProgrammedState(), getSwitchIdUnderTest(*getAgentEnsemble()));
     auto intf = getProgrammedState()->getInterfaces()->getNode(intfId);
     std::optional<VlanID> vlanId{};
     if (intf->getType() == cfg::InterfaceType::VLAN) {
@@ -623,7 +623,8 @@ class AgentCoppTest : public AgentHwTest {
 
   void
   sendDHCPv6Pkts(int numPktsToSend, DHCPv6Type type, int ttl, bool outOfPort) {
-    auto intfId = utility::firstInterfaceIDWithPorts(getProgrammedState());
+    auto intfId = utility::firstInterfaceIDWithPorts(
+        getProgrammedState(), getSwitchIdUnderTest(*getAgentEnsemble()));
     auto myIpv6 = utility::getIntfAddrsV6(getProgrammedState(), intfId)[0];
     auto vlanId = getVlanIDForTx();
     auto intfMac =
@@ -1318,8 +1319,9 @@ TYPED_TEST(AgentCoppTest, DhcpPacketToMidPriQ) {
   auto setup = [=, this]() { this->setup(); };
 
   auto verify = [=, this]() {
-    auto intfID =
-        utility::firstInterfaceIDWithPorts(this->getProgrammedState());
+    auto intfID = utility::firstInterfaceIDWithPorts(
+        this->getProgrammedState(),
+        this->getSwitchIdUnderTest(*this->getAgentEnsemble()));
     auto v4IntfAddr =
         utility::getIntfAddrsV4(this->getProgrammedState(), intfID)[0];
     auto v6IntfAddr =
