@@ -72,6 +72,7 @@ TEST(ConfigLibTest, Basic) {
   // LedManager Configs
   EXPECT_NO_THROW(ConfigLib().getLedManagerConfig(kDarwin));
   EXPECT_NO_THROW(ConfigLib().getLedManagerConfig(kMorgan800cc));
+  EXPECT_NO_THROW(ConfigLib().getLedManagerConfig(kBlackwolf800banw));
   EXPECT_THROW(
       ConfigLib().getLedManagerConfig(kNonExistentPlatform),
       std::runtime_error);
