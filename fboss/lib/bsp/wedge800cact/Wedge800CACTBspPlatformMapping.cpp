@@ -1162,8 +1162,8 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "tcvrLaneToLedId": {
             "1": 97,
             "2": 97,
-            "3": 97,
-            "4": 97
+            "3": 98,
+            "4": 98
           }
         }
       },
@@ -1750,6 +1750,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "id": 97,
           "bluePath": "/sys/class/leds/port33_led1:blue:status",
           "yellowPath": "/sys/class/leds/port33_led1:amber:status",
+          "transceiverId": 33
+        },
+        "98": {
+          "id": 98,
+          "bluePath": "/sys/class/leds/port33_led2:blue:status",
+          "yellowPath": "/sys/class/leds/port33_led2:amber:status",
           "transceiverId": 33
         }
       }

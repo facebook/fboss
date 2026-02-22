@@ -814,7 +814,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x40590 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
               "numPorts": 1,
-              "ledPerPort": 1,
+              "ledPerPort": 2,
               "startPort": 33
             }
           ],
