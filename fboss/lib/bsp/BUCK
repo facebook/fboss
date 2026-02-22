@@ -90,6 +90,7 @@ cpp_library(
         "//fboss/agent:fboss-error",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:gpiod_line",
+        "//fboss/lib/bsp/blackwolf800banw:blackwolf800banw_bsp",
         "//fboss/lib/bsp/icecube800banw:icecube800banw_bsp",
         "//fboss/lib/bsp/icecube800bc:icecube800bc_bsp",
         "//fboss/lib/bsp/icetea800bc:icetea800bc_bsp",
