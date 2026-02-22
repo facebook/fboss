@@ -270,7 +270,7 @@ Tomahawk6Asic::desiredLoopbackModes() const {
 }
 
 std::optional<uint32_t> Tomahawk6Asic::getMaxArsGroups() const {
-  return FLAGS_enable_th6_ars_scale_mode ? 256 : 128;
+  return 128;
 }
 
 // virtual groups size do not change the DLB object usage.
@@ -280,6 +280,6 @@ std::optional<uint32_t> Tomahawk6Asic::getArsBaseIndex() const {
 }
 
 std::optional<uint32_t> Tomahawk6Asic::getMaxArsWidth() const {
-  return FLAGS_enable_th6_ars_scale_mode ? 256 : 64;
+  return 64;
 }
 } // namespace facebook::fboss
