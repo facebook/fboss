@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiArsManager.h"
+#include "fboss/agent/hw/sai/switch/SaiArsProfileManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
@@ -1292,7 +1293,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
                 SaiAclEntryTraits::Attributes::ActionDisableArsForwarding{
                     false};
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-            if (FLAGS_enable_th6_ars_scale_mode) {
+            auto arsProfileHandle =
+                managerTable_->arsProfileManager().getArsProfileHandle();
+            if (arsProfileHandle && arsProfileHandle->arsVirtualGroupsEnabled) {
               aclActionL3SwitchCancel =
                   SaiAclEntryTraits::Attributes::ActionL3SwitchCancel{true};
             }

@@ -34,6 +34,9 @@ void SaiArsProfileManager::addArsProfile(
   auto attributes = createAttributes(flowletSwitchConfig);
   auto& store = saiStore_->get<SaiArsProfileTraits>();
   arsProfileHandle_->arsProfile = store.setObject(std::monostate{}, attributes);
+  auto maxArsVirtualGroups = flowletSwitchConfig->getMaxArsVirtualGroups();
+  arsProfileHandle_->arsVirtualGroupsEnabled =
+      maxArsVirtualGroups.has_value() && maxArsVirtualGroups.value() != 0;
 }
 
 void SaiArsProfileManager::removeArsProfile(
@@ -41,6 +44,7 @@ void SaiArsProfileManager::removeArsProfile(
   if (arsProfileHandle_->arsProfile) {
     arsProfileHandle_->arsProfile.reset();
   }
+  arsProfileHandle_->arsVirtualGroupsEnabled = false;
 }
 
 void SaiArsProfileManager::changeArsProfile(
