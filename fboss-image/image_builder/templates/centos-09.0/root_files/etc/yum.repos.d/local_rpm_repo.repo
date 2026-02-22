@@ -1,0 +1,6 @@
+[local_rpm_repo]
+name=Local Platform RPM repo
+baseurl=file:///usr/local/share/local_rpm_repo
+gpgcheck=0
+metadata_expire=6h
+enabled=1

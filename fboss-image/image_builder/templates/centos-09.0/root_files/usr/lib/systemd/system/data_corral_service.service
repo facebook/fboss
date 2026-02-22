@@ -1,0 +1,33 @@
+# /usr/lib/systemd/system/data_corral_service.service
+[Unit]
+Description=FBOSS Data Corral Service
+After=platform_manager.service
+After=rc-local.service
+StartLimitIntervalSec=600
+StartLimitBurst=5
+
+[Service]
+Type=notify
+LimitNOFILE=10000000
+LimitCORE=32G
+
+Environment="PATH=/opt/fboss/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+Environment="LD_LIBRARY_PATH=/opt/fboss/lib"
+WorkingDirectory=/opt/fboss
+ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/data_corral_service'
+
+Restart=always
+RestartSec=30
+TimeoutStartSec=180s
+
+# Capabilities
+AmbientCapabilities=CAP_SYS_RAWIO
+CapabilityBoundingSet=CAP_SYS_RAWIO
+
+# Logging to journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=data_corral_service
+
+[Install]
+WantedBy=multi-user.target
