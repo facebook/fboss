@@ -30,7 +30,9 @@ class BufferStoreTest : public SaiStoreTest {
     SaiBufferPoolTraits::Attributes::ThresholdMode mode{
         SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC};
     std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize{0};
-    return {type, size, mode, xoffSize};
+    std::optional<SaiBufferPoolTraits::Attributes::ReservedBufferSize>
+        reservedBufferSize{std::nullopt};
+    return {type, size, mode, xoffSize, reservedBufferSize};
   }
 
   BufferPoolSaiId createBufferPool() const {

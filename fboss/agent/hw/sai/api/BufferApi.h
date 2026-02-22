@@ -21,6 +21,13 @@
 
 extern "C" {
 #include <sai.h>
+// Include custom buffer header if available (for
+// SAI_BUFFER_POOL_ATTR_RESERVED_BUFFER_SIZE)
+#ifdef __has_include
+#if __has_include(<saibuffercustom.h>)
+#include <saibuffercustom.h>
+#endif
+#endif
 }
 
 namespace facebook {
@@ -46,13 +53,19 @@ struct SaiBufferPoolTraits {
         SAI_BUFFER_POOL_ATTR_XOFF_SIZE,
         sai_uint64_t,
         SaiIntDefault<sai_uint64_t>>;
+    struct AttributeReservedBufferSize {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ReservedBufferSize =
+        SaiExtensionAttribute<sai_uint64_t, AttributeReservedBufferSize>;
   };
   using AdapterKey = BufferPoolSaiId;
   using CreateAttributes = std::tuple<
       Attributes::Type,
       Attributes::Size,
       Attributes::ThresholdMode,
-      std::optional<Attributes::XoffSize>>;
+      std::optional<Attributes::XoffSize>,
+      std::optional<Attributes::ReservedBufferSize>>;
   using AdapterHostKey =
       std::tuple<Attributes::Type, Attributes::Size, Attributes::ThresholdMode>;
 
@@ -66,6 +79,7 @@ SAI_ATTRIBUTE_NAME(BufferPool, Type);
 SAI_ATTRIBUTE_NAME(BufferPool, Size);
 SAI_ATTRIBUTE_NAME(BufferPool, ThresholdMode);
 SAI_ATTRIBUTE_NAME(BufferPool, XoffSize);
+SAI_ATTRIBUTE_NAME(BufferPool, ReservedBufferSize);
 
 template <>
 struct SaiObjectHasStats<SaiBufferPoolTraits> : public std::true_type {};

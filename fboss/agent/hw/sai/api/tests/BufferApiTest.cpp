@@ -30,7 +30,10 @@ class BufferApiTest : public ::testing::Test {
     SaiBufferPoolTraits::Attributes::Size size{_size};
     SaiBufferPoolTraits::Attributes::ThresholdMode mode{_mode};
     std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
-    SaiBufferPoolTraits::CreateAttributes c{type, size, mode, xoffSize};
+    std::optional<SaiBufferPoolTraits::Attributes::ReservedBufferSize>
+        reservedBufferSize{std::nullopt};
+    SaiBufferPoolTraits::CreateAttributes c{
+        type, size, mode, xoffSize, reservedBufferSize};
     return bufferApi->create<SaiBufferPoolTraits>(c, 0);
   }
   void checkBufferPool(BufferPoolSaiId id) const {
