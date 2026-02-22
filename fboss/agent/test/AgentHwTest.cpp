@@ -120,6 +120,8 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   // Set HW agent connection timeout to 130 seconds
   FLAGS_hw_agent_connection_timeout_ms = 130000;
   FLAGS_update_stats_interval_s = 1;
+  FLAGS_enable_nexthop_id_manager = true;
+  FLAGS_verify_fib_nexthop_id_consistency = true;
 }
 
 void AgentHwTest::TearDown() {
