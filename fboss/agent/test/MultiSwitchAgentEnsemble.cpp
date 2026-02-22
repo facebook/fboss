@@ -3,6 +3,7 @@
 #include "fboss/agent/test/MultiSwitchAgentEnsemble.h"
 #include <gtest/gtest.h>
 
+#include "fboss/agent/MultiHwSwitchHandler.h"
 #include "fboss/agent/SwitchStats.h"
 
 namespace facebook::fboss {
@@ -81,6 +82,16 @@ void MultiSwitchAgentEnsemble::ensureHwSwitchConnected(SwitchID switchId) {
     EXPECT_EVENTUALLY_EQ(*(statusMap[switchIndex].rxPktEventSyncActive()), 1);
     EXPECT_EVENTUALLY_EQ(*(statusMap[switchIndex].linkEventSyncActive()), 1);
     EXPECT_EVENTUALLY_EQ(*(statusMap[switchIndex].statsEventSyncActive()), 1);
+  });
+
+  WITH_RETRIES({
+    auto hwSwitchRunStateMap =
+        getSw()->getHwSwitchHandler()->getHwSwitchRunStates();
+    auto it = hwSwitchRunStateMap.find(static_cast<int32_t>(switchId));
+    EXPECT_EVENTUALLY_TRUE(it != hwSwitchRunStateMap.end());
+    if (it != hwSwitchRunStateMap.end()) {
+      EXPECT_EVENTUALLY_GE(it->second, SwitchRunState::CONFIGURED);
+    }
   });
 }
 
