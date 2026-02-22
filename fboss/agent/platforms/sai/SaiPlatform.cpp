@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
+#include "fboss/agent/hw/switch_asics/Q4DAsic.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
@@ -554,6 +555,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       swInfo.switchType() = cfg::SwitchType::VOQ;
       swInfo.switchMac() = localMac.toString();
       const Jericho3Asic j3(0, swInfo);
+      const Q4DAsic q4d(0, swInfo);
       for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
         if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {
           continue;
@@ -565,6 +567,11 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
             maxCoreCount = std::max(j3.getNumCores(), maxCoreCount);
             maxSystemCoreCount =
                 std::max(maxSystemCoreCount, uint32_t(id + j3.getNumCores()));
+            break;
+          case cfg::AsicType::ASIC_TYPE_Q4D:
+            maxCoreCount = std::max(q4d.getNumCores(), maxCoreCount);
+            maxSystemCoreCount =
+                std::max(maxSystemCoreCount, uint32_t(id + q4d.getNumCores()));
             break;
           default:
             throw FbossError("Unexpected asic type: ", *dsfNode.asicType());
@@ -908,6 +915,13 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
             mapToValueList};
   }
 #endif
+
+  // Q4D bringup - Override max sysports and voqs for Q4D standalone box.
+  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_Q4D) {
+    maxSystemPorts = 1024;
+    maxVoqs = 8 * 1024;
+    maxSystemPortId = 1024 - 1;
+  }
 
   return {
       initSwitch,

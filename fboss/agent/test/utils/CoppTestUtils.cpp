@@ -119,6 +119,7 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_Q4D:
     case cfg::AsicType::ASIC_TYPE_G202X:
       return 7;
     case cfg::AsicType::ASIC_TYPE_CHENAB:
@@ -166,6 +167,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
       return cfg::ToCpuAction::COPY;
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_Q4D:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
       return cfg::ToCpuAction::TRAP;
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
@@ -246,7 +248,8 @@ cfg::PortQueueRate getPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
     portQueueRate.pktsPerSec() = getRange(0, pps);
   } else {
     uint32_t kbps;
-    if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+        hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_Q4D) {
       kbps = kCoppDnxLowPriKbitsPerSec;
     } else {
       kbps = getCoppQueueKbpsFromPps(hwAsic, pps);

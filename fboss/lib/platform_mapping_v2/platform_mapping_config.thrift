@@ -34,6 +34,7 @@ enum CoreType {
   J3_EVT = 7, // J3 Eventor Port
   CHENAB_NIF = 8,
   TH6_NIF = 9, // TH6
+  Q4D_NIF = 10, // Q4D
 
   // Transceivers
   OSFP = 100,
