@@ -140,6 +140,18 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
   if (newLabelFib) {
     nextState->resetLabelForwardingInformationBase(newLabelFib);
   }
+  // This will run on every unit test. We add this check to ensure that DCHECK
+  // does not run when developers manually build and run agent-hw-tests in dev
+  // mode.
+  if (!FLAGS_verify_fib_nexthop_id_consistency) {
+    DCHECK(verifyNextHopIdConsistency(nextState));
+  }
+  // This will run on tests wherever we set
+  // FLAGS_verify_fib_nexthop_id_consistency We will only set this flag for
+  // agent-hw-tests.
+  else {
+    CHECK(verifyNextHopIdConsistency(nextState));
+  }
 
   return nextState;
 }
