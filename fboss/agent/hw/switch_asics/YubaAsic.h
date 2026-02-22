@@ -132,10 +132,10 @@ class YubaAsic : public TajoAsic {
      *        1. 1024 NHG/ECMP groups
      *        2. 9088 + 9088 = 18,176 NHG/ECMP members = ~18K
      *
-     * But the test passed for 18172 and failed for 18173. So, returning 18172.
+     * But the test passed for 18171 and failed for 18173. So, returning 18171.
      * Will work with Cisco to understand the reason for this. - MT-803
      */
-    return 18172;
+    return 18171;
   }
   uint32_t getNumCores() const override {
     return 12;
