@@ -527,7 +527,6 @@ SwSwitch::~SwSwitch() {
     // If we didn't already stop (say via gracefulExit call), begin
     // exit
     stop(false /* gracefulStop */);
-    restart_time::stop();
   }
 }
 
@@ -678,6 +677,10 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
 
   if (stateDeltaLogger_ && FLAGS_enable_state_delta_logging) {
     stateDeltaLogger_.reset();
+  }
+
+  if (isGracefulStop == false) {
+    restart_time::stop();
   }
 }
 
