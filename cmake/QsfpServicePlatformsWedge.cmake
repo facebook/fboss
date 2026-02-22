@@ -57,6 +57,7 @@ target_link_libraries(qsfp_platforms_wedge
   wedge800bact_platform_mapping
   wedge800cact_platform_mapping
   ladakh800bcls_platform_mapping
+  blackwolf800banw_platform_mapping
   platform_base
   qsfp_config
   wedge400_i2c

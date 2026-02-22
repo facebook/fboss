@@ -3,6 +3,7 @@
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include <folly/FileUtil.h>
 #include <folly/Singleton.h>
+#include "fboss/lib/bsp/blackwolf800banw/Blackwolf800banwBspPlatformMapping.h"
 #include "fboss/lib/bsp/icecube800banw/Icecube800banwBspPlatformMapping.h"
 #include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
@@ -204,6 +205,15 @@ std::shared_ptr<Ladakh800bclsSystemContainer>
 Ladakh800bclsSystemContainer::getInstance() {
   return _Ladakh800bclsSystemContainer.try_get();
 }
+
+using Blackwolf800banwSystemContainer =
+    BspGenericSystemContainer<Blackwolf800banwBspPlatformMapping>;
+folly::Singleton<Blackwolf800banwSystemContainer>
+    _blackwolf800banwSystemContainer;
+template <>
+std::shared_ptr<Blackwolf800banwSystemContainer>
+Blackwolf800banwSystemContainer::getInstance() {
+  return _blackwolf800banwSystemContainer.try_get();
 
 using Icecube800banwSystemContainer =
     BspGenericSystemContainer<Icecube800banwBspPlatformMapping>;

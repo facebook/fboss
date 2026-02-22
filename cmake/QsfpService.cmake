@@ -244,6 +244,16 @@ target_link_libraries(ladakh800bcls_bsp
   FBThrift::thriftcpp2
 )
 
+add_library(blackwolf800banw_bsp
+  fboss/lib/bsp/blackwolf800banw/Blackwolf800banwBspPlatformMapping.cpp
+)
+
+target_link_libraries(blackwolf800banw_bsp
+  bsp_platform_mapping
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
 add_library(qsfp_bsp_core
   fboss/lib/bsp/BspGenericSystemContainer.cpp
   fboss/lib/bsp/BspIOBus.cpp
@@ -286,6 +296,7 @@ target_link_libraries(qsfp_bsp_core
   wedge800bact_bsp
   wedge800cact_bsp
   ladakh800bcls_bsp
+  blackwolf800banw_bsp
   device_mdio
   fpga_device
   phy_management_base
