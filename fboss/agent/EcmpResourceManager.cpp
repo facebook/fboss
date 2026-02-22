@@ -48,7 +48,9 @@ void updateRouteOverrides(
       curForwardInfo.getCounterID(),
       curForwardInfo.getClassID(),
       backupSwitchingMode,
-      overrideNhops);
+      overrideNhops,
+      curForwardInfo.getNormalizedResolvedNextHopSetID(),
+      curForwardInfo.getResolvedNextHopSetID());
   XLOG(DBG2) << " Set : " << route->str()
              << " backup switching mode to : " << backupSwitchingMode
              << " override next hops to : "
@@ -926,10 +928,20 @@ EcmpResourceManager::InputOutputState::InputOutputState(
   auto newStateWithOldFibs = _in.newState()->clone();
   if (_in.oldState()->getFibsInfoMap() &&
       !_in.oldState()->getFibsInfoMap()->empty()) {
-    newStateWithOldFibs->resetFibsInfoMap(_in.oldState()->getFibsInfoMap());
-    DCHECK(
-        DeltaFunctions::isEmpty(StateDelta(_in.oldState(), newStateWithOldFibs)
-                                    .getFibsInfoDelta()));
+    // Reset only the fibsMap and not the entire FibsInfoMap
+    for (const auto& [matcherStr, oldFibInfo] :
+         std::as_const(*_in.oldState()->getFibsInfoMap())) {
+      auto newFibInfoPtr = newStateWithOldFibs->getFibsInfoMap()
+                               ->getNodeIf(matcherStr)
+                               ->modify(&newStateWithOldFibs);
+      newFibInfoPtr->resetFibsMap(oldFibInfo->getfibsMap());
+    }
+    // Verify that only the fibsMap were reset to match
+    // old state.
+    for (const auto& fibInfoDelta :
+         StateDelta(_in.oldState(), newStateWithOldFibs).getFibsInfoDelta()) {
+      DCHECK(DeltaFunctions::isEmpty(fibInfoDelta.getFibsMapDelta()));
+    }
   } else {
     // Cater for when old state is empty - e.g. warmboot,
     // rollback
@@ -1245,7 +1257,9 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
       curForwardInfo.getClassID(),
       grpInfo->isBackupEcmpGroupType() ? getBackupEcmpSwitchingMode()
                                        : std::optional<cfg::SwitchingMode>(),
-      std::optional<RouteNextHopSet>(grpInfo->getOverrideNextHops()));
+      std::optional<RouteNextHopSet>(grpInfo->getOverrideNextHops()),
+      curForwardInfo.getNormalizedResolvedNextHopSetID(),
+      curForwardInfo.getResolvedNextHopSetID());
   auto newRoute = route->clone();
   newRoute->setResolved(std::move(newForwardInfo));
   newRoute->publish();
