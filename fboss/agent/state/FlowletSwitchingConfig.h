@@ -209,6 +209,41 @@ class FlowletSwitchingConfig : public ThriftStructNode<
     return std::nullopt;
   }
 
+  void setMaxArsVirtualGroupWidth(
+      const std::optional<int32_t>& maxArsVirtualGroupWidth) {
+    if (maxArsVirtualGroupWidth) {
+      set<switch_config_tags::maxArsVirtualGroupWidth>(
+          *maxArsVirtualGroupWidth);
+    } else {
+      ref<switch_config_tags::maxArsVirtualGroupWidth>().reset();
+    }
+  }
+
+  std::optional<int32_t> getMaxArsVirtualGroupWidth() const {
+    if (auto maxArsVirtualGroupWidth =
+            get<switch_config_tags::maxArsVirtualGroupWidth>()) {
+      return maxArsVirtualGroupWidth->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setMaxArsVirtualGroups(
+      const std::optional<int32_t>& maxArsVirtualGroups) {
+    if (maxArsVirtualGroups) {
+      set<switch_config_tags::maxArsVirtualGroups>(*maxArsVirtualGroups);
+    } else {
+      ref<switch_config_tags::maxArsVirtualGroups>().reset();
+    }
+  }
+
+  std::optional<int32_t> getMaxArsVirtualGroups() const {
+    if (auto maxArsVirtualGroups =
+            get<switch_config_tags::maxArsVirtualGroups>()) {
+      return maxArsVirtualGroups->cref();
+    }
+    return std::nullopt;
+  }
+
   FlowletSwitchingConfig* modify(std::shared_ptr<SwitchState>* state);
 
  private:

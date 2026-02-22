@@ -4799,6 +4799,14 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
     newFlowletSwitchingConfig->setMinWidthForArsVirtualGroup(
         *config.minWidthForArsVirtualGroup());
   }
+  if (config.maxArsVirtualGroupWidth()) {
+    newFlowletSwitchingConfig->setMaxArsVirtualGroupWidth(
+        *config.maxArsVirtualGroupWidth());
+  }
+  if (config.maxArsVirtualGroups()) {
+    newFlowletSwitchingConfig->setMaxArsVirtualGroups(
+        *config.maxArsVirtualGroups());
+  }
   return newFlowletSwitchingConfig;
 }
 
