@@ -6,6 +6,10 @@ echo "--- Executing $0 ---"
 sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="FBOSS Distro Image"/' /usr/lib/os-release
 sed -i 's/^NAME=.*/NAME="FBOSS Distro Image"/' /usr/lib/os-release
 
+# All dnf invocations with an invalid RPM repo configured will fail. Create the
+# metadata for the local_rpm_repo now to prevent that.
+createrepo /usr/local/share/local_rpm_repo
+
 # 1. Install our custom kernel RPMs
 #
 # On purpose we don't install any kernel rpms as part of
@@ -50,6 +54,17 @@ dracut --force --kver "${KERNEL_VERSION}" "${INITRD_PATH}"
 env -i \
   PATH="/usr/bin:/usr/sbin:/bin:/sbin" \
   kernel-install add "${KERNEL_VERSION}" "${VMLINUZ_PATH}" --initrd-file "${INITRD_PATH}"
+
+# 5. Enable systemd services
+echo "Enabling FBOSS systemd services..."
+systemctl enable local_rpm_repo.service
+systemctl enable platform_manager.service
+systemctl enable data_corral_service.service
+systemctl enable fan_service.service
+systemctl enable sensor_service.service
+systemctl enable fsdb.service
+systemctl enable qsfp_service.service
+systemctl enable wedge_agent.service
 
 # 6. Use system GRUB 2.06 from packages
 # The grub2-efi-x64 package already provides grubx64.efi with all necessary modules

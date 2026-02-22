@@ -1,0 +1,38 @@
+# /usr/lib/systemd/system/platform_manager.service
+[Unit]
+Description=FBOSS Platform Manager
+Before=sensor_service.service
+Before=fan_service.service
+Before=data_corral_service.service
+Before=led_service.service
+Before=qsfp_service.service
+Before=fruid.service
+After=rc-local.service
+After=fboss_init.service
+Wants=local_rpm_repo.service
+Wants=fboss_init.service
+
+StartLimitIntervalSec=600
+StartLimitBurst=5
+
+[Service]
+Type=notify
+LimitNOFILE=10000000
+LimitCORE=32G
+
+Environment="PATH=/opt/fboss/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+Environment="LD_LIBRARY_PATH=/opt/fboss/lib"
+WorkingDirectory=/opt/fboss
+ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/platform_manager --run_once=false'
+
+Restart=on-failure
+RestartSec=30
+TimeoutStartSec=180s
+
+# Logging to journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=platform_manager
+
+[Install]
+WantedBy=multi-user.target
