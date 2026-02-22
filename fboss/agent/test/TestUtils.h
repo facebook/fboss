@@ -366,6 +366,20 @@ ResolvedNextHop makeResolvedNextHop(
     uint32_t weight = 1,
     std::optional<NetworkTopologyInformation> topologyInfo = std::nullopt);
 
+/**
+ * Create an expected RouteNextHopEntry with the correct IDs (ResolvedNextHopID
+ * and NormalizedResolvedNextHopID) by looking up the ID from the
+ * NextHopIDManager in the RIB.
+ *
+ * This is useful in tests where we need to compare actual route forward info
+ * with expected values, and the expected RouteNextHopEntry needs to have the
+ * correct resolvedNextHopSetID populated.
+ */
+RouteNextHopEntry makeExpectedRouteNextHopEntry(
+    const SwSwitch* sw,
+    RouteNextHopSet nhops,
+    AdminDistance distance);
+
 /*
  * Generate UCMP next hop groups with weighted next hops.
  *

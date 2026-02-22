@@ -32,6 +32,7 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
 #include "fboss/agent/Utils.h"
@@ -1323,6 +1324,30 @@ ResolvedNextHop makeResolvedNextHop(
       std::nullopt, // label action
       false, // disableTTLDecrement
       topologyInfo);
+}
+
+RouteNextHopEntry makeExpectedRouteNextHopEntry(
+    const SwSwitch* sw,
+    RouteNextHopSet nhops,
+    AdminDistance distance) {
+  RouteNextHopEntry entry(std::move(nhops), distance);
+
+  CHECK(sw);
+  CHECK(sw->getRib());
+  auto* idManager = sw->getRib()->getNextHopIDManager();
+  if (idManager) {
+    // Lookup resolvedNextHopSetID for the nhops
+    auto resolvedId = idManager->lookupRouteNextHopSetID(entry.getNextHopSet());
+    CHECK(resolvedId);
+    entry.setResolvedNextHopSetID(resolvedId);
+    // Lookup normalizedResolvedNextHopSetID for the normalized nhops
+    auto normalizedNhops = entry.nonOverrideNormalizedNextHops();
+    auto normalizedResolvedId =
+        idManager->lookupRouteNextHopSetID(normalizedNhops);
+    CHECK(normalizedResolvedId);
+    entry.setNormalizedResolvedNextHopSetID(normalizedResolvedId);
+  }
+  return entry;
 }
 
 std::vector<RouteNextHopSet>
