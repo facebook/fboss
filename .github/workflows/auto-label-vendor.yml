@@ -31,7 +31,10 @@ jobs:
             // Extract company name from first [...]
             const match = title.match(/^\[([^\]]+)\]/);
             if (!match) {
-              core.info('No [CompanyName] found in PR title, skipping');
+              core.setFailed(
+                'PR title must start with a company name in brackets, e.g. "[CompanyName] Your PR title". ' +
+                'This is required for all vendor contributions.'
+              );
               return;
             }
 
@@ -40,10 +43,7 @@ jobs:
             core.info(`Extracted company name: "${companyName}"`);
 
             if (!validCompanies.includes(companyLower)) {
-              core.warning(
-                `"${companyName}" is not a recognized company. ` +
-                `Valid companies: ${validCompanies.join(', ')}`
-              );
+              core.warning(`Company name "${companyName}" is not recognized.`);
               return;
             }
 
