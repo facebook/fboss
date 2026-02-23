@@ -103,7 +103,6 @@ cpp_library(
     ],
     headers = [
         "AgentArsBase.h",
-        "AgentHwTestConstants.h",
         "AgentRollbackTests.h",
         "AgentTestAddressConstants.h",
         "AgentTestEcmpConstants.h",
