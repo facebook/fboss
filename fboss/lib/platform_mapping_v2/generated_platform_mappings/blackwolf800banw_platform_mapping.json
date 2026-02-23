@@ -615,316 +615,30 @@
     "35": {
         "mapping": {
           "id": 35,
-          "name": "eth1/49/1",
+          "name": "rcy1/1/547",
           "controllingPort": 35,
           "pins": [
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
+                "chip": "NPU-J3_RCY-slot1/chip1/core547",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                  "lane": 7
-                }
               }
             }
           ],
-          "portType": 0,
+          "portType": 3,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 6,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
+                      "chip": "NPU-J3_RCY-slot1/chip1/core547",
                       "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "39": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 7
                     }
                   }
                 ]
@@ -932,1704 +646,104 @@
           }
         }
     },
-    "43": {
+    "65": {
         "mapping": {
-          "id": 43,
-          "name": "eth1/51/1",
-          "controllingPort": 43,
+          "id": 65,
+          "name": "eth1/49/1",
+          "controllingPort": 65,
           "pins": [
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                   "lane": 0
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                   "lane": 1
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                   "lane": 3
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                 "lane": 4
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                   "lane": 4
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                 "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                   "lane": 5
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                 "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                   "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                 "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 8,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "50": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "39": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "51": {
-        "mapping": {
-          "id": 51,
-          "name": "eth1/52/1",
-          "controllingPort": 51,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 9,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "50": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "39": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "59": {
-        "mapping": {
-          "id": 59,
-          "name": "eth1/54/1",
-          "controllingPort": 59,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 11,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "50": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "39": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "67": {
-        "mapping": {
-          "id": 67,
-          "name": "eth1/53/1",
-          "controllingPort": 67,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 10,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "50": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "39": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "75": {
-        "mapping": {
-          "id": 75,
-          "name": "eth1/55/1",
-          "controllingPort": 75,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 12,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "50": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "39": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "83": {
-        "mapping": {
-          "id": 83,
-          "name": "eth1/50/1",
-          "controllingPort": 83,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                   "lane": 7
                 }
               }
@@ -2639,7 +753,7 @@
           "attachedCoreId": 0,
           "attachedCorePortIndex": 7,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -2647,49 +761,49 @@
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 3
                     }
                   },
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 4
                     }
                   },
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 5
                     }
                   },
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 7
                     }
                   }
@@ -2697,49 +811,49 @@
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 3
                     }
                   },
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 4
                     }
                   },
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 5
                     }
                   },
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 7
                     }
                   }
@@ -2751,49 +865,49 @@
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 3
                     }
                   },
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 4
                     }
                   },
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 5
                     }
                   },
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core0",
                       "lane": 7
                     }
                   }
@@ -2801,49 +915,49 @@
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 3
                     }
                   },
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 4
                     }
                   },
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 5
                     }
                   },
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 6
                     }
                   },
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 7
                     }
                   }
@@ -2852,104 +966,1384 @@
           }
         }
     },
-    "91": {
+    "73": {
         "mapping": {
-          "id": 91,
-          "name": "eth1/56/1",
-          "controllingPort": 91,
+          "id": 73,
+          "name": "eth1/51/1",
+          "controllingPort": 73,
           "pins": [
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
                   "lane": 0
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
                   "lane": 1
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
                   "lane": 3
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
                 "lane": 4
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
                   "lane": 4
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
                 "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
                   "lane": 5
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
                 "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
                   "lane": 6
                 }
               }
             },
             {
               "a": {
-                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
                 "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 9,
+          "virtualDeviceId": 0,
+          "scope": 1
+        },
+        "supportedProfiles": {
+          "50": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "39": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core1",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "81": {
+        "mapping": {
+          "id": 81,
+          "name": "eth1/52/1",
+          "controllingPort": 81,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                  "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 10,
+          "virtualDeviceId": 0,
+          "scope": 1
+        },
+        "supportedProfiles": {
+          "50": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "39": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core2",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "89": {
+        "mapping": {
+          "id": 89,
+          "name": "eth1/54/1",
+          "controllingPort": 89,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                  "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 12,
+          "virtualDeviceId": 0,
+          "scope": 1
+        },
+        "supportedProfiles": {
+          "50": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "39": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core3",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "97": {
+        "mapping": {
+          "id": 97,
+          "name": "eth1/53/1",
+          "controllingPort": 97,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                  "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 11,
+          "virtualDeviceId": 0,
+          "scope": 1
+        },
+        "supportedProfiles": {
+          "50": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "39": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core4",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "105": {
+        "mapping": {
+          "id": 105,
+          "name": "eth1/55/1",
+          "controllingPort": 105,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                  "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
                   "lane": 7
                 }
               }
@@ -2959,7 +2353,647 @@
           "attachedCoreId": 0,
           "attachedCorePortIndex": 13,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
+        },
+        "supportedProfiles": {
+          "50": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "39": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core5",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "113": {
+        "mapping": {
+          "id": 113,
+          "name": "eth1/50/1",
+          "controllingPort": 113,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                  "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 8,
+          "virtualDeviceId": 0,
+          "scope": 1
+        },
+        "supportedProfiles": {
+          "50": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "39": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-Q4D_NIF-slot1/chip1/core6",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "121": {
+        "mapping": {
+          "id": 121,
+          "name": "eth1/56/1",
+          "controllingPort": 121,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-Q4D_NIF-slot1/chip1/core7",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 14,
+          "virtualDeviceId": 0,
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -3172,11 +3206,11 @@
           }
         }
     },
-    "99": {
+    "129": {
         "mapping": {
-          "id": 99,
+          "id": 129,
           "name": "eth1/58/1",
-          "controllingPort": 99,
+          "controllingPort": 129,
           "pins": [
             {
               "a": {
@@ -3279,7 +3313,7 @@
           "attachedCoreId": 1,
           "attachedCorePortIndex": 5,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -3492,11 +3526,11 @@
           }
         }
     },
-    "107": {
+    "137": {
         "mapping": {
-          "id": 107,
+          "id": 137,
           "name": "eth1/59/1",
-          "controllingPort": 107,
+          "controllingPort": 137,
           "pins": [
             {
               "a": {
@@ -3599,7 +3633,7 @@
           "attachedCoreId": 1,
           "attachedCorePortIndex": 6,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -3812,11 +3846,11 @@
           }
         }
     },
-    "115": {
+    "145": {
         "mapping": {
-          "id": 115,
+          "id": 145,
           "name": "eth1/62/1",
-          "controllingPort": 115,
+          "controllingPort": 145,
           "pins": [
             {
               "a": {
@@ -3919,7 +3953,7 @@
           "attachedCoreId": 1,
           "attachedCorePortIndex": 9,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -4132,11 +4166,11 @@
           }
         }
     },
-    "123": {
+    "153": {
         "mapping": {
-          "id": 123,
+          "id": 153,
           "name": "eth1/61/1",
-          "controllingPort": 123,
+          "controllingPort": 153,
           "pins": [
             {
               "a": {
@@ -4239,7 +4273,7 @@
           "attachedCoreId": 1,
           "attachedCorePortIndex": 8,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -4452,11 +4486,11 @@
           }
         }
     },
-    "131": {
+    "161": {
         "mapping": {
-          "id": 131,
+          "id": 161,
           "name": "eth1/64/1",
-          "controllingPort": 131,
+          "controllingPort": 161,
           "pins": [
             {
               "a": {
@@ -4559,7 +4593,7 @@
           "attachedCoreId": 1,
           "attachedCorePortIndex": 11,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -4772,11 +4806,11 @@
           }
         }
     },
-    "139": {
+    "169": {
         "mapping": {
-          "id": 139,
+          "id": 169,
           "name": "eth1/63/1",
-          "controllingPort": 139,
+          "controllingPort": 169,
           "pins": [
             {
               "a": {
@@ -4879,7 +4913,7 @@
           "attachedCoreId": 1,
           "attachedCorePortIndex": 10,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -5092,11 +5126,11 @@
           }
         }
     },
-    "147": {
+    "177": {
         "mapping": {
-          "id": 147,
+          "id": 177,
           "name": "eth1/57/1",
-          "controllingPort": 147,
+          "controllingPort": 177,
           "pins": [
             {
               "a": {
@@ -5199,7 +5233,7 @@
           "attachedCoreId": 1,
           "attachedCorePortIndex": 4,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -5412,11 +5446,11 @@
           }
         }
     },
-    "155": {
+    "185": {
         "mapping": {
-          "id": 155,
+          "id": 185,
           "name": "eth1/60/1",
-          "controllingPort": 155,
+          "controllingPort": 185,
           "pins": [
             {
               "a": {
@@ -5519,7 +5553,7 @@
           "attachedCoreId": 1,
           "attachedCorePortIndex": 7,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -5732,11 +5766,11 @@
           }
         }
     },
-    "163": {
+    "193": {
         "mapping": {
-          "id": 163,
+          "id": 193,
           "name": "eth1/5/1",
-          "controllingPort": 163,
+          "controllingPort": 193,
           "pins": [
             {
               "a": {
@@ -5839,7 +5873,7 @@
           "attachedCoreId": 2,
           "attachedCorePortIndex": 8,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -6052,11 +6086,11 @@
           }
         }
     },
-    "171": {
+    "201": {
         "mapping": {
-          "id": 171,
+          "id": 201,
           "name": "eth1/8/1",
-          "controllingPort": 171,
+          "controllingPort": 201,
           "pins": [
             {
               "a": {
@@ -6159,7 +6193,7 @@
           "attachedCoreId": 2,
           "attachedCorePortIndex": 11,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -6372,11 +6406,11 @@
           }
         }
     },
-    "179": {
+    "209": {
         "mapping": {
-          "id": 179,
+          "id": 209,
           "name": "eth1/1/1",
-          "controllingPort": 179,
+          "controllingPort": 209,
           "pins": [
             {
               "a": {
@@ -6479,7 +6513,7 @@
           "attachedCoreId": 2,
           "attachedCorePortIndex": 4,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -6692,11 +6726,11 @@
           }
         }
     },
-    "187": {
+    "217": {
         "mapping": {
-          "id": 187,
+          "id": 217,
           "name": "eth1/2/1",
-          "controllingPort": 187,
+          "controllingPort": 217,
           "pins": [
             {
               "a": {
@@ -6799,7 +6833,7 @@
           "attachedCoreId": 2,
           "attachedCorePortIndex": 5,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -7012,11 +7046,11 @@
           }
         }
     },
-    "195": {
+    "225": {
         "mapping": {
-          "id": 195,
+          "id": 225,
           "name": "eth1/3/1",
-          "controllingPort": 195,
+          "controllingPort": 225,
           "pins": [
             {
               "a": {
@@ -7119,7 +7153,7 @@
           "attachedCoreId": 2,
           "attachedCorePortIndex": 6,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -7332,11 +7366,11 @@
           }
         }
     },
-    "203": {
+    "233": {
         "mapping": {
-          "id": 203,
+          "id": 233,
           "name": "eth1/4/1",
-          "controllingPort": 203,
+          "controllingPort": 233,
           "pins": [
             {
               "a": {
@@ -7439,7 +7473,7 @@
           "attachedCoreId": 2,
           "attachedCorePortIndex": 7,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -7652,11 +7686,11 @@
           }
         }
     },
-    "211": {
+    "241": {
         "mapping": {
-          "id": 211,
+          "id": 241,
           "name": "eth1/6/1",
-          "controllingPort": 211,
+          "controllingPort": 241,
           "pins": [
             {
               "a": {
@@ -7759,7 +7793,7 @@
           "attachedCoreId": 2,
           "attachedCorePortIndex": 9,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -7972,11 +8006,11 @@
           }
         }
     },
-    "219": {
+    "249": {
         "mapping": {
-          "id": 219,
+          "id": 249,
           "name": "eth1/7/1",
-          "controllingPort": 219,
+          "controllingPort": 249,
           "pins": [
             {
               "a": {
@@ -8079,7 +8113,7 @@
           "attachedCoreId": 2,
           "attachedCorePortIndex": 10,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -8292,11 +8326,11 @@
           }
         }
     },
-    "227": {
+    "257": {
         "mapping": {
-          "id": 227,
+          "id": 257,
           "name": "eth1/14/1",
-          "controllingPort": 227,
+          "controllingPort": 257,
           "pins": [
             {
               "a": {
@@ -8399,7 +8433,7 @@
           "attachedCoreId": 3,
           "attachedCorePortIndex": 9,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -8612,11 +8646,11 @@
           }
         }
     },
-    "235": {
+    "265": {
         "mapping": {
-          "id": 235,
+          "id": 265,
           "name": "eth1/16/1",
-          "controllingPort": 235,
+          "controllingPort": 265,
           "pins": [
             {
               "a": {
@@ -8719,7 +8753,7 @@
           "attachedCoreId": 3,
           "attachedCorePortIndex": 11,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -8932,11 +8966,11 @@
           }
         }
     },
-    "243": {
+    "273": {
         "mapping": {
-          "id": 243,
+          "id": 273,
           "name": "eth1/15/1",
-          "controllingPort": 243,
+          "controllingPort": 273,
           "pins": [
             {
               "a": {
@@ -9039,7 +9073,7 @@
           "attachedCoreId": 3,
           "attachedCorePortIndex": 10,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -9252,11 +9286,11 @@
           }
         }
     },
-    "251": {
+    "281": {
         "mapping": {
-          "id": 251,
+          "id": 281,
           "name": "eth1/9/1",
-          "controllingPort": 251,
+          "controllingPort": 281,
           "pins": [
             {
               "a": {
@@ -9359,7 +9393,7 @@
           "attachedCoreId": 3,
           "attachedCorePortIndex": 4,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -9572,11 +9606,11 @@
           }
         }
     },
-    "259": {
+    "289": {
         "mapping": {
-          "id": 259,
+          "id": 289,
           "name": "eth1/10/1",
-          "controllingPort": 259,
+          "controllingPort": 289,
           "pins": [
             {
               "a": {
@@ -9679,7 +9713,7 @@
           "attachedCoreId": 3,
           "attachedCorePortIndex": 5,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -9892,11 +9926,11 @@
           }
         }
     },
-    "267": {
+    "297": {
         "mapping": {
-          "id": 267,
+          "id": 297,
           "name": "eth1/12/1",
-          "controllingPort": 267,
+          "controllingPort": 297,
           "pins": [
             {
               "a": {
@@ -9999,7 +10033,7 @@
           "attachedCoreId": 3,
           "attachedCorePortIndex": 7,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -10212,11 +10246,11 @@
           }
         }
     },
-    "275": {
+    "305": {
         "mapping": {
-          "id": 275,
+          "id": 305,
           "name": "eth1/13/1",
-          "controllingPort": 275,
+          "controllingPort": 305,
           "pins": [
             {
               "a": {
@@ -10319,7 +10353,7 @@
           "attachedCoreId": 3,
           "attachedCorePortIndex": 8,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -10532,11 +10566,11 @@
           }
         }
     },
-    "283": {
+    "313": {
         "mapping": {
-          "id": 283,
+          "id": 313,
           "name": "eth1/11/1",
-          "controllingPort": 283,
+          "controllingPort": 313,
           "pins": [
             {
               "a": {
@@ -10639,7 +10673,7 @@
           "attachedCoreId": 3,
           "attachedCorePortIndex": 6,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -10852,11 +10886,11 @@
           }
         }
     },
-    "291": {
+    "321": {
         "mapping": {
-          "id": 291,
+          "id": 321,
           "name": "eth1/20/1",
-          "controllingPort": 291,
+          "controllingPort": 321,
           "pins": [
             {
               "a": {
@@ -10959,7 +10993,7 @@
           "attachedCoreId": 4,
           "attachedCorePortIndex": 8,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -11172,11 +11206,11 @@
           }
         }
     },
-    "299": {
+    "329": {
         "mapping": {
-          "id": 299,
+          "id": 329,
           "name": "eth1/18/1",
-          "controllingPort": 299,
+          "controllingPort": 329,
           "pins": [
             {
               "a": {
@@ -11279,7 +11313,7 @@
           "attachedCoreId": 4,
           "attachedCorePortIndex": 6,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -11492,11 +11526,11 @@
           }
         }
     },
-    "307": {
+    "337": {
         "mapping": {
-          "id": 307,
+          "id": 337,
           "name": "eth1/17/1",
-          "controllingPort": 307,
+          "controllingPort": 337,
           "pins": [
             {
               "a": {
@@ -11599,7 +11633,7 @@
           "attachedCoreId": 4,
           "attachedCorePortIndex": 5,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -11812,11 +11846,11 @@
           }
         }
     },
-    "315": {
+    "345": {
         "mapping": {
-          "id": 315,
+          "id": 345,
           "name": "eth1/23/1",
-          "controllingPort": 315,
+          "controllingPort": 345,
           "pins": [
             {
               "a": {
@@ -11919,7 +11953,7 @@
           "attachedCoreId": 4,
           "attachedCorePortIndex": 11,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -12132,11 +12166,11 @@
           }
         }
     },
-    "323": {
+    "353": {
         "mapping": {
-          "id": 323,
+          "id": 353,
           "name": "eth1/24/1",
-          "controllingPort": 323,
+          "controllingPort": 353,
           "pins": [
             {
               "a": {
@@ -12239,7 +12273,7 @@
           "attachedCoreId": 4,
           "attachedCorePortIndex": 12,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -12452,11 +12486,11 @@
           }
         }
     },
-    "331": {
+    "361": {
         "mapping": {
-          "id": 331,
+          "id": 361,
           "name": "eth1/22/1",
-          "controllingPort": 331,
+          "controllingPort": 361,
           "pins": [
             {
               "a": {
@@ -12559,7 +12593,7 @@
           "attachedCoreId": 4,
           "attachedCorePortIndex": 10,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -12772,11 +12806,11 @@
           }
         }
     },
-    "339": {
+    "369": {
         "mapping": {
-          "id": 339,
+          "id": 369,
           "name": "eth1/19/1",
-          "controllingPort": 339,
+          "controllingPort": 369,
           "pins": [
             {
               "a": {
@@ -12879,7 +12913,7 @@
           "attachedCoreId": 4,
           "attachedCorePortIndex": 7,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -13092,11 +13126,11 @@
           }
         }
     },
-    "347": {
+    "377": {
         "mapping": {
-          "id": 347,
+          "id": 377,
           "name": "eth1/21/1",
-          "controllingPort": 347,
+          "controllingPort": 377,
           "pins": [
             {
               "a": {
@@ -13199,7 +13233,7 @@
           "attachedCoreId": 4,
           "attachedCorePortIndex": 9,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -13412,11 +13446,11 @@
           }
         }
     },
-    "355": {
+    "385": {
         "mapping": {
-          "id": 355,
+          "id": 385,
           "name": "eth1/27/1",
-          "controllingPort": 355,
+          "controllingPort": 385,
           "pins": [
             {
               "a": {
@@ -13519,7 +13553,7 @@
           "attachedCoreId": 5,
           "attachedCorePortIndex": 6,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -13732,11 +13766,11 @@
           }
         }
     },
-    "363": {
+    "393": {
         "mapping": {
-          "id": 363,
+          "id": 393,
           "name": "eth1/26/1",
-          "controllingPort": 363,
+          "controllingPort": 393,
           "pins": [
             {
               "a": {
@@ -13839,7 +13873,7 @@
           "attachedCoreId": 5,
           "attachedCorePortIndex": 5,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -14052,11 +14086,11 @@
           }
         }
     },
-    "371": {
+    "401": {
         "mapping": {
-          "id": 371,
+          "id": 401,
           "name": "eth1/31/1",
-          "controllingPort": 371,
+          "controllingPort": 401,
           "pins": [
             {
               "a": {
@@ -14159,7 +14193,7 @@
           "attachedCoreId": 5,
           "attachedCorePortIndex": 10,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -14372,11 +14406,11 @@
           }
         }
     },
-    "379": {
+    "409": {
         "mapping": {
-          "id": 379,
+          "id": 409,
           "name": "eth1/30/1",
-          "controllingPort": 379,
+          "controllingPort": 409,
           "pins": [
             {
               "a": {
@@ -14479,7 +14513,7 @@
           "attachedCoreId": 5,
           "attachedCorePortIndex": 9,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -14692,11 +14726,11 @@
           }
         }
     },
-    "387": {
+    "417": {
         "mapping": {
-          "id": 387,
+          "id": 417,
           "name": "eth1/29/1",
-          "controllingPort": 387,
+          "controllingPort": 417,
           "pins": [
             {
               "a": {
@@ -14799,7 +14833,7 @@
           "attachedCoreId": 5,
           "attachedCorePortIndex": 8,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -15012,11 +15046,11 @@
           }
         }
     },
-    "395": {
+    "425": {
         "mapping": {
-          "id": 395,
+          "id": 425,
           "name": "eth1/32/1",
-          "controllingPort": 395,
+          "controllingPort": 425,
           "pins": [
             {
               "a": {
@@ -15119,7 +15153,7 @@
           "attachedCoreId": 5,
           "attachedCorePortIndex": 11,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -15332,11 +15366,11 @@
           }
         }
     },
-    "403": {
+    "433": {
         "mapping": {
-          "id": 403,
+          "id": 433,
           "name": "eth1/28/1",
-          "controllingPort": 403,
+          "controllingPort": 433,
           "pins": [
             {
               "a": {
@@ -15439,7 +15473,7 @@
           "attachedCoreId": 5,
           "attachedCorePortIndex": 7,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -15652,11 +15686,11 @@
           }
         }
     },
-    "411": {
+    "441": {
         "mapping": {
-          "id": 411,
+          "id": 441,
           "name": "eth1/25/1",
-          "controllingPort": 411,
+          "controllingPort": 441,
           "pins": [
             {
               "a": {
@@ -15759,7 +15793,7 @@
           "attachedCoreId": 5,
           "attachedCorePortIndex": 4,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -15972,11 +16006,11 @@
           }
         }
     },
-    "419": {
+    "449": {
         "mapping": {
-          "id": 419,
+          "id": 449,
           "name": "eth1/40/1",
-          "controllingPort": 419,
+          "controllingPort": 449,
           "pins": [
             {
               "a": {
@@ -16079,7 +16113,7 @@
           "attachedCoreId": 6,
           "attachedCorePortIndex": 11,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -16292,11 +16326,11 @@
           }
         }
     },
-    "427": {
+    "457": {
         "mapping": {
-          "id": 427,
+          "id": 457,
           "name": "eth1/37/1",
-          "controllingPort": 427,
+          "controllingPort": 457,
           "pins": [
             {
               "a": {
@@ -16399,7 +16433,7 @@
           "attachedCoreId": 6,
           "attachedCorePortIndex": 8,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -16612,11 +16646,11 @@
           }
         }
     },
-    "435": {
+    "465": {
         "mapping": {
-          "id": 435,
+          "id": 465,
           "name": "eth1/36/1",
-          "controllingPort": 435,
+          "controllingPort": 465,
           "pins": [
             {
               "a": {
@@ -16719,7 +16753,7 @@
           "attachedCoreId": 6,
           "attachedCorePortIndex": 7,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -16932,11 +16966,11 @@
           }
         }
     },
-    "443": {
+    "473": {
         "mapping": {
-          "id": 443,
+          "id": 473,
           "name": "eth1/33/1",
-          "controllingPort": 443,
+          "controllingPort": 473,
           "pins": [
             {
               "a": {
@@ -17039,7 +17073,7 @@
           "attachedCoreId": 6,
           "attachedCorePortIndex": 4,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -17252,11 +17286,11 @@
           }
         }
     },
-    "451": {
+    "481": {
         "mapping": {
-          "id": 451,
+          "id": 481,
           "name": "eth1/34/1",
-          "controllingPort": 451,
+          "controllingPort": 481,
           "pins": [
             {
               "a": {
@@ -17359,7 +17393,7 @@
           "attachedCoreId": 6,
           "attachedCorePortIndex": 5,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -17572,11 +17606,11 @@
           }
         }
     },
-    "459": {
+    "489": {
         "mapping": {
-          "id": 459,
+          "id": 489,
           "name": "eth1/35/1",
-          "controllingPort": 459,
+          "controllingPort": 489,
           "pins": [
             {
               "a": {
@@ -17679,7 +17713,7 @@
           "attachedCoreId": 6,
           "attachedCorePortIndex": 6,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -17892,11 +17926,11 @@
           }
         }
     },
-    "467": {
+    "497": {
         "mapping": {
-          "id": 467,
+          "id": 497,
           "name": "eth1/39/1",
-          "controllingPort": 467,
+          "controllingPort": 497,
           "pins": [
             {
               "a": {
@@ -17999,7 +18033,7 @@
           "attachedCoreId": 6,
           "attachedCorePortIndex": 10,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -18212,11 +18246,11 @@
           }
         }
     },
-    "475": {
+    "505": {
         "mapping": {
-          "id": 475,
+          "id": 505,
           "name": "eth1/38/1",
-          "controllingPort": 475,
+          "controllingPort": 505,
           "pins": [
             {
               "a": {
@@ -18319,7 +18353,7 @@
           "attachedCoreId": 6,
           "attachedCorePortIndex": 9,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -18532,11 +18566,11 @@
           }
         }
     },
-    "483": {
+    "513": {
         "mapping": {
-          "id": 483,
+          "id": 513,
           "name": "eth1/47/1",
-          "controllingPort": 483,
+          "controllingPort": 513,
           "pins": [
             {
               "a": {
@@ -18639,7 +18673,7 @@
           "attachedCoreId": 7,
           "attachedCorePortIndex": 10,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -18852,11 +18886,11 @@
           }
         }
     },
-    "491": {
+    "521": {
         "mapping": {
-          "id": 491,
+          "id": 521,
           "name": "eth1/45/1",
-          "controllingPort": 491,
+          "controllingPort": 521,
           "pins": [
             {
               "a": {
@@ -18959,7 +18993,7 @@
           "attachedCoreId": 7,
           "attachedCorePortIndex": 8,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -19172,11 +19206,11 @@
           }
         }
     },
-    "499": {
+    "529": {
         "mapping": {
-          "id": 499,
+          "id": 529,
           "name": "eth1/46/1",
-          "controllingPort": 499,
+          "controllingPort": 529,
           "pins": [
             {
               "a": {
@@ -19279,7 +19313,7 @@
           "attachedCoreId": 7,
           "attachedCorePortIndex": 9,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -19492,11 +19526,11 @@
           }
         }
     },
-    "507": {
+    "537": {
         "mapping": {
-          "id": 507,
+          "id": 537,
           "name": "eth1/44/1",
-          "controllingPort": 507,
+          "controllingPort": 537,
           "pins": [
             {
               "a": {
@@ -19599,7 +19633,7 @@
           "attachedCoreId": 7,
           "attachedCorePortIndex": 7,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -19812,11 +19846,11 @@
           }
         }
     },
-    "515": {
+    "545": {
         "mapping": {
-          "id": 515,
+          "id": 545,
           "name": "eth1/43/1",
-          "controllingPort": 515,
+          "controllingPort": 545,
           "pins": [
             {
               "a": {
@@ -19919,7 +19953,7 @@
           "attachedCoreId": 7,
           "attachedCorePortIndex": 6,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -20132,11 +20166,11 @@
           }
         }
     },
-    "523": {
+    "553": {
         "mapping": {
-          "id": 523,
+          "id": 553,
           "name": "eth1/41/1",
-          "controllingPort": 523,
+          "controllingPort": 553,
           "pins": [
             {
               "a": {
@@ -20239,7 +20273,7 @@
           "attachedCoreId": 7,
           "attachedCorePortIndex": 4,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -20452,11 +20486,11 @@
           }
         }
     },
-    "531": {
+    "561": {
         "mapping": {
-          "id": 531,
+          "id": 561,
           "name": "eth1/48/1",
-          "controllingPort": 531,
+          "controllingPort": 561,
           "pins": [
             {
               "a": {
@@ -20559,7 +20593,7 @@
           "attachedCoreId": 7,
           "attachedCorePortIndex": 11,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -20772,11 +20806,11 @@
           }
         }
     },
-    "539": {
+    "569": {
         "mapping": {
-          "id": 539,
+          "id": 569,
           "name": "eth1/42/1",
-          "controllingPort": 539,
+          "controllingPort": 569,
           "pins": [
             {
               "a": {
@@ -20879,7 +20913,7 @@
           "attachedCoreId": 7,
           "attachedCorePortIndex": 5,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "50": {
@@ -21493,6 +21527,11 @@
       "name": "NPU-J3_RCY-slot1/chip1/core544",
       "type": 1,
       "physicalID": 544
+    },
+    {
+      "name": "NPU-J3_RCY-slot1/chip1/core547",
+      "type": 1,
+      "physicalID": 547
     },
     {
       "name": "NPU-J3_EVT-slot1/chip1/core1033",

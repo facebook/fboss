@@ -58,9 +58,15 @@ int getRdswSysPortBlockSize(
   // For dual stage 3/2q mode, sys ports are allocated in 2 blocks of 28 while
   // for single state we allocate a single block of 44
   // For PLATFORM_JANGA800BIC, use Prod range
-  if (platformType.has_value() &&
-      platformType.value() == PlatformType::PLATFORM_JANGA800BIC) {
-    return 22;
+  if (platformType.has_value()) {
+    switch (platformType.value()) {
+      case PlatformType::PLATFORM_JANGA800BIC:
+        return 22;
+      case PlatformType::PLATFORM_BLACKWOLF800BANW:
+        return 1024;
+      default:
+        break;
+    }
   }
   return isDualStage3Q2QMode() ? 28 : 44;
 }
@@ -488,6 +494,8 @@ cfg::DsfNode dsfNodeConfig(
         return PlatformType::PLATFORM_MERU400BFU;
       case cfg::AsicType::ASIC_TYPE_RAMON3:
         return PlatformType::PLATFORM_MERU800BFA;
+      case cfg::AsicType::ASIC_TYPE_Q4D:
+        return PlatformType::PLATFORM_BLACKWOLF800BANW;
       default:
         break;
     }
