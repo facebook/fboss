@@ -114,7 +114,7 @@ we highly recommend to do it in the following order:
 
 ### Build Type Options
 
-The `getdeps.py` script supports different build types via the `--build-type` flag. This controls optimization levels and debug information:
+The `run-getdeps.py` script supports different build types via the `--build-type` flag. This controls optimization levels and debug information:
 
 | Build Type | Description | Use Case |
 |------------|-------------|----------|
