@@ -12,7 +12,6 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
 
 #include <folly/IPAddress.h>
 #include <optional>

@@ -10,7 +10,12 @@
 
 #pragma once
 
-// Deprecated: use AgentTestAddressConstants.h and/or
-// AgentTestEcmpConstants.h directly.
-#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
-#include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
+namespace facebook::fboss {
+
+// Default ECMP width for single next-hop tests
+inline constexpr auto kDefaultEcmpWidth = 1;
+
+// Wide ECMP width for multi-path tests (load balancing, overflow, etc.)
+inline constexpr auto kWideEcmpWidth = 4;
+
+} // namespace facebook::fboss

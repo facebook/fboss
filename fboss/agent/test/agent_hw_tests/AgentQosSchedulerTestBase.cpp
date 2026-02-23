@@ -10,7 +10,8 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentQosSchedulerTestBase.h"
 
-#include "fboss/agent/test/agent_hw_tests/AgentHwTestConstants.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 
 namespace {
 auto constexpr kRateSamplingInterval = 25;
