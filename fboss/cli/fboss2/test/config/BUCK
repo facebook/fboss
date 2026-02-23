@@ -25,6 +25,7 @@ cpp_unittest(
         "//fboss/cli/fboss2:fboss2-lib",
         "//fboss/cli/fboss2/test:cmd_test_utils",
         "//folly:dynamic",
+        "//folly/json:dynamic",
     ],
     external_deps = [
         ("boost", None, "boost_filesystem"),
