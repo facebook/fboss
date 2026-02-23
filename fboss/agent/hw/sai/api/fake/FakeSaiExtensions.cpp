@@ -444,6 +444,11 @@ std::optional<sai_attr_id_t> SaiIngressPriorityGroupTraits::Attributes::
 }
 
 std::optional<sai_attr_id_t>
+SaiBufferPoolTraits::Attributes::AttributeReservedBytes::operator()() {
+  return SAI_BUFFER_POOL_ATTR_RESERVED_BUFFER_SIZE;
+}
+
+std::optional<sai_attr_id_t>
 SaiSflowMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
   return std::nullopt;
 }

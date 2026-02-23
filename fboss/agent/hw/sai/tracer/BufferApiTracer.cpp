@@ -60,6 +60,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP_2(
       BufferProfile, DynamicBufferProfile, PgPipelineLatencyBytes)
 
+  SAI_EXT_ATTR_MAP(BufferPool, ReservedBytes)
   SAI_EXT_ATTR_MAP(IngressPriorityGroup, LosslessEnable)
 }
 

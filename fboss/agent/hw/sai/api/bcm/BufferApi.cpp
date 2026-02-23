@@ -140,4 +140,9 @@ std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiBufferPoolTraits::Attributes::AttributeReservedBytes::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

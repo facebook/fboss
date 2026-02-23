@@ -237,9 +237,21 @@ void SaiBufferManager::setupEgressBufferPool(
   assertMaxBufferPoolSize(platform_);
   uint64_t poolSize;
   std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
+  std::optional<SaiBufferPoolTraits::Attributes::ReservedBytes> reservedBytes;
   if (bufferPoolCfg.has_value() && *bufferPoolCfg->sharedBytes()) {
-    // TODO: Account for reserved once available
     poolSize = *bufferPoolCfg->sharedBytes();
+#if defined(TAJO_SDK_GTE_25_5)
+    // For SDK 25.5 and above, set pool-level reserve so SDK computes
+    // shared_size as (poolSize - reservedBytes) constantly, avoiding O(n^2)
+    // threshold recalculation on each port queue attach/detach. poolSize =
+    // sharedBytes + reservedBytes.
+    if (auto cfgReservedBytes = bufferPoolCfg->reservedBytes()) {
+      poolSize += *cfgReservedBytes;
+      reservedBytes = *cfgReservedBytes;
+      XLOG(DBG2) << "setupEgressBufferPool: poolSize=" << poolSize
+                 << " reservedBytes=" << *cfgReservedBytes;
+    }
+#endif
   } else {
     poolSize = getMaxEgressPoolBytes(platform_);
   }
@@ -260,7 +272,8 @@ void SaiBufferManager::setupEgressBufferPool(
       SAI_BUFFER_POOL_TYPE_EGRESS,
       poolSize,
       SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC,
-      xoffSize};
+      xoffSize,
+      reservedBytes};
   SaiBufferPoolTraits::AdapterHostKey k = tupleProjection<
       SaiBufferPoolTraits::CreateAttributes,
       SaiBufferPoolTraits::AdapterHostKey>(attributes);
@@ -328,7 +341,11 @@ void SaiBufferManager::setupIngressBufferPool(
       ? SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC
       : SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC;
   SaiBufferPoolTraits::CreateAttributes attributes{
-      SAI_BUFFER_POOL_TYPE_INGRESS, poolSize, thresholdMode, xoffSize};
+      SAI_BUFFER_POOL_TYPE_INGRESS,
+      poolSize,
+      thresholdMode,
+      xoffSize,
+      std::nullopt};
   SaiBufferPoolTraits::AdapterHostKey k = tupleProjection<
       SaiBufferPoolTraits::CreateAttributes,
       SaiBufferPoolTraits::AdapterHostKey>(attributes);
@@ -349,7 +366,8 @@ void SaiBufferManager::createOrUpdateIngressEgressBufferPool(
       SAI_BUFFER_POOL_TYPE_BOTH,
       poolSize,
       SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC,
-      xoffSize};
+      xoffSize,
+      std::nullopt};
 
   auto& store = saiStore_->get<SaiBufferPoolTraits>();
   if (!ingressEgressBufferPoolHandle_) {

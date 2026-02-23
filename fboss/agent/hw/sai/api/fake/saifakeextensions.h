@@ -158,6 +158,11 @@ typedef enum _sai_ingress_priority_group_extensions_attr_t {
       SAI_INGRESS_PRIORITY_GROUP_ATTR_CUSTOM_RANGE_START,
 } sai_ingress_priority_group_extensions_attr_t;
 
+typedef enum _sai_buffer_pool_extensions_attr_t {
+  SAI_BUFFER_POOL_ATTR_RESERVED_BUFFER_SIZE =
+      SAI_BUFFER_POOL_ATTR_CUSTOM_RANGE_START,
+} sai_buffer_pool_extensions_attr_t;
+
 typedef enum _sai_next_hop_group_extensions_attr_t {
   SAI_NEXT_HOP_GROUP_ATTR_ARS_NEXT_HOP_GROUP_META_DATA =
       SAI_NEXT_HOP_GROUP_ATTR_CUSTOM_RANGE_START,
