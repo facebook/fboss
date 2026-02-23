@@ -189,7 +189,23 @@
               "csrOffsetCalc": "0x9000 + ({adapterIndex} - {startAdapterIndex})*0x1000",
               "iobufOffsetCalc": "0x9000 + ({adapterIndex} - {startAdapterIndex})*0x1000",
               "startAdapterIndex": 7,
-              "numAdapters": 10
+              "numAdapters": 3
+            },
+            {
+              "pmUnitScopedNamePrefix": "MCB_IOB_I2C_MASTER",
+              "deviceName": "i2c_master_smb",
+              "csrOffsetCalc": "0xd000 + ({adapterIndex} - {startAdapterIndex})*0x1000",
+              "iobufOffsetCalc": "0xd000 + ({adapterIndex} - {startAdapterIndex})*0x1000",
+              "startAdapterIndex": 11,
+              "numAdapters": 1
+            },
+            {
+              "pmUnitScopedNamePrefix": "MCB_IOB_I2C_MASTER",
+              "deviceName": "i2c_master_smb",
+              "csrOffsetCalc": "0x10000 + ({adapterIndex} - {startAdapterIndex})*0x1000",
+              "iobufOffsetCalc": "0x10000 + ({adapterIndex} - {startAdapterIndex})*0x1000",
+              "startAdapterIndex": 14,
+              "numAdapters": 3
             },
             {
               "pmUnitScopedNamePrefix": "MCB_IOB_I2C_MASTER",
@@ -338,8 +354,7 @@
             "MCB_MUX_A@3",
             "MCB_IOB_I2C_MASTER_7",
             "MCB_IOB_I2C_MASTER_8",
-            "MCB_IOB_I2C_MASTER_9",
-            "MCB_IOB_I2C_MASTER_10"
+            "MCB_IOB_I2C_MASTER_9"
           ]
         },
         "PDB_SLOT@0": {
@@ -1093,7 +1108,7 @@
   "chassisEepromDevicePath": "/FCB_SLOT@0/[IDPROM]",
   "numXcvrs": 65,
   "bspKmodsRpmName": "cisco_bsp_kmods",
-  "bspKmodsRpmVersion": "1.0.16-1",
+  "bspKmodsRpmVersion": "3.0.2-1",
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",
