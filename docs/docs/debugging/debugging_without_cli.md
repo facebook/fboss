@@ -348,7 +348,7 @@ Debug builds include full debug symbols and disable optimizations for easier deb
 
 ```bash
 # Build FBOSS with Debug build type
-./build/fbcode_builder/getdeps.py build fboss --build-type Debug
+./fboss/oss/scripts/run-getdeps.py build fboss --build-type Debug
 ```
 
 For more information about the `--build-type` option and other build configurations, see [Build Type Options](../build/Building_FBOSS_on_containers.md#build-type-options).
