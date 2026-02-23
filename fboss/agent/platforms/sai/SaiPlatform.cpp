@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
+#include "fboss/agent/hw/switch_asics/Qumran4DAsic.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
@@ -554,6 +555,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       swInfo.switchType() = cfg::SwitchType::VOQ;
       swInfo.switchMac() = localMac.toString();
       const Jericho3Asic j3(0, swInfo);
+      const Qumran4DAsic qumran4d(0, swInfo);
       for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
         if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {
           continue;
@@ -565,6 +567,11 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
             maxCoreCount = std::max(j3.getNumCores(), maxCoreCount);
             maxSystemCoreCount =
                 std::max(maxSystemCoreCount, uint32_t(id + j3.getNumCores()));
+            break;
+          case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
+            maxCoreCount = std::max(qumran4d.getNumCores(), maxCoreCount);
+            maxSystemCoreCount = std::max(
+                maxSystemCoreCount, uint32_t(id + qumran4d.getNumCores()));
             break;
           default:
             throw FbossError("Unexpected asic type: ", *dsfNode.asicType());
@@ -788,87 +795,100 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     constexpr uint32_t kRamon3LlfcThreshold{800};
     fabricLLFC = std::vector<uint32_t>({kRamon3LlfcThreshold});
   }
-  if (isDualStage3Q2QMode()) {
-    maxSystemPortId = 32694;
+
+  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+      getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_RAMON3) {
+    if (isDualStage3Q2QMode()) {
+      maxSystemPortId = 32694;
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
-    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 184}};
-#else
-    maxLocalSystemPortId = 184;
-#endif
-    maxSystemPorts = 22136;
-    maxVoqs = 65284;
-  } else if (FLAGS_dsf_single_stage_r192_f40_e32) {
-    // Total System Ports in the cluster
-    // =================================
-    //
-    // 1 Global recycle port
-    // 1 Management port
-    // RDSW: 36 x 400G NIF ports. Thus, 1 + 1 + 36 = 38 ports.
-    // EDSW: 18 x 800G NIF ports. Thus, 1 + 1 + 18 = 20 ports.
-    //
-    // 4 CPU (1 per core) + 4 Recycle (1 per core) + 1 eventor +
-    // 160 Fabric link monitoring + 16 hyerports = 185
-    // Thus, Max local system PortID (starting 0) = 184.
-    //
-    // Max System Ports = 185 + (38 x 192) + (20 x 32) = 8121.
-    //
-    // System Port ID assignment
-    // =========================
-    //   Local Ports
-    //   -----------
-    //      [0-3]: CPU ports
-    //      [4-7]: Recycle ports
-    //          8: Eventor port
-    //    [9-168]: 160 Fabric link monitoring ports (in the future)
-    //  [169-184]: 16 Hyper ports (in the future)
-    //
-    //   The above assignment is same for ALL the RDSWs, EDSWs.
-    //
-    //   Global Ports for RDSW 1, base offset 184
-    //   ----------------------------------------
-    //        185: Recycle port for inband
-    //        186: Management port
-    //  [187-222]: One for each of the 36 x 400G NIF ports
-    //
-    //   Global Ports for EDSW 1, base offset 7480
-    //   -----------------------------------------
-    //        7481: Recycle port for inband
-    //        7482: Management port
-    //  [7483-7500: One for each of the 16 x 800G NIF ports
-    maxSystemPortId = 8120;
-    maxSystemPorts = 8121;
-#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
-    if (FLAGS_hyper_port) {
-      localSystemPortIdRangeList =
-          std::vector<sai_u16_range_t>{{0, 10}, {6144, 6320}};
-    } else {
       localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 184}};
-    }
 #else
-    maxLocalSystemPortId = 184;
+      maxLocalSystemPortId = 184;
 #endif
-    maxVoqs = maxSystemPorts.value() * 8;
-  } else {
-    if (FLAGS_dsf_single_stage_r128_f40_e16_8k_sys_ports) {
+      maxSystemPorts = 22136;
+      maxVoqs = 65284;
+    } else if (FLAGS_dsf_single_stage_r192_f40_e32) {
+      // Total System Ports in the cluster
+      // =================================
+      //
+      // 1 Global recycle port
+      // 1 Management port
+      // RDSW: 36 x 400G NIF ports. Thus, 1 + 1 + 36 = 38 ports.
+      // EDSW: 18 x 800G NIF ports. Thus, 1 + 1 + 18 = 20 ports.
+      //
+      // 4 CPU (1 per core) + 4 Recycle (1 per core) + 1 eventor +
+      // 160 Fabric link monitoring + 16 hyerports = 185
+      // Thus, Max local system PortID (starting 0) = 184.
+      //
+      // Max System Ports = 185 + (38 x 192) + (20 x 32) = 8121.
+      //
+      // System Port ID assignment
+      // =========================
+      //   Local Ports
+      //   -----------
+      //      [0-3]: CPU ports
+      //      [4-7]: Recycle ports
+      //          8: Eventor port
+      //    [9-168]: 160 Fabric link monitoring ports (in the future)
+      //  [169-184]: 16 Hyper ports (in the future)
+      //
+      //   The above assignment is same for ALL the RDSWs, EDSWs.
+      //
+      //   Global Ports for RDSW 1, base offset 184
+      //   ----------------------------------------
+      //        185: Recycle port for inband
+      //        186: Management port
+      //  [187-222]: One for each of the 36 x 400G NIF ports
+      //
+      //   Global Ports for EDSW 1, base offset 7480
+      //   -----------------------------------------
+      //        7481: Recycle port for inband
+      //        7482: Management port
+      //  [7483-7500: One for each of the 16 x 800G NIF ports
       maxSystemPortId = 8120;
       maxSystemPorts = 8121;
-    } else {
-      maxSystemPortId = 6143;
-      maxSystemPorts = 6144;
-    }
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
-    if (FLAGS_hyper_port) {
-      localSystemPortIdRangeList =
-          std::vector<sai_u16_range_t>{{0, 10}, {6144, 6320}};
-    } else {
-      localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
-    }
+      if (FLAGS_hyper_port) {
+        localSystemPortIdRangeList =
+            std::vector<sai_u16_range_t>{{0, 10}, {6144, 6320}};
+      } else {
+        localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 184}};
+      }
 #else
-    maxLocalSystemPortId = -1;
+      maxLocalSystemPortId = 184;
 #endif
-    maxVoqs = maxSystemPorts.value() * 8;
+      maxVoqs = maxSystemPorts.value() * 8;
+    } else {
+      if (FLAGS_dsf_single_stage_r128_f40_e16_8k_sys_ports) {
+        maxSystemPortId = 8120;
+        maxSystemPorts = 8121;
+      } else {
+        maxSystemPortId = 6143;
+        maxSystemPorts = 6144;
+      }
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+      if (FLAGS_hyper_port) {
+        localSystemPortIdRangeList =
+            std::vector<sai_u16_range_t>{{0, 10}, {6144, 6320}};
+      } else {
+        localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
+      }
+#else
+      maxLocalSystemPortId = -1;
+#endif
+      maxVoqs = maxSystemPorts.value() * 8;
+    }
+  }
+
+  // Q4D standalone box configuration
+  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D) {
+    maxSystemPorts = 1024;
+    maxVoqs = 8 * 1024;
+    maxSystemPortId = 1024 - 1;
+    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
   }
 #endif
+
   if (getAsic()->isSupported(HwAsic::Feature::SWITCH_ISOLATE) &&
       bootType == BootType::COLD_BOOT) {
     // FABRIC switches should always start in isolated state until we configure
