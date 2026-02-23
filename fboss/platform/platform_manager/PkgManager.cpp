@@ -2,6 +2,8 @@
 
 #include "fboss/platform/platform_manager/PkgManager.h"
 
+#include <chrono>
+
 #include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
 #include <folly/String.h>
@@ -170,6 +172,15 @@ void PkgManager::processAll(bool enablePkgMgmnt, bool reloadKmods) const {
   };
   SCOPE_FAIL {
     fb303::fbData->setCounter(kProcessAllFailure, 1);
+  };
+
+  auto processAllStart = std::chrono::steady_clock::now();
+  SCOPE_EXIT {
+    auto elapsedSeconds =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::steady_clock::now() - processAllStart)
+            .count();
+    fb303::fbData->setCounter(kProcessAllTime, elapsedSeconds);
   };
 
   if (FLAGS_local_rpm_path.size()) {

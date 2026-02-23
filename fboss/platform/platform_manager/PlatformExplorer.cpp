@@ -184,8 +184,8 @@ void PlatformExplorer::explorePmUnit(
     const std::string& pmUnitName) {
   auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
   XLOG(INFO) << fmt::format("Exploring PmUnit {} at {}", pmUnitName, slotPath);
+  auto pmUnitExploreStart = std::chrono::steady_clock::now();
   dataStore_.updatePmUnitSuccessfullyExplored(slotPath, false);
-
   XLOG(INFO) << fmt::format(
       "Exploring PCI Devices for PmUnit {} at SlotPath {}. Count {}",
       pmUnitName,
@@ -214,6 +214,26 @@ void PlatformExplorer::explorePmUnit(
           *embeddedSensorConfig.sysfsPath());
     }
   }
+  auto pmUnitElapsedSeconds =
+      std::chrono::duration_cast<std::chrono::seconds>(
+          std::chrono::steady_clock::now() - pmUnitExploreStart)
+          .count();
+  auto pmUnitTimeCounterKey =
+      fmt::format(kExplorePmUnitTime, slotPath + "." + pmUnitName);
+  try {
+    // Catch exception for this counter only since we included non-typical
+    // characters such as "/", in case they are ever unsupported by fb303
+    fb303::fbData->setCounter(pmUnitTimeCounterKey, pmUnitElapsedSeconds);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << fmt::format(
+        "Error setting counter {}: {}", pmUnitTimeCounterKey, ex.what());
+  }
+  XLOG(INFO) << fmt::format(
+      "Explored PmUnit {} at {} in {}s",
+      pmUnitName,
+      slotPath,
+      pmUnitElapsedSeconds);
+
   dataStore_.updatePmUnitSuccessfullyExplored(slotPath, true);
 
   XLOG(INFO) << fmt::format(

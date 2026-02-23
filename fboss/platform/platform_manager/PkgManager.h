@@ -46,6 +46,7 @@ class PkgManager {
       "package_manager.unload_kmods_failure";
   constexpr static auto kProcessRpmFailure =
       "package_manager.process_rpm_failure";
+  constexpr static auto kProcessAllTime = "package_manager.process_all_time";
 
   explicit PkgManager(
       const PlatformConfig& config,

@@ -36,6 +36,9 @@ class PlatformExplorer {
 
   auto static constexpr kGroupedFirmwareVersion = "{}.firmware_version.{}";
 
+  auto static constexpr kExplorePmUnitTime =
+      "platform_explorer.explore_pm_unit_time.{}";
+
   auto static constexpr kChassisEepromVersion = "chassis_eeprom_version";
   auto static constexpr kChassisEepromVersionODS =
       "platform_explorer.chassis_eeprom_version.{}";

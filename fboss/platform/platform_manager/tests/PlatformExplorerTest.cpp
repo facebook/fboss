@@ -308,4 +308,22 @@ TEST(PlatformExplorerTest, GetPmUnitInfoThrowsForNonExistentSlot) {
       explorer.getPmUnitInfo("/NON_EXISTENT_SLOT"), std::runtime_error);
 }
 
+TEST(PlatformExplorerTest, ExplorePmUnitPublishesTimingCounter) {
+  auto tmpDir = folly::test::TemporaryDirectory();
+  auto platformFsUtils =
+      std::make_shared<PlatformFsUtils>(tmpDir.path().string());
+
+  auto platformConfig = createMinimalPlatformConfig();
+  platformConfig.i2cAdaptersFromCpu() = {};
+
+  DataStore dataStore(platformConfig);
+  PlatformExplorer explorer(platformConfig, dataStore, platformFsUtils);
+
+  explorer.explore();
+
+  auto counterKey =
+      fmt::format(PlatformExplorer::kExplorePmUnitTime, "/.TEST_ROOT_PM");
+  EXPECT_GE(facebook::fb303::fbData->getCounter(counterKey), 0);
+}
+
 } // namespace facebook::fboss::platform::platform_manager
