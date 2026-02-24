@@ -88,14 +88,12 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
     case HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR:
     case HwAsic::Feature::SFLOW_SAMPLES_PACKING:
-    case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
     case HwAsic::Feature::SDK_REGISTER_DUMP:
     case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
     case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
     case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
     case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
-    case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
     case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
     case HwAsic::Feature::RX_SERDES_PARAMETERS:
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
@@ -241,6 +239,9 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
+    // TODO (Q4D/J4/R4): Enable once SDK support is available
+    case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
+    case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
     // Qumran4D has no fabric ports
     case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
