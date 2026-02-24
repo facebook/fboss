@@ -471,7 +471,8 @@
         69,
         72,
         79,
-        86
+        86,
+        100
     ]
   },
   "asicToFeatureNames": {
@@ -946,7 +947,8 @@
         "PTP_TC",
         "MODIFY_ACL_QUALIFIERS",
         "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
-        "CLASS_ID_FOR_NEIGHBOR"
+        "CLASS_ID_FOR_NEIGHBOR",
+        "SRV6_ENCAP"
     ]
   }
 }
