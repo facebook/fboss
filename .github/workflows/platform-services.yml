@@ -30,7 +30,6 @@ jobs:
           --target
           fboss_platform_services
           --no-docker-output
-          --no-system-deps
           --env-var
           GITHUB_ACTIONS_BUILD
           --local
