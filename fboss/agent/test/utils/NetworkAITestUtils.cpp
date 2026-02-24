@@ -63,8 +63,8 @@ void addNetworkAIQosMaps(
 
   // configure cpu qos policy
   std::string cpuQosPolicyName = qosPolicyName;
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-    // create and apply a separate qos policy for Jericho3 cpu port
+  if (needsSeparateCpuQosPolicy(hwAsic)) {
+    // create and apply a separate qos policy for Jericho3/Q4D cpu port
     cpuQosPolicyName = qosPolicyName + "_cpu";
     cfg::QosMap cpuQosMap = qosMap;
     cpuQosMap.trafficClassToQueueId()->clear();
@@ -97,7 +97,7 @@ void addNetworkAIQosMaps(
   cpuConfig.trafficPolicy() = cpuTrafficPolicy;
   cfg.cpuTrafficPolicy() = cpuConfig;
 
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+  if (needsSeparateCpuQosPolicy(hwAsic)) {
     // also apply cpu qos policy for recycle port
     for (const auto& port : *cfg.ports()) {
       if (*port.portType() == cfg::PortType::RECYCLE_PORT ||

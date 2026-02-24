@@ -747,6 +747,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":agent_ensemble",
+        "//fboss/agent:core",
         "//fboss/agent:split_agent_initializer",
         "//fboss/agent:stats",
     ],
