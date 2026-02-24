@@ -302,8 +302,12 @@ SaiPortTraits::Attributes::AttributePfcMonitorDirection::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
-#if defined(SAI_VERSION_11_7_0_0_ODP) || defined(BRCM_SAI_SDK_XGS_GTE_13_0) || \
-    defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  // TODO (Q4D/J4/R4): Enable SAI_PORT_ATTR_EXTENSION_AM_IDLES for 15.x after
+  // SDK support for Q4DL/J4
+#if (                                                                          \
+    defined(SAI_VERSION_11_7_0_0_ODP) || defined(BRCM_SAI_SDK_XGS_GTE_13_0) || \
+    defined(BRCM_SAI_SDK_DNX_GTE_12_0)) &&                                     \
+    !defined(BRCM_SAI_SDK_DNX_GTE_15_0)
   return SAI_PORT_ATTR_EXTENSION_AM_IDLES;
 #else
   return std::nullopt;
