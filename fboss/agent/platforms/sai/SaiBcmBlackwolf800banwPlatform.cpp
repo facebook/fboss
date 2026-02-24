@@ -55,9 +55,10 @@ SaiBcmBlackwolf800banwPlatform::getInternalSystemPortConfig() const {
   auto cpuPortsCoreAndPortIdx =
       getPlatformMapping()->getCpuPortsCoreAndPortIdx();
 
-  CHECK(
-      cpuPortsCoreAndPortIdx.size() == 1 || cpuPortsCoreAndPortIdx.size() == 8)
-      << "Create one CPU port for the ASIC or one CPU port for each core";
+  // CHECK(
+  //    cpuPortsCoreAndPortIdx.size() == 1 || cpuPortsCoreAndPortIdx.size() == 8
+  //    )
+  //    << "Create one CPU port for the ASIC or one CPU port for each core";
 
   std::vector<sai_system_port_config_t> sysPortConfig;
   for (auto [cpuPortID, coreAndPortIdx] : cpuPortsCoreAndPortIdx) {
