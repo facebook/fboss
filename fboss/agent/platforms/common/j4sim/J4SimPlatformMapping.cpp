@@ -5522,9 +5522,9 @@ J4SimPlatformMapping::getCpuPortsCoreAndPortIdx() const {
       kSingleStageCpuPortsCoreAndPortIdx = {
           // {CPU System Port, {Core ID, Port ID/PP_DSP}}
           {0, {0, 0}},
-          {1, {1, 0}},
-          {2, {2, 0}},
-          {3, {3, 0}},
+          {1, {1, 200}},
+          {2, {2, 202}},
+          {3, {3, 203}},
       };
   return kSingleStageCpuPortsCoreAndPortIdx;
 }

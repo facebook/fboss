@@ -923,6 +923,10 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   maxSystemPorts = 1024;
   maxVoqs = 8 * 1024;
   maxSystemPortId = 1024 - 1;
+  maxSwitchId = 2048;
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
+  localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 53}};
+#endif
 
   return {
       initSwitch,
