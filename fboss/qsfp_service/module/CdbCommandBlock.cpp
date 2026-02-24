@@ -71,7 +71,8 @@ void CdbCommandBlock::i2cWriteAndContinue(
     uint8_t i2cAddress,
     int offset,
     int length,
-    const uint8_t* buf) {
+    const uint8_t* buf,
+    int page) {
   auto startTime = std::chrono::steady_clock::now();
 
   try {
@@ -79,7 +80,7 @@ void CdbCommandBlock::i2cWriteAndContinue(
     // command run successfully. Some of the optics need this delay
     /* sleep override */
     bus->writeTransceiver(
-        {i2cAddress, offset, length},
+        {i2cAddress, offset, length, page},
         buf,
         POST_I2C_WRITE_DELAY_CDB_US,
         kCmisCommand);
@@ -109,9 +110,9 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
   // Command block length is 8 plus lpl memory length
   int len = this->cdbFields_.cdbLplLength + 8;
 
-  uint8_t page = 0x9f;
+  uint8_t page = kCdbPage;
   bus->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP, kPageSelectReg, 1},
+      {TransceiverAccessParameter::ADDR_QSFP, kPageSelectReg, 1, kLowerPage},
       &page,
       POST_I2C_WRITE_NO_DELAY_US,
       kCmisCommand);
@@ -136,7 +137,8 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
         TransceiverAccessParameter::ADDR_QSFP,
         regOffset,
         WRITE_BLOCK_SIZE,
-        &buf[bufIndex]);
+        &buf[bufIndex],
+        kCdbPage);
 
     regOffset += WRITE_BLOCK_SIZE;
     bufIndex += WRITE_BLOCK_SIZE;
@@ -149,7 +151,8 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
         TransceiverAccessParameter::ADDR_QSFP,
         regOffset,
         len - bufIndex,
-        &buf[bufIndex]);
+        &buf[bufIndex],
+        kCdbPage);
   }
 
   // Now write the first two byte which is CDB command register. The write to
@@ -160,13 +163,15 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
       TransceiverAccessParameter::ADDR_QSFP,
       kCdbCommandMsbReg,
       1,
-      &buf[0]);
+      &buf[0],
+      kCdbPage);
   i2cWriteAndContinue(
       bus,
       TransceiverAccessParameter::ADDR_QSFP,
       kCdbCommandLsbReg,
       1,
-      &buf[1]);
+      &buf[1],
+      kCdbPage);
 
   // Special handling for RUN command
   if (this->cdbFields_.cdbCommandCode ==
@@ -195,7 +200,10 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
   while (true) {
     try {
       bus->readTransceiver(
-          {TransceiverAccessParameter::ADDR_QSFP, kCdbCommandStatusReg, 1},
+          {TransceiverAccessParameter::ADDR_QSFP,
+           kCdbCommandStatusReg,
+           1,
+           kLowerPage},
           &status,
           kCmisCommand);
     } catch (const std::exception&) {
@@ -242,7 +250,7 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
   // Check if the CDB block has returned some information in the LPL memory
 
   bus->readTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP, kCdbRlplLengthReg, 1},
+      {TransceiverAccessParameter::ADDR_QSFP, kCdbRlplLengthReg, 1, kCdbPage},
       &this->cdbFields_.cdbRlplLength,
       kCmisCommand);
 
@@ -251,14 +259,16 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
                               int length,
                               uint8_t* buf) {
     try {
-      bus->readTransceiver({i2cAddress, offset, length}, buf, kCmisCommand);
+      bus->readTransceiver(
+          {i2cAddress, offset, length, kCdbPage}, buf, kCmisCommand);
     } catch (const std::exception&) {
       XLOG(INFO) << folly::sformat(
           "cmisRunCdbCommand Mod{:d}: read generic raised exception: Sleep for 100ms and retry",
           bus->getNum());
       /* sleep override */
       usleep(cdbCommandErrorIntervalUsec);
-      bus->readTransceiver({i2cAddress, offset, length}, buf, kCmisCommand);
+      bus->readTransceiver(
+          {i2cAddress, offset, length, kCdbPage}, buf, kCmisCommand);
     }
   };
 
@@ -384,7 +394,12 @@ void CdbCommandBlock::writeEplPayload(
 
   // Set the page as 0xa0
   i2cWriteAndContinue(
-      bus, TransceiverAccessParameter::ADDR_QSFP, kPageSelectReg, 1, &currPage);
+      bus,
+      TransceiverAccessParameter::ADDR_QSFP,
+      kPageSelectReg,
+      1,
+      &currPage,
+      kLowerPage);
 
   while (imageOffset < finalImageOffset) {
     // If the cuurent page offset has gone above 256 then move over to the
@@ -397,7 +412,8 @@ void CdbCommandBlock::writeEplPayload(
           TransceiverAccessParameter::ADDR_QSFP,
           kPageSelectReg,
           1,
-          &currPage);
+          &currPage,
+          kLowerPage);
     }
     int i2cChunk = ((finalImageOffset - imageOffset) > WRITE_BLOCK_SIZE)
         ? WRITE_BLOCK_SIZE
@@ -407,7 +423,8 @@ void CdbCommandBlock::writeEplPayload(
         TransceiverAccessParameter::ADDR_QSFP,
         currPageOffset,
         i2cChunk,
-        &imageBuf[imageOffset]);
+        &imageBuf[imageOffset],
+        currPage);
 
     imageOffset += i2cChunk;
     currPageOffset += i2cChunk;
@@ -627,9 +644,9 @@ uint8_t CdbCommandBlock::onesComplementSum() {
  * Selects the CDB page (0x9f) for the module
  */
 void CdbCommandBlock::selectCdbPage(TransceiverImpl* bus) {
-  uint8_t page = 0x9f;
+  uint8_t page = kCdbPage;
   bus->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP, kPageSelectReg, 1},
+      {TransceiverAccessParameter::ADDR_QSFP, kPageSelectReg, 1, kLowerPage},
       &page,
       POST_I2C_WRITE_NO_DELAY_US,
       kCmisCommand);
@@ -647,7 +664,10 @@ void CdbCommandBlock::setMsaPassword(TransceiverImpl* bus, uint32_t msaPw) {
     msaPwArray[i] = (msaPw >> (3 - i) * 8) & 0xFF;
   }
   bus->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
+      {TransceiverAccessParameter::ADDR_QSFP,
+       kModulePasswordEntryReg,
+       4,
+       kLowerPage},
       msaPwArray.data(),
       POST_I2C_WRITE_NO_DELAY_US,
       kCmisCommand);
