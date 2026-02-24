@@ -1,12 +1,1 @@
-load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
-
 oncall("fboss_distro")
-
-python_unittest(
-    name = "test_oss_test_results",
-    srcs = ["test_oss_test_results.py"],
-    deps = [
-        "fbsource//third-party/pypi/pandas:pandas",
-        "//fboss/oss/scripts:oss_test_results_lib",
-    ],
-)
