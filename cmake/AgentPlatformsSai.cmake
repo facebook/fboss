@@ -42,6 +42,8 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmLadakh800bclsPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmTahansb800bcPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmMinipack3BTAPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmWedge800BACTPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmWedge800BACTPlatformPort.cpp
@@ -126,6 +128,7 @@ target_link_libraries(sai_platform
   janga800bic_platform_mapping
   tahan800bc_platform_mapping
   tahansb800bc_platform_mapping
+  blackwolf800banw_platform_mapping
   ladakh800bcls_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping
