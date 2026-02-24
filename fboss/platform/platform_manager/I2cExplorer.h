@@ -40,8 +40,9 @@ class I2cExplorer {
   std::map<std::string, uint16_t> getBusNums(
       const std::vector<std::string>& i2cAdaptersFromCpu);
 
-  // Resolve virtual "CPU_BUS@0" name to a kernel bus number on AMD CPUs.
-  // Not yet implemented — throws at runtime.
+  // Resolve virtual "CPU_BUS@N" names to kernel bus numbers on AMD CPUs.
+  // Scans /sys/devices/platform/AMDI0010:* and reads firmware_node/path
+  // to map ACPI paths to bus indices (\_SB_.I2CA → @1, \_SB_.I2CB → @0).
   std::map<std::string, uint16_t> resolveAmdCpuBusNums(
       const std::vector<std::string>& i2cAdaptersFromCpu);
 
