@@ -2085,6 +2085,18 @@ struct IpInIpTunnel {
   11: optional TunnelType tunnelType;
 }
 
+struct Srv6Tunnel {
+  1: string srv6TunnelId;
+  2: i32 underlayIntfID;
+  3: optional string srcIp;
+  4: optional string dstIp;
+  5: optional TunnelMode ttlMode;
+  6: optional TunnelMode dscpMode;
+  7: optional TunnelMode ecnMode;
+  8: optional TunnelTerminationType tunnelTermType;
+  9: TunnelType tunnelType;
+}
+
 enum DsfNodeType {
   FABRIC_NODE = 1,
   INTERFACE_NODE = 2,
@@ -2416,4 +2428,5 @@ struct SwitchConfig {
   56: optional list<AclTableGroup> aclTableGroups;
   57: list<MirrorOnDropReport> mirrorOnDropReports = [];
   58: optional list<StaticMacEntry> staticMacAddrs;
+  59: optional list<Srv6Tunnel> srv6Tunnels;
 }
