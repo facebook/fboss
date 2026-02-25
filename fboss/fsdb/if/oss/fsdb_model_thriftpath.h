@@ -14201,16 +14201,19 @@ class ChildThriftPath<::facebook::fboss::cfg::VlanPort, ::facebook::fboss::fsdb:
   using Children = fatal::tuple<std::pair<strings::vlanID, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::logicalPort, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::spanningTreeState, Child<::facebook::fboss::cfg::SpanningTreeState, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::SpanningTreeState>>>,
-std::pair<strings::emitTags, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+std::pair<strings::emitTags, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<strings::emitPriorityTags, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::facebook::fboss::cfg::SpanningTreeState, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::SpanningTreeState>>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::vlanID, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::logicalPort, std::integral_constant<apache::thrift::field_id_t, 2>>,
 std::pair<strings::spanningTreeState, std::integral_constant<apache::thrift::field_id_t, 3>>,
-std::pair<strings::emitTags, std::integral_constant<apache::thrift::field_id_t, 4>>>::template type_of<Name>;
+std::pair<strings::emitTags, std::integral_constant<apache::thrift::field_id_t, 4>>,
+std::pair<strings::emitPriorityTags, std::integral_constant<apache::thrift::field_id_t, 5>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -14220,6 +14223,7 @@ std::pair<strings::emitTags, std::integral_constant<apache::thrift::field_id_t, 
     STRUCT_CHILD_GETTERS(logicalPort, 2);
     STRUCT_CHILD_GETTERS(spanningTreeState, 3);
     STRUCT_CHILD_GETTERS(emitTags, 4);
+    STRUCT_CHILD_GETTERS(emitPriorityTags, 5);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -14227,6 +14231,7 @@ std::pair<strings::emitTags, std::integral_constant<apache::thrift::field_id_t, 
     else if constexpr (__id == 2) { return logicalPort(); }
     else if constexpr (__id == 3) { return spanningTreeState(); }
     else if constexpr (__id == 4) { return emitTags(); }
+    else if constexpr (__id == 5) { return emitPriorityTags(); }
   }
 
   template <typename T, T... Values>

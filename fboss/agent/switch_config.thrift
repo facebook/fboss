@@ -1456,6 +1456,8 @@ struct VlanPort {
    * (Primarily useful when there are multiple VLANs on the same port.)
    */
   4: bool emitTags;
+  // whether to emit priority tags with vlan id 0 outgoing ethernet frames
+  5: bool emitPriorityTags;
 }
 
 /**
