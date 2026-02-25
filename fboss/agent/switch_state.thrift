@@ -581,6 +581,18 @@ struct IpTunnelFields {
   12: optional string srcIpMask;
 }
 
+struct Srv6TunnelFields {
+  1: string srv6TunnelId;
+  2: i32 underlayIntfId;
+  3: optional string srcIp;
+  4: optional string dstIp;
+  5: optional switch_config.TunnelMode ttlMode;
+  6: optional switch_config.TunnelMode dscpMode;
+  7: optional switch_config.TunnelMode ecnMode;
+  8: optional switch_config.TunnelTerminationType tunnelTermType;
+  9: switch_config.TunnelType tunnelType;
+}
+
 struct QosPolicyFields {
   1: string name;
   2: TrafficClassToQosAttributeMap dscpMap;
@@ -782,6 +794,7 @@ struct SwitchState {
     map<string, MirrorOnDropReportFields>
   > mirrorOnDropReportMaps;
   124: map<SwitchIdList, FibInfoFields> fibsInfoMap;
+  125: map<SwitchIdList, map<string, Srv6TunnelFields>> srv6TunnelMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;
