@@ -3,12 +3,40 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
-add_library(agent_hw_test_src
+# QoS test library - tests related to QoS scheduling, DSCP mapping, watermarks
+add_library(agent_qos_test_src
   fboss/agent/test/agent_hw_tests/Agent2QueueToOlympicQoSTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentDscpQueueMappingTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentNetworkAIQosSchedulerTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentNetworkAIQosTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentOlympicQosSchedulerTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentOlympicQosTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentQosSchedulerTestBase.cpp
+  fboss/agent/test/agent_hw_tests/AgentQosTestBase.cpp
+  fboss/agent/test/agent_hw_tests/AgentWatermarkTests.cpp
+)
+
+target_link_libraries(agent_qos_test_src
+  agent_hw_test
+  config_factory
+  copp_test_utils
+  ecmp_helper
+  network_ai_qos_utils
+  olympic_qos_utils
+  packet_factory
+  pfc_test_utils
+  pkt_test_utils
+  qos_test_utils
+  queue_test_utils
+  resourcelibutil
+  traffic_policy_utils
+  Folly::folly
+)
+
+add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentCoppTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDot1qMappingTest.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpMarkingTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentDscpQueueMappingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDeepPacketInspectionTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDiagShellStressTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEcmpSpilloverTests.cpp
@@ -33,10 +61,6 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentMPLSTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNSFScaleTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNeighborTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentOlympicQosTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentOlympicQosSchedulerTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentNetworkAIQosTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentNetworkAIQosSchedulerTests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostL2Tests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostTests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostRouteTests.cpp
@@ -56,11 +80,8 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentAclCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAqmTests.cpp
   fboss/agent/test/agent_hw_tests/AgentOverflowTestBase.cpp
-  fboss/agent/test/agent_hw_tests/AgentQosTestBase.cpp
-  fboss/agent/test/agent_hw_tests/AgentQosSchedulerTestBase.cpp
   fboss/agent/test/agent_hw_tests/AgentLoopBackTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSendPacketToQueueTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentWatermarkTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSwitchStatsTxCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMmuTuningTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSflowMirrorTest.cpp
@@ -88,6 +109,7 @@ add_library(agent_hw_test_src
 )
 
 target_link_libraries(agent_hw_test_src
+  agent_qos_test_src
   acl_test_utils
   address_utils
   agent_test_utils
@@ -159,6 +181,7 @@ target_link_libraries(multi_switch_agent_hw_test
   copp_test_utils
   pkt_test_utils
   agent_hw_test_src
+  agent_qos_test_src
   agent_hw_test
   multi_switch_agent_ensemble
   olympic_qos_utils
@@ -185,6 +208,7 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_agent_hw_test-${SAI_IMPL_NAME}
     -Wl,--whole-archive
     agent_hw_test_src
+    agent_qos_test_src
     ${SAI_IMPL_ARG}
     acl_test_utils
     copp_test_utils
