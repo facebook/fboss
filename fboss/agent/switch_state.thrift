@@ -554,6 +554,8 @@ struct FibInfoFields {
   2: map<NextHopIdType, common.NextHopThrift> idToNextHop;
   // Map from NextHopSetID to set of NextHopIDs
   3: map<NextHopSetIdType, set<NextHopIdType>> idToNextHopIdSet;
+  // Map from named next-hop group name to NextHopSetID
+  4: map<string, NextHopSetIdType> nameToNextHopSetId;
 }
 
 struct TrafficClassToQosAttributeEntry {
