@@ -19,6 +19,8 @@ sai_tunnel_type_t getSaiTunnelType(cfg::TunnelType type) {
   switch (type) {
     case cfg::TunnelType::IP_IN_IP:
       return SAI_TUNNEL_TYPE_IPINIP;
+    case cfg::TunnelType::SRV6_ENCAP:
+      break;
   }
   throw FbossError("Failed to convert tunnel type to SAI type: ", type);
 }

@@ -2061,6 +2061,7 @@ enum IpTunnelMode {
 
 enum TunnelType {
   IP_IN_IP = 0,
+  SRV6_ENCAP = 1,
 }
 
 enum TunnelTerminationType {
