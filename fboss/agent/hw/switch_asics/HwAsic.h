@@ -741,8 +741,8 @@ class HwAsic {
   }
 
   // Applicable only when IP_IN_IP_DECAP feature is enabled.
-  virtual cfg::IpTunnelMode getTunnelDscpMode() const {
-    return cfg::IpTunnelMode::PIPE;
+  virtual cfg::TunnelMode getTunnelDscpMode() const {
+    return cfg::TunnelMode::PIPE;
   }
 
   virtual uint64_t getCpuPortEgressPoolSize() const;

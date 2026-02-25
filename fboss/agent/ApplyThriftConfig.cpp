@@ -6345,19 +6345,19 @@ shared_ptr<IpTunnel> ThriftConfigApplier::createIpInIpTunnel(
   }
   tunnel->setUnderlayIntfId(InterfaceID(*config.underlayIntfID()));
   if (auto ttl = config.ttlMode()) {
-    tunnel->setTTLMode(static_cast<cfg::IpTunnelMode>(*ttl));
+    tunnel->setTTLMode(static_cast<cfg::TunnelMode>(*ttl));
   } else {
-    tunnel->setTTLMode(cfg::IpTunnelMode::UNIFORM);
+    tunnel->setTTLMode(cfg::TunnelMode::UNIFORM);
   }
   if (auto dscp = config.dscpMode()) {
-    tunnel->setDscpMode(static_cast<cfg::IpTunnelMode>(*dscp));
+    tunnel->setDscpMode(static_cast<cfg::TunnelMode>(*dscp));
   } else {
-    tunnel->setDscpMode(cfg::IpTunnelMode::UNIFORM);
+    tunnel->setDscpMode(cfg::TunnelMode::UNIFORM);
   }
   if (auto ecn = config.ecnMode()) {
-    tunnel->setEcnMode(static_cast<cfg::IpTunnelMode>(*ecn));
+    tunnel->setEcnMode(static_cast<cfg::TunnelMode>(*ecn));
   } else {
-    tunnel->setEcnMode(cfg::IpTunnelMode::UNIFORM);
+    tunnel->setEcnMode(cfg::TunnelMode::UNIFORM);
   }
   // IP in IP tunnel decap: dst ip is the src of Tunnel state
   // (state default: encap)

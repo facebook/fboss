@@ -90,9 +90,9 @@ class AgentIpInIpTunnelTest : public AgentHwTest {
     tunnel.dstIp() = dstIp;
     tunnel.tunnelTermType() = cfg::TunnelTerminationType::P2MP;
     tunnel.tunnelType() = cfg::TunnelType::IP_IN_IP;
-    tunnel.ttlMode() = cfg::IpTunnelMode::PIPE;
+    tunnel.ttlMode() = cfg::TunnelMode::PIPE;
     tunnel.dscpMode() = asic->getTunnelDscpMode();
-    tunnel.ecnMode() = cfg::IpTunnelMode::PIPE;
+    tunnel.ecnMode() = cfg::TunnelMode::PIPE;
 
     return tunnel;
   }
@@ -223,7 +223,7 @@ TEST_F(AgentIpInIpTunnelTest, DecapPacketParsing) {
     EXPECT_EQ(hdr.dstAddr, folly::IPAddress("dead::1"));
     EXPECT_EQ(hdr.srcAddr, folly::IPAddress("4004::23"));
 
-    if (cfg::IpTunnelMode::PIPE == asic->getTunnelDscpMode()) {
+    if (cfg::TunnelMode::PIPE == asic->getTunnelDscpMode()) {
       // using PIPE mode: inner DSCP and ECN should not be changed
       EXPECT_EQ(hdr.trafficClass, 0xCE);
     } else {

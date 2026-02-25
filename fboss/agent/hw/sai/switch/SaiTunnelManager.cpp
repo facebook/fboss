@@ -40,35 +40,35 @@ sai_tunnel_term_table_entry_type_t getSaiTunnelTermType(
   throw FbossError("Failed to convert tunnel term type to SAI type: ", type);
 }
 
-sai_tunnel_ttl_mode_t getSaiTtlMode(cfg::IpTunnelMode mode) {
+sai_tunnel_ttl_mode_t getSaiTtlMode(cfg::TunnelMode mode) {
   switch (mode) {
-    case cfg::IpTunnelMode::UNIFORM:
+    case cfg::TunnelMode::UNIFORM:
       return SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL;
-    case cfg::IpTunnelMode::PIPE:
+    case cfg::TunnelMode::PIPE:
       return SAI_TUNNEL_TTL_MODE_PIPE_MODEL;
-    case cfg::IpTunnelMode::USER:
+    case cfg::TunnelMode::USER:
       break;
   }
   throw FbossError("Failed to convert TTL mode to SAI type: ", mode);
 }
-sai_tunnel_dscp_mode_t getSaiDscpMode(cfg::IpTunnelMode mode) {
+sai_tunnel_dscp_mode_t getSaiDscpMode(cfg::TunnelMode mode) {
   switch (mode) {
-    case cfg::IpTunnelMode::UNIFORM:
+    case cfg::TunnelMode::UNIFORM:
       return SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL;
-    case cfg::IpTunnelMode::PIPE:
+    case cfg::TunnelMode::PIPE:
       return SAI_TUNNEL_DSCP_MODE_PIPE_MODEL;
-    case cfg::IpTunnelMode::USER:
+    case cfg::TunnelMode::USER:
       break;
   }
   throw FbossError("Failed to convert DSCP mode to SAI type: ", mode);
 }
-sai_tunnel_decap_ecn_mode_t getSaiDecapEcnMode(cfg::IpTunnelMode mode) {
+sai_tunnel_decap_ecn_mode_t getSaiDecapEcnMode(cfg::TunnelMode mode) {
   switch (mode) {
-    case cfg::IpTunnelMode::UNIFORM:
+    case cfg::TunnelMode::UNIFORM:
       return SAI_TUNNEL_DECAP_ECN_MODE_STANDARD;
-    case cfg::IpTunnelMode::PIPE:
+    case cfg::TunnelMode::PIPE:
       return SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER;
-    case cfg::IpTunnelMode::USER:
+    case cfg::TunnelMode::USER:
       return SAI_TUNNEL_DECAP_ECN_MODE_USER_DEFINED;
   }
   throw FbossError("Failed to convert ECN mode to SAI type: ", mode);

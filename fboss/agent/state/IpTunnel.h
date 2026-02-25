@@ -35,28 +35,28 @@ class IpTunnel : public ThriftStructNode<IpTunnel, state::IpTunnelFields> {
   void setUnderlayIntfId(InterfaceID id) {
     set<switch_state_tags::underlayIntfId>(static_cast<int>(id));
   }
-  cfg::IpTunnelMode getTTLMode() const {
+  cfg::TunnelMode getTTLMode() const {
     const auto& mode = cref<switch_state_tags::ttlMode>();
     CHECK(mode);
-    return static_cast<cfg::IpTunnelMode>(mode->cref());
+    return static_cast<cfg::TunnelMode>(mode->cref());
   }
-  void setTTLMode(cfg::IpTunnelMode mode) {
+  void setTTLMode(cfg::TunnelMode mode) {
     setMode<switch_state_tags::ttlMode>(mode);
   }
-  cfg::IpTunnelMode getDscpMode() const {
+  cfg::TunnelMode getDscpMode() const {
     const auto& mode = cref<switch_state_tags::dscpMode>();
     CHECK(mode);
-    return static_cast<cfg::IpTunnelMode>(mode->cref());
+    return static_cast<cfg::TunnelMode>(mode->cref());
   }
-  void setDscpMode(cfg::IpTunnelMode mode) {
+  void setDscpMode(cfg::TunnelMode mode) {
     setMode<switch_state_tags::dscpMode>(mode);
   }
-  cfg::IpTunnelMode getEcnMode() const {
+  cfg::TunnelMode getEcnMode() const {
     const auto& mode = cref<switch_state_tags::ecnMode>();
     CHECK(mode);
-    return static_cast<cfg::IpTunnelMode>(mode->cref());
+    return static_cast<cfg::TunnelMode>(mode->cref());
   }
-  void setEcnMode(cfg::IpTunnelMode mode) {
+  void setEcnMode(cfg::TunnelMode mode) {
     setMode<switch_state_tags::ecnMode>(mode);
   }
   cfg::TunnelTerminationType getTunnelTermType() const {
@@ -92,7 +92,7 @@ class IpTunnel : public ThriftStructNode<IpTunnel, state::IpTunnelFields> {
   }
 
   template <typename Tag>
-  void setMode(cfg::IpTunnelMode mode) {
+  void setMode(cfg::TunnelMode mode) {
     set<Tag>(static_cast<int>(mode));
   }
 

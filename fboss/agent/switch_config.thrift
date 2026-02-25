@@ -2053,7 +2053,7 @@ struct SdkVersion {
   3: optional string firmware;
 }
 
-enum IpTunnelMode {
+enum TunnelMode {
   UNIFORM = 0,
   PIPE = 1,
   USER = 2,
@@ -2078,9 +2078,9 @@ struct IpInIpTunnel {
   4: optional string srcIp;
   5: optional string dstIpMask;
   6: optional string srcIpMask;
-  7: optional IpTunnelMode ttlMode;
-  8: optional IpTunnelMode dscpMode;
-  9: optional IpTunnelMode ecnMode;
+  7: optional TunnelMode ttlMode;
+  8: optional TunnelMode dscpMode;
+  9: optional TunnelMode ecnMode;
   10: optional TunnelTerminationType tunnelTermType;
   11: optional TunnelType tunnelType;
 }
