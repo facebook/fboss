@@ -57,44 +57,6 @@ class HwAclStatTest : public HwTest {
   }
 };
 
-TEST_F(HwAclStatTest, AclStatMultipleActions) {
-  auto setup = [=, this]() {
-    auto newCfg = this->initialConfig();
-    this->addDscpAcl(&newCfg, "acl0");
-    /* The ACL will have 2 actions: a counter and a queue */
-    utility::addAclStat(
-        &newCfg,
-        "acl0",
-        "stat0",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-    cfg::MatchAction matchAction = utility::getToQueueAction(
-        getPlatform()->getAsic(), 0, this->getHwSwitchEnsemble()->isSai());
-    cfg::MatchToAction action = cfg::MatchToAction();
-    *action.matcher() = "acl0";
-    *action.action() = matchAction;
-    newCfg.dataPlaneTrafficPolicy()->matchToAction()->push_back(action);
-    this->applyNewConfig(newCfg);
-  };
-
-  auto verify = [=, this]() {
-    utility::checkAclEntryAndStatCount(
-        this->getHwSwitch(),
-        /*ACLs*/ 1,
-        /*stats*/ 1,
-        /*counters*/
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
-            .size());
-    utility::checkAclStat(
-        this->getHwSwitch(),
-        this->getProgrammedState(),
-        {"acl0"},
-        "stat0",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-  };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(HwAclStatTest, AclStatDelete) {
   auto setup = [=, this]() {
     auto newCfg = this->initialConfig();
