@@ -253,7 +253,7 @@ TEST_F(AgentRouteRollbackTest, VerifyRollbackWithCombinedRouteOperations) {
       // Generate prefix like "100:1:1::", "100:1:2::", etc.
       std::string prefixStr =
           folly::to<std::string>(baseFirstSegment, ":1:", i, "::");
-      prefixes.push_back(RoutePrefixV6{folly::IPAddressV6(prefixStr), 64});
+      prefixes.emplace_back(folly::IPAddressV6(prefixStr), 64);
     }
     return prefixes;
   };
