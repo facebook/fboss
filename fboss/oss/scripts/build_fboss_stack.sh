@@ -92,12 +92,22 @@ if [ "$need_sai" -eq 1 ]; then
 
   if [ -n "${BUILD_SAI_FAKE:-}" ]; then
     sai_name="sai-fake"
+    export BUILD_SAI_FAKE
+    export BUILD_SAI_FAKE_LINK_TEST
   elif [ -n "${SAI_BRCM_IMPL:-}" ]; then
     sai_name="sai-bcm-${SAI_SDK_VERSION}"
+    export SAI_BRCM_IMPL
   else
     sai_name="sai-unknown-${SAI_SDK_VERSION}"
   fi
   echo "Using SAI implementation: $sai_name"
+
+  if [ -n "${SAI_VERSION:-}" ]; then
+    export SAI_VERSION
+  fi
+  if [ -n "${SAI_SDK_VERSION:-}" ]; then
+    export SAI_SDK_VERSION
+  fi
 fi
 
 # Use a scratch path for the CMake build tree.
@@ -105,16 +115,21 @@ fi
 # across container runs
 scratch_root="/build"
 if [ "$need_sai" -eq 1 ]; then
-  common_root="${scratch_root}/forwarding-stack/common"
   build_dir="${scratch_root}/forwarding-stack/${sai_name}"
 else
-  common_root="${scratch_root}/platform-stack/common"
   build_dir="${scratch_root}/platform-stack"
 fi
 mkdir -p "$build_dir"
 
+common_root="${scratch_root}/common"
+
 common_options='--allow-system-packages'
 common_options+=' --scratch-path '$build_dir
+common_options+=' --extra-cmake-defines {'
+common_options+='"CMAKE_BUILD_TYPE":"MinSizeRel"'
+common_options+=',"CMAKE_CXX_STANDARD":"20"'
+common_options+=',"RANGE_V3_TESTS":"OFF"'
+common_options+=',"RANGE_V3_PERF":"OFF"}'
 common_options+=' --src-dir .'
 common_options+=' fboss'
 
