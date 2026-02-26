@@ -17,7 +17,6 @@ cpp_library(
         "lldp_thrift_types.h",
     ],
     exported_deps = [
-        ":lldp_structs-cpp2-reflection",
         ":lldp_structs-cpp2-types",
         "//fboss/agent:agent_features",
         "//fboss/agent:fboss-types",

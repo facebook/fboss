@@ -72,7 +72,7 @@ std::vector<std::vector<std::string>> getAllSubscribePaths(
 
 namespace facebook::fboss {
 
-using k_fsdb_model = fsdb::fsdb_model_tags::strings;
+namespace k_fsdb_model = apache::thrift::ident;
 
 DsfSubscription::DsfSubscription(
     fsdb::SubscriptionOptions options,
