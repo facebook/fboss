@@ -2096,7 +2096,6 @@ cpp_unittest(
         ":ipc_health_monitor",
         "//fb303:service_data",
         "//folly/io/async:async_base",
-        "//folly/io/async/test:event_base_test_lib",
         "//folly/logging:logging",
     ],
 )

@@ -194,6 +194,7 @@ void bindTamObjectToSwitchAndPort(
   managerTable->switchManager().setTamObject(getSwitchTamIds(tamHandles));
 }
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
 void unbindTamObjectFromSwitchAndPort(
     SaiManagerTable* managerTable,
     folly::F14FastMap<std::string, std::unique_ptr<SaiTamHandle>>& tamHandles,
@@ -206,6 +207,7 @@ void unbindTamObjectFromSwitchAndPort(
   managerTable->portManager().setTamObject(
       portId, getPortTamIds(tamHandles, portId));
 }
+#endif
 
 } // namespace
 
