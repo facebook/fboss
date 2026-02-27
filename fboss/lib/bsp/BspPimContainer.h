@@ -29,6 +29,11 @@ class BspPimContainer : public MultiPimPlatformPimContainer {
   void initTransceiver(int tcvrID) const;
   void holdTransceiverReset(int tcvrID) const;
   void releaseTransceiverReset(int tcvrID) const;
+
+  // PHY reset methods
+  void initAllPhyIOControllers() const;
+  void initAllPhys() const;
+
   void tcvrRead(
       unsigned int tcvrID,
       const TransceiverAccessParameter& param,
