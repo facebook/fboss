@@ -1543,7 +1543,8 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false);
       }
 
       // Applying the same config again
@@ -1587,26 +1588,26 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
       if (status) {
         // If source route rule is added again for the same IP address, it
         // would create duplicate entries.
-        checkKernelEntriesRemoved(
+        utility::checkKernelEntriesRemoved(
             folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
-        checkKernelEntriesExist(
+        utility::checkKernelEntriesExist(
             folly::to<std::string>(intfIPv4New), true, false);
-        checkKernelEntriesExist(
+        utility::checkKernelEntriesExist(
             folly::to<std::string>(intfIPv6New), false, false);
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4New),
           folly::to<std::string>(intfIPv6New));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4New),
           folly::to<std::string>(intfIPv6New));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
