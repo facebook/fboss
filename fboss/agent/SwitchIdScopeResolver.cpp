@@ -15,6 +15,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SflowCollector.h"
+#include "fboss/agent/state/Srv6Tunnel.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SystemPort.h"
 #include "fboss/agent/state/Vlan.h"
@@ -424,6 +425,40 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<MirrorOnDropReport>& report) const {
   return scope(PortID(report->getMirrorPortId()));
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const cfg::Srv6Tunnel& tunnel,
+    const cfg::SwitchConfig& cfg) const {
+  auto intfId = InterfaceID(*tunnel.underlayIntfID());
+  for (const auto& intf : *cfg.interfaces()) {
+    if (InterfaceID(*intf.intfID()) == intfId) {
+      return scope(*intf.type(), intfId, cfg);
+    }
+  }
+  throw FbossError(
+      "No interface found for Srv6Tunnel underlay interface: ", intfId);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<Srv6Tunnel>& tunnel,
+    const std::shared_ptr<SwitchState>& state) const {
+  auto intfId = tunnel->getUnderlayIntfId();
+  auto intf = state->getInterfaces()->getNode(intfId);
+  return scope(intf, state);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<Srv6Tunnel>& tunnel,
+    const cfg::SwitchConfig& cfg) const {
+  auto intfId = tunnel->getUnderlayIntfId();
+  for (const auto& intf : *cfg.interfaces()) {
+    if (InterfaceID(*intf.intfID()) == intfId) {
+      return scope(*intf.type(), intfId, cfg);
+    }
+  }
+  throw FbossError(
+      "No interface found for Srv6Tunnel underlay interface: ", intfId);
 }
 
 } // namespace facebook::fboss
