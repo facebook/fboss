@@ -1457,7 +1457,8 @@ TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
       // rule entries are not created if the interface is not up. So,
       // checking for the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false);
       }
 
       // change ipv6 address of the interface
@@ -1478,19 +1479,20 @@ TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
       // Route entries installation is currently not consistent after the ip
       // address change. So, passing false for checkRouteEntry.
       if (status) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, false);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false, false);
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
