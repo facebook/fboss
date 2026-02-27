@@ -120,6 +120,7 @@ bool is2QueueWRRQueueId(int queueId) {
 int getTrafficClassToCpuEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
   switch (hwAsic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
     case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
       // Jericho3/Q4D only has two egress queues for cpu port and recycle port
       // match default/low/med to queue 0, high to 1
@@ -155,6 +156,7 @@ int getTrafficClassToCpuEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
 bool needsSeparateCpuQosPolicy(const HwAsic* hwAsic) {
   switch (hwAsic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
     case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
       // Jericho3/Q4D require a separate qos policy for cpu port
       return true;

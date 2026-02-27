@@ -119,6 +119,7 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
     case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
     case cfg::AsicType::ASIC_TYPE_G202X:
       return 7;
@@ -139,6 +140,7 @@ uint16_t getCoppMidPriQueueId(const std::vector<const HwAsic*>& hwAsics) {
   auto hwAsic = checkSameAndGetAsic(hwAsics);
   switch (hwAsic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
     case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
       return kJ3CoppMidPriQueueId;
     case cfg::AsicType::ASIC_TYPE_FAKE:
@@ -193,6 +195,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
       return cfg::ToCpuAction::COPY;
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
     case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
       return cfg::ToCpuAction::TRAP;

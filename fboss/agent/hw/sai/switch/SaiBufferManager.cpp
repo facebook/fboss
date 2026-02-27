@@ -109,6 +109,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
       break;
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
     case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
       CHECK_EQ(maxEgressPoolSize, availableBuffer);
@@ -202,6 +203,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
     }
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
     case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
       /*
        * XXX: TODO: Need to check if there is a way to compute the
