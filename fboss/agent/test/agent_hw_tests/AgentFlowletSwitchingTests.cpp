@@ -786,7 +786,7 @@ class AgentFlowletWideArsSwitchingTest : public AgentFlowletSwitchingTest {
   static constexpr int kWideEcmpWidth = 256;
   static constexpr int kStatsCheckInterval = 25;
   static constexpr int kMinWidthForArsVirtualGroup = 65;
-  static constexpr int kMaxVirtualArsGroups = 256;
+  static constexpr int kMaxVirtualArsGroups = 255;
 
   std::vector<PortID> getSubsidiaryPorts(const AgentEnsemble& ensemble) const {
     auto portsByControllingPort = utility::getSubsidiaryPortIDs(
