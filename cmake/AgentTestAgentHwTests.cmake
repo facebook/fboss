@@ -33,6 +33,44 @@ target_link_libraries(agent_qos_test_src
   Folly::folly
 )
 
+# VOQ/DSF test library - tests related to VOQ switches and distributed switch fabric
+add_library(agent_voq_test_src
+  fboss/agent/test/agent_hw_tests/AgentFabricSwitchTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentVoqConditionalEntropyTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentVoqSwitchFabricLinkMonitoringTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentVoqSwitchFirmwareTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentVoqSwitchFullScaleDsfTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentVoqSwitchInterruptsTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentVoqSwitchLineRateTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentVoqSwitchWithFabricPortsTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentVoqSwitchWithMultipleDsfNodesTests.cpp
+)
+
+target_link_libraries(agent_voq_test_src
+  agent_hw_test
+  config_factory
+  copp_test_utils
+  core
+  dsf_config_utils
+  ecmp_helper
+  fabric_test_utils
+  hw_resource_stats_publisher
+  hw_switch_fb303_stats
+  load_balancer_test_utils
+  network_ai_qos_utils
+  olympic_qos_utils
+  packet_factory
+  packet_snooper
+  port_test_utils
+  route_test_utils
+  scale_test_utils
+  switch_asics
+  trap_packet_utils
+  voq_test_utils
+  Folly::folly
+)
+
 add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentCoppTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDot1qMappingTest.cpp
@@ -65,15 +103,6 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostTests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostRouteTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentVoqSwitchFullScaleDsfTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentVoqSwitchLineRateTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentVoqSwitchWithFabricPortsTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentVoqSwitchWithMultipleDsfNodesTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentVoqConditionalEntropyTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentVoqSwitchInterruptsTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentVoqSwitchFirmwareTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentFabricSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortBandWidthTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortLedTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPrbsTests.cpp
@@ -110,6 +139,7 @@ add_library(agent_hw_test_src
 
 target_link_libraries(agent_hw_test_src
   agent_qos_test_src
+  agent_voq_test_src
   acl_test_utils
   address_utils
   agent_test_utils
@@ -182,6 +212,7 @@ target_link_libraries(multi_switch_agent_hw_test
   pkt_test_utils
   agent_hw_test_src
   agent_qos_test_src
+  agent_voq_test_src
   agent_hw_test
   multi_switch_agent_ensemble
   olympic_qos_utils
@@ -209,6 +240,7 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     agent_hw_test_src
     agent_qos_test_src
+    agent_voq_test_src
     ${SAI_IMPL_ARG}
     acl_test_utils
     copp_test_utils
