@@ -75,6 +75,8 @@
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
+#include "fboss/agent/state/Srv6Tunnel.h"
+#include "fboss/agent/state/Srv6TunnelMap.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
@@ -624,6 +626,11 @@ class ThriftConfigApplier {
       const std::shared_ptr<IpTunnel>& orig,
       const cfg::IpInIpTunnel* config);
   std::shared_ptr<IpTunnelMap> updateIpInIpTunnels();
+  shared_ptr<Srv6Tunnel> createSrv6Tunnel(const cfg::Srv6Tunnel& config);
+  shared_ptr<Srv6Tunnel> updateSrv6Tunnel(
+      const std::shared_ptr<Srv6Tunnel>& orig,
+      const cfg::Srv6Tunnel* config);
+  std::shared_ptr<Srv6TunnelMap> updateSrv6Tunnels();
   std::shared_ptr<DsfNodeMap> updateDsfNodes();
   void processUpdatedDsfNodes();
   void processReachabilityGroup(
@@ -975,6 +982,16 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newTunnels) {
       new_->resetTunnels(
           toMultiSwitchMap<MultiSwitchIpTunnelMap>(newTunnels, scopeResolver_));
+      changed = true;
+    }
+  }
+
+  {
+    auto newSrv6Tunnels = updateSrv6Tunnels();
+    if (newSrv6Tunnels) {
+      new_->resetSrv6Tunnels(
+          toMultiSwitchMap<MultiSwitchSrv6TunnelMap>(
+              newSrv6Tunnels, *cfg_, scopeResolver_));
       changed = true;
     }
   }
@@ -6372,6 +6389,75 @@ shared_ptr<IpTunnel> ThriftConfigApplier::createIpInIpTunnel(
     tunnel->setDstIPMask(folly::IPAddressV6(*config.srcIpMask()));
   }
 
+  return tunnel;
+}
+
+std::shared_ptr<Srv6TunnelMap> ThriftConfigApplier::updateSrv6Tunnels() {
+  const auto& origTunnels = orig_->getSrv6Tunnels();
+  auto newTunnels = std::make_shared<Srv6TunnelMap>();
+
+  bool changed = false;
+  size_t numExistingProcessed = 0;
+  if (!cfg_->srv6Tunnels().has_value()) {
+    return nullptr;
+  }
+  for (const auto& tunnelCfg : cfg_->srv6Tunnels().value()) {
+    auto origTunnel = origTunnels->getNodeIf(*tunnelCfg.srv6TunnelId());
+    std::shared_ptr<Srv6Tunnel> newTunnel;
+    if (origTunnel) {
+      newTunnel = updateSrv6Tunnel(origTunnel, &tunnelCfg);
+      ++numExistingProcessed;
+    } else {
+      newTunnel = createSrv6Tunnel(tunnelCfg);
+    }
+
+    changed |= updateThriftMapNode(newTunnels.get(), origTunnel, newTunnel);
+  }
+
+  if (numExistingProcessed != origTunnels->numNodes()) {
+    CHECK_LT(numExistingProcessed, origTunnels->numNodes());
+    changed = true;
+  }
+
+  if (!changed) {
+    return nullptr;
+  }
+  return newTunnels;
+}
+
+shared_ptr<Srv6Tunnel> ThriftConfigApplier::updateSrv6Tunnel(
+    const std::shared_ptr<Srv6Tunnel>& orig,
+    const cfg::Srv6Tunnel* config) {
+  auto newTunnel = createSrv6Tunnel(*config);
+  if (*newTunnel == *orig) {
+    return nullptr;
+  }
+  return newTunnel;
+}
+
+shared_ptr<Srv6Tunnel> ThriftConfigApplier::createSrv6Tunnel(
+    const cfg::Srv6Tunnel& config) {
+  auto tunnel = make_shared<Srv6Tunnel>(*config.srv6TunnelId());
+  tunnel->setUnderlayIntfId(InterfaceID(*config.underlayIntfID()));
+  tunnel->setType(*config.tunnelType());
+  if (config.tunnelTermType().has_value()) {
+    tunnel->setTunnelTermType(*config.tunnelTermType());
+  }
+  if (config.ttlMode().has_value()) {
+    tunnel->setTTLMode(static_cast<cfg::TunnelMode>(*config.ttlMode()));
+  }
+  if (config.dscpMode().has_value()) {
+    tunnel->setDscpMode(static_cast<cfg::TunnelMode>(*config.dscpMode()));
+  }
+  if (config.ecnMode().has_value()) {
+    tunnel->setEcnMode(static_cast<cfg::TunnelMode>(*config.ecnMode()));
+  }
+  if (config.srcIp().has_value()) {
+    tunnel->setSrcIP(folly::IPAddress(*config.srcIp()));
+  }
+  if (config.dstIp().has_value()) {
+    tunnel->setDstIP(folly::IPAddress(*config.dstIp()));
+  }
   return tunnel;
 }
 
