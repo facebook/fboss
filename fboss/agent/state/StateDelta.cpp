@@ -30,6 +30,7 @@
 #include "fboss/agent/FsdbHelper.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/SflowCollector.h"
+#include "fboss/agent/state/Srv6TunnelMap.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
@@ -303,6 +304,11 @@ ThriftMapDelta<IpTunnelMap> StateDelta::getIpTunnelsDelta() const {
   return getFirstMapDelta<IpTunnelMap>(old_->getTunnels(), new_->getTunnels());
 }
 
+ThriftMapDelta<Srv6TunnelMap> StateDelta::getSrv6TunnelsDelta() const {
+  return getFirstMapDelta<Srv6TunnelMap>(
+      old_->getSrv6Tunnels(), new_->getSrv6Tunnels());
+}
+
 MultiSwitchMapDelta<MultiTeFlowTable> StateDelta::getTeFlowEntriesDelta()
     const {
   return MultiSwitchMapDelta<MultiTeFlowTable>(
@@ -335,6 +341,7 @@ template struct ThriftMapDelta<ForwardingInformationBaseV6>;
 template struct ThriftMapDelta<LabelForwardingInformationBase>;
 template struct ThriftMapDelta<SystemPortMap>;
 template struct ThriftMapDelta<IpTunnelMap>;
+template struct ThriftMapDelta<Srv6TunnelMap>;
 template struct ThriftMapDelta<TeFlowTable>;
 
 template struct MultiSwitchMapDelta<MultiSwitchMirrorMap>;
@@ -342,6 +349,7 @@ template struct MultiSwitchMapDelta<MultiSwitchSflowCollectorMap>;
 template struct MultiSwitchMapDelta<MultiLabelForwardingInformationBase>;
 template struct MultiSwitchMapDelta<MultiSwitchQosPolicyMap>;
 template struct MultiSwitchMapDelta<MultiSwitchIpTunnelMap>;
+template struct MultiSwitchMapDelta<MultiSwitchSrv6TunnelMap>;
 template struct MultiSwitchMapDelta<MultiTeFlowTable>;
 template struct MultiSwitchMapDelta<MultiSwitchAggregatePortMap>;
 template struct MultiSwitchMapDelta<MultiSwitchLoadBalancerMap>;
