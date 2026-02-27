@@ -163,6 +163,18 @@ cpp_unittest(
     ],
 )
 
+cpp_unittest(
+    name = "srv6_tunnel_config_test",
+    srcs = [
+        "Srv6TunnelConfigTests.cpp",
+    ],
+    deps = [
+        ":utils",
+        "//fboss/agent/hw/mock:mock",
+        "//fboss/agent/state:state",
+    ],
+)
+
 cpp_library(
     name = "neighbor_entry_test_util",
     headers = ["NeighborEntryTest.h"],
