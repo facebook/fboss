@@ -436,9 +436,7 @@ _sai_agent_hw_test_prefix = "sai_agent_hw_test"
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
         ],
-        versions = {
-            sai_impl.sdk_name: sai_impl.version,
-        },
+        versions = to_versions(sai_impl),
         deps = [
             ":agent_hw_test_src",
             "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
@@ -477,9 +475,7 @@ _sai_scale_test_configs = [
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
         ] if sai_impl.name == "nvda" else [],
-        versions = {
-            sai_impl.sdk_name: sai_impl.version,
-        },
+        versions = to_versions(sai_impl),
         deps = [
             "fbsource//third-party/googletest:gtest",
             ":agent_scale_test_src",
@@ -514,9 +510,7 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
         ] if sai_impl.name == "nvda" else [],
-        versions = {
-            sai_impl.sdk_name: sai_impl.version,
-        },
+        versions = to_versions(sai_impl),
         deps = [
             "fbsource//third-party/googletest:gtest",
             ":agent_hw_provision_test_src",
