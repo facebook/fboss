@@ -50,6 +50,7 @@
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
@@ -1588,6 +1589,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiTunnelManager::changeTunnel,
       &SaiTunnelManager::addTunnel,
       &SaiTunnelManager::removeTunnel);
+
+  processDelta(
+      delta.getSrv6TunnelsDelta(),
+      managerTable_->srv6TunnelManager(),
+      lockPolicy,
+      &SaiSrv6TunnelManager::changeSrv6Tunnel,
+      &SaiSrv6TunnelManager::addSrv6Tunnel,
+      &SaiSrv6TunnelManager::removeSrv6Tunnel);
 
 #if defined(TAJO_SDK_VERSION_1_42_8)
   FLAGS_enable_acl_table_group = false;
