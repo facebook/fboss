@@ -818,7 +818,8 @@ TEST_F(BaseEcmpResourceManagerTest, maxArsVirtualGroupsFromConfig) {
         computeExpectedMaxGroups(maxArsGroupsFromAsic.value()));
   }
 
-  // With maxArsVirtualGroups set in config, should use config value
+  // With maxArsVirtualGroups set in config, primary groups should still come
+  // from ASIC, and virtual groups should use config value
   {
     auto newState = state_->clone();
     auto flowletConfig = std::make_shared<FlowletSwitchingConfig>();
@@ -834,7 +835,8 @@ TEST_F(BaseEcmpResourceManagerTest, maxArsVirtualGroupsFromConfig) {
     auto ecmpMgr = makeEcmpResourceManager(newState, asic);
     ASSERT_NE(ecmpMgr, nullptr);
     EXPECT_EQ(
-        ecmpMgr->getMaxPrimaryEcmpGroups(), computeExpectedMaxGroups(128));
+        ecmpMgr->getMaxPrimaryEcmpGroups(),
+        computeExpectedMaxGroups(maxArsGroupsFromAsic.value()));
   }
 }
 } // namespace facebook::fboss

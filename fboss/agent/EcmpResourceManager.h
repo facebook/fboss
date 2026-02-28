@@ -52,9 +52,19 @@ class EcmpResourceManager {
   explicit EcmpResourceManager(
       uint32_t maxHwEcmpGroups,
       std::optional<cfg::SwitchingMode> backupEcmpGroupType = std::nullopt,
+      std::optional<uint32_t> maxVirtualEcmpGroups = std::nullopt,
+      std::optional<int32_t> minWidthForVirtualGroup = std::nullopt,
+      std::optional<int32_t> maxVirtualGroupWidth = std::nullopt,
+      std::optional<int32_t> maxEcmpWidth = std::nullopt,
       SwitchStatsGetter statsGetter = []() { return nullptr; })
       : EcmpResourceManager(
-            EcmpResourceManagerConfig(maxHwEcmpGroups, backupEcmpGroupType),
+            EcmpResourceManagerConfig(
+                maxHwEcmpGroups,
+                backupEcmpGroupType,
+                maxVirtualEcmpGroups,
+                minWidthForVirtualGroup,
+                maxVirtualGroupWidth,
+                maxEcmpWidth),
             statsGetter) {}
   using NextHopGroupId = uint64_t;
   using NextHopGroupIds = std::set<NextHopGroupId>;

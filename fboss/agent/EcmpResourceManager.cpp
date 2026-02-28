@@ -2515,25 +2515,34 @@ std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
     const HwAsic* asic,
     const EcmpResourceManager::SwitchStatsGetter& switchStatsGetter) {
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager = nullptr;
-  std::optional<uint32_t> maxEcmpGroups;
+  std::optional<uint32_t> maxNonVirtualEcmpGroups;
+  std::optional<uint32_t> maxVirtualEcmpGroups;
+  std::optional<int32_t> minWidthForVirtualGroup;
+  std::optional<int32_t> maxVirtualGroupWidth;
+  std::optional<int32_t> maxEcmpWidth;
+
   if (FLAGS_flowletSwitchingEnable) {
-    // Use maxArsVirtualGroups from config if specified, otherwise fall back to
-    // maxArsGroups from ASIC
+    // Non-virtual limit from ASIC
+    maxNonVirtualEcmpGroups = asic->getMaxArsGroups();
+    maxEcmpWidth = asic->getMaxArsWidth();
+
     if (auto flowletSwitchingConfig = state->getFlowletSwitchingConfig()) {
-      auto maxArsVirtualGroups =
+      // Virtual group config from FlowletSwitchingConfig
+      auto configVirtualGroups =
           flowletSwitchingConfig->getMaxArsVirtualGroups();
-      if (maxArsVirtualGroups.has_value() && maxArsVirtualGroups.value() > 0) {
-        // TODO: Pass in virtual and non-virtual max ecmp groups
-        // and count them separately in EcmpResourceManager
-        maxEcmpGroups = static_cast<uint32_t>(maxArsVirtualGroups.value());
+      if (configVirtualGroups.has_value() && configVirtualGroups.value() > 0) {
+        maxVirtualEcmpGroups =
+            static_cast<uint32_t>(configVirtualGroups.value());
       }
-    }
-    if (!maxEcmpGroups.has_value()) {
-      maxEcmpGroups = asic->getMaxArsGroups();
+      minWidthForVirtualGroup =
+          flowletSwitchingConfig->getMinWidthForArsVirtualGroup();
+      maxVirtualGroupWidth =
+          flowletSwitchingConfig->getMaxArsVirtualGroupWidth();
     }
   } else {
-    maxEcmpGroups = asic->getMaxEcmpGroups();
+    maxNonVirtualEcmpGroups = asic->getMaxEcmpGroups();
   }
+
   std::optional<cfg::SwitchingMode> switchingMode;
   std::optional<int32_t> ecmpCompressionPenaltyThresholPct;
   if (auto flowletSwitchingConfig = state->getFlowletSwitchingConfig()) {
@@ -2550,21 +2559,47 @@ std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
   CHECK(
       !(switchingMode.has_value() &&
         ecmpCompressionPenaltyThresholPct.value_or(0)));
-  if (maxEcmpGroups.has_value()) {
+
+  if (maxNonVirtualEcmpGroups.has_value()) {
     auto percentage = FLAGS_flowletSwitchingEnable
         ? FLAGS_ars_resource_percentage
         : FLAGS_ecmp_resource_percentage;
-    auto maxEcmps =
-        std::floor(*maxEcmpGroups * static_cast<double>(percentage) / 100.0);
-    XLOG(DBG2) << " Creating ecmp resource manager with max ECMP groups: "
-               << maxEcmps << " and backup group type: " << switchingMode;
 
-    ecmpResourceManager = switchingMode
+    auto applyPercentage =
+        [percentage](std::optional<uint32_t> max) -> std::optional<uint32_t> {
+      if (!max.has_value()) {
+        return std::nullopt;
+      }
+      return static_cast<uint32_t>(
+          std::floor(*max * static_cast<double>(percentage) / 100.0));
+    };
+
+    auto maxNonVirtual = applyPercentage(maxNonVirtualEcmpGroups);
+    auto maxVirtual = applyPercentage(maxVirtualEcmpGroups);
+
+    XLOG(DBG2)
+        << " Creating ecmp resource manager with max non-virtual groups: "
+        << (maxNonVirtual ? *maxNonVirtual : 0)
+        << ", max virtual groups: " << (maxVirtual ? *maxVirtual : 0)
+        << ", min width for virtual: "
+        << (minWidthForVirtualGroup ? *minWidthForVirtualGroup : 0)
+        << ", max virtual group width: "
+        << (maxVirtualGroupWidth ? *maxVirtualGroupWidth : 0)
+        << ", max ecmp width: " << (maxEcmpWidth ? *maxEcmpWidth : 0)
+        << ", backup group type: " << switchingMode;
+
+    ecmpResourceManager = ecmpCompressionPenaltyThresholPct.value_or(0) > 0
         ? std::make_unique<EcmpResourceManager>(
-              maxEcmps, switchingMode, switchStatsGetter)
+              *maxNonVirtual,
+              ecmpCompressionPenaltyThresholPct.value(),
+              switchStatsGetter)
         : std::make_unique<EcmpResourceManager>(
-              maxEcmps,
-              ecmpCompressionPenaltyThresholPct.value_or(0),
+              *maxNonVirtual,
+              switchingMode,
+              maxVirtual,
+              minWidthForVirtualGroup,
+              maxVirtualGroupWidth,
+              maxEcmpWidth,
               switchStatsGetter);
   }
   return ecmpResourceManager;
