@@ -889,4 +889,5 @@ target_link_libraries(validate_state_update
   state
   fboss_error
   switchid_scope_resolver
+  hw_asic_table
 )

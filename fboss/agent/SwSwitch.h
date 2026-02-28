@@ -113,6 +113,7 @@ class RemoteNeighborUpdater;
 class EcmpResourceManager;
 class ShelManager;
 class FabricLinkMonitoringManager;
+class StateUpdateValidator;
 
 inline static const int kHiPriorityBufferSize{1000};
 inline static const int kMidPriorityBufferSize{1000};
@@ -1396,6 +1397,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager_;
   std::unique_ptr<ShelManager> shelManager_;
   std::unique_ptr<FabricLinkMonitoringManager> fabricLinkMonitoringManager_;
+  std::unique_ptr<StateUpdateValidator> stateUpdateValidator_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>

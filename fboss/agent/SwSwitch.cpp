@@ -475,6 +475,8 @@ SwSwitch::SwSwitch(
       switchStatsObserver_(new SwitchStatsObserver(this)),
       resourceAccountant_(
           new ResourceAccountant(hwAsicTable_.get(), scopeResolver_.get())),
+      stateUpdateValidator_(
+          new StateUpdateValidator(hwAsicTable_.get(), scopeResolver_.get())),
       packetStreamMap_(new MultiSwitchPacketStreamMap()),
       swSwitchWarmbootHelper_(
           new SwSwitchWarmBootHelper(agentDirUtil_, hwAsicTable_.get())),
@@ -3698,9 +3700,7 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
     if (isRunModeMonolithic()) {
       isValid = getMonolithicHwSwitchHandler()->isValidStateUpdate(delta);
     } else {
-      // TODO - implement state update validation for multiswitch
-      isValid = isStateUpdateValidMultiSwitch(
-          delta, getScopeResolver(), getHwAsicTable()->getHwAsics());
+      isValid = stateUpdateValidator_->isValidUpdate(delta);
     }
   }
 

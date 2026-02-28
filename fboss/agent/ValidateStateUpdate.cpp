@@ -3,6 +3,7 @@
 #include "fboss/agent/ValidateStateUpdate.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/DeltaFunctions.h"
@@ -207,9 +208,9 @@ StateUpdateValidator::StateUpdateValidator(
     const SwitchIdScopeResolver* scopeResolver)
     : asicTable_(asicTable), scopeResolver_(scopeResolver) {}
 
-bool StateUpdateValidator::isValidUpdate(const StateDelta& /*delta*/) const {
-  /* TODO : implement this */
-  return true;
+bool StateUpdateValidator::isValidUpdate(const StateDelta& delta) const {
+  return isStateUpdateValidMultiSwitch(
+      delta, scopeResolver_, asicTable_->getHwAsics());
 }
 
 } // namespace facebook::fboss
