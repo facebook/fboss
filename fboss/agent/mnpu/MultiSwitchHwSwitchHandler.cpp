@@ -440,4 +440,9 @@ state::SwitchState MultiSwitchHwSwitchHandler::reconstructSwitchState() {
       "reconstructSwitchState Not implemented in MultiSwitchHwSwitchHandler");
 }
 
+bool MultiSwitchHwSwitchHandler::isValidStateUpdate(
+    const StateDelta& /*delta*/) const {
+  throw FbossError(
+      "isValidStateUpdate Not implemented in MultiSwitchHwSwitchHandler, use state update validator instead");
+}
 } // namespace facebook::fboss
