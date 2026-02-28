@@ -48,6 +48,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "wedge800bact",
             "wedge800cact",
             "blackwolf800banw",
+            "j4sim",
         ],
         True: [
             "meru800bfa",
