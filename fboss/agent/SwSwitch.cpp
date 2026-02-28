@@ -475,8 +475,10 @@ SwSwitch::SwSwitch(
       switchStatsObserver_(new SwitchStatsObserver(this)),
       resourceAccountant_(
           new ResourceAccountant(hwAsicTable_.get(), scopeResolver_.get())),
-      stateUpdateValidator_(
-          new StateUpdateValidator(hwAsicTable_.get(), scopeResolver_.get())),
+      stateUpdateValidator_(new StateUpdateValidator(
+          config->getRunMode(),
+          hwAsicTable_.get(),
+          scopeResolver_.get())),
       packetStreamMap_(new MultiSwitchPacketStreamMap()),
       swSwitchWarmbootHelper_(
           new SwSwitchWarmBootHelper(agentDirUtil_, hwAsicTable_.get())),

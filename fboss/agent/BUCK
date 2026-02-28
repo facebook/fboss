@@ -2152,6 +2152,7 @@ cpp_library(
         "ValidateStateUpdate.cpp",
     ],
     exported_deps = [
+        ":agent_config-cpp2-types",
         ":fboss-error",
         ":fboss-types",
         ":hw_asic_table",

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -26,10 +27,12 @@ class StateUpdateValidator {
  public:
   bool isValidUpdate(const StateDelta& delta) const;
   StateUpdateValidator(
+      const cfg::AgentRunMode& runMode,
       const HwAsicTable* asicTable,
       const SwitchIdScopeResolver* scopeResolver);
 
  private:
+  cfg::AgentRunMode runMode_;
   const HwAsicTable* asicTable_;
   const SwitchIdScopeResolver* scopeResolver_;
 };

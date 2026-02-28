@@ -204,11 +204,13 @@ bool isStateUpdateValidMultiSwitch(
 }
 
 StateUpdateValidator::StateUpdateValidator(
+    const cfg::AgentRunMode& runMode,
     const HwAsicTable* asicTable,
     const SwitchIdScopeResolver* scopeResolver)
-    : asicTable_(asicTable), scopeResolver_(scopeResolver) {}
+    : runMode_(runMode), asicTable_(asicTable), scopeResolver_(scopeResolver) {}
 
 bool StateUpdateValidator::isValidUpdate(const StateDelta& delta) const {
+  CHECK(runMode_ == cfg::AgentRunMode::MULTI_SWITCH);
   return isStateUpdateValidMultiSwitch(
       delta, scopeResolver_, asicTable_->getHwAsics());
 }
