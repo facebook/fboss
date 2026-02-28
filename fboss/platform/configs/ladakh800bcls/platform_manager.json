@@ -1206,7 +1206,7 @@
         {
           "busName": "INCOMING@2",
           "address": "0x33",
-          "kernelDeviceName": "anacapa_smbcpld",
+          "kernelDeviceName": "th6_smbcpld",
           "pmUnitScopedName": "SMB_L_CPLD"
         },
         {
@@ -1464,7 +1464,7 @@
         {
           "busName": "INCOMING@4",
           "address": "0x33",
-          "kernelDeviceName": "anacapa_smbcpld",
+          "kernelDeviceName": "th6_smbcpld",
           "pmUnitScopedName": "SMB_R_CPLD"
         }
       ]
@@ -1659,7 +1659,7 @@
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 2,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.0.0-1",
+  "bspKmodsRpmVersion": "4.1.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",
