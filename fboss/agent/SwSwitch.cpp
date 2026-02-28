@@ -402,6 +402,17 @@ std::string getVirtualDeviceIdToEligibleNumActivePortsStr(
   return folly::to<std::string>("{", folly::join(", ", stringPairs), "}");
 }
 
+MonolithicHwSwitchHandler* FOLLY_NULLABLE getMonolithicHwSwitchHandlerIf(
+    cfg::AgentRunMode runMode,
+    const MultiHwSwitchHandler* handler) {
+  if (runMode != cfg::AgentRunMode::MONO) {
+    return nullptr;
+  }
+  auto hwSwitchHandlers = handler->getHwSwitchHandlers();
+  return static_cast<MonolithicHwSwitchHandler*>(
+      hwSwitchHandlers.begin()->second);
+}
+
 } // anonymous namespace
 
 namespace std {
@@ -1003,9 +1014,8 @@ void SwSwitch::publishStatsToFsdb() {
 MonolithicHwSwitchHandler* SwSwitch::getMonolithicHwSwitchHandler() const {
   CHECK(!isRunModeMultiSwitch())
       << "Monolithic switch handler access should not be attempted in multi switch mode!";
-  auto hwSwitchHandlers = getHwSwitchHandler()->getHwSwitchHandlers();
-  return static_cast<MonolithicHwSwitchHandler*>(
-      hwSwitchHandlers.begin()->second);
+  return getMonolithicHwSwitchHandlerIf(
+      cfg::AgentRunMode::MONO, getHwSwitchHandler());
 }
 
 int16_t SwSwitch::getSwitchIndexForInterface(
