@@ -323,7 +323,6 @@ add_library(core
   fboss/agent/ResolvedNexthopMonitor.cpp
   fboss/agent/ResolvedNexthopProbe.cpp
   fboss/agent/ResolvedNexthopProbeScheduler.cpp
-  fboss/agent/ResourceAccountant.cpp
   fboss/agent/RouteUpdateLogger.cpp
   fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
   fboss/agent/StaticL2ForNeighborObserver.cpp
@@ -883,6 +882,7 @@ target_link_libraries(test_utils
 
 add_library(validate_state_update
   fboss/agent/ValidateStateUpdate.cpp
+  fboss/agent/ResourceAccountant.cpp
 )
 
 target_link_libraries(validate_state_update
@@ -891,4 +891,7 @@ target_link_libraries(validate_state_update
   switchid_scope_resolver
   hw_asic_table
   hw_switch_handler
+  agent_features
+  fib_helpers
+  ${GTEST}
 )

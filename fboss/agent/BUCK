@@ -907,7 +907,6 @@ cpp_library(
         "ResolvedNexthopMonitor.cpp",
         "ResolvedNexthopProbe.cpp",
         "ResolvedNexthopProbeScheduler.cpp",
-        "ResourceAccountant.cpp",
         "RouteUpdateLogger.cpp",
         "RouteUpdateLoggingPrefixTracker.cpp",
         "StaticL2ForNeighborObserver.cpp",
@@ -2149,12 +2148,16 @@ cpp_library(
 cpp_library(
     name = "validate_state_update",
     srcs = [
+        "ResourceAccountant.cpp",
         "ValidateStateUpdate.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/googletest:gtest",
         ":agent_config-cpp2-types",
+        ":agent_features",
         ":fboss-error",
         ":fboss-types",
+        ":fib_helpers",
         ":hw_asic_table",
         ":hw_switch_handler",
         ":switchid_scope_resolver",
