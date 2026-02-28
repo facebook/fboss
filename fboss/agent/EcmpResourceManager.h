@@ -137,6 +137,7 @@ class EcmpResourceManager {
   struct InputOutputState {
     InputOutputState(
         uint32_t _primaryEcmpGroupsCnt,
+        uint32_t _virtualEcmpGroupsCnt,
         uint32_t ecmpMemberCnt,
         const StateDelta& _in,
         bool rollingBack = false);
@@ -230,6 +231,7 @@ class EcmpResourceManager {
      * by combining 2 or more groups.
      */
     uint32_t primaryEcmpGroupsCnt{0};
+    uint32_t virtualEcmpGroupsCnt{0};
     uint32_t ecmpMemberCnt{0};
     bool updated{false};
 

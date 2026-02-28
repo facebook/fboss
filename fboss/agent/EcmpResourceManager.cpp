@@ -371,9 +371,14 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
       getPrimaryEcmpAndMemberCounts();
   if (!inOutState.has_value()) {
     inOutState = InputOutputState(
-        primaryEcmpGroupsCnt, ecmpMemberCnt, delta, rollingBack);
+        primaryEcmpGroupsCnt,
+        virtualEcmpGroupsCnt,
+        ecmpMemberCnt,
+        delta,
+        rollingBack);
   } else {
     inOutState->primaryEcmpGroupsCnt = primaryEcmpGroupsCnt;
+    inOutState->virtualEcmpGroupsCnt = virtualEcmpGroupsCnt;
     inOutState->ecmpMemberCnt = ecmpMemberCnt;
   }
   XLOG(DBG2) << " Start delta processing, primary group count: "
@@ -431,9 +436,12 @@ bool EcmpResourceManager::checkPrimaryGroupAndMemberCounts(
       getPrimaryEcmpAndMemberCounts();
   XLOG(DBG2) << " Primary ecmp groups, expected: " << primaryEcmpGroups
              << " computed:  " << inOutState.primaryEcmpGroupsCnt
+             << " Virtual ecmp groups, expected: " << virtualEcmpGroups
+             << " computed: " << inOutState.virtualEcmpGroupsCnt
              << " Ecmp member count, expected: " << ecmpMemberCnt
              << " computed: " << inOutState.ecmpMemberCnt;
-  return primaryEcmpGroups == inOutState.primaryEcmpGroupsCnt;
+  return primaryEcmpGroups == inOutState.primaryEcmpGroupsCnt &&
+      virtualEcmpGroups == inOutState.virtualEcmpGroupsCnt;
 }
 
 bool EcmpResourceManager::checkNoUnitializedGroups() const {
@@ -941,10 +949,12 @@ EcmpResourceManager::NextHopGroupIds EcmpResourceManager::getUnMergedGids()
 
 EcmpResourceManager::InputOutputState::InputOutputState(
     uint32_t _primaryEcmpGroupsCnt,
+    uint32_t _virtualEcmpGroupsCnt,
     uint32_t _ecmpMemberCnt,
     const StateDelta& _in,
     bool rollingBack)
     : primaryEcmpGroupsCnt(_primaryEcmpGroupsCnt),
+      virtualEcmpGroupsCnt(_virtualEcmpGroupsCnt),
       ecmpMemberCnt(_ecmpMemberCnt),
       rollingBack_(rollingBack) {
   /*
@@ -1380,7 +1390,11 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
    * except that we will now be able to reclaim some of the backup nhop groups.
    * */
   StateDelta delta(std::make_shared<SwitchState>(), curState);
-  InputOutputState inOutState(0, 0, delta);
+  InputOutputState inOutState(
+      0 /*primaryEcmpGroupsCnt*/,
+      0 /*virtualEcmpGroupsCnt*/,
+      0 /*ecmpMemberCnt*/,
+      delta);
   auto deltas = consolidateImpl(delta, &inOutState);
   if (!getEcmpCompressionThresholdPct()) {
     // For getBackupEcmpSwitchingMode() reclaim is completed on
@@ -1646,7 +1660,9 @@ void EcmpResourceManager::routeAddedOrUpdated(
   DCHECK_LE(
       inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
   bool ecmpLimitReached = config_.ecmpLimitReached(
-      inOutState->primaryEcmpGroupsCnt, inOutState->ecmpMemberCnt);
+      inOutState->primaryEcmpGroupsCnt,
+      inOutState->ecmpMemberCnt,
+      inOutState->virtualEcmpGroupsCnt);
   if (oldRoute) {
     DCHECK(!routeFwdEqual(oldRoute, newRoute));
     /*
@@ -2181,7 +2197,11 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(
     return std::nullopt;
   }
   InputOutputState inOutState(
-      0 /*primaryEcmpGroupsCnt*/, 0 /*ecmpMemberCnt*/, delta, rollingBack);
+      0 /*primaryEcmpGroupsCnt*/,
+      0 /*virtualEcmpGroupsCnt*/,
+      0 /*ecmpMemberCnt*/,
+      delta,
+      rollingBack);
   CHECK_EQ(inOutState.numDeltas(), 1);
   // Make changes on to current new state (which is essentially,
   // newState with old state's fibs). The first delta we will queue
