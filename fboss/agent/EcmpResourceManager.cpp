@@ -2447,8 +2447,25 @@ std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
     const HwAsic* asic,
     const EcmpResourceManager::SwitchStatsGetter& switchStatsGetter) {
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager = nullptr;
-  auto maxEcmpGroups = FLAGS_flowletSwitchingEnable ? asic->getMaxArsGroups()
-                                                    : asic->getMaxEcmpGroups();
+  std::optional<uint32_t> maxEcmpGroups;
+  if (FLAGS_flowletSwitchingEnable) {
+    // Use maxArsVirtualGroups from config if specified, otherwise fall back to
+    // maxArsGroups from ASIC
+    if (auto flowletSwitchingConfig = state->getFlowletSwitchingConfig()) {
+      auto maxArsVirtualGroups =
+          flowletSwitchingConfig->getMaxArsVirtualGroups();
+      if (maxArsVirtualGroups.has_value() && maxArsVirtualGroups.value() > 0) {
+        // TODO: Pass in virtual and non-virtual max ecmp groups
+        // and count them separately in EcmpResourceManager
+        maxEcmpGroups = static_cast<uint32_t>(maxArsVirtualGroups.value());
+      }
+    }
+    if (!maxEcmpGroups.has_value()) {
+      maxEcmpGroups = asic->getMaxArsGroups();
+    }
+  } else {
+    maxEcmpGroups = asic->getMaxEcmpGroups();
+  }
   std::optional<cfg::SwitchingMode> switchingMode;
   std::optional<int32_t> ecmpCompressionPenaltyThresholPct;
   if (auto flowletSwitchingConfig = state->getFlowletSwitchingConfig()) {

@@ -795,4 +795,46 @@ TEST_F(BaseEcmpResourceManagerTest, reloadInvalidConfigs) {
     EXPECT_THROW(sw_->applyConfig("Invalid config", newCfg), FbossError);
   }
 }
+
+TEST_F(BaseEcmpResourceManagerTest, maxArsVirtualGroupsFromConfig) {
+  FLAGS_flowletSwitchingEnable = true;
+  auto asic = sw_->getHwAsicTable()->getHwAsic(SwitchID(0));
+  auto maxArsGroupsFromAsic = asic->getMaxArsGroups();
+  ASSERT_TRUE(maxArsGroupsFromAsic.has_value());
+
+  auto computeExpectedMaxGroups = [](uint32_t maxGroups) {
+    auto percentage =
+        static_cast<double>(FLAGS_ars_resource_percentage) / 100.0;
+    return static_cast<uint32_t>(std::floor(maxGroups * percentage)) -
+        FLAGS_ecmp_resource_manager_make_before_break_buffer;
+  };
+
+  // Without maxArsVirtualGroups set, should use ASIC's maxArsGroups
+  {
+    auto ecmpMgr = makeEcmpResourceManager(state_, asic);
+    ASSERT_NE(ecmpMgr, nullptr);
+    EXPECT_EQ(
+        ecmpMgr->getMaxPrimaryEcmpGroups(),
+        computeExpectedMaxGroups(maxArsGroupsFromAsic.value()));
+  }
+
+  // With maxArsVirtualGroups set in config, should use config value
+  {
+    auto newState = state_->clone();
+    auto flowletConfig = std::make_shared<FlowletSwitchingConfig>();
+    flowletConfig->setMaxArsVirtualGroups(128);
+    flowletConfig->setBackupSwitchingMode(
+        cfg::SwitchingMode::PER_PACKET_RANDOM);
+    auto switchSettings = newState->getSwitchSettings()
+                              ->getNode(hwMatcher().matcherString())
+                              ->modify(&newState);
+    switchSettings->setFlowletSwitchingConfig(flowletConfig);
+    newState->publish();
+
+    auto ecmpMgr = makeEcmpResourceManager(newState, asic);
+    ASSERT_NE(ecmpMgr, nullptr);
+    EXPECT_EQ(
+        ecmpMgr->getMaxPrimaryEcmpGroups(), computeExpectedMaxGroups(128));
+  }
+}
 } // namespace facebook::fboss
