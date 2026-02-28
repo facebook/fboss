@@ -488,6 +488,9 @@ SwSwitch::SwSwitch(
           new ResourceAccountant(hwAsicTable_.get(), scopeResolver_.get())),
       stateUpdateValidator_(new StateUpdateValidator(
           config->getRunMode(),
+          getMonolithicHwSwitchHandlerIf(
+              config->getRunMode(),
+              multiHwSwitchHandler_.get()),
           hwAsicTable_.get(),
           scopeResolver_.get())),
       packetStreamMap_(new MultiSwitchPacketStreamMap()),
@@ -3707,16 +3710,7 @@ void SwSwitch::updateConfigAppliedInfo() {
 }
 
 bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
-  auto isValid = isStateUpdateValidCommon(delta);
-  if (isValid) {
-    if (isRunModeMonolithic()) {
-      isValid = getMonolithicHwSwitchHandler()->isValidStateUpdate(delta);
-    } else {
-      isValid = stateUpdateValidator_->isValidUpdate(delta);
-    }
-  }
-
-  return isValid;
+  return stateUpdateValidator_->isValidUpdate(delta);
 }
 
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {

@@ -10,6 +10,7 @@ class StateDelta;
 class SwitchIdScopeResolver;
 class HwAsic;
 class HwAsicTable;
+class HwSwitchHandler;
 
 bool isStateUpdateValidCommon(const StateDelta& delta);
 bool isStateUpdateValidMultiSwitch(
@@ -28,11 +29,13 @@ class StateUpdateValidator {
   bool isValidUpdate(const StateDelta& delta) const;
   StateUpdateValidator(
       const cfg::AgentRunMode& runMode,
+      const HwSwitchHandler* hwSwitchHandler,
       const HwAsicTable* asicTable,
       const SwitchIdScopeResolver* scopeResolver);
 
  private:
   cfg::AgentRunMode runMode_;
+  const HwSwitchHandler* hwSwitchHandler_;
   const HwAsicTable* asicTable_;
   const SwitchIdScopeResolver* scopeResolver_;
 };

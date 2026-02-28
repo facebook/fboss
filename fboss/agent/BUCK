@@ -2156,6 +2156,7 @@ cpp_library(
         ":fboss-error",
         ":fboss-types",
         ":hw_asic_table",
+        ":hw_switch_handler",
         ":switchid_scope_resolver",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:nodebase",
