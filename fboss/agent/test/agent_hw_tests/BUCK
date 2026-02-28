@@ -176,6 +176,7 @@ cpp_library(
         "AgentRxReasonTests.cpp",
         "AgentSendPacketToQueueTests.cpp",
         "AgentSflowMirrorTest.cpp",
+        "AgentSrv6EncapTests.cpp",
         "AgentStateReconstructionTests.cpp",
         "AgentSwitchStateReplayTest.cpp",
         "AgentSwitchStatsTxCounterTests.cpp",
