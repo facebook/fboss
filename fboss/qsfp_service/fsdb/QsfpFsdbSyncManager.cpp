@@ -117,7 +117,7 @@ void QsfpFsdbSyncManager::updatePimState(int pimId, PimState&& newState) {
         auto& PimStates = state->template ref<qsfp_state_tags::pimStates>();
         PimStates->modify(folly::to<std::string>(pimId));
         PimStates->ref(pimId)->fromThrift(newState);
-        return std::move(out);
+        return out;
       });
 }
 
