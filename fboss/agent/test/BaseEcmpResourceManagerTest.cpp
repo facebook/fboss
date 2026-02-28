@@ -839,4 +839,43 @@ TEST_F(BaseEcmpResourceManagerTest, maxArsVirtualGroupsFromConfig) {
         computeExpectedMaxGroups(maxArsGroupsFromAsic.value()));
   }
 }
+
+TEST_F(BaseEcmpResourceManagerTest, virtualGroupConfigAndLimits) {
+  FLAGS_ecmp_resource_manager_make_before_break_buffer = 2;
+
+  // Test config with virtual group settings
+  EcmpResourceManagerConfig config(
+      10, // maxNonVirtual (effective = 8 after buffer)
+      cfg::SwitchingMode::PER_PACKET_RANDOM,
+      std::make_optional<uint32_t>(5), // maxVirtual (effective = 3)
+      std::make_optional<int32_t>(65), // minWidthForVirtualGroup
+      std::make_optional<int32_t>(512), // maxVirtualGroupWidth
+      std::make_optional<int32_t>(64)); // maxEcmpWidth
+
+  // Verify buffer applied to both limits
+  EXPECT_EQ(config.getMaxPrimaryEcmpGroups(), 8);
+  EXPECT_EQ(config.getMaxVirtualEcmpGroups().value(), 3);
+
+  // Verify virtual group config values stored correctly
+  EXPECT_EQ(config.getMinWidthForVirtualGroup().value(), 65);
+  EXPECT_EQ(config.getMaxVirtualGroupWidth().value(), 512);
+  EXPECT_EQ(config.getMaxEcmpWidth().value(), 64);
+
+  // Verify limit checking with virtual count
+  EXPECT_FALSE(config.ecmpLimitReached(5, 100, 2)); // Neither reached
+  EXPECT_TRUE(config.ecmpLimitReached(8, 100, 2)); // Non-virtual reached
+  EXPECT_TRUE(config.ecmpLimitReached(5, 100, 3)); // Virtual reached
+
+  // Verify limit checking without virtual count
+  EXPECT_FALSE(config.ecmpLimitReached(5, 100));
+  EXPECT_TRUE(config.ecmpLimitReached(8, 100));
+
+  // Test config without virtual groups falls back to standard behavior
+  EcmpResourceManagerConfig configNoVirtual(
+      10, cfg::SwitchingMode::PER_PACKET_RANDOM);
+  EXPECT_FALSE(configNoVirtual.getMaxVirtualEcmpGroups().has_value());
+  EXPECT_FALSE(configNoVirtual.getMinWidthForVirtualGroup().has_value());
+  // High virtual count ignored when not configured
+  EXPECT_FALSE(configNoVirtual.ecmpLimitReached(5, 100, 1000));
+}
 } // namespace facebook::fboss
