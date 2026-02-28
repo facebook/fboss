@@ -215,7 +215,9 @@ StateUpdateValidator::StateUpdateValidator(
       asicTable_(asicTable),
       scopeResolver_(scopeResolver) {}
 
-bool StateUpdateValidator::isValidUpdate(const StateDelta& delta) const {
+bool StateUpdateValidator::isValidUpdate(
+    const StateDelta& delta,
+    SwitchStats* /* stats */) const {
   switch (runMode_) {
     case cfg::AgentRunMode::MONO: {
       return isStateUpdateValidCommon(delta) &&
