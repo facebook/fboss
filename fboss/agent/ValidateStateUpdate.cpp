@@ -202,4 +202,14 @@ bool isStateUpdateValidMultiSwitch(
   return isStateUpdateValidMultiSwitch(delta, resolver, {{switchID, asic}});
 }
 
+StateUpdateValidator::StateUpdateValidator(
+    const HwAsicTable* asicTable,
+    const SwitchIdScopeResolver* scopeResolver)
+    : asicTable_(asicTable), scopeResolver_(scopeResolver) {}
+
+bool StateUpdateValidator::isValidUpdate(const StateDelta& /*delta*/) const {
+  /* TODO : implement this */
+  return true;
+}
+
 } // namespace facebook::fboss

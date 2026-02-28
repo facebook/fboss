@@ -8,6 +8,7 @@ namespace facebook::fboss {
 class StateDelta;
 class SwitchIdScopeResolver;
 class HwAsic;
+class HwAsicTable;
 
 bool isStateUpdateValidCommon(const StateDelta& delta);
 bool isStateUpdateValidMultiSwitch(
@@ -20,5 +21,17 @@ bool isStateUpdateValidMultiSwitch(
     const SwitchIdScopeResolver* resolver,
     SwitchID switchID,
     const HwAsic* asic);
+
+class StateUpdateValidator {
+ public:
+  bool isValidUpdate(const StateDelta& delta) const;
+  StateUpdateValidator(
+      const HwAsicTable* asicTable,
+      const SwitchIdScopeResolver* scopeResolver);
+
+ private:
+  const HwAsicTable* asicTable_;
+  const SwitchIdScopeResolver* scopeResolver_;
+};
 
 } // namespace facebook::fboss
