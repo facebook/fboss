@@ -777,8 +777,8 @@ class AgentFlowletWideArsSwitchingTest : public AgentFlowletSwitchingTest {
   }
   void setCmdLineFlagOverrides() const override {
     AgentFlowletSwitchingTest::setCmdLineFlagOverrides();
-    FLAGS_dlbResourceCheckEnable = false;
-    FLAGS_enable_route_resource_protection = false;
+    FLAGS_dlbResourceCheckEnable = true;
+    FLAGS_enable_route_resource_protection = true;
     FLAGS_ecmp_width = kWideEcmpWidth;
   }
 
