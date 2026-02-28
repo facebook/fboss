@@ -110,7 +110,9 @@ class EcmpResourceManager {
   NextHopGroupIds getUnMergedGids() const;
   NextHopGroupIds getMergedGids() const;
   std::vector<NextHopGroupIds> getMergedGroups() const;
-  std::pair<uint32_t, uint32_t> getPrimaryEcmpAndMemberCounts() const;
+  // <ecmp_count, virtual_ecmp_count, member_count>
+  std::tuple<uint32_t, uint32_t, uint32_t> getPrimaryEcmpAndMemberCounts()
+      const;
   NextHopGroupIdToPrefixes getGidToPrefixes() const;
   /*
    * Test helper APIs. Used mainly in UTs. Not neccessarily opimized for
@@ -411,6 +413,7 @@ class EcmpResourceManager {
   NextHopGroupId findCachedOrNewIdForNhops(
       const RouteNextHopSet& nhops,
       const InputOutputState& inOutState) const;
+  bool isVirtualArsGroup(const RouteNextHopSet& nhops) const;
   void validateCfgUpdate(
       uint32_t compressionPenaltyThresholdPct,
       const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;
