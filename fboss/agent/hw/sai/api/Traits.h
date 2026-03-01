@@ -14,6 +14,7 @@
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
 
+#include <fmt/core.h>
 #include <type_traits>
 #include <variant>
 
@@ -217,6 +218,11 @@ struct WrappedSaiType<std::vector<sai_system_port_config_t>> {
   using value = sai_system_port_config_list_t;
 };
 
+template <>
+struct WrappedSaiType<std::vector<folly::IPAddressV6>> {
+  using value = sai_segment_list_t;
+};
+
 template <typename T>
 class AclEntryField {
  public:
@@ -227,7 +233,7 @@ class AclEntryField {
   }
 
   void setDataAndMask(T dataAndMask) {
-    dataAndMask_ = dataAndMask;
+    dataAndMask_ = std::move(dataAndMask);
   }
 
   std::string str() const {
@@ -325,7 +331,7 @@ class AclEntryAction {
   }
 
   void setData(T data) {
-    data_ = data;
+    data_ = std::move(data);
   }
 
   std::string str() const {

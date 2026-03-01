@@ -41,6 +41,7 @@
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SamplePacketApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SchedulerApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/Srv6ApiTracer.h" // @manual
 #include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SwitchPipelineApiTracer.h" // NOLINT(facebook-unused-include-check)
 #include "fboss/agent/hw/sai/tracer/SystemPortApiTracer.h"
@@ -408,6 +409,14 @@ sai_status_t __wrap_sai_api_query(
       *api_method_table = facebook::fboss::wrappedTunnelApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "tunnel_api");
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    case SAI_API_SRV6:
+      SaiTracer::getInstance()->srv6Api_ =
+          static_cast<sai_srv6_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedSrv6Api();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "srv6_api");
+      break;
+#endif
     case SAI_API_UDF:
       SaiTracer::getInstance()->udfApi_ =
           static_cast<sai_udf_api_t*>(*api_method_table);

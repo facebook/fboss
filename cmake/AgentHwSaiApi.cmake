@@ -44,6 +44,7 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/PortApi.cpp
   fboss/agent/hw/sai/api/RouteApi.cpp
   fboss/agent/hw/sai/api/SaiApiLock.cpp
+  fboss/agent/hw/sai/api/SaiAttribute.cpp
   fboss/agent/hw/sai/api/SaiApiTable.cpp
   fboss/agent/hw/sai/api/SwitchApi.cpp
   fboss/agent/hw/sai/api/DebugCounterApi.cpp
@@ -77,6 +78,7 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/TamApi.h
   fboss/agent/hw/sai/api/TamEventAgingGroupApi.h
   fboss/agent/hw/sai/api/Traits.h
+  fboss/agent/hw/sai/api/Srv6Api.h
   fboss/agent/hw/sai/api/TunnelApi.h
   fboss/agent/hw/sai/api/Types.h
   fboss/agent/hw/sai/api/UdfApi.h

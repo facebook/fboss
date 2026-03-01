@@ -265,6 +265,9 @@ class SaiTracer {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   sai_tam_event_aging_group_api_t* tamEventAgingGroupApi_;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  sai_srv6_api_t* srv6Api_{nullptr};
+#endif
   sai_tunnel_api_t* tunnelApi_;
   sai_udf_api_t* udfApi_;
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
