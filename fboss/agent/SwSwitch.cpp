@@ -337,7 +337,7 @@ void accumulateGlobalCpuStats(
   for (const auto& [queue, value] : toAdd.queueInPackets_().value()) {
     (*accumulated.queueInPackets_())[queue] += value;
   }
-  for (const auto& [queue, value] : toAdd.queueInPackets_().value()) {
+  for (const auto& [queue, value] : toAdd.queueDiscardPackets_().value()) {
     (*accumulated.queueDiscardPackets_())[queue] += value;
   }
   for (const auto& [queue, name] : toAdd.queueToName_().value()) {
