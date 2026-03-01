@@ -278,6 +278,7 @@ cfg::PortQueueRate getPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
   } else {
     uint32_t kbps;
     if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+        hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4 ||
         hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D) {
       kbps = kCoppDnxLowPriKbitsPerSec;
     } else {

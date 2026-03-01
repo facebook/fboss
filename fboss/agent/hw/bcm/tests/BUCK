@@ -495,11 +495,9 @@ cpp_unittest(
         "BcmCosQueueFBConvertorsTests.cpp",
     ],
     deps = [
+        "fbsource//third-party/glog:glog",
         "//fboss/agent:fboss-error",
         "//fboss/agent/hw/bcm:bcm_cosqueue_fb_convertors",
-    ],
-    external_deps = [
-        "glog",
     ],
 )
 
@@ -537,11 +535,11 @@ cpp_unittest(
         "BcmFieldProcessorFBConvertorsTests.cpp",
     ],
     deps = [
+        "fbsource//third-party/glog:glog",
         "//fboss/agent:fboss-error",
         "//fboss/agent/hw/bcm:bcm_fieldprocessor_fb_convertors",
     ],
     external_deps = [
-        "glog",
         ("broadcom-xgs-robo", None, "xgs_robo"),
     ],
 )
@@ -551,8 +549,10 @@ cpp_unittest(
     srcs = [
         "GPort.cpp",
     ],
+    deps = [
+        "fbsource//third-party/glog:glog",
+    ],
     external_deps = [
-        "glog",
         ("broadcom-xgs-robo", None, "xgs_robo"),
     ],
 )

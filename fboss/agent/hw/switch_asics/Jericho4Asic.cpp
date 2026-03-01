@@ -49,7 +49,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
-    case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
     case HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER:
@@ -135,6 +134,7 @@ bool Jericho4Asic::isSupported(Feature feature) const {
       // supported only on the SIM
       return getAsicMode() == AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::SWITCH_ISOLATE:
+    case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
