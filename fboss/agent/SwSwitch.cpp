@@ -1677,7 +1677,7 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
   // lookup in rx path.
   updateAddrToLocalIntf(delta);
 
-  for (auto observerName : stateObservers_) {
+  for (const auto& observerName : stateObservers_) {
     try {
       auto observer = observerName.first;
       observer->stateUpdated(delta);
