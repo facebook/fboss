@@ -2423,7 +2423,7 @@ void SaiSwitch::updatePmdInfo(
     eyeInfos[eyeStatus[i].lane].push_back(oneLaneEyeInfo);
   }
 
-  for (auto eyeInfo : eyeInfos) {
+  for (const auto& eyeInfo : eyeInfos) {
     auto laneId = eyeInfo.first;
     phy::LaneStats laneStat;
     if (laneStats.find(laneId) != laneStats.end()) {
@@ -2438,7 +2438,7 @@ void SaiSwitch::updatePmdInfo(
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
   auto pmdSignalDetect = managerTable_->portManager().getRxSignalDetect(
       port->adapterKey(), numPmdLanes, portID);
-  for (auto pmd : pmdSignalDetect) {
+  for (const auto& pmd : pmdSignalDetect) {
     auto laneId = pmd.lane;
     phy::LaneStats laneStat;
     phy::LaneState laneState;
@@ -2460,7 +2460,7 @@ void SaiSwitch::updatePmdInfo(
 
   auto pmdLockStatus = managerTable_->portManager().getRxLockStatus(
       port->adapterKey(), numPmdLanes, portID);
-  for (auto pmd : pmdLockStatus) {
+  for (const auto& pmd : pmdLockStatus) {
     auto laneId = pmd.lane;
     phy::LaneStats laneStat;
     phy::LaneState laneState;
@@ -2531,10 +2531,10 @@ void SaiSwitch::updatePmdInfo(
     laneState.serdesParameters() = serdesParams;
     laneStates[laneId] = laneState;
   }
-  for (auto laneStat : laneStats) {
+  for (const auto& laneStat : laneStats) {
     sideStats.pmd()->lanes()[laneStat.first] = laneStat.second;
   }
-  for (auto laneState : laneStates) {
+  for (const auto& laneState : laneStates) {
     sideState.pmd()->lanes()[laneState.first] = laneState.second;
   }
 }
@@ -2568,7 +2568,7 @@ void SaiSwitch::updatePcsInfo(
     auto fecAmLock = managerTable_->portManager().getFecAlignmentLockStatus(
         port->adapterKey(), fecLanes);
     phy::RsFecState fecState;
-    for (auto fecAm : fecAmLock) {
+    for (const auto& fecAm : fecAmLock) {
       // SDKs sometimes return data for more FEC lanes than the FEC block on
       // the port actually uses
       if (fecAm.lane < fecLanes) {
