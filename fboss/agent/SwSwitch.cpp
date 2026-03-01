@@ -2691,6 +2691,11 @@ void SwSwitch::linkAdminStateChangedByFw(
           // the problem persists.
           XLOG(DBG2) << "Admin Disable link disabled by Firmware: " << portId;
           auto* port = newState->getPorts()->getNodeIf(portId).get();
+          if (!port) {
+            XLOG(ERR) << "Port not found for firmware disabled portId: "
+                      << portId;
+            continue;
+          }
           auto newPort = port->modify(&newState);
           newPort->setAdminState(cfg::PortState::DISABLED);
           newPort->addError(PortError::LINK_DISABLED_BY_FIRMWARE);
