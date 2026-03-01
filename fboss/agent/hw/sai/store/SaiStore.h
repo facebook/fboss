@@ -692,6 +692,9 @@ class SaiStore {
       SaiObjectStore<SaiTamTransportTraits>,
       SaiObjectStore<SaiTamCollectorTraits>,
       SaiObjectStore<SaiTunnelTraits>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      SaiObjectStore<SaiSrv6SidListTraits>,
+#endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
       SaiObjectStore<SaiVendorSwitchTraits>,
 #endif
